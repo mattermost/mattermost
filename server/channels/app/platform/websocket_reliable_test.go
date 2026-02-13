@@ -72,7 +72,7 @@ func TestUnmarshalDQFullBuffer(t *testing.T) {
 	t.Run("dq full", func(t *testing.T) {
 		// Create exactly deadQueueSize events
 		events := make([]*model.WebSocketEvent, deadQueueSize)
-		for i := 0; i < deadQueueSize; i++ {
+		for i := range deadQueueSize {
 			events[i] = model.NewWebSocketEvent(model.WebsocketEventPosted, "t1", "c1", "u1", nil, "").SetSequence(int64(i))
 		}
 
@@ -97,7 +97,7 @@ func TestUnmarshalDQFullBuffer(t *testing.T) {
 		// Alternative test: Create a simulation of the circular buffer behavior
 		// This test fills up to the max and ensures wraparound works correctly
 		events := make([]*model.WebSocketEvent, deadQueueSize)
-		for i := 0; i < deadQueueSize; i++ {
+		for i := range deadQueueSize {
 			// Create events with sequence numbers that show wraparound
 			// Last event will have highest sequence to demonstrate the break condition
 			// Seq nos: 100 - 228

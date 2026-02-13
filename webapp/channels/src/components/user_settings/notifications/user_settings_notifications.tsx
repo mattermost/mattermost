@@ -12,12 +12,7 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-
-import {TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent} from 'mattermost-redux/constants/telemetry';
-
-import {trackFeatureEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
@@ -37,7 +32,7 @@ import SendTestNotificationNotice from './send_test_notification_notice';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-import type {PropsFromRedux} from './index';
+import type {OwnProps, PropsFromRedux} from './index';
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -45,16 +40,6 @@ const COMMA_REGEX = /,/g;
 type MultiInputValue = {
     label: string;
     value: string;
-}
-
-export type OwnProps = {
-    user: UserProfile;
-    updateSection: (section: string) => void;
-    activeSection: string;
-    closeModal: () => void;
-    collapseModal: () => void;
-    adminMode?: boolean;
-    userPreferences?: PreferencesType;
 }
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
@@ -228,7 +213,7 @@ function getDefaultStateFromProps(props: Props): State {
     };
 }
 
-const Input = (props: InputProps<MultiInputValue, true>) => {
+export const CreatableReactSelectInput = (props: InputProps<MultiInputValue, true>) => {
     const ariaProps = {
         'aria-labelledby': 'settingTitle',
     };
@@ -301,9 +286,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys.join(',');
-        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys && data.highlight_keys.length > 0) {
-            trackFeatureEvent(TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent);
-        }
 
         this.setState({isSaving: true});
         stopTryNotificationRing();
@@ -609,7 +591,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
-                            Input,
+                            Input: CreatableReactSelectInput,
                         }}
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
@@ -1033,7 +1015,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 id='user.settings.notifications.learnMore'
                                 defaultMessage='<a>Learn more about notifications</a>'
                                 values={{
-                                    a: (chunks: string) => ((
+                                    a: (chunks) => ((
                                         <ExternalLink
                                             location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'

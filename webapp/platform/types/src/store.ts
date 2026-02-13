@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import type {AdminState} from './admin';
+import type {LLMService} from './agents';
 import type {AppsState} from './apps';
 import type {Bot} from './bots';
 import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
+import type {ContentFlaggingState} from './content_flagging';
 import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
@@ -18,6 +20,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -44,6 +47,21 @@ export type GlobalState = {
         channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
+        recaps: {
+            byId: Record<string, Recap>;
+            allIds: string[];
+        };
+        agents: {
+            agents: Array<{
+                id: string;
+                displayName: string;
+                username: string;
+                service_id: string;
+                service_type: string;
+            }>;
+            llmServices: LLMService[];
+            agentsStatus: {available: boolean; reason?: string};
+        };
         bots: {
             accounts: Record<string, Bot>;
         };
@@ -82,6 +100,7 @@ export type GlobalState = {
             remotes?: Record<string, RemoteClusterInfo[]>;
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
+        contentFlagging: ContentFlaggingState;
     };
     errors: any[];
     requests: {

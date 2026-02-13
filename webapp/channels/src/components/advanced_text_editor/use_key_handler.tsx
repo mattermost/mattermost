@@ -34,7 +34,6 @@ const useKeyHandler = (
     draft: PostDraft,
     channelId: string,
     postId: string,
-    caretPosition: number,
     isValidPersistentNotifications: boolean,
     location: string,
     textboxRef: React.RefObject<TextboxClass>,
@@ -119,7 +118,7 @@ const useKeyHandler = (
             codeBlockOnCtrlEnter,
             postId ? 0 : Date.now(),
             postId ? 0 : lastChannelSwitchAt.current,
-            caretPosition,
+            textboxRef.current?.getInputBox()?.selectionStart,
         );
 
         if (ignoreKeyPress) {
@@ -135,7 +134,7 @@ const useKeyHandler = (
         }
 
         emitTypingEvent();
-    }, [draft, ctrlSend, codeBlockOnCtrlEnter, caretPosition, postId, emitTypingEvent, handleSubmit, isValidPersistentNotifications]);
+    }, [draft, ctrlSend, codeBlockOnCtrlEnter, postId, emitTypingEvent, handleSubmit, isValidPersistentNotifications, textboxRef]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -193,6 +192,8 @@ const useKeyHandler = (
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = draft.message.length === 0;
         const allowHistoryNavigation = draft.message.length === 0 || draft.message === messageHistory[messageHistoryIndex.current];
+
+        const caretPosition = (e.target as HTMLTextAreaElement).selectionStart;
         const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(draft.message, caretPosition); // REVIEW
 
         if (upKeyOnly && messageIsEmpty) {
@@ -347,7 +348,6 @@ const useKeyHandler = (
         }
     }, [
         applyMarkdown,
-        caretPosition,
         codeBlockOnCtrlEnter,
         ctrlSend,
         dispatch,
@@ -364,19 +364,21 @@ const useKeyHandler = (
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         toggleShowPreview,
+        isInEditMode,
+        location,
     ]);
 
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, isInEditMode);
         }
 
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition]);
+    }, [location, draft.message, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();

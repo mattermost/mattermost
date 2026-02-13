@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
@@ -66,6 +67,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
@@ -147,6 +149,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com?simply=lovely"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr = th.App.CreateOAuthApp(oappWithQueryParamInCallback)
@@ -191,6 +194,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
@@ -237,12 +241,12 @@ func TestOAuthAccessToken(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -250,6 +254,7 @@ func TestOAuthAccessToken(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 	oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
 	require.Nil(t, appErr)
@@ -512,17 +517,18 @@ func TestOAuthComplete(t *testing.T) {
 	// We are going to use mattermost as the provider emulating gitlab
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
-		Name:        "TestApp5" + model.NewId(),
-		Homepage:    "https://nowhere.com",
-		Description: "test",
+		Name:         "TestApp5" + model.NewId(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 		CallbackUrls: []string{
 			apiClient.URL + "/signup/" + model.ServiceGitlab + "/complete",
 			apiClient.URL + "/login/" + model.ServiceGitlab + "/complete",
@@ -695,7 +701,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -766,7 +772,7 @@ func (th *TestHelper) Logout(client *model.Client4) {
 	client.AuthToken = ""
 }
 
-func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
+func (th *TestHelper) SaveDefaultRolePermissions(tb testing.TB) map[string][]string {
 	results := make(map[string][]string)
 
 	for _, roleName := range []string{
@@ -777,22 +783,18 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(tb, appErr)
 
 		results[roleName] = role.Permissions
 	}
 	return results
 }
 
-func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
+func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(tb, appErr)
 
 		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
 			continue
@@ -800,10 +802,8 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		role.Permissions = permissions
 
-		_, err2 := th.App.UpdateRole(role)
-		if err2 != nil {
-			panic(err2)
-		}
+		_, appErr = th.App.UpdateRole(role)
+		require.Nil(tb, appErr)
 	}
 }
 
@@ -839,37 +839,301 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // 	utils.EnableDebugLogForTest()
 // }
 
-func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-	if err1 != nil {
-		panic(err1)
-	}
+func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
+	require.Nil(tb, appErr)
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
-	if err2 != nil {
-		panic(err2)
-	}
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(tb, appErr)
 }
 
 func TestFullyQualifiedRedirectURL(t *testing.T) {
 	const siteURL = "https://xxx.yyy/mm"
+
 	for target, expected := range map[string]string{
-		"":            "https://xxx.yyy/mm",
-		"/":           "https://xxx.yyy/mm/",
-		"some-path":   "https://xxx.yyy/mm/some-path",
-		"/some-path":  "https://xxx.yyy/mm/some-path",
-		"/some-path/": "https://xxx.yyy/mm/some-path/",
+		"":                                     siteURL,
+		"/":                                    siteURL + "/",
+		"some-path":                            siteURL + "/some-path",
+		"/some-path":                           siteURL + "/some-path",
+		"/some-path/":                          siteURL + "/some-path/",
+		"/some-path?foo=bar":                   siteURL + "/some-path?foo=bar",
+		"/some-path#section":                   siteURL + "/some-path#section",
+		"../bad-path":                          siteURL,
+		"/index.html":                          siteURL + "/index.html",
+		"//evil.com":                           siteURL,
+		"https://xxx.yyy/mm":                   siteURL,
+		"https://xxx.yyy/mm//double-concat":    siteURL + "//double-concat",
+		"https://xxx.yyy/other-path/":          siteURL,
+		"https://xxx.yyy/mm/some-path":         siteURL + "/some-path",
+		"https://yyy.zzz/mm/some-path":         siteURL,
+		"https://xxx.yyy/mm/some-path?foo=bar": siteURL + "/some-path?foo=bar",
+		"https://xxx.yyy/mm/some-path#section": siteURL + "/some-path#section",
+		"https://xxx.yyy/mm/../malicious-path": siteURL,
+		":foo":                                 siteURL,
+		"mmauth://callback":                    "mmauth://callback",
+		"mmauth://xxx.yyy/mm":                  siteURL, // invalid mobile URL (wrong host)
 	} {
 		t.Run(target, func(t *testing.T) {
-			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))
+			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target, []string{"mmauth://"}))
 		})
 	}
+}
+
+func TestAuthorizeOAuthPage(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	// Helper function to create context with session
+	createContext := func() *Context {
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+			Token:  model.NewId(),
+		}
+		c.AppContext = c.AppContext.WithSession(session)
+		return c
+	}
+
+	t.Run("PublicClient_PKCERequired", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		requestURL := "/oauth/authorize?response_type=code&client_id=" + publicApp.Id + "&redirect_uri=" + url.QueryEscape(publicApp.CallbackUrls[0]) + "&state=test_state"
+		request := httptest.NewRequest(http.MethodGet, requestURL, nil)
+
+		authorizeOAuthPage(c, responseWriter, request)
+
+		assert.Contains(t, responseWriter.Body.String(), "PKCE+is+required+for+public+clients")
+	})
+
+	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		publicApp.IsTrusted = true
+		existingApp, getErr := th.App.GetOAuthApp(publicApp.Id)
+		require.Nil(t, getErr)
+		_, updateErr := th.App.UpdateOAuthApp(existingApp, publicApp)
+		require.Nil(t, updateErr)
+
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+		request := httptest.NewRequest(http.MethodGet,
+			"/oauth/authorize?response_type=code&client_id="+publicApp.Id+"&redirect_uri="+url.QueryEscape(publicApp.CallbackUrls[0])+
+				"&state=test_state&code_challenge="+codeChallenge+"&code_challenge_method="+codeChallengeMethod, nil)
+
+		authorizeOAuthPage(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusFound, responseWriter.Code)
+		location := responseWriter.Header().Get("Location")
+		assert.Contains(t, location, "https://example.com/callback")
+		assert.Contains(t, location, "code=")
+		assert.Contains(t, location, "state=test_state")
+	})
+
+	t.Run("ConfidentialClient_PKCEOptional", func(t *testing.T) {
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: "test-secret",
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+
+		confidentialApp.IsTrusted = true
+		existingApp, getErr := th.App.GetOAuthApp(confidentialApp.Id)
+		require.Nil(t, getErr)
+		_, updateErr := th.App.UpdateOAuthApp(existingApp, confidentialApp)
+		require.Nil(t, updateErr)
+
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet,
+			"/oauth/authorize?response_type=code&client_id="+confidentialApp.Id+"&redirect_uri="+url.QueryEscape(confidentialApp.CallbackUrls[0])+"&state=test_state", nil)
+
+		authorizeOAuthPage(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusFound, responseWriter.Code)
+		location := responseWriter.Header().Get("Location")
+		assert.Contains(t, location, "https://example.com/callback")
+		assert.Contains(t, location, "code=")
+		assert.Contains(t, location, "state=test_state")
+	})
+}
+
+func TestAuthorizeOAuthAppHandler(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	// Helper function to create context with session
+	createContext := func() *Context {
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+			Token:  model.NewId(),
+		}
+		c.AppContext = c.AppContext.WithSession(session)
+		return c
+	}
+
+	t.Run("PublicClient_PKCEParameters", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		c := createContext()
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.AuthCodeResponseType,
+			ClientId:            publicApp.Id,
+			RedirectURI:         publicApp.CallbackUrls[0],
+			State:               "test_state",
+			Scope:               "user",
+			CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
+		}
+
+		requestBodyBytes, err := json.Marshal(authRequest)
+		require.NoError(t, err)
+		requestBody := strings.NewReader(string(requestBodyBytes))
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/oauth/authorize", requestBody)
+		request.Header.Set("Content-Type", "application/json")
+
+		authorizeOAuthApp(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusOK, responseWriter.Code)
+
+		var response map[string]string
+		err = json.Unmarshal(responseWriter.Body.Bytes(), &response)
+		require.NoError(t, err)
+
+		redirectURL := response["redirect"]
+		assert.NotEmpty(t, redirectURL)
+		assert.Contains(t, redirectURL, "code=")
+	})
+}
+
+func TestGetAccessToken(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	// Helper function to create context
+	createContext := func() *Context {
+		return &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
+	}
+
+	t.Run("PublicClient_NoClientSecret", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.AuthCodeResponseType,
+			ClientId:            publicApp.Id,
+			RedirectURI:         publicApp.CallbackUrls[0],
+			State:               "test_state",
+			Scope:               "user",
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		c := createContext()
+
+		formData := url.Values{}
+		formData.Set("grant_type", model.AccessTokenGrantType)
+		formData.Set("code", code)
+		formData.Set("redirect_uri", publicApp.CallbackUrls[0])
+		formData.Set("client_id", publicApp.Id)
+		formData.Set("code_verifier", codeVerifier)
+
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/oauth/access_token", strings.NewReader(formData.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		getAccessToken(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusOK, responseWriter.Code)
+
+		var tokenResponse model.AccessResponse
+		err = json.Unmarshal(responseWriter.Body.Bytes(), &tokenResponse)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, tokenResponse.AccessToken)
+		assert.Equal(t, model.AccessTokenType, tokenResponse.TokenType)
+		assert.Empty(t, tokenResponse.RefreshToken)
+	})
 }

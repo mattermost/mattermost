@@ -13,9 +13,9 @@
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Integrations', () => {
-    const away = {name: 'away', ariaLabel: 'Away Icon', message: 'You are now away', className: 'icon-clock'};
-    const offline = {name: 'offline', ariaLabel: 'Offline Icon', message: 'You are now offline', className: 'icon-circle-outline'};
-    const online = {name: 'online', ariaLabel: 'Online Icon', message: 'You are now online', className: 'icon-check', profileClassName: 'icon-check-circle'};
+    const away = {name: 'away', ariaLabel: 'Away', message: 'You are now away', className: 'icon-clock'};
+    const offline = {name: 'offline', ariaLabel: 'Offline', message: 'You are now offline', className: 'icon-circle-outline'};
+    const online = {name: 'online', ariaLabel: 'Online', message: 'You are now online', className: 'icon-check', profileClassName: 'icon-check-circle'};
 
     before(() => {
         // # Login as test user and go to off-topic

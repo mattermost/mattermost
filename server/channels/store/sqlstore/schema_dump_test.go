@@ -16,18 +16,6 @@ import (
 
 func TestGetSchemaDefinition(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
-		t.Run("MySQL", func(t *testing.T) {
-			if ss.(*SqlStore).DriverName() != model.DatabaseDriverMysql {
-				t.Skip("Skipping test as database is not MySQL")
-			}
-
-			// Schema dump is only supported for Postgres
-			schemaInfo, err := ss.GetSchemaDefinition()
-			require.Error(t, err)
-			require.Nil(t, schemaInfo)
-			assert.Contains(t, err.Error(), "only supported for Postgres")
-		})
-
 		t.Run("PostgreSQL", func(t *testing.T) {
 			if ss.(*SqlStore).DriverName() != model.DatabaseDriverPostgres {
 				t.Skip("Skipping test as database is not PostgreSQL")
@@ -84,21 +72,22 @@ func TestGetSchemaDefinition(t *testing.T) {
 				if table.Name == "channels" {
 					// Check that indexes are present
 					assert.NotEmpty(t, table.Indexes, "channels table should have indexes")
-					assert.Equal(t, 11, len(table.Indexes), "channels table should have 11 indexes")
+					assert.Equal(t, 12, len(table.Indexes), "channels table should have 12 indexes")
 
 					// Expected index definitions
 					expectedIndexDefs := map[string]string{
-						"idx_channels_delete_at":            "CREATE INDEX idx_channels_delete_at ON public.channels USING btree (deleteat)",
-						"idx_channels_create_at":            "CREATE INDEX idx_channels_create_at ON public.channels USING btree (createat)",
-						"channels_pkey":                     "CREATE UNIQUE INDEX channels_pkey ON public.channels USING btree (id)",
-						"channels_name_teamid_key":          "CREATE UNIQUE INDEX channels_name_teamid_key ON public.channels USING btree (name, teamid)",
-						"idx_channels_displayname_lower":    "CREATE INDEX idx_channels_displayname_lower ON public.channels USING btree (lower((displayname)::text))",
-						"idx_channels_name_lower":           "CREATE INDEX idx_channels_name_lower ON public.channels USING btree (lower((name)::text))",
-						"idx_channels_update_at":            "CREATE INDEX idx_channels_update_at ON public.channels USING btree (updateat)",
-						"idx_channel_search_txt":            "CREATE INDEX idx_channel_search_txt ON public.channels USING gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)))",
-						"idx_channels_scheme_id":            "CREATE INDEX idx_channels_scheme_id ON public.channels USING btree (schemeid)",
-						"idx_channels_team_id_display_name": "CREATE INDEX idx_channels_team_id_display_name ON public.channels USING btree (teamid, displayname)",
-						"idx_channels_team_id_type":         "CREATE INDEX idx_channels_team_id_type ON public.channels USING btree (teamid, type)",
+						"idx_channels_delete_at":               "CREATE INDEX idx_channels_delete_at ON public.channels USING btree (deleteat)",
+						"idx_channels_create_at":               "CREATE INDEX idx_channels_create_at ON public.channels USING btree (createat)",
+						"channels_pkey":                        "CREATE UNIQUE INDEX channels_pkey ON public.channels USING btree (id)",
+						"channels_name_teamid_key":             "CREATE UNIQUE INDEX channels_name_teamid_key ON public.channels USING btree (name, teamid)",
+						"idx_channels_displayname_lower":       "CREATE INDEX idx_channels_displayname_lower ON public.channels USING btree (lower((displayname)::text))",
+						"idx_channels_name_lower":              "CREATE INDEX idx_channels_name_lower ON public.channels USING btree (lower((name)::text))",
+						"idx_channels_update_at":               "CREATE INDEX idx_channels_update_at ON public.channels USING btree (updateat)",
+						"idx_channel_search_txt":               "CREATE INDEX idx_channel_search_txt ON public.channels USING gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)))",
+						"idx_channels_scheme_id":               "CREATE INDEX idx_channels_scheme_id ON public.channels USING btree (schemeid)",
+						"idx_channels_team_id_display_name":    "CREATE INDEX idx_channels_team_id_display_name ON public.channels USING btree (teamid, displayname)",
+						"idx_channels_team_id_type":            "CREATE INDEX idx_channels_team_id_type ON public.channels USING btree (teamid, type)",
+						"idx_channels_autotranslation_enabled": "CREATE INDEX idx_channels_autotranslation_enabled ON public.channels USING btree (id) WHERE (autotranslation = true)",
 					}
 
 					// Verify all expected indexes are present with correct definitions

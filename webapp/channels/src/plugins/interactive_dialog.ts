@@ -6,14 +6,14 @@ import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {openModal} from 'actions/views/modals';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 
 import {ModalIdentifiers} from 'utils/constants';
 
 export function openInteractiveDialog(dialog: any): void {
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 // This code is problematic for a couple of different reasons:
@@ -39,5 +39,5 @@ store.subscribe(() => {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 });

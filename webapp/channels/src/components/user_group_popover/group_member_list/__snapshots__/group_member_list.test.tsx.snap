@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/user_group_popover/group_member_list should match snapshot 1`] = `
 <Provider
@@ -27,7 +27,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
           "listen": [Function],
           "location": Object {
             "hash": "",
-            "pathname": "undefinedundefined",
+            "pathname": "/",
             "search": "",
             "state": undefined,
           },
@@ -299,7 +299,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
               }
             }
           >
-            <Component>
+            <AutoSizer>
               <InfiniteLoader
                 isItemLoaded={[Function]}
                 itemCount={5}
@@ -432,7 +432,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -611,7 +611,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -790,7 +790,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -969,7 +969,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -1148,7 +1148,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -1239,7 +1239,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                   </div>
                 </List>
               </InfiniteLoader>
-            </Component>
+            </AutoSizer>
           </div>
         </UserList>
       </Memo(GroupMemberList)>

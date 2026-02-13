@@ -7,7 +7,12 @@ let keywords: string[];
 const highlightWithoutNotificationClass = 'non-notification-highlight';
 
 test.beforeEach(async ({pw}) => {
-    keywords = [`AB${pw.random.id()}`, `CD${pw.random.id()}`, `EF${pw.random.id()}`, `Highlight me ${pw.random.id()}`];
+    keywords = [
+        `AB${await pw.random.id()}`,
+        `CD${await pw.random.id()}`,
+        `EF${await pw.random.id()}`,
+        `Highlight me ${await pw.random.id()}`,
+    ];
 });
 
 test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw}) => {
@@ -93,7 +98,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
     await notificationsSettings.save();
 
     // # Close the settings modal
-    await settingsModal.closeModal();
+    await settingsModal.close();
 
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
@@ -147,7 +152,7 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
     await notificationsSettings.save();
 
     // # Close the settings modal
-    await settingsModal.closeModal();
+    await settingsModal.close();
 
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
@@ -203,7 +208,7 @@ test('MM-T5465-4 Highlighted keywords should not appear in the Recent Mentions',
     await notificationsSettings.save();
 
     // # Close the settings modal
-    await settingsModal.closeModal();
+    await settingsModal.close();
 
     // # Open the recent mentions
     await channelsPage.globalHeader.openRecentMentions();
@@ -263,7 +268,7 @@ test('MM-T5465-5 Should highlight keywords in message sent from another user', a
     await notificationsSettings.save();
 
     // # Close the settings modal
-    await settingsModal.closeModal();
+    await settingsModal.close();
 
     // * Verify that the keywords are highlighted in the last message received
     const lastPostWithHighlight = await channelsPage.getLastPost();

@@ -66,6 +66,7 @@ type Channels struct {
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
+	Intune           einterfaces.IntuneInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -134,6 +135,47 @@ func NewChannels(s *Server) (*Channels, error) {
 			}
 		})
 	}
+
+	if intuneInterface != nil {
+		ch.Intune = intuneInterface(New(ServerConnector(ch)))
+	}
+
+	if pushProxyInterface != nil {
+		app := New(ServerConnector(ch))
+		s.PushProxy = pushProxyInterface(app)
+
+		// Add config listener to regenerate token when push proxy URL changes
+		app.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+			// Only cluster leader should regenerate to avoid duplicate requests
+			if !app.IsLeader() {
+				return
+			}
+
+			oldURL := model.SafeDereference(oldCfg.EmailSettings.PushNotificationServer)
+			newURL := model.SafeDereference(newCfg.EmailSettings.PushNotificationServer)
+
+			// If push proxy URL changed
+			if oldURL != newURL {
+				if newURL != "" {
+					// URL changed to a new value, regenerate token
+					s.Log().Info("Push notification server URL changed, regenerating auth token",
+						mlog.String("old_url", oldURL),
+						mlog.String("new_url", newURL))
+
+					if err := s.PushProxy.GenerateAuthToken(); err != nil {
+						s.Log().Error("Failed to regenerate auth token after config change", mlog.Err(err))
+					}
+				} else if oldURL != "" {
+					// URL was cleared, delete the old token
+					s.Log().Info("Push notification server URL cleared, removing auth token")
+					if err := s.PushProxy.DeleteAuthToken(); err != nil {
+						s.Log().Error("Failed to delete auth token after URL cleared", mlog.Err(err))
+					}
+				}
+			}
+		})
+	}
+
 	if accessControlServiceInterface != nil {
 		app := New(ServerConnector(ch))
 		ch.AccessControl = accessControlServiceInterface(app)
@@ -145,7 +187,7 @@ func NewChannels(s *Server) (*Channels, error) {
 
 		app.AddLicenseListener(func(newCfg, old *model.License) {
 			if ch.AccessControl != nil {
-				if appErr := ch.AccessControl.Init(request.EmptyContext(s.Log())); appErr != nil {
+				if appErr := ch.AccessControl.Init(request.EmptyContext(s.Log())); appErr != nil && appErr.StatusCode != http.StatusNotImplemented {
 					s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
 				}
 			}

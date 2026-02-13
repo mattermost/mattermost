@@ -4,9 +4,11 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
+import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
+import {LicenseLinks} from 'utils/constants';
 import {format} from 'utils/markdown';
 
 interface TeamEditionRightPanelProps {
@@ -22,6 +24,8 @@ interface TeamEditionRightPanelProps {
     openEEModal: () => void;
 
     restarting: boolean;
+
+    upgradeDisabled: boolean;
 }
 
 const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
@@ -33,6 +37,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     restarting,
     openEEModal,
     setClickNormalUpgradeBtn,
+    upgradeDisabled,
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
     const intl = useIntl();
@@ -50,7 +55,25 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         'Advanced compliance',
         'And more...',
     ];
-    if (upgradingPercentage !== 100) {
+    if (upgradeDisabled) {
+        upgradeButton = (
+            <div>
+                <p>
+                    <ExternalLink
+                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                        location='team_edition_right_panel'
+                        className='btn btn-tertiary'
+                        role='button'
+                    >
+                        <FormattedMessage
+                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
+                            defaultMessage='Learn more'
+                        />
+                    </ExternalLink>
+                </p>
+            </div>
+        );
+    } else if (upgradingPercentage !== 100) {
         upgradeButton = (
             <div>
                 <p>
@@ -81,7 +104,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsInitial'
                         defaultMessage='By clicking <b>Upgrade</b>, I agree to the terms of the Mattermost '
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                     <a

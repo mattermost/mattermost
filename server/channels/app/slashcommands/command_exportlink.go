@@ -58,8 +58,8 @@ func (*ExportLinkProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.C
 	}
 }
 
-func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
+func (*ExportLinkProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	if !a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem) {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.permission.app_error")}
 	}
 
@@ -86,7 +86,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 			}
 			t, err := b.FileModTime(f)
 			if err != nil {
-				c.Logger().Warn("Failed to get file mod time", mlog.String("file", f), mlog.Err(err))
+				rctx.Logger().Warn("Failed to get file mod time", mlog.String("file", f), mlog.Err(err))
 				continue
 			}
 			if t.After(latestFound) {

@@ -38,7 +38,7 @@ function BookmarkDeleteModal({
             id={'channel_bookmarks.confirm.delete.text'}
             defaultMessage={'Are you sure you want to delete the bookmark <strong>{displayName}</strong>?'}
             values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
+                strong: (chunk) => <strong>{chunk}</strong>,
                 displayName,
             }}
         />

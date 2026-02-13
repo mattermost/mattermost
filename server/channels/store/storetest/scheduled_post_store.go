@@ -514,7 +514,7 @@ func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss 
 		teamId := model.NewId()
 
 		// Create multiple scheduled posts for the user
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			scheduledPost := &model.ScheduledPost{
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),

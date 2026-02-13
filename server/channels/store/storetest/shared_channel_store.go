@@ -389,7 +389,7 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err, "couldn't save shared channel", err)
 
 	// add some remotes
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		remote := &model.SharedChannelRemote{
 			ChannelId:         channel.Id,
 			CreatorId:         model.NewId(),
@@ -1145,7 +1145,7 @@ func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Sto
 
 func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		scUser := &model.SharedChannelUser{
 			UserId:    userId,
 			RemoteId:  model.NewId(),
@@ -1177,7 +1177,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	later := model.GetMillis() + 300000
 
 	var users []*model.User
-	for i := 0; i < 10; i++ { // need real users
+	for range 10 { // need real users
 		u := &model.User{
 			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",

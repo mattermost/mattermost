@@ -148,7 +148,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createJob", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
@@ -290,7 +290,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("cancelJob", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCancelJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
@@ -331,7 +331,7 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateJobStatus", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateJobStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 

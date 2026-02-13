@@ -17,7 +17,6 @@ func TestGetPostsUsage(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("returns error when AnalyticsPostCount fails", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		errMsg := "Test posts count error"
 
@@ -33,7 +32,6 @@ func TestGetPostsUsage(t *testing.T) {
 
 	t.Run("returns rounded off count when AnalyticsPostCount returns valid count", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		var mockCount int64 = 4321
 		var expected int64 = 4000

@@ -8,10 +8,10 @@ import type {WrappedComponentProps} from 'react-intl';
 import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import AboutBuildModal from 'components/about_build_modal';
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
+import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import InvitationModal from 'components/invitation_modal';
 import LeaveTeamModal from 'components/leave_team_modal';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -19,11 +19,15 @@ import TeamPermissionGate from 'components/permissions_gates/team_permission_gat
 import TeamGroupsManageModal from 'components/team_groups_manage_modal';
 import TeamMembersModal from 'components/team_members_modal';
 import TeamSettingsModal from 'components/team_settings_modal';
+import UserAccountAwayMenuItem from 'components/user_account_menu/user_account_away_menuitem';
+import UserAccountCustomStatusMenuItem from 'components/user_account_menu/user_account_custom_status_menuitem';
+import UserAccountDndMenuItem from 'components/user_account_menu/user_account_dnd_menuitem';
+import UserAccountOfflineMenuItem from 'components/user_account_menu/user_account_offline_menuitem';
+import UserAccountOnlineMenuItem from 'components/user_account_menu/user_account_online_menuitem';
 import UserSettingsModal from 'components/user_settings/modal';
-import LeaveTeamIcon from 'components/widgets/icons/leave_team_icon';
 import Menu from 'components/widgets/menu/menu';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
 
 import type {PropsFromRedux} from './index';
@@ -58,6 +62,14 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
         emitUserLoggedOutEvent();
     };
 
+    openCustomStatusModal = (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>): void => {
+        event.stopPropagation();
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.CUSTOM_STATUS,
+            dialogType: CustomStatusModal,
+        });
+    };
+
     render() {
         const {formatMessage} = this.props.intl;
 
@@ -77,6 +89,9 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                 icon={item.mobileIcon}
             />
         ));
+
+        const isCustomStatusSet = !this.props.isCustomStatusExpired && this.props.customStatus && ((this.props.customStatus.text && this.props.customStatus.text.length > 0) || (this.props.customStatus.emoji && this.props.customStatus.emoji.length > 0));
+        const shouldConfirmBeforeStatusChange = this.props.autoResetPref === '' && this.props.status === UserStatuses.OUT_OF_OFFICE;
 
         return (
             <Menu
@@ -101,16 +116,71 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     </SystemPermissionGate>
                 </Menu.Group>
                 <Menu.Group>
+                    <UserAccountOnlineMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusOnline={this.props.status === UserStatuses.ONLINE}
+                    />
+                    <UserAccountAwayMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusAway={this.props.status === UserStatuses.AWAY}
+                    />
+                    <UserAccountDndMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        timezone={this.props.timezone}
+                        isStatusDnd={this.props.status === UserStatuses.DND}
+                    />
+                    <UserAccountOfflineMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusOffline={this.props.status === UserStatuses.OFFLINE}
+                    />
+                </Menu.Group>
+                <Menu.Group>
+                    {this.props.isCustomStatusEnabled && !isCustomStatusSet && (
+                        <Menu.ItemAction
+                            id='setCustomStatus'
+                            onClick={this.openCustomStatusModal}
+                            icon={
+                                <i
+                                    className='icon icon-emoticon-plus-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
+                            text={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.noStatusSet', defaultMessage: 'Set custom status'})}
+                        />
+                    )}
+                    {this.props.isCustomStatusEnabled && isCustomStatusSet && (
+                        <UserAccountCustomStatusMenuItem
+                            timezone={this.props.timezone}
+                            customStatus={this.props.customStatus}
+                            openCustomStatusModal={this.openCustomStatusModal}
+                        />
+                    )}
+                </Menu.Group>
+                <Menu.Group>
                     <Menu.ItemAction
                         id='recentMentions'
                         onClick={this.onRecentMentionItemClick}
-                        icon={<i className='mentions'>{'@'}</i>}
+                        icon={
+                            <i
+                                className='icon icon-at'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                         text={formatMessage({id: 'sidebar_right_menu.recentMentions', defaultMessage: 'Recent Mentions'})}
                     />
                     <Menu.ItemAction
                         id='flaggedPosts'
                         onClick={this.onShowFlaggedPostItemClick}
-                        icon={<i className='fa fa-bookmark'/>}
+                        icon={
+                            <i
+                                className='icon icon-bookmark'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                         text={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved messages'})}
                     />
                 </Menu.Group>
@@ -121,7 +191,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         dialogType={UserSettingsModal}
                         dialogProps={{isContentProductSettings: false}}
                         text={formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
-                        icon={<i className='fa fa-user'/>}
+                        icon={
+                            <i
+                                className='icon icon-account-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                     <Menu.ItemToggleModalRedux
                         id='accountSettings'
@@ -129,7 +204,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         dialogType={UserSettingsModal}
                         dialogProps={{isContentProductSettings: true}}
                         text={formatMessage({id: 'navbar_dropdown.accountSettings', defaultMessage: 'Settings'})}
-                        icon={<i className='fa fa-cog'/>}
+                        icon={
+                            <i
+                                className='icon icon-cog-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                 </Menu.Group>
                 <Menu.Group>
@@ -143,7 +223,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
                             dialogType={AddGroupsToTeamModal}
                             text={formatMessage({id: 'navbar_dropdown.addGroupsToTeam', defaultMessage: 'Add Groups to Team'})}
-                            icon={<i className='fa fa-user-plus'/>}
+                            icon={
+                                <i
+                                    className='icon icon-account-multiple-plus-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </TeamPermissionGate>
                     {this.props.guestAccessEnabled && (
@@ -163,8 +248,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                                     id: 'navbar_dropdown.invitePeopleExtraText',
                                     defaultMessage: 'Add people to the team',
                                 })}
-                                icon={<i className='fa fa-user-plus'/>}
-                                onClick={() => trackEvent('ui', 'click_sidebar_team_dropdown_invite_people')}
+                                icon={
+                                    <i
+                                        className='icon icon-account-plus-outline'
+                                        style={{color: 'var(--sidebar-text)'}}
+                                    />
+                                }
                             />
                         </TeamPermissionGate>
                     )}
@@ -179,7 +268,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             modalId={ModalIdentifiers.TEAM_SETTINGS}
                             dialogType={TeamSettingsModal}
                             text={formatMessage({id: 'navbar_dropdown.teamSettings', defaultMessage: 'Team Settings'})}
-                            icon={<i className='fa fa-globe'/>}
+                            icon={
+                                <i
+                                    className='icon icon-cog-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </TeamPermissionGate>
                     <TeamPermissionGate
@@ -195,7 +289,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             }}
                             dialogType={TeamGroupsManageModal}
                             text={formatMessage({id: 'navbar_dropdown.manageGroups', defaultMessage: 'Manage Groups'})}
-                            icon={<i className='fa fa-user-plus'/>}
+                            icon={
+                                <i
+                                    className='icon icon-account-multiple-plus-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </TeamPermissionGate>
                     <TeamPermissionGate
@@ -207,7 +306,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             modalId={ModalIdentifiers.TEAM_MEMBERS}
                             dialogType={TeamMembersModal}
                             text={formatMessage({id: 'navbar_dropdown.manageMembers', defaultMessage: 'Manage Members'})}
-                            icon={<i className='fa fa-users'/>}
+                            icon={
+                                <i
+                                    className='icon icon-account-multiple-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </TeamPermissionGate>
                     <TeamPermissionGate
@@ -220,7 +324,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             modalId={ModalIdentifiers.TEAM_MEMBERS}
                             dialogType={TeamMembersModal}
                             text={formatMessage({id: 'navbar_dropdown.viewMembers', defaultMessage: 'View Members'})}
-                            icon={<i className='fa fa-users'/>}
+                            icon={
+                                <i
+                                    className='icon icon-account-multiple-outline'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </TeamPermissionGate>
                 </Menu.Group>
@@ -231,7 +340,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             show={!teamsLimitReached}
                             to='/create_team'
                             text={formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
-                            icon={<i className='fa fa-plus-square'/>}
+                            icon={
+                                <i
+                                    className='icon icon-plus'
+                                    style={{color: 'var(--sidebar-text)'}}
+                                />
+                            }
                         />
                     </SystemPermissionGate>
                     <Menu.ItemLink
@@ -239,7 +353,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         show={!this.props.experimentalPrimaryTeam && this.props.moreTeamsToJoin}
                         to='/select_team'
                         text={formatMessage({id: 'navbar_dropdown.join', defaultMessage: 'Join Another Team'})}
-                        icon={<i className='fa fa-plus-square'/>}
+                        icon={
+                            <i
+                                className='icon icon-plus-box-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                     <Menu.ItemToggleModalRedux
                         id='leaveTeam'
@@ -247,7 +366,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         modalId={ModalIdentifiers.LEAVE_TEAM}
                         dialogType={LeaveTeamModal}
                         text={formatMessage({id: 'navbar_dropdown.leave', defaultMessage: 'Leave Team'})}
-                        icon={<LeaveTeamIcon/>}
+                        icon={
+                            <i
+                                className='icon icon-exit-to-app'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                 </Menu.Group>
                 <Menu.Group>
@@ -259,28 +383,48 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         show={Boolean(this.props.helpLink)}
                         url={this.props.helpLink}
                         text={formatMessage({id: 'navbar_dropdown.help', defaultMessage: 'Help'})}
-                        icon={<i className='fa fa-question'/>}
+                        icon={
+                            <i
+                                className='icon icon-help-circle-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                     <Menu.ItemExternalLink
                         id='reportLink'
                         show={Boolean(this.props.reportAProblemLink)}
                         url={this.props.reportAProblemLink}
                         text={formatMessage({id: 'navbar_dropdown.report', defaultMessage: 'Report a Problem'})}
-                        icon={<i className='fa fa-phone'/>}
+                        icon={
+                            <i
+                                className='icon icon-alert-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                     <Menu.ItemExternalLink
                         id='nativeAppLink'
                         show={this.props.appDownloadLink}
                         url={safeAppDownloadLink}
                         text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
-                        icon={<i className='fa fa-mobile'/>}
+                        icon={
+                            <i
+                                className='icon icon-cellphone'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                     <Menu.ItemToggleModalRedux
                         id='about'
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
                         text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: this.props.siteName || 'Mattermost'})}
-                        icon={<i className='fa fa-info'/>}
+                        icon={
+                            <i
+                                className='icon icon-information-outline'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                 </Menu.Group>
                 <Menu.Group>
@@ -288,7 +432,12 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         id='logout'
                         onClick={this.onLogoutItemClick}
                         text={formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                        icon={<i className='fa fa-sign-out'/>}
+                        icon={
+                            <i
+                                className='icon icon-logout-variant'
+                                style={{color: 'var(--sidebar-text)'}}
+                            />
+                        }
                     />
                 </Menu.Group>
             </Menu>

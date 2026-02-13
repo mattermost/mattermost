@@ -27,11 +27,34 @@ interface TableEditorProps {
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
     userAttributes: UserPropertyField[];
+    enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
+    channelId?: string; // Optional channelId for channel-specific context
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
+
+    // Props for user self-exclusion detection
+    isSystemAdmin?: boolean;
+    validateExpressionAgainstRequester?: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
 }
+
+// Finds the first available (non-disabled) attribute from a list of user attributes.
+// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
+// and is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
+export const findFirstAvailableAttributeFromList = (
+    userAttributes: UserPropertyField[],
+    enableUserManagedAttributes: boolean,
+): UserPropertyField | undefined => {
+    return userAttributes.find((attr) => {
+        const hasSpaces = attr.name.includes(' ');
+        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+        const isAdminManaged = attr.attrs?.managed === 'admin';
+        const isProtected = attr.attrs?.protected;
+        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        return !hasSpaces && allowed;
+    });
+};
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
 // This allows the expression to be displayed and edited in a user-friendly table format.
@@ -69,6 +92,7 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             attribute: attr,
             operator: op,
             values,
+            attribute_type: node.attribute_type,
         });
     }
 
@@ -86,8 +110,12 @@ function TableEditor({
     onValidate,
     disabled = false,
     userAttributes,
+    enableUserManagedAttributes,
     onParseError,
+    channelId,
     actions,
+    isSystemAdmin = false,
+    validateExpressionAgainstRequester,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -96,13 +124,26 @@ function TableEditor({
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [autoOpenAttributeMenuForRow, setAutoOpenAttributeMenuForRow] = useState<number | null>(null);
 
+    // State for user self-exclusion detection (only applies to non-system-admins)
+    const [userWouldBeExcluded, setUserWouldBeExcluded] = useState(false);
+
     // Effect to parse the incoming CEL expression string (value prop)
     // and update the internal rows state. Handles errors during parsing.
     useEffect(() => {
+        // Skip parsing if no expression to avoid unnecessary API calls
+        if (!value || value.trim() === '') {
+            setRows([]);
+            return;
+        }
+
         actions.getVisualAST(value).then((result) => {
             if (result.error) {
                 setRows([]);
-                onParseError(result.error.message);
+
+                // Only call onParseError for actual parsing errors, not permission errors
+                if (!result.error.message?.includes('403') && !result.error.message?.includes('Forbidden')) {
+                    onParseError(result.error.message);
+                }
                 return;
             }
 
@@ -112,9 +153,34 @@ function TableEditor({
             if (onValidate) {
                 onValidate(false);
             }
-            onParseError(err.message);
+
+            // Only call onParseError for actual parsing errors, not permission errors
+            if (!err.message?.includes('403') && !err.message?.includes('Forbidden')) {
+                onParseError(err.message);
+            }
         });
-    }, [value, onValidate, onParseError]);
+    }, [value]);
+
+    // Effect to check if user would be excluded by their own rules
+    useEffect(() => {
+        const checkUserSelfExclusion = async () => {
+            // Only check for non-system admins when there's an expression and validation function
+            if (isSystemAdmin || !value.trim() || !validateExpressionAgainstRequester) {
+                setUserWouldBeExcluded(false);
+                return;
+            }
+
+            try {
+                const result = await validateExpressionAgainstRequester(value);
+                setUserWouldBeExcluded(!result.data?.requester_matches);
+            } catch (error) {
+                // If validation fails, assume they would not be excluded (to allow testing)
+                setUserWouldBeExcluded(false);
+            }
+        };
+
+        checkUserSelfExclusion();
+    }, [value, isSystemAdmin, validateExpressionAgainstRequester]);
 
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.
@@ -125,15 +191,28 @@ function TableEditor({
             const attributeExpr = `user.attributes.${row.attribute}`;
             const config = OPERATOR_CONFIG[row.operator];
 
+            // Find the attribute object to check its type
+            const attributeObj = userAttributes.find((attr) => attr.name === row.attribute);
+
             if (!config) {
                 // Fallback for unknown operators, defaulting to 'in' logic
                 // This handles cases where row.operator might be an unexpected string.
                 const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] in ${attributeExpr}`;
+                }
                 return `${attributeExpr} in [${valuesStr}]`;
             }
 
             if (config.type === 'list') { // Handles 'in'
                 const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] ${config.celOp} ${attributeExpr}`;
+                }
                 return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
             }
 
@@ -154,25 +233,40 @@ function TableEditor({
             // (e.g. no rows, or rows without attributes yet), it's valid from table perspective.
             onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
-    }, [onChange, onValidate]);
+    }, [onChange, onValidate, userAttributes]);
+
+    // Helper function to find the first available (non-disabled) attribute
+    const findFirstAvailableAttribute = useCallback(() => {
+        return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
+    }, [userAttributes, enableUserManagedAttributes]);
 
     // Row Manipulation Handlers
     const addRow = useCallback(() => {
         if (userAttributes.length === 0) {
-            return; // Do not add a row if no attributes are available
+            // Show a helpful message instead of silently failing
+            onParseError('No user attributes available. Please ensure ABAC is properly configured and you have the necessary permissions.');
+            return;
         }
+
+        const firstAvailableAttribute = findFirstAvailableAttribute();
+        if (!firstAvailableAttribute) {
+            onParseError('No available user attributes found for rule creation.');
+            return;
+        }
+
         setRows((currentRows) => {
             const newRow = {
-                attribute: userAttributes[0]?.name || '', // Default to the first available attribute
+                attribute: firstAvailableAttribute.name, // Default to the first available attribute
                 operator: OperatorLabel.IS, // Default operator
                 values: [],
+                attribute_type: userAttributes[0]?.type || '',
             };
             const newRows = [...currentRows, newRow];
             updateExpression(newRows); // Ensure expression is updated immediately
             setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
             return newRows;
         });
-    }, [userAttributes, updateExpression]);
+    }, [userAttributes, updateExpression, findFirstAvailableAttribute]);
 
     const removeRow = useCallback((index: number) => {
         setRows((currentRows) => {
@@ -295,6 +389,7 @@ function TableEditor({
                                         buttonId={`attribute-selector-button-${index}`}
                                         autoOpen={index === autoOpenAttributeMenuForRow}
                                         onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
+                                        enableUserManagedAttributes={enableUserManagedAttributes}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
@@ -351,17 +446,27 @@ function TableEditor({
                 />
                 <TestButton
                     onClick={() => setShowTestResults(true)}
-                    disabled={disabled || !value}
+                    disabled={disabled || !value || userWouldBeExcluded}
+                    disabledTooltip={
+                        userWouldBeExcluded ?
+                            formatMessage({
+                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                            }) :
+                            undefined
+                    }
                 />
             </div>
 
             {showTestResults && (
                 <TestResultsModal
                     onExited={() => setShowTestResults(false)}
+                    isStacked={true}
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
-                            return searchUsersForExpression(value, term, after, limit);
+                            // Return the action for the modal to dispatch
+                            return searchUsersForExpression(value, term, after, limit, channelId);
                         },
                     }}
                 />

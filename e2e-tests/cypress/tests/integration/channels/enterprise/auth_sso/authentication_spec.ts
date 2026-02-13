@@ -11,8 +11,8 @@
 // Group: @channels @enterprise @system_console @authentication
 
 import {Team} from '@mattermost/types/teams';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getRandomId} from '../../../../utils';
 
 describe('Authentication', () => {
@@ -58,7 +58,9 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
         cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');

@@ -749,10 +749,8 @@
 
         .post__img {
             width: 16px;
-            padding-top: 1px;
 
-            img,
-            button {
+            .profile-icon {
                 display: none;
             }
         }
@@ -807,11 +805,9 @@
         }
 
         .status-wrapper {
-            height: 14px;
-
             .status {
                 position: relative;
-                top: auto;
+                top: 1px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
@@ -855,14 +851,19 @@
         .post__header,
         .post-preview__header {
             display: flex;
+            overflow: visible;
             width: auto;
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
         }
 
+        .badges-wrapper {
+            margin-right: 5px;
+        }
+
         .post__body {
-            padding: 2px 0;
+            padding: 2px 0 0 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1035,6 +1036,18 @@
                     left: -11px;
                 }
             }
+        }
+    }
+
+    &.post--modal {
+        padding: 0;
+
+        .post__content {
+            padding: 0;
+        }
+
+        .post__img {
+            width: 42px;
         }
     }
 
@@ -1285,6 +1298,15 @@
                 margin: 0;
             }
         }
+
+        .badges-wrapper {
+            gap: 6px;
+            .BurnOnReadTimerChip, .BurnOnReadBadge  {
+                margin-left: 0;
+            }
+        }
+
+
     }
 
     .post__img {
@@ -1384,7 +1406,7 @@
 
     .post__body {
         width: 100%;
-        padding: 0.2em 0;
+        padding: 0 0 0.2em;
         word-wrap: break-word;
 
         &-reactions-acks {
@@ -1614,6 +1636,23 @@
         opacity: 0.73;
     }
 
+    .ai-generated-indicator {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+        color: inherit;
+        opacity: 0.73;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    &.post--compact .col__name .ai-generated-indicator {
+        margin-left: 0px;
+    }
+
     .post__permalink {
         display: inline-block;
         color: inherit;
@@ -1630,6 +1669,28 @@
         &:hover {
             text-decoration: underline;
         }
+    }
+
+    .post__translation-icon-processing {        
+        color: rgba(var(--center-channel-color-rgb), 0.73);
+        font-size: 10px;
+        line-height: 16px;
+        
+        .LoadingSpinner.with-text .spinner {
+            margin-right: 3px;
+        }
+    }
+
+    .post__translation-icon-unavailable {
+        display: inline-flex;
+
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        color: var(--dnd-indicator);
+        font-size: 12px;
     }
 
     .post_permalink_mobile_view {
@@ -2252,5 +2313,48 @@
                 }
             }
         }
+    }
+
+    &.post--comment {
+        .post__body {
+            border-color: rgba(var(--button-bg-rgb), 0.24);
+        }
+
+        &.other--root {
+            .post-comment {
+                border-color: rgba(var(--center-channel-color-rgb), 0.1);
+                background-color: rgba(var(--center-channel-color-rgb), 0.05);
+            }
+        }
+    }
+}
+
+.post-message__shimmer {
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: post-message-shimmer 3.5s linear infinite;
+    background: linear-gradient(
+        110deg,
+        rgba(var(--center-channel-bg-rgb), 0.40) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 100%
+    );
+    background-size: 300% 100%;
+    pointer-events: none;
+}
+
+@keyframes post-message-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }

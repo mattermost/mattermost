@@ -20,7 +20,6 @@ import (
 func TestGetGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -72,7 +71,6 @@ func TestGetGroup(t *testing.T) {
 func TestCreateGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	g := &model.Group{
@@ -116,14 +114,14 @@ func TestCreateGroup(t *testing.T) {
 		AllowReference: true,
 	}
 
-	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), validGroup)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), validGroup)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
@@ -183,7 +181,6 @@ func TestCreateGroup(t *testing.T) {
 func TestDeleteGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -201,7 +198,7 @@ func TestDeleteGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(context.Background(), g.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
@@ -229,7 +226,6 @@ func TestDeleteGroup(t *testing.T) {
 func TestUndeleteGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -243,13 +239,13 @@ func TestUndeleteGroup(t *testing.T) {
 	_, response, err := th.Client.DeleteGroup(context.Background(), validGroup.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
-	th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	// shouldn't allow restoring unless user has required permission
 	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -262,7 +258,6 @@ func TestUndeleteGroup(t *testing.T) {
 func TestPatchGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -365,8 +360,7 @@ func TestPatchGroup(t *testing.T) {
 
 func TestLinkGroupTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -414,7 +408,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		assert.Nil(t, groupSyncable)
 	})
 
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	response, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -479,8 +473,7 @@ func TestLinkGroupTeam(t *testing.T) {
 
 func TestLinkGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -528,7 +521,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		assert.Nil(t, groupSyncable)
 	})
 
-	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+	th.MakeUserChannelAdmin(t, th.BasicUser, th.BasicChannel)
 	response, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -605,8 +598,7 @@ func TestLinkGroupChannel(t *testing.T) {
 
 func TestUnlinkGroupTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -665,7 +657,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	})
 
 	time.Sleep(4 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -725,8 +717,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 func TestUnlinkGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -784,7 +775,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+	th.MakeUserChannelAdmin(t, th.BasicUser, th.BasicChannel)
 
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -844,14 +835,14 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	t.Run("Unlinking a group in a group constrained channel causes group members to be removed", func(t *testing.T) {
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a channel and set it as group-constrained
-		channel := th.CreatePrivateChannel()
+		channel := th.CreatePrivateChannel(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -928,14 +919,14 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	t.Run("Unlinking a group in a non group constrained channel does not remove group members from the channel", func(t *testing.T) {
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a channel and set it as group-constrained
-		channel := th.CreatePrivateChannel()
+		channel := th.CreatePrivateChannel(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -1007,8 +998,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 func TestGetGroupTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1071,8 +1061,7 @@ func TestGetGroupTeam(t *testing.T) {
 
 func TestGetGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1136,7 +1125,6 @@ func TestGetGroupChannel(t *testing.T) {
 func TestGetGroupTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1154,8 +1142,8 @@ func TestGetGroupTeams(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
-		team := th.CreateTeam()
+	for range 10 {
+		team := th.CreateTeam(t)
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, team.Id, model.GroupSyncableTypeTeam, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
 	}
@@ -1190,8 +1178,7 @@ func TestGetGroupTeams(t *testing.T) {
 
 func TestGetGroupChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1209,8 +1196,8 @@ func TestGetGroupChannels(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
-		channel := th.CreatePublicChannel()
+	for range 10 {
+		channel := th.CreatePublicChannel(t)
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
 	}
@@ -1244,8 +1231,7 @@ func TestGetGroupChannels(t *testing.T) {
 
 func TestPatchGroupTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1318,8 +1304,7 @@ func TestPatchGroupTeam(t *testing.T) {
 
 func TestPatchGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	g, appErr := th.App.CreateGroup(&model.Group{
@@ -1342,7 +1327,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
-	role, appErr := th.App.GetRoleByName(context.Background(), "channel_user")
+	role, appErr := th.App.GetRoleByName(th.Context, "channel_user")
 	require.Nil(t, appErr)
 	originalPermissions := role.Permissions
 	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
@@ -1403,8 +1388,7 @@ func TestPatchGroupChannel(t *testing.T) {
 
 func TestGetGroupsByChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -1494,7 +1478,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
 
 	_, _, response, err := th.Client.GetGroupsByChannel(context.Background(), privateChannel.Id, opts)
 	require.Error(t, err)
@@ -1547,8 +1531,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -1700,8 +1683,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 func TestGetGroupsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
@@ -1893,8 +1875,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 func TestGetGroups(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// make sure "createdDate" for next group is after one created in InitBasic()
 	time.Sleep(2 * time.Millisecond)
@@ -2071,15 +2052,7 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to channel", func(t *testing.T) {
 		opts := baseOpts
-		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
 		opts.NotAssociatedToChannel = th.BasicChannel.Id
-
-		resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
@@ -2089,15 +2062,7 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to team", func(t *testing.T) {
 		opts := baseOpts
-		resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
 		opts.NotAssociatedToTeam = th.BasicTeam.Id
-
-		resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
@@ -2274,10 +2239,205 @@ func TestGetGroups(t *testing.T) {
 	})
 }
 
+func TestGetGroupsByNames(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// make sure "createdDate" for next group is after one created in InitBasic()
+	time.Sleep(2 * time.Millisecond)
+	id := model.NewId()
+	groupName := model.NewPointer("name" + id)
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        groupName,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	id2 := model.NewId()
+	group2Name := model.NewPointer("name" + id2)
+	group2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id2,
+		Name:        group2Name,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id2,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=false
+	id3 := model.NewId()
+	group3Name := model.NewPointer("name" + id3)
+	group3, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id3,
+		Name:        group3Name,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id3,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	t.Run("without license", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), []string{*groupName})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		assert.Nil(t, groups)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	t.Run("search for one group", func(t *testing.T) {
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), []string{*groupName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for multiple groups only finding one", func(t *testing.T) {
+		searchTerms := []string{*group2Name, "fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group2}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for multiple groups returning all three", func(t *testing.T) {
+		searchTerms := []string{*groupName, *group2Name, *group3Name}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, group2, group3}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for more groups than existing returning existing", func(t *testing.T) {
+		searchTerms := []string{*groupName, *group2Name, *group3Name, "fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, group2, group3}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for groups with invalid names", func(t *testing.T) {
+		searchTerms := []string{"fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		require.Empty(t, groups, "no groups should be returned")
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("search for groups is empty", func(t *testing.T) {
+		searchTerms := []string{}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		require.Empty(t, groups, "no groups should be returned")
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("attempt search without session", func(t *testing.T) {
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+		searchTerms := []string{*groupName}
+		_, resp, err := th.Client.GetGroupsByNames(context.Background(), searchTerms)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestGetGroupsByNamesAllowReference(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	// Create group with AllowReference=true
+	id1 := model.NewId()
+	groupAllowRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-allow_" + id1,
+		Name:           model.NewPointer("allow" + id1),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create group with AllowReference=false
+	id2 := model.NewId()
+	groupNoRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-noref_" + id2,
+		Name:           model.NewPointer("noref" + id2),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	require.Nil(t, appErr)
+
+	// Login as regular user
+	th.LoginBasic(t)
+
+	tests := []struct {
+		name           string
+		client         *model.Client4
+		searchNames    []string
+		expectedGroups []*model.Group
+		description    string
+	}{
+		{
+			name:           "admin sees all groups",
+			client:         th.SystemAdminClient,
+			searchNames:    []string{*groupAllowRef.Name, *groupNoRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef, groupNoRef},
+			description:    "admin with sysconsole permission should see all groups",
+		},
+		{
+			name:           "admin sees group with AllowReference=false",
+			client:         th.SystemAdminClient,
+			searchNames:    []string{*groupNoRef.Name},
+			expectedGroups: []*model.Group{groupNoRef},
+			description:    "admin should see group even when AllowReference=false",
+		},
+		{
+			name:           "regular user sees only AllowReference=true",
+			client:         th.Client,
+			searchNames:    []string{*groupAllowRef.Name, *groupNoRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef},
+			description:    "regular user should only see groups with AllowReference=true",
+		},
+		{
+			name:           "regular user cannot see AllowReference=false group",
+			client:         th.Client,
+			searchNames:    []string{*groupNoRef.Name},
+			expectedGroups: []*model.Group{},
+			description:    "regular user should not see groups with AllowReference=false",
+		},
+		{
+			name:           "regular user sees AllowReference=true group",
+			client:         th.Client,
+			searchNames:    []string{*groupAllowRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef},
+			description:    "regular user should see groups with AllowReference=true",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			groups, resp, err := tc.client.GetGroupsByNames(context.Background(), tc.searchNames)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.ElementsMatch(t, tc.expectedGroups, groups, tc.description)
+		})
+	}
+}
+
 func TestGetGroupsByUserId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group1, appErr := th.App.CreateGroup(&model.Group{
@@ -2348,8 +2508,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 
 func TestGetGroupMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -2416,8 +2575,7 @@ func TestGetGroupMembers(t *testing.T) {
 
 func TestGetGroupStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -2467,12 +2625,11 @@ func TestGetGroupStats(t *testing.T) {
 func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	var groups []*model.Group
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		id := model.NewId()
 		group, err := th.App.CreateGroup(&model.Group{
 			DisplayName: fmt.Sprintf("dn-foo_%d", i),
@@ -2485,7 +2642,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 		groups = append(groups, group)
 	}
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
 	id := model.NewId()
 	channel := &model.Channel{
@@ -2551,7 +2708,6 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 func TestAddMembersToGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Set license for all tests
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -2570,7 +2726,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 		// Create test users with random usernames to prevent collisions
 		users := make([]*model.User, 3)
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			randomId := model.NewId()
 			user, appErr := th.App.CreateUser(th.Context, &model.User{
 				Email:    th.GenerateTestEmail(),
@@ -2725,7 +2881,6 @@ func TestAddMembersToGroup(t *testing.T) {
 func TestDeleteMembersFromGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Create test users
 	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})

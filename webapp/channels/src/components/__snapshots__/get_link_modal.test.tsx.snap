@@ -1,362 +1,386 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/GetLinkModal should have called onHide 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="getLinkModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+exports[`components/GetLinkModal should have called onHide when close button is clicked 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-    id="getLinkModalLabel"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <h2
-      className="modal-title"
-    >
-      title
-    </h2>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <textarea
-      className="form-control no-resize min-height"
-      dir="auto"
-      id="linkModalTextArea"
-      onClick={[Function]}
-      readOnly={true}
-      value="https://mattermost.com"
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary btn-success pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
-      onClick={[Function]}
-      type="button"
-    >
-      <i
-        className="icon icon-check"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Copied"
-        id="get_link.clipboard"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              title
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            >
+              https://mattermost.com
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary btn-success pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-check"
+              />
+              Copied
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
-exports[`components/GetLinkModal should have called onHide 2`] = `
-<Modal
-  animation={true}
-  aria-labelledby="getLinkModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+exports[`components/GetLinkModal should have called onHide when close button is clicked 2`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-    id="getLinkModalLabel"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <h2
-      className="modal-title"
-    >
-      title
-    </h2>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <textarea
-      className="form-control no-resize min-height"
-      dir="auto"
-      id="linkModalTextArea"
-      onClick={[Function]}
-      readOnly={true}
-      value="https://mattermost.com"
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
-      onClick={[Function]}
-      type="button"
-    >
-      <i
-        className="icon icon-link-variant"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              title
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            >
+              https://mattermost.com
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/GetLinkModal should match snapshot when all props is set 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="getLinkModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-    id="getLinkModalLabel"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <h2
-      className="modal-title"
-    >
-      title
-    </h2>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <p>
-      help text
-      <br />
-      <br />
-    </p>
-    <textarea
-      className="form-control no-resize min-height"
-      dir="auto"
-      id="linkModalTextArea"
-      onClick={[Function]}
-      readOnly={true}
-      value="https://mattermost.com"
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
-      onClick={[Function]}
-      type="button"
-    >
-      <i
-        className="icon icon-link-variant"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              title
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              help text
+              <br />
+              <br />
+            </p>
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            >
+              https://mattermost.com
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/GetLinkModal should match snapshot when helpText is not set 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="getLinkModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-    id="getLinkModalLabel"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <h2
-      className="modal-title"
-    >
-      title
-    </h2>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <textarea
-      className="form-control no-resize min-height"
-      dir="auto"
-      id="linkModalTextArea"
-      onClick={[Function]}
-      readOnly={true}
-      value="https://mattermost.com"
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
-      onClick={[Function]}
-      type="button"
-    >
-      <i
-        className="icon icon-link-variant"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              title
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            >
+              https://mattermost.com
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

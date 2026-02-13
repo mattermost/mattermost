@@ -48,7 +48,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateIncomingHook", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateIncomingHook, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
@@ -78,7 +78,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createOutgoingHook", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateOutgoingHook, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "hook", &hook)
 	c.LogAudit("attempt")

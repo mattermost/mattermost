@@ -48,19 +48,74 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// HasPermissionToReadChannel provides a mock function with given fields: c, userID, channel
-func (_m *SuiteIFace) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	ret := _m.Called(c, userID, channel)
+// HasPermissionToReadChannel provides a mock function with given fields: rctx, userID, channel
+func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
+	ret := _m.Called(rctx, userID, channel)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HasPermissionToReadChannel")
 	}
 
 	var r0 bool
+	var r1 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) (bool, bool)); ok {
+		return rf(rctx, userID, channel)
+	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) bool); ok {
-		r0 = rf(c, userID, channel)
+		r0 = rf(rctx, userID, channel)
 	} else {
 		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *model.Channel) bool); ok {
+		r1 = rf(rctx, userID, channel)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	return r0, r1
+}
+
+// LogAuditRec provides a mock function with given fields: rctx, auditRec, err
+func (_m *SuiteIFace) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
+	_m.Called(rctx, auditRec, err)
+}
+
+// MFARequired provides a mock function with given fields: rctx
+func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MFARequired")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// MakeAuditRecord provides a mock function with given fields: rctx, event, initialStatus
+func (_m *SuiteIFace) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
+	ret := _m.Called(rctx, event, initialStatus)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeAuditRecord")
+	}
+
+	var r0 *model.AuditRecord
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AuditRecord); ok {
+		r0 = rf(rctx, event, initialStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AuditRecord)
+		}
 	}
 
 	return r0
@@ -84,9 +139,9 @@ func (_m *SuiteIFace) RolesGrantPermission(roleNames []string, permissionId stri
 	return r0
 }
 
-// UserCanSeeOtherUser provides a mock function with given fields: c, userID, otherUserId
-func (_m *SuiteIFace) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
-	ret := _m.Called(c, userID, otherUserId)
+// UserCanSeeOtherUser provides a mock function with given fields: rctx, userID, otherUserId
+func (_m *SuiteIFace) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+	ret := _m.Called(rctx, userID, otherUserId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserCanSeeOtherUser")
@@ -95,16 +150,16 @@ func (_m *SuiteIFace) UserCanSeeOtherUser(c request.CTX, userID string, otherUse
 	var r0 bool
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
-		return rf(c, userID, otherUserId)
+		return rf(rctx, userID, otherUserId)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
-		r0 = rf(c, userID, otherUserId)
+		r0 = rf(rctx, userID, otherUserId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(c, userID, otherUserId)
+		r1 = rf(rctx, userID, otherUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

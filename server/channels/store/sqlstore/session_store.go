@@ -38,7 +38,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	return s
 }
 
-func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
+func (me SqlSessionStore) Save(rctx request.CTX, session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
@@ -69,7 +69,7 @@ func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Se
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(c, session.UserId, "", true)
+	teamMembers, err := me.Team().GetTeamsForUser(rctx, session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -84,7 +84,7 @@ func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(rctx request.CTX, sessionIdOrToken string) (*model.Session, error) {
 	sessions := []*model.Session{}
 
 	query := me.sessionSelectQuery.
@@ -99,7 +99,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 		return nil, errors.Wrap(err, "session_get_tosql")
 	}
 
-	err = me.DBXFromContext(c.Context()).Select(&sessions, sql, args...)
+	err = me.DBXFromContext(rctx.Context()).Select(&sessions, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	}
@@ -109,7 +109,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		RequestContextWithMaster(c),
+		RequestContextWithMaster(rctx),
 		session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -123,7 +123,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Session, error) {
+func (me SqlSessionStore) GetSessions(rctx request.CTX, userId string) ([]*model.Session, error) {
 	sessions := []*model.Session{}
 
 	query := me.sessionSelectQuery.
@@ -140,7 +140,7 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(c, userId, "", true)
+	teamMembers, err := me.Team().GetTeamsForUser(rctx, userId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
@@ -158,7 +158,7 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 
 // GetLRUSessions gets the Least Recently Used sessions from the store. Note: the use of limit and offset
 // are intentional; they are hardcoded from the app layer (i.e., will not result in a non-performant query).
-func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
+func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
 	builder := me.sessionSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		OrderBy("LastActivityAt DESC").
@@ -186,12 +186,8 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 		Where(sq.GtOrEq{"ExpiresAt": now}).
 		Where(sq.NotEq{"DeviceId": ""})
 
-	// Add the last_removed_device_id condition based on the driver
-	if me.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.Where("DeviceId != COALESCE(Props->>'$.last_removed_device_id', '')")
-	} else {
-		builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
-	}
+	// Add the last_removed_device_id condition
+	builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
 
 	sessions := []*model.Session{}
 
@@ -205,11 +201,6 @@ func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMeta
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled
 	platformQuery := "NULLIF(SPLIT_PART(deviceid, ':', 1), '')"
-	if me.DriverName() == model.DatabaseDriverMysql {
-		versionProp = "$." + versionProp
-		notificationDisabledProp = "$." + notificationDisabledProp
-		platformQuery = "NULLIF(SUBSTRING_INDEX(deviceid, ':', 1), deviceid)"
-	}
 
 	query, args, err := me.getQueryBuilder().
 		Select(fmt.Sprintf(
@@ -378,12 +369,7 @@ func (me SqlSessionStore) AnalyticsSessionCount() (int64, error) {
 }
 
 func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
-	var query string
-	if me.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?)"
-	} else {
-		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?"
-	}
+	query := "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?)"
 
 	var rowsAffected int64 = 1
 

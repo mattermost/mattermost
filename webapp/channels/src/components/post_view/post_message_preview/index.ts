@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -28,6 +28,7 @@ export type OwnProps = {
     metadata: PostPreviewMetadata;
     preventClickAction?: boolean;
     previewFooterMessage?: string;
+    usePostAsSource?: boolean;
 }
 
 function makeMapStateToProps() {
@@ -39,7 +40,7 @@ function makeMapStateToProps() {
         let user = null;
         let embedVisible = false;
         let channelDisplayName = ownProps.metadata.channel_display_name;
-        const previewPost = getPost(state, ownProps.metadata.post_id);
+        const previewPost = ownProps.metadata.post || getPost(state, ownProps.metadata.post_id);
 
         if (previewPost && previewPost.user_id) {
             user = getUser(state, previewPost.user_id);
@@ -62,6 +63,7 @@ function makeMapStateToProps() {
             isEmbedVisible: embedVisible,
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
+            isChannelAutotranslated: isChannelAutotranslated(state, previewPost?.channel_id),
         };
     };
 }

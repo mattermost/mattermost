@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
 <div>
@@ -31,7 +31,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
           <span
             class="date-time-input__value"
           >
-            6/8/2025
+            Jun 8, 2025
           </span>
         </div>
       </div>

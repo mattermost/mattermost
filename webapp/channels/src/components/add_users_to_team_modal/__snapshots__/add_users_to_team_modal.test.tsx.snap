@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal should match snapshot with 2 users 1`] = `
 <Modal
@@ -221,7 +221,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
       perPage={50}
       placeholderText={
         Object {
-          "defaultMessage": "Search and add members",
+          "defaultMessage": "Search for people",
           "id": "multiselect.placeholder",
         }
       }
@@ -463,7 +463,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
       perPage={50}
       placeholderText={
         Object {
-          "defaultMessage": "Search and add members",
+          "defaultMessage": "Search for people",
           "id": "multiselect.placeholder",
         }
       }

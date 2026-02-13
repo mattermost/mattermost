@@ -38,7 +38,7 @@ export function useGlobalState<TVal>(
     const storedKey = `${name}${suffixToUse}`;
 
     const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);
-    const setValue = useCallback((newValue) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);
+    const setValue = useCallback((newValue: TVal) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);
 
     return [
         value,

@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * Functions here are expected to work with MySQL and PostgreSQL (known as dialect).
- * When updating this file, make sure to test in both dialect.
- * You'll find table and columns names are being converted to lowercase. Reason being is that
- * in MySQL, first letter is capitalized.
- */
-
 const mapKeys = require('lodash.mapkeys');
 
 function convertKeysToLowercase(obj) {
@@ -17,7 +10,7 @@ function convertKeysToLowercase(obj) {
 }
 
 function getKnexClient({client, connection}) {
-    return require('knex')({client, connection}); // eslint-disable-line global-require
+    return require('knex')({client, connection});
 }
 
 // Reuse DB client connection
@@ -33,12 +26,12 @@ const dbGetActiveUserSessions = async ({dbConfig, params: {username, userId, lim
     try {
         let user;
         if (username) {
-            user = await knexClient(toLowerCase(dbConfig, 'Users')).where('username', username).first();
+            user = await knexClient('users').where('username', username).first();
             user = convertKeysToLowercase(user);
         }
 
         const now = Date.now();
-        const sessions = await knexClient(toLowerCase(dbConfig, 'Sessions')).
+        const sessions = await knexClient('sessions').
             where('userid', user ? user.id : userId).
             where('expiresat', '>', now).
             orderBy('lastactivityat', 'desc').
@@ -60,7 +53,7 @@ const dbGetUser = async ({dbConfig, params: {username}}) => {
     }
 
     try {
-        const user = await knexClient(toLowerCase(dbConfig, 'Users')).where('username', username).first();
+        const user = await knexClient('users').where('username', username).first();
 
         return {user: convertKeysToLowercase(user)};
     } catch (error) {
@@ -75,7 +68,7 @@ const dbGetUserSession = async ({dbConfig, params: {sessionId}}) => {
     }
 
     try {
-        const session = await knexClient(toLowerCase(dbConfig, 'Sessions')).
+        const session = await knexClient('sessions').
             where('id', '=', sessionId).
             first();
 
@@ -92,7 +85,7 @@ const dbUpdateUserSession = async ({dbConfig, params: {sessionId, userId, fields
     }
 
     try {
-        let user = await knexClient(toLowerCase(dbConfig, 'Users')).where('id', userId).first();
+        let user = await knexClient('users').where('id', userId).first();
         if (!user) {
             return {errorMessage: `No user found with id: ${userId}.`};
         }
@@ -102,12 +95,12 @@ const dbUpdateUserSession = async ({dbConfig, params: {sessionId, userId, fields
 
         user = convertKeysToLowercase(user);
 
-        await knexClient(toLowerCase(dbConfig, 'Sessions')).
+        await knexClient('sessions').
             where('id', '=', sessionId).
             where('userid', '=', user.id).
             update(fieldsToUpdate);
 
-        const session = await knexClient(toLowerCase(dbConfig, 'Sessions')).
+        const session = await knexClient('sessions').
             where('id', '=', sessionId).
             where('userid', '=', user.id).
             first();
@@ -119,25 +112,9 @@ const dbUpdateUserSession = async ({dbConfig, params: {sessionId, userId, fields
     }
 };
 
-function toLowerCase(config, name) {
-    if (config.client === 'mysql') {
-        return name;
-    }
-
-    return name.toLowerCase();
-}
-
 const dbRefreshPostStats = async ({dbConfig}) => {
     if (!knexClient) {
         knexClient = getKnexClient(dbConfig);
-    }
-
-    // Only run for PostgreSQL
-    if (dbConfig.client !== 'postgres') {
-        return {
-            skipped: true,
-            message: 'Refresh post stats is only supported for PostgreSQL',
-        };
     }
 
     try {

@@ -48,6 +48,7 @@ generate_docker_compose_file() {
 services:
   server:
     image: \${SERVER_IMAGE}
+    platform: linux/amd64
     restart: always
     env_file:
       - "./.env.server"
@@ -81,7 +82,7 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:13
+    image: mattermostdevelopment/mirrored-postgres:14
     restart: "no"
     network_mode: host
     networks: !reset []
@@ -221,9 +222,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
-    image: "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
-    ### Temporarily disabling this image, until both the amd64 and arm64 version are mirrored
-    # image: "mattermostdevelopment/mirrored-cypress-browsers-public:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
+    image: "cypress/browsers:node-22.18.0-chrome-139.0.7258.66-1-ff-141.0.3-edge-138.0.3351.121-1"
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -262,7 +261,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     # shellcheck disable=SC2016
     echo '
   webhook-interactions:
-    image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
+    image: node:${NODE_VERSION_REQUIRED}
     command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
@@ -277,11 +276,21 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
+    # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.53.0-noble
+    image: mcr.microsoft.com/playwright:v1.58.0-noble
     entrypoint: ["/bin/bash", "-c"]
-    command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
+    command:
+      - |
+        # Install Node.js based on .nvmrc
+        NODE_VERSION=$$(cat /mattermost/.nvmrc)
+        echo "Installing Node.js $${NODE_VERSION}..."
+        curl -fsSL https://deb.nodesource.com/setup_$${NODE_VERSION%%.*}.x | bash -
+        apt-get install -y nodejs
+        echo "Node.js version: $$(node --version)"
+        # Wait for termination signal
+        until [ -f /var/run/mm_terminate ]; do sleep 5; done
     env_file:
       - "./.env.playwright"
     environment:

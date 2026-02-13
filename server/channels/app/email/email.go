@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -78,7 +79,7 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["EmailInfo1"] = T("api.templates.email_us_anytime_at")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["FooterV2"] = T("api.templates.email_footer_v2")
+	data.Props["FooterV2"] = T("api.templates.email_footer_v2", map[string]any{"CurrentYear": time.Now().Year()})
 
 	body, err := es.templatesContainer.RenderToString("email_change_verify_body", data)
 	if err != nil {
@@ -484,6 +485,8 @@ func (es *Service) SendInviteEmails(
 	return nil
 }
 
+const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
+
 func (es *Service) SendGuestInviteEmails(
 	team *model.Team,
 	channels []*model.Channel,
@@ -496,6 +499,7 @@ func (es *Service) SendGuestInviteEmails(
 	errorWhenNotSent bool,
 	isSystemAdmin bool,
 	isFirstAdmin bool,
+	isGuestMagicLink bool,
 ) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
@@ -537,8 +541,13 @@ func (es *Service) SendGuestInviteEmails(
 				channelIDs = append(channelIDs, channel.Id)
 			}
 
+			tokenType := TokenTypeGuestInvitation
+			if isGuestMagicLink {
+				tokenType = TokenTypeGuestMagicLinkInvitation
+			}
+
 			token := model.NewToken(
-				TokenTypeGuestInvitation,
+				tokenType,
 				model.MapToJSON(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIDs, " "),
@@ -559,7 +568,12 @@ func (es *Service) SendGuestInviteEmails(
 				continue
 			}
 
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			if isGuestMagicLink {
+				// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+				data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
+			} else {
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			}
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
@@ -597,6 +611,80 @@ func (es *Service) SendGuestInviteEmails(
 			}
 		}
 	}
+	return nil
+}
+
+// SendMagicLinkEmailSelfService sends a passwordless login link to an existing guest user
+// This is for self-service login requests (no sender, no team/channel context).
+// For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
+func (es *Service) SendMagicLinkEmailSelfService(
+	invite string,
+	siteURL string,
+) error {
+	if es.perHourEmailRateLimiter == nil {
+		return NoRateLimiterError
+	}
+
+	// Rate limit by email address for self-service requests
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
+	if err != nil {
+		return SetupRateLimiterError
+	}
+
+	if rateLimited {
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("email", invite),
+			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		return RateLimitExceededError
+	}
+
+	if invite == "" {
+		return nil
+	}
+
+	subject := i18n.T("api.templates.guest_magic_link_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData("")
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = i18n.T("api.templates.guest_magic_link_body.title")
+	data.Props["SubTitle"] = i18n.T("api.templates.guest_magic_link_body.subtitle")
+	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+	data.Props["InviteFooterTitle"] = i18n.T("api.templates.guest_magic_link_body.footer.title")
+	data.Props["InviteFooterInfo"] = i18n.T("api.templates.guest_magic_link_body.footer.info")
+
+	// Login-only token - no team or channel info needed
+	token, err := es.store.Token().GetTokenByTypeAndEmail(TokenTypeGuestMagicLink, invite)
+	if err != nil || token.IsExpired() {
+		// No existing token found, create a new one
+		token = model.NewToken(
+			TokenTypeGuestMagicLink,
+			model.MapToJSON(map[string]string{
+				"email": invite,
+			}),
+		)
+	}
+
+	if saveErr := es.store.Token().Save(token); saveErr != nil {
+		mlog.Error("Failed to save guest magic link token", mlog.Err(saveErr))
+		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
+	}
+
+	// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
+
+	if !*es.config().EmailSettings.SendEmailNotifications {
+		mlog.Info("sending guest magic link", mlog.String("to", invite))
+	}
+
+	body, err := es.templatesContainer.RenderToString("invite_body", data)
+	if err != nil {
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(err))
+	}
+
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "GuestMagicLinkEmail"); nErr != nil {
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(nErr))
+	}
+
 	return nil
 }
 
@@ -772,7 +860,7 @@ func (es *Service) NewEmailTemplateData(locale string) templates.Data {
 				map[string]any{"SiteName": es.config().TeamSettings.SiteName}),
 			"SupportEmail": *es.config().SupportSettings.SupportEmail,
 			"Footer":       localT("api.templates.email_footer"),
-			"FooterV2":     localT("api.templates.email_footer_v2"),
+			"FooterV2":     localT("api.templates.email_footer_v2", map[string]any{"CurrentYear": time.Now().Year()}),
 			"Organization": organization,
 		},
 		HTML: map[string]template.HTML{},

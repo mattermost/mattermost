@@ -21,7 +21,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
@@ -29,8 +28,46 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// Plugin RPC Architecture
+//
+// Mattermost plugins run as separate OS processes for isolation and safety, using
+// HashiCorp's go-plugin library. Communication between the server and plugins is
+// bidirectional via RPC:
+//
+//	┌─────────────────────────┐                    ┌─────────────────────────┐
+//	│   Mattermost Server     │                    │     Plugin Process      │
+//	│                         │                    │                         │
+//	│  ┌───────────────────┐  │   hooks (calls)    │  ┌───────────────────┐  │
+//	│  │ hooksRPCClient    │──┼───────────────────►│  │ hooksRPCServer    │  │
+//	│  └───────────────────┘  │                    │  └───────────────────┘  │
+//	│                         │                    │                         │
+//	│  ┌───────────────────┐  │   API (callbacks)  │  ┌───────────────────┐  │
+//	│  │ apiRPCServer      │◄─┼────────────────────┼──│ apiRPCClient      │  │
+//	│  └───────────────────┘  │                    │  └───────────────────┘  │
+//	└─────────────────────────┘                    └─────────────────────────┘
+//
+// - Server → Plugin (Hooks): hooksRPCClient serializes hook calls and sends them
+//   to hooksRPCServer in the plugin process, which delegates to the plugin implementation.
+//
+// - Plugin → Server (API): apiRPCClient in the plugin serializes API calls and sends
+//   them to apiRPCServer in the server, which delegates to the Mattermost API.
+//
+// The MuxBroker enables multiplexed streaming connections over a single RPC connection,
+// which is essential for efficiently streaming HTTP bodies, file uploads, and other
+// large data transfers without buffering everything in memory.
+
 var hookNameToId = make(map[string]int)
 
+// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to to the [hooksRPCServer] on the plugin side.
+// It implements the Hooks interface and forwards hook invocations to plugins running in
+// separate processes via RPC.
+//
+// When Mattermost needs to call a plugin hook (e.g., MessageWillBePosted), it calls the
+// corresponding method on hooksRPCClient, which serializes the arguments and makes an
+// RPC call to the plugin process where hooksRPCServer receives and handles it.
+//
+// The struct also holds references to the API and Driver implementations that will be
+// exposed to the plugin via apiRPCServer when the plugin is activated.
 type hooksRPCClient struct {
 	client      *rpc.Client
 	log         *mlog.Logger
@@ -41,6 +78,13 @@ type hooksRPCClient struct {
 	doneWg      sync.WaitGroup
 }
 
+// hooksRPCServer is the server-side RPC handler that runs in the plugin process and receives requests from [hooksRPCClient].
+// It receives hook invocations from hooksRPCClient (in the Mattermost server) and
+// delegates them to the actual plugin implementation.
+//
+// During plugin activation (OnActivate), it establishes a reverse RPC connection
+// back to the server, creating an apiRPCClient that the plugin uses to call
+// Mattermost APIs.
 type hooksRPCServer struct {
 	impl         any
 	muxBroker    *plugin.MuxBroker
@@ -69,11 +113,22 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, erro
 	}, nil
 }
 
+// apiRPCClient is the client-side RPC proxy that runs in the plugin process and connects to the [apiRPCServer] on the Mattermost server side.
+// It implements the API interface and allows plugins to call Mattermost server
+// APIs (e.g., GetUser, CreatePost) by forwarding requests via RPC to apiRPCServer.
+//
+// This is created during plugin activation and injected into the plugin via SetAPI().
 type apiRPCClient struct {
 	client    *rpc.Client
 	muxBroker *plugin.MuxBroker
 }
 
+// apiRPCServer is the server-side RPC handler that runs in the Mattermost server process and receives requests from [apiRPCClient].
+// It receives API calls from plugins (via apiRPCClient) and delegates them to the actual
+// Mattermost API implementation.
+//
+// This enables plugins to interact with Mattermost functionality like users, posts,
+// channels, and configuration through a well-defined API boundary.
 type apiRPCServer struct {
 	impl      API
 	muxBroker *plugin.MuxBroker
@@ -102,10 +157,6 @@ func encodableError(err error) error {
 	}
 
 	if _, ok := err.(*pq.Error); ok {
-		return err
-	}
-
-	if _, ok := err.(*mysql.MySQLError); ok {
 		return err
 	}
 
@@ -162,7 +213,6 @@ func init() {
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
-	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
@@ -195,9 +245,9 @@ func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 
 // Implemented replies with the names of the hooks that are implemented.
 func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
-	ifaceType := reflect.TypeOf((*Hooks)(nil)).Elem()
+	ifaceType := reflect.TypeFor[Hooks]()
 	implType := reflect.TypeOf(s.impl)
-	selfType := reflect.TypeOf(s)
+	selfType := reflect.TypeFor[*hooksRPCServer]()
 	var methods []string
 	for i := 0; i < ifaceType.NumMethod(); i++ {
 		method := ifaceType.Method(i)
@@ -494,6 +544,10 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	return nil
 }
 
+// PluginHTTPStream - Streaming version of PluginHTTP that uses MuxBroker for streaming request/response bodies.
+// This avoids buffering large payloads in memory.
+
+// Legacy buffered structs (kept for backward compatibility with old servers)
 type Z_PluginHTTPArgs struct {
 	Request     *HTTPRequestSubset
 	RequestBody []byte
@@ -504,7 +558,116 @@ type Z_PluginHTTPReturns struct {
 	ResponseBody []byte
 }
 
+// New streaming structs
+type Z_PluginHTTPStreamArgs struct {
+	ResponseBodyStream uint32
+	Request            *HTTPRequestSubset
+	RequestBodyStream  uint32
+}
+
+type Z_PluginHTTPStreamReturns struct {
+	StatusCode int
+	Header     http.Header
+}
+
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	// Try to use the streaming version first (if server supports it)
+	// Fall back to buffered version if not available (signaled by nil)
+	response, err := g.pluginHTTPStream(request)
+	if err != nil {
+		// If we error for some other reason other than stream not being
+		// implemented just report and fail
+		log.Print(err.Error())
+		return nil
+	}
+	if response != nil {
+		return response
+	}
+
+	// Fallback to buffered version
+	return g.pluginHTTPBuffered(request)
+}
+
+// pluginHTTPStream attempts to use the new streaming endpoint
+func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, error) {
+	// Set up request body stream
+	requestBodyStreamId := uint32(0)
+	if request.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				log.Printf("Plugin failed to accept request body connection for PluginHTTPStream: %s", err.Error())
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(request.Body, bodyConnection)
+		}()
+	}
+
+	// Set up response body stream
+	responseBodyStreamId := g.muxBroker.NextId()
+	responsePipe := make(chan io.ReadCloser, 1)
+
+	go func() {
+		connection, err := g.muxBroker.Accept(responseBodyStreamId)
+		if err != nil {
+			log.Printf("Plugin failed to accept response body connection for PluginHTTPStream: %s", err.Error())
+			responsePipe <- nil
+			return
+		}
+		// Don't close connection here - it will be closed when response body is read
+		responsePipe <- connectIOReader(connection)
+	}()
+
+	forwardedRequest := &HTTPRequestSubset{
+		Method:     request.Method,
+		URL:        request.URL,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+		Header:     request.Header,
+		Host:       request.Host,
+		RemoteAddr: request.RemoteAddr,
+		RequestURI: request.RequestURI,
+	}
+
+	_args := &Z_PluginHTTPStreamArgs{
+		ResponseBodyStream: responseBodyStreamId,
+		Request:            forwardedRequest,
+		RequestBodyStream:  requestBodyStreamId,
+	}
+
+	_returns := &Z_PluginHTTPStreamReturns{}
+	if err := g.client.Call("Plugin.PluginHTTPStream", _args, _returns); err != nil {
+		// If the method doesn't exist, return nil to trigger fallback
+		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err)
+	}
+
+	// Wait for response body reader
+	responseBody := <-responsePipe
+	if responseBody == nil {
+		return nil, fmt.Errorf("Failed to get response body stream for PluginHTTPStream")
+	}
+
+	// Create response with streamed body
+	response := &http.Response{
+		StatusCode: _returns.StatusCode,
+		Header:     _returns.Header,
+		Body:       responseBody,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+	}
+
+	return response, nil
+}
+
+// pluginHTTPBuffered is the original buffered implementation
+func (g *apiRPCClient) pluginHTTPBuffered(request *http.Request) *http.Response {
 	forwardedRequest := &HTTPRequestSubset{
 		Method:     request.Method,
 		URL:        request.URL,
@@ -544,6 +707,59 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 	return _returns.Response
 }
 
+func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z_PluginHTTPStreamReturns) error {
+	responseConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
+	if err != nil {
+		return encodableError(fmt.Errorf("can't connect to remote response body stream: %w", err))
+	}
+
+	// Connect to request body stream
+	r := args.Request
+	if args.RequestBodyStream != 0 {
+		requestConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			return encodableError(fmt.Errorf("can't connect to remote request body stream: %w", err))
+		}
+		r.Body = connectIOReader(requestConnection)
+	} else {
+		r.Body = io.NopCloser(&bytes.Buffer{})
+	}
+
+	httpReq := r.GetHTTPRequest()
+
+	// Call the PluginHTTP implementation
+	if hook, ok := s.impl.(interface {
+		PluginHTTP(request *http.Request) *http.Response
+	}); ok {
+		response := hook.PluginHTTP(httpReq)
+		if response != nil {
+			returns.StatusCode = response.StatusCode
+			returns.Header = response.Header
+
+			// Connect to response body stream and stream the response body
+			go func() {
+				defer r.Body.Close()
+				if response.Body != nil {
+					// Stream the response body through the connection
+					if _, err := io.Copy(responseConnection, response.Body); err != nil {
+						log.Printf("error streaming response body: %s", err.Error())
+					}
+					response.Body.Close()
+				}
+				responseConnection.Close()
+			}()
+		} else {
+			r.Body.Close()
+		}
+	} else {
+		r.Body.Close()
+		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
+	}
+
+	return nil
+}
+
+// Server-side handler for old buffered PluginHTTP (for backward compatibility)
 func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
 	args.Request.Body = io.NopCloser(bytes.NewBuffer(args.RequestBody))
 

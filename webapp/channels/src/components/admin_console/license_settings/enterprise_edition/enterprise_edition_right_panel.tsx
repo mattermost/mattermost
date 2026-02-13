@@ -7,9 +7,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
+import ExternalLink from 'components/external_link';
 
-import {LicenseSkus} from 'utils/constants';
+import {LicenseSkus, LicenseLinks} from 'utils/constants';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;
@@ -21,6 +23,7 @@ const EnterpriseEditionRightPanel = ({
     license,
 }: EnterpriseEditionProps) => {
     const intl = useIntl();
+    const [openContactSales] = useOpenSalesLink();
     const upgradeAdvantages = [
         intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.adLdapSync',
@@ -78,12 +81,11 @@ const EnterpriseEditionRightPanel = ({
     const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
     const isEnterprise = license?.SkuShortName === LicenseSkus.Enterprise;
     const isProfessional = license?.SkuShortName === LicenseSkus.Professional;
+    const isEntry = license?.SkuShortName === LicenseSkus.Entry;
 
     const contactSalesBtn = (
         <div className='purchase-card'>
-            <ContactUsButton
-                eventID='post_trial_contact_sales'
-            />
+            <ContactUsButton/>
         </div>
     );
 
@@ -93,6 +95,14 @@ const EnterpriseEditionRightPanel = ({
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanTitle'
                     defaultMessage='Purchase Enterprise Advanced'
+                />
+            );
+        }
+        if (isEntry) {
+            return (
+                <FormattedMessage
+                    id='admin.license.entryPlanTitle'
+                    defaultMessage='Get access to full message history, AI-powered coordination, and secure workflow continuity'
                 />
             );
         }
@@ -132,6 +142,8 @@ const EnterpriseEditionRightPanel = ({
         if (isEnterpriseAdvanced) {
             return null; //No image
         }
+
+        // Show the setup system image for Entry SKU and other SKUs
         return (
             <SetupSystemSvg
                 width={197}
@@ -149,11 +161,29 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
+        if (isEntry) {
+            return (
+                <FormattedMessage
+                    id='admin.license.entryPlanSubtitle'
+                    defaultMessage='Purchase a plan to unlock full access, or <link>start a trial</link> to remove limits while you evaluate Enterprise Advanced.'
+                    values={{
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                location='entry_trial_license'
+                                href={LicenseLinks.TRIAL_INFO_LINK}
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }}
+                />
+            );
+        }
         if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
+                    defaultMessage="We're here to work with you and your needs. Contact us today to get more seats on your plan."
                 />
             );
         }
@@ -175,6 +205,34 @@ const EnterpriseEditionRightPanel = ({
             </div>
         );
     };
+
+    // For Entry SKU, render custom buttons
+    if (isEntry) {
+        return (
+            <div className='EnterpriseEditionRightPannel entry'>
+                <div className='svg-image'>
+                    {svgImage()}
+                </div>
+                <div className='upgrade-title'>
+                    {title()}
+                </div>
+                <div className='upgrade-subtitle'>
+                    {subtitle()}
+                </div>
+                <div className='purchase_buttons'>
+                    <button
+                        className='btn btn-primary'
+                        onClick={openContactSales}
+                    >
+                        <FormattedMessage
+                            id='admin.license.contactSales'
+                            defaultMessage='Questions? Contact sales'
+                        />
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='EnterpriseEditionRightPannel'>

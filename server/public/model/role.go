@@ -119,6 +119,8 @@ func init() {
 		PermissionSysconsoleWriteUserManagementChannels.Id: {
 			PermissionManagePublicChannelProperties,
 			PermissionManagePrivateChannelProperties,
+			PermissionManagePublicChannelAutoTranslation,
+			PermissionManagePrivateChannelAutoTranslation,
 			PermissionManagePrivateChannelMembers,
 			PermissionManagePublicChannelMembers,
 			PermissionDeletePrivateChannel,
@@ -162,11 +164,6 @@ func init() {
 		},
 		PermissionSysconsoleReadComplianceComplianceMonitoring.Id: {
 			PermissionReadAudits,
-		},
-		PermissionSysconsoleWriteExperimentalBleve.Id: {
-			PermissionCreatePostBleveIndexesJob,
-			PermissionPurgeBleveIndexes,
-			PermissionManagePostBleveIndexesJob,
 		},
 		PermissionSysconsoleWriteAuthenticationLdap.Id: {
 			PermissionCreateLdapSyncJob,
@@ -265,7 +262,6 @@ func init() {
 		PermissionSysconsoleReadComplianceCustomTermsOfService.Id,
 		PermissionSysconsoleReadExperimentalFeatures.Id,
 		PermissionSysconsoleReadExperimentalFeatureFlags.Id,
-		PermissionSysconsoleReadExperimentalBleve.Id,
 		PermissionSysconsoleReadProductsBoards.Id,
 	}
 
@@ -916,6 +912,9 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionOrderBookmarkPrivateChannel.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
+			PermissionManageChannelAccessRules.Id,
+			PermissionManagePublicChannelAutoTranslation.Id,
+			PermissionManagePrivateChannelAutoTranslation.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -984,12 +983,13 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
 			PermissionManageChannelRoles.Id,
+			PermissionManageOwnIncomingWebhooks.Id,
 			PermissionManageOthersIncomingWebhooks.Id,
+			PermissionManageOwnOutgoingWebhooks.Id,
 			PermissionManageOthersOutgoingWebhooks.Id,
-			PermissionManageSlashCommands.Id,
+			PermissionManageOwnSlashCommands.Id,
 			PermissionManageOthersSlashCommands.Id,
-			PermissionManageIncomingWebhooks.Id,
-			PermissionManageOutgoingWebhooks.Id,
+			PermissionBypassIncomingWebhookChannelLock.Id,
 			PermissionConvertPublicChannelToPrivate.Id,
 			PermissionConvertPrivateChannelToPublic.Id,
 			PermissionDeletePost.Id,
@@ -1004,6 +1004,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionOrderBookmarkPrivateChannel.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
+			PermissionManageChannelAccessRules.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

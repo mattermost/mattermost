@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/access_control/PolicyList should match snapshot with no policies 1`] = `
 <div
@@ -70,7 +70,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"
@@ -161,7 +160,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"
@@ -252,7 +250,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"

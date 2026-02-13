@@ -35,6 +35,9 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 
 	field.PreSave()
+	if err := field.EnsureOptionIDs(); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_ensure_option_ids")
+	}
 
 	if err := field.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
@@ -118,6 +121,25 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 	return count, nil
 }
 
+func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetType": targetType}).
+		Where(sq.Eq{"TargetID": targetID})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count property fields for target")
+	}
+	return count, nil
+}
+
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	if err := opts.Cursor.IsValid(); err != nil {
 		return nil, fmt.Errorf("cursor is invalid: %w", err)
@@ -153,8 +175,12 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
 
-	if opts.TargetID != "" {
-		builder = builder.Where(sq.Eq{"TargetID": opts.TargetID})
+	if len(opts.TargetIDs) > 0 {
+		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
+	}
+
+	if opts.SinceUpdateAt > 0 {
+		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
 	}
 
 	fields := []*model.PropertyField{}
@@ -177,7 +203,6 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	nameCase := sq.Case("id")
 	typeCase := sq.Case("id")
 	attrsCase := sq.Case("id")
@@ -188,27 +213,21 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	for i, field := range fields {
 		field.UpdateAt = updateTime
+		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
+			return nil, errors.Wrap(ensureErr, "property_field_update_ensure_option_ids")
+		}
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}
 
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
-		if isPostgres {
-			nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
-		} else {
-			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
-		}
+		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 	}
 
 	builder := s.getQueryBuilder().

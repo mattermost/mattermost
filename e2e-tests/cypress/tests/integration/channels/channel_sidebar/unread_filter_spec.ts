@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel_sidebar
 
 import {
@@ -16,7 +15,6 @@ import {
     beUnread,
 } from '../../../support/assertions';
 import {getAdminAccount} from '../../../support/env';
-
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getRandomId} from '../../../utils';
 

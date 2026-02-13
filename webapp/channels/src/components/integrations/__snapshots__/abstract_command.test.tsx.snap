@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
 <div
@@ -282,7 +282,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
+              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, your Mattermost username is used."
               id="add_command.username.help"
             />
           </div>
@@ -765,7 +765,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
+              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, your Mattermost username is used."
               id="add_command.username.help"
             />
           </div>
@@ -1243,7 +1243,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
+              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, your Mattermost username is used."
               id="add_command.username.help"
             />
           </div>

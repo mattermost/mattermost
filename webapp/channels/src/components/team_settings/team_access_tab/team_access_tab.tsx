@@ -25,7 +25,7 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
+const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, setJustSaved, team, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -68,7 +68,8 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
         setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
-    }, [setHasChangeTabError, setHasChanges]);
+        setJustSaved(false); // Reset flag when panel closes
+    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
 
     const handleCancel = useCallback(() => {
         setAllowedDomains(generateAllowedDomainOptions(team.allowed_domains));
@@ -93,7 +94,8 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
         }
         setSaveChangesPanelState('saved');
         setHasChangeTabError(false);
-    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError]);
+        setJustSaved(true); // Flag that save just completed
+    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError, setJustSaved]);
 
     return (
         <ModalSection
@@ -115,7 +117,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                                     className='fa fa-angle-left'
                                     aria-label={formatMessage({
                                         id: 'generic_icons.collapse',
-                                        defaultMessage: 'Collapes Icon',
+                                        defaultMessage: 'Collapse Icon',
                                     })}
                                     onClick={collapseModalHandler}
                                 />
@@ -129,15 +131,14 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                         aria-labelledby='accessButton'
                         role='tabpanel'
                     >
-                        {team.group_constrained ?
-                            undefined :
+                        {!team.group_constrained && (
                             <AllowedDomainsSelect
                                 allowedDomains={allowedDomains}
                                 setAllowedDomains={setAllowedDomains}
                                 setHasChanges={setHasChanges}
                                 setSaveChangesPanelState={setSaveChangesPanelState}
                             />
-                        }
+                        )}
                         <div className='divider-light'/>
                         <OpenInvite
                             isGroupConstrained={team.group_constrained}
@@ -145,18 +146,18 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                             setAllowOpenInvite={updateOpenInvite}
                         />
                         <div className='divider-light'/>
-                        {team.group_constrained ?
-                            undefined :
+                        {!team.group_constrained && (
                             <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
-                        }
-                        {hasChanges ?
+                        )}
+                        {hasChanges && (
                             <SaveChangesPanel
                                 handleCancel={handleCancel}
                                 handleSubmit={handleSaveChanges}
                                 handleClose={handleClose}
                                 tabChangeError={hasChangeTabError}
                                 state={saveChangesPanelState}
-                            /> : undefined}
+                            />
+                        )}
                     </div>
                 </>
             }

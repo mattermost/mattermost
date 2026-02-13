@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -98,7 +97,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "", map[string]bool{})
+		olist, _ := ss.Post().Get(rctx, otmp.Id, opts, "", map[string]bool{})
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
@@ -379,14 +378,14 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
-		th, err := ss.Thread().GetThreadForUser(m, false, false)
+		th, err := ss.Thread().GetThreadForUser(rctx, m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), th.UnreadReplies)
 
 		m.LastViewed = newPosts[2].UpdateAt + 1
 		_, err = ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
-		th, err = ss.Thread().GetThreadForUser(m, false, false)
+		th, err = ss.Thread().GetThreadForUser(rctx, m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 
@@ -395,7 +394,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Update(rctx, editedPost, newPosts[2])
 		require.NoError(t, err)
 
-		th, err = ss.Thread().GetThreadForUser(m, false, false)
+		th, err = ss.Thread().GetThreadForUser(rctx, m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
@@ -412,7 +411,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
 		require.NoError(t, err)
 		m.UserId = newPosts[0].UserId
-		th, err := ss.Thread().GetThreadForUser(m, true, false)
+		th, err := ss.Thread().GetThreadForUser(rctx, m, true, false)
 		require.NoError(t, err)
 		for _, user := range th.Participants {
 			require.NotNil(t, user)
@@ -469,11 +468,11 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 			m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
 			require.NoError(t, e)
 
-			th, e := ss.Thread().GetThreadForUser(m, false, true)
+			th, e := ss.Thread().GetThreadForUser(rctx, m, false, true)
 			require.NoError(t, e)
 			require.Equal(t, isUrgent, th.IsUrgent)
 
-			threads, e := ss.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{IncludeIsUrgent: true})
+			threads, e := ss.Thread().GetThreadsForUser(rctx, userID, "", model.GetUserThreadsOpts{IncludeIsUrgent: true})
 			require.NoError(t, e)
 			require.Equal(t, isUrgent, threads[0].IsUrgent)
 		})
@@ -796,12 +795,6 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
 }
-
-type byPostId []*model.Post
-
-func (a byPostId) Len() int           { return len(a) }
-func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
@@ -1163,7 +1156,6 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find actual %s in post names", thread.PostId)
 			actualPostNames = append(actualPostNames, postName)
 		}
-		sort.Strings(actualPostNames)
 
 		expectedPostNames := make([]string, 0, len(expectedPosts))
 		for _, post := range expectedPosts {
@@ -1171,20 +1163,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find expected %s in post names", post.Id)
 			expectedPostNames = append(expectedPostNames, postName)
 		}
-		sort.Strings(expectedPostNames)
 
-		assert.Equal(t, expectedPostNames, actualPostNames)
-
-		// Check posts themselves
-		sort.Sort(byPostId(expectedPosts))
-		sort.Sort(byPostId(actualPosts))
-		if assert.Len(t, actualPosts, len(expectedPosts)) {
-			for i := range actualPosts {
-				assert.Equal(t, expectedPosts[i], actualPosts[i], "mismatch comparing expected post %s with actual post %s", postNames[expectedPosts[i].Id], postNames[actualPosts[i].Id])
-			}
-		} else {
-			assert.Equal(t, expectedPosts, actualPosts)
-		}
+		assert.ElementsMatch(t, expectedPostNames, actualPostNames)
+		assert.ElementsMatch(t, expectedPosts, actualPosts)
 
 		// Check common fields between threads and posts.
 		for _, thread := range threads {
@@ -1238,7 +1219,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				threads, err := ss.Thread().GetThreadsForUser(testCase.UserID, testCase.TeamID, testCase.Options)
+				threads, err := ss.Thread().GetThreadsForUser(rctx, testCase.UserID, testCase.TeamID, testCase.Options)
 				require.NoError(t, err)
 
 				assertThreadPosts(t, threads, testCase.ExpectedThreads)
@@ -2121,7 +2102,7 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 			require.NoError(t, err)
 		}()
 
-		threads, err := ss.Thread().GetThreadsForUser(userA.Id, team2.Id, model.GetUserThreadsOpts{})
+		threads, err := ss.Thread().GetThreadsForUser(rctx, userA.Id, team2.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, threads, 1)
 	})
@@ -2142,11 +2123,11 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 		err = ss.Thread().UpdateTeamIdForChannelThreads(channel1.Id, newTeamID)
 		require.NoError(t, err)
 
-		threads, err := ss.Thread().GetThreadsForUser(userA.Id, newTeamID, model.GetUserThreadsOpts{})
+		threads, err := ss.Thread().GetThreadsForUser(rctx, userA.Id, newTeamID, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, threads, 0)
 
-		threads, err = ss.Thread().GetThreadsForUser(userA.Id, team1.Id, model.GetUserThreadsOpts{})
+		threads, err = ss.Thread().GetThreadsForUser(rctx, userA.Id, team1.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, threads, 1)
 	})

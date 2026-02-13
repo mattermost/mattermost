@@ -9,11 +9,12 @@ import (
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
+	"strings"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -36,7 +37,6 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 
 	if options != nil && options.IncludeLogs {
 		functions["mattermost log"] = ps.GetLogFile
-		functions["notification log"] = ps.GetNotificationLogFile
 	}
 
 	var (
@@ -95,6 +95,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Server */
 	d.Server.OS = runtime.GOOS
 	d.Server.Architecture = runtime.GOARCH
+	// Note: These values represent the host machine's resources, not any
+	// container limits (e.g., Docker or Kubernetes) that may be in effect.
+	d.Server.CPUCores = runtime.NumCPU()
+	totalMemoryBytes, err := getTotalMemory()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
+	}
+	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
@@ -145,7 +153,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		if e != nil {
 			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
-			d.Cluster.NumberOfNodes = len(clusterInfo)
+			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
 		}
 	}
 
@@ -177,10 +185,22 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.LDAP.ServerVersion = serverVersion
 	}
 
+	/* SAML */
+	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
+		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
+	}
+
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
+		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
+		if *ps.Config().ElasticsearchSettings.EnableIndexing {
+			appErr := se.TestConfig(rctx, ps.Config())
+			if appErr != nil {
+				d.ElasticSearch.Error = appErr.Error()
+			}
+		}
 	}
 
 	b, err := yaml.Marshal(&d)
@@ -260,4 +280,44 @@ func (ps *PlatformService) getGoroutineProfile(_ request.CTX) (*model.FileData, 
 		Body:     b.Bytes(),
 	}
 	return fileData, nil
+}
+
+// detectSAMLProviderType attempts to identify the SAML provider type based on the IdpDescriptorURL.
+// It returns "unknown" if the provider cannot be identified.
+func detectSAMLProviderType(idpDescriptorURL string) string {
+	if idpDescriptorURL == "" {
+		return unknownDataPoint
+	}
+
+	// Normalize URL to lowercase for case-insensitive matching
+	normalizedURL := strings.ToLower(idpDescriptorURL)
+
+	// Check for common SAML provider patterns in the EntityID/IdpDescriptorURL
+	// Order matters: more specific patterns should come before generic ones
+	switch {
+	case strings.Contains(normalizedURL, "login.microsoftonline.com") || strings.Contains(normalizedURL, "sts.windows.net"):
+		return "Azure AD"
+	case strings.Contains(normalizedURL, ".okta.com") || strings.Contains(normalizedURL, ".oktapreview.com"):
+		return "Okta"
+	case strings.Contains(normalizedURL, ".auth0.com"):
+		return "Auth0"
+	case strings.Contains(normalizedURL, ".onelogin.com"):
+		return "OneLogin"
+	case strings.Contains(normalizedURL, "accounts.google.com"):
+		return "Google Workspace"
+	case strings.Contains(normalizedURL, "sso.jumpcloud.com"):
+		return "JumpCloud"
+	case strings.Contains(normalizedURL, "duo.com/saml2"):
+		return "Duo"
+	case strings.Contains(normalizedURL, ".centrify.com"):
+		return "Centrify"
+	case strings.Contains(normalizedURL, "/realms/"):
+		return "Keycloak"
+	case strings.Contains(normalizedURL, "/adfs/") || strings.Contains(normalizedURL, "/FederationMetadata/"):
+		return "ADFS"
+	case strings.Contains(normalizedURL, "shibboleth.net") || strings.Contains(normalizedURL, "/idp/shibboleth"):
+		return "Shibboleth"
+	default:
+		return unknownDataPoint
+	}
 }

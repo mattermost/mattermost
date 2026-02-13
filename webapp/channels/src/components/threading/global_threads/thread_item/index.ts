@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {memo} from 'react';
 import {connect} from 'react-redux';
-import {compose} from 'redux';
 
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, isPostPriorityEnabled, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
@@ -38,11 +36,9 @@ function makeMapStateToProps() {
             postsInThread: getPostsForThread(state, post.id),
             thread: getThread(state, threadId),
             isPostPriorityEnabled: isPostPriorityEnabled(state),
+            isChannelAutotranslated: isChannelAutotranslated(state, post.channel_id),
         };
     };
 }
 
-export default compose(
-    connect(makeMapStateToProps),
-    memo,
-)(ThreadItem) as React.FunctionComponent<OwnProps>;
+export default connect(makeMapStateToProps)(ThreadItem);

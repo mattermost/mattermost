@@ -35,7 +35,7 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trial
 
 	// Create a new struct only using the fields from the request that are allowed to be set by the client
 	sanitizedRequest := &model.TrialLicenseRequest{
-		ServerID:              ch.srv.TelemetryId(),
+		ServerID:              ch.srv.ServerId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
 		SiteName:              *ch.srv.platform.Config().TeamSettings.SiteName,
@@ -80,7 +80,7 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 	}
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              ch.srv.TelemetryId(),
+		ServerID:              ch.srv.ServerId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
 		SiteName:              *ch.srv.platform.Config().TeamSettings.SiteName,

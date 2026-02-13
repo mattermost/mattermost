@@ -209,10 +209,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 	batchSize := scs.GetMemberSyncBatchSize()
 
 	for i := 0; i < len(members); i += batchSize {
-		end := i + batchSize
-		if end > len(members) {
-			end = len(members)
-		}
+		end := min(i+batchSize, len(members))
 
 		// Create a batch of members
 		batchMembers := members[i:end]
@@ -322,7 +319,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 				// Check if user profile needs to be synced
 				doSync, _, sErr := scs.shouldUserSync(user, syncMsg.ChannelId, rc)
 				if sErr == nil && doSync {
-					enrichedSyncMsg.Users[user.Id] = user
+					enrichedSyncMsg.Users[user.Id] = sanitizeUserForSyncSafe(user)
 				}
 			}
 		}

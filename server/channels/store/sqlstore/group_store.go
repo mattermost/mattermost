@@ -296,6 +296,20 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	return &group, nil
 }
 
+func (s *SqlGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
+	groups := []*model.Group{}
+	query := s.userGroupsSelectQuery.Where(sq.Eq{"Name": names})
+
+	if opts.FilterAllowReference {
+		query = query.Where("AllowReference = true")
+	}
+
+	if err := s.GetReplica().SelectBuilder(&groups, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find Groups by names")
+	}
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 	query := s.userGroupsSelectQuery.Where(sq.Eq{"Id": groupIDs})
@@ -1328,9 +1342,6 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DatabaseDriverMysql {
-			operatorKeyword = "LIKE"
-		}
 		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
@@ -1391,9 +1402,6 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DatabaseDriverMysql {
-			operatorKeyword = "LIKE"
-		}
 		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
@@ -1490,27 +1498,15 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 		joinStr := ""
 
 		if opts.IncludeTimezones {
-			if s.DriverName() == model.DatabaseDriverMysql {
-				selectStr += `,
-					COUNT(DISTINCT
-					(
-						CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.automaticTimezone'))) > 0
-						THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
-						WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'false' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.manualTimezone'))) > 0
-						THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
-						END
-					)) AS ChannelMemberTimezonesCount`
-			} else if s.DriverName() == model.DatabaseDriverPostgres {
-				selectStr += `,
-					COUNT(DISTINCT
-					(
-						CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
-						THEN Timezone->>'automaticTimezone'
-						WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
-						THEN Timezone->>'manualTimezone'
-						END
-					)) AS ChannelMemberTimezonesCount`
-			}
+			selectStr += `,
+				COUNT(DISTINCT
+				(
+					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
+					THEN Timezone->>'automaticTimezone'
+					WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
+					THEN Timezone->>'manualTimezone'
+					END
+				)) AS ChannelMemberTimezonesCount`
 			joinStr = "LEFT JOIN Users ON Users.Id = GroupMembers.UserId"
 		}
 
@@ -1557,9 +1553,6 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DatabaseDriverMysql {
-			operatorKeyword = "LIKE"
-		}
 		groupsQuery = groupsQuery.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
@@ -1662,11 +1655,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 			Column("TeamMembers.SchemeAdmin").
 			Column("TeamMembers.SchemeUser")
 
-		if s.DriverName() == model.DatabaseDriverMysql {
-			builder = builder.Column("group_concat(UserGroups.Id) AS GroupIDs")
-		} else {
-			builder = builder.Column("string_agg(UserGroups.Id, ',') AS GroupIDs")
-		}
+		builder = builder.Column("string_agg(UserGroups.Id, ',') AS GroupIDs")
 	}
 
 	subQuery := s.getQueryBuilder().Select("GroupMembers.UserId").
@@ -1741,11 +1730,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 			"ChannelMembers.SchemeUser",
 		)
 
-		if s.DriverName() == model.DatabaseDriverMysql {
-			builder = builder.Column("group_concat(UserGroups.Id) AS GroupIDs")
-		} else {
-			builder = builder.Column("string_agg(UserGroups.Id, ',') AS GroupIDs")
-		}
+		builder = builder.Column("string_agg(UserGroups.Id, ',') AS GroupIDs")
 	}
 
 	subQuery := s.getQueryBuilder().Select("GroupMembers.UserId").
@@ -1808,23 +1793,33 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 
 func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	var groupIds []string
+	var joinTable string
+	var syncableIdCol string
 
-	query := fmt.Sprintf(`
-		SELECT
-			GroupMembers.GroupId
-		FROM
-			GroupMembers
-		INNER JOIN
-			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
-		WHERE
-			GroupMembers.UserId = ?
-			AND GroupMembers.DeleteAt = 0
-			AND %[1]sId = ?
-			AND Group%[1]ss.DeleteAt = 0
-			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
+	switch syncableType {
+	case model.GroupSyncableTypeChannel:
+		joinTable = "GroupChannels"
+		syncableIdCol = "ChannelId"
+	case model.GroupSyncableTypeTeam:
+		joinTable = "GroupTeams"
+		syncableIdCol = "TeamId"
+	default:
+		return nil, errors.New("invalid syncable type")
+	}
 
-	err := s.GetReplica().Select(&groupIds, query, userID, syncableID)
-	if err != nil {
+	query := s.getQueryBuilder().
+		Select("GroupMembers.GroupId").
+		From("GroupMembers").
+		InnerJoin(joinTable + " AS joinGroup ON joinGroup.GroupId = GroupMembers.GroupId").
+		Where(sq.Eq{
+			"GroupMembers.UserId":        userID,
+			"GroupMembers.DeleteAt":      0,
+			"joinGroup." + syncableIdCol: syncableID,
+			"joinGroup.DeleteAt":         0,
+			"joinGroup.SchemeAdmin":      true,
+		})
+
+	if err := s.GetReplica().SelectBuilder(&groupIds, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Group ids")
 	}
 
@@ -1955,11 +1950,7 @@ func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string
 		members = append(members, member)
 	}
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE CreateAt = ?, DeleteAt = ?", createAt, 0))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0))
-	}
+	builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0))
 
 	return
 }

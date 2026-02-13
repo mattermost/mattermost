@@ -1,0 +1,99 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.autotranslation-section-header {
+    display: flex;
+    width: 100%;
+    min-width: 0; // prevents overflow in flex layouts
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.autotranslation-section-toggle {
+    display: flex;
+    align-items: center;
+    align-self: center;
+}
+
+.localization-section-title {
+    margin: unset;
+    font-size: 16px;
+}
+
+.localization-section-description {
+    margin-bottom: 0;
+    color: var(--center-channel-color-72);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.ai-service-help-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    .agents-config-link {
+        opacity: 1;
+    }
+}
+
+.auto-translation-provider-description {
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.auto-translation-provider-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auto-translation-provider-error-message {
+    display: flex;
+    align-items: center;
+    color: var(--error-text);
+    font-size: 12px;
+    font-weight: 400;
+    gap: 4px;
+    line-height: 16px;
+
+    .icon {
+        color: var(--error-text);
+        font-size: 14px;
+    }
+}
+
+.autotranslation-provider-error {
+    .form-control {
+        border-color: var(--error-text);
+        box-shadow: none;
+    }
+}
+
+.agents-config-link {
+    display: inline-block;
+    width: fit-content;
+    align-items: center;
+    color: var(--link-color);
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-decoration: none;
+
+    .icon {
+        color: var(--link-color);
+        font-size: 12px;
+    }
+}
+
+.autotranslation-error.error-message {
+    color: var(--error-text);
+    font-size: 12px;
+    font-weight: 400;
+}
+

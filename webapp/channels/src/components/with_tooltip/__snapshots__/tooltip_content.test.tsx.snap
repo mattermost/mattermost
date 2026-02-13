@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`TooltipContent have correct structure with just title 1`] = `
 <div>
@@ -33,7 +33,7 @@ exports[`TooltipContent have correct structure with title and emoji 1`] = `
           aria-label=":smile:"
           class="emoticon"
           data-emoticon="smile"
-          style="background-image: url(/static/emoji/1f604.png); background-size: contain; height: 16px; width: 16px; max-height: 16px; max-width: 16px; min-height: 16px; min-width: 16px; overflow: hidden;"
+          style="background-image: url(\\"/static/emoji/1f604.png\\"); background-size: contain; height: 16px; width: 16px; max-height: 16px; max-width: 16px; min-height: 16px; min-width: 16px; overflow: hidden;"
         />
       </span>
       <span
@@ -61,7 +61,7 @@ exports[`TooltipContent have correct structure with title and large emoji 1`] = 
           aria-label=":smile:"
           class="emoticon"
           data-emoticon="smile"
-          style="background-image: url(/static/emoji/1f604.png); background-size: contain; height: 48px; width: 48px; max-height: 48px; max-width: 48px; min-height: 48px; min-width: 48px; overflow: hidden;"
+          style="background-image: url(\\"/static/emoji/1f604.png\\"); background-size: contain; height: 48px; width: 48px; max-height: 48px; max-width: 48px; min-height: 48px; min-width: 48px; overflow: hidden;"
         />
       </span>
       <span
@@ -121,7 +121,7 @@ exports[`TooltipContent have correct structure with title, emoji and hint 1`] = 
           aria-label=":smile:"
           class="emoticon"
           data-emoticon="smile"
-          style="background-image: url(/static/emoji/1f604.png); background-size: contain; height: 16px; width: 16px; max-height: 16px; max-width: 16px; min-height: 16px; min-width: 16px; overflow: hidden;"
+          style="background-image: url(\\"/static/emoji/1f604.png\\"); background-size: contain; height: 16px; width: 16px; max-height: 16px; max-width: 16px; min-height: 16px; min-width: 16px; overflow: hidden;"
         />
       </span>
       <span

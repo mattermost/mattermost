@@ -8,8 +8,6 @@ import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} f
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
 
 export function getInstallation() {
@@ -24,7 +22,6 @@ export function getInstallation() {
 }
 
 export function validateBusinessEmail(email = '') {
-    trackEvent('api', 'api_validate_business_email');
     return async () => {
         try {
             const res = await Client4.validateBusinessEmail(email);
@@ -36,7 +33,6 @@ export function validateBusinessEmail(email = '') {
 }
 
 export function validateWorkspaceBusinessEmail() {
-    trackEvent('api', 'api_validate_workspace_business_email');
     return async () => {
         try {
             const res = await Client4.validateWorkspaceBusinessEmail();
@@ -121,6 +117,20 @@ export function getTeamsUsage(): ThunkActionFunc<Promise<boolean | ServerError>>
             return error;
         }
         return {data: false};
+    };
+}
+
+export function getCloudPreviewModalData(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async () => {
+        try {
+            const result = await Client4.getCloudPreviewModalData();
+            if (result) {
+                return {data: result};
+            }
+        } catch (error) {
+            return error;
+        }
+        return true;
     };
 }
 

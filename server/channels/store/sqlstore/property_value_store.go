@@ -19,11 +19,13 @@ type SqlPropertyValueStore struct {
 	tableSelectQuery sq.SelectBuilder
 }
 
+var propertyValueColumns = []string{"ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt"}
+
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
 	s := SqlPropertyValueStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Select(propertyValueColumns...).
 		From("PropertyValues")
 
 	return &s
@@ -47,13 +49,53 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Columns(propertyValueColumns...).
 		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
 
 	return value, nil
+}
+
+func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, value := range values {
+		value.PreSave()
+
+		if err := value.IsValid(); err != nil {
+			return nil, errors.Wrap(err, "property_value_create_many_isvalid")
+		}
+
+		valueJSON := value.Value
+		if s.IsBinaryParamEnabled() {
+			valueJSON = AppendBinaryFlag(valueJSON)
+		}
+
+		builder := s.getQueryBuilder().
+			Insert("PropertyValues").
+			Columns(propertyValueColumns...).
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return nil, errors.Wrap(err, "property_value_create_many_exec")
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_value_create_many_commit_transaction")
+	}
+
+	return values, nil
 }
 
 func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, error) {
@@ -125,12 +167,20 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
 
-	if opts.TargetID != "" {
-		builder = builder.Where(sq.Eq{"TargetID": opts.TargetID})
+	if len(opts.TargetIDs) > 0 {
+		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
 	}
 
 	if opts.FieldID != "" {
 		builder = builder.Where(sq.Eq{"FieldID": opts.FieldID})
+	}
+
+	if opts.SinceUpdateAt > 0 {
+		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+	}
+
+	if opts.Value != nil {
+		builder = builder.Where(sq.Eq{"Value": string(opts.Value)})
 	}
 
 	var values []*model.PropertyValue
@@ -153,7 +203,6 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	valueCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	ids := make([]string, len(values))
@@ -170,13 +219,8 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 			valueJSON = AppendBinaryFlag(valueJSON)
 		}
 
-		if isPostgres {
-			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
-		} else {
-			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?", valueJSON))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?", value.DeleteAt))
-		}
+		valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
+		deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
 	}
 
 	builder := s.getQueryBuilder().
@@ -238,60 +282,26 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+			Columns(propertyValueColumns...).
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
 
-		if s.DriverName() == model.DatabaseDriverMysql {
-			builder = builder.SuffixExpr(sq.Expr(
-				"ON DUPLICATE KEY UPDATE Value = ?, UpdateAt = ?, DeleteAt = ?",
-				valueJSON,
-				value.UpdateAt,
-				0,
-			))
+		builder = builder.SuffixExpr(sq.Expr(
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ? RETURNING *",
+			valueJSON,
+			value.UpdateAt,
+			0,
+		))
 
-			if _, err := transaction.ExecBuilder(builder); err != nil {
-				return nil, errors.Wrap(err, "property_value_upsert_exec")
-			}
-
-			// MySQL doesn't support RETURNING, so we need to fetch
-			// the new field to get its ID in case we hit a DUPLICATED
-			// KEY and the value.ID we have is not the right one
-			gBuilder := s.tableSelectQuery.Where(sq.Eq{
-				"GroupID":  value.GroupID,
-				"TargetID": value.TargetID,
-				"FieldID":  value.FieldID,
-				"DeleteAt": 0,
-			})
-
-			var values []*model.PropertyValue
-			if gErr := transaction.SelectBuilder(&values, gBuilder); gErr != nil {
-				return nil, errors.Wrap(gErr, "property_value_upsert_select")
-			}
-
-			if len(values) != 1 {
-				return nil, errors.New("property_value_upsert_select_length")
-			}
-
-			updatedValues[i] = values[0]
-		} else {
-			builder = builder.SuffixExpr(sq.Expr(
-				"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ? RETURNING *",
-				valueJSON,
-				value.UpdateAt,
-				0,
-			))
-
-			var values []*model.PropertyValue
-			if err := transaction.SelectBuilder(&values, builder); err != nil {
-				return nil, errors.Wrapf(err, "failed to upsert property value with id: %s", value.ID)
-			}
-
-			if len(values) != 1 {
-				return nil, errors.New("property_value_upsert_select_length")
-			}
-
-			updatedValues[i] = values[0]
+		var values []*model.PropertyValue
+		if err := transaction.SelectBuilder(&values, builder); err != nil {
+			return nil, errors.Wrapf(err, "failed to upsert property value with id: %s", value.ID)
 		}
+
+		if len(values) != 1 {
+			return nil, errors.New("property_value_upsert_select_length")
+		}
+
+		updatedValues[i] = values[0]
 	}
 
 	if err := transaction.Commit(); err != nil {

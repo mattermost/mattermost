@@ -93,6 +93,8 @@ type Props = {
 
     shouldStartFromBottomWhenUnread: boolean;
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /*
@@ -233,6 +235,24 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.scrollStopAction = new DelayedAction(this.handleScrollStop);
         }
 
+        if (this.props.focusedPostId) {
+            const postListIds = this.state.postListIds;
+            const index = postListIds.indexOf(this.props.focusedPostId);
+
+            if (index !== -1) {
+                const focusedPostChanged = this.props.focusedPostId !== prevProps.focusedPostId;
+                const postJustLoaded = (prevProps.postListIds || []).indexOf(this.props.focusedPostId) === -1;
+
+                if (focusedPostChanged || postJustLoaded) {
+                    // Scroll to the focused post if it has changed or just been loaded.
+                    // This is necessary for inline permalink navigation where the channel remains the same
+                    // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
+                    // scrolling on prop updates after the initial mount.
+                    this.listRef.current?.scrollToItem(index, 'center');
+                }
+            }
+        }
+
         if (!this.postListRef.current) {
             return;
         }
@@ -354,9 +374,13 @@ export default class PostList extends React.PureComponent<Props, State> {
         // Since the first in the list is the latest message
         const isLastPost = itemId === this.state.postListIds[0];
 
+        const isLoader = itemId === PostListRowListIds.OLDER_MESSAGES_LOADER || itemId === PostListRowListIds.NEWER_MESSAGES_LOADER;
+        const shouldHideLoader = isLoader && !this.props.loadingOlderPosts && !this.props.loadingNewerPosts;
+        const rowStyle = shouldHideLoader ? {...style, display: 'none'} : style;
+
         return (
             <div
-                style={style}
+                style={rowStyle}
                 className={className}
             >
                 <PostListRow
@@ -370,6 +394,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
                     channelId={this.props.channelId}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );
@@ -668,7 +693,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {channelId} = this.props;
         const {dynamicListStyle} = this.state;
 
         return (
@@ -693,10 +717,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                         />
                     </>
                 )}
-                <div
-                    className='post-list-holder-by-time'
-                    key={'postlist-' + channelId}
-                >
+                <div className='post-list-holder-by-time'>
                     <div
                         className='post-list__table'
                     >
@@ -704,7 +725,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                             id='postListContent'
                             className='post-list__content'
                         >
-                            <LatestPostReader postIds={this.props.postListIds}/>
+                            <LatestPostReader
+                                postIds={this.props.postListIds}
+                                autotranslated={this.props.isChannelAutotranslated}
+                            />
                             <AutoSizer>
                                 {({height, width}) => (
                                     <>

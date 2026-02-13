@@ -40,16 +40,6 @@ var RemovePermissionsCmd = &cobra.Command{
 	RunE: withClient(removePermissionsCmdF),
 }
 
-var ShowRoleCmd = &cobra.Command{
-	Use:        "show <role_name>",
-	Deprecated: "please use \"mmctl permissions role show\" instead",
-	Short:      "Show the role information",
-	Long:       "Show all the information about a role.",
-	Example:    `  permissions show system_user`,
-	Args:       cobra.ExactArgs(1),
-	RunE:       withClient(showRoleCmdF),
-}
-
 var ResetCmd = &cobra.Command{
 	Use:   "reset <role_name>",
 	Short: "Reset default permissions for role (EE Only)",
@@ -64,7 +54,6 @@ func init() {
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
-		ShowRoleCmd,
 		ResetCmd,
 	)
 

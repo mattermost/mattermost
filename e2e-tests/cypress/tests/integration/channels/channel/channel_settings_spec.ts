@@ -11,6 +11,7 @@
 // Group: @channels @channel @channel_settings
 
 import {Team} from '@mattermost/types/teams';
+
 import {
     beMuted,
     beUnmuted,
@@ -34,15 +35,22 @@ describe('Channel Settings', () => {
 
     it('MM-T882 Channel URL validation works properly', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
-            // # Go to test channel
+        // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Go to channel dropdown > Channel Settings Modal
             cy.get('#channelHeaderDropdownButton').click();
             cy.findByText('Channel Settings').click();
 
-            // # Try to enter existing URL and save
+            // # Change channel name (this should NOT affect the URL anymore)
             cy.get('#input_channel-settings-name').clear().type('town-square');
+
+            // # Now explicitly change the URL to trigger the validation error
+            cy.get('.url-input-button').click();
+            cy.get('.url-input-container input').clear().type('town-square');
+            cy.get('.url-input-container button.url-input-button').click();
+
+            // # Try to save
             cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // # Error is displayed and URL is unchanged
@@ -52,7 +60,9 @@ describe('Channel Settings', () => {
             cy.url().should('include', `/${testTeam.name}/channels/${channel.name}`);
 
             // # Enter a new URL and save
-            cy.get('#input_channel-settings-name').clear().type('another-town-square');
+            cy.get('.url-input-container input').clear().type('another-town-square');
+            cy.get('.url-input-button').click();
+            cy.get('.url-input-container button.url-input-button').click();
             cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // * URL is updated and no errors are displayed

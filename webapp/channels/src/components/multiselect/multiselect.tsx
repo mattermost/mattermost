@@ -51,7 +51,7 @@ export type Props<T extends Value> = {
         isSelected: boolean,
         add: (value: T) => void,
         select: (value: T) => void
-    ) => void;
+    ) => React.ReactNode;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
     perPage: number;
@@ -444,9 +444,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         options={optionsToDisplay}
                         optionRenderer={this.props.optionRenderer}
                         ariaLabelRenderer={this.props.ariaLabelRenderer}
-                        page={this.state.page}
-                        perPage={this.props.perPage}
-                        onPageChange={this.props.handlePageChange}
                         onAdd={this.onAdd}
                         onSelect={this.onSelect}
                         loading={this.props.loading}
@@ -463,9 +460,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     options={optionsToDisplay}
                     optionRenderer={this.props.optionRenderer}
                     ariaLabelRenderer={this.props.ariaLabelRenderer}
-                    page={this.state.page}
-                    perPage={this.props.perPage}
-                    onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
                     loading={this.props.loading}
@@ -493,7 +487,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return (
             <>
                 <div className='filtered-user-list'>
-                    <div className='filter-row filter-row--full'>
+                    <div className='filter-row'>
                         <div
                             className={classNames('multi-select__container react-select', {
                                 'has-error': this.state.hasError,

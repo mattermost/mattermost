@@ -56,18 +56,10 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var opts struct {
-		IncludeRemovedMembers *bool `json:"include_removed_members"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&opts)
-	if err != nil {
-		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
-	}
-
-	auditRec := c.MakeAuditRecord("syncLdap", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSyncLdap, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -222,7 +214,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("linkLdapGroup", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLinkLdapGroup, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 
@@ -319,7 +311,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("unlinkLdapGroup", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUnlinkLdapGroup, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 
@@ -362,7 +354,7 @@ func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("idMigrateLdap", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventIdMigrateLdap, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "to_attribute", toAttribute)
 	defer c.LogAuditRec(auditRec)
 
@@ -417,7 +409,7 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addLdapPublicCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddLdapPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
@@ -441,7 +433,7 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addLdapPrivateCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddLdapPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
@@ -459,7 +451,7 @@ func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeLdapPublicCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveLdapPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveLdapPublicCertificate(); err != nil {
@@ -477,7 +469,7 @@ func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeLdapPrivateCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveLdapPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveLdapPrivateCertificate(); err != nil {
@@ -508,7 +500,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addUserToGroupSyncables", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddUserToGroupSyncables, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}

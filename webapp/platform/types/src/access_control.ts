@@ -67,6 +67,7 @@ export type AccessControlVisualASTNode = {
     operator: string;
     value: any;
     value_type: number;
+    attribute_type: string;
 }
 
 /**
@@ -83,4 +84,9 @@ export interface AccessControlled {
      * Whether access control is enforced for this entity
      */
     access_control_enforced?: boolean;
+}
+
+export type AccessControlPolicyActiveUpdate = {
+    id: string;
+    active: boolean;
 }

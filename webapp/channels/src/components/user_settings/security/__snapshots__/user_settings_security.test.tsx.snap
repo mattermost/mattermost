@@ -1,717 +1,841 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
-<div
-  aria-labelledby="securityButton"
-  id="securitySettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    }
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      max={null}
-      section="password"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Password"
-          id="user.settings.security.password"
-        />
-      }
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(MfaSection)
-      active={false}
-      areAllSectionsInactive={false}
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(UserAccessTokenSection)
-      active={false}
-      areAllSectionsInactive={false}
-      setRequireConfirm={[MockFunction]}
-      updateSection={[Function]}
-      user={
-        Object {
-          "id": "user_id",
-        }
-      }
-    />
-    <div
-      className="divider-light"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      describe={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Email and Password"
-          id="user.settings.security.emailPwd"
-        />
-      }
-      max={null}
-      section="signin"
-      title="Sign-in Method"
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-dark"
-    />
-    <br />
-    <ToggleModalButton
-      className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAccessHistory"
-      modalId="access_history"
+      class="modal-header"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Access History Icon"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="View Access History"
-        id="user.settings.security.viewHistory"
-      />
-    </ToggleModalButton>
-    <ToggleModalButton
-      className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAndLogOutOfActiveSessions"
-      modalId="activity_log"
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Active Sessions Icon"
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="View and Log Out of Active Sessions"
-        id="user.settings.security.logoutActiveSessions"
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        >
+          Last updated 
+          Feb 13, 2009
+           at 
+          11:31 PM
+        </div>
+      </div>
+      <div
+        class="divider-light"
       />
-    </ToggleModalButton>
+      <div
+        data-testid="mfa-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        data-testid="tokens-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
-<div
-  aria-labelledby="securityButton"
-  id="securitySettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    }
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      max={null}
-      section="password"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Password"
-          id="user.settings.security.password"
-        />
-      }
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(MfaSection)
-      active={false}
-      areAllSectionsInactive={false}
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(UserAccessTokenSection)
-      active={false}
-      areAllSectionsInactive={false}
-      setRequireConfirm={[MockFunction]}
-      updateSection={[Function]}
-      user={
-        Object {
-          "id": "user_id",
-        }
-      }
-    />
-    <div
-      className="divider-light"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      describe={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Email and Password"
-          id="user.settings.security.emailPwd"
-        />
-      }
-      max={null}
-      section="signin"
-      title="Sign-in Method"
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-dark"
-    />
-    <br />
-    <ToggleModalButton
-      className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAccessHistory"
-      modalId="access_history"
+      class="modal-header"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Access History Icon"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="View Access History"
-        id="user.settings.security.viewHistory"
-      />
-    </ToggleModalButton>
-    <ToggleModalButton
-      className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAndLogOutOfActiveSessions"
-      modalId="activity_log"
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Active Sessions Icon"
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="View and Log Out of Active Sessions"
-        id="user.settings.security.logoutActiveSessions"
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        >
+          Last updated 
+          Feb 13, 2009
+           at 
+          11:31 PM
+        </div>
+      </div>
+      <div
+        class="divider-light"
       />
-    </ToggleModalButton>
+      <div
+        data-testid="mfa-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        data-testid="tokens-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
-<div
-  aria-labelledby="securityButton"
-  id="securitySettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    }
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      max={null}
-      section="password"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Password"
-          id="user.settings.security.password"
-        />
-      }
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(MfaSection)
-      active={false}
-      areAllSectionsInactive={false}
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(UserAccessTokenSection)
-      active={false}
-      areAllSectionsInactive={false}
-      setRequireConfirm={[MockFunction]}
-      updateSection={[Function]}
-      user={
-        Object {
-          "id": "user_id",
-        }
-      }
-    />
-    <div
-      className="divider-light"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      describe={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Email and Password"
-          id="user.settings.security.emailPwd"
-        />
-      }
-      max={null}
-      section="signin"
-      title="Sign-in Method"
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-dark"
-    />
-    <br />
-    <ToggleModalButton
-      className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAccessHistory"
-      modalId="access_history"
+      class="modal-header"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Access History Icon"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="View Access History"
-        id="user.settings.security.viewHistory"
-      />
-    </ToggleModalButton>
-    <ToggleModalButton
-      className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAndLogOutOfActiveSessions"
-      modalId="activity_log"
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Active Sessions Icon"
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="View and Log Out of Active Sessions"
-        id="user.settings.security.logoutActiveSessions"
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        >
+          Last updated 
+          Feb 13, 2009
+           at 
+          11:31 PM
+        </div>
+      </div>
+      <div
+        class="divider-light"
       />
-    </ToggleModalButton>
+      <div
+        data-testid="mfa-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        data-testid="tokens-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
-<div
-  aria-labelledby="securityButton"
-  id="securitySettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    }
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      max={null}
-      section="password"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Password"
-          id="user.settings.security.password"
-        />
-      }
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(MfaSection)
-      active={false}
-      areAllSectionsInactive={false}
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(UserAccessTokenSection)
-      active={false}
-      areAllSectionsInactive={false}
-      setRequireConfirm={[MockFunction]}
-      updateSection={[Function]}
-      user={
-        Object {
-          "id": "user_id",
-        }
-      }
-    />
-    <div
-      className="divider-light"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      describe={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Email and Password"
-          id="user.settings.security.emailPwd"
-        />
-      }
-      max={null}
-      section="signin"
-      title="Sign-in Method"
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-dark"
-    />
-    <br />
-    <ToggleModalButton
-      className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAccessHistory"
-      modalId="access_history"
+      class="modal-header"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Access History Icon"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="View Access History"
-        id="user.settings.security.viewHistory"
-      />
-    </ToggleModalButton>
-    <ToggleModalButton
-      className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAndLogOutOfActiveSessions"
-      modalId="activity_log"
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Active Sessions Icon"
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="View and Log Out of Active Sessions"
-        id="user.settings.security.logoutActiveSessions"
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        >
+          Last updated 
+          Feb 13, 2009
+           at 
+          11:31 PM
+        </div>
+      </div>
+      <div
+        class="divider-light"
       />
-    </ToggleModalButton>
+      <div
+        data-testid="mfa-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        data-testid="tokens-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
-<div
-  aria-labelledby="securityButton"
-  id="securitySettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    }
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      max={null}
-      section="password"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Password"
-          id="user.settings.security.password"
-        />
-      }
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(MfaSection)
-      active={false}
-      areAllSectionsInactive={false}
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-light"
-    />
-    <Connect(UserAccessTokenSection)
-      active={false}
-      areAllSectionsInactive={false}
-      setRequireConfirm={[MockFunction]}
-      updateSection={[Function]}
-      user={
-        Object {
-          "auth_service": "openid",
-          "id": "user_id",
-        }
-      }
-    />
-    <div
-      className="divider-light"
-    />
-    <Memo(SettingItem)
-      active={false}
-      areAllSectionsInactive={false}
-      describe={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="OpenID"
-          id="user.settings.security.openid"
-        />
-      }
-      max={null}
-      section="signin"
-      title="Sign-in Method"
-      updateSection={[Function]}
-    />
-    <div
-      className="divider-dark"
-    />
-    <br />
-    <ToggleModalButton
-      className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAccessHistory"
-      modalId="access_history"
+      class="modal-header"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Access History Icon"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="View Access History"
-        id="user.settings.security.viewHistory"
-      />
-    </ToggleModalButton>
-    <ToggleModalButton
-      className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="viewAndLogOutOfActiveSessions"
-      modalId="activity_log"
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
     >
-      <i
-        aria-hidden="true"
-        className="icon icon-clock-outline"
-        title="Active Sessions Icon"
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="View and Log Out of Active Sessions"
-        id="user.settings.security.logoutActiveSessions"
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
       />
-    </ToggleModalButton>
+      <div
+        data-testid="mfa-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        data-testid="tokens-section"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          OpenID
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
   </div>
 </div>
 `;

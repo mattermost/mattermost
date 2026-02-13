@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	// import sql drivers
-	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 
 	"github.com/mattermost/mattermost/server/public/plugin"

@@ -6,25 +6,26 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 const (
-	LogRotateSizeMB         = 100
-	LogCompress             = true
-	LogRotateMaxAge         = 0
-	LogRotateMaxBackups     = 0
-	LogFilename             = "mattermost.log"
-	LogNotificationFilename = "notifications.log"
-	LogMinLevelLen          = 5
-	LogMinMsgLen            = 45
-	LogDelim                = " "
-	LogEnableCaller         = true
+	LogRotateSizeMB     = 100
+	LogCompress         = true
+	LogRotateMaxAge     = 0
+	LogRotateMaxBackups = 0
+	LogFilename         = "mattermost.log"
+	LogMinLevelLen      = 5
+	LogMinMsgLen        = 45
+	LogDelim            = " "
+	LogEnableCaller     = true
 )
 
 type fileLocationFunc func(string) string
@@ -104,27 +105,116 @@ func GetLogFileLocation(fileLocation string) string {
 	return filepath.Join(fileLocation, LogFilename)
 }
 
-func GetNotificationsLogFileLocation(fileLocation string) string {
-	if fileLocation == "" {
-		fileLocation, _ = fileutils.FindDir("logs")
+// GetLogRootPath returns the root directory for all log files.
+// This is used for security validation to prevent arbitrary file reads via advanced logging.
+// The logging root is determined by:
+// 1. MM_LOG_PATH environment variable (if set and non-empty)
+// 2. The default "logs" directory (found relative to the binary)
+func GetLogRootPath() string {
+	// Check environment variable first
+	if envPath := os.Getenv("MM_LOG_PATH"); envPath != "" {
+		absPath, err := filepath.Abs(envPath)
+		if err == nil {
+			return absPath
+		}
 	}
 
-	return filepath.Join(fileLocation, LogNotificationFilename)
+	// Fall back to default logs directory
+	logsDir, _ := fileutils.FindDir("logs")
+	absPath, err := filepath.Abs(logsDir)
+	if err != nil {
+		return logsDir
+	}
+	return absPath
 }
 
-func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
-	settings := &model.LogSettings{}
-	settings.SetDefaults()
-	settings.ConsoleJson = notificationLogSettings.ConsoleJson
-	settings.ConsoleLevel = notificationLogSettings.ConsoleLevel
-	settings.EnableConsole = notificationLogSettings.EnableConsole
-	settings.EnableFile = notificationLogSettings.EnableFile
-	settings.FileJson = notificationLogSettings.FileJson
-	settings.FileLevel = notificationLogSettings.FileLevel
-	settings.FileLocation = notificationLogSettings.FileLocation
-	settings.AdvancedLoggingJSON = notificationLogSettings.AdvancedLoggingJSON
-	settings.EnableColor = notificationLogSettings.EnableColor
-	return settings
+// ValidateLogFilePath validates that a log file path is within the logging root directory.
+// This prevents arbitrary file read/write vulnerabilities in logging configuration.
+// The logging root is determined by MM_LOG_PATH environment variable or the configured log directory.
+func ValidateLogFilePath(filePath string, loggingRoot string) error {
+	// Resolve file path to absolute
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		return fmt.Errorf("cannot resolve path %s: %w", filePath, err)
+	}
+
+	// Resolve symlinks to prevent bypass via symlink attacks
+	realPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil {
+		// If file doesn't exist, still validate the intended path
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("cannot resolve symlinks for %s: %w", absPath, err)
+		}
+	} else {
+		absPath = realPath
+	}
+
+	// Resolve logging root to absolute
+	absRoot, err := filepath.Abs(loggingRoot)
+	if err != nil {
+		return fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
+	}
+
+	// Ensure root has trailing separator for proper prefix matching
+	// This prevents /tmp/log matching /tmp/logger
+	rootWithSep := absRoot
+	if !strings.HasSuffix(rootWithSep, string(filepath.Separator)) {
+		rootWithSep += string(filepath.Separator)
+	}
+
+	// Check if file is within the logging root
+	// Allow exact match (absPath == absRoot) or proper prefix match
+	if absPath != absRoot && !strings.HasPrefix(absPath, rootWithSep) {
+		return fmt.Errorf("path %s is outside logging root %s", filePath, absRoot)
+	}
+
+	return nil
+}
+
+// WarnIfLogPathsOutsideRoot validates log file paths in the config and logs errors for paths outside the logging root.
+// This is called during config save to identify configurations that will cause server startup to fail in a future version.
+// Currently only logs errors; in a future version this will block server startup.
+func WarnIfLogPathsOutsideRoot(cfg *model.Config) {
+	loggingRoot := GetLogRootPath()
+
+	// Check LogSettings.AdvancedLoggingJSON
+	if !utils.IsEmptyJSON(cfg.LogSettings.AdvancedLoggingJSON) {
+		validateAdvancedLoggingConfig(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", loggingRoot)
+	}
+
+	// Check ExperimentalAuditSettings.AdvancedLoggingJSON
+	if !utils.IsEmptyJSON(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) {
+		validateAdvancedLoggingConfig(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", loggingRoot)
+	}
+}
+
+func validateAdvancedLoggingConfig(loggingJSON json.RawMessage, configName string, loggingRoot string) {
+	logCfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(loggingJSON, &logCfg); err != nil {
+		return
+	}
+
+	for targetName, target := range logCfg {
+		if target.Type != "file" {
+			continue
+		}
+
+		var fileOption struct {
+			Filename string `json:"filename"`
+		}
+		if err := json.Unmarshal(target.Options, &fileOption); err != nil {
+			continue
+		}
+
+		if err := ValidateLogFilePath(fileOption.Filename, loggingRoot); err != nil {
+			mlog.Error("Log file path in logging config is outside logging root directory. This configuration will cause server startup to fail in a future version. To fix, set MM_LOG_PATH environment variable to a parent directory containing all log paths, or move log files to the configured logging root.",
+				mlog.String("config_section", configName),
+				mlog.String("target", targetName),
+				mlog.String("path", fileOption.Filename),
+				mlog.String("logging_root", loggingRoot),
+				mlog.Err(err))
+		}
+	}
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {

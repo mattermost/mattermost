@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
 <DocumentFragment>
@@ -136,8 +136,475 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       role="grid"
     >
       <div
-        style="overflow: visible; height: 0px; width: 0px;"
-      />
+        style="position: relative; height: 100px; width: 100px; overflow: auto; -webkit-overflow-scrolling: touch; will-change: transform; direction: ltr;"
+      >
+        <div
+          style="height: 7740px; width: 100%;"
+        >
+          <div
+            class="emoji-picker__row"
+            role="row"
+            style="position: absolute; left: 0px; top: 0px; height: 36px; width: 100%;"
+          >
+            <div
+              class="emoji-picker__category-header"
+              id="emojipickercat-smileys-emotion"
+            >
+              Smileys & Emotion
+            </div>
+          </div>
+          <div
+            class="emoji-picker__row"
+            role="row"
+            style="position: absolute; left: 0px; top: 36px; height: 36px; width: 100%;"
+          >
+            <button
+              aria-label="grinning emoji"
+              class="emoji-picker__item selected"
+              data-testid="emojiItem"
+              id="grinning_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="grinning face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f600"
+                data-testid="grinning"
+                id="emoji-1f600"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="smiley emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_open_mouth"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with open mouth emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f603"
+                data-testid="smiley"
+                id="emoji-1f603"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="smile emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_open_mouth_and_smiling_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with open mouth and smiling eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f604"
+                data-testid="smile"
+                id="emoji-1f604"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="grin emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="grinning_face_with_smiling_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="grinning face with smiling eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f601"
+                data-testid="grin"
+                id="emoji-1f601"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="laughing emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_open_mouth_and_tightly-closed_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with open mouth and tightly-closed eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f606"
+                data-testid="laughing,satisfied"
+                id="emoji-1f606"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="sweat smile emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_open_mouth_and_cold_sweat"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with open mouth and cold sweat emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f605"
+                data-testid="sweat_smile"
+                id="emoji-1f605"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="rolling on the floor laughing emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="rolling_on_the_floor_laughing"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="rolling on the floor laughing emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f923"
+                data-testid="rolling_on_the_floor_laughing,rofl"
+                id="emoji-1f923"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="joy emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_with_tears_of_joy"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face with tears of joy emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f602"
+                data-testid="joy"
+                id="emoji-1f602"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="slightly smiling face emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="slightly_smiling_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="slightly smiling face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f642"
+                data-testid="slightly_smiling_face"
+                id="emoji-1f642"
+                src=""
+              />
+            </button>
+          </div>
+          <div
+            class="emoji-picker__row"
+            role="row"
+            style="position: absolute; left: 0px; top: 72px; height: 36px; width: 100%;"
+          >
+            <button
+              aria-label="upside down face emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="upside-down_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="upside-down face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f643"
+                data-testid="upside_down_face"
+                id="emoji-1f643"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="wink emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="winking_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="winking face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f609"
+                data-testid="wink"
+                id="emoji-1f609"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="blush emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_smiling_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with smiling eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f60a"
+                data-testid="blush"
+                id="emoji-1f60a"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="innocent emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_halo"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with halo emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f607"
+                data-testid="innocent"
+                id="emoji-1f607"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="smiling face with 3 hearts emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_smiling_eyes_and_three_hearts"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with smiling eyes and three hearts emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f970"
+                data-testid="smiling_face_with_3_hearts"
+                id="emoji-1f970"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="heart eyes emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_heart-shaped_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with heart-shaped eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f60d"
+                data-testid="heart_eyes"
+                id="emoji-1f60d"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="star-struck emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="grinning_face_with_star_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="grinning face with star eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f929"
+                data-testid="star-struck,grinning_face_with_star_eyes"
+                id="emoji-1f929"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="kissing heart emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_throwing_a_kiss"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face throwing a kiss emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f618"
+                data-testid="kissing_heart"
+                id="emoji-1f618"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="kissing emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="kissing_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="kissing face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f617"
+                data-testid="kissing"
+                id="emoji-1f617"
+                src=""
+              />
+            </button>
+          </div>
+          <div
+            class="emoji-picker__row"
+            role="row"
+            style="position: absolute; left: 0px; top: 108px; height: 36px; width: 100%;"
+          >
+            <button
+              aria-label="relaxed emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="white_smiling_face"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="white smiling face emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-263a-fe0f"
+                data-testid="relaxed"
+                id="emoji-263a-fe0f"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="kissing closed eyes emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="kissing_face_with_closed_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="kissing face with closed eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f61a"
+                data-testid="kissing_closed_eyes"
+                id="emoji-1f61a"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="kissing smiling eyes emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="kissing_face_with_smiling_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="kissing face with smiling eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f619"
+                data-testid="kissing_smiling_eyes"
+                id="emoji-1f619"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="smiling face with tear emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="smiling_face_with_tear"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="smiling face with tear emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f972"
+                data-testid="smiling_face_with_tear"
+                id="emoji-1f972"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="yum emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_savouring_delicious_food"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face savouring delicious food emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f60b"
+                data-testid="yum"
+                id="emoji-1f60b"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="stuck out tongue emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_with_stuck-out_tongue"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face with stuck-out tongue emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f61b"
+                data-testid="stuck_out_tongue"
+                id="emoji-1f61b"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="stuck out tongue winking eye emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_with_stuck-out_tongue_and_winking_eye"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face with stuck-out tongue and winking eye emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f61c"
+                data-testid="stuck_out_tongue_winking_eye"
+                id="emoji-1f61c"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="zany face emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="grinning_face_with_one_large_and_one_small_eye"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="grinning face with one large and one small eye emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f92a"
+                data-testid="zany_face,grinning_face_with_one_large_and_one_small_eye"
+                id="emoji-1f92a"
+                src=""
+              />
+            </button>
+            <button
+              aria-label="stuck out tongue closed eyes emoji"
+              class="emoji-picker__item"
+              data-testid="emojiItem"
+              id="face_with_stuck-out_tongue_and_tightly-closed_eyes"
+              tabindex="-1"
+              type="button"
+            >
+              <img
+                alt="face with stuck-out tongue and tightly-closed eyes emoji"
+                class="emojisprite emoji-category-smileys-emotion emoji-1f61d"
+                data-testid="stuck_out_tongue_closed_eyes"
+                id="emoji-1f61d"
+                src=""
+              />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div

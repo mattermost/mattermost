@@ -124,7 +124,7 @@ func (k *KVService) Set(key string, value any, options ...KVSetOption) (bool, er
 //
 // Minimum server version: 5.18
 func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error {
-	for i := 0; i < numRetries; i++ {
+	for range numRetries {
 		var oldVal []byte
 		if err := k.Get(key, &oldVal); err != nil {
 			return errors.Wrapf(err, "failed to get value for key %s", key)

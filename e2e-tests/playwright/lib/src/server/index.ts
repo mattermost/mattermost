@@ -3,8 +3,10 @@
 
 export {makeClient} from './client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig} from './default_config';
+export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
-export {createRandomTeam} from './team';
+export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+//getPluginStatus

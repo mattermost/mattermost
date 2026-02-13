@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -22,8 +23,7 @@ import (
 
 func TestCreateUploadSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Type:      model.UploadTypeAttachment,
@@ -67,7 +67,7 @@ func TestCreateUploadSession(t *testing.T) {
 	})
 
 	t.Run("deleted channel", func(t *testing.T) {
-		ch := th.CreateChannel(th.Context, th.BasicTeam)
+		ch := th.CreateChannel(t, th.BasicTeam)
 		appErr := th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		us.ChannelId = ch.Id
@@ -83,12 +83,59 @@ func TestCreateUploadSession(t *testing.T) {
 		require.Nil(t, err)
 		require.NotEmpty(t, u)
 	})
+
+	t.Run("cannot create upload session in restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
+
+		us := &model.UploadSession{
+			Id:        model.NewId(),
+			Type:      model.UploadTypeAttachment,
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Filename:  "upload",
+			FileSize:  8 * 1024 * 1024,
+		}
+
+		_, uploadErr := th.App.CreateUploadSession(th.Context, us)
+		require.NotNil(t, uploadErr)
+		require.Equal(t, "app.upload.create.cannot_upload_to_restricted_dm.error", uploadErr.Id)
+		require.Equal(t, http.StatusBadRequest, uploadErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
 }
 
 func TestUploadData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -247,8 +294,7 @@ func TestUploadData(t *testing.T) {
 
 func TestUploadDataConcurrent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -273,7 +319,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	n := 8
 	wg.Add(n)
 
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			rd := &io.LimitedReader{
@@ -296,7 +342,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 
 	wg.Add(n)
 
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			rd := &io.LimitedReader{

@@ -7,6 +7,7 @@ package commands
 import (
 	"fmt"
 	"math/rand"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -26,10 +27,10 @@ func randomPastTime(seconds int) int64 {
 
 func sortedRandomDates(size int) []int64 {
 	dates := make([]int64, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		dates[i] = randomPastTime(50000)
 	}
-	sort.Slice(dates, func(a, b int) bool { return dates[a] < dates[b] })
+	slices.Sort(dates)
 	return dates
 }
 
@@ -197,7 +198,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		possibleTeams = append(possibleTeams, teamName)
 	}
 	sort.Strings(possibleTeams)
-	for x := 0; x < teamMemberships; x++ {
+	for range teamMemberships {
 		if len(possibleTeams) == 0 {
 			break
 		}
@@ -249,7 +250,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 	}
 	channels := []imports.UserChannelImportData{}
 	teamChannelsCopy := append([]string(nil), teamChannels...)
-	for x := 0; x < numOfchannels; x++ {
+	for range numOfchannels {
 		if len(teamChannelsCopy) == 0 {
 			break
 		}

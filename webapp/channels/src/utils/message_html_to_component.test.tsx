@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import type {AnchorHTMLAttributes} from 'react';
 
 import AtMention from 'components/at_mention';
+import InlineEntityLink from 'components/inline_entity_link';
 import MarkdownImage from 'components/markdown_image';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -135,6 +136,23 @@ const myFunction = () => {
         expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(true);
     });
 
+    test('Remote at mention', () => {
+        const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
+        let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        let component = messageHtmlToComponent(html, {mentionHighlight: true});
+        expect(component).toMatchSnapshot();
+        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
+
+        options.mentionHighlight = false;
+
+        html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        component = messageHtmlToComponent(html, {mentionHighlight: false});
+        expect(component).toMatchSnapshot();
+        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
+    });
+
     test('typescript', () => {
         const input = `Text before typescript codeblock
             \`\`\`typescript
@@ -147,6 +165,32 @@ const myFunction = () => {
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
         expect(messageHtmlToComponent(html)).toMatchSnapshot();
+    });
+
+    describe('citation links', () => {
+        test('should render citation link using InlineEntityLink', () => {
+            const input = '[post](http://localhost:8065/team/pl/postid?view=citation)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const component = messageHtmlToComponent(html);
+            expect(component).toMatchSnapshot();
+
+            const wrapper = shallow(component);
+            expect(wrapper.find(InlineEntityLink).exists()).toBe(true);
+            expect(wrapper.find(InlineEntityLink).prop('url')).toBe('http://localhost:8065/team/pl/postid?view=citation');
+        });
+
+        test('should not render normal links as InlineEntityLink', () => {
+            const input = '[post](http://localhost:8065/team/pl/postid)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const component = messageHtmlToComponent(html);
+            expect(component).toMatchSnapshot();
+
+            const wrapper = shallow(component);
+            expect(wrapper.find(InlineEntityLink).exists()).toBe(false);
+            expect(wrapper.find('a').exists()).toBe(true);
+        });
     });
 
     describe('emojis', () => {

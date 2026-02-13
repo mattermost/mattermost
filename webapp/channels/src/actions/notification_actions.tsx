@@ -106,14 +106,14 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
     return async (dispatch, getState) => {
         const state = getState();
 
-        const teamId = msgProps.team_id;
+        const teamId = msgProps.team_id || '';
 
         const channel = makeGetChannel()(state, post.channel_id) || {
             id: post.channel_id,
             name: msgProps.channel_name,
             display_name: msgProps.channel_display_name,
             type: msgProps.channel_type,
-        };
+        } as Channel;
         const user = getCurrentUser(state);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
@@ -185,12 +185,12 @@ const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, m
         if (msgProps.channel_type === Constants.DM_CHANNEL) {
             title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
         } else {
-            title = msgProps.channel_display_name;
+            title = msgProps.channel_display_name || '';
         }
     }
 
     if (isCrtReply) {
-        title = Utils.localizeAndFormatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
+        title = Utils.localizeMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
     }
 
     return title;
@@ -218,8 +218,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
 
     let notifyText = post.message;
 
-    const msgPropsPost: Post = JSON.parse(msgProps.post);
-    const attachments = isMessageAttachmentArray(msgPropsPost?.props?.attachments) ? msgPropsPost.props.attachments : [];
+    const attachments = isMessageAttachmentArray(post.props?.attachments) ? post.props.attachments : [];
     let image = false;
     attachments.forEach((attachment) => {
         if (notifyText.length === 0) {
@@ -331,7 +330,9 @@ function shouldSkipNotification(
                     if (attachment.fields) {
                         for (const field of attachment.fields) {
                             appendText(field.title);
-                            appendText(field.value);
+                            if (typeof field.value === 'string') {
+                                appendText(field.value);
+                            }
                         }
                     }
                 }

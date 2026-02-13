@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 
 import DisplayName from 'components/create_team/components/display_name';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -19,56 +17,52 @@ describe('/components/create_team/components/display_name', () => {
             team: {name: 'test-team', display_name: 'test-team'},
             wizard: 'display_name',
         },
-        actions: {
-            trackEvent: jest.fn(),
-        },
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<DisplayName {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<DisplayName {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should run updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+    test('should run updateParent function', async () => {
+        renderWithContext(<DisplayName {...defaultProps}/>);
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalled();
+        expect(defaultProps.updateParent).toHaveBeenCalled();
     });
 
-    test('should pass state to updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+    test('should pass state to updateParent function', async () => {
+        renderWithContext(<DisplayName {...defaultProps}/>);
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalledWith(defaultProps.state);
+        expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
+            wizard: 'team_url',
+            team: expect.objectContaining({
+                display_name: 'test-team',
+            }),
+        }));
     });
 
-    test('should pass updated team name to updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+    test('should pass updated team name to updateParent function', async () => {
+        renderWithContext(<DisplayName {...defaultProps}/>);
         const teamDisplayName = 'My Test Team';
-        const newState = {
-            ...defaultProps.state,
-            team: {
-                ...defaultProps.state.team,
-                display_name: teamDisplayName,
-                name: cleanUpUrlable(teamDisplayName),
-            },
+        const expectedTeam = {
+            ...defaultProps.state.team,
+            display_name: teamDisplayName,
+            name: cleanUpUrlable(teamDisplayName),
         };
 
-        (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance().value = teamDisplayName;
-        wrapper.find('.form-control').simulate('change');
+        const input = screen.getByRole('textbox');
+        await userEvent.clear(input);
+        await userEvent.type(input, teamDisplayName);
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalledWith(defaultProps.state);
-        expect(wrapper.prop('updateParent').mock.calls[0][0]).toEqual(newState);
+        expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
+            wizard: 'team_url',
+            team: expectedTeam,
+        }));
     });
 });

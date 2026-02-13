@@ -1,10 +1,25 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/custom_status/custom_status_emoji should match snapshot 1`] = `<CustomStatusEmoji />`;
+exports[`components/custom_status/custom_status_emoji should match snapshot 1`] = `
+<div>
+  <span
+    aria-label=":smile:"
+    class="emoticon"
+    data-emoticon="smile"
+    style="background-image: url(\\"/static/emoji/1f604.png\\"); background-size: contain; height: 16px; width: 16px; max-height: 16px; max-width: 16px; min-height: 16px; min-width: 16px; overflow: hidden; margin-left: 4px; margin-top: -1px;"
+  />
+</div>
+`;
 
 exports[`components/custom_status/custom_status_emoji should match snapshot with props 1`] = `
-<CustomStatusEmoji
-  emojiSize={34}
-  showTooltip={true}
-/>
+<div>
+  <span>
+    <span
+      aria-label=":smile:"
+      class="emoticon"
+      data-emoticon="smile"
+      style="background-image: url(\\"/static/emoji/1f604.png\\"); background-size: contain; height: 34px; width: 34px; max-height: 34px; max-width: 34px; min-height: 34px; min-width: 34px; overflow: hidden; margin-left: 4px; margin-top: -1px;"
+    />
+  </span>
+</div>
 `;

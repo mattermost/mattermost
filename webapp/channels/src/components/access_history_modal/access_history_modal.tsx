@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-import {Modal} from 'react-bootstrap';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Audit} from '@mattermost/types/audits';
 
 import AuditTable from 'components/audit_table';
@@ -29,15 +29,9 @@ const AccessHistoryModal = ({
     onHide,
     userAudits,
 }: Props) => {
-    const [show, setShow] = useState(true);
-
-    const onCloseClick = useCallback(() => {
-        setShow(false);
-    }, []);
-
     useEffect(() => {
         getUserAudits(currentUserId, 0, 200);
-    }, []);
+    }, [currentUserId, getUserAudits]);
 
     let content;
     if (userAudits.length === 0) {
@@ -53,42 +47,27 @@ const AccessHistoryModal = ({
     }
 
     return (
-        <Modal
-            dialogClassName='a11y__modal modal--scroll access-history-modal'
-            show={show}
-            onHide={onCloseClick}
-            onExited={onHide}
-            bsSize='large'
-            role='none'
-            aria-labelledby='accessHistoryModalLabel'
+        <GenericModal
+            id='accessHistoryModal'
+            className='a11y__modal access-history-modal modal--scroll'
+            modalHeaderText={
+                <FormattedMessage
+                    id='access_history.title'
+                    defaultMessage='Access History'
+                />
+            }
+            modalHeaderTextId='accessHistoryModalLabel'
+            show={true}
+            onHide={onHide}
+            modalLocation='top'
+            isStacked={true}
+            compassDesign={true}
+            ariaLabelledby='accessHistoryModalLabel'
         >
-            <Modal.Header closeButton={true}>
-                <Modal.Title
-                    componentClass='h1'
-                    id='accessHistoryModalLabel'
-                >
-                    <FormattedMessage
-                        id='access_history.title'
-                        defaultMessage='Access History'
-                    />
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
+            <div className='access-history-modal__body'>
                 {content}
-            </Modal.Body>
-            <Modal.Footer className='modal-footer--invisible'>
-                <button
-                    id='closeModalButton'
-                    type='button'
-                    className='btn btn-tertiary'
-                >
-                    <FormattedMessage
-                        id='general_button.close'
-                        defaultMessage='Close'
-                    />
-                </button>
-            </Modal.Footer>
-        </Modal>
+            </div>
+        </GenericModal>
     );
 };
 

@@ -8,8 +8,11 @@ import (
 	"testing"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	ogImage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
@@ -24,7 +27,7 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	ContentType := "text/html; utf-8"
 
 	b.Run("with converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
 
 			og := opengraph.NewOpenGraph()
@@ -34,7 +37,7 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	})
 
 	b.Run("without converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			og := opengraph.NewOpenGraph()
 			err := og.ProcessHTML(strings.NewReader(HTML))
 			require.NoError(b, err)
@@ -138,4 +141,184 @@ func TestOpenGraphDecodeHTMLEntities(t *testing.T) {
 
 	assert.Equal(t, og.Title, "Test's are the best.©")
 	assert.Equal(t, og.Description, "Test's are the worst.©")
+}
+
+func TestIsSVGURL(t *testing.T) {
+	mainHelper.Parallel(t)
+	testCases := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: false,
+		},
+		{
+			name:     "PNG image",
+			url:      "https://example.com/image.png",
+			expected: false,
+		},
+		{
+			name:     "JPEG image",
+			url:      "https://example.com/image.jpg",
+			expected: false,
+		},
+		{
+			name:     "SVG image lowercase",
+			url:      "https://example.com/image.svg",
+			expected: true,
+		},
+		{
+			name:     "SVG image uppercase",
+			url:      "https://example.com/image.SVG",
+			expected: true,
+		},
+		{
+			name:     "SVG image mixed case",
+			url:      "https://example.com/image.Svg",
+			expected: true,
+		},
+		{
+			name:     "SVGZ compressed SVG",
+			url:      "https://example.com/image.svgz",
+			expected: true,
+		},
+		{
+			name:     "SVG with query parameters",
+			url:      "https://example.com/image.svg?v=123",
+			expected: true,
+		},
+		{
+			name:     "SVG with fragment",
+			url:      "https://example.com/image.svg#section",
+			expected: true,
+		},
+		{
+			name:     "path containing svg but not extension",
+			url:      "https://example.com/svg/image.png",
+			expected: false,
+		},
+		{
+			name:     "filename containing svg but different extension",
+			url:      "https://example.com/mysvgfile.png",
+			expected: false,
+		},
+		{
+			name:     "relative SVG path",
+			url:      "/images/icon.svg",
+			expected: true,
+		},
+		{
+			name:     "invalid URL",
+			url:      "://invalid",
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := model.IsSVGImageURL(tc.url)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestFilterSVGImagesFromOpenGraph(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("nil OpenGraph", func(t *testing.T) {
+		result := filterSVGImagesFromOpenGraph(nil)
+		assert.Nil(t, result)
+	})
+
+	t.Run("empty images", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{}
+		result := filterSVGImagesFromOpenGraph(og)
+		assert.Empty(t, result.Images)
+	})
+
+	t.Run("filter SVG by URL extension", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/image.png"},
+			{URL: "https://example.com/icon.svg"},
+			{URL: "https://example.com/photo.jpg"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		require.Len(t, result.Images, 2)
+		assert.Equal(t, "https://example.com/image.png", result.Images[0].URL)
+		assert.Equal(t, "https://example.com/photo.jpg", result.Images[1].URL)
+	})
+
+	t.Run("filter SVG by SecureURL extension", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{SecureURL: "https://example.com/banner.png"},
+			{SecureURL: "https://example.com/icon.svg"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		require.Len(t, result.Images, 1)
+		assert.Equal(t, "https://example.com/banner.png", result.Images[0].SecureURL)
+	})
+
+	t.Run("filter SVG by MIME type", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/image.png", Type: "image/png"},
+			{URL: "https://example.com/image", Type: "image/svg+xml"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		require.Len(t, result.Images, 1)
+		assert.Equal(t, "https://example.com/image.png", result.Images[0].URL)
+	})
+
+	t.Run("filter SVGZ compressed images", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/image.png"},
+			{URL: "https://example.com/compressed.svgz"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		require.Len(t, result.Images, 1)
+		assert.Equal(t, "https://example.com/image.png", result.Images[0].URL)
+	})
+
+	t.Run("filter all images when all are SVG", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/image1.svg"},
+			{URL: "https://example.com/image2.svg"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		assert.Empty(t, result.Images)
+	})
+
+	t.Run("skip nil images in slice", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/image.png"},
+			nil,
+			{URL: "https://example.com/photo.jpg"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		require.Len(t, result.Images, 2)
+	})
+
+	t.Run("preserve non-image OpenGraph fields", func(t *testing.T) {
+		og := opengraph.NewOpenGraph()
+		og.Title = "Test Title"
+		og.Description = "Test Description"
+		og.URL = "https://example.com"
+		og.Images = []*ogImage.Image{
+			{URL: "https://example.com/icon.svg"},
+		}
+		result := filterSVGImagesFromOpenGraph(og)
+		assert.Equal(t, "Test Title", result.Title)
+		assert.Equal(t, "Test Description", result.Description)
+		assert.Equal(t, "https://example.com", result.URL)
+		assert.Empty(t, result.Images)
+	})
 }

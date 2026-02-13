@@ -257,7 +257,7 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
         }, {});
     }
     case UserTypes.RECEIVED_PROFILES_LIST: {
-        const users: UserProfile[] = action.data;
+        const users: UserProfile[] = action.data || [] as UserProfile[];
 
         return users.reduce(receiveUserProfile, state);
     }
@@ -344,37 +344,6 @@ function profilesNotInTeam(state: UsersState['profilesNotInTeam'] = {}, action: 
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE:
         return removeProfileFromSets(state, action);
-
-    default:
-        return state;
-    }
-}
-
-function profilesWithoutTeam(state: UsersState['profilesWithoutTeam'] = new Set<string>(), action: MMReduxAction) {
-    switch (action.type) {
-    case UserTypes.RECEIVED_PROFILE_WITHOUT_TEAM: {
-        const nextSet = new Set(state);
-        Object.values(action.data as string[]).forEach((id: string) => nextSet.add(id));
-        return nextSet;
-    }
-    case UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM: {
-        const nextSet = new Set(state);
-        action.data.forEach((user: UserProfile) => nextSet.add(user.id));
-        return nextSet;
-    }
-    case UserTypes.RECEIVED_PROFILE_IN_TEAM: {
-        const nextSet = new Set(state);
-        nextSet.delete(action.data.id);
-        return nextSet;
-    }
-    case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
-        const nextSet = new Set(state);
-        nextSet.delete(action.data.user_id);
-        return nextSet;
-    }
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return new Set<string>();
 
     default:
         return state;
@@ -715,9 +684,6 @@ export default combineReducers({
 
     // object where every key is a team id and has a Set with the users id that are not members of the team
     profilesNotInTeam,
-
-    // set with user ids for users that are not on any team
-    profilesWithoutTeam,
 
     // object where every key is a channel id and has a Set with the users id that are members of the channel
     profilesInChannel,

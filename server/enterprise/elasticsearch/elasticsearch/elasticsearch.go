@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -42,8 +43,9 @@ type ElasticsearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     BulkClient
+	syncBulkProcessor BulkClient
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -127,15 +129,62 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		es.bulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
-			es.Platform.Log(),
-			es.client)
+	esSettings := es.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		es.bulkProcessor, err = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			es.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			es.Platform.Log())
+		if err != nil {
+			return model.NewAppError("elasticsearch.start",
+				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+				nil, "",
+				http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	es.syncBulkProcessor, err = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		es.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		es.Platform.Log())
+	if err != nil {
+		return model.NewAppError("elasticsearch.start",
+			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+			nil, "",
+			http.StatusInternalServerError).Wrap(err)
+	}
+
+	opts := []func(*types.IndexTemplateMapping){}
+	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
+	if *es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
+		if slices.Contains(es.plugins, "analysis-nori") {
+			opts = append(opts, common.WithNoriAnalyzer())
+		}
+		if slices.Contains(es.plugins, "analysis-kuromoji") {
+			opts = append(opts, common.WithKuromojiAnalyzer())
+		}
+		if slices.Contains(es.plugins, "analysis-smartcn") {
+			opts = append(opts, common.WithSmartCNAnalyzer())
+		}
+
+		if len(opts) == 0 {
+			es.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review elasticsearch settings.")
+		}
 	}
 
 	// Set up posts index template.
 	_, err = es.client.API.Indices.PutIndexTemplate(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts).
-		Request(common.GetPostTemplate(es.Platform.Config())).
+		Request(common.GetPostTemplate(es.Platform.Config(), opts...)).
 		Do(ctx)
 	if err != nil {
 		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
@@ -266,6 +315,30 @@ func (es *ElasticsearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 	return postIndexes, nil
 }
 
+func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
+	variants := []string{fieldName}
+
+	if es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
+		!*es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
+		!common.ContainsCJK(query) {
+		return variants
+	}
+
+	if slices.Contains(es.plugins, "analysis-nori") {
+		variants = append(variants, fieldName+".nori")
+	}
+
+	if slices.Contains(es.plugins, "analysis-kuromoji") {
+		variants = append(variants, fieldName+".kuromoji")
+	}
+
+	if slices.Contains(es.plugins, "analysis-smartcn") {
+		variants = append(variants, fieldName+".smartcn")
+	}
+
+	return variants
+}
+
 func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
@@ -283,7 +356,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -417,13 +490,13 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 					{
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"message"},
+							Fields:          es.getFieldVariants("message", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"attachments"},
+							Fields:          es.getFieldVariants("attachments", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
@@ -439,7 +512,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				termQueries = append(termQueries, query)
 
 				hashtagTerms := []string{}
-				for _, term := range strings.Split(params.Terms, " ") {
+				for term := range strings.SplitSeq(params.Terms, " ") {
 					hashtagTerms = append(hashtagTerms, "#"+term)
 				}
 
@@ -463,13 +536,13 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						{
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"message"},
+								Fields:          es.getFieldVariants("message", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"attachments"},
+								Fields:          es.getFieldVariants("attachments", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
@@ -524,6 +597,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 		},
 	)
 
+	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{
 		HighlightQuery: &types.Query{
 			Bool: fullHighlightsQuery,
@@ -554,9 +628,9 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 			Query:     query,
 			Highlight: highlight,
 		}).
-		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
+		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		})).
+		}}).
 		From(page * perPage).
 		Size(perPage)
 
@@ -743,6 +817,49 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	metrics := es.Platform.Metrics()
 	if metrics != nil {
 		metrics.IncrementChannelIndexCounter()
+	}
+
+	return nil
+}
+
+func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	indexName := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
+	metrics := es.Platform.Metrics()
+
+	for _, channel := range channels {
+		userIDs, err := getUserIDsForChannel(channel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+
+		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
+			Index_: model.NewPointer(indexName),
+			Id_:    model.NewPointer(searchChannel.Id),
+		}, searchChannel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if metrics != nil {
+			metrics.IncrementChannelIndexCounter()
+		}
+	}
+
+	if err := es.syncBulkProcessor.Flush(); err != nil {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1276,13 +1393,14 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 	}
 
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
-	indexesToDelete := indexPrefix + "*"
+	var indexesToDelete strings.Builder
+	indexesToDelete.WriteString(indexPrefix + "*")
 
 	if ignorePurgeIndexes := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ignorePurgeIndexes != "" {
 		// we are checking if provided indexes exist. If an index doesn't exist,
 		// elasticsearch returns an error while trying to purge it even we intend to
 		// ignore it.
-		for _, ignorePurgeIndex := range strings.Split(ignorePurgeIndexes, ",") {
+		for ignorePurgeIndex := range strings.SplitSeq(ignorePurgeIndexes, ",") {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
 
@@ -1291,14 +1409,14 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 				rctx.Logger().Warn("Elasticsearch index get error", mlog.String("index", ignorePurgeIndex), mlog.Err(err))
 				continue
 			}
-			indexesToDelete += ",-" + strings.TrimSpace(ignorePurgeIndex)
+			indexesToDelete.WriteString(",-" + strings.TrimSpace(ignorePurgeIndex))
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 	defer cancel()
 
-	_, err := es.client.Indices.Delete(indexesToDelete).Do(ctx)
+	_, err := es.client.Indices.Delete(indexesToDelete.String()).Do(ctx)
 	if err != nil {
 		rctx.Logger().Error("Elastic Search PurgeIndexes Error", mlog.Err(err))
 		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1327,13 +1445,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
 	indexToDeleteMap := map[string]bool{}
 	for _, index := range indexes {
-		isKnownIndex := false
-		for _, allowedIndex := range purgeIndexListAllowedIndexes {
-			if index == allowedIndex {
-				isKnownIndex = true
-				break
-			}
-		}
+		isKnownIndex := slices.Contains(purgeIndexListAllowedIndexes, index)
 
 		if !isKnownIndex {
 			return model.NewAppError("Elasticsearch.PurgeIndexList", "ent.elasticsearch.purge_indexes.unknown_index", map[string]any{"unknown_index": index}, "", http.StatusBadRequest)
@@ -1344,7 +1456,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 
 	if ign := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ign != "" {
 		// make sure we're not purging any index configured to be ignored
-		for _, ix := range strings.Split(ign, ",") {
+		for ix := range strings.SplitSeq(ign, ",") {
 			delete(indexToDeleteMap, ix)
 		}
 	}
@@ -1472,7 +1584,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -1668,9 +1780,9 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 		Request(&search.Request{
 			Query: query,
 		}).
-		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
+		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		})).
+		}}).
 		From(page * perPage).
 		Size(perPage)
 

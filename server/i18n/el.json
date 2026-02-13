@@ -128,30 +128,6 @@
     "translation": "Αδυναμία λήψης χρηστών."
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "Απέτυχε η ευρετηρίαση του χρήστη."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Απέτυχε η ευρετηρίαση της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Απέτυχε η ευρετηρίαση του καναλιού."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Αποτυχία διαγραφής του χρήστη."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Αποτυχία διαγραφής της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Απέτυχε η διαγραφή του καναλιού."
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Παρουσιάστηκε σφάλμα στη κωδικοποίηση του JSON του αναδυόμενου παράθυρου."
   },
@@ -570,10 +546,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Δε θα λάβετε ειδοποιήσεις για το {{.Channel}} μέχρι να απενεργοποιηθεί η σίγαση του καναλιού."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Δεν ήταν δυνατή η σίγαση του καναλιού {{.Channel}} καθώς δεν είστε μέλος."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -2159,10 +2131,6 @@
     "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Η νέα μορφή για τη διαμόρφωση του πελάτη δεν υποστηρίζεται ακόμη. Προσδιορίστε format=old στη συμβολοσειρά ερωτήματος."
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Καταργεί την κοινή χρήση του τρέχοντος καναλιού"
   },
@@ -2379,10 +2347,6 @@
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Λείπει το client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",

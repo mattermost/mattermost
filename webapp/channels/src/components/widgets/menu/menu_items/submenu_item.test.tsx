@@ -55,7 +55,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('test subMenu click triggers action', () => {
+    test('test subMenu click triggers action', async () => {
         const action1 = jest.fn();
         const action2 = jest.fn();
         const action3 = jest.fn();
@@ -84,13 +84,13 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
             />,
         );
 
-        userEvent.click(screen.getByText('test'));
+        await userEvent.click(screen.getByText('test'));
         expect(action1).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Test A'));
+        await userEvent.click(screen.getByText('Test A'));
         expect(action2).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Test B'));
+        await userEvent.click(screen.getByText('Test B'));
         expect(action3).toHaveBeenCalledTimes(1);
 
         // Confirm that the parent's action wasn't called again when clicking on a child item

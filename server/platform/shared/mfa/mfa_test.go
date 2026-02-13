@@ -230,7 +230,7 @@ func TestValidateToken(t *testing.T) {
 }
 
 func TestRandomBase32String(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		str := newRandomBase32String(i)
 		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
 	}

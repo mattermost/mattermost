@@ -38,7 +38,7 @@ func parseNamedArgs(cmd string) map[string]string {
 		m[ActionKey] = split[1] // prefix with hyphen to avoid collision with arg named "action"
 	}
 
-	for i := 0; i < len(split); i++ {
+	for i := range split {
 		if !strings.HasPrefix(split[i], "--") {
 			continue
 		}

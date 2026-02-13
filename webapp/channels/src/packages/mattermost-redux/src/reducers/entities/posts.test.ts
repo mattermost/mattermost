@@ -6,8 +6,10 @@ import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 import {
     ChannelTypes,
     PostTypes,
+    TeamTypes,
     ThreadTypes,
     CloudTypes,
+    LimitsTypes,
 } from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import * as reducers from 'mattermost-redux/reducers/entities/posts';
@@ -466,77 +468,329 @@ describe('posts', () => {
         });
     });
 
-    for (const actionType of [
-        ChannelTypes.RECEIVED_CHANNEL_DELETED,
-        ChannelTypes.DELETE_CHANNEL_SUCCESS,
-        ChannelTypes.LEAVE_CHANNEL,
-    ]) {
-        describe(`when a channel is deleted (${actionType})`, () => {
-            it('should remove any posts in that channel', () => {
-                const state = deepFreeze({
-                    post1: {id: 'post1', channel_id: 'channel1'},
-                    post2: {id: 'post2', channel_id: 'channel1'},
-                    post3: {id: 'post3', channel_id: 'channel2'},
-                });
-
-                const nextState = reducers.handlePosts(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: false,
-                    },
-                });
-
-                expect(nextState).not.toBe(state);
-                expect(nextState.post3).toBe(state.post3);
-                expect(nextState).toEqual({
-                    post3: {id: 'post3', channel_id: 'channel2'},
-                });
+    describe('when a channel is left (LEAVE_CHANNEL)', () => {
+        it('should remove any posts in that channel', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+                post2: {id: 'post2', channel_id: 'channel1'},
+                post3: {id: 'post3', channel_id: 'channel2'},
             });
 
-            it('should do nothing if no posts in that channel are loaded', () => {
-                const state = deepFreeze({
-                    post1: {id: 'post1', channel_id: 'channel1'},
-                    post2: {id: 'post2', channel_id: 'channel1'},
-                    post3: {id: 'post3', channel_id: 'channel2'},
-                });
-
-                const nextState = reducers.handlePosts(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel3',
-                        viewArchivedChannels: false,
-                    },
-                });
-
-                expect(nextState).toBe(state);
-                expect(nextState.post1).toBe(state.post1);
-                expect(nextState.post2).toBe(state.post2);
-                expect(nextState.post3).toBe(state.post3);
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
             });
 
-            it('should not remove any posts with viewArchivedChannels enabled', () => {
-                const state = deepFreeze({
-                    post1: {id: 'post1', channel_id: 'channel1'},
-                    post2: {id: 'post2', channel_id: 'channel1'},
-                    post3: {id: 'post3', channel_id: 'channel2'},
-                });
-
-                const nextState = reducers.handlePosts(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: true,
-                    },
-                });
-
-                expect(nextState).toBe(state);
-                expect(nextState.post1).toBe(state.post1);
-                expect(nextState.post2).toBe(state.post2);
-                expect(nextState.post3).toBe(state.post3);
+            expect(nextState).not.toBe(state);
+            expect(nextState.post3).toBe(state.post3);
+            expect(nextState).toEqual({
+                post3: {id: 'post3', channel_id: 'channel2'},
             });
         });
-    }
+
+        it('should do nothing if no posts in that channel are loaded', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+                post2: {id: 'post2', channel_id: 'channel1'},
+                post3: {id: 'post3', channel_id: 'channel2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel3',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).toBe(state);
+            expect(nextState.post1).toBe(state.post1);
+            expect(nextState.post2).toBe(state.post2);
+            expect(nextState.post3).toBe(state.post3);
+        });
+
+        it('should remove posts unconditionally (ignoring viewArchivedChannels flag)', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+                post2: {id: 'post2', channel_id: 'channel1'},
+                post3: {id: 'post3', channel_id: 'channel2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: true,
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post3).toBe(state.post3);
+            expect(nextState).toEqual({
+                post3: {id: 'post3', channel_id: 'channel2'},
+            });
+        });
+
+        it('MM-67130 should remove permalink embed referencing the left channel', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'linked_post',
+                                channel_id: 'channel1',
+                                post: {id: 'linked_post', message: 'secret message'},
+                            },
+                        }],
+                    },
+                },
+                post2: {id: 'post2', channel_id: 'channel2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post2).toBe(state.post2);
+            expect(nextState.post1.metadata.embeds).toHaveLength(0);
+        });
+
+        it('MM-67130 should not modify posts with embeds referencing other channels', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'linked_post',
+                                channel_id: 'channel3',
+                                post: {id: 'linked_post', message: 'other message'},
+                            },
+                        }],
+                    },
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).toBe(state);
+        });
+
+        it('MM-67130 should handle posts with multiple embeds, only removing affected permalinks', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [
+                            {
+                                type: 'opengraph',
+                                url: 'https://example.com',
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'linked_post1',
+                                    channel_id: 'channel1',
+                                    post: {id: 'linked_post1', message: 'secret'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'linked_post2',
+                                    channel_id: 'channel3',
+                                    post: {id: 'linked_post2', message: 'keep this'},
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post1.metadata.embeds).toHaveLength(2);
+            expect(nextState.post1.metadata.embeds[0]).toBe(state.post1.metadata.embeds[0]); // opengraph preserved
+            expect(nextState.post1.metadata.embeds[1]).toBe(state.post1.metadata.embeds[2]); // channel3 permalink preserved
+        });
+    });
+
+    describe(`leaving a team (${TeamTypes.LEAVE_TEAM})`, () => {
+        it('MM-67130 should remove posts from channels in the left team', () => {
+            // Team A: channel_teamA (user stays here)
+            // Team B: channel_teamB (user leaves this team)
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel_teamA'},
+                post2: {id: 'post2', channel_id: 'channel_teamB'},
+                post3: {id: 'post3', channel_id: 'channel_teamB'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post1).toBe(state.post1);
+            expect(nextState.post2).toBeUndefined();
+            expect(nextState.post3).toBeUndefined();
+        });
+
+        it('MM-67130 should remove permalink embeds referencing channels in the left team', () => {
+            // Scenario: User is on Team A and Team B
+            // - Post in Team A's channel has a permalink to a post in Team B's channel
+            // - When user leaves Team B, the permalink embed should be removed
+            const state = deepFreeze({
+                post_in_teamA: {
+                    id: 'post_in_teamA',
+                    channel_id: 'channel_teamA',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'secret_post',
+                                channel_id: 'channel_teamB',
+                                post: {id: 'secret_post', message: 'secret message from Team B'},
+                            },
+                        }],
+                    },
+                },
+                other_post: {id: 'other_post', channel_id: 'channel_teamA'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.other_post).toBe(state.other_post);
+            expect(nextState.post_in_teamA.metadata.embeds).toHaveLength(0);
+        });
+
+        it('MM-67130 should handle leaving team with multiple channels', () => {
+            // Team B has multiple channels, all should be cleaned up
+            const state = deepFreeze({
+                post_in_teamA: {
+                    id: 'post_in_teamA',
+                    channel_id: 'channel_teamA',
+                    metadata: {
+                        embeds: [
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post1',
+                                    channel_id: 'channel_teamB_1',
+                                    post: {id: 'post1', message: 'secret 1'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post2',
+                                    channel_id: 'channel_teamB_2',
+                                    post: {id: 'post2', message: 'secret 2'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post3',
+                                    channel_id: 'channel_teamA',
+                                    post: {id: 'post3', message: 'keep this'},
+                                },
+                            },
+                        ],
+                    },
+                },
+                post_teamB_1: {id: 'post_teamB_1', channel_id: 'channel_teamB_1'},
+                post_teamB_2: {id: 'post_teamB_2', channel_id: 'channel_teamB_2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB_1', 'channel_teamB_2'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+
+            // Posts from Team B channels should be removed
+            expect(nextState.post_teamB_1).toBeUndefined();
+            expect(nextState.post_teamB_2).toBeUndefined();
+
+            // Only the permalink to Team A's channel should remain
+            expect(nextState.post_in_teamA.metadata.embeds).toHaveLength(1);
+            expect(nextState.post_in_teamA.metadata.embeds[0].data.channel_id).toBe('channel_teamA');
+        });
+
+        it('MM-67130 should handle LEAVE_TEAM with no channelIds (no-op)', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+            });
+
+            // channelIds not provided (e.g., from other dispatch sites)
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                },
+            });
+
+            expect(nextState).toBe(state);
+        });
+
+        it('MM-67130 should handle LEAVE_TEAM with empty channelIds array', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: [],
+                },
+            });
+
+            expect(nextState).toBe(state);
+        });
+    });
 
     describe(`follow a post/thread (${ThreadTypes.FOLLOW_CHANGED_THREAD})`, () => {
         test.each([[true], [false]])('should set is_following to %s', (following) => {
@@ -2573,105 +2827,94 @@ describe('postsInChannel', () => {
         });
     });
 
-    for (const actionType of [
-        ChannelTypes.RECEIVED_CHANNEL_DELETED,
-        ChannelTypes.DELETE_CHANNEL_SUCCESS,
-        ChannelTypes.LEAVE_CHANNEL,
-    ]) {
-        describe(`when a channel is deleted (${actionType})`, () => {
-            it('should remove any posts in that channel', () => {
-                const state = deepFreeze({
-                    channel1: [
-                        {order: ['post1', 'post2', 'post3'], recent: false},
-                        {order: ['post6', 'post7', 'post8'], recent: false},
-                    ],
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
-
-                const nextState = reducers.postsInChannel(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: false,
-                    },
-                }, {}, {});
-
-                expect(nextState).not.toBe(state);
-                expect(nextState.channel2).toBe(state.channel2);
-                expect(nextState).toEqual({
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
+    describe('when a channel is left (LEAVE_CHANNEL)', () => {
+        it('should remove any posts in that channel', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2', 'post3'], recent: false},
+                    {order: ['post6', 'post7', 'post8'], recent: false},
+                ],
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
             });
 
-            it('should do nothing if no posts in that channel are loaded', () => {
-                const state = deepFreeze({
-                    channel1: [
-                        {order: ['post1', 'post2', 'post3'], recent: false},
-                    ],
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
+            const nextState = reducers.postsInChannel(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            }, {}, {});
 
-                const nextState = reducers.postsInChannel(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel3',
-                        viewArchivedChannels: false,
-                    },
-                }, {}, {});
-
-                expect(nextState).toBe(state);
-                expect(nextState.channel1).toBe(state.channel1);
-                expect(nextState.channel2).toBe(state.channel2);
-                expect(nextState).toEqual({
-                    channel1: [
-                        {order: ['post1', 'post2', 'post3'], recent: false},
-                    ],
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
-            });
-
-            it('should not remove any posts with viewArchivedChannels enabled', () => {
-                const state = deepFreeze({
-                    channel1: [
-                        {order: ['post1', 'post2', 'post3'], recent: false},
-                        {order: ['post6', 'post7', 'post8'], recent: false},
-                    ],
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
-
-                const nextState = reducers.postsInChannel(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: true,
-                    },
-                }, {}, {});
-
-                expect(nextState).toBe(state);
-                expect(nextState.channel1).toBe(state.channel1);
-                expect(nextState.channel2).toBe(state.channel2);
-                expect(nextState).toEqual({
-                    channel1: [
-                        {order: ['post1', 'post2', 'post3'], recent: false},
-                        {order: ['post6', 'post7', 'post8'], recent: false},
-                    ],
-                    channel2: [
-                        {order: ['post4', 'post5'], recent: false},
-                    ],
-                });
+            expect(nextState).not.toBe(state);
+            expect(nextState.channel2).toBe(state.channel2);
+            expect(nextState).toEqual({
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
             });
         });
-    }
+
+        it('should do nothing if no posts in that channel are loaded', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2', 'post3'], recent: false},
+                ],
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel3',
+                    viewArchivedChannels: false,
+                },
+            }, {}, {});
+
+            expect(nextState).toBe(state);
+            expect(nextState.channel1).toBe(state.channel1);
+            expect(nextState.channel2).toBe(state.channel2);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['post1', 'post2', 'post3'], recent: false},
+                ],
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
+            });
+        });
+
+        it('should remove posts unconditionally (ignoring viewArchivedChannels flag)', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2', 'post3'], recent: false},
+                    {order: ['post6', 'post7', 'post8'], recent: false},
+                ],
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: true,
+                },
+            }, {}, {});
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.channel2).toBe(state.channel2);
+            expect(nextState).toEqual({
+                channel2: [
+                    {order: ['post4', 'post5'], recent: false},
+                ],
+            });
+        });
+    });
 });
 
 describe('mergePostBlocks', () => {
@@ -3379,119 +3622,113 @@ describe('postsInThread', () => {
         });
     });
 
-    for (const actionType of [
-        ChannelTypes.RECEIVED_CHANNEL_DELETED,
-        ChannelTypes.DELETE_CHANNEL_SUCCESS,
-        ChannelTypes.LEAVE_CHANNEL,
-    ]) {
-        describe(`when a channel is deleted (${actionType})`, () => {
-            it('should remove any threads in that channel', () => {
-                const state = deepFreeze({
-                    root1: ['comment1', 'comment2'],
-                    root2: ['comment3'],
-                    root3: ['comment4'],
-                });
-
-                const prevPosts = toPostsRecord({
-                    root1: {id: 'root1', channel_id: 'channel1'},
-                    comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
-                    comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
-                    root2: {id: 'root2', channel_id: 'channel2'},
-                    comment3: {id: 'comment3', channel_id: 'channel2', root_id: 'root2'},
-                    root3: {id: 'root3', channel_id: 'channel1'},
-                    comment4: {id: 'comment3', channel_id: 'channel1', root_id: 'root3'},
-                });
-
-                const nextState = reducers.postsInThread(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: false,
-                    },
-                }, prevPosts);
-
-                expect(nextState).not.toBe(state);
-                expect(nextState.root2).toBe(state.root2);
-                expect(nextState).toEqual({
-                    root2: ['comment3'],
-                });
+    describe('when a channel is left (LEAVE_CHANNEL)', () => {
+        it('should remove any threads in that channel', () => {
+            const state = deepFreeze({
+                root1: ['comment1', 'comment2'],
+                root2: ['comment3'],
+                root3: ['comment4'],
             });
 
-            it('should do nothing if no threads in that channel are loaded', () => {
-                const state = deepFreeze({
-                    root1: ['comment1', 'comment2'],
-                });
-
-                const prevPosts = toPostsRecord({
-                    root1: {id: 'root1', channel_id: 'channel1'},
-                    comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
-                    comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
-                });
-
-                const nextState = reducers.postsInThread(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel2',
-                        viewArchivedChannels: false,
-                    },
-                }, prevPosts);
-
-                expect(nextState).toBe(state);
-                expect(nextState).toEqual({
-                    root1: ['comment1', 'comment2'],
-                });
+            const prevPosts = toPostsRecord({
+                root1: {id: 'root1', channel_id: 'channel1'},
+                comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
+                comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
+                root2: {id: 'root2', channel_id: 'channel2'},
+                comment3: {id: 'comment3', channel_id: 'channel2', root_id: 'root2'},
+                root3: {id: 'root3', channel_id: 'channel1'},
+                comment4: {id: 'comment3', channel_id: 'channel1', root_id: 'root3'},
             });
 
-            it('should not remove any posts with viewArchivedChannels enabled', () => {
-                const state = deepFreeze({
-                    root1: ['comment1', 'comment2'],
-                    root2: ['comment3'],
-                });
+            const nextState = reducers.postsInThread(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            }, prevPosts);
 
-                const prevPosts = toPostsRecord({
-                    root1: {id: 'root1', channel_id: 'channel1'},
-                    comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
-                    comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
-                    root2: {id: 'root2', channel_id: 'channel2'},
-                    comment3: {id: 'comment3', channel_id: 'channel2', root_id: 'root2'},
-                });
-
-                const nextState = reducers.postsInThread(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: true,
-                    },
-                }, prevPosts);
-
-                expect(nextState).toBe(state);
-                expect(nextState).toEqual({
-                    root1: ['comment1', 'comment2'],
-                    root2: ['comment3'],
-                });
-            });
-
-            it('should not error if a post is missing from prevPosts', () => {
-                const state = deepFreeze({
-                    root1: ['comment1'],
-                });
-
-                const prevPosts = toPostsRecord({
-                    comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
-                });
-
-                const nextState = reducers.postsInThread(state, {
-                    type: actionType,
-                    data: {
-                        id: 'channel1',
-                        viewArchivedChannels: false,
-                    },
-                }, prevPosts);
-
-                expect(nextState).toBe(state);
+            expect(nextState).not.toBe(state);
+            expect(nextState.root2).toBe(state.root2);
+            expect(nextState).toEqual({
+                root2: ['comment3'],
             });
         });
-    }
+
+        it('should do nothing if no threads in that channel are loaded', () => {
+            const state = deepFreeze({
+                root1: ['comment1', 'comment2'],
+            });
+
+            const prevPosts = toPostsRecord({
+                root1: {id: 'root1', channel_id: 'channel1'},
+                comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
+                comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
+            });
+
+            const nextState = reducers.postsInThread(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel2',
+                    viewArchivedChannels: false,
+                },
+            }, prevPosts);
+
+            expect(nextState).toBe(state);
+            expect(nextState).toEqual({
+                root1: ['comment1', 'comment2'],
+            });
+        });
+
+        it('should remove threads unconditionally (ignoring viewArchivedChannels flag)', () => {
+            const state = deepFreeze({
+                root1: ['comment1', 'comment2'],
+                root2: ['comment3'],
+            });
+
+            const prevPosts = toPostsRecord({
+                root1: {id: 'root1', channel_id: 'channel1'},
+                comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
+                comment2: {id: 'comment2', channel_id: 'channel1', root_id: 'root1'},
+                root2: {id: 'root2', channel_id: 'channel2'},
+                comment3: {id: 'comment3', channel_id: 'channel2', root_id: 'root2'},
+            });
+
+            const nextState = reducers.postsInThread(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: true,
+                },
+            }, prevPosts);
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.root2).toBe(state.root2);
+            expect(nextState).toEqual({
+                root2: ['comment3'],
+            });
+        });
+
+        it('should not error if a post is missing from prevPosts', () => {
+            const state = deepFreeze({
+                root1: ['comment1'],
+            });
+
+            const prevPosts = toPostsRecord({
+                comment1: {id: 'comment1', channel_id: 'channel1', root_id: 'root1'},
+            });
+
+            const nextState = reducers.postsInThread(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            }, prevPosts);
+
+            expect(nextState).toBe(state);
+        });
+    });
 });
 
 describe('removeUnneededMetadata', () => {
@@ -4382,11 +4619,6 @@ describe('limitedViews', () => {
         PostTypes.RECEIVED_POSTS_SINCE,
         PostTypes.RECEIVED_POSTS_IN_CHANNEL,
     ];
-    const forgetChannelActions = [
-        ChannelTypes.RECEIVED_CHANNEL_DELETED,
-        ChannelTypes.DELETE_CHANNEL_SUCCESS,
-        ChannelTypes.LEAVE_CHANNEL,
-    ];
 
     receivedPostActions.forEach((action) => {
         it(`${action} does nothing if all posts are accessible`, () => {
@@ -4476,45 +4708,78 @@ describe('limitedViews', () => {
         expect(nextState).toEqual(initialState);
     });
 
-    forgetChannelActions.forEach((action) => {
-        const initialState = {...zeroState, channels: {channelId: 123}};
-
-        it(`${action} does nothing if archived channel is still visible`, () => {
+    describe('LEAVE_CHANNEL in limitedViews', () => {
+        it('should remove channel from limitedViews when leaving', () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
             const nextState = reducers.limitedViews(initialState, {
-                type: action,
-                data: {
-                    viewArchivedChannels: true,
-                    id: 'channelId',
-                },
-            });
-
-            expect(nextState).toEqual(initialState);
-        });
-
-        it(`${action} does nothing if archived channel is not limited`, () => {
-            const nextState = reducers.limitedViews(initialState, {
-                type: action,
-                data: {
-                    id: 'channelId2',
-                },
-            });
-
-            expect(nextState).toEqual(initialState);
-
-            // e.g. old state should have been returned;
-            // reference equality should have been preserved
-            expect(nextState).toBe(initialState);
-        });
-
-        it(`${action} removes deleted channel`, () => {
-            const nextState = reducers.limitedViews(initialState, {
-                type: action,
+                type: ChannelTypes.LEAVE_CHANNEL,
                 data: {
                     id: 'channelId',
                 },
             });
 
             expect(nextState).toEqual(zeroState);
+        });
+
+        it('should do nothing if channel is not in limitedViews', () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'nonExistentChannelId',
+                },
+            });
+
+            expect(nextState).toEqual(initialState);
+            expect(nextState).toBe(initialState); // reference equality preserved
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if there are no longer post history limits`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    postHistoryLimit: 0,
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 0,
+                },
+            });
+
+            expect(nextState).toEqual(zeroState);
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if postHistoryLimit is undefined`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 0,
+                },
+            });
+
+            expect(nextState).toEqual(zeroState);
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} preserves limited views if there are still post history limits`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    postHistoryLimit: 1000,
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 1234567890,
+                },
+            });
+
+            expect(nextState).toEqual(initialState);
+            expect(nextState).toBe(initialState); // reference equality preserved
         });
     });
 });

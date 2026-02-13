@@ -456,13 +456,28 @@
                     opacity: 0.8;
                 }
 
+                li {
+                    .label-elements {
+                        padding-left: 3px;
+                        color: rgba(var(--sidebar-text-rgb), 0.8);
+
+                        span {
+                            color: inherit;
+                        }
+                    }
+
+                    .trailing-elements {
+                        color: rgba(var(--sidebar-text-rgb), 0.8);
+                    }
+                }
+
                 .MenuItem {
                     >button,
                     >a {
                         width: 100%;
                         height: auto;
                         padding: 3px 16px;
-                        font-size: 15px;
+                        font-size: 14px;
                         line-height: 32px;
                         text-align: left;
                     }
@@ -479,7 +494,14 @@
 
                 .MenuGroup {
                     &.menu-divider {
-                        background: var(--center-channel-bg);
+                        background: rgba(var(--sidebar-text-rgb), 0.12);
+                    }
+                }
+
+                .MenuStartTrial {
+                    div:first-child {
+                        background: rgba(var(--sidebar-text-rgb), 0.08);
+                        color: var(--sidebar-text);
                     }
                 }
             }
@@ -817,6 +839,12 @@
             .post__link {
                 margin: 0 0 8px;
             }
+
+            &:hover {
+                .post__body {
+                    background: transparent;
+                }
+            }
         }
 
         .post__header {
@@ -887,7 +915,7 @@
 
         &.post--comment {
             .post__body {
-                padding: 0 0 0 7px;
+                padding-bottom: 0; // default is 0.2em, defined in _components/_post.scss
                 margin-top: 5px;
             }
         }
@@ -1591,7 +1619,7 @@
     .app__body {
         &.announcement-bar--fixed {
             .modal {
-                padding-top: variables.$announcement-bar-height;
+                padding-top: calc(var(--announcement-bar-count, 1) * #{variables.$announcement-bar-height});
             }
         }
 
@@ -1860,21 +1888,21 @@
             .modal-header {
                 min-height: unset;
                 box-shadow: none;
-            
+
                 .GenericModal__header__text_container .GenericModal__header {
                     flex-direction: column;
                     align-items: flex-start;
-    
+
                     button {
                         margin-top: 16px;
                     }
                 }
             }
-    
+
             .more-modal__dropdown {
                 flex-direction: column;
                 align-items: flex-start;
-    
+
                 #modalPreferenceContainer #menuWrapper {
                     padding-left: 0;
                 }

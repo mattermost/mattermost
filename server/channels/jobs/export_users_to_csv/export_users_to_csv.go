@@ -120,7 +120,7 @@ func getData(app ExportUsersToCSVAppIFace) func(jobData model.StringMap) ([]mode
 		}
 
 		reportableObjects := []model.ReportableObject{}
-		for i := 0; i < len(users); i++ {
+		for i := range users {
 			reportableObjects = append(reportableObjects, users[i])
 		}
 

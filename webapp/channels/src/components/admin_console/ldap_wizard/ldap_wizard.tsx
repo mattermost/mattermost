@@ -84,7 +84,7 @@ type State = {
     [x: string]: unknown;
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
-    serverError: string | { message: string; id?: string } | null;
+    serverError: string | null;
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string | boolean;
@@ -221,7 +221,6 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPButtonSetting
                 key={schema.id + '_button_' + setting.key}
-                onChange={handleChange}
                 saveNeeded={false}
                 schema={schema}
                 disabled={isDisabled(setting)}

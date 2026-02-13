@@ -31,6 +31,7 @@ type Props = {
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
     excludeAccessControlPolicyEnforced?: boolean;
+    excludeGroupConstrained?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
 }
@@ -220,6 +221,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         if (this.props.excludePolicyConstrained) {
             options = options.filter((channel) => channel.policy_id === null);
         }
+        if (this.props.excludeGroupConstrained) {
+            options = options.filter((channel) => !channel.group_constrained);
+        }
         if (this.props.excludeTeamIds) {
             options = options.filter((channel) => this.props.excludeTeamIds?.indexOf(channel.team_id) === -1);
         }
@@ -246,7 +250,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                             id='channelSelectorModal.title'
                             defaultMessage='Add Channels to <b>Channel Selection</b> List'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </Modal.Title>

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
 <Modal
@@ -399,7 +399,7 @@ exports[`comoponents/EditChannelPurposeModal should match for private channel 1`
   >
     <p>
       <MemoizedFormattedMessage
-        defaultMessage="This text appears in the \\\\\\"View Info\\\\\\" modal of the private channel."
+        defaultMessage="This text appears in the \\"View Info\\" modal of the private channel."
         id="edit_channel_private_purpose_modal.body"
       />
     </p>

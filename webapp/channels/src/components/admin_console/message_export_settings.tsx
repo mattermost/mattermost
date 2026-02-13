@@ -193,7 +193,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
         const exportFormatOptions = [
             {value: exportFormats.EXPORT_FORMAT_ACTIANCE, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.actiance', defaultMessage: 'Actiance XML'})},
             {value: exportFormats.EXPORT_FORMAT_CSV, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.csv', defaultMessage: 'CSV'})},
-            {value: exportFormats.EXPORT_FORMAT_GLOBALRELAY, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.globalrelay', defaultMessage: 'GlobalRelay EML'})},
+            {value: exportFormats.EXPORT_FORMAT_GLOBALRELAY, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.globalrelay', defaultMessage: 'Global Relay EML'})},
         ];
 
         // if the export format is globalrelay, the user needs to set some additional parameters
@@ -330,7 +330,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     <FormattedMessage
                         {...messages.exportFormat_description_details}
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <Link to='/admin_console/environment/file_storage'>
                                     {chunks}
                                 </Link>

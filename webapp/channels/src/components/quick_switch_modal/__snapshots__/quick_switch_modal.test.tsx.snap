@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/QuickSwitchModal should match snapshot 1`] = `
 <GenericModal
@@ -78,12 +78,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
               "subscribe": [Function],
             },
           },
-        ]
-      }
-      renderDividers={
-        Array [
-          "mention.unread",
-          "mention.recent.channels",
         ]
       }
       shouldSearchCompleteText={true}

@@ -1,77 +1,34 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/new_channel_modal should match snapshot 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className="AddChannelsCtaDropdown"
-  onToggle={[Function]}
-  open={false}
->
+<div>
   <button
-    aria-label="Add Channel Dropdown"
-    className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+    aria-controls="AddChannelCtaDropdown"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
     id="addChannelsCta"
-    onClick={[Function]}
   >
-    <div
-      aria-label="Add channels"
-    >
-      <i
-        className="icon-plus-box"
-      />
-      <span>
-        Add Channels
-      </span>
-    </div>
+    <i
+      aria-hidden="true"
+      class="icon-plus-box"
+    />
+    Add Channels
   </button>
-  <Menu
-    ariaLabel="Add Channels Dropdown"
-    id="AddChannelCtaDropdown"
-  >
-    <Memo(MenuGroup)>
-      <MenuItemAction
-        icon={
-          <i
-            className="icon-plus"
-          />
-        }
-        id="showNewChannel"
-        onClick={[Function]}
-        show={true}
-        text="Create new channel"
-      />
-      <MenuItemAction
-        icon={
-          <i
-            className="icon-globe"
-          />
-        }
-        id="showMoreChannels"
-        onClick={[Function]}
-        show={true}
-        text="Browse channels"
-      />
-    </Memo(MenuGroup)>
-  </Menu>
-</MenuWrapper>
+</div>
 `;
 
 exports[`components/new_channel_modal should match snapshot when user has only join channel permissions 1`] = `
-<button
-  aria-label="Add Channel Dropdown"
-  className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
-  id="addChannelsCta"
-  onClick={[Function]}
->
-  <div
-    aria-label="Add channels"
+<div>
+  <button
+    class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+    id="addChannelsCta"
   >
     <i
-      className="icon-plus-box"
+      aria-hidden="true"
+      class="icon-plus-box"
     />
-    <span>
-      Add Channels
-    </span>
-  </div>
-</button>
+    Add Channels
+  </button>
+</div>
 `;

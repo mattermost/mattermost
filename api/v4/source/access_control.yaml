@@ -66,6 +66,53 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/validate_requester:
+    post:
+      tags:
+        - access control
+      summary: Validate if the current user matches a CEL expression
+      description: |
+        Validates whether the current authenticated user matches the given CEL expression.
+        This is used to determine if a channel admin can test expressions they match.
+        ##### Permissions
+        Must have `manage_system` permission OR be a channel admin for the specified channel (channelId required for channel admins).
+      operationId: ValidateExpressionAgainstRequester
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                  description: The CEL expression to validate against the current user.
+                channelId:
+                  type: string
+                  description: The channel ID for channel-specific permission checks (required for channel admins).
+              required:
+                - expression
+      responses:
+        "200":
+          description: Validation result returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requester_matches:
+                    type: boolean
+                    description: Whether the current user matches the expression.
+                required:
+                  - requester_matches
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/access_control_policies/cel/test:
     post:
       tags:
@@ -236,11 +283,16 @@
           $ref: "#/components/responses/InternalServerError"
   "/api/v4/access_control_policies/{policy_id}/activate":
     get:
+      deprecated: true
       tags:
         - access control
       summary: Activate or deactivate an access control policy
       description: |
         Updates the active status of an access control policy.
+
+        **Deprecated:** This endpoint will be removed in a future release. Use the dedicated access control policy update endpoint instead.
+        Link: </api/v4/access_control_policies/activate>; rel="successor-version"
+
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: UpdateAccessControlPolicyActiveStatus
@@ -522,3 +574,37 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/activate:
+    put:
+      tags:
+        - access control
+      summary: Activate or deactivate access control policies
+      description: |
+        Updates the active status of access control policies.
+
+        ##### Permissions
+        Must have the `manage_system` permission. OR be a channel admin with manage_channel_access_rules permission for the specified channels.
+      operationId: UpdateAccessControlPoliciesActive
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessControlPolicyActiveUpdateRequest"
+      responses:
+        "200":
+          description: Access control policies active status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

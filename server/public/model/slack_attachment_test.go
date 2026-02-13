@@ -201,3 +201,47 @@ func TestParseSlackAttachment(t *testing.T) {
 		assert.Equal(t, expectedPost, post)
 	})
 }
+
+func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
+	// Field with primitive type (string)
+	attachment1 := &SlackAttachment{
+		Fields: []*SlackAttachmentField{
+			{
+				Title: "Field1",
+				Value: "value",
+				Short: true,
+			},
+		},
+	}
+	attachment2 := &SlackAttachment{
+		Fields: []*SlackAttachmentField{
+			{
+				Title: "Field1",
+				Value: "value",
+				Short: true,
+			},
+		},
+	}
+	assert.True(t, attachment1.Equals(attachment2), "Attachments with identical primitive field values should be equal")
+
+	// Field with non-primitive type ([]interface{})
+	attachment3 := &SlackAttachment{
+		Fields: []*SlackAttachmentField{
+			{
+				Title: "Field1",
+				Value: []any{"value", 2},
+				Short: true,
+			},
+		},
+	}
+	attachment4 := &SlackAttachment{
+		Fields: []*SlackAttachmentField{
+			{
+				Title: "Field1",
+				Value: []any{"value", 2},
+				Short: true,
+			},
+		},
+	}
+	assert.True(t, attachment3.Equals(attachment4), "Attachments with identical non-primitive ([]interface{}) field values should be equal")
+}

@@ -23,7 +23,7 @@ func LongProgressiveRetry(operation func() error) error {
 func CustomProgressiveRetry(operation func() error, backoffTimeouts []time.Duration) error {
 	var err error
 
-	for attempts := 0; attempts < len(backoffTimeouts); attempts++ {
+	for attempts := range backoffTimeouts {
 		err = operation()
 		if err == nil {
 			return nil

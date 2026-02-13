@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = `
 <BackstageList
@@ -13,8 +13,13 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
   }
   emptyTextSearch={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="No OAuth 2.0 Applications match {searchTerm}"
+      defaultMessage="No OAuth 2.0 Applications match <strong>{searchTerm}</strong>"
       id="installed_oauth_apps.emptySearch"
+      values={
+        Object {
+          "strong": [Function],
+        }
+      }
     />
   }
   header={

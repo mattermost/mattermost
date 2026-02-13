@@ -39,6 +39,7 @@ export type UserProfile = {
     delete_at: number;
     username: string;
     password: string;
+    auth_data?: string;
     auth_service: string;
     email: string;
     nickname: string;
@@ -76,7 +77,6 @@ export type UsersState = {
     profiles: IDMappedObjects<UserProfile>;
     profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
-    profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
@@ -152,4 +152,9 @@ export type GetFilteredUsersStatsOpts = {
 
 export type AuthChangeResponse = {
     follow_link: string;
+};
+
+export type UserAuthUpdate = {
+    auth_data?: string;
+    auth_service?: string;
 };

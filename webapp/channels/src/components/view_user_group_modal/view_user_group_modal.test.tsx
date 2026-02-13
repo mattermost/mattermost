@@ -87,10 +87,10 @@ describe('component/view_user_group_modal', () => {
         const searchInput = wrapper.find('ForwardRef[data-testid="searchInput"]');
         searchInput.simulate('change', {target: {value: ''}});
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
+        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith('');
 
         searchInput.simulate('change', {target: {value: 'user1'}});
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('user1');
+        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith('user1');
     });
 });

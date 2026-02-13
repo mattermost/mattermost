@@ -11,10 +11,91 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUpdateScheduledPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	t.Run("should not allow updating a scheduled post not belonging to the user", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		originalMessage := createdScheduledPost.Message
+		originalScheduledAt := createdScheduledPost.ScheduledAt
+
+		createdScheduledPost.ScheduledAt = model.GetMillis() + 9999999
+		createdScheduledPost.Message = "Updated Message!!!"
+
+		// Switch to BasicUser2
+		th.LoginBasic2(t)
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Switch back to original user and verify the post wasn't modified
+		th.LoginBasic(t)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, originalMessage, fetchedPost.Message)
+		require.Equal(t, originalScheduledAt, fetchedPost.ScheduledAt)
+	})
+}
+
+func TestDeleteScheduledPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	t.Run("should not allow deleting a scheduled post not belonging to the user", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		// Switch to BasicUser2
+		th.LoginBasic2(t)
+
+		_, resp, err := th.Client.DeleteScheduledPost(context.Background(), createdScheduledPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Switch back to original user and verify the post wasn't deleted
+		th.LoginBasic(t)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, createdScheduledPost.Id, fetchedPost.Id)
+		require.Equal(t, createdScheduledPost.Message, fetchedPost.Message)
+	})
+}
+
 func TestCreateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -38,8 +119,8 @@ func TestCreateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should not allow created scheduled post in read-only channel", func(t *testing.T) {
-		channel := th.CreatePublicChannel()
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		channelModerationPatches := []*model.ChannelModerationPatch{
 			{

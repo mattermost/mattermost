@@ -55,7 +55,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg, err := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
@@ -98,7 +98,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("configReload", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventConfigReload, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
@@ -125,7 +125,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -158,6 +158,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// This shallow-copies the slice header. So be careful if there are concurrent
 	// modifications to the slice.
 	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
+	// Do not allow import directory to be changed through the API
+	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
 
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
 	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
@@ -248,18 +251,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	var config map[string]string
 	if c.AppContext.Session().UserId == "" {
 		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()
@@ -293,7 +284,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
@@ -314,6 +305,12 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		return
+	}
+
+	// Do not allow import directory to be changed through the API
+	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
 		return
 	}
 

@@ -35,6 +35,7 @@ func draftSliceColumns() []string {
 		"FileIds",
 		"Props",
 		"Priority",
+		"Type",
 	}
 }
 
@@ -50,6 +51,7 @@ func draftToSlice(draft *model.Draft) []any {
 		model.ArrayToJSON(draft.FileIds),
 		model.StringInterfaceToJSON(draft.Props),
 		model.StringInterfaceToJSON(draft.Priority),
+		draft.Type,
 	}
 }
 
@@ -95,13 +97,10 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 		return nil, err
 	}
 
-	builder := s.getQueryBuilder().Insert("Drafts").Columns(draftSliceColumns()...).Values(draftToSlice(draft)...)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE  UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
-	} else {
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
-	}
+	builder := s.getQueryBuilder().Insert("Drafts").
+		Columns(draftSliceColumns()...).
+		Values(draftToSlice(draft)...).
+		SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, Type = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, draft.Type, 0))
 
 	query, args, err := builder.ToSql()
 
@@ -130,6 +129,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 			"Drafts.FileIds",
 			"Drafts.Props",
 			"Drafts.Priority",
+			"COALESCE(Drafts.Type, '') AS Type",
 		).
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
@@ -229,38 +229,18 @@ func (s *SqlDraftStore) GetMaxDraftSize() int {
 func (s *SqlDraftStore) determineMaxDraftSize() int {
 	var maxDraftSizeBytes int32
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		// The Draft.Message column in Postgres has historically been VARCHAR(4000), but
-		// may be manually enlarged to support longer drafts.
-		if err := s.GetReplica().Get(&maxDraftSizeBytes, `
-			SELECT
-				COALESCE(character_maximum_length, 0)
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'drafts'
-			AND	column_name = 'message'
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
-		}
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		// The Draft.Message column in MySQL has historically been TEXT, with a maximum
-		// limit of 65535.
-		if err := s.GetReplica().Get(&maxDraftSizeBytes, `
-			SELECT
-				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM
-				INFORMATION_SCHEMA.COLUMNS
-			WHERE
-				table_schema = DATABASE()
-			AND	table_name = 'Drafts'
-			AND	column_name = 'Message'
-			LIMIT 0, 1
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
-		}
-	} else {
-		mlog.Warn("No implementation found to determine the maximum supported draft size")
+	// The Draft.Message column has historically been VARCHAR(4000), but
+	// may be manually enlarged to support longer drafts.
+	if err := s.GetReplica().Get(&maxDraftSizeBytes, `
+		SELECT
+			COALESCE(character_maximum_length, 0)
+		FROM
+			information_schema.columns
+		WHERE
+			table_name = 'drafts'
+		AND	column_name = 'message'
+	`); err != nil {
+		mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
@@ -304,52 +284,28 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 }
 
 func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	var builder Builder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			PrefixExpr(s.getQueryBuilder().Select().
-				Prefix("WITH dd AS (").
-				Columns("UserId", "ChannelId", "RootId").
-				From("Drafts").
-				Where(sq.Or{
-					sq.Gt{"CreateAt": createAt},
-					sq.And{
-						sq.Eq{"CreateAt": createAt},
-						sq.Gt{"UserId": userId},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(")"),
-			).
-			Using("dd").
-			Where("d.UserId = dd.UserId").
-			Where("d.ChannelId = dd.ChannelId").
-			Where("d.RootId = dd.RootId").
-			Where("d.Message = ''")
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			What("d.*").
-			JoinClause(s.getQueryBuilder().Select().
-				Prefix("INNER JOIN (").
-				Columns("UserId, ChannelId, RootId").
-				From("Drafts").
-				Where(sq.And{
-					sq.Or{
-						sq.Gt{"CreateAt": createAt},
-						sq.And{
-							sq.Eq{"CreateAt": createAt},
-							sq.Gt{"UserId": userId},
-						},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
-			).Where(sq.Eq{"Message": ""})
-	}
+	builder := s.getQueryBuilder().
+		Delete("Drafts d").
+		PrefixExpr(s.getQueryBuilder().Select().
+			Prefix("WITH dd AS (").
+			Columns("UserId", "ChannelId", "RootId").
+			From("Drafts").
+			Where(sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"UserId": userId},
+				},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			Suffix(")"),
+		).
+		Using("dd").
+		Where("d.UserId = dd.UserId").
+		Where("d.ChannelId = dd.ChannelId").
+		Where("d.RootId = dd.RootId").
+		Where("d.Message = ''")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to delete empty drafts")
@@ -359,53 +315,28 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 }
 
 func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	var builder Builder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			PrefixExpr(s.getQueryBuilder().Select().
-				Prefix("WITH dd AS (").
-				Columns("UserId", "ChannelId", "RootId").
-				From("Drafts").
-				Where(sq.Or{
-					sq.Gt{"CreateAt": createAt},
-					sq.And{
-						sq.Eq{"CreateAt": createAt},
-						sq.Gt{"UserId": userId},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(")"),
-			).
-			Using("dd").
-			Where("d.UserId = dd.UserId").
-			Where("d.ChannelId = dd.ChannelId").
-			Where("d.RootId = dd.RootId").
-			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			What("d.*").
-			JoinClause(s.getQueryBuilder().Select().
-				Prefix("INNER JOIN (").
-				Columns("UserId, ChannelId, RootId").
-				From("Drafts").
-				Where(sq.And{
-					sq.Or{
-						sq.Gt{"CreateAt": createAt},
-						sq.And{
-							sq.Eq{"CreateAt": createAt},
-							sq.Gt{"UserId": userId},
-						},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
-			).
-			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
-	}
+	builder := s.getQueryBuilder().
+		Delete("Drafts d").
+		PrefixExpr(s.getQueryBuilder().Select().
+			Prefix("WITH dd AS (").
+			Columns("UserId", "ChannelId", "RootId").
+			From("Drafts").
+			Where(sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"UserId": userId},
+				},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			Suffix(")"),
+		).
+		Using("dd").
+		Where("d.UserId = dd.UserId").
+		Where("d.ChannelId = dd.ChannelId").
+		Where("d.RootId = dd.RootId").
+		Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to delete orphan drafts")

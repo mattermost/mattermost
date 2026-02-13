@@ -736,13 +736,13 @@ func BenchmarkFileStore(b *testing.B) {
 // benchmarkWriteFile benchmarks writing a file of the given size
 func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size int) {
 	b.Run("Write_"+tcName, func(b *testing.B) {
+		b.ReportAllocs()
+
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
 
-		b.ResetTimer()
-		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
+			b.StopTimer()
 			rd, wr := io.Pipe()
 			go func() {
 				defer wr.Close()
@@ -758,7 +758,6 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 
 			b.StartTimer()
 			written, err := backend.WriteFile(rd, "tests/"+tcName)
-			b.StopTimer()
 			require.NoError(b, err)
 			require.Equal(b, int64(size), written)
 		}
@@ -768,14 +767,12 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 // benchmarkReadFile benchmarks reading a file of the given size
 func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size int) {
 	b.Run("Read_"+tcName, func(b *testing.B) {
+		b.ReportAllocs()
+
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
 
-		b.ResetTimer()
-		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
-			b.StartTimer()
+		for b.Loop() {
 			rd, err := backend.Reader("tests/" + tcName)
 			require.NoError(b, err)
 			var total int
@@ -787,7 +784,6 @@ func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size in
 				}
 				require.NoError(b, err)
 			}
-			b.StopTimer()
 			require.Equal(b, size, total)
 		}
 	})
@@ -872,7 +868,9 @@ func BenchmarkS3WriteFile(b *testing.B) {
 			backend := backendMap[partSize]
 			b.Run(fmt.Sprintf("FileSize-%dMB_PartSize-%dMB", int(math.Round(float64(size)/1024/1024)), int(math.Round(float64(partSize)/1024/1024))), func(b *testing.B) {
 				b.ReportAllocs()
-				for i := 0; i < b.N; i++ {
+				for b.Loop() {
+					// Setup
+					b.StopTimer()
 					rd, wr := io.Pipe()
 					go func() {
 						defer wr.Close()
@@ -885,13 +883,17 @@ func BenchmarkS3WriteFile(b *testing.B) {
 						}
 					}()
 					path := "tests/" + randomString()
+
 					b.StartTimer()
 					written, err := backend.WriteFile(rd, path)
+
+					// Cleanup
 					b.StopTimer()
 					require.NoError(b, err)
 					require.Equal(b, size, int(written))
 					err = backend.RemoveFile(path)
 					require.NoError(b, err)
+					b.StartTimer()
 				}
 			})
 		}

@@ -69,7 +69,9 @@ export type Channel = {
     policy_id?: string | null;
     banner_info?: ChannelBanner;
     policy_enforced?: boolean;
+    policy_is_active?: boolean;
     default_category_name?: string;
+    autotranslation?: boolean;
 };
 
 export type ServerChannel = Channel & {
@@ -135,6 +137,7 @@ export type ChannelMembership = {
     scheme_user: boolean;
     scheme_admin: boolean;
     post_root_id?: string;
+    autotranslation_disabled?: boolean;
 };
 
 export type ChannelUnread = {
@@ -176,6 +179,7 @@ export type ChannelsState = {
     channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
+    restrictedDMs: RelationOneToOne<Channel, boolean>;
 };
 
 export type ChannelModeration = {

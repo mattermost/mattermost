@@ -12,6 +12,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
@@ -48,7 +49,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Add or Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -57,7 +58,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -71,7 +72,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1457 Verify Accessibility Support in Search Autocomplete', () => {
         // # Adding at least five other users in the channel
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, user.id);
                 });
@@ -109,11 +110,11 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
-        verifySearchAutocomplete(2, 'channel');
+        verifySearchAutocomplete(2);
 
         // # Press Up arrow and verify if focus changes
         cy.focused().type('{uparrow}{uparrow}');
-        verifySearchAutocomplete(0, 'channel');
+        verifySearchAutocomplete(0);
     });
 
     it('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
@@ -201,12 +202,12 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('be.focused').and('have.attr', 'aria-label', 'bulleted list').tab();
 
             // * Verify if the focus is on the numbered list button
-            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab();
+            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab().tab();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
 
-            // * Verify if the focus is on the attachment icon
+            // * Verify if the focus is on the attachment icon (skipping burn-on-read button when enabled)
             cy.get('#fileUploadButton').should('be.focused').and('have.attr', 'aria-label', 'attachment').tab();
 
             // * Verify if the focus is on the emoji picker
@@ -281,30 +282,12 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function getUserMentionAriaLabel(displayName) {
-    return displayName.
-        replace('(you)', '').
-        replace(/[@()]/g, '').
-        toLowerCase().
-        trim();
-}
-
-function verifySearchAutocomplete(index, type = 'user') {
-    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
-        if (type === 'user') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const usernameLength = 12;
-                const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
-                const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', userAriaLabel);
-            });
-        } else if (type === 'channel') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', channel);
-            });
-        }
-    });
+function verifySearchAutocomplete(index) {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
+        and('have.class', 'suggestion--selected').
+        invoke('attr', 'id').then((suggestionId) => {
+            cy.get('#searchBox').find('[role="searchbox"]').should('have.attr', 'aria-activedescendant', suggestionId);
+        });
 }
 
 function verifyMessageAutocomplete(index) {

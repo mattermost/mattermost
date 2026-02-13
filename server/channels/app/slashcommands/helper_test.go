@@ -5,9 +5,9 @@ package slashcommands
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -54,7 +54,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
+
 	_, _, err = memoryStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
@@ -88,6 +95,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	if enterprise {
@@ -130,10 +138,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if th.tempWorkspace == "" {
-		th.tempWorkspace = tempWorkspace
-	}
-
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -141,25 +145,30 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 			require.Nil(tb, appErr)
 		}
 
-		done := make(chan bool)
-		go func() {
-			th.Server.Shutdown()
-			close(done)
-		}()
+		th.ShutdownApp()
 
-		select {
-		case <-done:
-		case <-time.After(30 * time.Second):
-			// Use require.FailNow to terminate all tests in this package, otherwise the
-			// still running App could spuriously fail subsequent tests.
-			require.FailNow(tb, "failed to shutdown App within 30 seconds")
-		}
 		if th.tempWorkspace != "" {
 			os.RemoveAll(th.tempWorkspace)
 		}
 	})
 
 	return th
+}
+
+func (th *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		th.Server.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
@@ -344,7 +353,7 @@ func (th *TestHelper) createPost(tb testing.TB, channel *model.Channel) *model.P
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+	post, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(tb, appErr)
 	return post
 }
@@ -361,7 +370,7 @@ func (th *TestHelper) addUserToChannel(tb testing.TB, user *model.User, channel 
 }
 
 func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	var newPermissions []string
@@ -382,13 +391,11 @@ func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string,
 }
 
 func (th *TestHelper) addPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

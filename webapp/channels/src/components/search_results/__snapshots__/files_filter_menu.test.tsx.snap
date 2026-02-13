@@ -1,790 +1,270 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on all filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on audio filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on code filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on documents filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on images filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on presentations filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on spreadsheets filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/search_results/FilesFilterMenu should match snapshot, on video filter selected 1`] = `
-<div
-  className="FilesFilterMenu"
->
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
+<div>
+  <div
+    class="FilesFilterMenu"
   >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Filter"
-          id="channel_info_rhs.menu.files.filter"
-        />
-      }
+    <div
+      class="MenuWrapper "
     >
-      <IconContainer
-        className="action-icon dots-icon"
+      <button
+        class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <i
-          className="icon-dot"
+          class="icon-dot"
         />
-        <FilterVariantIcon
-          color="currentColor"
-          size={18}
-        />
-      </IconContainer>
-    </WithTooltip>
-    <Menu
-      ariaLabel="file menu"
-      openLeft={true}
-    >
-      <MenuItemAction
-        ariaLabel="All file types"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="All file types"
-      />
-      <MenuItemAction
-        ariaLabel="Documents"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Documents"
-      />
-      <MenuItemAction
-        ariaLabel="Spreadsheets"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Spreadsheets"
-      />
-      <MenuItemAction
-        ariaLabel="Presentations"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Presentations"
-      />
-      <MenuItemAction
-        ariaLabel="Code"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Code"
-      />
-      <MenuItemAction
-        ariaLabel="Images"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Images"
-      />
-      <MenuItemAction
-        ariaLabel="Audio"
-        icon={null}
-        onClick={[Function]}
-        show={true}
-        text="Audio"
-      />
-      <MenuItemAction
-        ariaLabel="Videos"
-        icon={
-          <i
-            className="icon icon-check"
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
           />
-        }
-        onClick={[Function]}
-        show={true}
-        text="Videos"
-      />
-    </Menu>
-  </MenuWrapper>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 `;

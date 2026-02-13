@@ -51,10 +51,8 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view AttributeView")
-		}
+	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
+		return errors.Wrap(err, "error refreshing materialized view AttributeView")
 	}
 
 	return nil
@@ -117,31 +115,24 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.TeamID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
-			count = count.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
-			count = count.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
+		count = count.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
 	}
 
 	if opts.ExcludeChannelMembers != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = ?)", opts.ExcludeChannelMembers))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
+	}
+
+	if opts.SubjectID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id = $%d", argCount), opts.SubjectID))
+		count = count.Where(sq.Expr(fmt.Sprintf("Users.Id = $%d", argCount), opts.SubjectID))
 	}
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("TargetID > ?", opts.Cursor.TargetID))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	searchFields := make([]string, 0, len(UserSearchTypeNames))
@@ -150,8 +141,8 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	if term := opts.Term; strings.TrimSpace(term) != "" {
-		_, query = generateSearchQueryForExpression(query, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
-		_, count = generateSearchQueryForExpression(count, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
+		_, query = generateSearchQueryForExpression(query, strings.Fields(term), searchFields, argCount)
+		_, count = generateSearchQueryForExpression(count, strings.Fields(term), searchFields, argCount)
 	}
 
 	q, args, err := query.ToSql()
@@ -186,17 +177,13 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT (%s) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID})
-	} else {
-		argCount++
-		query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.ChannelId = $%d", argCount), channelID))
-	}
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.ChannelId = $%d", argCount), channelID))
 
 	if opts.Limit > 0 {
 		query = query.Limit(uint64(opts.Limit))
@@ -206,11 +193,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("ChannelMembers.UserId > ?", opts.Cursor.TargetID))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	q, args, err := query.ToSql()
@@ -226,25 +209,17 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
-func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool, prevArgs int) (int, sq.SelectBuilder) {
+func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, prevArgs int) (int, sq.SelectBuilder) {
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []any{}
 		for _, field := range fields {
-			if isPostgreSQL {
-				prevArgs++
-				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
-			} else {
-				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
-			}
+			prevArgs++
+			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
-		if isPostgreSQL {
-			prevArgs++
-			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
-		} else {
-			searchFields = append(searchFields, "Id = ?")
-		}
+		prevArgs++
+		searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
 		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}

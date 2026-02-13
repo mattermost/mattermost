@@ -202,7 +202,7 @@ func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password strin
 		RemoteId: remoteId,
 		SiteURL:  siteURL,
 		Token:    token,
-		Version:  2,
+		Version:  3,
 	}
 
 	if err := invite.IsValid(); err != nil {

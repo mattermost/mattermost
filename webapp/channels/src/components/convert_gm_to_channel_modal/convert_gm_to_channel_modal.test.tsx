@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor} from '@testing-library/react';
 import nock from 'nock';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -17,7 +15,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -162,18 +160,17 @@ describe('component/ConvertGmToChannelModal', () => {
 
         const team1Option = screen.queryByText('Team 1');
         expect(team1Option).toBeInTheDocument();
-        fireEvent.click(team1Option!);
+        await userEvent.click(team1Option!);
 
         const channelNameInput = screen.queryByPlaceholderText('Channel name');
         expect(channelNameInput).toBeInTheDocument();
-        fireEvent.change(channelNameInput!, {target: {value: 'Channel name set by me'}});
+        await userEvent.clear(channelNameInput!);
+        await userEvent.type(channelNameInput!, 'Channel name set by me');
 
         const confirmButton = screen.queryByText('Convert to private channel');
         expect(channelNameInput).toBeInTheDocument();
 
-        await act(async () => {
-            fireEvent.click(confirmButton!);
-        });
+        await userEvent.click(confirmButton!);
     });
 
     test('duplicate channel names should npt be allowed', async () => {
@@ -203,14 +200,13 @@ describe('component/ConvertGmToChannelModal', () => {
 
         const channelNameInput = screen.queryByPlaceholderText('Channel name');
         expect(channelNameInput).toBeInTheDocument();
-        fireEvent.change(channelNameInput!, {target: {value: 'Channel'}});
+        await userEvent.clear(channelNameInput!);
+        await userEvent.type(channelNameInput!, 'Channel');
 
         const confirmButton = screen.queryByText('Convert to private channel');
         expect(channelNameInput).toBeInTheDocument();
 
-        await act(async () => {
-            fireEvent.click(confirmButton!);
-        });
+        await userEvent.click(confirmButton!);
 
         expect(screen.queryByText('A channel with that URL already exists')).toBeInTheDocument();
     });

@@ -9,6 +9,7 @@ const (
 
 	MigrationKeyEmojiPermissionsSplit                  = "emoji_permissions_split"
 	MigrationKeyWebhookPermissionsSplit                = "webhook_permissions_split"
+	MigrationKeyIntegrationsOwnPermissions             = "integrations_own_permissions"
 	MigrationKeyListJoinPublicPrivateTeams             = "list_join_public_private_teams"
 	MigrationKeyRemovePermanentDeleteUser              = "remove_permanent_delete_user"
 	MigrationKeyAddBotPermissions                      = "add_bot_permissions"
@@ -55,4 +56,6 @@ const (
 	MigrationRemoveGetAnalyticsPermission              = "remove_get_analytics_permission"
 	MigrationAddSysconsoleMobileSecurityPermission     = "add_sysconsole_mobile_security_permission"
 	MigrationKeyAddChannelBannerPermissions            = "add_channel_banner_permissions"
+	MigrationKeyAddChannelAccessRulesPermission        = "add_channel_access_rules_permission"
+	MigrationKeyAddChannelAutoTranslationPermissions   = "add_channel_auto_translation_permissions"
 )

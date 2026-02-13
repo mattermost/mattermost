@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,13 +50,8 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
-	// if a test helper was used, we run the teardown and remove it
-	// from the structure to avoid reusing the same helper between
-	// tests
-	if s.th != nil {
-		s.th.TearDown()
-		s.th = nil
-	}
+	// Remove the test helper from the structure to avoid reusing the same helper between tests
+	s.th = nil
 }
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
@@ -79,10 +73,8 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 	}
 
 	jobs.DefaultWatcherPollingInterval = 100
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
-	messageExportImpl := message_export.MessageExportJobInterfaceImpl{Server: s.th.App.Srv()}
-	s.th.App.Srv().Jobs.RegisterJobType(model.JobTypeMessageExport, messageExportImpl.MakeWorker(), messageExportImpl.MakeScheduler())
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.DownloadExportResults = true
 		*cfg.MessageExportSettings.EnableExport = true

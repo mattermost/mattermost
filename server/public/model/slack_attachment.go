@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"slices"
 
@@ -218,15 +219,17 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 		return false
 	}
 
-	if s.Value != input.Value {
-		return false
+	if reflect.ValueOf(input.Value).Type().Comparable() && reflect.ValueOf(s.Value).Type().Comparable() && reflect.ValueOf(input.Value).Type() == reflect.ValueOf(s.Value).Type() {
+		if s.Value != input.Value {
+			return false
+		}
+	} else {
+		if !reflect.DeepEqual(s.Value, input.Value) {
+			return false
+		}
 	}
 
-	if s.Short != input.Short {
-		return false
-	}
-
-	return true
+	return s.Short == input.Short
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {

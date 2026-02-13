@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
@@ -33,12 +33,6 @@ type Props = PreparingWorkspacePageProps & {
 const Plugins = (props: Props) => {
     const {formatMessage} = useIntl();
     let className = 'Plugins-body';
-
-    useEffect(() => {
-        if (props.show) {
-            props.onPageView();
-        }
-    }, [props.show]);
 
     if (props.className) {
         className += ' ' + props.className;
@@ -111,7 +105,7 @@ const Plugins = (props: Props) => {
                                     checked: props.options.gitlab,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.gitlab.tooltip',
-                                        defaultMessage: 'GitLab tooltip',
+                                        defaultMessage: 'Subscribe to repositories, stay up-to-date with reviews, assignments and more',
                                     }),
                                 },
                                 {
@@ -125,7 +119,7 @@ const Plugins = (props: Props) => {
                                     checked: props.options.jira,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.jira.tooltip',
-                                        defaultMessage: 'Jira tooltip',
+                                        defaultMessage: 'Create Jira tickets from messages in Mattermost, get notified of important updates in Jira',
                                     }),
                                 },
                                 {
@@ -139,7 +133,7 @@ const Plugins = (props: Props) => {
                                     checked: props.options.zoom,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.zoom.tooltip',
-                                        defaultMessage: 'Zoom tooltip',
+                                        defaultMessage: 'Start Zoom audio and video conferencing calls in Mattermost with a single click',
                                     }),
                                 },
                                 {
@@ -153,7 +147,7 @@ const Plugins = (props: Props) => {
                                     checked: props.options.servicenow,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.servicenow.tooltip',
-                                        defaultMessage: 'ServiceNow tooltip',
+                                        defaultMessage: 'This plugin serves as an integration between Mattermost and ServiceNow.',
                                     }),
                                 },
                             ]}

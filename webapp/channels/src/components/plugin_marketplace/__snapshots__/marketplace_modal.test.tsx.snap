@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/marketplace/ doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud 1`] = `
 <Modal
@@ -32,6 +32,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -91,7 +92,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -143,6 +144,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -202,7 +204,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -255,6 +257,7 @@ exports[`components/marketplace/ should render default 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -418,6 +421,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -497,7 +501,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -598,6 +602,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -769,6 +774,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
@@ -958,6 +964,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"

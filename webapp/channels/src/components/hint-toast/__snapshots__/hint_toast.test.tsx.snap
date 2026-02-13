@@ -1,24 +1,38 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/HintToast should match snapshot 1`] = `
-<div
-  className="hint-toast"
-  data-testid="hint-toast"
->
+<div>
   <div
-    className="hint-toast__message"
+    class="hint-toast"
+    data-testid="hint-toast"
   >
-    A hint
-  </div>
-  <div
-    className="hint-toast__dismiss"
-    data-testid="dismissHintToast"
-    onClick={[Function]}
-  >
-    <CloseIcon
-      className="close-btn"
-      id="dismissHintToast"
-    />
+    <div
+      class="hint-toast__message"
+    >
+      A hint
+    </div>
+    <div
+      class="hint-toast__dismiss"
+      data-testid="dismissHintToast"
+    >
+      <span
+        class="close-btn"
+        id="dismissHintToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
   </div>
 </div>
 `;

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/channel_threads/thread_footer should match snapshot when a single message is followed 1`] = `
 <Memo(ThreadFooter)
@@ -507,7 +507,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               <span>
                 Last reply 
                 <Memo(SemanticTime)
-                  key=".$.1"
+                  key="1/.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time
@@ -536,7 +536,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
     <WithTooltip
       title={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}"
+          defaultMessage="{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}"
           id="threading.numNewMessages"
           values={
             Object {
@@ -1021,7 +1021,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               <span>
                 Last reply 
                 <Memo(SemanticTime)
-                  key=".$.1"
+                  key="1/.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time

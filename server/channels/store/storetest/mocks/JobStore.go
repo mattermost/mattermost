@@ -61,9 +61,9 @@ func (_m *JobStore) Delete(id string) (string, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: c, id
-func (_m *JobStore) Get(c request.CTX, id string) (*model.Job, error) {
-	ret := _m.Called(c, id)
+// Get provides a mock function with given fields: rctx, id
+func (_m *JobStore) Get(rctx request.CTX, id string) (*model.Job, error) {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -72,10 +72,10 @@ func (_m *JobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	var r0 *model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.Job, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.Job); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
@@ -83,7 +83,7 @@ func (_m *JobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -91,9 +91,9 @@ func (_m *JobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	return r0, r1
 }
 
-// GetAllByStatus provides a mock function with given fields: c, status
-func (_m *JobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
-	ret := _m.Called(c, status)
+// GetAllByStatus provides a mock function with given fields: rctx, status
+func (_m *JobStore) GetAllByStatus(rctx request.CTX, status string) ([]*model.Job, error) {
+	ret := _m.Called(rctx, status)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByStatus")
@@ -102,10 +102,10 @@ func (_m *JobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, 
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Job, error)); ok {
-		return rf(c, status)
+		return rf(rctx, status)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Job); ok {
-		r0 = rf(c, status)
+		r0 = rf(rctx, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -113,7 +113,7 @@ func (_m *JobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, status)
+		r1 = rf(rctx, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -121,9 +121,9 @@ func (_m *JobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, 
 	return r0, r1
 }
 
-// GetAllByType provides a mock function with given fields: c, jobType
-func (_m *JobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
-	ret := _m.Called(c, jobType)
+// GetAllByType provides a mock function with given fields: rctx, jobType
+func (_m *JobStore) GetAllByType(rctx request.CTX, jobType string) ([]*model.Job, error) {
+	ret := _m.Called(rctx, jobType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByType")
@@ -132,10 +132,10 @@ func (_m *JobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, e
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Job, error)); ok {
-		return rf(c, jobType)
+		return rf(rctx, jobType)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Job); ok {
-		r0 = rf(c, jobType)
+		r0 = rf(rctx, jobType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -143,7 +143,7 @@ func (_m *JobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, e
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, jobType)
+		r1 = rf(rctx, jobType)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -151,9 +151,9 @@ func (_m *JobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, e
 	return r0, r1
 }
 
-// GetAllByTypeAndStatus provides a mock function with given fields: c, jobType, status
-func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
-	ret := _m.Called(c, jobType, status)
+// GetAllByTypeAndStatus provides a mock function with given fields: rctx, jobType, status
+func (_m *JobStore) GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error) {
+	ret := _m.Called(rctx, jobType, status)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByTypeAndStatus")
@@ -162,10 +162,10 @@ func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status 
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]*model.Job, error)); ok {
-		return rf(c, jobType, status)
+		return rf(rctx, jobType, status)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []*model.Job); ok {
-		r0 = rf(c, jobType, status)
+		r0 = rf(rctx, jobType, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -173,7 +173,7 @@ func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(c, jobType, status)
+		r1 = rf(rctx, jobType, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -181,9 +181,9 @@ func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status 
 	return r0, r1
 }
 
-// GetAllByTypePage provides a mock function with given fields: c, jobType, offset, limit
-func (_m *JobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
-	ret := _m.Called(c, jobType, offset, limit)
+// GetAllByTypePage provides a mock function with given fields: rctx, jobType, offset, limit
+func (_m *JobStore) GetAllByTypePage(rctx request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
+	ret := _m.Called(rctx, jobType, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByTypePage")
@@ -192,10 +192,10 @@ func (_m *JobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, 
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, int, int) ([]*model.Job, error)); ok {
-		return rf(c, jobType, offset, limit)
+		return rf(rctx, jobType, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, int, int) []*model.Job); ok {
-		r0 = rf(c, jobType, offset, limit)
+		r0 = rf(rctx, jobType, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -203,7 +203,7 @@ func (_m *JobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, int, int) error); ok {
-		r1 = rf(c, jobType, offset, limit)
+		r1 = rf(rctx, jobType, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -211,9 +211,9 @@ func (_m *JobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, 
 	return r0, r1
 }
 
-// GetAllByTypesAndStatusesPage provides a mock function with given fields: c, jobType, status, offset, limit
-func (_m *JobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
-	ret := _m.Called(c, jobType, status, offset, limit)
+// GetAllByTypesAndStatusesPage provides a mock function with given fields: rctx, jobType, status, offset, limit
+func (_m *JobStore) GetAllByTypesAndStatusesPage(rctx request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+	ret := _m.Called(rctx, jobType, status, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByTypesAndStatusesPage")
@@ -222,10 +222,10 @@ func (_m *JobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, []string, int, int) ([]*model.Job, error)); ok {
-		return rf(c, jobType, status, offset, limit)
+		return rf(rctx, jobType, status, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, []string, int, int) []*model.Job); ok {
-		r0 = rf(c, jobType, status, offset, limit)
+		r0 = rf(rctx, jobType, status, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -233,7 +233,7 @@ func (_m *JobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, []string, []string, int, int) error); ok {
-		r1 = rf(c, jobType, status, offset, limit)
+		r1 = rf(rctx, jobType, status, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -241,9 +241,9 @@ func (_m *JobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string
 	return r0, r1
 }
 
-// GetAllByTypesPage provides a mock function with given fields: c, jobTypes, offset, limit
-func (_m *JobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
-	ret := _m.Called(c, jobTypes, offset, limit)
+// GetAllByTypesPage provides a mock function with given fields: rctx, jobTypes, offset, limit
+func (_m *JobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+	ret := _m.Called(rctx, jobTypes, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllByTypesPage")
@@ -252,10 +252,10 @@ func (_m *JobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset i
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, int, int) ([]*model.Job, error)); ok {
-		return rf(c, jobTypes, offset, limit)
+		return rf(rctx, jobTypes, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, int, int) []*model.Job); ok {
-		r0 = rf(c, jobTypes, offset, limit)
+		r0 = rf(rctx, jobTypes, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
@@ -263,7 +263,44 @@ func (_m *JobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset i
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, []string, int, int) error); ok {
-		r1 = rf(c, jobTypes, offset, limit)
+		r1 = rf(rctx, jobTypes, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByTypeAndData provides a mock function with given fields: rctx, jobType, data, useMaster, statuses
+func (_m *JobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	_va := make([]interface{}, len(statuses))
+	for _i := range statuses {
+		_va[_i] = statuses[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, rctx, jobType, data, useMaster)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByTypeAndData")
+	}
+
+	var r0 []*model.Job
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, bool, ...string) ([]*model.Job, error)); ok {
+		return rf(rctx, jobType, data, useMaster, statuses...)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, bool, ...string) []*model.Job); ok {
+		r0 = rf(rctx, jobType, data, useMaster, statuses...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string, bool, ...string) error); ok {
+		r1 = rf(rctx, jobType, data, useMaster, statuses...)
 	} else {
 		r1 = ret.Error(1)
 	}

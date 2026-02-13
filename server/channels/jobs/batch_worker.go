@@ -27,7 +27,7 @@ type BatchWorker struct {
 	jobs      chan model.Job
 
 	timeBetweenBatches time.Duration
-	doBatch            func(rctx *request.Context, job *model.Job) bool
+	doBatch            func(rctx request.CTX, job *model.Job) bool
 }
 
 // MakeBatchWorker creates a worker to process the given batch function.
@@ -35,7 +35,7 @@ func MakeBatchWorker(
 	jobServer *JobServer,
 	store store.Store,
 	timeBetweenBatches time.Duration,
-	doBatch func(rctx *request.Context, job *model.Job) bool,
+	doBatch func(rctx request.CTX, job *model.Job) bool,
 ) *BatchWorker {
 	return &BatchWorker{
 		jobServer:          jobServer,

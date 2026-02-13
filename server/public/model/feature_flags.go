@@ -68,6 +68,29 @@ type FeatureFlags struct {
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
+
+	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
+	// Enable auto-translation feature for messages in channels
+	AutoTranslation bool
+
+	// Enable burn-on-read messages that automatically delete after viewing
+	BurnOnRead bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIRecaps - Remove this when GA is released
+	EnableAIRecaps bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -96,13 +119,28 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = true
+	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = true
+
+	f.MobileSSOCodeExchange = true
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
+	f.AutoTranslation = false
+
+	f.BurnOnRead = true
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
+
+	f.EnableAIRecaps = false
 }
 
 // ToMap returns the feature flags as a map[string]string
 // Supports boolean and string feature flags.
 func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
-	refStructType := reflect.TypeOf(*f)
+	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
 	for i := 0; i < refStructVal.NumField(); i++ {
 		refFieldVal := refStructVal.Field(i)

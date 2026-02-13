@@ -31,3 +31,9 @@
         }
     }
 }
+
+// Hide the cloud preview modal FAB when calls expanded view is present
+#calls-expanded-view ~ .cloud-preview-modal-fab,
+.cloud-preview-modal-fab:has(~ #calls-expanded-view) {
+    display: none;
+}

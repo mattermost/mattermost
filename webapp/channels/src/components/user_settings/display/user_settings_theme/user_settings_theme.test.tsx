@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import UserSettingsTheme from './user_settings_theme';
 
@@ -37,32 +38,39 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserSettingsTheme {...requiredProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should saveTheme', async () => {
-        const wrapper = shallow<UserSettingsTheme>(
-            <UserSettingsTheme {...requiredProps}/>,
+        const props = {
+            ...requiredProps,
+            selected: true,
+        };
+
+        renderWithContext(
+            <UserSettingsTheme {...props}/>,
         );
 
-        await wrapper.instance().submitTheme();
+        // Click the Save button to trigger submitTheme
+        const saveButton = screen.getByText('Save');
+        await userEvent.click(saveButton);
 
-        expect(requiredProps.setRequireConfirm).toHaveBeenCalledTimes(1);
-        expect(requiredProps.setRequireConfirm).toHaveBeenCalledWith(false);
+        await waitFor(() => {
+            expect(requiredProps.setRequireConfirm).toHaveBeenCalledWith(false);
+        });
 
-        expect(requiredProps.updateSection).toHaveBeenCalledTimes(1);
         expect(requiredProps.updateSection).toHaveBeenCalledWith('');
-
         expect(requiredProps.actions.saveTheme).toHaveBeenCalled();
     });
 
     it('should deleteTeamSpecificThemes if applyToAllTeams is enabled', async () => {
         const props = {
             ...requiredProps,
+            selected: true,
             actions: {
                 saveTheme: jest.fn().mockResolvedValue({data: true}),
                 saveDarkTheme: jest.fn().mockResolvedValue({data: true}),
@@ -72,13 +80,20 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             },
         };
 
-        const wrapper = shallow<UserSettingsTheme>(
+        renderWithContext(
             <UserSettingsTheme {...props}/>,
         );
 
-        wrapper.instance().setState({applyToAllTeams: true});
-        await wrapper.instance().submitTheme();
+        // The applyToAllTeams checkbox should be checked by default (from props)
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toBeChecked();
 
-        expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
+        // Click Save to trigger submitTheme
+        const saveButton = screen.getByText('Save');
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
+        });
     });
 });

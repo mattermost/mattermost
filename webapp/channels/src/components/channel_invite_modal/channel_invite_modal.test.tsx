@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -18,7 +15,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -56,6 +53,19 @@ jest.mock('utils/utils', () => {
         sortUsersAndGroups: jest.fn(),
     };
 });
+
+// Mock Client4 for ABAC tests
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        getProfilesNotInChannel: jest.fn(),
+        getProfilePictureUrl: jest.fn(() => 'mock-url'),
+        getUsersRoute: jest.fn(() => '/api/v4/users'),
+        getTeamsRoute: jest.fn(() => '/api/v4/teams'),
+        getChannelsRoute: jest.fn(() => '/api/v4/channels'),
+        getUrl: jest.fn(() => 'http://localhost:8065'),
+        getBaseRoute: jest.fn(() => '/api/v4'),
+    },
+}));
 
 describe('components/channel_invite_modal', () => {
     const users = [{
@@ -130,6 +140,27 @@ describe('components/channel_invite_modal', () => {
             // do not call cb at all
             return 0;
         };
+    });
+
+    beforeEach(() => {
+        // Reset Client4 mocks before each test
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockClear();
+        Client4.getProfilePictureUrl.mockClear();
+        Client4.getUsersRoute.mockClear();
+        Client4.getTeamsRoute.mockClear();
+        Client4.getChannelsRoute.mockClear();
+        Client4.getUrl.mockClear();
+        Client4.getBaseRoute.mockClear();
+
+        // Set default return values
+        Client4.getProfilesNotInChannel.mockResolvedValue([]);
+        Client4.getProfilePictureUrl.mockReturnValue('mock-url');
+        Client4.getUsersRoute.mockReturnValue('/api/v4/users');
+        Client4.getTeamsRoute.mockReturnValue('/api/v4/teams');
+        Client4.getChannelsRoute.mockReturnValue('/api/v4/channels');
+        Client4.getUrl.mockReturnValue('http://localhost:8065');
+        Client4.getBaseRoute.mockReturnValue('/api/v4');
     });
 
     test('should match snapshot for channel_invite_modal with profiles', () => {
@@ -257,41 +288,33 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Type the search term
-            await userEvent.type(input, 'user-1');
+        // Type the search term
+        await userEvent.type(input, 'user-1');
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                // Wait for the dropdown option to appear
-                const option = await screen.findByText('user-1');
+        // Wait for the dropdown option to appear
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                // Click the option
-                userEvent.click(option);
+        // Click the option
+        await userEvent.click(option);
 
-                // Confirm that the user is now displayed in the selected users
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        // Confirm that the user is now displayed in the selected users
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                // Find and click the save button
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        // Find and click the save button
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 0));
-            });
-
-            // Check that addUsersToChannel was called
+        // Check that addUsersToChannel was called
+        await waitFor(() => {
             expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
@@ -313,41 +336,33 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Type the search term
-            await userEvent.type(input, 'user-1');
+        // Type the search term
+        await userEvent.type(input, 'user-1');
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                // Wait for the dropdown option to appear
-                const option = await screen.findByText('user-1');
+        // Wait for the dropdown option to appear
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                // Click the option
-                userEvent.click(option);
+        // Click the option
+        await userEvent.click(option);
 
-                // Confirm that the user is now displayed in the selected users
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        // Confirm that the user is now displayed in the selected users
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                // Find and click the save button
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        // Find and click the save button
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 0));
-            });
-
-            // Check that addUsersToChannel was called
+        // Check that addUsersToChannel was called
+        await waitFor(() => {
             expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
@@ -365,33 +380,29 @@ describe('components/channel_invite_modal', () => {
 
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            await userEvent.type(input, 'user-1');
+        await userEvent.type(input, 'user-1');
 
-            await act(async () => {
-                const option = await screen.findByText('user-1');
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                userEvent.click(option);
+        await userEvent.click(option);
 
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Check that onAddCallback was called and addUsersToChannel was not
-            expect(onAddCallback).toHaveBeenCalled();
-            expect(props.actions.addUsersToChannel).not.toHaveBeenCalled();
-        });
+        // Check that onAddCallback was called and addUsersToChannel was not
+        expect(onAddCallback).toHaveBeenCalled();
+        expect(props.actions.addUsersToChannel).not.toHaveBeenCalled();
     });
 
     test('should trim the search term', async () => {
@@ -407,25 +418,21 @@ describe('components/channel_invite_modal', () => {
             },
         };
 
-        await act(async () => {
-            renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // Find the search input
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // Find the search input
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Directly trigger the change event with a value that has spaces
-            fireEvent.change(input, {target: {value: ' something '}});
+        // Directly trigger the change event with a value that has spaces
+        await userEvent.clear(input);
+        await userEvent.type(input, ' something ');
 
-            // Wait for the search timeout plus some extra time
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            });
-
-            // Verify the search was called with the trimmed term
+        // Verify the search was called with the trimmed term
+        await waitFor(() => {
             expect(searchProfilesMock).toHaveBeenCalledWith(
                 expect.stringContaining('something'),
                 expect.any(Object),
@@ -605,6 +612,10 @@ describe('components/channel_invite_modal', () => {
         ) as HTMLElement;
 
     test('should not include DM users when ABAC is enabled', async () => {
+        // Mock Client4 to return user-1 for ABAC channels
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+
         const channelWithPolicy = {...channel, policy_enforced: true};
         const props = {
             ...baseProps,
@@ -617,8 +628,18 @@ describe('components/channel_invite_modal', () => {
             renderWithContext(<ChannelInviteModal {...props}/>);
         });
 
+        // Wait for the API call to complete and state to update
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
+
+        // Wait for the search to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
 
         // now only one visible <span> should match "user-1"
         expect(getUserSpan('user-1')).toBeInTheDocument();
@@ -764,6 +785,10 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should filter out groups when ABAC is enforced', async () => {
+        // Mock Client4 to return user-1 for ABAC channels
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+
         const mockGroups = [
             {
                 id: 'group1',
@@ -798,13 +823,88 @@ describe('components/channel_invite_modal', () => {
             renderWithContext(<ChannelInviteModal {...props}/>);
         });
 
+        // Wait for the API call to complete and state to update
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
         const input = screen.getByRole('combobox', {name: /search for people/i});
-        await userEvent.type(input, '@');
+        await userEvent.type(input, 'user');
+
+        // Wait for the search to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
 
         // Should only show users, not groups when ABAC is enforced
         expect(getUserSpan('user-1')).toBeInTheDocument();
 
         // Groups should not appear in the dropdown
         expect(screen.queryByText('Developers')).toBeNull();
+    });
+
+    test('should force fresh API call when ABAC is enforced', async () => {
+        // For ABAC channels, we use Client4 directly, not the Redux action
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([]);
+
+        const props = {
+            ...baseProps,
+            channel: {...channel, policy_enforced: true},
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        // Wait for the API call to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // For ABAC channels, we should call Client4 directly, not the Redux action
+        expect(Client4.getProfilesNotInChannel).toHaveBeenCalledWith(
+            props.channel.team_id,
+            props.channel.id,
+            props.channel.group_constrained,
+            0,
+            50,
+            '',
+        );
+    });
+
+    test('should ignore contaminated Redux data when ABAC is enforced', async () => {
+        // Mock Client4 to return only user-1 for ABAC channels (ignoring contaminated Redux data)
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+
+        const props = {
+            ...baseProps,
+            channel: {...channel, policy_enforced: true},
+            profilesNotInCurrentChannel: [users[0]], // Clean ABAC data
+            profilesFromRecentDMs: [users[1]], // Contaminated data
+            includeUsers: {[users[1].id]: users[1]}, // Contaminated data
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        // Wait for the API call to complete and state to update
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user');
+
+        // Wait for the search to complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Should only show clean ABAC data
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(screen.queryByText('user-2')).toBeNull();
     });
 });

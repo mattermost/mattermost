@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 
@@ -338,11 +339,5 @@ func IdentityTfunc() TranslateFunc {
 }
 
 func isSupportedLocale(locale string) bool {
-	for _, supportedLocale := range supportedLocales {
-		if locale == supportedLocale {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(supportedLocales, locale)
 }
