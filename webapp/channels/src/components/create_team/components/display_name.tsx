@@ -89,6 +89,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                                     id='teamNameInput'
                                     name='teamNameInput'
                                     type='text'
+                                    inputClassName='create-team-display-name-input'
                                     value={this.state.teamDisplayName}
                                     autoFocus={true}
                                     onChange={this.handleDisplayNameChange}

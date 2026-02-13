@@ -42,7 +42,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
                   class="Input_wrapper"
                 >
                   <input
-                    class="Input form-control medium Input__focus"
+                    class="Input form-control medium create-team-display-name-input Input__focus"
                     id="teamNameInput"
                     maxlength="64"
                     name="teamNameInput"

@@ -252,6 +252,22 @@ body {
         height: functions.em(38px);
     }
 
+    // Keep this page readable regardless of the active app theme.
+    .Input_container {
+        .Input.create-team-display-name-input {
+            color: #1d2125;
+
+            &.Input__focus,
+            &:focus {
+                color: #1d2125;
+            }
+
+            &::placeholder {
+                color: #6b7280;
+            }
+        }
+    }
+
     .or__container {
         height: 1px;
         margin: 2em 0;
