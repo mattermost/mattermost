@@ -35,7 +35,6 @@ import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
-import {applySystemThemeIfNeeded, cleanupSystemThemeDetection, initializeSystemThemeDetection} from 'utils/theme_utils';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
@@ -263,10 +262,6 @@ export default class Root extends React.PureComponent<Props, State> {
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
-        // Initialize system theme detection and apply the appropriate theme
-        initializeSystemThemeDetection();
-        applySystemThemeIfNeeded();
-
         this.initiateMeRequests();
 
         // Initialize burn-on-read expiration scheduler
@@ -282,9 +277,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        // Clean up system theme detection
-        cleanupSystemThemeDetection();
-
         // Cleanup burn-on-read expiration scheduler
         expirationScheduler.cleanup();
 
