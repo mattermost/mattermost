@@ -17,8 +17,10 @@
 }
 
 .localization-section-title {
+    display: flex;
     margin: unset;
     font-size: 16px;
+    gap: 6px;
 }
 
 .localization-section-description {
