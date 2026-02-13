@@ -26,21 +26,36 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			ps.Log().Error("Failed to update search engine config", mlog.Err(err))
 		}
 
-		if ps.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+		startingES := ps.SearchEngine.ElasticsearchEngine != nil && !model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) && model.SafeDereference(newConfig.ElasticsearchSettings.EnableIndexing)
+		stoppingES := ps.SearchEngine.ElasticsearchEngine != nil && model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) && !model.SafeDereference(newConfig.ElasticsearchSettings.EnableIndexing)
+		connectionChanged := ps.SearchEngine.ElasticsearchEngine != nil &&
+			(model.SafeDereference(oldConfig.ElasticsearchSettings.ConnectionURL) != model.SafeDereference(newConfig.ElasticsearchSettings.ConnectionURL) ||
+				model.SafeDereference(oldConfig.ElasticsearchSettings.Username) != model.SafeDereference(newConfig.ElasticsearchSettings.Username) ||
+				model.SafeDereference(oldConfig.ElasticsearchSettings.Password) != model.SafeDereference(newConfig.ElasticsearchSettings.Password) ||
+				model.SafeDereference(oldConfig.ElasticsearchSettings.Sniff) != model.SafeDereference(newConfig.ElasticsearchSettings.Sniff))
+		startingBackfill := !model.SafeDereference(oldConfig.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
+			model.SafeDereference(newConfig.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership)
+
+		if startingES {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 					ps.Log().Error(err.Error())
+					return
+				}
+				// If backfill was also enabled in this same config save, run it now that ES is started.
+				if startingBackfill {
+					ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
 				}
 			})
-		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+		} else if stoppingES {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 					ps.Log().Error(err.Error())
 				}
 			})
-		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+		} else if connectionChanged {
 			ps.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
+				if model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 						ps.Log().Error(err.Error())
 					}
@@ -48,6 +63,18 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 						ps.Log().Error(err.Error())
 					}
 				}
+			})
+		}
+
+		// Backfill was enabled but ES was already running (not starting fresh).
+		if startingBackfill && !startingES {
+			ps.Go(func() {
+				engine := ps.SearchEngine.ElasticsearchEngine
+				if engine == nil || !engine.IsActive() || !engine.IsIndexingEnabled() {
+					ps.Log().Warn("Elasticsearch not available for channel_type backfill")
+					return
+				}
+				ps.backfillPostsChannelType(engine)
 			})
 		}
 	})

@@ -37,6 +37,7 @@ const (
 	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
 	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
+	SystemPostChannelTypeBackfillComplete  = "PostChannelTypeBackfillComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	CloudRenewalEmail                      = "CloudRenewalEmail"
