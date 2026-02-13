@@ -23,7 +23,6 @@ func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.App
 
 func (a *App) GetPriorityForPostWithContext(rctx request.CTX, postId string) (*model.PostPriority, *model.AppError) {
 	priority, err := a.Srv().Store().PostPriority().GetForPostWithContext(rctx, postId)
-
 	if err != nil && err != sql.ErrNoRows {
 		return nil, model.NewAppError("GetPriorityForPostWithContext", "app.post_prority.get_for_post_with_context.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
