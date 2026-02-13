@@ -257,9 +257,14 @@ func downloadFile(path string, downloadFn func(*os.File) (string, error), retrie
 		return "", fmt.Errorf("%s file already exists", fileType)
 	case err != nil:
 		// file does not exist, we create it
-		outFile, err = os.Create(path)
+		outFile, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
 	default:
-		// no error, file exists, we open it
+		// no error, file exists, we double check the permissions and then open it
+		permErr := os.Chmod(path, 0600)
+		if permErr != nil {
+			return "", fmt.Errorf("failed to change permissions on output file: %w", permErr)
+		}
+
 		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
 	}
 
