@@ -724,8 +724,16 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
   },
   {
     "id": "api.command.execute_command.start.app_error",
