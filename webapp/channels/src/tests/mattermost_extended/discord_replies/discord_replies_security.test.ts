@@ -129,13 +129,18 @@ describe('tests/mattermost_extended/discord_replies/discord_replies_security', (
         const state = cloneDeep(baseState);
         const store = mockStore(state);
 
+        // Suppress expected console.error from addPendingReply when post is not found
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         // Attempt to add a non-existent post ID
         const result = store.dispatch(addPendingReply('fake_post_id'));
-        
+
         expect(result).toBe(false);
         const actions = store.getActions();
         const addAction = actions.find((a) => a.type === ActionTypes.DISCORD_REPLY_ADD_PENDING);
         expect(addAction).toBeUndefined();
+
+        consoleSpy.mockRestore();
     });
 
     test('Verify user_id is taken from the post, not from user input', () => {
