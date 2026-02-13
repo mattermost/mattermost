@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -9,6 +8,8 @@ import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
@@ -22,11 +23,14 @@ describe('PostMessagePreview', () => {
         id: 'post_id',
         message: 'post message',
         metadata: {},
+        channel_id: 'channel_id',
+        create_at: new Date('2020-01-15T12:00:00Z').getTime(),
     } as Post;
 
     const user = {
         id: 'user_1',
         username: 'username1',
+        roles: 'system_admin',
     } as UserProfile;
 
     const baseProps: Props = {
@@ -53,47 +57,98 @@ describe('PostMessagePreview', () => {
         isChannelAutotranslated: false,
     };
 
-    test('should render correctly', () => {
-        const wrapper = shallow(<PostMessagePreview {...baseProps}/>);
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId: user.id,
+                profiles: {
+                    [user.id]: user,
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
+                teams: {
+                    team_id: {
+                        id: 'team_id',
+                        name: 'team1',
+                    },
+                },
+            },
+            channels: {
+                channels: {
+                    channel_id: {
+                        id: 'channel_id',
+                        team_id: 'team_id',
+                        type: 'O' as ChannelType,
+                        name: 'channel-name',
+                        display_name: 'Channel Name',
+                    },
+                },
+            },
+            posts: {
+                posts: {
+                    [previewPost.id]: previewPost,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            general: {
+                config: {},
+            },
+            roles: {
+                roles: {
+                    system_admin: {
+                        permissions: [],
+                    },
+                },
+            },
+        },
+    };
 
-        expect(wrapper).toMatchSnapshot();
+    test('should render correctly', () => {
+        const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should render without preview', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...baseProps}
                 previewPost={undefined}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('show render without preview when preview posts becomes undefined after being defined', () => {
         const props = {...baseProps};
-        let wrapper = shallow(
+        let renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        let permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(1);
+        expect(renderResult.container).toMatchSnapshot();
+        let permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).toBeInTheDocument();
 
         // now we'll set the preview post to undefined. This happens when the
         // previewed post is deleted.
         props.previewPost = undefined;
 
-        wrapper = shallow(
+        renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
-        expect(wrapper).toMatchSnapshot();
-        permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(0);
+        expect(renderResult.container).toMatchSnapshot();
+        permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).not.toBeInTheDocument();
     });
 
     test('should not render bot icon', () => {
@@ -112,13 +167,14 @@ describe('PostMessagePreview', () => {
             ...baseProps,
             previewPost: postPreview,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render bot icon', () => {
@@ -138,13 +194,14 @@ describe('PostMessagePreview', () => {
             previewPost: postPreview,
             enablePostIconOverride: true,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     describe('nested previews', () => {
@@ -173,9 +230,8 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
 
         test('should render file preview', () => {
@@ -189,9 +245,8 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
     });
 
@@ -211,13 +266,14 @@ describe('PostMessagePreview', () => {
                 metadata,
             };
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <PostMessagePreview
                     {...props}
                 />,
+                baseState,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     });
 });
