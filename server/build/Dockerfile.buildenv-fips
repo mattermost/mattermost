@@ -1,14 +1,27 @@
-FROM cgr.dev/mattermost.com/go-msft-fips:1.24.11-dev@sha256:181a7db41bbff8cf0e522bd5f951a44f2a39a5f58ca930930dfbecdc6b690272
-ARG NODE_VERSION=20.11.1
+# Build arguments for versioning
+ARG GO_VERSION=1.24.11
+ARG NODE_VERSION=20.11
 
-RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
+FROM cgr.dev/mattermost.com/go-msft-fips:${GO_VERSION}-dev
+
+# Re-declare ARGs after FROM to make them available in the build stage
+ARG GO_VERSION
+ARG NODE_VERSION
+
+RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec \
+    # coreutils: provides GNU ls (nvm uses 'ls -q' which BusyBox doesn't support)
+    coreutils \
+    # libstdc++: required for Node.js unofficial musl builds used by nvm on Alpine
+    libstdc++
 
 # Download and install node via nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 RUN bash -c "source /root/.nvm/nvm.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION && nvm alias default $NODE_VERSION"
 
-# Make node and npm globally available
-ENV PATH="/root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH"
+# Make node and npm globally available by symlinking to /usr/local/bin
+# Note: Can't use ENV PATH with $NODE_VERSION because nvm installs full patch version
+# (e.g., "20.11" in .nvmrc installs to v20.11.1/, not v20.11/)
+RUN bash -c "source /root/.nvm/nvm.sh && ln -sf \$(which node) /usr/local/bin/node && ln -sf \$(which npm) /usr/local/bin/npm && ln -sf \$(which npx) /usr/local/bin/npx"
 
 RUN git config --global --add safe.directory /mattermost
 
