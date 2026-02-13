@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AdminDefinitionSettingInput} from './types';
-
 import AdminDefinition from './admin_definition';
+import type {AdminDefinitionSettingInput} from './types';
 
 describe('AdminDefinition - DCR Redirect URI Allowlist', () => {
     const getIntegrationManagementSettings = () => {
