@@ -1915,6 +1915,9 @@ func (a *App) ConsumeTokenOnce(tokenType, tokenStr string) (*model.Token, *model
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
+	if token == nil {
+		return model.NewAppError("DeleteToken", "api.context.invalid_param.app_error", map[string]any{"Name": "token"}, "", http.StatusBadRequest)
+	}
 	err := a.Srv().Store().Token().Delete(token.Token)
 	if err != nil {
 		return model.NewAppError("DeleteToken", "app.recover.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

@@ -2919,3 +2919,27 @@ func TestConsumeTokenOnce(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }
+
+func TestDeleteToken(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown()
+
+	t.Run("nil token returns error", func(t *testing.T) {
+		appErr := th.App.DeleteToken(nil)
+		require.NotNil(t, appErr, "Should return error for nil token")
+		require.Equal(t, "api.context.invalid_param.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("valid token deletes successfully", func(t *testing.T) {
+		token := model.NewToken(
+			model.TokenTypeVerifyEmail,
+			model.MapToJSON(map[string]string{"userId": th.BasicUser.Id}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		appErr := th.App.DeleteToken(token)
+		require.Nil(t, appErr, "Should successfully delete valid token")
+	})
+}
