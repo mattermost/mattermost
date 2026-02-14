@@ -3,12 +3,11 @@
 
 import React, {useCallback, useState} from 'react';
 import type {ChangeEvent} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
-import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import Constants from 'utils/constants';
@@ -45,9 +44,10 @@ const translations = defineMessages({
         defaultMessage: 'An error occurred while selecting the image.',
     },
 });
+
 type Props = PropsFromRedux & OwnProps;
 
-const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, setJustSaved, actions}: Props) => {
+const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError, setShowTabSwitchError, setAreThereUnsavedChanges, actions}: Props) => {
     const [name, setName] = useState<Team['display_name']>(team.display_name);
     const [description, setDescription] = useState<Team['description']>(team.description);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
@@ -55,7 +55,6 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
-    const {formatMessage} = useIntl();
 
     const handleNameDescriptionSubmit = useCallback(async (): Promise<boolean> => {
         if (name.trim() === team.display_name && description === team.description) {
@@ -99,16 +98,16 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
             return;
         }
         setSaveChangesPanelState('saved');
-        setHasChangeTabError(false);
-        setJustSaved(true); // Flag that save just completed
-    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError, setJustSaved]);
+        setShowTabSwitchError(false);
+
+        setAreThereUnsavedChanges(false);
+    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
-        setHasChanges(false);
-        setHasChangeTabError(false);
-        setJustSaved(false); // Reset flag when panel closes
-    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
+        setAreThereUnsavedChanges(false);
+        setShowTabSwitchError(false);
+    }, [setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     const handleCancel = useCallback(() => {
         setName(team.display_name ?? team.name);
@@ -129,10 +128,10 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
         setLoading(false);
         if (error) {
             setSaveChangesPanelState('error');
-            setHasChanges(true);
-            setHasChangeTabError(true);
+            setAreThereUnsavedChanges(true);
+            setShowTabSwitchError(true);
         }
-    }, [actions, handleClose, setHasChangeTabError, setHasChanges, team.id]);
+    }, [actions, handleClose, setShowTabSwitchError, setAreThereUnsavedChanges, team.id]);
 
     const updateTeamIcon = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
@@ -146,99 +145,64 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                 setTeamIconFile(file);
                 setImageClientError(undefined);
                 setSaveChangesPanelState('editing');
-                setHasChanges(true);
+                setAreThereUnsavedChanges(true);
             }
         } else {
             setTeamIconFile(undefined);
             setImageClientError(translations.TeamIconError);
         }
-    }, [maxFileSize, setHasChanges]);
+    }, [maxFileSize, setAreThereUnsavedChanges]);
 
     const handleNameChanges = useCallback((name: string) => {
-        setHasChanges(true);
+        setAreThereUnsavedChanges(true);
         setSaveChangesPanelState('editing');
         setName(name);
-    }, [setHasChanges]);
+    }, [setAreThereUnsavedChanges]);
 
     const handleDescriptionChanges = useCallback((description: string) => {
-        setHasChanges(true);
+        setAreThereUnsavedChanges(true);
         setSaveChangesPanelState('editing');
         setDescription(description);
-    }, [setHasChanges]);
+    }, [setAreThereUnsavedChanges]);
 
-    const handleCollapseModal = useCallback(() => {
-        if (hasChanges) {
-            setHasChangeTabError(true);
-            return;
-        }
-        collapseModal();
-    }, [collapseModal, hasChanges, setHasChangeTabError]);
-
-    const modalSectionContent = (
-        <>
-            <div className='modal-header'>
-                <button
-                    id='closeButton'
-                    type='button'
-                    className='close'
-                    data-dismiss='modal'
-                    onClick={closeModal}
-                >
-                    <span aria-hidden='true'>{'×'}</span>
-                </button>
-                <h4 className='modal-title'>
-                    <div className='modal-back'>
-                        <i
-                            className='fa fa-angle-left'
-                            aria-label={formatMessage({
-                                id: 'generic_icons.collapse',
-                                defaultMessage: 'Collapse Icon',
-                            })}
-                            onClick={handleCollapseModal}
-                        />
-                    </div>
-                    <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
-                </h4>
-            </div>
-            <div
-                className='modal-info-tab-content user-settings'
-                id='infoSettings'
-                aria-labelledby='infoButton'
-                role='tabpanel'
-            >
-                <div className='name-description-container' >
-                    <TeamNameSection
-                        name={name}
-                        clientError={nameClientError}
-                        handleNameChanges={handleNameChanges}
-                    />
-                    <TeamDescriptionSection
-                        description={description}
-                        handleDescriptionChanges={handleDescriptionChanges}
-                    />
-                </div>
-                <TeamPictureSection
-                    team={team}
-                    file={teamIconFile}
-                    disabled={loading}
-                    onFileChange={updateTeamIcon}
-                    onRemove={handleTeamIconRemove}
-                    teamName={team.display_name ?? team.name}
-                    clientError={imageClientError}
+    return (
+        <div
+            className='modal-info-tab-content user-settings'
+            id='infoSettings'
+            aria-labelledby='infoButton'
+            role='tabpanel'
+        >
+            <div className='name-description-container'>
+                <TeamNameSection
+                    name={name}
+                    clientError={nameClientError}
+                    handleNameChanges={handleNameChanges}
                 />
-                {hasChanges && (
-                    <SaveChangesPanel
-                        handleCancel={handleCancel}
-                        handleSubmit={handleSaveChanges}
-                        handleClose={handleClose}
-                        tabChangeError={hasChangeTabError}
-                        state={saveChangesPanelState}
-                    />
-                )}
+                <TeamDescriptionSection
+                    description={description}
+                    handleDescriptionChanges={handleDescriptionChanges}
+                />
             </div>
-        </>
+            <TeamPictureSection
+                team={team}
+                file={teamIconFile}
+                disabled={loading}
+                onFileChange={updateTeamIcon}
+                onRemove={handleTeamIconRemove}
+                teamName={team.display_name ?? team.name}
+                clientError={imageClientError}
+            />
+            {(areThereUnsavedChanges || saveChangesPanelState === 'saved') && (
+                <SaveChangesPanel
+                    handleCancel={handleCancel}
+                    handleSubmit={handleSaveChanges}
+                    handleClose={handleClose}
+                    tabChangeError={showTabSwitchError}
+                    state={saveChangesPanelState}
+                />
+            )}
+        </div>
     );
-
-    return <ModalSection content={modalSectionContent}/>;
 };
+
 export default InfoTab;

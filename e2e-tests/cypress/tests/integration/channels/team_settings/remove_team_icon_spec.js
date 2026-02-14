@@ -68,7 +68,8 @@ function openTeamSettingsDialog() {
     cy.uiOpenTeamMenu('Team settings');
 
     // * Verify the team settings dialog is open
-    cy.get('#teamSettingsModalLabel').should('be.visible').and('contain', 'Team Settings');
+    cy.get('#teamSettingsModal').should('be.visible');
+    cy.get('.modal-title').should('be.visible').and('contain', 'Team Settings');
 
     cy.get('.team-picture-section').within(() => {
         // * Verify the edit icon is visible
