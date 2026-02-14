@@ -1077,6 +1077,8 @@
   "admin.experimental.allowedEmailDomain.title": "Allowed Email Domain",
   "admin.experimental.channelCategorySorting.desc": "When true, channels will be automatically sorted into categories based on their names using a \"/\" delimiter.",
   "admin.experimental.channelCategorySorting.title": "Channel Category Sorting:",
+  "admin.experimental.lastViewSanitize.desc": "When true, this feature sanitizes the last_viewed_at and last_update_at fields for all other channel members (excluding the current user) by setting their value to -1.",
+  "admin.experimental.lastViewSanitize.title": "Last View Sanitize:",
   "admin.experimental.collapsedThreads.always_on": "Always On",
   "admin.experimental.collapsedThreads.default_off": "Enabled (Default Off)",
   "admin.experimental.collapsedThreads.default_on": "Enabled (Default On)",

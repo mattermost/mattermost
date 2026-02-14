@@ -6347,6 +6347,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.channelCategorySorting.desc', defaultMessage: 'When true, channels will be automatically sorted into categories based on their names using a "/" delimiter.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.ExperimentalLastViewSanitize',
+                            label: defineMessage({id: 'admin.experimental.lastViewSanitize.title', defaultMessage: 'Last View Sanitize:'}),
+                            help_text: defineMessage({id: 'admin.experimental.lastViewSanitize.desc', defaultMessage: 'When true, this feature sanitizes the last_viewed_at and last_update_at fields for all other channel members (excluding the current user) by setting their value to -1.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
                     ],
                 },
             },
