@@ -102,7 +102,17 @@
 }
 
 .postCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* add this line */
   padding: 0px 24px 40px 24px !important;
+  
+
+}
+
+.postCard > * {
+  margin: 0;
+  padding: 0;
 }
 
 .messageCard {
