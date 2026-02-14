@@ -3,6 +3,8 @@
 
 import {combineReducers} from 'redux';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
+
 import admin from './admin';
 import agents from './agents';
 import apps from './apps';
@@ -26,7 +28,7 @@ import recaps from './recaps';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
-import search from './search';
+import search, {fileRemovalFromSearchResults} from './search';
 import sharedChannels from './shared_channels';
 import teams from './teams';
 import threads from './threads';
@@ -34,7 +36,7 @@ import typing from './typing';
 import usage from './usage';
 import users from './users';
 
-export default combineReducers({
+const entitiesReducers = combineReducers({
     general,
     agents,
     users,
@@ -66,3 +68,10 @@ export default combineReducers({
     sharedChannels,
     contentFlagging,
 });
+
+export type EntitiesState = ReturnType<typeof entitiesReducers>;
+
+export default function entities(state: EntitiesState, action: MMReduxAction) {
+    const intermediateState = fileRemovalFromSearchResults(state, action);
+    return entitiesReducers(intermediateState, action);
+}
