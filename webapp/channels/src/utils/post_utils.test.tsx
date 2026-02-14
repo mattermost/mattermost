@@ -1401,6 +1401,104 @@ describe('PostUtils.isWithinCodeBlock', () => {
     });
 });
 
+describe('PostUtils.isWithinLatex', () => {
+    const CARET_MARKER = '•';
+
+    const getCaretAndMsg = (textWithCaret: string): [number, string] => {
+        const normalizedText = textWithCaret.split('\n').map((line) => line.replace(/^\s*\|/, '')).join('\n');
+
+        return [normalizedText.indexOf(CARET_MARKER), normalizedText];
+    };
+
+    it('should return true if caret is within inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |The formula is $\\pi${CARET_MARKER} = 3.14$ approximately.
+            |This is another line
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+
+    it('should return false if caret is not within inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |The formula is $\\pi = 3.14$ approximately${CARET_MARKER}.
+            |This is another line
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle caret in front of inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${CARET_MARKER}$\\alpha + \\beta$
+            |This is text
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle caret behind inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |$\\alpha + \\beta$${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle multiple inline latex blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |The first formula is $\\alpha$ and
+            |the second is $\\beta${CARET_MARKER} = 2$
+            |This is text
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle empty latex blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |$$
+            |${CARET_MARKER}
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle caret position at 0', () => {
+        const [caretPosition, message] = getCaretAndMsg(`${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle whitespace within inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |The formula $ \\sum_{i=1}^n i ${CARET_MARKER}$ is here
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle backslash in inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |The formula is $\\${CARET_MARKER}alpha$ here
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle consecutive inline latex blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |First: $a = 1$ Second: $b = ${CARET_MARKER}2$ Third: $c = 3$
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle multiline text with inline latex', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is line 1
+            |This is line 2 with $\\pi${CARET_MARKER}$ formula
+            |This is line 3
+        `);
+        expect(PostUtils.isWithinLatex(message, caretPosition)).toBe(true);
+    });
+});
+
 describe('PostUtils.getMentionDetails', () => {
     const user1 = TestHelper.getUserMock({username: 'user1'});
     const user2 = TestHelper.getUserMock({username: 'user2'});
