@@ -155,6 +155,16 @@ const applyOlMarkdown = ({selectionEnd, selectionStart, message}: ApplySpecificM
         newEnd = Math.max(selectionEnd - (delimiterLength * count), 0);
     } else {
         let count = 0;
+
+        const getLastNumberedLine = (text: string): number => {
+            const match = text.match(/(\d+)\.\s/g);
+            if (match) {
+                return parseInt(match[match.length - 1], 10);
+            }
+            return 0;
+        };
+        getDelimiter.counter = getLastNumberedLine(newPrefix) + 1;
+
         if (isFirstLineSelected) {
             multilineSelection = getDelimiter() + multilineSelection;
             count++;
