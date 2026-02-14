@@ -22,6 +22,7 @@ import {uploadFile} from 'actions/file_actions';
 import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
+import Textbox from 'components/textbox';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -113,6 +114,10 @@ function ChannelBookmarkCreateModal({
         setDisplayName(parsed);
     });
 
+    // type === 'command'
+    const [command, setCommand] = useState(bookmark?.command ?? '/');
+    const [commandError, setCommandError] = useState('');
+
     const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const {value} = e.target;
         setLink(value);
@@ -190,7 +195,16 @@ function ChannelBookmarkCreateModal({
         setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
     };
 
-    const displayNameValue = displayName || parsedDisplayName || (type === 'file' ? fileInfo?.name : bookmark?.link_url) || '';
+    const getDisplayNameFallback = () => {
+        if (type === 'file') {
+            return fileInfo?.name || '';
+        }
+        if (type === 'command') {
+            return command || '';
+        }
+        return bookmark?.link_url || '';
+    };
+    const displayNameValue = displayName || parsedDisplayName || getDisplayNameFallback();
 
     const doUploadFile = (file: File) => {
         setPendingFile(null);
@@ -266,6 +280,10 @@ function ChannelBookmarkCreateModal({
             return Boolean(link && link !== bookmark?.link_url);
         }
 
+        if (type === 'command') {
+            return Boolean(command && command !== bookmark?.command);
+        }
+
         return false;
     })();
     const isValid = (() => {
@@ -284,6 +302,19 @@ function ChannelBookmarkCreateModal({
 
         if (type === 'file') {
             if (!fileInfo || !displayNameValue || fileError) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if (type === 'command') {
+            if (
+                command.trim() === '' ||
+                command.trim() === '/' ||
+                !command.startsWith('/') ||
+                commandError
+            ) {
                 return false;
             }
 
@@ -345,8 +376,24 @@ function ChannelBookmarkCreateModal({
             } else {
                 setSaveError(formatMessage(msg.saveError));
             }
+        } else if (type === 'command') {
+            const {data: success} = await onConfirm({
+                command,
+                display_name: displayNameValue,
+                type: 'command',
+                emoji,
+            });
+
+            setSaving(false);
+
+            if (success) {
+                setSaveError('');
+                onHide();
+            } else {
+                setSaveError(formatMessage(msg.saveError));
+            }
         }
-    }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
+    }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon, command]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
 
@@ -391,6 +438,7 @@ function ChannelBookmarkCreateModal({
             isConfirmDisabled={confirmDisabled}
             autoCloseOnConfirmButton={false}
             errorText={saveError}
+            bodyOverflowVisible={true}
         >
             <>
                 {type === 'link' ? (
@@ -410,7 +458,8 @@ function ChannelBookmarkCreateModal({
                             customMessage={linkCustomMessage}
                         />
                     </>
-                ) : (
+                ) : null}
+                {type === 'file' && (
                     <>
                         <FieldLabel>
                             <FormattedMessage
@@ -457,7 +506,52 @@ function ChannelBookmarkCreateModal({
                             </div>
                         )}
                     </>
-
+                )}
+                {type === 'command' && (
+                    <>
+                        <FieldLabel>
+                            <FormattedMessage
+                                id='channel_bookmarks.create.command_input.label'
+                                defaultMessage='Slash Command'
+                            />
+                        </FieldLabel>
+                        <Textbox
+                            id='bookmark-command-input'
+                            channelId={channelId}
+                            value={command}
+                            onChange={(e) => {
+                                setCommand(e.target.value);
+                                setCommandError('');
+                                if (!displayName && e.target.value) {
+                                    setParsedDisplayName(e.target.value);
+                                    setDisplayName(e.target.value);
+                                }
+                            }}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                }
+                            }}
+                            createMessage={formatMessage(msg.commandPlaceholder)}
+                            supportsCommands={true}
+                            characterLimit={1024}
+                            useChannelMentions={false}
+                            emojiEnabled={false}
+                            hasError={Boolean(commandError)}
+                            suggestionListPosition={'bottom'}
+                            openWhenEmpty={true}
+                        />
+                        {commandError ? (
+                            <div className='Input___customMessage Input___error'>
+                                <i className='icon error icon-alert-circle-outline'/>
+                                <span>{commandError}</span>
+                            </div>
+                        ) : (
+                            <div className='Input___customMessage'>
+                                <span>{formatMessage(msg.commandInfoMessage)}</span>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 <TitleWrapper>
@@ -628,6 +722,8 @@ const msg = defineMessages({
     fileInputEdit: {id: 'channel_bookmarks.create.file_input.edit', defaultMessage: 'Edit'},
     linkInvalid: {id: 'channel_bookmarks.create.error.invalid_url', defaultMessage: 'Please enter a valid link. Could not parse: {link}.'},
     saveError: {id: 'channel_bookmarks.create.error.generic_save', defaultMessage: 'There was an error trying to save the bookmark.'},
+    commandPlaceholder: {id: 'channel_bookmarks.create.command_placeholder', defaultMessage: '/command'},
+    commandInfoMessage: {id: 'channel_bookmarks.create.command_info', defaultMessage: 'Enter a slash command to execute when this bookmark is clicked'},
 });
 
 const TYPING_DELAY_MS = 250;

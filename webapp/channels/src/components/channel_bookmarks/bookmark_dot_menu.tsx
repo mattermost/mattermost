@@ -13,6 +13,7 @@ import {
     ArrowExpandIcon,
     OpenInNewIcon,
     BookOutlineIcon,
+    PlayIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
@@ -49,6 +50,8 @@ const BookmarkItemDotMenu = ({
         openIcon = <ArrowExpandIcon size={18}/>;
     } else if (bookmark.link_url) {
         openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
+    } else if (bookmark.type === 'command') {
+        openIcon = <PlayIcon size={18}/>;
     }
 
     const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
@@ -56,7 +59,10 @@ const BookmarkItemDotMenu = ({
     const canGetPublicLink = useCanGetPublicLink();
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
-    const openLabel = formatMessage({id: 'channel_bookmarks.open', defaultMessage: 'Open'});
+    let openLabel = formatMessage({id: 'channel_bookmarks.open', defaultMessage: 'Open'});
+    if (bookmark.type === 'command' && bookmark.command) {
+        openLabel = formatMessage({id: 'channel_bookmarks.command.run.label', defaultMessage: 'Run {command}'}, {command: bookmark.command || ''});
+    }
     const copyLinkLabel = formatMessage({id: 'channel_bookmarks.copy', defaultMessage: 'Copy link'});
     const copyFileLabel = formatMessage({id: 'channel_bookmarks.copyFilePublicLink', defaultMessage: 'Get a public link'});
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
