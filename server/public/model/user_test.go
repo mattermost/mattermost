@@ -488,6 +488,11 @@ func TestNormalizeUsername(t *testing.T) {
 	assert.Equal(t, NormalizeUsername("spin"), "spin", "didn't normalize username properly")
 }
 
+func TestNormalizeNickname(t *testing.T) {
+	assert.Equal(t, NormalizeNickname("Department Name - Full Name"), "Department Name - Full Name", "didn't normalize nickname properly")
+	assert.Equal(t, NormalizeNickname("Office Location - Department Name - Sub-department Name - Team Name - Job Title - Full Name"), "t Name - Sub-department Name - Team Name - Job Title - Full Name", "didn't normalize nickname properly")
+}
+
 func TestNormalizeEmail(t *testing.T) {
 	assert.Equal(t, NormalizeEmail("TEST@EXAMPLE.COM"), "test@example.com", "didn't normalize email properly")
 	assert.Equal(t, NormalizeEmail("TEST2@example.com"), "test2@example.com", "didn't normalize email properly")
