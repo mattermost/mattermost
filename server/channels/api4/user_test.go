@@ -8624,15 +8624,34 @@ func TestLoginWithDesktopToken(t *testing.T) {
 	})
 }
 
+func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.MobileSSOCodeExchange = false
+	}).InitBasic(t)
+
+	props := map[string]string{
+		"login_code":    "test_code",
+		"code_verifier": "test_verifier",
+		"state":         "test_state",
+	}
+
+	resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+	require.Error(t, err)
+	require.Equal(t, http.StatusGone, resp.StatusCode)
+	assert.Equal(t, "true", resp.Header.Get("Deprecation"))
+}
+
+// TestLoginSSOCodeExchange tests the code-exchange endpoint when enabled via feature flag.
+// Note: This endpoint is deprecated and disabled by default. These tests verify behavior
+// when explicitly enabled via feature flag (for backwards compatibility during rollout).
 func TestLoginSSOCodeExchange(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.MobileSSOCodeExchange = true
+	}).InitBasic(t)
 
 	t.Run("wrong token type cannot be used for code exchange", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.MobileSSOCodeExchange = true
-		})
-
 		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
@@ -8651,10 +8670,6 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 	})
 
 	t.Run("successful code exchange with S256 challenge", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.MobileSSOCodeExchange = true
-		})
-
 		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 
 		codeVerifier := "test_code_verifier_123456789"
