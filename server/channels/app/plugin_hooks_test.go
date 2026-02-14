@@ -79,7 +79,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -119,7 +119,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -160,7 +160,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -203,7 +203,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -247,7 +247,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("multiple updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -310,7 +310,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -353,7 +353,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -398,7 +398,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 
 func TestHookMessageHasBeenUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -446,7 +446,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 func TestHookMessageHasBeenDeleted(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -493,7 +493,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -537,7 +537,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -587,7 +587,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -643,7 +643,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -716,7 +716,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
@@ -755,7 +755,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -797,7 +797,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 func TestUserHasLoggedIn(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -844,7 +844,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 func TestUserHasBeenDeactivated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t, StartMetrics)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -893,7 +893,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 
 func TestUserHasBeenCreated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t, StartMetrics)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -938,7 +938,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 
 func TestErrorString(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t, StartMetrics)
 
 	t.Run("errors.New", func(t *testing.T) {
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t,
@@ -1012,8 +1012,7 @@ func TestErrorString(t *testing.T) {
 
 func TestHookContext(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
+	th := Setup(t, StartMetrics).InitBasic(t)
 	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
@@ -1068,7 +1067,7 @@ func TestHookContext(t *testing.T) {
 
 func TestActiveHooks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t, StartMetrics)
 
 	t.Run("", func(t *testing.T) {
 		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1139,7 +1138,7 @@ func TestActiveHooks(t *testing.T) {
 
 func TestHookMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t, StartMetrics)
 
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
@@ -1238,7 +1237,7 @@ func TestHookMetrics(t *testing.T) {
 
 func TestHookReactionHasBeenAdded(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LogDebug", "smile").Return(nil)
@@ -1284,7 +1283,7 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 
 func TestHookReactionHasBeenRemoved(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LogDebug", "star").Return(nil)
@@ -1332,7 +1331,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 
 func TestHookRunDataRetention(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1377,7 +1376,7 @@ func TestHookRunDataRetention(t *testing.T) {
 
 func TestHookOnSendDailyTelemetry(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1421,7 +1420,7 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 
 func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, StartMetrics).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1501,7 +1500,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mainHelper.Parallel(t)
 
-			th := Setup(t).InitBasic(t)
+			th := Setup(t, StartMetrics).InitBasic(t)
 
 			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
 			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
@@ -1635,7 +1634,7 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mainHelper.Parallel(t)
 
-			th := Setup(t).InitBasic(t)
+			th := Setup(t, StartMetrics).InitBasic(t)
 
 			// Create a test user for email notifications
 			user := th.CreateUser(t)
@@ -1802,7 +1801,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		var mockAPI plugintest.API
@@ -1870,7 +1869,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		pluginCode := `
@@ -1993,7 +1992,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2024,7 +2023,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2050,7 +2049,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2073,6 +2072,257 @@ func TestChannelHasBeenCreated(t *testing.T) {
 				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
 			}
 		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestHookServeMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("should call plugin ServeMetrics hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		// Configure metrics
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+		})
+
+		// Create a plugin that implements ServeMetrics
+		pluginCode := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("# HELP plugin_test_metric Test metric from plugin\n# TYPE plugin_test_metric counter\nplugin_test_metric 42\n"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
+
+		// Verify plugin is active
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		// Create a simple handler that returns server metrics
+		serverMetrics := "# HELP server_test_metric Test metric from server\n# TYPE server_test_metric gauge\nserver_test_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		// Register the metrics handler
+		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+
+		// Get the metrics router
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter, "Metrics router should be available")
+
+		// Create a test server with the metrics router
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		// Make a request to the metrics endpoint
+		resp, err := http.Get(server.URL + "/test-metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		// Read the response
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+
+		// Verify both server and plugin metrics are present
+		assert.Contains(t, bodyStr, "server_test_metric 100", "Response should contain server metrics")
+		assert.Contains(t, bodyStr, "plugin_test_metric{plugin_id=\""+pluginID+"\"} 42", "Response should contain plugin metrics with plugin_id label")
+	})
+
+	t.Run("should handle multiple plugins providing metrics", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		// Configure metrics
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+		})
+
+		// Create two plugins that implement ServeMetrics
+		plugin1Code := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("# HELP plugin1_metric Metric from plugin 1\n# TYPE plugin1_metric counter\nplugin1_metric 10\n"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		plugin2Code := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("# HELP plugin2_metric Metric from plugin 2\n# TYPE plugin2_metric gauge\nplugin2_metric 20\n"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{plugin1Code, plugin2Code}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 2)
+
+		// Verify both plugins are active
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginIDs[0]))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginIDs[1]))
+
+		// Create a simple handler that returns server metrics
+		serverMetrics := "# HELP server_metric Server metric\n# TYPE server_metric gauge\nserver_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		// Register the metrics handler
+		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+
+		// Get the metrics router
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter, "Metrics router should be available")
+
+		// Create a test server with the metrics router
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		// Make a request to the metrics endpoint
+		resp, err := http.Get(server.URL + "/test-metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		// Read the response
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+
+		// Verify server and both plugin metrics are present
+		assert.Contains(t, bodyStr, "server_metric 100", "Response should contain server metrics")
+		assert.Contains(t, bodyStr, "plugin1_metric{plugin_id=\""+pluginIDs[0]+"\"} 10", "Response should contain plugin1 metrics")
+		assert.Contains(t, bodyStr, "plugin2_metric{plugin_id=\""+pluginIDs[1]+"\"} 20", "Response should contain plugin2 metrics")
+	})
+
+	t.Run("should handle plugin not implementing ServeMetrics", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		// Configure metrics
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+		})
+
+		// Create a plugin that does NOT implement ServeMetrics
+		pluginCode := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+
+		// Create a simple handler that returns server metrics
+		serverMetrics := "# HELP server_metric Server metric\n# TYPE server_metric gauge\nserver_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		// Register the metrics handler
+		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+
+		// Get the metrics router
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter, "Metrics router should be available")
+
+		// Create a test server with the metrics router
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		// Make a request to the metrics endpoint
+		resp, err := http.Get(server.URL + "/test-metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		// Read the response
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+
+		// Verify only server metrics are present (no plugin metrics)
+		assert.Contains(t, bodyStr, "server_metric 100", "Response should contain server metrics")
+		// The plugin didn't implement ServeMetrics, so it shouldn't add any metrics
+		assert.NotContains(t, bodyStr, "plugin_id=\""+pluginIDs[0]+"\"", "Response should not contain plugin metrics from non-implementing plugin")
 	})
 }
 
@@ -2123,7 +2373,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		user1 := th.CreateUser(t)
 		th.LinkUserToTeam(t, user1, th.BasicTeam)
@@ -2168,7 +2418,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		user1 := th.CreateUser(t)
 		th.LinkUserToTeam(t, user1, th.BasicTeam)
@@ -2213,7 +2463,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2247,7 +2497,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2277,7 +2527,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)

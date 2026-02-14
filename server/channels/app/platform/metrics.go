@@ -4,10 +4,12 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/http/pprof"
 	"path"
 	"runtime"
@@ -241,8 +243,95 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 	if ps.metrics != nil {
-		ps.metrics.router.Handle(route, h)
+		wrappedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var buf bytes.Buffer
+
+			// Strip Accept-Encoding to force plaintext response (no gzip)
+			plainReq := r.Clone(r.Context())
+			plainReq.Header.Del("Accept-Encoding")
+
+			rec := httptest.NewRecorder()
+			h.ServeHTTP(rec, plainReq)
+			buf.Write(rec.Body.Bytes())
+
+			if ps.pluginEnv != nil && ps.pluginEnv.GetPluginsEnvironment() != nil {
+				env := ps.pluginEnv.GetPluginsEnvironment()
+				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+					pluginRec := httptest.NewRecorder()
+					pluginReq, err := http.NewRequest("GET", "/metrics", nil)
+					if err != nil {
+						return true
+					}
+
+					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+						buf.WriteString("\n")
+						// Add plugin_id label to all metrics from this plugin
+						labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id)
+						buf.WriteString(labeledMetrics)
+					}
+
+					return true
+				}, plugin.ServeMetricsID)
+			}
+
+			// Copy content type from main metrics response
+			if contentType := rec.Header().Get("Content-Type"); contentType != "" {
+				w.Header().Set("Content-Type", contentType)
+			}
+			w.WriteHeader(rec.Code)
+			if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+				mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+			}
+		})
+
+		ps.metrics.router.Handle(route, wrappedHandler)
 	}
+}
+
+// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format
+func addPluginLabelToMetrics(metricsText, pluginID string) string {
+	var result strings.Builder
+
+	for line := range strings.SplitSeq(metricsText, "\n") {
+		// Skip empty lines, comments (# HELP, # TYPE), and already labeled lines
+		if line == "" || strings.HasPrefix(line, "#") {
+			fmt.Fprintf(&result, "%s\n", line)
+			continue
+		}
+
+		// Find the metric name and value parts
+		// Format: metric_name{labels} value
+		// or: metric_name value
+		if idx := strings.IndexAny(line, "{ "); idx != -1 {
+			metricName := line[:idx]
+			rest := line[idx:]
+
+			if rest[0] == '{' {
+				// Already has labels: metric_name{existing="labels"} value
+				// Find the closing brace and insert our label
+				closeBrace := strings.Index(rest, "}")
+				if closeBrace != -1 {
+					// Insert plugin_id at the end of existing labels
+					fmt.Fprintf(&result, "%s%s,plugin_id=\"%s\"%s\n",
+						metricName, rest[:closeBrace], pluginID, rest[closeBrace:])
+				} else {
+					// Malformed, keep as-is
+					fmt.Fprintf(&result, "%s\n", line)
+				}
+			} else {
+				// No labels: metric_name value
+				// Add our label
+				fmt.Fprintf(&result, "%s{plugin_id=\"%s\"}%s\n", metricName, pluginID, rest)
+			}
+		} else {
+			// No space or brace found, keep as-is
+			fmt.Fprintf(&result, "%s\n", line)
+		}
+	}
+
+	return result.String()
 }
 
 func (ps *PlatformService) RestartMetrics() error {
