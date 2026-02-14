@@ -9,18 +9,22 @@ import ThemeProvider from 'components/theme_provider';
 import WebSocketClient from 'client/web_websocket_client';
 import {WebSocketContext} from 'utils/use_websocket';
 
+import SharedPackageProvider from './shared_package_provider';
+
 type Props = {
     children: React.ReactNode;
 }
 
 export default function RootProvider(props: Props) {
     return (
-        <IntlProvider>
-            <WebSocketContext.Provider value={WebSocketClient}>
-                <ThemeProvider>
-                    {props.children}
-                </ThemeProvider>
-            </WebSocketContext.Provider>
-        </IntlProvider>
+        <SharedPackageProvider>
+            <IntlProvider>
+                <WebSocketContext.Provider value={WebSocketClient}>
+                    <ThemeProvider>
+                        {props.children}
+                    </ThemeProvider>
+                </WebSocketContext.Provider>
+            </IntlProvider>
+        </SharedPackageProvider>
     );
 }

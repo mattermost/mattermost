@@ -235,6 +235,8 @@ type MetricsInterfaceImpl struct {
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
 
+	PluginWebappPerf *prometheus.HistogramVec
+
 	AccessControlExpressionCompileDuration prometheus.Histogram
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
@@ -1369,6 +1371,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
 
+	// Plugin webapp performance metrics
+	m.PluginWebappPerf = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemPlugin,
+			Name:      "webapp_perf",
+			Help:      "Plugin webapp performance measurements",
+		}),
+		[]string{"platform", "agent", "plugin_id", "plugin_metric_label"},
+	)
+	m.Registry.MustRegister(m.PluginWebappPerf)
+
 	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -2200,6 +2214,15 @@ func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent, us
 func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent, userID string, elapsed float64) {
 	effectiveUserID := mi.getEffectiveUserID(userID)
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObservePluginWebappPerf(platform, agent, pluginID, pluginMetricLabel string, elapsed float64) {
+	mi.PluginWebappPerf.With(prometheus.Labels{
+		"platform":            platform,
+		"agent":               agent,
+		"plugin_id":           pluginID,
+		"plugin_metric_label": pluginMetricLabel,
+	}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {

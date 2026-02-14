@@ -391,7 +391,7 @@ type PostStore interface {
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
+	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
@@ -425,6 +425,7 @@ type PostStore interface {
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
+	PermanentDeleteAssociatedData(postIds []string) error
 }
 
 type UserStore interface {
@@ -1167,7 +1168,6 @@ type AutoTranslationStore interface {
 	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error)
 	GetAllForObject(objectType, objectID string) ([]*model.Translation, error)
 	Save(translation *model.Translation) error
-	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, error)
 	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
 
 	ClearCaches()
@@ -1177,6 +1177,16 @@ type AutoTranslationStore interface {
 	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
 	// This is called when a user changes their locale preference.
 	InvalidateUserLocaleCache(userID string)
+	// GetLatestPostUpdateAtForChannel returns the most recent updateAt timestamp for post translations
+	// in the given channel (across all locales). Returns 0 if no translations exist.
+	GetLatestPostUpdateAtForChannel(channelID string) (int64, error)
+	// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel.
+	// This should be called after saving a new post translation.
+	InvalidatePostTranslationEtag(channelID string)
+	// GetTranslationsSinceForChannel returns translations updated after `since` for posts in the
+	// given channel and destination language. Only non-processing translations are returned.
+	// The result is keyed by post ID.
+	GetTranslationsSinceForChannel(channelID, dstLang string, since int64) (map[string]*model.Translation, error)
 }
 
 type ContentFlaggingStore interface {
@@ -1200,9 +1210,9 @@ type ReadReceiptStore interface {
 type TemporaryPostStore interface {
 	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
-	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	GetExpiredPosts(rctx request.CTX) ([]string, error)
+	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

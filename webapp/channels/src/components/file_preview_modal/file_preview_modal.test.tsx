@@ -1,15 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
 
+import {act, render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 import {generateId} from 'utils/utils';
+
+jest.mock('react-bootstrap', () => {
+    const Modal = ({children, show}: {children: React.ReactNode; show: boolean}) => (show ? <div>{children}</div> : null);
+    Modal.Header = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    Modal.Body = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    Modal.Title = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    return {Modal};
+});
+
+jest.mock('components/archived_preview', () => () => <div>{'Archived Preview'}</div>);
+jest.mock('components/audio_video_preview', () => () => <div>{'Audio Video Preview'}</div>);
+jest.mock('components/code_preview', () => ({
+    __esModule: true,
+    default: () => <div>{'Code Preview'}</div>,
+    hasSupportedLanguage: () => true,
+}));
+jest.mock('components/file_info_preview', () => () => <div>{'File Info Preview'}</div>);
+jest.mock('components/loading_image_preview', () => () => <div>{'Loading Image Preview'}</div>);
+jest.mock('components/pdf_preview', () => ({
+    __esModule: true,
+    default: () => <div>{'PDF Preview'}</div>,
+}));
+jest.mock('components/file_preview_modal/file_preview_modal_footer/file_preview_modal_footer', () => () => (
+    <div>{'File Preview Modal Footer'}</div>
+));
+jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => () => (
+    <div>{'File Preview Modal Header'}</div>
+));
+jest.mock('components/file_preview_modal/image_preview', () => () => <div>{'Image Preview'}</div>);
+jest.mock('components/file_preview_modal/popover_bar', () => () => <div>{'Popover Bar'}</div>);
 
 describe('components/FilePreviewModal', () => {
     const baseProps = {
@@ -22,53 +52,68 @@ describe('components/FilePreviewModal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<FilePreviewModal {...baseProps}/>);
+    const renderModal = (props = baseProps) => {
+        const ref = React.createRef<FilePreviewModal>();
+        const utils = render(
+            <FilePreviewModal
+                ref={ref}
+                {...props}
+            />,
+        );
+        return {ref, ...utils};
+    };
 
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot', () => {
+        const {container} = renderModal();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with image', () => {
-        const wrapper = shallow(<FilePreviewModal {...baseProps}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal();
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .mov file', () => {
         const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'mov'})];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .m4a file', () => {
         const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'm4a'})];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .js file', () => {
         const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'js'})];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with other file', () => {
         const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'other'})];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with footer', () => {
@@ -78,24 +123,27 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true, true, true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true, true, true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded', () => {
-        const wrapper = shallow(<FilePreviewModal {...baseProps}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal();
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded and showing footer', () => {
-        const wrapper = shallow(<FilePreviewModal {...baseProps}/>);
-
-        wrapper.setState({loaded: [true]});
-        expect(wrapper).toMatchSnapshot();
+        const {container, ref} = renderModal();
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should go to next or previous upon key press of right or left, respectively', () => {
@@ -105,43 +153,59 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
-
-        wrapper.setState({loaded: [true, true, true]});
+        const {ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true, true, true] as any});
+        });
 
         let evt = {key: Constants.KeyCodes.RIGHT[0]} as KeyboardEvent;
-
-        wrapper.instance().handleKeyPress(evt);
-        expect(wrapper.state('imageIndex')).toBe(1);
-        wrapper.instance().handleKeyPress(evt);
-        expect(wrapper.state('imageIndex')).toBe(2);
+        act(() => {
+            ref.current?.handleKeyPress(evt);
+        });
+        expect(ref.current?.state.imageIndex).toBe(1);
+        act(() => {
+            ref.current?.handleKeyPress(evt);
+        });
+        expect(ref.current?.state.imageIndex).toBe(2);
 
         evt = {key: Constants.KeyCodes.LEFT[0]} as KeyboardEvent;
-        wrapper.instance().handleKeyPress(evt);
-        expect(wrapper.state('imageIndex')).toBe(1);
-        wrapper.instance().handleKeyPress(evt);
-        expect(wrapper.state('imageIndex')).toBe(0);
+        act(() => {
+            ref.current?.handleKeyPress(evt);
+        });
+        expect(ref.current?.state.imageIndex).toBe(1);
+        act(() => {
+            ref.current?.handleKeyPress(evt);
+        });
+        expect(ref.current?.state.imageIndex).toBe(0);
     });
 
     test('should handle onMouseEnter and onMouseLeave', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
-        wrapper.setState({loaded: [true]});
+        const {ref} = renderModal();
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
 
-        wrapper.instance().onMouseEnterImage();
-        expect(wrapper.state('showCloseBtn')).toBe(true);
+        act(() => {
+            ref.current?.onMouseEnterImage();
+        });
+        expect(ref.current?.state.showCloseBtn).toBe(true);
 
-        wrapper.instance().onMouseLeaveImage();
-        expect(wrapper.state('showCloseBtn')).toBe(false);
+        act(() => {
+            ref.current?.onMouseLeaveImage();
+        });
+        expect(ref.current?.state.showCloseBtn).toBe(false);
     });
 
     test('should handle on modal close', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
-        wrapper.setState({
-            loaded: [true],
+        const {ref} = renderModal();
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
         });
 
-        wrapper.instance().handleModalClose();
-        expect(wrapper.state('show')).toBe(false);
+        act(() => {
+            ref.current?.handleModalClose();
+        });
+        expect(ref.current?.state.show).toBe(false);
     });
 
     test('should match snapshot for external file', () => {
@@ -149,24 +213,24 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({extension: 'png'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderModal(props);
+        expect(container).toMatchSnapshot();
     });
 
     test('should correctly identify image URLs with isImageUrl method', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const {ref} = renderModal();
 
         // Test proxied image URLs
-        expect(wrapper.instance().isImageUrl('http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg')).toBe(true);
+        expect(ref.current?.isImageUrl('http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg')).toBe(true);
 
         // Test URLs with image extensions
-        expect(wrapper.instance().isImageUrl('https://example.com/image.jpg')).toBe(true);
-        expect(wrapper.instance().isImageUrl('https://example.com/image.png')).toBe(true);
-        expect(wrapper.instance().isImageUrl('https://example.com/image.gif')).toBe(true);
+        expect(ref.current?.isImageUrl('https://example.com/image.jpg')).toBe(true);
+        expect(ref.current?.isImageUrl('https://example.com/image.png')).toBe(true);
+        expect(ref.current?.isImageUrl('https://example.com/image.gif')).toBe(true);
 
         // Test non-image URLs
-        expect(wrapper.instance().isImageUrl('https://example.com/document.pdf')).toBe(false);
-        expect(wrapper.instance().isImageUrl('https://example.com/file.txt')).toBe(false);
+        expect(ref.current?.isImageUrl('https://example.com/document.pdf')).toBe(false);
+        expect(ref.current?.isImageUrl('https://example.com/file.txt')).toBe(false);
     });
 
     test('should handle external image URLs correctly', () => {
@@ -183,21 +247,24 @@ describe('components/FilePreviewModal', () => {
 
         // Create a LinkInfo object for an external image URL
         const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
-        const fileInfos = [{
-            has_preview_image: false,
-            link: externalImageUrl,
-            extension: '',
-            name: 'External Image',
-        }];
+        const fileInfos = [
+            TestHelper.getFileInfoMock({
+                id: '',
+                has_preview_image: false,
+                link: externalImageUrl,
+                extension: '',
+                name: 'External Image',
+            }),
+        ];
 
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const {ref} = renderModal(props);
 
-        // Spy on handleImageLoaded
-        const handleImageLoadedSpy = jest.spyOn(wrapper.instance(), 'handleImageLoaded');
+        const handleImageLoadedSpy = jest.spyOn(ref.current as FilePreviewModal, 'handleImageLoaded');
 
-        // Call loadImage with the external image URL
-        wrapper.instance().loadImage(0);
+        act(() => {
+            ref.current?.loadImage(0);
+        });
 
         // Verify that Utils.loadImage was called with the correct URL
         expect(loadImageSpy).toHaveBeenCalledWith(
@@ -220,17 +287,21 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const {ref} = renderModal(props);
 
         let index = 1;
-        wrapper.setState({loaded: [true, false, false]});
-        wrapper.instance().loadImage(index);
+        act(() => {
+            ref.current?.setState({loaded: [true, false, false] as any});
+            ref.current?.loadImage(index);
+        });
 
-        expect(wrapper.state('loaded')[index]).toBe(true);
+        expect(ref.current?.state.loaded[index]).toBe(true);
 
         index = 2;
-        wrapper.instance().loadImage(index);
-        expect(wrapper.state('loaded')[index]).toBe(true);
+        act(() => {
+            ref.current?.loadImage(index);
+        });
+        expect(ref.current?.state.loaded[index]).toBe(true);
     });
 
     test('should handle handleImageLoaded', () => {
@@ -240,17 +311,21 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const {ref} = renderModal(props);
 
         let index = 1;
-        wrapper.setState({loaded: [true, false, false]});
-        wrapper.instance().handleImageLoaded(index);
+        act(() => {
+            ref.current?.setState({loaded: [true, false, false] as any});
+            ref.current?.handleImageLoaded(index);
+        });
 
-        expect(wrapper.state('loaded')[index]).toBe(true);
+        expect(ref.current?.state.loaded[index]).toBe(true);
 
         index = 2;
-        wrapper.instance().handleImageLoaded(index);
-        expect(wrapper.state('loaded')[index]).toBe(true);
+        act(() => {
+            ref.current?.handleImageLoaded(index);
+        });
+        expect(ref.current?.state.loaded[index]).toBe(true);
     });
 
     test('should handle handleImageProgress', () => {
@@ -260,36 +335,46 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const {ref} = renderModal(props);
 
         const index = 1;
         let completedPercentage = 30;
-        wrapper.setState({loaded: [true, false, false]});
-        wrapper.instance().handleImageProgress(index, completedPercentage);
+        act(() => {
+            ref.current?.setState({loaded: [true, false, false] as any});
+            ref.current?.handleImageProgress(index, completedPercentage);
+        });
 
-        expect(wrapper.state('progress')[index]).toBe(completedPercentage);
+        expect(ref.current?.state.progress[index]).toBe(completedPercentage);
 
         completedPercentage = 70;
-        wrapper.instance().handleImageProgress(index, completedPercentage);
+        act(() => {
+            ref.current?.handleImageProgress(index, completedPercentage);
+        });
 
-        expect(wrapper.state('progress')[index]).toBe(completedPercentage);
+        expect(ref.current?.state.progress[index]).toBe(completedPercentage);
     });
 
     test('should pass componentWillReceiveProps', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const {ref, rerender} = renderModal();
 
-        expect(Object.keys(wrapper.state('loaded')).length).toBe(1);
-        expect(Object.keys(wrapper.state('progress')).length).toBe(1);
+        expect(Object.keys(ref.current?.state.loaded || {})).toHaveLength(1);
+        expect(Object.keys(ref.current?.state.progress || {})).toHaveLength(1);
 
-        wrapper.setProps({
-            fileInfos: [
-                TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif'}),
-                TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
-                TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
-            ],
+        act(() => {
+            rerender(
+                <FilePreviewModal
+                    {...baseProps}
+                    ref={ref}
+                    fileInfos={[
+                        TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif'}),
+                        TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
+                        TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
+                    ]}
+                />,
+            );
         });
-        expect(Object.keys(wrapper.state('loaded')).length).toBe(3);
-        expect(Object.keys(wrapper.state('progress')).length).toBe(3);
+        expect(Object.keys(ref.current?.state.loaded || {})).toHaveLength(3);
+        expect(Object.keys(ref.current?.state.progress || {})).toHaveLength(3);
     });
 
     test('should match snapshot when plugin overrides the preview component', () => {
@@ -300,9 +385,8 @@ describe('components/FilePreviewModal', () => {
             component: () => <div>{'Preview'}</div>,
         }];
         const props = {...baseProps, pluginFilePreviewComponents};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderModal(props);
+        expect(container).toMatchSnapshot();
     });
 
     test('should fall back to default preview if plugin does not need to override preview component', () => {
@@ -313,8 +397,7 @@ describe('components/FilePreviewModal', () => {
             component: () => <div>{'Preview'}</div>,
         }];
         const props = {...baseProps, pluginFilePreviewComponents};
-        const wrapper = shallow(<FilePreviewModal {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderModal(props);
+        expect(container).toMatchSnapshot();
     });
 });

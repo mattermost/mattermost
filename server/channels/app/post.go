@@ -165,6 +165,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Validate burn-on-read restrictions (self-DMs, DMs with bots)
+	err = PostBurnOnReadCheckWithApp("App.CreatePost", a, rctx, post.UserId, post.ChannelId, post.Type, channel)
+	if err != nil {
+		return nil, false, err
+	}
+
 	foundPost, err := a.deduplicateCreatePost(rctx, post)
 	if err != nil {
 		return nil, false, err
@@ -1209,7 +1215,17 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 }
 
 func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads)
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
+		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	}
+
+	channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
+	if err != nil || !channelEnabled {
+		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	}
+
+	// Channel has auto-translation enabled - include translation etag
+	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -1217,6 +1233,8 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.supplementWithTranslationUpdatedPosts(rctx, postList, options.ChannelId, options.Time, options.CollapsedThreads)
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
@@ -1231,6 +1249,73 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
+}
+
+// supplementWithTranslationUpdatedPosts finds posts whose translations were updated after `since`
+// and adds them to the post list (Posts map only, not Order) so the client receives fresh translations.
+func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *model.PostList, channelID string, since int64, collapsedThreads bool) {
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
+		return
+	}
+
+	userID := rctx.Session().UserId
+	userLang, appErr := a.AutoTranslation().GetUserLanguage(userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Debug("Failed to get user language for translation-since supplement", mlog.String("channel_id", channelID), mlog.Err(appErr))
+		return
+	}
+	if userLang == "" {
+		return
+	}
+
+	translationsMap, err := a.Srv().Store().AutoTranslation().GetTranslationsSinceForChannel(channelID, userLang, since)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get translations since for channel", mlog.String("channel_id", channelID), mlog.Err(err))
+		return
+	}
+
+	// Filter to post IDs not already in the post list
+	var missingPostIDs []string
+	for postID := range translationsMap {
+		if _, exists := postList.Posts[postID]; !exists {
+			missingPostIDs = append(missingPostIDs, postID)
+		}
+	}
+
+	if len(missingPostIDs) == 0 {
+		return
+	}
+
+	posts, err := a.Srv().Store().Post().GetPostsByIds(missingPostIDs)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch posts for translation-since supplement", mlog.Err(err))
+		return
+	}
+
+	for _, post := range posts {
+		if post.DeleteAt != 0 {
+			continue
+		}
+		if collapsedThreads && post.RootId != "" {
+			continue
+		}
+		t, ok := translationsMap[post.Id]
+		if !ok {
+			continue
+		}
+
+		if post.Metadata == nil {
+			post.Metadata = &model.PostMetadata{}
+		}
+		if post.Metadata.Translations == nil {
+			post.Metadata.Translations = make(map[string]*model.PostTranslation)
+		}
+		post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
+
+		// Add to Posts map only — not to Order — so the client gets the updated translation
+		// without changing the chronological post list.
+		postList.Posts[post.Id] = post
+	}
 }
 
 func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError) {
@@ -1684,10 +1769,6 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if post.Type == model.PostTypeBurnOnRead {
-		return nil, a.PermanentDeletePost(rctx, postID, deleteByID)
 	}
 
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
@@ -3465,7 +3546,8 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 	}
 
 	// All recipients have read - update temporary post expiration to match receipt
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	// Bypass cache to ensure we get fresh data from DB
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, false)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3595,7 +3677,7 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 }
 
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, true)
 	if err != nil {
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3694,7 +3776,7 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePost(rctx, post.Id, userID)
+		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
 	}
 
 	// If not the author, check read receipt

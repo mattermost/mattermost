@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -432,6 +433,33 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        if (!state[data.object_id]) {
+            return state;
+        }
+
+        const translations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {
+            ...translations,
+            [data.language]: {
+                lang: data.language,
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            }};
+        return {
+            ...state,
+            [data.object_id]: {
+                ...state[data.object_id],
+                metadata: {
+                    ...state[data.object_id].metadata,
+                    translations: newTranslations,
+                },
+            },
+        };
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -453,9 +481,19 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         currentState[post.id] = {...currentState[post.id], ...post.metadata};
     }
 
-    // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
-        post.is_following = currentState[post.id].is_following;
+    // Posts that don't have CRT fields specified should maintain existing state.
+    // This happens when posts are returned via GetPostsByIds (e.g. translation
+    // supplement) which doesn't JOIN the Threads/ThreadMemberships tables.
+    if (post.update_at > 0 && currentState[post.id]) {
+        if (post.is_following == null) {
+            post.is_following = currentState[post.id].is_following;
+        }
+        if (post.participants == null && currentState[post.id].participants) {
+            post.participants = currentState[post.id].participants;
+        }
+        if (!post.last_reply_at && currentState[post.id].last_reply_at) {
+            post.last_reply_at = currentState[post.id].last_reply_at;
+        }
     }
 
     if (post.delete_at > 0) {
@@ -578,7 +616,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
@@ -939,9 +983,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
             // For BoR posts: only remove the post itself (BoR doesn't support threads)
             // For regular posts: remove the post and its thread replies
-            const nextOrder = isBoRPost ?
-                block.order.filter((postId: string) => postId !== post.id) :
-                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
+            const nextOrder = isBoRPost ? block.order.filter((postId: string) => postId !== post.id) : block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

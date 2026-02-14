@@ -48,7 +48,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         policyId: 'policy1',
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
-            EnableChannelScopeAccessControl: true,
             EnableUserManagedAttributes: false,
         },
         channels: [

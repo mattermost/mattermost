@@ -9,3 +9,5 @@
 /server/channels/db/migrations @mattermost/server-platform
 /server/boards/services/store/sqlstore/migrations @mattermost/server-platform
 /server/playbooks/server/sqlstore/migrations @mattermost/server-platform
+/server/channels/app/authentication.go @mattermost/product-security
+/server/channels/app/authorization.go @mattermost/product-security

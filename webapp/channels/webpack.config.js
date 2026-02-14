@@ -302,6 +302,11 @@ var config = {
             ],
         }),
     ],
+    watchOptions: {
+
+        // By default, Webpack doesn't watch node_modules for changes, but we want it to watch packages in the monorepo
+        ignored: /node_modules([\\]+|\/)(?!@mattermost\/(client|components|types|shared))/,
+    },
 };
 
 function generateCSP() {
