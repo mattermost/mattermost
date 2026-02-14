@@ -10,6 +10,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -70,6 +71,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
+	t.Run("ConcurrentReplies", func(t *testing.T) { testConcurrentReplies(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6103,5 +6105,194 @@ func testRestoreContentFlaggedPost(t *testing.T, rctx request.CTX, ss store.Stor
 		thread, err := ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), thread.ReplyCount)
+	})
+}
+
+// Helper function to insert concurrent posts into a thread
+
+func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, channelId string, numReplies int) ([]*model.Post, []error) {
+	var wg sync.WaitGroup
+	errorsChan := make(chan error, numReplies)
+	postsChan := make(chan *model.Post, numReplies)
+
+	// concurrent goroutines that create replies simultaneously
+	for replyNum := range numReplies {
+		wg.Add(1)
+		go func(replyNum int) {
+			defer wg.Done()
+
+			reply := &model.Post{
+				ChannelId: channelId,
+				UserId:    model.NewId(), // Each reply from different user
+				Message:   fmt.Sprintf("Concurrent reply %d", replyNum),
+				RootId:    rootPostId,
+			}
+
+			savedReply, err := ss.Post().Save(rctx, reply)
+			if err != nil {
+				errorsChan <- err
+				return
+			}
+			postsChan <- savedReply
+		}(replyNum)
+	}
+
+	wg.Wait()
+	close(errorsChan)
+	close(postsChan)
+
+	// Collect results
+	var errors []error
+	for err := range errorsChan {
+		errors = append(errors, err)
+	}
+
+	var posts []*model.Post
+	for post := range postsChan {
+		posts = append(posts, post)
+	}
+	return posts, errors
+}
+
+func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("No duplicate key violations on concurrent replies", func(t *testing.T) {
+		numTestIterations := 25    // Number of times to repeat the entire test
+		numConcurrentReplies := 50 // Number of concurrent replies per iteration
+
+		for iteration := range numTestIterations {
+			t.Run(fmt.Sprintf("Iteration_%d", iteration), func(t *testing.T) {
+				// Setup: Create a team, channel and root post
+				teamID := model.NewId()
+				channel, err := ss.Channel().Save(rctx, &model.Channel{
+					TeamId:      teamID,
+					DisplayName: "TestChannel",
+					Name:        "testchannel" + model.NewId(),
+					Type:        model.ChannelTypeOpen,
+				}, -1)
+				require.NoError(t, err)
+
+				rootPost := &model.Post{
+					ChannelId: channel.Id,
+					UserId:    model.NewId(),
+					Message:   fmt.Sprintf("Root post for concurrent test - iteration %d", iteration),
+				}
+				savedRootPost, err := ss.Post().Save(rctx, rootPost)
+				require.NoError(t, err)
+
+				// Create concurrent replies
+				savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
+
+				assert.Empty(t, errorList, "No errors should occur during concurrent reply creation. Errors: %v", errorList)
+				assert.Equal(t, numConcurrentReplies, len(savedPosts), "All concurrent replies should be saved successfully")
+			})
+		}
+	})
+
+	t.Run("Thread metadata updates correctly after concurrent replies", func(t *testing.T) {
+		// Setup a team, channel and root post
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "TestChannel",
+			Name:        "testchannel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		rootPost := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "Root post for metadata test",
+		}
+		savedRootPost, err := ss.Post().Save(rctx, rootPost)
+		require.NoError(t, err)
+
+		// Create concurrent replies
+		numConcurrentReplies := 75
+		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
+		require.Empty(t, errorList, "Setup should succeed without errors")
+
+		thread, err := ss.Thread().Get(savedRootPost.Id)
+		require.NoError(t, err)
+
+		// Reply count should equal number of concurrent replies
+		assert.Equal(t, int64(numConcurrentReplies), thread.ReplyCount,
+			"Thread reply count should equal number of concurrent replies")
+
+		// All reply authors should be in participants (each reply from different user)
+		assert.Equal(t, numConcurrentReplies, len(thread.Participants),
+			"All reply authors should be in thread participants")
+
+		// Collect expected user IDs and verify participants
+		expectedUserIds := make(map[string]bool)
+		for _, post := range savedPosts {
+			expectedUserIds[post.UserId] = true
+		}
+
+		for _, participantId := range thread.Participants {
+			assert.True(t, expectedUserIds[participantId],
+				"Participant %s should be one of the users who posted replies", participantId)
+		}
+
+		// LastReplyAt should match the most recent reply
+		var maxCreateAt int64
+		for _, post := range savedPosts {
+			if post.CreateAt > maxCreateAt {
+				maxCreateAt = post.CreateAt
+			}
+		}
+		assert.Equal(t, maxCreateAt, thread.LastReplyAt,
+			"Thread LastReplyAt should match the most recent reply's CreateAt")
+	})
+
+	t.Run("Concurrent replies are properly persisted in database", func(t *testing.T) {
+		// Setup a team, channel and root post
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "TestChannel",
+			Name:        "testchannel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		rootPost := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "Root post for persistence test",
+		}
+		savedRootPost, err := ss.Post().Save(rctx, rootPost)
+		require.NoError(t, err)
+
+		// Create concurrent replies
+		numConcurrentReplies := 6
+		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
+		require.Empty(t, errorList, "Setup should succeed without errors")
+
+		for _, post := range savedPosts {
+			retrievedPost, errGet := ss.Post().GetSingle(rctx, post.Id, false)
+			assert.NoError(t, errGet, "Should be able to retrieve saved post %s", post.Id)
+			assert.Equal(t, savedRootPost.Id, retrievedPost.RootId,
+				"Retrieved post should have correct RootId")
+			assert.Equal(t, post.Message, retrievedPost.Message,
+				"Retrieved post should have correct message")
+			assert.Equal(t, post.UserId, retrievedPost.UserId,
+				"Retrieved post should have correct UserId")
+		}
+
+		// Verify thread metadata persists correctly
+		thread, err := ss.Thread().Get(savedRootPost.Id)
+		require.NoError(t, err)
+
+		// Re-fetch to ensure database consistency
+		threadRefetch, err := ss.Thread().Get(savedRootPost.Id)
+		require.NoError(t, err)
+
+		assert.Equal(t, thread.ReplyCount, threadRefetch.ReplyCount,
+			"Refetched reply count should match original fetch")
+		assert.Equal(t, thread.LastReplyAt, threadRefetch.LastReplyAt,
+			"Refetched LastReplyAt should match original fetch")
+		assert.Equal(t, len(thread.Participants), len(threadRefetch.Participants),
+			"Refetched participants length should match original fetch")
 	})
 }
