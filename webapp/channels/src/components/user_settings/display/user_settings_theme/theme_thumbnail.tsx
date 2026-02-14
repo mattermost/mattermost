@@ -6,10 +6,14 @@
 import React from 'react';
 
 type ThemeThumbnailProps = {
+    width?: number;
+    height?: number;
     themeName?: string;
     themeKey: string;
     sidebarBg: string;
     sidebarText: string;
+    sidebarHeaderBg: string;
+    sidebarHeaderTextColor: string;
     sidebarUnreadText: string;
     onlineIndicator: string;
     awayIndicator: string;
@@ -21,10 +25,14 @@ type ThemeThumbnailProps = {
 }
 
 function ThemeThumbnail({
+    width = 112,
+    height = 86,
     themeName,
     themeKey,
     sidebarBg = '#174AB5',
     sidebarText = '#86A1D9',
+    sidebarHeaderBg = '#192a4d',
+    sidebarHeaderTextColor = '#ffffff',
     sidebarUnreadText = 'white',
     onlineIndicator = '#3DB887',
     awayIndicator = '#FFBC1F',
@@ -35,7 +43,7 @@ function ThemeThumbnail({
     buttonBg = '#15B7B7',
 }: ThemeThumbnailProps): JSX.Element {
     return (
-        <svg width='112' height='86' viewBox='0 0 112 86' fill='none' xmlns='http://www.w3.org/2000/svg' aria-labelledby={`${themeKey}-theme-icon`} role='img'>
+        <svg width={width} height={height} viewBox='0 0 112 86' fill='none' xmlns='http://www.w3.org/2000/svg' aria-labelledby={`${themeKey}-theme-icon`} role='img'>
             <title id={`${themeKey}-theme-icon`}>{`${themeName} theme icon`}</title>
             <rect style={{fill: centerChannelBg}} x='0' y='0' width='112' height='86'/>
             <g>
@@ -81,6 +89,8 @@ function ThemeThumbnail({
                     <rect x='11' y='23' width='28' height='4' rx='2'/>
                 </g>
             </g>
+            <rect style={{fill: sidebarHeaderBg}} x='0' y='0' width='112' height='10'/>
+            <rect style={{fill: sidebarHeaderTextColor}} x='4' y='3' width='25' height='4' rx='2'/>
         </svg>
     );
 }

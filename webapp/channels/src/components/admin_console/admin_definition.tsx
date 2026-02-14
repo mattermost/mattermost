@@ -48,6 +48,7 @@ import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_definition_helpers';
+import AllowedThemesSetting from './allowed_themes_setting';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
@@ -62,12 +63,14 @@ import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as m
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
+import CustomThemesSetting from './custom_themes_setting';
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import {searchableStrings as dataRetentionSearchableStrings} from './data_retention_settings/data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './database_settings';
+import DefaultThemeSetting from './default_theme_setting';
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     AnnouncementBannerFeatureDiscovery,
@@ -2342,6 +2345,70 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'CustomBrandImage',
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+
+                            // TODO: Add translations here for support search in the admin console
+                            // TODO: Ensure disabled field is correctly set here
+                            type: 'custom',
+                            component: CustomThemesSetting,
+                            key: 'ThemeSettings.CustomThemes',
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+
+                            // TODO: Add translations here for support search in the admin console
+                            // TODO: Ensure disabled field is correctly set here
+                            type: 'custom',
+                            component: AllowedThemesSetting,
+                            key: 'ThemeSettings.AllowedThemes',
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ThemeSettings.EnableThemeSelection',
+                            label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection (Enterprise):'}),
+                            help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
+                            help_text_markdown: true,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ThemeSettings.AllowCustomThemes',
+                            label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes (Enterprise):'}),
+                            help_text: defineMessage({id: 'admin.experimental.allowCustomThemes.desc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
+                            help_text_markdown: true,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+
+                            // TODO: Add translations here for support search in the admin console
+                            // TODO: Ensure disabled field is correctly set here
+                            type: 'custom',
+                            key: 'ThemeSettings.DefaultTheme',
+                            component: DefaultThemeSetting,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
                         },

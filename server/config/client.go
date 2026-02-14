@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -132,7 +133,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableThemeSelection"] = "true"
 	props["DefaultTheme"] = ""
 	props["AllowCustomThemes"] = "true"
-	props["AllowedThemes"] = ""
+	props["AllowedThemes"] = "denim,sapphire,quartz,indigo,onyx"
+	props["CustomThemes"] = "[]"
 	props["DataRetentionEnableMessageDeletion"] = "false"
 	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
@@ -215,7 +217,13 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
 			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
-			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
+			if len(c.ThemeSettings.AllowedThemes) == 0 {
+				props["AllowedThemes"] = "denim,sapphire,quartz,indigo,onyx"
+			} else {
+				props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
+			}
+			customThemes, _ := json.Marshal(c.ThemeSettings.CustomThemes)
+			props["CustomThemes"] = string(customThemes)
 		}
 
 		if *license.Features.DataRetention {

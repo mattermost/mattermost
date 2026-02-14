@@ -2389,11 +2389,18 @@ func (s *AnnouncementSettings) SetDefaults() {
 	}
 }
 
+type CustomTheme struct {
+	ID    string
+	Name  string
+	Theme string
+}
+
 type ThemeSettings struct {
 	EnableThemeSelection *bool   `access:"experimental_features"`
 	DefaultTheme         *string `access:"experimental_features"`
 	AllowCustomThemes    *bool   `access:"experimental_features"`
 	AllowedThemes        []string
+	CustomThemes         []CustomTheme `access:"experimental_features"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -2409,9 +2416,20 @@ func (s *ThemeSettings) SetDefaults() {
 		s.AllowCustomThemes = NewPointer(true)
 	}
 
-	if s.AllowedThemes == nil {
-		s.AllowedThemes = []string{}
+	if len(s.AllowedThemes) == 0 {
+		s.AllowedThemes = []string{"denim", "sapphire", "quartz", "indigo", "onyx"}
 	}
+
+	if s.CustomThemes == nil {
+		s.CustomThemes = []CustomTheme{}
+	}
+}
+
+func (s *ThemeSettings) isValid() *AppError {
+	if len(s.AllowedThemes) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.theme.allowed_themes.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 type TeamSettings struct {
@@ -4250,6 +4268,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.ThemeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
