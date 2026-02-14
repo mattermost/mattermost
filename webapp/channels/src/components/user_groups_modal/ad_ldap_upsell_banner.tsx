@@ -8,7 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -19,6 +18,7 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 function ADLDAPUpsellBanner() {
     const [show, setShow] = useState(true);
@@ -29,7 +29,7 @@ function ADLDAPUpsellBanner() {
     const [openSalesLink] = useOpenSalesLink();
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        dispatch(tryGetPrevTrialLicense());
     }, []);
 
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);

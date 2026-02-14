@@ -59,7 +59,7 @@ export type Props = {
     enableCustomUserGroups?: boolean;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        getPrevTrialLicense: () => void;
+        tryGetPrevTrialLicense: () => void;
     };
 };
 
@@ -90,7 +90,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
     useEffect(() => {
-        props.actions.getPrevTrialLicense();
+        props.actions.tryGetPrevTrialLicense();
     }, []);
 
     if (!currentUser) {

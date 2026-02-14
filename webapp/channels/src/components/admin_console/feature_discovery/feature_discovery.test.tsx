@@ -18,7 +18,7 @@ import GroupsSVG from './features/images/groups_svg';
 describe('components/feature_discovery', () => {
     describe('FeatureDiscovery', () => {
         test('should match the default state of the component when is not cloud environment', async () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -46,7 +46,7 @@ describe('components/feature_discovery', () => {
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
                     actions={{
-                        getPrevTrialLicense,
+                        tryGetPrevTrialLicense,
                         getCloudSubscription,
                         openModal,
                     }}
@@ -71,13 +71,13 @@ describe('components/feature_discovery', () => {
             expect(screen.getByText('Mattermost Software Evaluation Agreement')).toHaveAttribute('href', 'https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', AboutLinks.PRIVACY_POLICY + '?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
 
         test('should match component state when is cloud environment', async () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -106,7 +106,7 @@ describe('components/feature_discovery', () => {
                         isSubscriptionLoaded={true}
                         isEnterpriseReady={true}
                         actions={{
-                            getPrevTrialLicense,
+                            tryGetPrevTrialLicense,
                             getCloudSubscription,
                             openModal,
                         }}
@@ -131,7 +131,7 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
 
@@ -139,7 +139,7 @@ describe('components/feature_discovery', () => {
         });
 
         test('should match component state when is cloud environment and subscription is not loaded yet in redux store', () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -167,7 +167,7 @@ describe('components/feature_discovery', () => {
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
                     actions={{
-                        getPrevTrialLicense,
+                        tryGetPrevTrialLicense,
                         getCloudSubscription,
                         openModal,
                     }}
@@ -185,7 +185,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByTestId('featureDiscovery_secondaryCallToAction')).not.toBeInTheDocument();
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
 
@@ -193,7 +193,7 @@ describe('components/feature_discovery', () => {
         });
 
         test('should show Contact Sales when isEnterpriseReady is false (Team Edition)', () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -221,7 +221,7 @@ describe('components/feature_discovery', () => {
                     isPaidSubscription={false}
                     isEnterpriseReady={false}
                     actions={{
-                        getPrevTrialLicense,
+                        tryGetPrevTrialLicense,
                         getCloudSubscription,
                         openModal,
                     }}
@@ -240,13 +240,13 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
 
         test('should show Contact Sales when previous trial license exists', () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -274,7 +274,7 @@ describe('components/feature_discovery', () => {
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
                     actions={{
-                        getPrevTrialLicense,
+                        tryGetPrevTrialLicense,
                         getCloudSubscription,
                         openModal,
                     }}
@@ -293,13 +293,13 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
 
         test('should show Start Trial when isEnterpriseReady is true and no previous trial license', () => {
-            const getPrevTrialLicense = jest.fn();
+            const tryGetPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
@@ -327,7 +327,7 @@ describe('components/feature_discovery', () => {
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
                     actions={{
-                        getPrevTrialLicense,
+                        tryGetPrevTrialLicense,
                         getCloudSubscription,
                         openModal,
                     }}
@@ -346,7 +346,7 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
 
-            expect(getPrevTrialLicense).toHaveBeenCalled();
+            expect(tryGetPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
