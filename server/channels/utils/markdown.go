@@ -16,7 +16,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// StripMarkdown remove some markdown syntax
+// StripMarkdown removes markdown syntax from text and returns plain text.
 func StripMarkdown(markdown string) (string, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.Strikethrough),
@@ -33,6 +33,21 @@ func StripMarkdown(markdown string) (string, error) {
 	}
 
 	return strings.TrimSpace(buf.String()), nil
+}
+
+// StripMarkdownAndDecode removes markdown syntax and decodes HTML entities
+// (both named like &lt; and numeric like &#60;) to their character equivalents.
+// This is useful for plain text contexts like mobile push notifications where
+// HTML will not be rendered.
+//
+// SECURITY NOTE: The output is intended for plain text contexts only.
+// Do NOT use in contexts where HTML could be rendered without proper escaping.
+func StripMarkdownAndDecode(markdown string) (string, error) {
+	stripped, err := StripMarkdown(markdown)
+	if err != nil {
+		return "", err
+	}
+	return html.UnescapeString(stripped), nil
 }
 
 var relLinkReg = regexp.MustCompile(`\[(.*)]\((/.*)\)`)
