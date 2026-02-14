@@ -3757,6 +3757,21 @@ export default class Client4 {
         );
     };
 
+    previewLicense = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('license', fileData);
+
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<License>(
+            `${this.getBaseRoute()}/license/preview`,
+            request,
+        );
+    };
+
     requestTrialLicense = (body: RequestLicenseBody) => {
         return this.doFetchWithResponse<ClientLicense>(
             `${this.getBaseRoute()}/trial-license`,

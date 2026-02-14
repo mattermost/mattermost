@@ -4377,6 +4377,33 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 	return BuildResponse(r), nil
 }
 
+// PreviewLicenseFile will validate and parse a license file without saving it.
+// This allows users to preview the license details before applying it.
+func (c *Client4) PreviewLicenseFile(ctx context.Context, data []byte) (*License, *Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("license", "test-license.mattermost-license")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create form file for license preview: %w", err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, nil, fmt.Errorf("failed to copy license data to form file: %w", err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, nil, fmt.Errorf("failed to close multipart writer for license preview: %w", err)
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.licenseRoute().Join("preview"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*License](r)
+}
+
 // RemoveLicenseFile will remove the server license it exists. Note that this will
 // disable all enterprise features.
 func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {

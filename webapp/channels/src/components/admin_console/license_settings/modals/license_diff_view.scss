@@ -1,0 +1,140 @@
+.license-transition-banner {
+    display: flex;
+    padding: 16px;
+    border: 1px solid;
+    border-radius: 4px;
+    margin: 16px 0 0;
+    gap: 12px;
+
+    &__icon {
+        display: flex;
+        flex-shrink: 0;
+        align-items: flex-start;
+
+        .icon {
+            font-size: 20px;
+        }
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__title {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__description {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__link {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &--warning {
+        border-color: rgba(var(--away-indicator-rgb), 0.32);
+        background-color: rgba(var(--away-indicator-rgb), 0.08);
+
+        .license-transition-banner__icon .icon {
+            color: var(--away-indicator);
+        }
+    }
+
+    &--info {
+        border-color: rgba(var(--button-bg-rgb), 0.32);
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+        .license-transition-banner__icon .icon {
+            color: var(--button-bg);
+        }
+    }
+
+    &--success {
+        border-color: rgba(var(--online-indicator-rgb), 0.32);
+        background-color: rgba(var(--online-indicator-rgb), 0.08);
+
+        .license-transition-banner__icon .icon {
+            color: var(--online-indicator);
+        }
+    }
+
+    &--danger {
+        border-color: rgba(var(--dnd-indicator-rgb), 0.32);
+        background-color: rgba(var(--dnd-indicator-rgb), 0.08);
+
+        .license-transition-banner__icon .icon {
+            color: var(--dnd-indicator);
+        }
+    }
+}
+
+.license-diff-view {
+    overflow: hidden;
+    width: 100%;
+    border: var(--border-default);
+    border-radius: 4px;
+    margin: 16px 0;
+
+    .diff-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+
+        th, td {
+            padding: 8px 12px;
+            border-bottom: var(--border-light);
+            text-align: left;
+        }
+
+        th {
+            border-bottom: var(--border-default);
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .diff-row {
+            .diff-label,
+            .diff-current {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            &-plan {
+                .diff-current,
+                .diff-new {
+                    font-weight: 600;
+                }
+            }
+        }
+
+        // Info-only table (for entry license - no comparison)
+        &.info-only {
+            .info-row {
+                .info-label {
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+
+                .info-value {
+                    color: var(--center-channel-color);
+                    font-weight: 500;
+                }
+
+                &-plan {
+                    .info-value {
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+    }
+}

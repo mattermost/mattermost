@@ -2473,6 +2473,10 @@
     "translation": "Failed to compute monthly active users."
   },
   {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Could not parse the license upload form."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
