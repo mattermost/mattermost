@@ -1,0 +1,42 @@
+---
+name: "@mattermost/testcontainers"
+on:
+  pull_request:
+    paths:
+      - "e2e-tests/testcontainers/**"
+      - ".github/workflows/e2e-tests-testcontainers-check.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e-tests/testcontainers
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: e2e-tests/testcontainers/package-lock.json
+
+      - name: ci/npm-install
+        run: npm ci
+
+      - name: ci/lint
+        run: npm run lint
+
+      - name: ci/prettier
+        run: npm run prettier
+
+      - name: ci/typecheck
+        run: npm run tsc
+
+      - name: ci/build
+        run: npm run build
+
+      - name: ci/test
+        run: npm run test:all
