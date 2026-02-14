@@ -6,7 +6,7 @@ import {E2EClient} from './client-impl';
 
 const clients = {};
 
-async function makeClient({user = getAdminAccount(), useCache = true} = {}) {
+async function makeClient({user = getAdminAccount(), useCache = true} = {}): Promise<E2EClient> {
     const cacheKey = user.username + user.password;
     if (useCache && clients[cacheKey] != null) {
         return clients[cacheKey];
@@ -27,3 +27,12 @@ async function makeClient({user = getAdminAccount(), useCache = true} = {}) {
 }
 
 Cypress.Commands.add('makeClient', makeClient);
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            makeClient: typeof makeClient;
+        }
+    }
+}
