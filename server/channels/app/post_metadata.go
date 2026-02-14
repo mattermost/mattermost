@@ -53,7 +53,12 @@ func (s *Server) initPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList) *model.PostList {
+func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList, opts ...model.PreparePostForClientOpts) *model.PostList {
+	var postOpts model.PreparePostForClientOpts
+	if len(opts) > 0 {
+		postOpts = opts[0]
+	}
+
 	list := &model.PostList{
 		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
 		Order:                     originalList.Order,
@@ -64,7 +69,7 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
+		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &postOpts)
 
 		list.Posts[id] = post
 	}
