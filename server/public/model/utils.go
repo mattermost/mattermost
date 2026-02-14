@@ -761,6 +761,41 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
+// IsValidLinkURL validates URLs for bookmarks, supporting http(s) and mattermost:// schemes
+func IsValidLinkURL(rawURL string) bool {
+	// Dangerous schemes that should never be allowed
+	dangerousSchemes := []string{"javascript", "data", "file", "vbscript", "about"}
+
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Scheme == "" {
+		return false
+	}
+
+	scheme := strings.ToLower(u.Scheme)
+
+	// Check blacklist
+	for _, dangerous := range dangerousSchemes {
+		if scheme == dangerous {
+			return false
+		}
+	}
+
+	// Whitelist: http, https, mattermost
+	if scheme == "http" || scheme == "https" {
+		// For http(s), require host
+		if u.Host == "" {
+			return false
+		}
+		return true
+	}
+
+	if scheme == "mattermost" {
+		return true
+	}
+
+	return false
+}
+
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false

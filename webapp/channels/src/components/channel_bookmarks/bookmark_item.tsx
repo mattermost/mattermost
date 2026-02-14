@@ -21,7 +21,8 @@ import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
+import {getSiteURL, shouldOpenInNewTab, isMattermostAppURL, parseMattermostLink} from 'utils/url';
+import {getHistory} from 'utils/browser_history';
 
 import type {GlobalState} from 'types/store';
 
@@ -64,11 +65,13 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     let link;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
+        const isInApp = isMattermostAppURL(bookmark.link_url);
         link = (
             <DynamicLink
                 href={bookmark.link_url}
                 ref={linkRef}
                 isFile={false}
+                isInAppLink={isInApp}
             >
                 {icon}
                 <Label>{bookmark.display_name}</Label>
@@ -193,11 +196,13 @@ type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;
     children: React.ReactNode;
     isFile: boolean;
+    isInAppLink?: boolean;
 };
 const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     href,
     children,
     isFile,
+    isInAppLink,
     onClick,
     ...otherProps
 }, ref) => {
@@ -205,6 +210,37 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
     const prefixed = href[0] === TARGET_BLANK_URL_PREFIX;
+
+    // Handle in-app links with SPA navigation
+    if (isInAppLink) {
+        const history = getHistory();
+        const handleInAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+            try {
+                const parsed = parseMattermostLink(href);
+                if (parsed?.path) {
+                    history.push(parsed.path);
+                }
+            } catch {
+                // Invalid in-app URL, ignore
+            }
+            if (onClick) {
+                onClick(e);
+            }
+        };
+
+        return (
+            <StyledAnchor
+                {...otherProps}
+                href={href}
+                ref={ref}
+                onClick={handleInAppClick}
+                className="inapp-link"
+            >
+                {children}
+            </StyledAnchor>
+        );
+    }
 
     if (prefixed || openInNewTab) {
         return (

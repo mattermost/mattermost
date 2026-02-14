@@ -134,3 +134,136 @@ describe('Utils.URL', () => {
         });
     });
 });
+
+describe('Utils.URL - In-App Links', () => {
+    const {isMattermostAppURL, parseMattermostLink, isUrlSafe, isInternalURL, shouldOpenInNewTab} = require('utils/url');
+    
+    describe('isMattermostAppURL', () => {
+        test.each([
+            ['mattermost://team/channels/channel', true],
+            ['mattermost://team/pl/postid', true],
+            ['MATTERMOST://team/channels/channel', true],
+            ['http://example.com', false],
+            ['https://example.com', false],
+            ['javascript:alert(1)', false],
+            ['', false],
+        ])('isMattermostAppURL(%s) should return %s', (url, expected) => {
+            expect(isMattermostAppURL(url)).toBe(expected);
+        });
+    });
+    
+    describe('isUrlSafe with mattermost:// URLs', () => {
+        test('mattermost:// URLs should be safe', () => {
+            expect(isUrlSafe('mattermost://team/channels/channel')).toBe(true);
+        });
+        
+        test('dangerous schemes should not be safe', () => {
+            expect(isUrlSafe('javascript:alert(1)')).toBe(false);
+            expect(isUrlSafe('data:text/html,<script>alert(1)</script>')).toBe(false);
+            expect(isUrlSafe('vbscript:msgbox(1)')).toBe(false);
+        });
+    });
+    
+    describe('isInternalURL with mattermost:// URLs', () => {
+        test('mattermost:// URLs should be internal', () => {
+            expect(isInternalURL('mattermost://team/channels/channel')).toBe(true);
+        });
+    });
+    
+    describe('shouldOpenInNewTab with mattermost:// URLs', () => {
+        test('mattermost:// URLs should not open in new tab', () => {
+            expect(shouldOpenInNewTab('mattermost://team/channels/channel')).toBe(false);
+        });
+        
+        test('external URLs should open in new tab', () => {
+            expect(shouldOpenInNewTab('https://external.com')).toBe(true);
+        });
+    });
+    
+    describe('parseMattermostLink', () => {
+        test('parse channel link', () => {
+            const result = parseMattermostLink('mattermost://myteam/channels/mychannel');
+            expect(result).toEqual({
+                kind: 'channel',
+                team: 'myteam',
+                channel: 'mychannel',
+                path: '/myteam/channels/mychannel',
+            });
+        });
+        
+        test('parse permalink', () => {
+            const result = parseMattermostLink('mattermost://myteam/pl/postid123');
+            expect(result).toEqual({
+                kind: 'permalink',
+                team: 'myteam',
+                postId: 'postid123',
+                path: '/myteam/pl/postid123',
+            });
+        });
+        
+        test('parse DM link', () => {
+            const result = parseMattermostLink('mattermost://myteam/messages/@username');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@username',
+                path: '/myteam/messages/@username',
+            });
+        });
+        
+        test('return null for non-mattermost URL', () => {
+            expect(parseMattermostLink('https://example.com')).toBeNull();
+        });
+        
+        test('return null for invalid URL', () => {
+            expect(parseMattermostLink('invalid')).toBeNull();
+        });
+        
+        test('parse global route (admin_console)', () => {
+            const result = parseMattermostLink('mattermost://admin_console/system_analytics');
+            expect(result).toEqual({
+                kind: 'global',
+                path: '/admin_console/system_analytics',
+            });
+        });
+        
+        test('parse generic fallback path', () => {
+            const result = parseMattermostLink('mattermost://myteam/custom/path/here');
+            expect(result).toEqual({
+                kind: 'generic',
+                team: 'myteam',
+                path: '/myteam/custom/path/here',
+            });
+        });
+        
+        test('parse team from query parameter', () => {
+            const result = parseMattermostLink('mattermost://channels/town-square?team=myteam');
+            expect(result).toEqual({
+                kind: 'channel',
+                team: 'myteam',
+                channel: 'town-square',
+                path: '/myteam/channels/town-square',
+            });
+        });
+        
+        test('parse DM without @ (auto-add)', () => {
+            const result = parseMattermostLink('mattermost://myteam/messages/username');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@username',
+                path: '/myteam/messages/@username',
+            });
+        });
+        
+        test('parse with dm alias', () => {
+            const result = parseMattermostLink('mattermost://myteam/dm/@user');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@user',
+                path: '/myteam/messages/@user',
+            });
+        });
+    });
+});
