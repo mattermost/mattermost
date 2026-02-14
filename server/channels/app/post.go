@@ -249,7 +249,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	if flags.ForceNotification {
-		post.AddProp(model.PostPropsForceNotification, model.NewId())
+		post.AddProp(model.PostPropsForceNotification, true)
 	}
 
 	if rctx.Session().IsOAuth {
