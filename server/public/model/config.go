@@ -4710,7 +4710,20 @@ func (s *ServiceSettings) isValid() *AppError {
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
 		parent := filepath.Dir(*s.LocalModeSocketLocation)
-		_, err := os.Stat(parent)
+		absParent, err := filepath.Abs(parent)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.abs_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+		}
+		// Use the default socket path as the safe directory unless overridden elsewhere
+		safeDir := filepath.Dir(LocalModeSocketPath)
+		absSafeDir, err := filepath.Abs(safeDir)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.abs_safe_dir_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+		}
+		if !strings.HasPrefix(absParent, absSafeDir) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.unsafe_dir", nil, "LocalModeSocketLocation is outside of allowed directory", http.StatusBadRequest)
+		}
+		_, err = os.Stat(parent)
 		if err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}

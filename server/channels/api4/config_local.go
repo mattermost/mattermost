@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -162,6 +163,13 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	to, ok := props["to"].(string)
 	if !ok {
 		c.SetInvalidParam("to")
+		return
+	}
+
+	// Validate file paths to protect against path traversal and absolute paths
+	if strings.Contains(from, "/") || strings.Contains(from, "\\") || strings.Contains(from, "..") ||
+		strings.Contains(to, "/") || strings.Contains(to, "\\") || strings.Contains(to, "..") {
+		c.Err = model.NewAppError("localMigrateConfig", "api.config.migrate_config.invalid_path.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

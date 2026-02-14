@@ -49,11 +49,24 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 			continue
 		}
 
-		// filepath.HasPrefix is deprecated, so we just use strings.HasPrefix to ensure
-		// the target path remains rooted at dst and has no `../` escaping outside.
-		path := filepath.Join(dst, header.Name)
-		if !strings.HasPrefix(path, dst) {
-			return errors.Errorf("failed to sanitize path %s", header.Name)
+		// Validate that header.Name doesn't result in path traversal outside dst.
+		cleanHeaderName := filepath.Clean(header.Name)
+		path := filepath.Join(dst, cleanHeaderName)
+		absDst, err := filepath.Abs(dst)
+		if err != nil {
+			return errors.Wrap(err, "failed to resolve destination path")
+		}
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return errors.Wrap(err, "failed to resolve target extract path")
+		}
+		// Ensure absPath is inside absDst (add trailing separator to avoid partial matches).
+		absDstWithSep := absDst
+		if !strings.HasSuffix(absDstWithSep, string(os.PathSeparator)) {
+			absDstWithSep += string(os.PathSeparator)
+		}
+		if !(absPath == absDst || strings.HasPrefix(absPath, absDstWithSep)) {
+			return errors.Errorf("tar entry path escapes destination: %s", header.Name)
 		}
 
 		switch header.Typeflag {
