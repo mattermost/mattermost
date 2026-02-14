@@ -575,7 +575,7 @@ export default class SwitchChannelProvider extends Provider {
     private initialFilteredList(channelPrefix: string, {items, terms}: {items: WrappedChannel[]; terms: string[]}): ProviderResults<WrappedChannel> {
         let groups;
 
-        if (items) {
+        if (items && items.length > 0) {
             groups = [{
                 key: 'channels',
                 label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
@@ -586,7 +586,7 @@ export default class SwitchChannelProvider extends Provider {
         } else {
             groups = [{
                 key: 'moreChannels',
-                label: defineMessage({id: 'suggestion.mention.morechannels', defaultMessage: 'Other Channels'}),
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
                 items: [{type: '', loading: true}],
                 terms: [''],
                 component: ConnectedSwitchChannelSuggestion,
@@ -655,9 +655,13 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: channelPrefix,
-            items: combinedItems,
-            terms: combinedTerms,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: combinedItems,
+                terms: combinedTerms,
+                component: ConnectedSwitchChannelSuggestion,
+            }],
         });
     }
 
