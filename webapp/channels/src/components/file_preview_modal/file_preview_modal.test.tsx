@@ -8,7 +8,6 @@ import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
 import {act, render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
 import {generateId} from 'utils/utils';
 
 jest.mock('react-bootstrap', () => {
@@ -234,17 +233,6 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should handle external image URLs correctly', () => {
-        // Create a mock for Utils.loadImage
-        const loadImageSpy = jest.spyOn(Utils, 'loadImage').mockImplementation((url, onLoad) => {
-            // Create a mock ProgressEvent
-            const mockProgressEvent = new ProgressEvent('progress');
-
-            // Call onLoad with the mock event if it exists
-            if (onLoad) {
-                onLoad.call({} as XMLHttpRequest, mockProgressEvent);
-            }
-        });
-
         // Create a LinkInfo object for an external image URL
         const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
         const fileInfos = [
@@ -266,18 +254,8 @@ describe('components/FilePreviewModal', () => {
             ref.current?.loadImage(0);
         });
 
-        // Verify that Utils.loadImage was called with the correct URL
-        expect(loadImageSpy).toHaveBeenCalledWith(
-            externalImageUrl,
-            expect.any(Function),
-            expect.any(Function),
-        );
-
         // Verify that handleImageLoaded was called
         expect(handleImageLoadedSpy).toHaveBeenCalled();
-
-        // Restore the original loadImage function
-        loadImageSpy.mockRestore();
     });
 
     test('should have called loadImage', () => {
@@ -400,4 +378,24 @@ describe('components/FilePreviewModal', () => {
         const {container} = renderModal(props);
         expect(container).toMatchSnapshot();
     });
+
+    test('should be marked as loaded immediately to avoid infinite loading of external images', () => {
+
+        const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
+        
+        const fileInfos = [{
+            has_preview_image: false,
+            link: externalImageUrl,
+            extension: '',
+            name: 'External Image',
+        }];
+
+        const props = {...baseProps, fileInfos};
+        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+
+        wrapper.instance().loadImage(0);
+
+        expect(wrapper.state('loaded')[0]).toBe(true);
+    });
+
 });
