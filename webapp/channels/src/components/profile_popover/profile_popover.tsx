@@ -187,6 +187,7 @@ const ProfilePopover = ({
                     email={Utils.getEmail(user)}
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
+                    userId={user.id}
                 />
                 {pluginItemsVisible && (
                     <div className='user-profile-popover-pluggables'>
@@ -200,17 +201,6 @@ const ProfilePopover = ({
                     </div>
                 )}
 
-                {enableCustomProfileAttributes && !user.is_bot && (
-                    <ProfilePopoverCustomAttributes
-                        userID={userId}
-                        hideStatus={hideStatus}
-                    />
-                )}
-                <ProfilePopoverTimezone
-                    currentUserTimezone={currentUserTimezone}
-                    profileUserTimezone={user.timezone}
-                    haveOverrideProp={haveOverrideProp}
-                />
                 <ProfilePopoverCustomStatus
                     currentUserId={currentUserId}
                     currentUserTimezone={currentUserTimezone}
@@ -220,6 +210,19 @@ const ProfilePopover = ({
                     returnFocus={handleReturnFocus}
                     hide={hide}
                 />
+
+                <ProfilePopoverTimezone
+                    currentUserTimezone={currentUserTimezone}
+                    profileUserTimezone={user.timezone}
+                    haveOverrideProp={haveOverrideProp}
+                />
+
+                {enableCustomProfileAttributes && !user.is_bot && (
+                    <ProfilePopoverCustomAttributes
+                        userID={userId}
+                        hideStatus={hideStatus}
+                    />
+                )}
             </div>
             <div className='user-profile-popover-bottom-row'>
                 <hr className='user-popover__bottom-row-hr'/>
