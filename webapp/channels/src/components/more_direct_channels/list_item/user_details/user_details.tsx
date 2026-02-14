@@ -26,7 +26,7 @@ type Props = {
     option: UserProfile;
     status: string;
     actions: {
-        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
+        fetchRemoteClusterInfo: (remoteId: string, includeDeleted?: boolean, forceRefresh?: boolean) => void;
     };
 };
 
@@ -40,7 +40,7 @@ export default function UserDetails(props: Props): JSX.Element {
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
         if (option.remote_id) {
-            actions.fetchRemoteClusterInfo(option.remote_id);
+            actions.fetchRemoteClusterInfo(option.remote_id, true);
         }
     }, [option.remote_id]);
 
