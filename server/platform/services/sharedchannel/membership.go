@@ -36,6 +36,13 @@ func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool,
 		return
 	}
 
+	// Post debug message
+	action := "remove"
+	if isAdd {
+		action = "add"
+	}
+	scs.postDebugMessage(channelID, fmt.Sprintf("HandleMembershipChange: %s user %s (initiated by remote: %s)", action, userID, remoteID))
+
 	// Create timestamp for consistent usage
 	changeTime := model.GetMillis()
 
@@ -65,6 +72,13 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 	if len(userIDs) == 0 {
 		return
 	}
+
+	// Post debug message
+	action := "remove"
+	if isAdd {
+		action = "add"
+	}
+	scs.postDebugMessage(channelID, fmt.Sprintf("HandleMembershipBatchChange: batch %s %d users (initiated by remote: %s)", action, len(userIDs), remoteID))
 
 	// Create timestamp for consistent usage
 	changeTime := model.GetMillis()
@@ -276,10 +290,14 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 		initiatingRemoteId = syncMsg.MembershipChanges[0].RemoteId
 	}
 
+	// Post debug message about sync
+	scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("syncMembershipBatchToRemotes: syncing %d membership changes to %d remotes (excluding initiator: %s)", len(syncMsg.MembershipChanges), len(remotes), initiatingRemoteId))
+
 	// Send to all remotes except the one that initiated this change
 	for _, remote := range remotes {
 		// Skip the remote that initiated this change to prevent loops
 		if remote.RemoteId == initiatingRemoteId {
+			scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("syncMembershipBatchToRemotes: skipping initiating remote %s to prevent sync loops", remote.RemoteId))
 			continue
 		}
 
@@ -348,6 +366,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 		// Define a callback function
 		callback := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 			if err != nil {
+				scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("syncMembershipBatchToRemotes: FAILED to sync %d changes to remote %s - %s", len(syncMsg.MembershipChanges), remote.RemoteId, err.Error()))
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending batch membership changes to remote",
 					mlog.String("remote", remote.RemoteId),
 					mlog.String("channel_id", syncMsg.ChannelId),
@@ -358,6 +377,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 			}
 
 			if resp != nil && resp.Err != "" {
+				scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("syncMembershipBatchToRemotes: Remote %s error processing %d changes - %s", remote.RemoteId, len(syncMsg.MembershipChanges), resp.Err))
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Remote error when processing batch membership changes",
 					mlog.String("remote", remote.RemoteId),
 					mlog.String("channel_id", syncMsg.ChannelId),
@@ -365,6 +385,9 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 				)
 				return
 			}
+
+			// Success case
+			scs.postDebugMessage(syncMsg.ChannelId, fmt.Sprintf("syncMembershipBatchToRemotes: Successfully synced %d changes to remote %s", len(syncMsg.MembershipChanges), remote.RemoteId))
 
 			// Update sync timestamps
 			for _, change := range syncMsg.MembershipChanges {
