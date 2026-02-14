@@ -1938,17 +1938,21 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 	}
 
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
-		// if user being updated is SysAdmin, make sure its not the last one.
-		options := model.UserCountOptions{
-			IncludeBotAccounts: false,
-			Roles:              []string{model.SystemAdminRoleId},
-		}
-		count, err := a.Srv().Store().User().Count(options)
-		if err != nil {
-			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
-		if count <= 1 {
-			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+		// Bots should never be considered as the "last admin" since a human admin must exist to perform the demotion.
+		// Skip the last admin check for bots.
+		if !user.IsBot {
+			// if user being updated is SysAdmin, make sure its not the last one.
+			options := model.UserCountOptions{
+				IncludeBotAccounts: false,
+				Roles:              []string{model.SystemAdminRoleId},
+			}
+			count, err := a.Srv().Store().User().Count(options)
+			if err != nil {
+				return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
+			if count <= 1 {
+				return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 
