@@ -762,6 +762,22 @@ func (mr *MockClientMockRecorder) GetChannelByNameIncludeDeleted(arg0, arg1, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelByNameIncludeDeleted", reflect.TypeOf((*MockClient)(nil).GetChannelByNameIncludeDeleted), arg0, arg1, arg2, arg3)
 }
 
+// GetChannelMember mocks base method.
+func (m *MockClient) GetChannelMember(arg0 context.Context, arg1, arg2, arg3 string) (*model.ChannelMember, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChannelMember", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.ChannelMember)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetChannelMember indicates an expected call of GetChannelMember.
+func (mr *MockClientMockRecorder) GetChannelMember(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelMember", reflect.TypeOf((*MockClient)(nil).GetChannelMember), arg0, arg1, arg2, arg3)
+}
+
 // GetChannelMembers mocks base method.
 func (m *MockClient) GetChannelMembers(arg0 context.Context, arg1 string, arg2, arg3 int, arg4 string) (model.ChannelMembers, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2276,6 +2292,21 @@ func (m *MockClient) SyncLdap(arg0 context.Context) (*model.Response, error) {
 func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0)
+}
+
+// UpdateChannelMemberSchemeRoles mocks base method.
+func (m *MockClient) UpdateChannelMemberSchemeRoles(arg0 context.Context, arg1, arg2 string, arg3 *model.SchemeRoles) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateChannelMemberSchemeRoles", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateChannelMemberSchemeRoles indicates an expected call of UpdateChannelMemberSchemeRoles.
+func (mr *MockClientMockRecorder) UpdateChannelMemberSchemeRoles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChannelMemberSchemeRoles", reflect.TypeOf((*MockClient)(nil).UpdateChannelMemberSchemeRoles), arg0, arg1, arg2, arg3)
 }
 
 // UpdateChannelPrivacy mocks base method.

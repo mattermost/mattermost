@@ -25,6 +25,8 @@ func (api *API) InitChannelLocal() {
 
 	api.BaseRoutes.ChannelMember.Handle("", api.APILocal(localRemoveChannelMember)).Methods(http.MethodDelete)
 	api.BaseRoutes.ChannelMember.Handle("", api.APILocal(getChannelMember)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.APILocal(updateChannelMemberSchemeRoles)).Methods(http.MethodPut)
+
 	api.BaseRoutes.ChannelMembers.Handle("", api.APILocal(localAddChannelMember)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelMembers.Handle("", api.APILocal(getChannelMembers)).Methods(http.MethodGet)
 
