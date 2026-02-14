@@ -181,6 +181,30 @@ func NewErrAutoTranslationNotAvailable(reason string) *ErrAutoTranslationNotAvai
 	return &ErrAutoTranslationNotAvailable{reason: reason}
 }
 
+// ErrAutoTranslationSystemPost is returned when a system-generated post
+// (e.g., "user joined the channel") is passed for translation.
+type ErrAutoTranslationSystemPost struct{}
+
+func (e *ErrAutoTranslationSystemPost) Error() string {
+	return "auto-translation skipped: system post"
+}
+
+func NewErrAutoTranslationSystemPost() *ErrAutoTranslationSystemPost {
+	return &ErrAutoTranslationSystemPost{}
+}
+
+// ErrAutoTranslationUserNotEnabled is returned when the requesting user
+// has not opted in to auto-translation for the channel.
+type ErrAutoTranslationUserNotEnabled struct{}
+
+func (e *ErrAutoTranslationUserNotEnabled) Error() string {
+	return "auto-translation skipped: user not enabled"
+}
+
+func NewErrAutoTranslationUserNotEnabled() *ErrAutoTranslationUserNotEnabled {
+	return &ErrAutoTranslationUserNotEnabled{}
+}
+
 // AutoTranslationPath represents the code path that initiated a translation.
 // This enables observability (metrics) and path-specific behavior (timeouts).
 type AutoTranslationPath string
