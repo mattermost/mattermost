@@ -13,7 +13,7 @@ import type {
 } from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ContentFlaggingTypes} from 'mattermost-redux/action_types';
+import {ContentFlaggingTypes, UserTypes} from 'mattermost-redux/action_types';
 
 function settings(state: ContentFlaggingState['settings'] = {} as ContentFlaggingConfig, action: MMReduxAction) {
     switch (action.type) {
@@ -23,6 +23,8 @@ function settings(state: ContentFlaggingState['settings'] = {} as ContentFlaggin
             ...action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -36,6 +38,8 @@ function fields(state: ContentFlaggingState['fields'] = {} as NameMappedProperty
             ...action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -67,6 +71,53 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
             [postId]: Object.values(valuesByFieldId),
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_FLAGGED_POST: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function channels(state: ContentFlaggingState['channels'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_CHANNEL: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function teams(state: ContentFlaggingState['teams'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_TEAM: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -76,4 +127,7 @@ export default combineReducers({
     settings,
     fields,
     postValues,
+    flaggedPosts,
+    channels,
+    teams,
 });

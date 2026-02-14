@@ -19,10 +19,10 @@ import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer
 import './properties_card_view.scss';
 
 export type PostPreviewFieldMetadata = {
-    getPost?: (postId: string) => Promise<Post>;
+    post?: Post;
     fetchDeletedPost?: boolean;
-    getChannel?: (channelId: string) => Promise<Channel>;
-    getTeam?: (teamId: string) => Promise<Team>;
+    channel?: Channel;
+    team?: Team;
     generateFileDownloadUrl?: (fileId: string) => string;
 };
 
@@ -36,11 +36,11 @@ export type TextFieldMetadata = {
 };
 
 export type ChannelFieldMetadata = {
-    getChannel?: (channelId: string) => Promise<Channel>;
+    channel?: Channel;
 };
 
 export type TeamFieldMetadata = {
-    getTeam?: (teamId: string) => Promise<Team>;
+    team?: Team;
 };
 
 export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserPropertyMetadata | ChannelFieldMetadata | TeamFieldMetadata;

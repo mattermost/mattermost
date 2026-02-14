@@ -160,6 +160,66 @@ describe('BackgroundDataLoader', () => {
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
     });
+
+    test('should dedupe object identifiers using custom comparator', () => {
+        type ObjectIdentifier = {id: string; extra?: string};
+        const fetchBatch = jest.fn();
+        const comparator = (a: ObjectIdentifier, b: ObjectIdentifier) => a.id === b.id;
+
+        const objectLoader = new BackgroundDataLoader<ObjectIdentifier>({
+            fetchBatch,
+            maxBatchSize: 10,
+            comparator,
+        });
+
+        objectLoader.startIntervalIfNeeded(period);
+
+        // Queue objects with the same id but different references
+        objectLoader.queue([{id: 'obj1', extra: 'a'}]);
+        objectLoader.queue([{id: 'obj1', extra: 'b'}]); // Should be deduped
+        objectLoader.queue([{id: 'obj2'}]);
+        objectLoader.queue([{id: 'obj2', extra: 'c'}]); // Should be deduped
+
+        jest.advanceTimersToNextTimer();
+
+        expect(fetchBatch).toHaveBeenCalledTimes(1);
+        expect(fetchBatch).toHaveBeenCalledWith([
+            {id: 'obj1', extra: 'a'},
+            {id: 'obj2'},
+        ]);
+
+        objectLoader.stopInterval();
+    });
+
+    test('should not dedupe different objects when using custom comparator', () => {
+        type ObjectIdentifier = {id: string; type: string};
+        const fetchBatch = jest.fn();
+        const comparator = (a: ObjectIdentifier, b: ObjectIdentifier) => a.id === b.id && a.type === b.type;
+
+        const objectLoader = new BackgroundDataLoader<ObjectIdentifier>({
+            fetchBatch,
+            maxBatchSize: 10,
+            comparator,
+        });
+
+        objectLoader.startIntervalIfNeeded(period);
+
+        // Queue objects with different ids or types
+        objectLoader.queue([{id: 'obj1', type: 'channel'}]);
+        objectLoader.queue([{id: 'obj1', type: 'team'}]); // Different type, should not be deduped
+        objectLoader.queue([{id: 'obj2', type: 'channel'}]);
+
+        jest.advanceTimersToNextTimer();
+
+        expect(fetchBatch).toHaveBeenCalledTimes(1);
+        expect(fetchBatch).toHaveBeenCalledWith([
+            {id: 'obj1', type: 'channel'},
+            {id: 'obj1', type: 'team'},
+            {id: 'obj2', type: 'channel'},
+        ]);
+
+        objectLoader.stopInterval();
+    });
 });
 
 describe('DelayedDataLoader', () => {
@@ -525,5 +585,86 @@ describe('DelayedDataLoader', () => {
         expect(thirdResolved).toBe(true);
         expect(fourthResolved).toBe(true);
         expect(fifthResolved).toBe(true);
+    });
+
+    test('should dedupe object identifiers using custom comparator', () => {
+        type ObjectIdentifier = {id: string; extra?: string};
+        const fetchBatch = jest.fn(() => Promise.resolve());
+        const comparator = (a: ObjectIdentifier, b: ObjectIdentifier) => a.id === b.id;
+
+        const objectLoader = new DelayedDataLoader<ObjectIdentifier>({
+            fetchBatch,
+            maxBatchSize: 10,
+            wait,
+            comparator,
+        });
+
+        // Queue objects with the same id but different references
+        objectLoader.queue([{id: 'obj1', extra: 'a'}]);
+        objectLoader.queue([{id: 'obj1', extra: 'b'}]); // Should be deduped
+        objectLoader.queue([{id: 'obj2'}]);
+        objectLoader.queue([{id: 'obj2', extra: 'c'}]); // Should be deduped
+
+        jest.advanceTimersToNextTimer();
+
+        expect(fetchBatch).toHaveBeenCalledTimes(1);
+        expect(fetchBatch).toHaveBeenCalledWith([
+            {id: 'obj1', extra: 'a'},
+            {id: 'obj2'},
+        ]);
+    });
+
+    test('should not dedupe different objects when using custom comparator', () => {
+        type ObjectIdentifier = {id: string; type: string};
+        const fetchBatch = jest.fn(() => Promise.resolve());
+        const comparator = (a: ObjectIdentifier, b: ObjectIdentifier) => a.id === b.id && a.type === b.type;
+
+        const objectLoader = new DelayedDataLoader<ObjectIdentifier>({
+            fetchBatch,
+            maxBatchSize: 10,
+            wait,
+            comparator,
+        });
+
+        // Queue objects with different ids or types
+        objectLoader.queue([{id: 'obj1', type: 'channel'}]);
+        objectLoader.queue([{id: 'obj1', type: 'team'}]); // Different type, should not be deduped
+        objectLoader.queue([{id: 'obj2', type: 'channel'}]);
+
+        jest.advanceTimersToNextTimer();
+
+        expect(fetchBatch).toHaveBeenCalledTimes(1);
+        expect(fetchBatch).toHaveBeenCalledWith([
+            {id: 'obj1', type: 'channel'},
+            {id: 'obj1', type: 'team'},
+            {id: 'obj2', type: 'channel'},
+        ]);
+    });
+
+    test('should dedupe across multiple queue calls using custom comparator', () => {
+        type ObjectIdentifier = {channelId: string; flaggedPostId?: string};
+        const fetchBatch = jest.fn(() => Promise.resolve());
+        const comparator = (a: ObjectIdentifier, b: ObjectIdentifier) => a.channelId === b.channelId;
+
+        const objectLoader = new DelayedDataLoader<ObjectIdentifier>({
+            fetchBatch,
+            maxBatchSize: 10,
+            wait,
+            comparator,
+        });
+
+        // Simulate real-world usage pattern from content flagging
+        objectLoader.queue([{channelId: 'ch1', flaggedPostId: 'post1'}]);
+        objectLoader.queue([{channelId: 'ch1', flaggedPostId: 'post2'}]); // Same channel, should be deduped
+        objectLoader.queue([{channelId: 'ch2', flaggedPostId: 'post3'}]);
+        objectLoader.queue([{channelId: 'ch1'}]); // Same channel, should be deduped
+
+        jest.advanceTimersToNextTimer();
+
+        expect(fetchBatch).toHaveBeenCalledTimes(1);
+        expect(fetchBatch).toHaveBeenCalledWith([
+            {channelId: 'ch1', flaggedPostId: 'post1'},
+            {channelId: 'ch2', flaggedPostId: 'post3'},
+        ]);
     });
 });

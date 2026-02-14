@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from './channels';
 import type {Post} from './posts';
 import type {
     NameMappedPropertyFields,
     PropertyValue,
 } from './properties';
+import type {Team} from './teams';
 
 export type ContentFlaggingEvent = 'flagged' | 'assigned' | 'removed' | 'dismissed';
 
@@ -22,9 +24,10 @@ export type ContentFlaggingConfig = {
 export type ContentFlaggingState = {
     settings?: ContentFlaggingConfig;
     fields?: NameMappedPropertyFields;
-    postValues?: {
-        [key: Post['id']]: Array<PropertyValue<unknown>>;
-    };
+    postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
+    flaggedPosts?: {[key: Post['id']]: Post};
+    channels?: {[key: Channel['id']]: Channel};
+    teams?: {[key: Team['id']]: Team};
 };
 
 export enum ContentFlaggingStatus {
