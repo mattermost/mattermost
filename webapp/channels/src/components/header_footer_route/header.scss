@@ -73,6 +73,11 @@
         padding: 0 0 0 40px;
         background: none;
 
+        // Prevent signup route banner offset from moving this absolutely-positioned button.
+        body.announcement-bar--fixed & {
+            top: auto;
+        }
+
         a {
             @include mixins.link;
         }
