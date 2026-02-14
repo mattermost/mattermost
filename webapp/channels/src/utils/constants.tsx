@@ -2024,6 +2024,7 @@ export const Constants = {
     MENTION_PRIVATE_CHANNELS: 'mention.private.channels',
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
     MENTION_GROUPS: 'search.group',
+    DEFAULT_NOTIFICATION_DURATION: 5000,
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
