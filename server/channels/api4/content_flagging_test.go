@@ -33,7 +33,7 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 }
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -65,6 +65,116 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, status)
+	})
+
+	t.Run("Should successfully return configuration without team_id for any authenticated user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		config, resp, err := client.GetFlaggingConfiguration(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, config)
+		require.NotNil(t, config.Reasons)
+		require.NotNil(t, config.ReporterCommentRequired)
+		require.NotNil(t, config.ReviewerCommentRequired)
+		// Reviewer-only fields should be nil when not requesting as a reviewer
+		require.Nil(t, config.NotifyReporterOnRemoval)
+		require.Nil(t, config.NotifyReporterOnDismissal)
+	})
+
+	t.Run("Should return 403 when team_id is provided but user is not a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{},
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		flagConfig, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Nil(t, flagConfig)
+	})
+
+	t.Run("Should successfully return configuration with reviewer fields when user is a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		config, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, config)
+		require.NotNil(t, config.Reasons)
+		require.NotNil(t, config.ReporterCommentRequired)
+		require.NotNil(t, config.ReviewerCommentRequired)
+		// Reviewer-only fields should be present when requesting as a reviewer
+		require.NotNil(t, config.NotifyReporterOnRemoval)
+		require.NotNil(t, config.NotifyReporterOnDismissal)
+	})
+
+	t.Run("Should successfully return configuration with reviewer fields when user is a team reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{th.BasicUser.Id},
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		flagConfig, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, flagConfig)
+		require.NotNil(t, flagConfig.Reasons)
+		require.NotNil(t, flagConfig.ReporterCommentRequired)
+		require.NotNil(t, flagConfig.ReviewerCommentRequired)
+		// Reviewer-only fields should be present when requesting as a team reviewer
+		require.NotNil(t, flagConfig.NotifyReporterOnRemoval)
+		require.NotNil(t, flagConfig.NotifyReporterOnDismissal)
 	})
 }
 
@@ -995,5 +1105,601 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, reviewerUser.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func TestRemoveFlaggedPost(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	client := th.Client
+
+	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), model.NewId(), actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("Should return 403 when user is not a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{}, // Empty list - user is not a reviewer
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("Should return 400 when comment is required but not provided", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+				AdditionalSettings: &model.AdditionalContentFlaggingSettings{
+					ReviewerCommentRequired: model.NewPointer(true),
+				},
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{th.BasicUser.Id},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Try to remove without comment
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "", // Empty comment when required
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Should successfully remove flagged post when all conditions are met", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Now remove the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post due to policy violation",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Verify the post was deleted
+		_, resp, err = client.GetPost(context.Background(), post.Id, "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("Should successfully remove flagged post when user is team reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{th.BasicUser.Id},
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Now remove the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post due to policy violation",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Should remove file attachments and edit history when removing flagged post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		// Upload a file to attach to the post
+		data, err2 := testutils.ReadTestFile("test.png")
+		require.NoError(t, err2)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// Create a post with file attachment
+		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, fileInfo)
+
+		// Verify file info exists for the post
+		fileInfos, err2 := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
+		require.NoError(t, err2)
+		require.Len(t, fileInfos, 1)
+		require.Equal(t, fileInfo.Id, fileInfos[0].Id)
+
+		// Update the post to create edit history
+		post.Message = "Updated message to create edit history"
+		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+		require.NotNil(t, updatedPost)
+		require.Equal(t, "Updated message to create edit history", updatedPost.Message)
+
+		// Verify edit history exists
+		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, editHistory)
+		editHistoryPostId := editHistory[0].Id
+
+		// Flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content with file attachment",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Remove the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post due to policy violation",
+		}
+
+		resp, err := client.RemoveFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Verify file attachments are removed from database
+		fileInfosAfter, err2 := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, err2)
+		require.Empty(t, fileInfosAfter, "File attachments should be removed from database after removing flagged post")
+
+		// Verify edit history posts are removed from database
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode, "Edit history should be removed from database after removing flagged post")
+		require.Empty(t, editHistoryAfter)
+
+		// Verify the edit history post is also permanently deleted
+		_, err2 = th.App.Srv().Store().Post().GetSingle(th.Context, editHistoryPostId, true)
+		require.Error(t, err2, "Edit history post should be permanently deleted")
+	})
+}
+
+func TestKeepFlaggedPost(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	client := th.Client
+
+	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), model.NewId(), actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("Should return 403 when user is not a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{}, // Empty list - user is not a reviewer
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("Should return 400 when comment is required but not provided", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+				AdditionalSettings: &model.AdditionalContentFlaggingSettings{
+					ReviewerCommentRequired: model.NewPointer(true),
+				},
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{th.BasicUser.Id},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Try to keep without comment
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "", // Empty comment when required
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Should successfully keep flagged post when all conditions are met", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Now keep the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post after review",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Verify the post still exists
+		fetchedPost, resp, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, post.Id, fetchedPost.Id)
+	})
+
+	t.Run("Should successfully keep flagged post when user is team reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{th.BasicUser.Id},
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Now keep the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post after review",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Should preserve file attachments and edit history when keeping flagged post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		// Upload a file to attach to the post
+		data, err2 := testutils.ReadTestFile("test.png")
+		require.NoError(t, err2)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// Create a post with file attachment
+		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, fileInfo)
+
+		// Verify file info exists for the post
+		fileInfos, err2 := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
+		require.NoError(t, err2)
+		require.Len(t, fileInfos, 1)
+		require.Equal(t, fileInfo.Id, fileInfos[0].Id)
+
+		// Update the post to create edit history
+		post.Message = "Updated message to create edit history"
+		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+		require.NotNil(t, updatedPost)
+		require.Equal(t, "Updated message to create edit history", updatedPost.Message)
+
+		// Verify edit history exists
+		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, editHistory)
+		editHistoryPostId := editHistory[0].Id
+
+		// Flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content with file attachment",
+		}
+		flagResp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, flagResp.StatusCode)
+
+		// Keep the flagged post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post after review - content is acceptable",
+		}
+
+		resp, err := client.KeepFlaggedPost(context.Background(), post.Id, actionRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Verify file attachments are still present in database
+		fileInfosAfter, err2 := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
+		require.NoError(t, err2)
+		require.Len(t, fileInfosAfter, 1, "File attachments should be preserved after keeping flagged post")
+		require.Equal(t, fileInfo.Id, fileInfosAfter[0].Id)
+
+		// Verify edit history is still present in database
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr, "Edit history should be preserved after keeping flagged post")
+		require.NotEmpty(t, editHistoryAfter)
+		require.Equal(t, editHistoryPostId, editHistoryAfter[0].Id)
+
+		// Verify the post still exists and is accessible
+		fetchedPost, resp, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, post.Id, fetchedPost.Id)
 	})
 }
