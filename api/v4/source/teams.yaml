@@ -31,7 +31,7 @@
         required: true
       responses:
         "201":
-          description: Team creation successful
+          description: Team created successfully
           content:
             application/json:
               schema:
@@ -87,7 +87,7 @@
             __Minimum server version__: 5.35
       responses:
         "200":
-          description: Team list retrieval successful
+          description: Team list retrieved successfully
           content:
             application/json:
               schema:
@@ -117,7 +117,7 @@
             type: string
       responses:
         "200":
-          description: Team retrieval successful
+          description: Team retrieved successfully
           content:
             application/json:
               schema:
@@ -182,7 +182,7 @@
         required: true
       responses:
         "200":
-          description: Team update successful
+          description: Team updated successfully
           content:
             application/json:
               schema:
@@ -228,7 +228,7 @@
             default: false
       responses:
         "200":
-          description: Team deletion successful
+          description: Team deleted successfully
           content:
             application/json:
               schema:
@@ -282,7 +282,7 @@
         required: true
       responses:
         "200":
-          description: team patch successful
+          description: team patched successfully
           content:
             application/json:
               schema:
@@ -332,7 +332,7 @@
         required: true
       responses:
         "200":
-          description: Team conversion successful
+          description: Team converted successfully
           content:
             application/json:
               schema:
@@ -367,7 +367,7 @@
             type: string
       responses:
         "200":
-          description: Team restore successful
+          description: Team restored successfully
           content:
             application/json:
               schema:
@@ -399,7 +399,7 @@
             type: string
       responses:
         "200":
-          description: Team retrieval successful
+          description: Team retrieved successfully
           content:
             application/json:
               schema:
@@ -518,7 +518,7 @@
             type: string
       responses:
         "200":
-          description: Team retrieval successful
+          description: Team retrieved successfully
           content:
             application/json:
               schema:
@@ -550,7 +550,7 @@
             type: string
       responses:
         "200":
-          description: Team list retrieval successful
+          description: Team list retrieved successfully
           content:
             application/json:
               schema:
@@ -609,7 +609,7 @@
             default: false
       responses:
         "200":
-          description: Team members retrieval successful
+          description: Team members retrieved successfully
           content:
             application/json:
               schema:
@@ -655,7 +655,7 @@
         required: true
       responses:
         "201":
-          description: Team member creation successful
+          description: Team member created successfully
           content:
             application/json:
               schema:
@@ -690,7 +690,7 @@
             type: string
       responses:
         "201":
-          description: Team member creation successful
+          description: Team member created successfully
           content:
             application/json:
               schema:
@@ -778,7 +778,7 @@
             type: string
       responses:
         "200":
-          description: Team members retrieval successful
+          description: Team members retrieved successfully
           content:
             application/json:
               schema:
@@ -818,7 +818,7 @@
             type: string
       responses:
         "200":
-          description: Team member retrieval successful
+          description: Team member retrieved successfully
           content:
             application/json:
               schema:
@@ -858,7 +858,7 @@
             type: string
       responses:
         "200":
-          description: Team member deletion successful
+          description: Team member deleted successfully
           content:
             application/json:
               schema:
@@ -899,7 +899,7 @@
         required: true
       responses:
         "200":
-          description: Team members retrieval successful
+          description: Team members retrieved successfully
           content:
             application/json:
               schema:
@@ -931,7 +931,7 @@
             type: string
       responses:
         "200":
-          description: Team stats retrieval successful
+          description: Team stats retrieved successfully
           content:
             application/json:
               schema:
@@ -1001,7 +1001,7 @@
             type: string
       responses:
         "200":
-          description: Team icon retrieval successful
+          description: Team icon retrieved successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1081,7 +1081,7 @@
             type: string
       responses:
         "200":
-          description: Team icon successfully remove
+          description: Team icon successfully removed
           content:
             application/json:
               schema:
@@ -1137,7 +1137,7 @@
         required: true
       responses:
         "200":
-          description: Team member roles update successful
+          description: Team member roles updated successfully
           content:
             application/json:
               schema:
@@ -1247,7 +1247,7 @@
             default: false          
       responses:
         "200":
-          description: Team unreads retrieval successful
+          description: Team unreads retrieved successfully
           content:
             application/json:
               schema:
@@ -1288,7 +1288,7 @@
             type: string
       responses:
         "200":
-          description: Team unread count retrieval successful
+          description: Team unread count retrieved successfully
           content:
             application/json:
               schema:
@@ -1331,7 +1331,7 @@
         required: true
       responses:
         "200":
-          description: Users invite successful
+          description: Users invited successfully
           content:
             application/json:
               schema:
@@ -1404,7 +1404,7 @@
         required: true
       responses:
         "200":
-          description: Guests invite successful
+          description: Guests invited successfully
           content:
             application/json:
               schema:
@@ -1525,7 +1525,7 @@
             type: string
       responses:
         "200":
-          description: Team invite info retrieval successful
+          description: Team invite info retrieved successfully
           content:
             application/json:
               schema:
@@ -1580,7 +1580,7 @@
         required: true
       responses:
         "200":
-          description: Update team scheme successful
+          description: Team scheme updated successfully
           content:
             application/json:
               schema:

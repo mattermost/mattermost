@@ -38,7 +38,7 @@
             type: string
       responses:
         "200":
-          description: Job list retrieval successful
+          description: Job list retrieved successfully
           content:
             application/json:
               schema:
@@ -80,7 +80,7 @@
         required: true
       responses:
         "201":
-          description: Job creation successful
+          description: Job created successfully
           content:
             application/json:
               schema:
@@ -111,7 +111,7 @@
             type: string
       responses:
         "200":
-          description: Job retrieval successful
+          description: Job retrieved successfully
           content:
             application/json:
               schema:
@@ -220,7 +220,7 @@
             default: 60
       responses:
         "200":
-          description: Job list retrieval successful
+          description: Job list retrieved successfully
           content:
             application/json:
               schema:

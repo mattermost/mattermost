@@ -77,7 +77,7 @@
       parameters:
         - name: includeDirectChannels
           in: query
-          description: Whether to include scheduled posts from DMs an GMs or not. Default is false
+          description: Whether to include scheduled posts from DMs and GMs or not. Default is false
           required: false
           schema:
             type: boolean

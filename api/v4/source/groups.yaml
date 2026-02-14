@@ -72,7 +72,7 @@
             default: false
       responses:
         "200":
-          description: Group list retrieval successful
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:
@@ -139,7 +139,7 @@
         "400":
           $ref: "#/components/responses/BadRequest"
         "201":
-          description: Group creation and memberships successful.
+          description: Group and memberships created successfully.
         "403":
           $ref: "#/components/responses/Forbidden"
   "/api/v4/groups/{group_id}":
@@ -164,7 +164,7 @@
             type: string
       responses:
         "200":
-          description: Group retrieval successful
+          description: Group retrieved successfully
           content:
             application/json:
               schema:
@@ -251,7 +251,7 @@
         required: true
       responses:
         "200":
-          description: Group patch successful
+          description: Group patched successfully
           content:
             application/json:
               schema:
@@ -496,7 +496,7 @@
             type: string
       responses:
         "200":
-          description: GroupSyncable object retrieval successful
+          description: GroupSyncable object retrieved successfully
           content:
             application/json:
               schema:
@@ -538,7 +538,7 @@
             type: string
       responses:
         "200":
-          description: GroupSyncable object retrieval successful
+          description: GroupSyncable object retrieved successfully
           content:
             application/json:
               schema:
@@ -574,7 +574,7 @@
             type: string
       responses:
         "200":
-          description: Teams list retrieval successful
+          description: Teams list retrieved successfully
           content:
             application/json:
               schema:
@@ -612,7 +612,7 @@
             type: string
       responses:
         "200":
-          description: Channel list retrieval successful
+          description: Channel list retrieved successfully
           content:
             application/json:
               schema:
@@ -674,7 +674,7 @@
 
       responses:
         "200":
-          description: GroupSyncable patch successful
+          description: GroupSyncable patched successfully
           content:
             application/json:
               schema:
@@ -731,7 +731,7 @@
                     type: boolean
       responses:
         "200":
-          description: GroupSyncable patch successful
+          description: GroupSyncable patched successfully
           content:
             application/json:
               schema:
@@ -778,7 +778,7 @@
             default: 60
       responses:
         "200":
-          description: User list retrieval successful
+          description: User list retrieved successfully
           content:
             application/json:
               schema:
@@ -914,7 +914,7 @@
             type: string
       responses:
         "200":
-          description: Group stats retrieval successful
+          description: Group stats retrieved successfully
           content:
             application/json:
               schema:
@@ -974,7 +974,7 @@
             default: false
       responses:
         "200":
-          description: Group list retrieval successful
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:
@@ -1084,7 +1084,7 @@
             default: false
       responses:
         "200":
-          description: Group list retrieval successful
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:
@@ -1147,7 +1147,7 @@
               default: false
         responses:
           "200":
-            description: Group list retrieval successful
+            description: Group list retrieved successfully
             content:
               application/json:
                 schema:
@@ -1183,7 +1183,7 @@
             type: string
       responses:
         "200":
-          description: Group list retrieval successful
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:
@@ -1218,7 +1218,7 @@
         required: true
       responses:
         "200":
-          description: Group list retrieval successfully
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:

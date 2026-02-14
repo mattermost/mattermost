@@ -56,7 +56,7 @@
           __Minimum server version__: 5.35
       responses:
         "200":
-          description: Channel list retrieval successful
+          description: Channel list retrieved successfully
           content:
             application/json:
               schema:
@@ -113,7 +113,7 @@
         required: true
       responses:
         "201":
-          description: Channel creation successful
+          description: Channel created successfully
           content:
             application/json:
               schema:
@@ -149,7 +149,7 @@
         required: true
       responses:
         "201":
-          description: Direct channel creation successful
+          description: Direct channel created successfully
           content:
             application/json:
               schema:
@@ -186,7 +186,7 @@
         required: true
       responses:
         "201":
-          description: Group channel creation successful
+          description: Group channel created successfully
           content:
             application/json:
               schema:
@@ -380,7 +380,7 @@
         required: true
       responses:
         "200":
-          description: Channels search successful
+          description: Channels search completed successfully
           content:
             application/json:
               schema:
@@ -419,7 +419,7 @@
         required: true
       responses:
         "200":
-          description: Channel list retrieval successful
+          description: Channel list retrieved successfully
           content:
             application/json:
               schema:
@@ -454,7 +454,7 @@
             type: string
       responses:
         "200":
-          description: Timezone retrieval successful
+          description: Timezone retrieved successfully
           content:
             application/json:
               schema:
@@ -486,7 +486,7 @@
             type: string
       responses:
         "200":
-          description: Channel retrieval successful
+          description: Channel retrieved successfully
           content:
             application/json:
               schema:
@@ -545,7 +545,7 @@
         required: true
       responses:
         "200":
-          description: Channel update successful
+          description: Channel updated successfully
           content:
             application/json:
               schema:
@@ -588,7 +588,7 @@
             type: string
       responses:
         "200":
-          description: Channel deletion successful
+          description: Channel deleted successfully
           content:
             application/json:
               schema:
@@ -679,7 +679,7 @@
         required: true
       responses:
         "200":
-          description: Channel patch successful
+          description: Channel patched successfully
           content:
             application/json:
               schema:
@@ -733,7 +733,7 @@
         required: true
       responses:
         "200":
-          description: Channel conversion successful
+          description: Channel converted successfully
           content:
             application/json:
               schema:
@@ -768,7 +768,7 @@
             type: string
       responses:
         "200":
-          description: Channel restore successful
+          description: Channel restored successfully
           content:
             application/json:
               schema:
@@ -816,7 +816,7 @@
         required: true
       responses:
         "200":
-          description: Channel move successful
+          description: Channel moved successfully
           content:
             application/json:
               schema:
@@ -848,7 +848,7 @@
             type: string
       responses:
         "200":
-          description: Channel statistics retrieval successful
+          description: Channel statistics retrieved successfully
           content:
             application/json:
               schema:
@@ -920,7 +920,7 @@
             default: 60
       responses:
         "200":
-          description: Channels retrieval successful
+          description: Channels retrieved successfully
           content:
             application/json:
               schema:
@@ -970,7 +970,7 @@
             default: 60
       responses:
         "200":
-          description: Channels retrieval successful
+          description: Channels retrieved successfully
           content:
             application/json:
               schema:
@@ -1018,7 +1018,7 @@
             default: 60
       responses:
         "200":
-          description: Channels retrieval successful
+          description: Channels retrieved successfully
           content:
             application/json:
               schema:
@@ -1065,7 +1065,7 @@
             type: string
       responses:
         "200":
-          description: Channels autocomplete successful
+          description: Channels autocomplete completed successfully
           content:
             application/json:
               schema:
@@ -1112,7 +1112,7 @@
             type: string
       responses:
         "200":
-          description: Channels autocomplete successful
+          description: Channels autocomplete completed successfully
           content:
             application/json:
               schema:
@@ -1166,7 +1166,7 @@
         required: true
       responses:
         "201":
-          description: Channels search successful
+          description: Channels search completed successfully
           content:
             application/json:
               schema:
@@ -1212,7 +1212,7 @@
             default: false
       responses:
         "200":
-          description: Channel retrieval successful
+          description: Channel retrieved successfully
           content:
             application/json:
               schema:
@@ -1254,7 +1254,7 @@
             default: false
       responses:
         "200":
-          description: Channel retrieval successful
+          description: Channel retrieved successfully
           content:
             application/json:
               schema:
@@ -1296,7 +1296,7 @@
             default: 60
       responses:
         "200":
-          description: Channel members retrieval successful
+          description: Channel members retrieved successfully
           content:
             application/json:
               schema:
@@ -1345,7 +1345,7 @@
         required: true
       responses:
         "201":
-          description: Channel member creation successful
+          description: Channel member created successfully
           content:
             application/json:
               schema:
@@ -1384,7 +1384,7 @@
         required: true
       responses:
         "200":
-          description: Channel member list retrieval successful
+          description: Channel member list retrieved successfully
           content:
             application/json:
               schema:
@@ -1424,7 +1424,7 @@
             type: string
       responses:
         "200":
-          description: Channel member retrieval successful
+          description: Channel member retrieved successfully
           content:
             application/json:
               schema:
@@ -1466,7 +1466,7 @@
             type: string
       responses:
         "200":
-          description: Channel member deletion successful
+          description: Channel member deleted successfully
           content:
             application/json:
               schema:
@@ -1514,7 +1514,7 @@
         required: true
       responses:
         "200":
-          description: Channel roles update successful
+          description: Channel roles updated successfully
           content:
             application/json:
               schema:
@@ -1619,7 +1619,7 @@
         required: true
       responses:
         "200":
-          description: Channel notification properties update successful
+          description: Channel notification properties updated successfully
           content:
             application/json:
               schema:
@@ -1732,7 +1732,7 @@
         required: true
       responses:
         "200":
-          description: Channel view successful
+          description: Channel viewed successfully
           content:
             application/json:
               schema:
@@ -1778,7 +1778,7 @@
             type: string
       responses:
         "200":
-          description: Channel members retrieval successful
+          description: Channel members retrieved successfully
           content:
             application/json:
               schema:
@@ -1830,7 +1830,7 @@
             default: 0
       responses:
         "200":
-          description: Channels retrieval successful
+          description: Channels retrieved successfully
           content:
             application/json:
               schema:
@@ -1880,7 +1880,7 @@
             default: false
       responses:
         "200":
-          description: Channels retrieval successful
+          description: Channels retrieved successfully
           content:
             application/json:
               schema:
@@ -1922,7 +1922,7 @@
             type: string
       responses:
         "200":
-          description: Channel unreads retrieval successful
+          description: Channel unreads retrieved successfully
           content:
             application/json:
               schema:
@@ -1974,7 +1974,7 @@
         required: true
       responses:
         "200":
-          description: Update channel scheme successful
+          description: Channel scheme updated successfully
           content:
             application/json:
               schema:
@@ -2102,7 +2102,7 @@
             type: string
       responses:
         "200":
-          description: "Retreived successfully"
+          description: "Retrieved successfully"
           content:
             application/json:
               schema:
@@ -2188,7 +2188,7 @@
             type: string
       responses:
         "200":
-          description: Category retrieval successful
+          description: Category retrieved successfully
           content:
             application/json:
               schema:
@@ -2237,7 +2237,7 @@
           required: true
       responses:
         "200":
-          description: Category creation successful
+          description: Category created successfully
           content:
             application/json:
               schema:
@@ -2287,7 +2287,7 @@
           required: true
       responses:
         "200":
-          description: Category update successful
+          description: Category updated successfully
           content:
             application/json:
               schema:
@@ -2330,7 +2330,7 @@
             type: string
       responses:
         "200":
-          description: Order retrieval successful
+          description: Order retrieved successfully
           content:
             application/json:
               schema:
@@ -2382,7 +2382,7 @@
           required: true
       responses:
         "200":
-          description: Order update successful
+          description: Order updated successfully
           content:
             application/json:
               schema:
@@ -2432,7 +2432,7 @@
             type: string
       responses:
         "200":
-          description: Category retrieval successful
+          description: Category retrieved successfully
           content:
             application/json:
               schema:
@@ -2485,7 +2485,7 @@
           required: true
       responses:
         "200":
-          description: Category update successful
+          description: Category updated successfully
           content:
             application/json:
               schema:
@@ -2533,7 +2533,7 @@
             type: string
       responses:
         "200":
-          description: Category delete successful
+          description: Category deleted successfully
           content:
             application/json:
               schema:
@@ -2569,7 +2569,7 @@
             type: string
       responses:
         "200":
-          description: Remote clusters retrieval successful
+          description: Remote clusters retrieved successfully
           content:
             application/json:
               schema:
@@ -2608,7 +2608,7 @@
             type: string
       responses:
         "200":
-          description: Common teams retrieval successful
+          description: Common teams retrieved successfully
           content:
             application/json:
               schema:
