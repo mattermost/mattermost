@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 
@@ -163,6 +164,134 @@ func TestPreparePostForClient(t *testing.T) {
 
 		assert.False(t, clientPost == post, "should've returned a new post")
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
+	})
+
+	t.Run("priority read from master when context flag set", func(t *testing.T) {
+		// Verifies priority is read from master DB when master context flag is set
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a real post with priority
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context to ensure we read from master DB
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from master DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
+	t.Run("priority fetched from database when IncludePriority is true", func(t *testing.T) {
+		// Verifies priority is fetched from DB when it exists.
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		clientPost := th.App.PreparePostForClient(th.Context, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
+	t.Run("burn on read post priority read from master", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+
+		// Verifies BoR post priority is correctly fetched when using master context
+		th := setup(t)
+
+		// Enable BoR feature with license and config
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			*cfg.ServiceSettings.EnableBurnOnRead = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a burn-on-read post with priority
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read message with priority",
+			Type:      model.PostTypeBurnOnRead,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		// Clear metadata to simulate websocket broadcast scenario
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context (as processBroadcastHookForBurnOnRead does)
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+			RetainContent:   true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "BoR post priority should be fetched from master DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
 	})
 
 	t.Run("reactions", func(t *testing.T) {

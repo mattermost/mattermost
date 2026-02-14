@@ -1051,6 +1051,7 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postID string) (*model.PostPriority, error)
+	GetForPostWithContext(rctx request.CTX, postID string) (*model.PostPriority, error)
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 	Save(priority *model.PostPriority) (*model.PostPriority, error)
 	Delete(postID string) error

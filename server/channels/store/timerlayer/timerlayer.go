@@ -7538,6 +7538,22 @@ func (s *TimerLayerPostPriorityStore) GetForPost(postID string) (*model.PostPrio
 	return result, err
 }
 
+func (s *TimerLayerPostPriorityStore) GetForPostWithContext(rctx request.CTX, postID string) (*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.GetForPostWithContext(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPostWithContext", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPriority, error) {
 	start := time.Now()
 
