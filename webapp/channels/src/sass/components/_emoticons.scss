@@ -591,6 +591,11 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 }
 
 .emoji-picker__custom {
+    display: none; // MM-62467: remove custom emoji picker for mobile view
+    @media (min-width: 768px) {
+        display: block;
+    }
+
     flex-shrink: 0;
     margin: $emoji-picker-footer-margin;
     text-decoration: none;
