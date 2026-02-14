@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -95,6 +95,21 @@ function PolicyDetails({
     const {formatMessage} = useIntl();
 
     const abacActions = useChannelAccessControlActions();
+
+    // Memoize the custom no options message to avoid recreating it on every render
+    const customNoPrivateChannelsMessage = useMemo(() => (
+        <div
+            key='no-private-channels'
+            className='no-channel-message'
+        >
+            <p className='primary-message'>
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.no_private_channels'
+                    defaultMessage='There are no private channels available to add to this policy.'
+                />
+            </p>
+        </div>
+    ), []);
 
     // Check if there are any usable attributes for ABAC
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
@@ -603,6 +618,7 @@ function PolicyDetails({
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeTypes={['O', 'D', 'G']}
+                    customNoOptionsMessage={customNoPrivateChannelsMessage}
                     excludeGroupConstrained={true}
                 />
             )}

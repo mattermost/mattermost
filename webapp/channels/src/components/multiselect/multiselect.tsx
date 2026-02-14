@@ -562,7 +562,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             </span>
                         </div>
                     )}
-                    {this.props.saveButtonPosition === 'top' &&
+                    {this.props.saveButtonPosition === 'top' && (previousButton || nextButton) &&
                         <div className='filter-controls'>
                             {previousButton}
                             {nextButton}
