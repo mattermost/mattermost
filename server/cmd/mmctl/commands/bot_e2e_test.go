@@ -432,3 +432,112 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Update bot without permission", func() {
+		printer.Clean()
+
+		cmd := newBotUpdateCmd("newbot", "", "")
+		err := cmd.ParseFlags([]string{"--username", "newbot"})
+		s.Require().Nil(err)
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err = botUpdateCmdF(s.th.Client, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update attributes of the bot", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newBotUpdateCmd("newbot", "new-display-name", "new description")
+		err := cmd.ParseFlags([]string{"--username", "newbot", "--display-name", "new-display-name", "--description", "new description"})
+
+		s.Require().Nil(err)
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id, DisplayName: "dispay-name", Description: "description"})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err = botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Nil(err)
+		s.Require().Equal(1, len(printer.GetLines()))
+
+		updatedBot, ok := printer.GetLines()[0].(*model.Bot)
+		s.Require().True(ok)
+		s.Require().Equal("newbot", updatedBot.Username)
+		s.Require().Equal("new-display-name", updatedBot.DisplayName)
+		s.Require().Equal("new description", updatedBot.Description)
+
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update bot with no flags set", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Equal("at least one of --username, --display-name or --description must be set", err.Error())
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update non-existent bot", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newBotUpdateCmd("newbot", "", "")
+		err := cmd.ParseFlags([]string{"--username", "newbot"})
+		s.Require().Nil(err)
+
+		err = botUpdateCmdF(c, cmd, []string{"nonexistent-bot"})
+		s.Require().Error(err)
+		s.Require().Equal("unable to find user 'nonexistent-bot'", err.Error())
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update bot with empty values", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newBotUpdateCmd("", "", "")
+		err := cmd.ParseFlags([]string{"--username", "", "--display-name", "", "--description", ""})
+		s.Require().Nil(err)
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err = botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not update bot")
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
+func newBotUpdateCmd(userName, displayName, description string) *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("username", userName, "")
+	cmd.Flags().String("display-name", displayName, "")
+	cmd.Flags().String("description", description, "")
+	return cmd
+}
