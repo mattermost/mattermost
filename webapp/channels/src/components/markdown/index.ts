@@ -27,7 +27,9 @@ function makeGetChannelNamesMap() {
         (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
-                return Object.assign({}, channelMentions, channelNamesMap);
+                // Prioritize channel mentions from post props (which have correct team context)
+                // over current team channels to fix issue #24454
+                return Object.assign({}, channelNamesMap, channelMentions);
             }
 
             return channelNamesMap;
