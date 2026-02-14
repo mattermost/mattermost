@@ -337,6 +337,13 @@ function PostComponent(props: Props) {
             togglePostMenu(opened);
         }
         setDropdownOpened(opened);
+
+        // Ensure post actions are closed after clicking
+        // on menu item or outside menu to avoid displaying
+        // multiple hovered actions
+        if (!opened) {
+            setHover(false);
+        }
     }, [togglePostMenu]);
 
     const handleMouseOver = useCallback((e: MouseEvent<HTMLDivElement>) => {
