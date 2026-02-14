@@ -555,6 +555,7 @@ components:
                   - message_attachment
                   - opengraph
                   - link
+                  - permalink
               url:
                 type: string
                 description: The URL of the embedded content, if one exists.
