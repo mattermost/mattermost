@@ -3,12 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
-
-import type {Team} from '@mattermost/types/teams';
-
-import {imageURLForTeam} from 'utils/utils';
+import { injectIntl } from 'react-intl';
+import type { IntlShape } from 'react-intl';
 
 import './team_icon.scss';
 
@@ -47,12 +43,11 @@ export class TeamIcon extends React.PureComponent<Props> {
     };
 
     public render() {
-        const {content, url, size, withHover, className} = this.props;
+        const { content, url, size, withHover, className } = this.props;
         const hoverCss = withHover ? '' : 'no-hover';
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        // FIXME Nowhere does imageURLForTeam seem to check for display_name.
-        const teamIconUrl = url || imageURLForTeam({display_name: content} as Team);
+        const teamIconUrl = url;
         let icon;
         if (typeof content === 'string') {
             if (teamIconUrl) {
@@ -68,7 +63,7 @@ export class TeamIcon extends React.PureComponent<Props> {
                                 teamName: content,
                             })
                         }
-                        style={{backgroundImage: `url('${teamIconUrl}')`}}
+                        style={{ backgroundImage: `url('${teamIconUrl}')` }}
                         role={'img'}
                     />
                 );
@@ -95,7 +90,7 @@ export class TeamIcon extends React.PureComponent<Props> {
             icon = content;
         }
         return (
-            <div className={classNames(`TeamIcon TeamIcon__${size}`, {withImage: teamIconUrl}, className, hoverCss)}>
+            <div className={classNames(`TeamIcon TeamIcon__${size}`, { withImage: teamIconUrl }, className, hoverCss)}>
                 <div className={`TeamIcon__content ${hoverCss}`}>
                     {icon}
                 </div>
