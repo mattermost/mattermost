@@ -129,7 +129,10 @@ function ResizableDivider({
             return;
         }
         previousClientX.current = e.clientX;
-        startWidth.current = containerRef.current.getBoundingClientRect().width;
+
+        const currentWidth = containerRef.current.getBoundingClientRect().width;
+        startWidth.current = currentWidth;
+        lastWidth.current = currentWidth;
 
         setIsActive(true);
 
@@ -160,7 +163,24 @@ function ResizableDivider({
 
             e.preventDefault();
 
-            const previousWidth = lastWidth.current ?? 0;
+            // Prevent race condition - if lastWidth is null, recover from container
+            // This can occur when a mousemove event fires after reset() but before cleanup
+            let previousWidth = lastWidth.current;
+            if (previousWidth === null || previousWidth === 0) {
+                const currentWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+                if (currentWidth > 0) {
+                    previousWidth = currentWidth;
+                    lastWidth.current = currentWidth;
+                    previousClientX.current = e.clientX;
+
+                    // Skip this mousemove, start fresh on next one
+                    return;
+                }
+
+                // If we can't determine width, return early to prevent negative width
+                return;
+            }
+
             let widthDiff = 0;
 
             switch (dir) {
