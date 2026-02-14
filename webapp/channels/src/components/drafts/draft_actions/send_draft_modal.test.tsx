@@ -1,13 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import mockStore from 'tests/test_store';
+jest.mock('@mattermost/components', () => ({
+    GenericModal: ({
+        children,
+        handleConfirm,
+        onExited,
+        confirmButtonText,
+        modalHeaderText,
+    }: {
+        children: React.ReactNode;
+        handleConfirm?: () => void;
+        onExited?: () => void;
+        confirmButtonText?: string;
+        modalHeaderText?: string;
+    }) => (
+        <div>
+            <h1>{modalHeaderText}</h1>
+            <div>{children}</div>
+            <button onClick={handleConfirm}>{confirmButtonText || 'Confirm'}</button>
+            <button onClick={onExited}>{'onExited'}</button>
+        </div>
+    ),
+}));
 
 import SendDraftModal from './send_draft_modal';
 
@@ -19,35 +38,33 @@ describe('components/drafts/draft_actions/send_draft_modal', () => {
     };
 
     it('should match snapshot', () => {
-        const store = mockStore();
-
-        const wrapper = shallow(
-            <Provider store={store}>
-                <SendDraftModal
-                    {...baseProps}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <SendDraftModal
+                {...baseProps}
+            />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    it('should have called onConfirm', () => {
-        const wrapper = shallow(
+    it('should have called onConfirm', async () => {
+        const {container} = renderWithContext(
             <SendDraftModal {...baseProps}/>,
         );
 
-        wrapper.find(GenericModal).first().props().handleConfirm!();
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('button', {name: /yes, send now/i}));
         expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    it('should have called onExited', () => {
-        const wrapper = shallow(
+    it('should have called onExited', async () => {
+        const {container} = renderWithContext(
             <SendDraftModal {...baseProps}/>,
         );
 
-        wrapper.find(GenericModal).first().props().onExited?.();
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('button', {name: 'onExited'}));
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

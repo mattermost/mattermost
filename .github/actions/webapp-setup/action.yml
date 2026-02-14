@@ -17,17 +17,9 @@ runs:
           webapp/channels/node_modules
           webapp/platform/client/node_modules
           webapp/platform/components/node_modules
+          webapp/platform/shared/node_modules
           webapp/platform/types/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
-    - name: ci/cache-platform-builds
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-      id: cache-platform-builds
-      with:
-        path: |
-          webapp/platform/types/lib
-          webapp/platform/client/lib
-          webapp/platform/components/dist
-        key: platform-builds-${{ runner.os }}-${{ hashFiles('webapp/platform/types/src/**', 'webapp/platform/client/src/**', 'webapp/platform/components/src/**') }}
     - name: ci/get-node-modules
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       shell: bash
@@ -35,8 +27,10 @@ runs:
       run: |
         make node_modules
     - name: ci/build-platform-packages
-      if: steps.cache-platform-builds.outputs.cache-hit != 'true'
+      # These are built automatically when depenedencies are installed, but they aren't cached properly, so we need to
+      # manually build them when the cache is hit. They aren't worth caching because they have too many dependencies.
+      if: steps.cache-node-modules.outputs.cache-hit == 'true'
       shell: bash
       working-directory: webapp
       run: |
-        npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components
+        npm run postinstall
