@@ -12,11 +12,11 @@ on:
         description: "Test filter arguments (e.g., --grep @smoke)"
         type: string
         required: true
-      timeout_minutes:
-        description: "Job timeout in minutes"
+      workers:
+        description: "Number of parallel shards"
         type: number
         required: false
-        default: 60
+        default: 2
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
@@ -117,9 +117,27 @@ jobs:
           description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: pending
 
+  generate-test-variables:
+    runs-on: ubuntu-24.04
+    outputs:
+      workers: "${{ steps.generate-workers.outputs.workers }}"
+    steps:
+      - name: ci/generate-workers
+        id: generate-workers
+        run: |
+          echo "workers=$(jq -nc '[range(1; ${{ inputs.workers }} + 1)]')" >> $GITHUB_OUTPUT
+
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 20
+    continue-on-error: true
+    needs:
+      - generate-test-variables
+    if: needs.generate-test-variables.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        worker_index: ${{ fromJSON(needs.generate-test-variables.outputs.workers) }}
     defaults:
       run:
         working-directory: e2e-tests
@@ -129,8 +147,10 @@ jobs:
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: playwright
       TEST_FILTER: "${{ inputs.test_filter }}"
+      PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
+      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -157,7 +177,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
@@ -166,8 +186,9 @@ jobs:
   calculate-results:
     runs-on: ubuntu-24.04
     needs:
+      - generate-test-variables
       - run-tests
-    if: always()
+    if: always() && needs.generate-test-variables.result == 'success'
     outputs:
       passed: ${{ steps.calculate.outputs.passed }}
       failed: ${{ steps.calculate.outputs.failed }}
@@ -185,20 +206,41 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: ci/download-results
+      - name: ci/setup-node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/download-shard-results
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
-          path: e2e-tests/playwright/
+          pattern: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
+          path: e2e-tests/playwright/shard-results/
+          merge-multiple: true
+      - name: ci/merge-shard-results
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p results/reporter
+
+          # Merge blob reports using Playwright merge-reports (per docs)
+          npm install --no-save @playwright/test
+          npx playwright merge-reports --config merge.config.mjs ./shard-results/results/blob-report/
       - name: ci/calculate
         id: calculate
         uses: ./.github/actions/calculate-playwright-results
         with:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
+      - name: ci/upload-merged-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
+          path: e2e-tests/playwright/results/
+          retention-days: 5
 
   run-failed-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 20
     needs:
       - run-tests
       - calculate-results
@@ -277,12 +319,12 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
 
-      # Download original results (always needed)
+      # Download merged results (uploaded by calculate-results)
       - name: ci/download-results
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
-          path: e2e-tests/playwright/
+          path: e2e-tests/playwright/results/
 
       # Download retest results (only if retest ran)
       - name: ci/download-retest-results
@@ -317,7 +359,6 @@ jobs:
           TEST_TYPE: "${{ inputs.test_type }}"
         run: |
           LOCAL_RESULTS_PATH="playwright/results/"
-          LOCAL_LOGS_PATH="playwright/logs/"
 
           # Use PR number if available, otherwise use commit SHA prefix
           if [ -n "$PR_NUMBER" ]; then

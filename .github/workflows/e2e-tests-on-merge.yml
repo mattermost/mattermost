@@ -62,7 +62,6 @@ jobs:
     with:
       commit_sha: ${{ inputs.commit_sha }}
       server_image_tag: ${{ inputs.server_image_tag }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
@@ -82,7 +81,6 @@ jobs:
     with:
       commit_sha: ${{ inputs.commit_sha }}
       server_image_tag: ${{ inputs.server_image_tag }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
@@ -101,7 +99,6 @@ jobs:
       commit_sha: ${{ inputs.commit_sha }}
       server_image_tag: ${{ inputs.server_image_tag }}
       server_edition: fips
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
@@ -122,7 +119,6 @@ jobs:
       commit_sha: ${{ inputs.commit_sha }}
       server_image_tag: ${{ inputs.server_image_tag }}
       server_edition: fips
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}

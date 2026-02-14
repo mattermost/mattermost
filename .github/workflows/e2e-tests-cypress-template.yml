@@ -17,11 +17,6 @@ on:
         type: number
         required: false
         default: 1
-      timeout_minutes:
-        description: "Job timeout in minutes"
-        type: number
-        required: false
-        default: 30
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
@@ -172,7 +167,7 @@ jobs:
 
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 20
     continue-on-error: ${{ inputs.workers > 1 }}
     needs:
       - generate-test-cycle
@@ -262,7 +257,7 @@ jobs:
 
   run-failed-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 20
     needs:
       - generate-test-cycle
       - run-tests
