@@ -1389,7 +1389,12 @@ export async function handleFormattedTextClick(e: React.UIEvent, currentRelative
         }
     } else if (channelMentionAttribute) {
         e.preventDefault();
-        getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
+
+        // Check if the link specifies a team (for cross-team channel mentions)
+        const teamAttribute = (e.target as any).getAttributeNode('data-channel-mention-team');
+        const teamUrl = teamAttribute ? '/' + teamAttribute.value : currentRelativeTeamUrl;
+
+        getHistory().push(teamUrl + '/channels/' + channelMentionAttribute.value);
     }
 }
 

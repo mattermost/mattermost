@@ -3253,3 +3253,205 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	require.NotZero(t, preparedPost.Metadata.ExpireAt)
 	require.Equal(t, receipt.ExpireAt, preparedPost.Metadata.ExpireAt)
 }
+func TestSanitizeChannelMentionsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("post with no channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Regular post with no mentions",
+		}
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("removes inaccessible channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a channel on a different team user is not member of
+		team2, err := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team 2",
+			Name:        "team-2",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "test-channel",
+			DisplayName: "Test Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message: "Check ~test-channel",
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			channel.Name: map[string]any{
+				"display_name": channel.DisplayName,
+				"team_name":    team2.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		// Should remove the mention since user can't access the team
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("includes accessible public channel mentions on retrieval", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": th.BasicChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, th.BasicChannel.Name)
+	})
+
+	t.Run("uses fresh display name from database on retrieval", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Post has stale data
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+
+		channelData, ok := mentionsMap[th.BasicChannel.Name].(map[string]any)
+		require.True(t, ok)
+		// Should have current display name from database, not stale data
+		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+}
+
+func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("uses current_team_id for DM channel mention resolution", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a second team with a channel named "engineering"
+		team2, err := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team 2",
+			Name:        "team2",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, err)
+
+		th.LinkUserToTeam(t, th.BasicUser, team2)
+
+		channel2, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "engineering",
+			DisplayName: "Engineering Team 2",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		// Also create channel with same name on BasicTeam
+		channel1, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "engineering",
+			DisplayName: "Engineering Team 1",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		// Create a DM channel
+		dmChannel, err := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+
+		// Create post in DM with channel mention and current_team_id
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Check ~engineering",
+		}
+		post.AddProp(model.PostPropsCurrentTeamId, team2.Id)
+
+		// Fill in post props
+		appErr := th.App.FillInPostProps(th.Context, post, dmChannel)
+		require.Nil(t, appErr)
+
+		// Verify current_team_id was removed
+		require.Nil(t, post.GetProp(model.PostPropsCurrentTeamId))
+
+		// Verify channel mentions were populated from team2, not BasicTeam
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+
+		channelData, ok := mentionsMap["engineering"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, channel2.DisplayName, channelData["display_name"])
+		require.Equal(t, team2.Name, channelData["team_name"])
+		require.NotEqual(t, channel1.DisplayName, channelData["display_name"]) // Should NOT be from team1
+	})
+
+	t.Run("uses channel team_id for regular channels, ignores current_team_id", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a post in a regular team channel
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Check ~off-topic",
+		}
+		// Add current_team_id (should be ignored for team channels)
+		post.AddProp(model.PostPropsCurrentTeamId, "some-other-team")
+
+		// Fill in post props
+		appErr := th.App.FillInPostProps(th.Context, post, th.BasicChannel)
+		require.Nil(t, appErr)
+
+		// Verify current_team_id was removed
+		require.Nil(t, post.GetProp(model.PostPropsCurrentTeamId))
+
+		// Should use BasicChannel's team_id, not current_team_id
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		if mentions != nil {
+			mentionsMap, ok := mentions.(map[string]any)
+			require.True(t, ok)
+			// If off-topic was found, it should be from BasicTeam
+			if channelData, exists := mentionsMap["off-topic"].(map[string]any); exists {
+				require.Equal(t, th.BasicTeam.Name, channelData["team_name"])
+			}
+		}
+	})
+}

@@ -531,7 +531,8 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
-	channelMentions := post.ChannelMentions()
+	// Use ChannelMentionsAll to scan both message and attachments
+	channelMentions := post.ChannelMentionsAll()
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -543,23 +544,43 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			channel = postChannel
 		}
 
-		mentionedChannels, err := a.GetChannelsByNames(rctx, channelMentions, channel.TeamId)
+		// Determine which team to search for channel mentions
+		// For DMs/GMs (no team_id), use current_team_id from client if provided
+		// This prevents cross-team information disclosure and makes channel resolution deterministic
+		teamId := channel.TeamId
+		if teamId == "" {
+			// DM/GM context - check for current_team_id from client
+			if currentTeamId, ok := post.GetProp(model.PostPropsCurrentTeamId).(string); ok && currentTeamId != "" {
+				teamId = currentTeamId
+			}
+			// else: teamId remains empty, will search globally (legacy behavior for backwards compatibility)
+		}
+
+		mentionedChannels, err := a.GetChannelsByNames(rctx, channelMentions, teamId)
 		if err != nil {
 			return err
 		}
 
+		// Remove current_team_id from props after using it
+		// This is a transient hint from the client, not persisted data
+		post.DelProp(model.PostPropsCurrentTeamId)
+
+		// Populate channel_mentions for channels the POST CREATOR has access to
+		// This includes public channels and private channels where creator is a member
+		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen {
-				if ok, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); ok {
-					team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
-					if err != nil {
-						rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
-						continue
-					}
-					channelMentionsProp[mentioned.Name] = map[string]any{
-						"display_name": mentioned.DisplayName,
-						"team_name":    team.Name,
-					}
+			// Check if post creator has permission to read this channel
+			// HasPermissionToReadChannel returns (hasPermission, isMember) for audit logging
+			if hasPermission, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); hasPermission {
+				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
+				if err != nil {
+					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					continue
+				}
+				channelMentionsProp[mentioned.Name] = map[string]any{
+					"display_name": mentioned.DisplayName,
+					"team_name":    team.Name,
+					"id":           mentioned.Id, // Used by WebSocket broadcast hook for permission checks
 				}
 			}
 		}
@@ -961,14 +982,26 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
-	var postJSON string
-	var jsonErr error
 	if post.Type == model.PostTypeBurnOnRead {
 		post.Message = ""
 		post.FileIds = []string{}
 	}
-	postJSON, jsonErr = post.ToJSON()
 
+	// Extract metadata that needs per-recipient filtering before serialization
+	permalinkPreviewedPost := post.GetPreviewPost()
+	previewProp := post.GetPreviewedPostProp()
+	channelMentionsProp := post.GetProp(model.PostPropsChannelMentions)
+	var channelMentions map[string]any
+	if channelMentionsProp != nil {
+		channelMentions, _ = channelMentionsProp.(map[string]any)
+	}
+
+	// Remove all metadata for secure-by-default websocket broadcast
+	removePermalinkMetadataFromPost(post)
+	post.DelProp(model.PostPropsChannelMentions)
+
+	// Serialize clean post once
+	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
 		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
@@ -982,7 +1015,13 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 
 	message.Add("post", postJSON)
 
-	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, postJSON)
+	// Setup broadcast hooks with extracted metadata
+	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, permalinkPreviewedPost, previewProp)
+	if appErr != nil {
+		return appErr
+	}
+
+	appErr = a.setupBroadcastHookForChannelMentions(rctx, post, message, channelMentions)
 	if appErr != nil {
 		return appErr
 	}
@@ -998,34 +1037,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	return nil
 }
 
-func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, postJSON string) *model.AppError {
-	// We check for the post first, and then the prop to prevent
-	// any embedded data to remain in case a post does not contain the prop
-	// but contains the embedded data.
-	permalinkPreviewedPost := post.GetPreviewPost()
-	if permalinkPreviewedPost == nil {
+func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, permalinkPreviewedPost *model.PreviewPost, previewProp string) *model.AppError {
+	// Early return if no permalink metadata
+	if permalinkPreviewedPost == nil || previewProp == "" {
 		return nil
 	}
-
-	previewProp := post.GetPreviewedPostProp()
-	if previewProp == "" {
-		return nil
-	}
-
-	// To remain secure by default, we wipe out the metadata unconditionally.
-	removePermalinkMetadataFromPost(post)
-	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
-	if err != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
-		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
-			mlog.String("type", model.NotificationTypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonMarshalError),
-		)
-		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	message.Add("post", postWithoutPermalinkPreviewJSON)
 
 	if !model.IsValidId(previewProp) {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
@@ -1037,7 +1053,6 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 			mlog.String("prop_value", previewProp),
 		)
 		rctx.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewProp))
-		// In this case, it will broadcast the message with metadata wiped out
 		return nil
 	}
 
@@ -1054,7 +1069,6 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 				mlog.Err(appErr),
 			)
 			rctx.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewProp))
-			// In this case, it will broadcast the message with metadata wiped out
 			return nil
 		}
 		return appErr
@@ -1072,23 +1086,37 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 				mlog.String("referenced_post_id", previewedPost.Id),
 			)
 			rctx.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			// In this case, it will broadcast the message with metadata wiped out
 			return nil
 		}
 		return appErr
 	}
 
-	// In case the user does have permission to read, we set the metadata back.
-	// Note that this is the return value to the post creator, and has nothing to do
-	// with the content of the websocket broadcast to that user or any other.
-	// We also don't check the membership for the previewed post, since
-	// the broadcast handler will create the audit events if needed.
+	// Add metadata back to post for HTTP response if post author has permission
+	// Note: This is only for the return value to the post creator
+	// WebSocket recipients get per-recipient filtering via the hook
 	if ok, _ := a.HasPermissionToReadChannel(rctx, post.UserId, permalinkPreviewedChannel); ok {
 		post.AddProp(model.PostPropsPreviewedPost, previewProp)
 		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
 	}
 
-	usePermalinkHook(message, post.UserId, permalinkPreviewedChannel, postJSON)
+	// Register hook for per-recipient filtering
+	usePermalinkHook(message, permalinkPreviewedChannel, permalinkPreviewedPost, previewProp)
+	return nil
+}
+
+func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, channelMentions map[string]any) *model.AppError {
+	// Early return if no channel mentions
+	if len(channelMentions) == 0 {
+		return nil
+	}
+
+	// Add channel mentions back to post for HTTP response
+	// These mentions have already been filtered in FillInPostProps to only include channels
+	// the post author has permission to read
+	post.AddProp(model.PostPropsChannelMentions, channelMentions)
+
+	// Register hook for per-recipient filtering
+	useChannelMentionsHook(message, channelMentions)
 	return nil
 }
 

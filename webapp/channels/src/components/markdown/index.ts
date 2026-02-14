@@ -24,10 +24,14 @@ function makeGetChannelNamesMap() {
     return createSelector(
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
-        (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
+        (state: GlobalState, props: OwnProps) => (props.postId ? getPost(state, props.postId)?.props?.channel_mentions : undefined),
         (channelNamesMap, channelMentions) => {
+            // Use channel_mentions from post.props when available (server-provided data)
+            // Falls back to channelNamesMap from Redux for legacy posts without channel_mentions
             if (channelMentions) {
-                return Object.assign({}, channelMentions, channelNamesMap);
+                // Server data (channelMentions) takes precedence over Redux data (channelNamesMap)
+                // This fixes bugs with DM channel links but means channel renames update after cache refresh
+                return Object.assign({}, channelNamesMap, channelMentions);
             }
 
             return channelNamesMap;

@@ -333,33 +333,97 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 }
 
 func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
-		return post, true, nil
-	}
+	isMemberForPreviews := true
 
-	previewPost := post.GetPreviewPost()
-	if previewPost == nil {
-		return post, true, nil
-	}
+	// Sanitize permalink embeds based on permissions (only if present)
+	if post.Metadata != nil && len(post.Metadata.Embeds) > 0 {
+		previewPost := post.GetPreviewPost()
+		if previewPost != nil {
+			previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
+			if err != nil {
+				return nil, false, err
+			}
 
-	previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
-	if err != nil {
-		return nil, false, err
-	}
-
-	isMember := true
-
-	if previewedChannel != nil {
-		var hasPermission bool
-		hasPermission, isMember = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
-		if !hasPermission {
-			removePermalinkMetadataFromPost(post)
-			// Since we remove the permalink metadata, we return true
-			isMember = true
+			if previewedChannel != nil {
+				var hasPermission bool
+				hasPermission, isMemberForPreviews = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+				if !hasPermission {
+					removePermalinkMetadataFromPost(post)
+					// Since we remove the permalink metadata, we return true for isMember
+					isMemberForPreviews = true
+				}
+			}
 		}
 	}
 
-	return post, isMember, nil
+	// Sanitize channel mentions based on permissions
+	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
+	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
+
+	return post, isMemberForPreviews, nil
+}
+
+// sanitizeChannelMentionsForUser filters channel mentions in post props based on the viewer's
+// permissions. Only channels the user has permission to read will be included in the returned post.
+// This prevents information disclosure of private channel names/metadata.
+func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) *model.Post {
+	channelMentionsProp := post.GetProp(model.PostPropsChannelMentions)
+	if channelMentionsProp == nil {
+		return post
+	}
+
+	mentionsMap, ok := channelMentionsProp.(map[string]any)
+	if !ok {
+		return post
+	}
+
+	sanitized := make(map[string]any)
+
+	for channelName, data := range mentionsMap {
+		dataMap, ok := data.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		// Get team_name from the mention data
+		teamName, _ := dataMap["team_name"].(string)
+
+		if teamName == "" {
+			// No team information, skip this mention
+			continue
+		}
+
+		// Fetch the channel from database (gets fresh data)
+		channel, err := a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
+
+		if err != nil {
+			// Channel not found or error fetching, skip
+			continue
+		}
+
+		// Check if user has permission to read this channel
+		// HasPermissionToReadChannel returns (hasPermission, isMember)
+		hasPermission, _ := a.HasPermissionToReadChannel(rctx, userID, channel)
+		if hasPermission {
+			// User has permission - include in sanitized props with fresh display_name
+			// Reuse team_name from original props to avoid additional DB query
+			// (team renames are extremely rare and don't warrant the performance cost)
+			sanitized[channelName] = map[string]any{
+				"display_name": channel.DisplayName, // Fresh from database (handles channel renames)
+				"team_name":    teamName,            // Reused from props (avoids team lookup)
+			}
+		}
+		// Otherwise, omit from props (no information disclosure)
+	}
+
+	// Update post props with sanitized mentions
+	if len(sanitized) > 0 {
+		post.AddProp(model.PostPropsChannelMentions, sanitized)
+	} else {
+		post.DelProp(model.PostPropsChannelMentions)
+	}
+
+	return post
 }
 
 func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {

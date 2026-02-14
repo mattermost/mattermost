@@ -95,6 +95,7 @@ const (
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
 	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
@@ -885,6 +886,36 @@ func (o *Post) Patch(patch *PostPatch) {
 
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
+}
+
+// ChannelMentionsAll returns all channel mentions from both the message and attachments.
+// This is used by FillInPostProps to populate channel_mentions for rendering.
+func (o *Post) ChannelMentionsAll() []string {
+	// Get mentions from message
+	messageMentions := ChannelMentions(o.Message)
+
+	// Get mentions from attachments
+	attachmentMentions := ChannelMentionsFromAttachments(o.Attachments())
+
+	// Combine and deduplicate
+	alreadyMentioned := make(map[string]bool)
+	var allMentions []string
+
+	for _, mention := range messageMentions {
+		if !alreadyMentioned[mention] {
+			allMentions = append(allMentions, mention)
+			alreadyMentioned[mention] = true
+		}
+	}
+
+	for _, mention := range attachmentMentions {
+		if !alreadyMentioned[mention] {
+			allMentions = append(allMentions, mention)
+			alreadyMentioned[mention] = true
+		}
+	}
+
+	return allMentions
 }
 
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
