@@ -253,6 +253,113 @@ func TestInstallPluginLocally(t *testing.T) {
 			assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
 		})
 	})
+
+	installPluginUpdateConfig := func(t *testing.T, th *TestHelper, id, version string, installationStrategy pluginInstallationStrategy) (*model.Manifest, map[string]any, *model.AppError) {
+		t.Helper()
+		var mp map[string]any
+
+		manifest := &model.Manifest{
+			Id:      id,
+			Version: version,
+		}
+		manifestJSON, jsonErr := json.Marshal(manifest)
+		require.NoError(t, jsonErr)
+		reader := makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+		})
+
+		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
+		if actualManifest != nil {
+			mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
+		}
+		return actualManifest, mp, appError
+	}
+
+	t.Run("Config updates because manifest ID does not exist in map", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		cleanExistingBundles(t, th)
+		expectedMap := make(map[string]any)
+		expectedMap["id"] = "valid"
+		expectedMap["version"] = "0.0.2"
+
+		expectedManifest := &model.Manifest{
+			Id:      "valid",
+			Version: "0.0.2",
+		}
+
+		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
+		require.Nil(t, appErr)
+		require.Equal(t, expectedManifest, actualManifest)
+
+		//will probably have to make a separte pluginSetting struct with dummy vals to check against return plugin settign vals
+		for k, v := range returnedMap {
+			require.Equal(t, expectedMap[k], v)
+		}
+	})
+
+	t.Run("Config does not update because manifest ID already exist in map", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		cleanExistingBundles(t, th)
+
+		//create Plugin: `myplugin`
+		setupPluginAPITest(t, ` 
+		package main 
+ 
+		import ( 
+			"net/http" 
+			"encoding/json" 
+ 
+			"github.com/mattermost/mattermost/server/public/plugin" 
+			"github.com/mattermost/mattermost/server/public/model" 
+		) 
+ 
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+			enableUpload  bool
+			hasRootAccess bool
+			likesPie      bool
+			version       string
+			id            string
+		} 
+ 
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) { 
+			errReply := "some error" 
+			 if r.URL.Query().Get("abc") == "xyz" { 
+				errReply = "some other error" 
+			} 
+			response := &model.SubmitDialogResponse{ 
+				Errors: map[string]string{"name1": errReply}, 
+			} 
+			w.WriteHeader(http.StatusOK) 
+			responseJSON, _ := json.Marshal(response) 
+			_, _ = w.Write(responseJSON) 
+		} 
+ 
+		func main() { 
+			myPlug := &MyPlugin{
+				enableUpload: true, 
+				hasRootAccess: false, 
+				likesPie: true, 
+				version: "0.0.2", 
+				id: "myplugin",
+			}
+			plugin.ClientMain(myPlug) 
+		} 
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+
+		expectedManifest, err2 := th.App.GetPluginsEnvironment().GetManifest("myplugin")
+		require.NoError(t, err2)
+		require.NotNil(t, expectedManifest)
+
+		//try to reinstall `myplugin`
+		//Since plugin is already installed there is no need to return a new/actual manifest or a map containing those values
+		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "myplugin", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+		require.NotNil(t, appErr)
+		require.Nil(t, actualManifest)
+		require.Empty(t, returnedMap)
+	})
 }
 
 func TestInstallPluginAlreadyActive(t *testing.T) {
