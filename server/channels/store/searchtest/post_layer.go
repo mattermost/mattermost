@@ -51,6 +51,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineElasticSearch},
 	},
 	{
+		Name: "Should be able to search for non-latin words in Postgres",
+		Fn:   testSearchNonLatinWordsPostgres,
+		Tags: []string{EnginePostgres},
+	},
+	{
 		Name: "Should be able to search for alternative spellings of words",
 		Fn:   testSearchAlternativeSpellings,
 		Tags: []string{EngineElasticSearch},
@@ -657,6 +662,281 @@ func testSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 			th.checkPostInSearchResults(t, p1.Id, results.Posts)
 			th.checkPostInSearchResults(t, p2.Id, results.Posts)
 		})
+	})
+}
+
+func testSearchNonLatinWordsPostgres(t *testing.T, th *SearchTestHelper) {
+	// ILIKE-based CJK search does substring matching, so searching "你"
+	// matches both "你" and "你好" (unlike Elasticsearch's token matching).
+	t.Run("Should be able to search chinese words", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "你好", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "你", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "这是一个测试消息", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("Should find single char as substring", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "你"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+		t.Run("Should find multi-char term", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "你好"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		})
+		t.Run("Should find substring in longer message", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "测试"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
+		})
+		t.Run("Should handle wildcard (no-op for ILIKE)", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "你*"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+	})
+
+	t.Run("Should be able to search japanese words", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "こんにちは", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "カタカナ", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("Should find hiragana substring", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "にちは"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		})
+		t.Run("Should find katakana", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "カタカナ"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+	})
+
+	t.Run("Should be able to search korean words", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "안녕하세요", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("Should find hangul substring", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "안녕"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		})
+	})
+
+	t.Run("Should handle excluded CJK terms", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "测试一", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "测试二", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "测试", ExcludedTerms: "二"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should handle OR search with CJK terms", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "苹果", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "香蕉", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "西瓜", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "苹果 香蕉", OrTerms: true}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Should handle mixed CJK and Latin terms", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "hello 你好 world", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "hello world", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "hello 你好"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should handle quoted CJK phrases", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "测试消息", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "测试其他", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: `"测试消息"`}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should find kanji term in business context sentences", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "重要なビジネス環境では、信頼できるコミュニケーションが不可欠です。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "効果的なリカバリは、ビジネスを継続する鍵です。セルフホスト、プライベートクラウド、高可用性デプロイメントのサポートにより、機密性の高い環境での制御が可能になります。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "マターモストはビジネスチャットツールです。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "ビジネス"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 3)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Should find company name in various sentence positions", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "富士通は「挑戦」「信頼」「共感」の価値観を大切にし、未知の課題に挑んできました。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "顧客は「富士通」様となります。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "現在富士通の官側NWから通話ができない問題について改めて調査を実施しています。", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "富士通"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 3)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Should find kanji embedded in text without spaces", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキスト検索", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "検索テストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキスト検索テストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキスト 検索 テストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "検索"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 4)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+		th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	})
+
+	t.Run("Should find hiragana embedded in text without spaces", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストけんさく", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "けんさくテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストけんさくテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキスト けんさく テストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "けんさく"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 4)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+		th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	})
+
+	t.Run("Should find fullwidth katakana embedded in text without spaces", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストケンサク", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "ケンサクテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストケンサクテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキスト ケンサク テストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "ケンサク"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 4)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+		th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	})
+
+	t.Run("Should find halfwidth katakana embedded in text without spaces", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストｹﾝｻｸ", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "ｹﾝｻｸテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "テストテキストｹﾝｻｸテストテキスト", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		params := &model.SearchParams{Terms: "ｹﾝｻｸ"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 3)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
 	})
 }
 
