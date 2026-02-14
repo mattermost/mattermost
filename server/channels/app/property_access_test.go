@@ -959,6 +959,53 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		assert.Contains(t, err.Error(), "immutable")
 	})
 
+	t.Run("prevents setting protected=true without source_plugin_id", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Field Without Source Plugin",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+
+		created, err := th.App.PropertyAccessService().CreatePropertyField("", field)
+		require.NoError(t, err)
+
+		// Try to set protected=true without having a source_plugin_id
+		created.Attrs[model.PropertyAttrsProtected] = true
+		updated, err := th.App.PropertyAccessService().UpdatePropertyField("plugin1", groupID, created)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "cannot set protected=true")
+		assert.Contains(t, err.Error(), "source_plugin_id")
+	})
+
+	t.Run("prevents non-source plugin from setting protected=true", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Field With Source Plugin",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+
+		// Create field via plugin1 (sets source_plugin_id automatically)
+		created, err := th.App.PropertyAccessService().CreatePropertyFieldForPlugin("plugin1", field)
+		require.NoError(t, err)
+		assert.False(t, model.IsPropertyFieldProtected(created))
+
+		// Try to set protected=true by a different plugin (plugin2)
+		created.Attrs[model.PropertyAttrsProtected] = true
+		updated, err := th.App.PropertyAccessService().UpdatePropertyField("plugin2", groupID, created)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "cannot set protected=true")
+		assert.Contains(t, err.Error(), "plugin1")
+
+		// Verify the source plugin (plugin1) CAN set protected=true
+		updated, err = th.App.PropertyAccessService().UpdatePropertyField("plugin1", groupID, created)
+		require.NoError(t, err)
+		assert.True(t, model.IsPropertyFieldProtected(updated))
+	})
+
 	t.Run("non-CPA group allows anyone to update protected field", func(t *testing.T) {
 		// Register a non-CPA group
 		nonCpaGroup, err := pas.RegisterPropertyGroup("other-group-update")
@@ -1050,6 +1097,36 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		check2, err := th.App.PropertyAccessService().GetPropertyField("plugin1", groupID, created2.ID)
 		require.NoError(t, err)
 		assert.Equal(t, "Protected", check2.Name)
+	})
+
+	t.Run("fails atomically when trying to set protected=true without source_plugin_id in batch", func(t *testing.T) {
+		// Create two unprotected fields without source_plugin_id
+		field1 := &model.PropertyField{GroupID: groupID, Name: "Field1", Type: model.PropertyFieldTypeText, Attrs: model.StringInterface{}}
+		field2 := &model.PropertyField{GroupID: groupID, Name: "Field2", Type: model.PropertyFieldTypeText, Attrs: model.StringInterface{}}
+
+		created1, err := th.App.PropertyAccessService().CreatePropertyField("", field1)
+		require.NoError(t, err)
+		created2, err := th.App.PropertyAccessService().CreatePropertyField("", field2)
+		require.NoError(t, err)
+
+		// Try to set protected=true on field2 without source_plugin_id
+		created1.Name = "Updated Field1"
+		created2.Attrs[model.PropertyAttrsProtected] = true
+
+		updated, err := th.App.PropertyAccessService().UpdatePropertyFields("plugin1", groupID, []*model.PropertyField{created1, created2})
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "cannot set protected=true")
+		assert.Contains(t, err.Error(), "source_plugin_id")
+
+		// Verify neither was updated (atomic failure)
+		check1, err := th.App.PropertyAccessService().GetPropertyField("", groupID, created1.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Field1", check1.Name)
+
+		check2, err := th.App.PropertyAccessService().GetPropertyField("", groupID, created2.ID)
+		require.NoError(t, err)
+		assert.False(t, model.IsPropertyFieldProtected(check2))
 	})
 }
 
