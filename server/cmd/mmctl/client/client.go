@@ -168,6 +168,7 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+	GetUsersInChannel(ctx context.Context, channelID string, page, perPage int, etag string) ([]*model.User, *model.Response, error)
 	ListCPAFields(ctx context.Context) ([]*model.PropertyField, *model.Response, error)
 	CreateCPAField(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error)
 	PatchCPAField(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)

@@ -2559,6 +2559,126 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.Require().EqualError(err, expected.Error())
 	})
+
+	s.Run("Move channel and auto-add users to the destination team", func() {
+		printer.Clean()
+
+		user1Name := "user1"
+		user2Name := "user2"
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		srcTeamName := "source-team-name"
+		srcTeamID := "source-team-id"
+		mockTeam2 := model.Team{
+			Name: srcTeamName,
+			Id:   srcTeamID,
+		}
+
+		channelName := "channel-name"
+		channelID := "channel-id"
+		mockChannel := model.Channel{
+			Name:   channelName,
+			TeamId: mockTeam2.Id,
+			Id:     channelID,
+		}
+
+		usersInChannel := []*model.User{
+			{Id: user1Name, Username: user1Name},
+			{Id: user2Name, Username: user2Name},
+		}
+		usersInTeam := []*model.User{
+			{Id: user1Name, Username: user1Name},
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamName, "").
+			Return(nil, &model.Response{}, errors.New("")).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), dstTeamName, "").
+			Return(&mockTeam1, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), srcTeamName, "").
+			Return(nil, &model.Response{}, errors.New("")).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), srcTeamName, "").
+			Return(&mockTeam2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, mockTeam2.Id, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		// First call with page 0 - returns users
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(usersInChannel, &model.Response{}, nil).
+			Times(1)
+
+		// Second call with page 1 - returns empty to stop pagination
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		// First call with page 0 - returns users in team
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
+			Return(usersInTeam, &model.Response{}, nil).
+			Times(1)
+
+		// Second call with page 1 - returns empty to stop pagination
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddTeamMember(context.TODO(), dstTeamID, user2Name).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(context.TODO(), mockChannel.Id, mockTeam1.Id, false).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 2)
+		s.Equal(map[string]interface{}{
+			"User": user2Name,
+			"Team": dstTeamName,
+		}, printer.GetLines()[0])
+		s.Equal(&mockChannel, printer.GetLines()[1])
+		s.Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
