@@ -33,6 +33,7 @@ import UserSettingsModal from 'components/user_settings/modal';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {SystemUsersListMenuItemAction} from 'types/store/plugins';
 
 import ConfirmManageUserSettingsModal from './confirm_manage_user_settings_modal';
 import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_modal';
@@ -58,6 +59,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const isLicensed = useSelector(getLicense)?.IsLicensed === 'true';
     const haveSysConsoleWriteUserManagementUsersPermissions = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS}));
     const showManageUserSettings = useSelector(getShowManageUserSettings);
+    const pluginMenuItems = (useSelector((state: GlobalState) => state.plugins.components.SystemUsersListMenuItem) ?? []) as SystemUsersListMenuItemAction[];
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
         if (user.delete_at > 0) {
@@ -347,6 +349,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
 
     return (
         <Menu.Container
+            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+            transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: menuButtonId,
                 class: classNames('btn btn-quaternary btn-sm', {
@@ -545,6 +549,14 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     />
                 }
             </SystemPermissionGate>
+            {pluginMenuItems.map((item) => (
+                <Menu.Item
+                    key={item.id}
+                    id={`${menuItemIdPrefix}-plugin-${item.id}`}
+                    labels={typeof item.text === 'string' ? <span>{item.text}</span> : item.text as React.ReactElement}
+                    onClick={() => item.action(user.id)}
+                />
+            ))}
             {user.delete_at === 0 && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-deactivate`}
