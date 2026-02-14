@@ -145,6 +145,13 @@ func (hooks *hooksTimerLayer) UserHasLeftChannel(c *Context, channelMember *mode
 	hooks.recordTime(startTime, "UserHasLeftChannel", true)
 }
 
+func (hooks *hooksTimerLayer) UserWillJoinTeam(c *Context, team *model.Team, user *model.User, actor *model.User) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillJoinTeam(c, team, user, actor)
+	hooks.recordTime(startTime, "UserWillJoinTeam", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.UserHasJoinedTeam(c, teamMember, actor)
