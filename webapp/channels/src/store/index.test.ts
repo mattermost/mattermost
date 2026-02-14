@@ -28,3 +28,42 @@ describe('configureStore', () => {
         });
     });
 });
+
+test('should mark store as hydrated', async () => {
+    const store = configureStore();
+
+    expect(store.getState().storage.initialized).toBe(false);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(store.getState().storage.initialized).toBe(true);
+});
+
+test('should clear uploadsInProgress from drafts on rehydration', async () => {
+    const store = configureStore({
+        storage: {
+            storage: {
+                draft_channel_id: {
+                    value: {
+                        message: 'test message',
+                        uploadsInProgress: ['upload1', 'upload2'],
+                    },
+                },
+                comment_draft_root_id: {
+                    value: {
+                        message: 'test comment',
+                        uploadsInProgress: ['upload3'],
+                    },
+                },
+            },
+        },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const state = store.getState();
+    expect(state.storage.storage.draft_channel_id.value.uploadsInProgress).toEqual([]);
+    expect(state.storage.storage.comment_draft_root_id.value.uploadsInProgress).toEqual([]);
+    expect(state.storage.storage.draft_channel_id.value.message).toBe('test message');
+    expect(state.storage.storage.comment_draft_root_id.value.message).toBe('test comment');
+});
