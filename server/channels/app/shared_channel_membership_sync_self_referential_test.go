@@ -996,8 +996,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			atomic.StoreInt32(countPtr, 0)
 		}
 
-		// Create a new user that will be added "by cluster-2"
+		// Create a remote user belonging to cluster-2
 		userFromCluster2 := th.CreateUser(t)
+		userFromCluster2.RemoteId = &clusters[1].RemoteId
+		userFromCluster2, appErr = th.App.UpdateUser(th.Context, userFromCluster2, false)
+		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, userFromCluster2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
