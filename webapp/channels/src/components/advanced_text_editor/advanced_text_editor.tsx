@@ -226,6 +226,15 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
+    // Add windowWidth state
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
@@ -632,12 +641,26 @@ const AdvancedTextEditor = ({
     if (placeholder) {
         createMessage = placeholder;
     } else if (!rootId && !isDisabled) {
+        let displayName = channelDisplayName;
+        if (isFormattingBarHidden) {
+            let sliceLength = 4;
+            if (windowWidth > 1024) {
+                sliceLength = channelDisplayName.length;
+            } else if (windowWidth > 640) {
+                sliceLength = 24;
+            } else if (windowWidth > 424) {
+                sliceLength = 14;
+            } else if (windowWidth > 350) {
+                sliceLength = 6;
+            }
+            displayName = channelDisplayName.length > sliceLength ? channelDisplayName.slice(0, sliceLength) + '...' : channelDisplayName;
+        }
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
                 defaultMessage: 'Write to {channelDisplayName}',
             },
-            {channelDisplayName},
+            {channelDisplayName: displayName},
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
