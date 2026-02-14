@@ -224,6 +224,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.bot.system_bot_name_update_forbidden.app_error",
+    "translation": "You are not allowed to update the username of the system bot."
+  },
+  {
     "id": "api.channel.add_guest.added",
     "translation": "%v added to the channel as guest by %v."
   },
