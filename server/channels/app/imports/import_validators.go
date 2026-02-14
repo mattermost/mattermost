@@ -267,8 +267,8 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if !isValidGuestRoles(*data) {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
+	if err := validateGuestRoles(*data); err != nil {
+		return err
 	}
 
 	if data.NotifyProps != nil {
@@ -758,49 +758,77 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 		emailInterval == model.PreferenceEmailIntervalHour
 }
 
-// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
-// at this point we assume that the user has a valid role scheme.
-func isValidGuestRoles(data UserImportData) bool {
+// validateGuestRoles checks if the user has guest roles consistently across system, team, and channel levels.
+// At this point, we assume that the user has a valid role scheme.
+func validateGuestRoles(data UserImportData) *model.AppError {
 	if data.Roles == nil {
-		return true
+		return nil
 	}
 	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
-	var isTeamGuest, isChannelGuest bool
-	if data.Teams != nil {
-		// counters for guest roles for teams and channels
-		// we expect the total count of guest roles to be equal to the total count of teams and channels
-		var gtc, ctc int
-		for _, team := range *data.Teams {
-			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
-				gtc++
-			}
+	// If user has no teams, they can still be a system guest without issue
+	if data.Teams == nil || len(*data.Teams) == 0 {
+		return nil
+	}
 
-			if team.Channels == nil || len(*team.Channels) == 0 {
-				continue
-			}
+	var isTeamGuest, isChannelGuest bool
+	var hasChannels bool // hasChannels indicates if the user has any channels within their teams
+
+	var teamGuestCount, channelGuestCount int
+	var totalTeams, totalChannels int
+
+	totalTeams = len(*data.Teams)
+	for _, team := range *data.Teams {
+		if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+			teamGuestCount++
+		}
+
+		if len(model.SafeDereference(team.Channels)) > 0 {
+			hasChannels = true
+			totalChannels += len(*team.Channels)
+
 			for _, channel := range *team.Channels {
 				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-					ctc++
+					channelGuestCount++
 				}
 			}
-
-			if ctc == len(*team.Channels) {
-				isChannelGuest = true
-			}
-		}
-		if gtc == len(*data.Teams) {
-			isTeamGuest = true
 		}
 	}
 
-	// basically we want to be sure if the user either fully guest in all 3 places or not at all
-	// (a | b | c) & !(a & b & c) -> 3-way XOR?
-	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
-		return false
+	// Set flags based on whether all available teams/channels have guest roles
+	if totalTeams > 0 && teamGuestCount == totalTeams {
+		isTeamGuest = true
 	}
 
-	return true
+	if hasChannels && channelGuestCount == totalChannels {
+		isChannelGuest = true
+	}
+
+	// If the user is a system guest, they must have consistent guest roles in any teams/channels they belong to
+	if isSystemGuest {
+		// If they have teams, they must be a team guest in all teams
+		if totalTeams > 0 && !isTeamGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error", map[string]any{"TeamGuestCount": teamGuestCount, "TotalTeams": totalTeams}, "", http.StatusBadRequest)
+		}
+
+		// If they have channels, they must be a channel guest in all channels
+		if hasChannels && !isChannelGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error", map[string]any{"ChannelGuestCount": channelGuestCount, "TotalChannels": totalChannels}, "", http.StatusBadRequest)
+		}
+
+		return nil
+	}
+
+	// If not a system guest, ensure consistency in the other direction
+	// If they're a team or channel guest, they must be a system guest
+	if (isTeamGuest || isChannelGuest) && !isSystemGuest {
+		if isTeamGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error", nil, "", http.StatusBadRequest)
+		}
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // ValidateAttachmentPathForImport joins 'path' to 'basePath' (defaulting to "." if empty) and ensures
