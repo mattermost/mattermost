@@ -6853,6 +6853,7 @@
   "user.settings.security.switchEmail": "Switch to Using Email and Password",
   "user.settings.security.switchGitlab": "Switch to Using GitLab SSO",
   "user.settings.security.switchGoogle": "Switch to Using Google SSO",
+  "user.settings.security.ssoUsernameSyncNote": "Note: When using Google SSO, changes to your Google username or email do not automatically sync to Mattermost. To update your username, switch temporarily to email/password login, update your username, and then switch back to Google SSO.",
   "user.settings.security.switchLdap": "Switch to Using AD/LDAP",
   "user.settings.security.switchOffice365": "Switch to Using Entra ID SSO",
   "user.settings.security.switchOpenId": "Switch to Using OpenID SSO",
