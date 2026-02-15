@@ -1,0 +1,54 @@
+# .cursor/.air.toml
+# Air hot-reload config for Cursor Cloud Agent environment ONLY.
+# This file is NOT used by normal Mattermost development.
+#
+# Air watches Go source files and automatically rebuilds/restarts
+# the server when changes are detected. This eliminates the need
+# for the agent to manually restart the server after code changes.
+#
+# Usage (from server/ directory):
+#   air -c ../.cursor/.air.toml
+
+root = "."
+tmp_dir = "/tmp/air"
+
+[build]
+  # Build command — same as cursor-cloud-run-server but compiles a binary
+  cmd = "MM_NO_DOCKER=true go build -tags '$(BUILD_TAGS)' -o /tmp/air/mattermost ./cmd/mattermost"
+  # Binary to run
+  bin = "/tmp/air/mattermost"
+  # Args passed to the binary
+  args_bin = []
+  # Watch these extensions
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  # Ignore these directories
+  exclude_dir = ["bin", "data", "logs", "plugins", "client", "tests", "vendor", "node_modules"]
+  # Ignore these files
+  exclude_file = []
+  # Ignore files matching these regexps
+  exclude_regex = ["_test.go"]
+  # Delay before rebuild (ms) — debounce rapid saves
+  delay = 1000
+  # Stop old binary before building new one
+  stop_on_error = true
+  # Send SIGINT instead of SIGKILL for graceful shutdown
+  send_interrupt = true
+  # Wait for old process to die before starting new one (ms)
+  kill_delay = 2000
+
+[build.env]
+  MM_NO_DOCKER = "true"
+  MM_CONFIG = "config/config-cursor-cloud.json"
+
+[log]
+  time = false
+  main_only = true
+
+[color]
+  main = "green"
+  build = "yellow"
+  runner = "cyan"
+
+[misc]
+  # Clean tmp dir on exit
+  clean_on_exit = true

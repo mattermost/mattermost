@@ -1,0 +1,195 @@
+---
+description: How to build, run, and test Mattermost in the Cursor Cloud Agent environment
+globs:
+alwaysApply: true
+---
+
+# Mattermost Development in Cursor Cloud Agent
+
+This environment runs natively on Ubuntu without Docker. PostgreSQL, Redis, and headless Chrome are pre-installed and started automatically.
+
+## Environment Overview
+
+- **Server**: Go backend at `server/` -- runs on `http://localhost:8065`
+- **Webapp**: React/TypeScript frontend at `webapp/` -- runs via webpack-dev-server
+- **Database**: PostgreSQL 14 on `localhost:5432` (user: `mmuser`, password: `mostest`, database: `mattermost_test`)
+- **Redis**: `localhost:6379`
+- **Browser**: agent-browser manages headless Chromium on-demand (no persistent Chrome process)
+- **Docker**: Disabled (`MM_NO_DOCKER=true`). All services run natively. Never use `docker`, `docker-compose`, or `make start-docker`.
+
+## Building and Running
+
+### Server Hot-Reload
+
+The server terminal runs with **Air** for automatic hot-reload. When you edit Go files, Air detects the change, rebuilds the server, and restarts it automatically. You do NOT need to manually restart the server after making Go changes.
+
+If you need to manually restart the server (e.g., after config changes), use tmux:
+```bash
+tmux send-keys -t "Mattermost Server" C-c
+sleep 2
+tmux send-keys -t "Mattermost Server" "cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml" Enter
+```
+
+To run the server without Air (manual mode):
+```bash
+cd server && make cursor-cloud-run-server
+```
+
+The server:
+- Sets `MM_NO_DOCKER=true` (skips Docker)
+- Uses `config/config-cursor-cloud.json` (dedicated config for this environment)
+- Builds webapp client assets and runs the Go server
+- Listens on `:8065`
+
+### Run the Webapp Dev Server
+
+```bash
+cd webapp && npm run dev
+```
+
+Or use `make dev` from the `webapp/` directory. This starts webpack-dev-server with hot module replacement.
+
+### Build Webapp Only
+
+```bash
+cd webapp && npm run build --workspace=channels
+```
+
+Or for all workspaces: `cd webapp && make dist`
+
+### Build Server Binary
+
+```bash
+cd server && go build -o bin/mattermost ./cmd/mattermost
+```
+
+## Testing
+
+### Server Tests (Go)
+
+Run all server tests (no Docker required):
+```bash
+cd server && make cursor-cloud-test-server
+```
+
+Run quick tests (short mode, faster):
+```bash
+cd server && make cursor-cloud-test-server-quick
+```
+
+Run a specific test or package:
+```bash
+cd server && MM_NO_DOCKER=true MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" go test -run TestFunctionName ./channels/app/
+```
+
+Run tests with gotestsum for better output:
+```bash
+cd server && MM_NO_DOCKER=true MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" gotestsum --packages="./channels/app/" -- -run TestFunctionName -count=1
+```
+
+### Webapp Tests (Jest)
+
+Run all webapp tests:
+```bash
+cd webapp && make test
+```
+
+Run tests for a specific workspace:
+```bash
+cd webapp && npm run test --workspace=channels
+```
+
+Run tests in watch mode:
+```bash
+cd webapp && npm run test:watch --workspace=channels
+```
+
+Run a specific test file:
+```bash
+cd webapp && npx jest --config channels/jest.config.js channels/src/components/my_component/my_component.test.tsx
+```
+
+### Webapp Linting and Type Checking
+
+```bash
+cd webapp && make check-style    # ESLint (cached)
+cd webapp && make fix-style      # Auto-fix ESLint
+cd webapp && make check-types    # TypeScript type checking
+```
+
+### E2E Tests (Playwright)
+
+```bash
+cd e2e-tests/playwright && npx playwright test
+cd e2e-tests/playwright && npx playwright test --grep "test name"
+```
+
+### mmctl Tests
+
+```bash
+cd server && make test-mmctl-unit   # Unit tests only
+```
+
+## Common Operations
+
+### Generate Mocks
+
+```bash
+cd server && make store-mocks         # Store interface mocks
+cd server && make plugin-mocks        # Plugin interface mocks
+cd server && make einterfaces-mocks   # Enterprise interface mocks
+cd server && make mocks               # All mocks
+```
+
+### Create a New Database Migration
+
+```bash
+cd server && make new-migration name=my_migration_name
+```
+
+### Generate Store Layers
+
+```bash
+cd server && make store-layers
+```
+
+### Build mmctl
+
+```bash
+cd server && make mmctl-build
+```
+
+### Setup Go Workspace
+
+```bash
+cd server && make setup-go-work
+```
+
+## Key Configuration
+
+- **Cloud Agent config**: `server/config/config-cursor-cloud.json` (generated, do not commit)
+- **Default config**: `server/config/config.json` (do not modify for Cloud Agent work)
+- **Go version**: 1.24.13 (from `server/go.mod`)
+- **Node.js version**: 20.x (from `.nvmrc`)
+
+## Architecture Quick Reference
+
+- **API handlers**: `server/channels/api4/` -- REST endpoint implementations
+- **Business logic**: `server/channels/app/` -- core application layer
+- **Data persistence**: `server/channels/store/` -- store interface and SQL implementations
+- **Data models**: `server/public/model/` -- shared data type definitions
+- **Plugin SDK**: `server/public/plugin/` -- plugin interface and helpers
+- **Enterprise interfaces**: `server/einterfaces/` -- interfaces for enterprise-only features
+- **React components**: `webapp/channels/src/components/` -- UI components
+- **Redux actions**: `webapp/channels/src/actions/` -- action creators
+- **Redux selectors**: `webapp/channels/src/selectors/` -- state selectors
+- **API client**: `webapp/platform/client/` -- `@mattermost/client` (REST + WebSocket)
+- **Type definitions**: `webapp/platform/types/` -- `@mattermost/types`
+
+## Important Notes
+
+- Always set `MM_NO_DOCKER=true` when running server commands. The `cursor-cloud-*` targets do this automatically.
+- The database connection string for tests is: `postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10`
+- Use `make cursor-cloud-*` targets instead of the standard `make run-server`, `make test-server`, etc. The standard targets try to start Docker services.
+- Server tests that need database access will use the `MM_SQLSETTINGS_DATASOURCE` environment variable.
+- The webapp uses npm workspaces. Always use `--workspace=channels` (or the appropriate workspace) when running workspace-specific commands.

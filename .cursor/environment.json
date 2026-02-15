@@ -1,0 +1,33 @@
+{
+  "$schema": "https://cursor.com/schemas/environment.schema.json",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "Mattermost Server",
+      "command": "cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml",
+      "description": "Builds and runs the Mattermost backend server on :8065 with hot-reload via Air. Auto-restarts on Go file changes."
+    },
+    {
+      "name": "Webapp Dev Server",
+      "command": "echo 'Ready: cd webapp && npm run dev'",
+      "description": "Start the webpack dev server for hot-reloading frontend changes. Only needed for active webapp development."
+    },
+    {
+      "name": "Server Tests",
+      "command": "echo 'Ready: cd server && make cursor-cloud-test-server-quick'",
+      "description": "Terminal for running Go server tests. Use cursor-cloud-test-server for full suite or cursor-cloud-test-server-quick for fast tests."
+    }
+  ],
+  "ports": [
+    {
+      "name": "Mattermost",
+      "port": 8065
+    }
+  ]
+}

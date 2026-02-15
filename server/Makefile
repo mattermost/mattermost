@@ -871,3 +871,5 @@ migrations-extract:
 
 test-local-filestore: # Run tests for local filestore
 	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v
+
+-include cursor-cloud.mk

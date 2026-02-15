@@ -1,0 +1,206 @@
+---
+description: How to interact with the native PostgreSQL database in the Cursor Cloud Agent environment
+globs:
+alwaysApply: true
+---
+
+# PostgreSQL Database in Cursor Cloud Agent
+
+The development environment uses a native PostgreSQL 14 instance (no Docker). It is started automatically by `start.sh` on every agent boot.
+
+## Connection Details
+
+| Property | Value |
+|----------|-------|
+| Host | `localhost` |
+| Port | `5432` |
+| User | `mmuser` |
+| Password | `mostest` |
+| Database | `mattermost_test` |
+| SSL | Disabled (`sslmode=disable`) |
+| Connection string | `postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10` |
+
+There is also a `postgres` superuser with password `mostest` for administrative operations.
+
+## Running psql Queries
+
+### Connect as mmuser (application user)
+
+```bash
+psql -h localhost -U mmuser -d mattermost_test
+```
+
+When prompted for password, enter `mostest`.
+
+### Connect as postgres (superuser)
+
+```bash
+sudo -u postgres psql
+```
+
+Or:
+```bash
+psql -h localhost -U postgres
+```
+
+### Run a one-off query
+
+```bash
+psql -h localhost -U mmuser -d mattermost_test -c "SELECT COUNT(*) FROM users;"
+```
+
+### Run queries from a file
+
+```bash
+psql -h localhost -U mmuser -d mattermost_test -f /path/to/script.sql
+```
+
+### Non-interactive with password (no prompt)
+
+```bash
+PGPASSWORD=mostest psql -h localhost -U mmuser -d mattermost_test -c "SELECT 1;"
+```
+
+## Common Database Operations
+
+### Inspect Tables
+
+List all tables:
+```sql
+\dt
+```
+
+Describe a specific table:
+```sql
+\d users
+\d channels
+\d posts
+```
+
+List table with size info:
+```sql
+\dt+
+```
+
+### Common Mattermost Tables
+
+| Table | Description |
+|-------|-------------|
+| `users` | User accounts |
+| `channels` | Channels (public, private, DMs, GMs) |
+| `channelmembers` | Channel membership |
+| `posts` | Messages/posts |
+| `teams` | Teams |
+| `teammembers` | Team membership |
+| `preferences` | User preferences |
+| `sessions` | Active sessions |
+| `status` | User online/away/offline status |
+| `schemes` | Permission schemes |
+| `roles` | Permission roles |
+| `systems` | System-level key-value config |
+| `pluginkeyvaluestore` | Plugin KV storage |
+| `fileinfo` | File attachment metadata |
+| `reactions` | Post reactions/emoji |
+| `threadmemberships` | Thread follow state |
+| `threads` | Thread metadata |
+
+### Useful Queries
+
+Check if a user exists:
+```sql
+SELECT id, username, email, roles FROM users WHERE username = 'sysadmin';
+```
+
+List channels in a team:
+```sql
+SELECT c.id, c.name, c.displayname, c.type
+FROM channels c
+JOIN teams t ON c.teamid = t.id
+WHERE t.name = 'your-team-name'
+ORDER BY c.displayname;
+```
+
+Find recent posts:
+```sql
+SELECT p.id, p.message, u.username, p.createat
+FROM posts p
+JOIN users u ON p.userid = u.id
+ORDER BY p.createat DESC
+LIMIT 20;
+```
+
+Check system configuration values:
+```sql
+SELECT * FROM systems WHERE name LIKE '%Version%';
+```
+
+### Reset the Database
+
+Drop and recreate (destructive -- loses all data):
+```bash
+sudo -u postgres psql -c "DROP DATABASE IF EXISTS mattermost_test;"
+sudo -u postgres psql -c "CREATE DATABASE mattermost_test OWNER mmuser;"
+```
+
+The Mattermost server will automatically run migrations on startup to recreate the schema.
+
+### Check Database Status
+
+```bash
+sudo pg_isready
+```
+
+Or check the service:
+```bash
+sudo pg_lsclusters
+```
+
+### Restart PostgreSQL
+
+```bash
+sudo pg_ctlcluster 14 main restart
+```
+
+### View PostgreSQL Logs
+
+```bash
+sudo tail -f /var/log/postgresql/postgresql-14-main.log
+```
+
+## Database Migrations
+
+Mattermost migrations live in `server/channels/db/migrations/postgres/`. They are applied automatically when the server starts.
+
+Create a new migration:
+```bash
+cd server && make new-migration name=describe_the_change
+```
+
+This creates two files in `server/channels/db/migrations/postgres/`:
+- `NNNNNN_describe_the_change.up.sql` -- forward migration
+- `NNNNNN_describe_the_change.down.sql` -- rollback migration
+
+After modifying migrations, update the migrations list:
+```bash
+cd server && make migrations-extract
+```
+
+## Store Layer Architecture
+
+The Mattermost server accesses the database through a layered store architecture:
+
+```
+App Layer (channels/app/)
+  -> Store Interface (channels/store/store.go)
+    -> Timer Layer (metrics)
+      -> Retry Layer (deadlock handling)
+        -> Cache Layer (LRU in-memory)
+          -> Search Layer (Elasticsearch/Bleve)
+            -> SQL Store (channels/store/sqlstore/)
+```
+
+- **Store interface** (`channels/store/store.go`): Defines all data access methods
+- **SQL store** (`channels/store/sqlstore/`): PostgreSQL implementations using Squirrel query builder
+- **Store tests** (`channels/store/storetest/`): Test helpers and fixtures
+
+When modifying database queries, edit the files in `channels/store/sqlstore/`. Each entity has its own store file (e.g., `user_store.go`, `channel_store.go`, `post_store.go`).
