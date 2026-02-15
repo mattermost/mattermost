@@ -4,15 +4,15 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import type { IntlShape } from 'react-intl';
-import { FormattedDate, FormattedMessage, FormattedTime, injectIntl } from 'react-intl';
-import { Link } from 'react-router-dom';
+import type {IntlShape} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
-import type { OAuthApp } from '@mattermost/types/integrations';
-import type { UserProfile } from '@mattermost/types/users';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {UserProfile} from '@mattermost/types/users';
 
-import type { PasswordConfig } from 'mattermost-redux/selectors/entities/general';
-import type { ActionResult } from 'mattermost-redux/types/actions';
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
@@ -24,7 +24,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import { isValidPassword } from 'utils/password';
+import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
@@ -111,11 +111,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
     loadAuthorizedOAuthApps = async () => {
         const res = await this.props.actions.getAuthorizedOAuthApps();
         if ('data' in res) {
-            const { data } = res;
-            this.setState({ authorizedApps: data, serverError: null });
+            const {data} = res;
+            this.setState({authorizedApps: data, serverError: null});
         } else if ('error' in res) {
-            const { error } = res;
-            this.setState({ serverError: error.message });
+            const {error} = res;
+            this.setState({serverError: error.message});
         }
     };
 
@@ -128,7 +128,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.setState({ savingPassword: true });
+        this.setState({savingPassword: true});
 
         const res = await this.props.actions.updateUserPassword(
             user.id,
@@ -140,7 +140,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             this.props.actions.getMe();
             this.setState(this.getDefaultState());
         } else if ('error' in res) {
-            const { error: err } = res;
+            const {error: err} = res;
             const state = this.getDefaultState();
             if (err.message) {
                 state.serverError = err.message;
@@ -156,7 +156,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             return false;
         }
 
-        const { valid, error } = isValidPassword(
+        const {valid, error} = isValidPassword(
             this.state.newPassword,
             this.props.passwordConfig,
         );
@@ -172,15 +172,15 @@ export class SecurityTab extends React.PureComponent<Props, State> {
     };
 
     updateCurrentPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ currentPassword: e.target.value });
+        this.setState({currentPassword: e.target.value});
     };
 
     updateNewPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ newPassword: e.target.value });
+        this.setState({newPassword: e.target.value});
     };
 
     updateConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ confirmPassword: e.target.value });
+        this.setState({confirmPassword: e.target.value});
     };
 
     deauthorizeApp = async (e: React.MouseEvent) => {
@@ -193,10 +193,10 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             const authorizedApps = this.state.authorizedApps.filter((app) => {
                 return app.id !== appId;
             });
-            this.setState({ authorizedApps, serverError: null });
+            this.setState({authorizedApps, serverError: null});
         } else if ('error' in res) {
-            const { error } = res;
-            this.setState({ serverError: error.message });
+            const {error} = res;
+            this.setState({serverError: error.message});
         }
     };
 
@@ -205,23 +205,23 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             this.props.updateSection(section);
         } else {
             switch (this.props.activeSection) {
-                case SECTION_MFA:
-                case SECTION_SIGNIN:
-                case SECTION_TOKENS:
-                case SECTION_APPS:
-                    this.setState({
-                        serverError: null,
-                    });
-                    break;
-                case SECTION_PASSWORD:
-                    this.setState({
-                        currentPassword: '',
-                        newPassword: '',
-                        confirmPassword: '',
-                        serverError: null,
-                    });
-                    break;
-                default:
+            case SECTION_MFA:
+            case SECTION_SIGNIN:
+            case SECTION_TOKENS:
+            case SECTION_APPS:
+                this.setState({
+                    serverError: null,
+                });
+                break;
+            case SECTION_PASSWORD:
+                this.setState({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                    serverError: null,
+                });
+                break;
+            default:
             }
 
             this.props.updateSection('');
@@ -308,7 +308,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage: 'New Password',
                                 })}
                                 validate={(value) => {
-                                    const { valid, error } = isValidPassword(
+                                    const {valid, error} = isValidPassword(
                                         value as string,
                                         this.props.passwordConfig,
                                     );
@@ -590,7 +590,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using GitLab SSO'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -614,7 +614,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using Google SSO'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -638,7 +638,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -662,7 +662,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using OpenID SSO'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -682,7 +682,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using AD/LDAP'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -706,7 +706,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Switch to Using SAML SSO'
                                 />
                             </Link>
-                            <br />
+                            <br/>
                         </div>
                     );
                 }
@@ -735,7 +735,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 defaultMessage='Switch to Using Email and Password'
                             />
                         </Link>
-                        <br />
+                        <br/>
                     </div>
                 );
             }
@@ -769,7 +769,6 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
-
 
             max = (
                 <SettingItemMax
@@ -908,7 +907,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     src={app.icon_url || icon50}
                                 />
                             </div>
-                            <br />
+                            <br/>
                         </div>
                     );
                 });
@@ -1064,22 +1063,22 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             />
                         }
                     />
-                    <div className='divider-dark first' />
+                    <div className='divider-dark first'/>
                     {passwordSection}
-                    <div className='divider-light' />
+                    <div className='divider-light'/>
                     <MfaSection
                         active={this.props.activeSection === SECTION_MFA}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.handleUpdateSection}
                     />
-                    <div className='divider-light' />
+                    <div className='divider-light'/>
                     {oauthSection}
-                    <div className='divider-light' />
+                    <div className='divider-light'/>
                     {tokensSection}
-                    <div className='divider-light' />
+                    <div className='divider-light'/>
                     {signInSection}
-                    <div className='divider-dark' />
-                    <br />
+                    <div className='divider-dark'/>
+                    <br/>
                     <ToggleModalButton
                         className='security-links color--link'
                         modalId='access_history'
@@ -1120,7 +1119,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     </ToggleModalButton>
                     {this.props.deleteAccountLink && (
                         <>
-                            <p />
+                            <p/>
                             <ExternalLink
                                 className='security-links color--link mt-2 danger'
                                 href={this.props.deleteAccountLink}
