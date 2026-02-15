@@ -56,6 +56,8 @@ export type PostListRowProps = {
 
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /**
@@ -138,7 +140,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 >
                     <FormattedMessage
                         id='posts_view.loadMore'
-                        defaultMessage='Load More Messages'
+                        defaultMessage='Load more messages'
                     />
                 </button>
             );
@@ -174,15 +176,22 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 <CombinedUserActivityPost
                     location={Locations.CENTER}
                     combinedId={listId}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                     {...postProps}
                 />
             );
+        }
+
+        // Don't render if post has been deleted/removed
+        if (!this.props.post) {
+            return null;
         }
 
         return (
             <PostComponent
                 post={this.props.post}
                 location={Locations.CENTER}
+                isChannelAutotranslated={this.props.isChannelAutotranslated}
                 {...postProps}
             />
         );

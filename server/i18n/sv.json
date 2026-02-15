@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5172,10 +5172,6 @@
     "translation": "invalid_request: Felaktig grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Saknar client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Felaktigt client_id."
   },
@@ -5913,10 +5909,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Du kommer inte ta emot notifieringar om {{.Channel}} tills tyst kanal är avaktiverad."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kunde inte tysta kanalen {{.Channel}} eftersom du inte är medlem."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -7264,7 +7256,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8570,10 +8562,6 @@
     "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server är inte tillgänglig."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -8612,10 +8600,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -10528,10 +10512,6 @@
     "translation": "Det gick inte att ta bort policy för åtkomstkontroll från kanaler."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Kunde inte ändra aktiv status för policy för åtkomstkontroll."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Misslyckades med att utvärdera policy för åtkomstkontroll."
   },
@@ -10945,7 +10925,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggningen skulle tas bort."
+    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggning och tillhörande data skulle tas bort."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -11060,15 +11040,175 @@
     "translation": "Leverantören av autotranslation stöds inte."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Tidsgränsen för hämtning av autotranslation är ogiltig. Måste vara ett positivt tal."
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ogiltiga klient-uppgifter."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Tidsgränsen för hämtning av autotranslation av nytt inlägg är ogiltig. Måste vara ett positivt tal."
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanal hittades inte"
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ogiltig inbjudningslänk."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ogiltigt kanal-ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ogiltigt tidsfält."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Tomt svar från AI."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Begärde du inte det här e-mailet?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Logga in till Mattermost"
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Misslyckades med hämtningen av LLM-tjänster."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Hämtningen av fil-infon misslyckades."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Den här inbjudningslänken har slutat gälla."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ogiltig omskrivningsåtgärd."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Ej stödd token_endpoint_auth_method tillhandahölls."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Inbjudningstoken saknas."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Pekar-version stöds inte."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Hämtningen av agenterna misslyckades."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Sparningen av auth-token misslyckades."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Ingen behörighet att flytta kommandot"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Tjänstleverantör för OAuth är avstängd."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ogiltig länk-typ för inbjudningen."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Misslyckat anrop till AI-agenten."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för klienten."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för omdirigeringen."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ogiltigt cursor-id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ogiltig sorteringsriktning."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Autentiseringen misslyckades. Ogiltig konfiguration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Autentiseringen misslyckades. Vänligen prova igen."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resursparametern kan inte överskrida 512 tecken."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Gästens magiska länk är inte aktiverad"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Logga in till {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Inloggning med magisk länk är avstängd."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Kunde inte ta emot inlägg för rapportering."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Ogiltigt pekar-format: 8 delar förväntades."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte tillgänglig."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Inlägg som bränns vid läsning kan inte redigeras."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Att flagga ett inlägg av typen '{{.PostType}}' tillåts inte."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push-proxy-gränssnittet är tomt."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Inlägg som bränns upp vid läsning kan inte uppdateras."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Du har inte tillstånd att bränna det här inlägget. Du måste vara medlem i kanalen."
   }
 ]

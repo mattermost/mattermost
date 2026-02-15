@@ -1,20 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {getProfiles} from 'mattermost-redux/actions/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {getMe} from 'mattermost-redux/actions/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import {loadStatusesByIds} from 'actions/status_actions';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import PopoutController from './popout_controller';
 
 // Mock dependencies
 jest.mock('mattermost-redux/actions/users', () => ({
-    getProfiles: jest.fn().mockReturnValue(() => ({type: 'GET_PROFILES'})),
+    getMe: jest.fn(),
+}));
+
+jest.mock('actions/status_actions', () => ({
+    loadStatusesByIds: jest.fn(),
 }));
 
 jest.mock('components/modal_controller', () => ({
@@ -26,6 +35,11 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
+
+jest.mock('components/rhs_popout', () => ({
+    __esModule: true,
+    default: () => <div data-testid='rhs-popout'>{'RHS Popout'}</div>,
+}));
 jest.mock('utils/popouts/use_browser_popout', () => ({
     __esModule: true,
     useBrowserPopout: jest.fn(),
@@ -36,7 +50,15 @@ jest.mock('components/logged_in', () => ({
     default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
 }));
 
-const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
+jest.mock('plugins/pluggable', () => ({
+    __esModule: true,
+    default: ({pluggableName}: {pluggableName: string}) => (
+        <div data-testid={`pluggable-${pluggableName}`}>{`Pluggable: ${pluggableName}`}</div>
+    ),
+}));
+
+const mockGetMe = getMe as jest.MockedFunction<typeof getMe>;
+const mockLoadStatusesByIds = loadStatusesByIds as jest.MockedFunction<typeof loadStatusesByIds>;
 
 // Base mock route props with meaningful route data
 const baseRouteProps: RouteComponentProps = {
@@ -67,10 +89,19 @@ const baseRouteProps: RouteComponentProps = {
 
 describe('PopoutController', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Reset document.body classes
         document.body.className = '';
+
+        // Setup default mock for getMe to return a promise that resolves
+        const mockUser = TestHelper.getUserMock({id: 'user-123', username: 'testuser'});
+        mockGetMe.mockReturnValue(() => Promise.resolve({
+            data: mockUser,
+        } as ActionResult<UserProfile>));
+
+        // Setup default mocks for status actions
+        mockLoadStatusesByIds.mockReturnValue(() => ({
+            data: true,
+        } as ActionResult<boolean>));
     });
 
     it('should render modal controller', () => {
@@ -90,12 +121,12 @@ describe('PopoutController', () => {
         expect(document.body.classList.contains('popout')).toBe(true);
     });
 
-    it('should dispatch getProfiles action on mount', () => {
+    it('should dispatch getMe action on mount', () => {
         renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
-        expect(mockGetProfiles).toHaveBeenCalledTimes(1);
+        expect(mockGetMe).toHaveBeenCalledTimes(1);
     });
 
     it('should render thread popout for thread route', () => {
@@ -106,6 +137,16 @@ describe('PopoutController', () => {
         );
 
         expect(screen.getByTestId('thread-popout')).toBeInTheDocument();
+    });
+
+    it('should render rhs popout for rhs route', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/rhs/test-team/channel-identifier']}>
+                <PopoutController {...baseRouteProps}/>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('rhs-popout')).toBeInTheDocument();
     });
 
     it('should maintain body classes on re-render', () => {
@@ -136,5 +177,33 @@ describe('PopoutController', () => {
         // Classes should still be there
         expect(document.body.classList.contains('app__body')).toBe(true);
         expect(document.body.classList.contains('popout')).toBe(true);
+    });
+
+    it('should dispatch loadStatusesByIds with current user ID', () => {
+        const currentUserId = 'current-user-id-123';
+        const initialState = {
+            entities: {
+                users: {
+                    currentUserId,
+                },
+            },
+        };
+
+        renderWithContext(
+            <PopoutController {...baseRouteProps}/>,
+            initialState,
+        );
+
+        expect(mockLoadStatusesByIds).toHaveBeenCalledTimes(1);
+        expect(mockLoadStatusesByIds).toHaveBeenCalledWith([currentUserId]);
+    });
+
+    it('should render Pluggable for Root', () => {
+        renderWithContext(
+            <PopoutController {...baseRouteProps}/>,
+        );
+
+        expect(screen.getByTestId('pluggable-Root')).toBeInTheDocument();
+        expect(screen.getByText('Pluggable: Root')).toBeInTheDocument();
     });
 });

@@ -13,7 +13,9 @@ import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import {focusPost} from 'components/permalink_view/actions';
 import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
 
@@ -82,8 +84,14 @@ const ThreadPane = ({
     }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team);
-    }, [threadId, team, intl]);
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
+    }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
         <div

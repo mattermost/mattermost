@@ -27,6 +27,8 @@ type SupportPacketDiagnostics struct {
 	Server struct {
 		OS               string `yaml:"os"`
 		Architecture     string `yaml:"architecture"`
+		CPUCores         int    `yaml:"cpu_cores"`
+		TotalMemoryMB    uint64 `yaml:"total_memory_mb"`
 		Hostname         string `yaml:"hostname"`
 		Version          string `yaml:"version"`
 		BuildHash        string `yaml:"build_hash"`
@@ -67,6 +69,10 @@ type SupportPacketDiagnostics struct {
 		ServerName    string `yaml:"server_name,omitempty"`
 		ServerVersion string `yaml:"server_version,omitempty"`
 	} `yaml:"ldap"`
+
+	SAML struct {
+		ProviderType string `yaml:"provider_type,omitempty"`
+	} `yaml:"saml"`
 
 	ElasticSearch struct {
 		Backend       string   `yaml:"backend,omitempty"`

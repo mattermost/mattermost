@@ -4,11 +4,14 @@
 package opensearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/suite"
 
@@ -113,6 +116,16 @@ func (s *OpensearchInterfaceTestSuite) TearDownSuite() {
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupTest() {
+	if strings.Contains(s.T().Name(), "CJK") {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+		})
+	} else {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+		})
+	}
+
 	s.CommonTestSuite.ESImpl = s.th.App.SearchEngine().ElasticsearchEngine
 
 	if s.CommonTestSuite.ESImpl.IsActive() {
@@ -195,5 +208,46 @@ func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
 		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{channel}, getUserIDsForChannel, []string{})
 		s.Require().NotNil(appErr)
 		s.Require().Contains(appErr.Error(), "test.error")
+	})
+}
+
+func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
+	s.Run("Should handle error with CausedBy information from opensearch", func() {
+		// Invalid template request that will trigger an error with caused_by
+		invalidTemplateBody := map[string]any{
+			"index_patterns": []string{"test-invalid-*"},
+			"template": map[string]any{
+				"settings": map[string]any{
+					"analysis": map[string]any{
+						"analyzer": map[string]any{
+							"my_analyzer": map[string]any{
+								"type":      "custom",
+								"tokenizer": "nonexistent_tokenizer",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		templateBytes, err := json.Marshal(invalidTemplateBody)
+		s.Require().NoError(err)
+
+		_, err = s.client.IndexTemplate.Create(s.ctx, opensearchapi.IndexTemplateCreateReq{
+			IndexTemplate: "test-invalid-template",
+			Body:          bytes.NewReader(templateBytes),
+		})
+
+		var osErr *opensearch.StructError
+		s.Require().ErrorAs(err, &osErr)
+
+		s.Require().NotNil(osErr.Err.CausedBy, "Expected CausedBy to be present")
+		s.Require().NotEmpty(osErr.Err.CausedBy.Type)
+		s.Require().NotEmpty(osErr.Err.CausedBy.Reason)
+
+		// clean up after test
+		_, _ = s.client.IndexTemplate.Delete(s.ctx, opensearchapi.IndexTemplateDeleteReq{
+			IndexTemplate: "test-invalid-template",
+		})
 	})
 }

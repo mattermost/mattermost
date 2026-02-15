@@ -14,7 +14,7 @@ import (
 
 // cleanCPAValuesForUser removes all CPA values for a user
 func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
-	existingValues, appErr := s.th.App.ListCPAValues(userID)
+	existingValues, appErr := s.th.App.ListCPAValues("", userID)
 	s.Require().Nil(appErr)
 
 	// Clear all existing values by setting them to null
@@ -24,7 +24,7 @@ func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
 	}
 
 	if len(updates) > 0 {
-		_, appErr = s.th.App.PatchCPAValues(userID, updates, false)
+		_, appErr = s.th.App.PatchCPAValues("", userID, updates, false)
 		s.Require().Nil(appErr)
 	}
 }
@@ -64,14 +64,14 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(textField)
+		createdField, appErr := s.th.App.CreateCPAField("", textField)
 		s.Require().Nil(appErr)
 
 		// Set a text value using the app layer
 		updates := map[string]json.RawMessage{
 			createdField.ID: json.RawMessage(`"Engineering"`),
 		}
-		_, appErr = s.th.App.PatchCPAValues(s.th.BasicUser.Id, updates, false)
+		_, appErr = s.th.App.PatchCPAValues("", s.th.BasicUser.Id, updates, false)
 		s.Require().Nil(appErr)
 
 		// Test listing the values with plain format (human-readable)
@@ -122,7 +122,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(textField)
+		createdField, appErr := s.th.App.CreateCPAField("", textField)
 		s.Require().Nil(appErr)
 
 		// Set a text value
@@ -135,7 +135,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		s.Require().Nil(err)
 
 		// Verify the value was set
-		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+
+		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
@@ -165,31 +166,28 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(selectField)
+		createdField, appErr := s.th.App.CreateCPAField("", selectField)
 		s.Require().Nil(appErr)
-
-		// Convert to CPAField to access options
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		s.Require().Nil(err)
 
 		// Set a select value using the option name
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice("value", []string{}, "")
-		err = cmd.Flags().Set("value", "Senior")
+		err := cmd.Flags().Set("value", "Senior")
 		s.Require().Nil(err)
 
 		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as option ID)
-		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+
+		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the Senior option ID for verification
 		var seniorOptionID string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			if option.Name == "Senior" {
 				seniorOptionID = option.ID
 				break
@@ -222,18 +220,14 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(multiselectField)
+		createdField, appErr := s.th.App.CreateCPAField("", multiselectField)
 		s.Require().Nil(appErr)
-
-		// Convert to CPAField to access options
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		s.Require().Nil(err)
 
 		// Set multiple values using option names
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice("value", []string{}, "")
 
-		err = cmd.Flags().Set("value", "Go")
+		err := cmd.Flags().Set("value", "Go")
 		s.Require().Nil(err)
 		err = cmd.Flags().Set("value", "React")
 		s.Require().Nil(err)
@@ -244,14 +238,15 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		s.Require().Nil(err)
 
 		// Verify the values were set (should be stored as option IDs)
-		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+
+		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the option IDs for verification
 		var goOptionID, reactOptionID, pythonOptionID string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			switch option.Name {
 			case "Go":
 				goOptionID = option.ID
@@ -293,32 +288,29 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(multiselectField)
+		createdField, appErr := s.th.App.CreateCPAField("", multiselectField)
 		s.Require().Nil(appErr)
-
-		// Convert to CPAField to access options
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		s.Require().Nil(err)
 
 		// Set a single value using option name
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice("value", []string{}, "")
 
-		err = cmd.Flags().Set("value", "Python")
+		err := cmd.Flags().Set("value", "Python")
 		s.Require().Nil(err)
 
 		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as an array with single option ID)
-		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+
+		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the option ID for verification
 		var pythonOptionID string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			if option.Name == "Python" {
 				pythonOptionID = option.ID
 				break
@@ -332,7 +324,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		s.Require().Contains(actualValue, "[")
 		s.Require().Contains(actualValue, "]")
 		// Verify it doesn't contain other option IDs
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			if option.Name != "Python" {
 				s.Require().NotContains(actualValue, option.ID)
 			}
@@ -357,7 +349,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(userField)
+		createdField, appErr := s.th.App.CreateCPAField("", userField)
 		s.Require().Nil(appErr)
 
 		// Set a user value using the system admin user ID
@@ -370,7 +362,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		s.Require().Nil(err)
 
 		// Verify the value was set
-		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+
+		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)

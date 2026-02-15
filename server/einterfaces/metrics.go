@@ -134,9 +134,19 @@ type MetricsInterface interface {
 	ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string)
 	ObserveDesktopCpuUsage(platform, version, process string, usage float64)
 	ObserveDesktopMemoryUsage(platform, version, process string, usage float64)
+	ObservePluginWebappPerf(platform, agent, pluginID, pluginMetricLabel string, elapsed float64)
 
 	ObserveAccessControlSearchQueryDuration(value float64)
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
+
+	// Auto-translation metrics
+	ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64)
+	ObserveAutoTranslateLinguaDetectionDuration(elapsed float64)
+	ObserveAutoTranslateProviderCallDuration(provider, result string, elapsed float64)
+	SetAutoTranslateQueueDepth(depth float64)
+	ObserveAutoTranslateWorkerTaskDuration(elapsed float64)
+	AddAutoTranslateRecoveryStuckFound(count float64)
+	IncrementAutoTranslateNormHash(result string)
 }

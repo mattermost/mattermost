@@ -370,86 +370,48 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     </div>,
                 );
-            } else if (
-                this.props.user.auth_service === Constants.GITLAB_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordGitlabCantUpdate'
-                                defaultMessage='Login occurs through GitLab. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.LDAP_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordLdapCantUpdate'
-                                defaultMessage='Login occurs through AD/LDAP. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.SAML_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordSamlCantUpdate'
-                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.GOOGLE_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordGoogleCantUpdate'
-                                defaultMessage='Login occurs through Google Apps. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.OFFICE365_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Entra ID. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
+            } else {
+                // Map auth service to corresponding formatted message
+                const authServiceMessages: Record<string, string> = {
+                    [Constants.GITLAB_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordGitlabCantUpdate',
+                        defaultMessage: 'Login occurs through GitLab. Password cannot be updated.',
+                    }),
+                    [Constants.LDAP_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordLdapCantUpdate',
+                        defaultMessage: 'Login occurs through AD/LDAP. Password cannot be updated.',
+                    }),
+                    [Constants.SAML_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordSamlCantUpdate',
+                        defaultMessage: 'This field is handled through your login provider. If you want to change it, you need to do so through your login provider.',
+                    }),
+                    [Constants.GOOGLE_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordGoogleCantUpdate',
+                        defaultMessage: 'Login occurs through Google Apps. Password cannot be updated.',
+                    }),
+                    [Constants.OFFICE365_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordOffice365CantUpdate',
+                        defaultMessage: 'Login occurs through Entra ID. Password cannot be updated.',
+                    }),
+                    [Constants.MAGIC_LINK_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordMagicLinkCantUpdate',
+                        defaultMessage: 'Login occurs via magic link. Password cannot be updated.',
+                    }),
+                };
+
+                const message = authServiceMessages[this.props.user.auth_service];
+                if (message) {
+                    inputs.push(
+                        <div
+                            key='oauthEmailInfo'
+                            className='form-group'
+                        >
+                            <div className='pb-3'>
+                                {message}
+                            </div>
+                        </div>,
+                    );
+                }
             }
 
             max = (
@@ -534,6 +496,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
                     defaultMessage='Login done through Entra ID'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginMagicLink'
+                    defaultMessage='Login done through Magic Link'
                 />
             );
         }
@@ -710,7 +679,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.allowedToSwitchToEmail) {
+            } else if (this.props.allowedToSwitchToEmail && user.auth_service !== Constants.MAGIC_LINK_SERVICE) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -753,7 +722,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 </div>,
             );
 
-            const extraInfo = (
+            let extraInfo = (
                 <span>
                     <FormattedMessage
                         id='user.settings.security.oneSignin'
@@ -769,6 +738,17 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
+
+            if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.security.magicLinkInfo'
+                            defaultMessage='Magic Link is the only sign-in method available for this account.'
+                        />
+                    </span>
+                );
+            }
 
             max = (
                 <SettingItemMax
@@ -834,6 +814,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='user.settings.security.saml'
                     defaultMessage='SAML'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.magicLink'
+                    defaultMessage='Magic Link'
                 />
             );
         }

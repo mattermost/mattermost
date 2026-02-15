@@ -46,6 +46,8 @@ var PermissionCreateDirectChannel *Permission
 var PermissionCreateGroupChannel *Permission
 var PermissionManagePublicChannelProperties *Permission
 var PermissionManagePrivateChannelProperties *Permission
+var PermissionManagePublicChannelAutoTranslation *Permission
+var PermissionManagePrivateChannelAutoTranslation *Permission
 var PermissionListPublicTeams *Permission
 var PermissionJoinPublicTeams *Permission
 var PermissionListPrivateTeams *Permission
@@ -69,11 +71,15 @@ var PermissionGetPublicLink *Permission
 var PermissionManageWebhooks *Permission
 var PermissionManageOthersWebhooks *Permission
 var PermissionManageIncomingWebhooks *Permission
+var PermissionManageOwnIncomingWebhooks *Permission
 var PermissionManageOutgoingWebhooks *Permission
+var PermissionManageOwnOutgoingWebhooks *Permission
 var PermissionManageOthersIncomingWebhooks *Permission
 var PermissionManageOthersOutgoingWebhooks *Permission
+var PermissionManageOwnSlashCommands *Permission
 var PermissionManageOAuth *Permission
 var PermissionManageSystemWideOAuth *Permission
+var PermissionBypassIncomingWebhookChannelLock *Permission
 var PermissionManageEmojis *Permission
 var PermissionManageOthersEmojis *Permission
 var PermissionCreateEmojis *Permission
@@ -431,10 +437,17 @@ func initializePermissions() {
 		"authentication.permissions.team_use_slash_commands.description",
 		PermissionScopeChannel,
 	}
+	// DEPRECATED - use PermissionManageOwnSlashCommands instead
 	PermissionManageSlashCommands = &Permission{
 		"manage_slash_commands",
 		"authentication.permissions.manage_slash_commands.name",
 		"authentication.permissions.manage_slash_commands.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageOwnSlashCommands = &Permission{
+		"manage_own_slash_commands",
+		"authentication.permissions.manage_own_slash_commands.name",
+		"authentication.permissions.manage_own_slash_commands.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOthersSlashCommands = &Permission{
@@ -531,6 +544,18 @@ func initializePermissions() {
 		"manage_private_channel_properties",
 		"authentication.permissions.manage_private_channel_properties.name",
 		"authentication.permissions.manage_private_channel_properties.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePublicChannelAutoTranslation = &Permission{
+		"manage_public_channel_auto_translation",
+		"authentication.permissions.manage_public_channel_auto_translation.name",
+		"authentication.permissions.manage_public_channel_auto_translation.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePrivateChannelAutoTranslation = &Permission{
+		"manage_private_channel_auto_translation",
+		"authentication.permissions.manage_private_channel_auto_translation.name",
+		"authentication.permissions.manage_private_channel_auto_translation.description",
 		PermissionScopeChannel,
 	}
 	PermissionListPublicTeams = &Permission{
@@ -668,16 +693,30 @@ func initializePermissions() {
 		"authentication.permissions.manage_others_webhooks.description",
 		PermissionScopeTeam,
 	}
+	// DEPRECATED - use PermissionManageOwnIncomingWebhooks instead
 	PermissionManageIncomingWebhooks = &Permission{
 		"manage_incoming_webhooks",
 		"authentication.permissions.manage_incoming_webhooks.name",
 		"authentication.permissions.manage_incoming_webhooks.description",
 		PermissionScopeTeam,
 	}
+	PermissionManageOwnIncomingWebhooks = &Permission{
+		"manage_own_incoming_webhooks",
+		"authentication.permissions.manage_own_incoming_webhooks.name",
+		"authentication.permissions.manage_own_incoming_webhooks.description",
+		PermissionScopeTeam,
+	}
+	// DEPRECATED - use PermissionManageOwnOutgoingWebhooks instead
 	PermissionManageOutgoingWebhooks = &Permission{
 		"manage_outgoing_webhooks",
 		"authentication.permissions.manage_outgoing_webhooks.name",
 		"authentication.permissions.manage_outgoing_webhooks.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageOwnOutgoingWebhooks = &Permission{
+		"manage_own_outgoing_webhooks",
+		"authentication.permissions.manage_own_outgoing_webhooks.name",
+		"authentication.permissions.manage_own_outgoing_webhooks.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOthersIncomingWebhooks = &Permission{
@@ -690,6 +729,12 @@ func initializePermissions() {
 		"manage_others_outgoing_webhooks",
 		"authentication.permissions.manage_others_outgoing_webhooks.name",
 		"authentication.permissions.manage_others_outgoing_webhooks.description",
+		PermissionScopeTeam,
+	}
+	PermissionBypassIncomingWebhookChannelLock = &Permission{
+		"bypass_incoming_webhook_channel_lock",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.name",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOAuth = &Permission{
@@ -2414,7 +2459,6 @@ func initializePermissions() {
 		PermissionEditOtherUsers,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
-		PermissionManageOAuth,
 		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
 		PermissionListUsersWithoutTeam,
@@ -2484,7 +2528,7 @@ func initializePermissions() {
 	TeamScopedPermissions := []*Permission{
 		PermissionInviteUser,
 		PermissionAddUserToTeam,
-		PermissionManageSlashCommands,
+		PermissionManageOwnSlashCommands,
 		PermissionManageOthersSlashCommands,
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
@@ -2492,10 +2536,11 @@ func initializePermissions() {
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
-		PermissionManageIncomingWebhooks,
-		PermissionManageOutgoingWebhooks,
+		PermissionManageOwnIncomingWebhooks,
+		PermissionManageOwnOutgoingWebhooks,
 		PermissionManageOthersIncomingWebhooks,
 		PermissionManageOthersOutgoingWebhooks,
+		PermissionBypassIncomingWebhookChannelLock,
 		PermissionCreateEmojis,
 		PermissionDeleteEmojis,
 		PermissionDeleteOthersEmojis,
@@ -2516,6 +2561,8 @@ func initializePermissions() {
 		PermissionManageChannelRoles,
 		PermissionManagePublicChannelProperties,
 		PermissionManagePrivateChannelProperties,
+		PermissionManagePublicChannelAutoTranslation,
+		PermissionManagePrivateChannelAutoTranslation,
 		PermissionConvertPublicChannelToPrivate,
 		PermissionConvertPrivateChannelToPublic,
 		PermissionDeletePublicChannel,
@@ -2562,6 +2609,10 @@ func initializePermissions() {
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
 		PermissionManageOthersWebhooks,
+		PermissionManageIncomingWebhooks,
+		PermissionManageOutgoingWebhooks,
+		PermissionManageSlashCommands,
+		PermissionManageOAuth,
 		PermissionManageEmojis,
 		PermissionManageOthersEmojis,
 		PermissionSysconsoleReadAuthentication,

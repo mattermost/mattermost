@@ -11,9 +11,8 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import FollowButton from 'components/threading/common/follow_button';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -32,17 +31,13 @@ type Props = WrappedComponentProps & {
     isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     currentTeam?: Team;
-    showThreadsTutorialTip: boolean;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
-    showMentions: () => void;
-    showSearchResults: () => void;
-    showFlaggedPosts: () => void;
-    showPinnedPosts: () => void;
     goBack: () => void;
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    focusPost: (postId: string, returnTo: string, currentUserId: string, option?: {skipRedirectReplyPermalink: boolean}) => Promise<void>;
 };
 
 class RhsHeaderPost extends React.PureComponent<Props> {
@@ -79,11 +74,19 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         this.props.setThreadFollow(currentUserId, currentTeam.id, rootPostId, !isFollowingThread);
     };
 
-    popout = () => {
-        if (!this.props.currentTeam) {
+    popout = async () => {
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId, channel} = this.props;
+        if (!currentTeam) {
             return;
         }
-        popoutThread(this.props.intl, this.props.rootPostId, this.props.currentTeam.name);
+        await popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            rootPostId,
+            currentTeam.name,
+            (postId, returnTo) => {
+                focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+            },
+        );
     };
 
     render() {
@@ -242,7 +245,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         </button>
                     </WithTooltip>
                 </div>
-                {this.props.showThreadsTutorialTip && <CRTThreadsPaneTutorialTip/>}
             </div>
         );
     }

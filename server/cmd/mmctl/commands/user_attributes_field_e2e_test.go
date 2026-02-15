@@ -13,10 +13,10 @@ import (
 
 // cleanCPAFields removes all existing CPA fields to ensure clean test state
 func (s *MmctlE2ETestSuite) cleanCPAFields() {
-	existingFields, appErr := s.th.App.ListCPAFields()
+	existingFields, appErr := s.th.App.ListCPAFields("")
 	s.Require().Nil(appErr)
 	for _, field := range existingFields {
-		appErr := s.th.App.DeleteCPAField(field.ID)
+		appErr := s.th.App.DeleteCPAField("", field.ID)
 		s.Require().Nil(appErr)
 	}
 }
@@ -66,11 +66,11 @@ func (s *MmctlE2ETestSuite) TestCPAFieldListCmd() {
 			},
 		}
 
-		createdTextField, appErr := s.th.App.CreateCPAField(textField)
+		createdTextField, appErr := s.th.App.CreateCPAField("", textField)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(createdTextField)
 
-		createdSelectField, appErr := s.th.App.CreateCPAField(selectField)
+		createdSelectField, appErr := s.th.App.CreateCPAField("", selectField)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(createdSelectField)
 
@@ -114,12 +114,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.Require().Contains(output, "Field Department correctly created")
 
 		// Verify field was actually created in the database
-		fields, appErr := s.th.App.ListCPAFields()
+		fields, appErr := s.th.App.ListCPAFields("")
 		s.Require().Nil(appErr)
 		s.Require().Len(fields, 1)
 		s.Require().Equal("Department", fields[0].Name)
 		s.Require().Equal(model.PropertyFieldTypeText, fields[0].Type)
-		s.Require().Equal("admin", fields[0].Attrs["managed"])
+		s.Require().Equal("admin", fields[0].Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Create multiselect field with options", func(c client.Client) {
@@ -150,22 +150,18 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.Require().Contains(output, "Field Skills correctly created")
 
 		// Verify field was actually created in the database with correct options
-		fields, appErr := s.th.App.ListCPAFields()
+		fields, appErr := s.th.App.ListCPAFields("")
 		s.Require().Nil(appErr)
 		s.Require().Len(fields, 1)
 		s.Require().Equal("Skills", fields[0].Name)
 		s.Require().Equal(model.PropertyFieldTypeMultiselect, fields[0].Type)
 
-		// Convert to CPAField for easier option inspection
-		cpaField, err := model.NewCPAFieldFromPropertyField(fields[0])
-		s.Require().Nil(err)
-
 		// Verify the options were created
-		s.Require().Len(cpaField.Attrs.Options, 3)
+		s.Require().Len(fields[0].Attrs.Options, 3)
 
 		// Extract option names to verify they match what we set
 		var optionNames []string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range fields[0].Attrs.Options {
 			optionNames = append(optionNames, option.Name)
 		}
 		s.Require().Contains(optionNames, "Go")
@@ -214,7 +210,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		// Now edit the field
@@ -241,17 +237,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Contains(output, "Field Programming Languages successfully updated")
 
 		// Verify field was actually updated
-		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
+		updatedField, appErr := s.th.App.GetCPAField("", createdField.ID)
 		s.Require().Nil(appErr)
 		s.Require().Equal("Programming Languages", updatedField.Name)
 
-		// Convert to CPAField to check options
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Len(cpaField.Attrs.Options, 2)
+		// Check options
+		s.Require().Len(updatedField.Attrs.Options, 2)
 
 		var optionNames []string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range updatedField.Attrs.Options {
 			optionNames = append(optionNames, option.Name)
 		}
 		s.Require().Contains(optionNames, "Go")
@@ -274,7 +268,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		// Now edit the field with --managed flag
@@ -293,15 +287,11 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify field was actually updated
-		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
+		updatedField, appErr := s.th.App.GetCPAField("", createdField.ID)
 		s.Require().Nil(appErr)
 
-		// Convert to CPAField to check attrs
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-
 		// Verify that managed flag was set correctly
-		s.Require().Equal("admin", cpaField.Attrs.Managed)
+		s.Require().Equal("admin", updatedField.Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Edit field by name", func(c client.Client) {
@@ -320,7 +310,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		// Now edit the field using its name instead of ID
@@ -346,14 +336,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Contains(output, "Field Team successfully updated")
 
 		// Verify field was actually updated by retrieving it
-		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
+		updatedField, appErr := s.th.App.GetCPAField("", createdField.ID)
 		s.Require().Nil(appErr)
 		s.Require().Equal("Team", updatedField.Name)
 
-		// Convert to CPAField to check managed status
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Equal("admin", cpaField.Attrs.Managed)
+		// Check managed status
+		s.Require().Equal("admin", updatedField.Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Edit multiselect field with option preservation", func(c client.Client) {
@@ -375,17 +363,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		// Get the original option IDs to verify they are preserved
-		originalCPAField, err := model.NewCPAFieldFromPropertyField(createdField)
-		s.Require().Nil(err)
-		s.Require().Len(originalCPAField.Attrs.Options, 2)
+		s.Require().Len(createdField.Attrs.Options, 2)
 
 		originalGoID := ""
 		originalPythonID := ""
-		for _, option := range originalCPAField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			switch option.Name {
 			case "Go":
 				originalGoID = option.ID
@@ -403,7 +389,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 
-		err = cmd.Flags().Set("option", "Go")
+		err := cmd.Flags().Set("option", "Go")
 		s.Require().Nil(err)
 		err = cmd.Flags().Set("option", "Python")
 		s.Require().Nil(err)
@@ -420,20 +406,18 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Contains(output, "Field Programming Languages successfully updated")
 
 		// Verify field was actually updated and options are preserved correctly
-		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
+		updatedField, appErr := s.th.App.GetCPAField("", createdField.ID)
 		s.Require().Nil(appErr)
 
-		// Convert to CPAField to check options
-		updatedCPAField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Len(updatedCPAField.Attrs.Options, 3)
+		// Check options
+		s.Require().Len(updatedField.Attrs.Options, 3)
 
 		// Verify the first two options preserved their original IDs and the third is new
 		foundGo := false
 		foundPython := false
 		foundReact := false
 
-		for _, option := range updatedCPAField.Attrs.Options {
+		for _, option := range updatedField.Attrs.Options {
 			switch option.Name {
 			case "Go":
 				s.Require().Equal(originalGoID, option.ID, "Go option should preserve its original ID")
@@ -472,7 +456,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		cmd := &cobra.Command{}
@@ -491,7 +475,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		s.Require().Contains(output, "Successfully deleted CPA field")
 
 		// Verify field was actually deleted by checking if it exists in the list
-		fields, appErr := s.th.App.ListCPAFields()
+		fields, appErr := s.th.App.ListCPAFields("")
 		s.Require().Nil(appErr)
 
 		// Field should not be in the list anymore
@@ -518,7 +502,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(field)
+		createdField, appErr := s.th.App.CreateCPAField("", field)
 		s.Require().Nil(appErr)
 
 		cmd := &cobra.Command{}
@@ -538,7 +522,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		s.Require().Contains(output, "Successfully deleted CPA field: Department")
 
 		// Verify field was actually deleted by checking if it exists in the list
-		fields, appErr := s.th.App.ListCPAFields()
+		fields, appErr := s.th.App.ListCPAFields("")
 		s.Require().Nil(appErr)
 
 		// Field should not be in the list anymore

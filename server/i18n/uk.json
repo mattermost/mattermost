@@ -792,10 +792,6 @@
     "translation": "Не вдалося знайти вказаний канал. Будь ласка, використовуйте [гештег каналу](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не вдалося вимкнути звук в каналі {{.Channel}}, оскільки ви не є його учасником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Ви не будете отримувати сповіщення для {{.Channel}}, поки вимкнений звук каналу."
   },
@@ -1186,10 +1182,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Поганий client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Відсутній client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -7620,10 +7612,6 @@
     "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недоступний."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Послуга доступна лише у версії Mattermost Enterprise"
   },
@@ -7634,10 +7622,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Не вдалося надіслати електронні листи щодо поновлення ліцензії"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не вдалося підписатися на розсилку новин."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -7681,7 +7665,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",

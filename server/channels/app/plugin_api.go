@@ -120,7 +120,7 @@ func (api *PluginAPI) GetPluginConfig() map[string]any {
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]any) *model.AppError {
-	cfg := api.app.GetSanitizedConfig()
+	cfg := api.app.Config().Clone()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	_, _, err := api.app.SaveConfig(cfg, true)
 	return err
@@ -591,7 +591,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
 	}
@@ -773,7 +773,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post.AddProp(model.PostPropsFromPlugin, "true")
 
-	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
+	post, _, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -793,11 +793,13 @@ func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.App
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.SendEphemeralPost(api.ctx, userID, post).ForPlugin()
+	newPost, _ := api.app.SendEphemeralPost(api.ctx, userID, post)
+	return newPost.ForPlugin()
 }
 
 func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.UpdateEphemeralPost(api.ctx, userID, post).ForPlugin()
+	newPost, _ := api.app.UpdateEphemeralPost(api.ctx, userID, post)
+	return newPost.ForPlugin()
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
@@ -858,7 +860,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1104,7 +1106,8 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
-	return api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	ok, _ := api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	return ok
 }
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
@@ -1530,100 +1533,99 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 	if field == nil {
 		return nil, fmt.Errorf("invalid input: property field parameter is required")
 	}
-
-	return api.app.PropertyService().CreatePropertyField(field)
+	return api.app.PropertyAccessService().CreatePropertyFieldForPlugin(api.manifest.Id, field)
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyField(groupID, fieldID)
+	return api.app.PropertyAccessService().GetPropertyField(api.manifest.Id, groupID, fieldID)
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyFields(groupID, ids)
+	return api.app.PropertyAccessService().GetPropertyFields(api.manifest.Id, groupID, ids)
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	return api.app.PropertyService().UpdatePropertyField(groupID, field)
+	return api.app.PropertyAccessService().UpdatePropertyField(api.manifest.Id, groupID, field)
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+	return api.app.PropertyAccessService().DeletePropertyField(api.manifest.Id, groupID, fieldID)
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+	return api.app.PropertyAccessService().SearchPropertyFields(api.manifest.Id, groupID, opts)
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
 	if includeDeleted {
-		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+		return api.app.PropertyAccessService().CountAllPropertyFieldsForGroup(groupID)
 	}
-	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+	return api.app.PropertyAccessService().CountActivePropertyFieldsForGroup(groupID)
 }
 
 func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
 	if includeDeleted {
-		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+		return api.app.PropertyAccessService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
 	}
-	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
+	return api.app.PropertyAccessService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().CreatePropertyValue(value)
+	return api.app.PropertyAccessService().CreatePropertyValue(api.manifest.Id, value)
 }
 
 func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
-	return api.app.PropertyService().GetPropertyValue(groupID, valueID)
+	return api.app.PropertyAccessService().GetPropertyValue(api.manifest.Id, groupID, valueID)
 }
 
 func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().GetPropertyValues(groupID, ids)
+	return api.app.PropertyAccessService().GetPropertyValues(api.manifest.Id, groupID, ids)
 }
 
 func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
+	return api.app.PropertyAccessService().UpdatePropertyValue(api.manifest.Id, groupID, value)
 }
 
 func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().UpsertPropertyValue(value)
+	return api.app.PropertyAccessService().UpsertPropertyValue(api.manifest.Id, value)
 }
 
 func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
-	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
+	return api.app.PropertyAccessService().DeletePropertyValue(api.manifest.Id, groupID, valueID)
 }
 
 func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
+	return api.app.PropertyAccessService().SearchPropertyValues(api.manifest.Id, groupID, opts)
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyService().RegisterPropertyGroup(name)
+	return api.app.PropertyAccessService().RegisterPropertyGroup(name)
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyService().GetPropertyGroup(name)
+	return api.app.PropertyAccessService().GetPropertyGroup(name)
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+	return api.app.PropertyAccessService().GetPropertyFieldByName(api.manifest.Id, groupID, targetID, name)
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+	return api.app.PropertyAccessService().UpdatePropertyFields(api.manifest.Id, groupID, fields)
 }
 
 func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().UpdatePropertyValues(groupID, values)
+	return api.app.PropertyAccessService().UpdatePropertyValues(api.manifest.Id, groupID, values)
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().UpsertPropertyValues(values)
+	return api.app.PropertyAccessService().UpsertPropertyValues(api.manifest.Id, values)
 }
 
 func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
-	return api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	return api.app.PropertyAccessService().DeletePropertyValuesForTarget(api.manifest.Id, groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
-	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
+	return api.app.PropertyAccessService().DeletePropertyValuesForField(api.manifest.Id, groupID, fieldID)
 }

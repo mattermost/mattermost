@@ -2,11 +2,11 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": ">=18.10.0",
-    "npm": "^9.0.0 || ^10.0.0 || ^11.0.0"
+    "node": "^20 || ^22 || ^24",
+    "npm": "^10 || ^11"
   },
   "scripts": {
-    "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
+    "postinstall": "patch-package && npm run build --workspace platform/types --workspace platform/client --workspace platform/components --workspace platform/shared",
     "build": "node scripts/build.mjs",
     "run": "node scripts/run.mjs",
     "dev-server": "node scripts/dev-server.mjs",
@@ -16,19 +16,23 @@
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present",
+    "i18n-extract": "npm run i18n-extract --workspaces --if-present",
+    "i18n-extract:check": "npm run i18n-extract:check --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules .parcel-cache",
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
-    "@mattermost/compass-icons": "0.1.52",
+    "@mattermost/compass-icons": "0.1.53",
+    "react-intl": "7.1.14",
     "typescript": "5.6.3"
   },
   "devDependencies": {
-    "@babel/core": "7.22.0",
-    "@babel/preset-env": "7.21.5",
-    "@babel/preset-react": "7.18.6",
-    "@babel/preset-typescript": "7.21.5",
-    "@types/node": "20.19.18",
+    "@babel/core": "7.28.5",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react": "7.28.5",
+    "@babel/preset-typescript": "7.28.5",
+    "@formatjs/cli": "6.7.4",
+    "@types/node": "24.10.4",
     "babel-loader": "9.1.2",
     "babel-plugin-formatjs": "10.5.1",
     "babel-plugin-typescript-to-proptypes": "2.1.0",
@@ -39,7 +43,7 @@
     "css-loader": "6.7.3",
     "eslint": "8.57.0",
     "eslint-import-resolver-webpack": "0.13.8",
-    "eslint-plugin-formatjs": "4.12.2",
+    "eslint-plugin-formatjs": "4.13.3",
     "eslint-plugin-react": "7.34.0",
     "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
@@ -49,9 +53,9 @@
     "strip-ansi": "7.1.0",
     "style-loader": "4.0.0",
     "typescript-eslint-language-service": "5.0.5",
-    "webpack": "5.95.0",
-    "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.1.0"
+    "webpack": "5.103.0",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.2"
   },
   "overrides": {
     "@deanwhillier/jest-matchmedia-mock": {
@@ -86,6 +90,7 @@
     "platform/components",
     "platform/eslint-plugin",
     "platform/mattermost-redux",
+    "platform/shared",
     "platform/types"
   ]
 }

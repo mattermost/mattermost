@@ -46,7 +46,7 @@ jobs:
             echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
@@ -93,6 +93,14 @@ jobs:
         run: |
           cd server/build
           docker compose --ansi never stop
+
+      - name: Save mmctl test report to Zephyr Scale
+        if: ${{ always() && hashFiles('server/report.xml') != '' && github.event_name != 'pull_request' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        uses: ./.github/actions/save-junit-report-tms
+        with:
+          report-path: server/report.xml
+          zephyr-api-key: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
+          build-image: ${{ steps.build.outputs.BUILD_IMAGE }}
 
       - name: Archive logs
         if: ${{ always() }}

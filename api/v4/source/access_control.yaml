@@ -283,11 +283,16 @@
           $ref: "#/components/responses/InternalServerError"
   "/api/v4/access_control_policies/{policy_id}/activate":
     get:
+      deprecated: true
       tags:
         - access control
       summary: Activate or deactivate an access control policy
       description: |
         Updates the active status of an access control policy.
+
+        **Deprecated:** This endpoint will be removed in a future release. Use the dedicated access control policy update endpoint instead.
+        Link: </api/v4/access_control_policies/activate>; rel="successor-version"
+
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: UpdateAccessControlPolicyActiveStatus
@@ -569,3 +574,37 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/activate:
+    put:
+      tags:
+        - access control
+      summary: Activate or deactivate access control policies
+      description: |
+        Updates the active status of access control policies.
+
+        ##### Permissions
+        Must have the `manage_system` permission. OR be a channel admin with manage_channel_access_rules permission for the specified channels.
+      operationId: UpdateAccessControlPoliciesActive
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessControlPolicyActiveUpdateRequest"
+      responses:
+        "200":
+          description: Access control policies active status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

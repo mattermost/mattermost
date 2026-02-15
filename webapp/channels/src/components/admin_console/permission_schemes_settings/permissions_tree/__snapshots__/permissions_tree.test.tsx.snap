@@ -64,6 +64,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -81,6 +82,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -258,6 +260,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -275,6 +278,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -351,10 +355,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",
@@ -460,6 +483,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -477,6 +501,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -542,10 +567,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",
@@ -651,6 +695,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -668,6 +713,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -744,10 +790,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",
@@ -853,6 +918,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -870,6 +936,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -946,10 +1013,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",
@@ -1055,6 +1141,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -1072,6 +1159,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -1148,10 +1236,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",
@@ -1264,6 +1371,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -1281,6 +1389,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -1357,10 +1466,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           Object {
             "id": "integrations",
             "permissions": Array [
-              "manage_incoming_webhooks",
-              "manage_outgoing_webhooks",
+              Object {
+                "id": "manage_incoming_webhooks_group",
+                "permissions": Array [
+                  "manage_own_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
+                  "bypass_incoming_webhook_channel_lock",
+                ],
+              },
+              Object {
+                "id": "manage_outgoing_webhooks_group",
+                "permissions": Array [
+                  "manage_own_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
+                ],
+              },
               "manage_oauth",
-              "manage_slash_commands",
+              Object {
+                "id": "manage_slash_commands_group",
+                "permissions": Array [
+                  "manage_own_slash_commands",
+                  "manage_others_slash_commands",
+                ],
+              },
               "create_emojis",
               "delete_emojis",
               "delete_others_emojis",

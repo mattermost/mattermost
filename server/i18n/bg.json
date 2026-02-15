@@ -4838,10 +4838,6 @@
     "translation": "invalid_request: Непавилен grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Липсващ client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: неправилен client_id."
   },
@@ -5363,10 +5359,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Няма да получавате известия за канала {{.Channel}}, докато е заглушен."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не може да заглушите канала {{.Channel}} защото не сте член."
   },
   {
     "id": "api.command_mute.no_channel.error",

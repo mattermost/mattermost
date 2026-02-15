@@ -30,6 +30,16 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
+// saveTeamState returns a function that restores the team's AllowedDomains field
+// Call the returned function in a defer to ensure cleanup
+func saveTeamState(th *TestHelper) func() {
+	originalAllowedDomains := th.BasicTeam.AllowedDomains
+	return func() {
+		th.BasicTeam.AllowedDomains = originalAllowedDomains
+		_, _ = th.App.UpdateTeam(th.BasicTeam)
+	}
+}
+
 func TestCreateOAuthUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -61,9 +71,11 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		// mock oAuth Provider, return data
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockSSOSettings := &model.SSOSettings{}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
-		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetSSOSettings", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockSSOSettings, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
@@ -679,7 +691,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		tokens := []*model.Token{}
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeVerifyEmail)
 			return err == nil && len(tokens) == 1
 		}, 100*time.Millisecond, 10*time.Millisecond)
 
@@ -694,7 +706,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeVerifyEmail)
 			// We verify the same conditions as the earlier function,
 			// but we also need to ensure that this is not the same token
 			// as before, which is possible if the token update goroutine
@@ -1008,6 +1020,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("invalid domain", func(t *testing.T) {
+		restoreTeam := saveTeamState(th)
+		defer restoreTeam()
+
 		th.BasicTeam.AllowedDomains = "mattermost.com"
 		_, nErr := th.App.Srv().Store().Team().Update(th.BasicTeam)
 		require.NoError(t, nErr)
@@ -1030,7 +1045,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeVerifyEmail,
+			model.TokenTypeVerifyEmail,
 			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1045,7 +1060,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("token extra email does not match provided user data email", func(t *testing.T) {
 		invitationEmail := "attacker@test.com"
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 
@@ -1056,10 +1071,10 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
+		token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
@@ -1071,7 +1086,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1087,7 +1102,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1107,7 +1122,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 
@@ -1138,11 +1153,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		forbiddenInvitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		grantedInvitationEmail := strings.ToLower(model.NewId()) + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		grantedDomainToken := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(forbiddenDomainToken))
@@ -1174,6 +1189,9 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
+		restoreTeam := saveTeamState(th)
+		defer restoreTeam()
+
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -1186,7 +1204,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1208,6 +1226,125 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
+	})
+
+	// Tests for Guest Magic Link Invitation token channel assignment
+	t.Run("Guest Magic Link Invitation token adds guest to multiple channels", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": channel1.Id + " " + channel2.Id,
+			"email":    invitationEmail,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
+		require.Nil(t, err, "Should create guest user successfully")
+		require.True(t, newGuest.IsGuest())
+
+		// Verify token was deleted
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted after use")
+
+		// Verify guest was added to both channels
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[channel1.Id], "Guest should be in channel1")
+		assert.True(t, channelIds[channel2.Id], "Guest should be in channel2")
+	})
+
+	t.Run("Guest Magic Link invitation token validates channel permissions", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
+
+		// Create channels with different access levels
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+		// Create another user and a private channel they own (sender doesn't have access)
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+		restrictedChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		_ = th.RemoveUserFromChannel(t, th.BasicUser, restrictedChannel)
+		th.AddUserToChannel(t, otherUser, restrictedChannel)
+
+		// Token includes all three channels
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": publicChannel.Id + " " + privateChannel.Id + " " + restrictedChannel.Id,
+			"email":    invitationEmail,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id, // Sender has access to public and private, but not restricted
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
+		require.Nil(t, err)
+
+		// Verify guest was only added to channels the sender has permissions for
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[publicChannel.Id], "Guest should be in public channel")
+		assert.True(t, channelIds[privateChannel.Id], "Guest should be in sender's private channel")
+		assert.False(t, channelIds[restrictedChannel.Id], "Guest should NOT be in restricted channel")
+	})
+
+	t.Run("Guest Magic Link invitation token doesn't add user to channels if token is TeamInvitation", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "regular@test.com"
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+
+		// Use regular team invitation token (not guest magic link)
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": channel1.Id, // Channels specified but wrong token type
+			"email":    invitationEmail,
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation, // Regular team invitation, not guest magic link
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newUser, err := th.App.CreateUserWithToken(th.Context, &regularUser, token)
+		require.Nil(t, err)
+		require.False(t, newUser.IsGuest())
+
+		// Regular team invitations with channels should still add to channels (existing behavior)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newUser.Id)
+		require.Nil(t, err)
+
+		// Should have default channels (Town Square, Off-Topic) + channel1 = 3 channels
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[channel1.Id], "User should be in channel1 even with TeamInvitation token")
 	})
 }
 
@@ -1368,19 +1505,19 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	t.Run("remove manually added tokens", func(t *testing.T) {
 		for range 5 {
 			token := model.NewToken(
-				TokenTypePasswordRecovery,
+				model.TokenTypePasswordRecovery,
 				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
 			)
 			require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		}
-		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, len(tokens))
 
 		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
-		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(tokens))
 	})
@@ -1392,7 +1529,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 		token, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
-		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(tokens))
 		assert.Equal(t, token.Token, tokens[0].Token)
@@ -2152,9 +2289,9 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
+		replyPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
@@ -2448,6 +2585,258 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
+	})
+}
+
+func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Enable guest accounts for guest magic link
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	t.Run("valid guest magic link token creates guest user successfully", func(t *testing.T) {
+		// Create guest magic link invitation token
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id + " " + channel2.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		// Authenticate with guest magic link token
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.Nil(t, err, "Should create guest user successfully")
+		require.NotNil(t, user)
+
+		// Verify user is a guest
+		assert.True(t, user.IsGuest(), "User should be a guest")
+		assert.Equal(t, email, user.Email)
+		assert.True(t, user.EmailVerified, "Email should be verified")
+		assert.NotEmpty(t, user.Username, "Username should be generated")
+
+		// Verify token was deleted (single-use)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted after use")
+
+		// Verify user was added to team
+		_, teamErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, teamErr, "User should be added to team")
+
+		// Verify user was added to specified channels
+		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, chanErr)
+		// Guests are only added to the channels specified in the token (BasicChannel and channel2)
+		// They do not automatically get added to Town Square like regular users
+		assert.GreaterOrEqual(t, len(members), 2, "User should be in at least 2 channels")
+
+		// Cleanup
+		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("invalid token returns error", func(t *testing.T) {
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, "invalid-token-123")
+		require.NotNil(t, err, "Should fail on invalid token")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
+	})
+
+	t.Run("expired token returns error", func(t *testing.T) {
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		// Set token to be expired (48 hours + 1 millisecond old)
+		token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on expired token")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.guest_magic_link.expired_token.app_error", err.Id)
+
+		// Verify token was deleted
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Expired token should be deleted")
+	})
+
+	t.Run("wrong token type returns error", func(t *testing.T) {
+		// Create token with wrong type
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation, // Wrong type - should be TokenTypeGuestMagicLinkInvitation
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on wrong token type")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token_type.app_error", err.Id)
+	})
+
+	t.Run("user already exists returns generic error", func(t *testing.T) {
+		// Use existing user's email
+		email := th.BasicUser.Email
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail when user already exists")
+		require.Nil(t, user)
+		// Returns generic error to prevent user enumeration
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
+
+		// Verify token was deleted even on error
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted even when user exists")
+	})
+
+	t.Run("username is generated from email and made unique", func(t *testing.T) {
+		// Create a user with a common username
+		email1 := "john.doe@example.com"
+		tokenData1 := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email1,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token1 := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData1),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token1))
+
+		user1, err1 := th.App.AuthenticateUserForGuestMagicLink(th.Context, token1.Token)
+		require.Nil(t, err1)
+		require.NotNil(t, user1)
+		assert.Contains(t, user1.Username, "john", "Username should be derived from email")
+
+		// Create another user with similar email - username should be made unique
+		email2 := "john.smith@example.com"
+		tokenData2 := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email2,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token2 := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData2),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token2))
+
+		user2, err2 := th.App.AuthenticateUserForGuestMagicLink(th.Context, token2.Token)
+		require.Nil(t, err2)
+		require.NotNil(t, user2)
+
+		// Usernames should be different (uniqueness enforced)
+		assert.NotEqual(t, user1.Username, user2.Username, "Usernames should be unique")
+
+		// Cleanup
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user1))
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user2))
+	})
+
+	t.Run("invalid team id in token returns error", func(t *testing.T) {
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   model.NewId(), // Non-existent team
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on invalid team id")
+		require.Nil(t, user)
+
+		// User should have been created but team join failed
+		// Check if user was created
+		createdUser, getUserErr := th.App.GetUserByEmail(email)
+		if getUserErr == nil {
+			// Cleanup if user was created
+			require.Nil(t, th.App.PermanentDeleteUser(th.Context, createdUser))
+		}
+	})
+
+	t.Run("channels filtered by sender permissions", func(t *testing.T) {
+		// Create a private channel
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		// Include both public and private channel
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id + " " + privateChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id, // BasicUser should have access to private channel
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		require.Nil(t, err)
+		require.NotNil(t, user)
+
+		// Verify user was added to both channels
+		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, chanErr)
+
+		// Check that user is in the specified channels
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[th.BasicChannel.Id], "User should be in basic channel")
+		assert.True(t, channelIds[privateChannel.Id], "User should be in private channel")
+
+		// Cleanup
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
 	})
 }
 

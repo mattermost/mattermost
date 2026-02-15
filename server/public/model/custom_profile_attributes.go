@@ -14,20 +14,6 @@ import (
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
-func CPASortOrder(p *PropertyField) int {
-	value, ok := p.Attrs[CustomProfileAttributesPropertyAttrsSortOrder]
-	if !ok {
-		return 0
-	}
-
-	sortOrder, ok := value.(float64)
-	if !ok {
-		return 0
-	}
-
-	return int(sortOrder)
-}
-
 const (
 	// Attributes keys
 	CustomProfileAttributesPropertyAttrsSortOrder  = "sort_order"
@@ -126,13 +112,16 @@ type CPAField struct {
 }
 
 type CPAAttrs struct {
-	Visibility string                                                `json:"visibility"`
-	SortOrder  float64                                               `json:"sort_order"`
-	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
-	ValueType  string                                                `json:"value_type"`
-	LDAP       string                                                `json:"ldap"`
-	SAML       string                                                `json:"saml"`
-	Managed    string                                                `json:"managed"`
+	Visibility     string                                                `json:"visibility"`
+	SortOrder      float64                                               `json:"sort_order"`
+	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	ValueType      string                                                `json:"value_type"`
+	LDAP           string                                                `json:"ldap"`
+	SAML           string                                                `json:"saml"`
+	Managed        string                                                `json:"managed"`
+	Protected      bool                                                  `json:"protected"`
+	SourcePluginID string                                                `json:"source_plugin_id"`
+	AccessMode     string                                                `json:"access_mode"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -141,6 +130,39 @@ func (c *CPAField) IsSynced() bool {
 
 func (c *CPAField) IsAdminManaged() bool {
 	return c.Attrs.Managed == "admin"
+}
+
+// SetDefaults sets default values for CPAField attributes
+func (c *CPAField) SetDefaults() {
+	if c.Attrs.Visibility == "" {
+		c.Attrs.Visibility = CustomProfileAttributesVisibilityDefault
+	}
+}
+
+// Patch applies a PropertyFieldPatch to the CPAField by converting to PropertyField,
+// applying the patch, and converting back. This ensures we only maintain one patch logic path.
+// Custom profile attributes doesn't use targets, so TargetID and TargetType are cleared.
+func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
+	// Custom profile attributes doesn't use targets
+	patch.TargetID = nil
+	patch.TargetType = nil
+
+	// Convert to PropertyField
+	pf := c.ToPropertyField()
+
+	// Apply the patch using PropertyField's patch logic
+	pf.Patch(patch)
+
+	// Convert back to CPAField
+	patched, err := NewCPAFieldFromPropertyField(pf)
+	if err != nil {
+		return err
+	}
+
+	// Update the current CPAField with patched values
+	*c = *patched
+
+	return nil
 }
 
 func (c *CPAField) ToPropertyField() *PropertyField {
@@ -154,6 +176,9 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
 		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
 		CustomProfileAttributesPropertyAttrsManaged:    c.Attrs.Managed,
+		PropertyAttrsProtected:                         c.Attrs.Protected,
+		PropertyAttrsSourcePluginID:                    c.Attrs.SourcePluginID,
+		PropertyAttrsAccessMode:                        c.Attrs.AccessMode,
 	}
 
 	return &pf
@@ -172,6 +197,8 @@ func (c *CPAField) SupportsSyncing() bool {
 }
 
 func (c *CPAField) SanitizeAndValidate() *AppError {
+	c.SetDefaults()
+
 	// first we clean unused attributes depending on the field type
 	if !c.SupportsOptions() {
 		c.Attrs.Options = nil
@@ -218,7 +245,7 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		c.Attrs.Options = options
 	}
 
-	visibility := CustomProfileAttributesVisibilityDefault
+	// Validate visibility
 	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
 		if !IsKnownCPAVisibility(visibilityAttr) {
 			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
@@ -226,9 +253,8 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 				"Reason":        "unknown visibility",
 			}, "", http.StatusUnprocessableEntity)
 		}
-		visibility = visibilityAttr
+		c.Attrs.Visibility = visibilityAttr
 	}
-	c.Attrs.Visibility = visibility
 
 	// Validate managed field
 	if managed := strings.TrimSpace(c.Attrs.Managed); managed != "" {
@@ -256,10 +282,14 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		return nil, err
 	}
 
-	return &CPAField{
+	cpaField := &CPAField{
 		PropertyField: *pf,
 		Attrs:         attrs,
-	}, nil
+	}
+
+	cpaField.SetDefaults()
+
+	return cpaField, nil
 }
 
 // SanitizeAndValidatePropertyValue validates and sanitizes the given

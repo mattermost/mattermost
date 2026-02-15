@@ -790,10 +790,6 @@
     "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Üyesi olmadığınızdan {{.Channel}} kanalının bildirimlerini kapatamazsınız."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Bildirimleri açana kadar {{.Channel}} kanalından bildirim almayacaksınız."
   },
@@ -1183,10 +1179,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "İstek geçersiz: client_id değeri hatalı."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "İstek geçersiz: İstemci parolası eksik."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -5532,7 +5524,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -8570,10 +8562,6 @@
     "translation": "{{.Backend}} için CA dosyası açılamadı"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Müşteri site sunucusu kullanılamıyor."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },
@@ -8604,10 +8592,6 @@
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Müşteri site sunucusu duyurulara abone olamadı."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -10680,10 +10664,6 @@
     "translation": "Kanallardan erişim denetimi ilkesi ataması kaldırılamadı."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Erişim denetimi ilkesinin etkin durumu değiştirilemedi."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Erişim denetimi ilkesi değerlendirilemedi."
   },
@@ -10933,7 +10913,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "İşaretlenmiş ileti geri alınırken veri tabanındaki ileti güncellenemedi."
+    "translation": "İşaretlenmiş ileti ve ilişkili verileri silinmekten geri alınırken veri tabanındaki ileti güncellenemedi."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -11000,18 +10980,6 @@
     "translation": "Otomatik çeviri hizmeti sağlayıcı desteklenmiyor."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Otomatik çeviri ayarları için alma zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Otomatik çeviri ayarları için yeni gönderi zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Kanal kimliği, işaretlenmiş iletinin kanal kimliğiyle eşleşmiyor."
   },
@@ -11070,5 +11038,49 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kanal silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIChannelDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı takım silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPITeamDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kullanıcı silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIUserDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Aracılar alınamadı."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM hizmetleri alınamadı."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "İşaretlenmiş iletinin konu yanıtları alınamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Yöneten özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Durum özellik alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "İşaretlenmiş ileti için konu yanıtlarında özellik değerleri ayarlanamadı."
   }
 ]

@@ -71,7 +71,12 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		return a.CreatePostMissingChannel(rctx, post, true, true)
+		// The post is only used for tests, so even if there are membership issues, we won't send the post to the client.
+		createdPost, _, appErr := a.CreatePostMissingChannel(rctx, post, true, true)
+		if appErr != nil {
+			return nil, appErr
+		}
+		return createdPost, nil
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
@@ -128,6 +133,10 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 }
 
 func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError) {
+	return a.ListTeamCommandsByUser(teamID, "")
+}
+
+func (a *App) ListTeamCommandsByUser(teamID string, userID string) ([]*model.Command, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -137,10 +146,25 @@ func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Filter by user if userID is specified
+	if userID != "" {
+		filteredCmds := make([]*model.Command, 0)
+		for _, cmd := range teamCmds {
+			if cmd.CreatorId == userID {
+				filteredCmds = append(filteredCmds, cmd)
+			}
+		}
+		return filteredCmds, nil
+	}
+
 	return teamCmds, nil
 }
 
 func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+	return a.ListAllCommandsByUser(teamID, "", T)
+}
+
+func (a *App) ListAllCommandsByUser(teamID string, userID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
@@ -168,6 +192,10 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 		}
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
+				// Filter by user if userID is specified (before sanitizing)
+				if userID != "" && cmd.CreatorId != userID {
+					continue
+				}
 				cmd.Sanitize()
 				seen[cmd.Trigger] = true
 				commands = append(commands, cmd)
@@ -192,6 +220,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 	if !strings.HasPrefix(trigger, "/") {
 		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]any{"Trigger": trigger}, "", http.StatusBadRequest)
 	}
+
 	trigger = strings.TrimPrefix(trigger, "/")
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
@@ -442,7 +471,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 		return nil, nil, nil
 	}
 
-	rctx.Logger().Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
+	rctx = rctx.WithLogFields(mlog.String("command_id", cmd.Id))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)

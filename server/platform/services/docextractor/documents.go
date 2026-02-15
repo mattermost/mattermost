@@ -36,7 +36,7 @@ func (de *documentExtractor) Match(filename string) bool {
 	return ok
 }
 
-func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (out string, outErr error) {
+func (de *documentExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""

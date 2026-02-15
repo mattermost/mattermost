@@ -67,6 +67,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         enablePostUsernameOverride,
         enablePostIconOverride,
         action,
+        canBypassChannelLock: true,
     };
 
     test('should match snapshot', () => {
@@ -174,5 +175,11 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         wrapper.find('#iconURL').simulate('change', evt);
 
         expect(wrapper.state('iconURL')).toBe(newIconURL);
+    });
+
+    test('should match snapshot when channelLocked is true', () => {
+        const props = {...requiredProps, channelLocked: true};
+        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
+        expect(wrapper).toMatchSnapshot();
     });
 });

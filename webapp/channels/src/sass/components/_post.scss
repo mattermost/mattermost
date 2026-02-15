@@ -851,10 +851,15 @@
         .post__header,
         .post-preview__header {
             display: flex;
+            overflow: visible;
             width: auto;
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
+        }
+
+        .badges-wrapper {
+            margin-right: 5px;
         }
 
         .post__body {
@@ -1031,6 +1036,18 @@
                     left: -11px;
                 }
             }
+        }
+    }
+
+    &.post--modal {
+        padding: 0;
+
+        .post__content {
+            padding: 0;
+        }
+
+        .post__img {
+            width: 42px;
         }
     }
 
@@ -1281,6 +1298,15 @@
                 margin: 0;
             }
         }
+
+        .badges-wrapper {
+            gap: 6px;
+            .BurnOnReadTimerChip, .BurnOnReadBadge  {
+                margin-left: 0;
+            }
+        }
+
+
     }
 
     .post__img {
@@ -1613,7 +1639,7 @@
     .ai-generated-indicator {
         display: inline-flex;
         align-items: center;
-        margin-left: 8px;
+        margin-left: 4px;
         color: inherit;
         opacity: 0.73;
 
@@ -1621,6 +1647,10 @@
             width: 14px;
             height: 14px;
         }
+    }
+
+    &.post--compact .col__name .ai-generated-indicator {
+        margin-left: 0px;
     }
 
     .post__permalink {
@@ -1639,6 +1669,28 @@
         &:hover {
             text-decoration: underline;
         }
+    }
+
+    .post__translation-icon-processing {        
+        color: rgba(var(--center-channel-color-rgb), 0.73);
+        font-size: 10px;
+        line-height: 16px;
+        
+        .LoadingSpinner.with-text .spinner {
+            margin-right: 3px;
+        }
+    }
+
+    .post__translation-icon-unavailable {
+        display: inline-flex;
+
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        color: var(--dnd-indicator);
+        font-size: 12px;
     }
 
     .post_permalink_mobile_view {
@@ -2274,5 +2326,35 @@
                 background-color: rgba(var(--center-channel-color-rgb), 0.05);
             }
         }
+    }
+}
+
+.post-message__shimmer {
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: post-message-shimmer 3.5s linear infinite;
+    background: linear-gradient(
+        110deg,
+        rgba(var(--center-channel-bg-rgb), 0.40) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 100%
+    );
+    background-size: 300% 100%;
+    pointer-events: none;
+}
+
+@keyframes post-message-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }

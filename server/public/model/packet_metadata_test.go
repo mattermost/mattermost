@@ -6,8 +6,8 @@ package model
 import (
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 )
 
 func TestPacketMetadataValidate(t *testing.T) {

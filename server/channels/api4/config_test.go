@@ -305,6 +305,43 @@ func TestUpdateConfig(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("Should not be able to modify ImportSettings.Directory", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			cfg2 := th.App.Config().Clone()
+			*cfg2.ImportSettings.Directory = "./new-import-dir"
+
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+
+			cfg2.ImportSettings.Directory = nil
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+		})
+
+		t.Run("local mode", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			cfg2 := th.App.Config().Clone()
+			newDirectory := "./new-import-dir"
+			*cfg2.ImportSettings.Directory = newDirectory
+
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, newDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, newDirectory, *th.App.Config().ImportSettings.Directory)
+
+			cfg2.ImportSettings.Directory = nil
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+		})
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
@@ -556,9 +593,13 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 
-	require.Contains(t, string(data),
-		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}`,
-			timeoutVal+1, timeoutVal))
+	entry := FindAuditEntry(string(data), "updateConfig", "")
+	require.NotNil(t, entry, "should find an updateConfig audit entry")
+	// Verify config diffs are in the raw entry
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("actual_val:%d", timeoutVal+1))
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("base_val:%d", timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
@@ -817,6 +858,30 @@ func TestPatchConfig(t *testing.T) {
 			} else {
 				require.Error(t, err)
 				CheckForbiddenStatus(t, resp)
+			}
+		})
+
+		t.Run("not allowing to change import directory via api, unless local mode", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			config := model.Config{ImportSettings: model.ImportSettings{
+				Directory: model.NewPointer("./new-import-dir"),
+			}}
+
+			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
+			if client == th.LocalClient {
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Equal(t, "./new-import-dir", *updatedConfig.ImportSettings.Directory)
+			} else {
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+			}
+
+			// Reset for local mode
+			if client == th.LocalClient {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ImportSettings.Directory = oldDirectory
+				})
 			}
 		})
 	})

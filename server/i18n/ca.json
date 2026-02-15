@@ -2732,10 +2732,6 @@
     "translation": "invalid_request: «grant_type» incorrecte"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Hi manca el «client_secret»"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: «client_id» incorrecte"
   },
@@ -3494,10 +3490,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "No rebràs notificacions per {{.Channel}} mentrestant el canal estigui silenciat."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "No s'ha pogut silenciar el canal {{.Channel}} perquè no ets membre."
   },
   {
     "id": "api.command_mute.no_channel.error",

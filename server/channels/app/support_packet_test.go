@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -35,6 +35,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		err = os.RemoveAll(dir)
 		assert.NoError(t, err)
 	})
+
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir

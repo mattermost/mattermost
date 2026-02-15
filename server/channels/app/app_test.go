@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"sort"
 	"sync/atomic"
 	"testing"
 
@@ -149,6 +148,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionManagePublicChannelBanner.Id,
 			model.PermissionManagePrivateChannelBanner.Id,
 			model.PermissionManageChannelAccessRules.Id,
+			model.PermissionManagePublicChannelAutoTranslation.Id,
+			model.PermissionManagePrivateChannelAutoTranslation.Id,
 		},
 		"team_user": {
 			model.PermissionListTeamChannels.Id,
@@ -174,12 +175,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionImportTeam.Id,
 			model.PermissionManageTeamRoles.Id,
 			model.PermissionManageChannelRoles.Id,
+			model.PermissionManageOwnIncomingWebhooks.Id,
 			model.PermissionManageOthersIncomingWebhooks.Id,
+			model.PermissionManageOwnOutgoingWebhooks.Id,
 			model.PermissionManageOthersOutgoingWebhooks.Id,
-			model.PermissionManageSlashCommands.Id,
+			model.PermissionManageOwnSlashCommands.Id,
 			model.PermissionManageOthersSlashCommands.Id,
-			model.PermissionManageIncomingWebhooks.Id,
-			model.PermissionManageOutgoingWebhooks.Id,
+			model.PermissionBypassIncomingWebhookChannelLock.Id,
 			model.PermissionConvertPublicChannelToPrivate.Id,
 			model.PermissionConvertPrivateChannelToPublic.Id,
 			model.PermissionDeletePost.Id,
@@ -255,7 +257,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
 
 	expectedSystemAdmin := allPermissionIDs
-	sort.Strings(expectedSystemAdmin)
 
 	th.ResetEmojisMigration(t)
 	err := th.App.DoEmojisPermissionsMigration()
@@ -278,14 +279,11 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PermissionDeleteEmojis.Id,
 		model.PermissionViewMembers.Id,
 	}
-	sort.Strings(expected3)
-	sort.Strings(role3.Permissions)
-	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemUserRoleId))
+	assert.ElementsMatch(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemUserRoleId))
 
 	systemAdmin2, systemAdminErr2 := th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	assert.Nil(t, systemAdminErr2)
-	sort.Strings(systemAdmin2.Permissions)
-	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemAdminRoleId))
+	assert.ElementsMatch(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemAdminRoleId))
 }
 
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {

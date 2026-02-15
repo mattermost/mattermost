@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PopoutButton from './popout_button';
 
@@ -13,7 +11,7 @@ let mockCanPopout = true;
 
 jest.mock('utils/popouts/popout_windows', () => ({
     __esModule: true,
-    get canPopout() {
+    canPopout: () => {
         return mockCanPopout;
     },
 }));
@@ -28,8 +26,6 @@ describe('PopoutButton', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockCanPopout = true;
     });
 

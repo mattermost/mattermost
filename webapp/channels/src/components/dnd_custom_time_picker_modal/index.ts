@@ -10,8 +10,6 @@ import {setStatus} from 'mattermost-redux/actions/users';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {getCurrentLocale} from 'selectors/i18n';
-
 import {makeAsyncComponent} from 'components/async_load';
 
 import type {GlobalState} from 'types/store';
@@ -20,12 +18,10 @@ const DndCustomTimePicker = makeAsyncComponent('DndCustomTimePicker', React.lazy
 
 function mapStateToProps(state: GlobalState) {
     const userId = getCurrentUserId(state);
-    const locale = getCurrentLocale(state);
     const timezone = getCurrentTimezone(state);
 
     return {
         userId,
-        locale,
         timezone,
     };
 }

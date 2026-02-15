@@ -44,12 +44,12 @@ const SidebarCategoryGenericMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategoryMenu-Button-${id}`,
-                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name}),
+                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name}),
                     class: 'SidebarMenu_menuButton',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name}),
+                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name}),
                     class: 'hidden-xs',
                 }}
                 menu={{
