@@ -593,7 +593,7 @@ func (h *AttendanceHandler) HandleApprove(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	msg, err := h.svc.ApproveLeave(ctx, requestID, req.UserID, req.UserName)
+	result, err := h.svc.ApproveLeave(ctx, requestID, req.UserID, req.UserName)
 	if err != nil {
 		writeJSON(w, ActionResponse{EphemeralText: err.Error()})
 		return
@@ -601,8 +601,11 @@ func (h *AttendanceHandler) HandleApprove(w http.ResponseWriter, r *http.Request
 
 	writeJSON(w, ActionResponse{
 		Update: &ActionUpdate{
-			Message: msg,
-			Props:   &mattermost.Props{Attachments: []mattermost.Attachment{}},
+			Props: &mattermost.Props{
+				MessageKey:  result.MessageKey,
+				MessageData: result.MessageData,
+				Attachments: []mattermost.Attachment{},
+			},
 		},
 	})
 }
@@ -676,7 +679,7 @@ func (h *AttendanceHandler) HandleRejectSubmit(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	_, err := h.svc.RejectLeave(ctx, requestID, sub.UserID, username, sub.Submission["reason"])
+	err := h.svc.RejectLeave(ctx, requestID, sub.UserID, username, sub.Submission["reason"])
 	if err != nil {
 		log.Printf("ERROR reject leave: %v", err)
 		writeJSON(w, map[string]string{"error": err.Error()})

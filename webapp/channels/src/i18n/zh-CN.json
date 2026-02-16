@@ -6798,8 +6798,17 @@
   "attendance.msg.break_start": "@{Username} 开始休息。原因：{Reason}",
   "attendance.msg.break_end": "@{Username} 结束休息",
   "attendance.msg.checked_out": "@{Username} 已签退",
-  "attendance.msg.approved": "@{Username} 您的休假申请已被 {Approver} 批准",
-  "attendance.msg.rejected": "@{Username} 您的休假申请已被 {Approver} 拒绝",
-  "leave.msg.request_info": "休假申请：{LeaveType} 来自 {Username}。日期：{Dates}。原因：{Reason}。预计时间：{ExpectedTime}。状态：{Status}",
-  "leave.msg.request_approval": "休假申请审批：{LeaveType} 来自 {Username}。日期：{Dates}。原因：{Reason}。预计时间：{ExpectedTime}。状态：{Status}"
+  "attendance.msg.approved": "@{Username} 您的休假申请已被 @{Approver} 批准",
+  "attendance.msg.rejected": "@{Username} 您的休假申请已被 @{Approver} 拒绝",
+  "leave.msg.leave": "#### 休假申请\n| | |\n|:--|:--|\n| **员工** | @{Username} |\n| **类型** | {LeaveType} |\n| **日期** | {Dates} |\n| **原因** | {Reason} |\n| **状态** | {Status} |",
+  "leave.msg.late": "#### 迟到申请\n| | |\n|:--|:--|\n| **员工** | @{Username} |\n| **日期** | {Dates} |\n| **预计到达** | {ExpectedTime} |\n| **原因** | {Reason} |\n| **状态** | {Status} |",
+  "leave.msg.early": "#### 早退申请\n| | |\n|:--|:--|\n| **员工** | @{Username} |\n| **日期** | {Dates} |\n| **预计离开** | {ExpectedTime} |\n| **原因** | {Reason} |\n| **状态** | {Status} |",
+  "leave.type.leave": "年假",
+  "leave.type.emergency": "紧急休假",
+  "leave.type.sick": "病假",
+  "leave.type.late_arrival": "迟到",
+  "leave.type.early_departure": "早退",
+  "leave.status.pending": "待审批",
+  "leave.status.approved": "**已批准**",
+  "leave.status.rejected": "**已拒绝**"
 }

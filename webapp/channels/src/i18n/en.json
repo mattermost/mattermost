@@ -6807,8 +6807,17 @@
   "attendance.msg.break_start": "@{Username} started break. Reason: {Reason}",
   "attendance.msg.break_end": "@{Username} ended break",
   "attendance.msg.checked_out": "@{Username} checked out",
-  "attendance.msg.approved": "@{Username} your leave request has been approved by {Approver}",
-  "attendance.msg.rejected": "@{Username} your leave request has been rejected by {Approver}",
-  "leave.msg.request_info": "Leave Request: {LeaveType} from {Username}. Dates: {Dates}. Reason: {Reason}. Expected Time: {ExpectedTime}. Status: {Status}",
-  "leave.msg.request_approval": "Leave Request Approval: {LeaveType} from {Username}. Dates: {Dates}. Reason: {Reason}. Expected Time: {ExpectedTime}. Status: {Status}"
+  "attendance.msg.approved": "@{Username} your leave request has been approved by @{Approver}",
+  "attendance.msg.rejected": "@{Username} your leave request has been rejected by @{Approver}",
+  "leave.msg.leave": "#### Leave Request\n| | |\n|:--|:--|\n| **User** | @{Username} |\n| **Type** | {LeaveType} |\n| **Dates** | {Dates} |\n| **Reason** | {Reason} |\n| **Status** | {Status} |",
+  "leave.msg.late": "#### Late Arrival Request\n| | |\n|:--|:--|\n| **User** | @{Username} |\n| **Date** | {Dates} |\n| **Expected Arrival** | {ExpectedTime} |\n| **Reason** | {Reason} |\n| **Status** | {Status} |",
+  "leave.msg.early": "#### Early Departure Request\n| | |\n|:--|:--|\n| **User** | @{Username} |\n| **Date** | {Dates} |\n| **Expected Departure** | {ExpectedTime} |\n| **Reason** | {Reason} |\n| **Status** | {Status} |",
+  "leave.type.leave": "Annual Leave",
+  "leave.type.emergency": "Emergency Leave",
+  "leave.type.sick": "Sick Leave",
+  "leave.type.late_arrival": "Late Arrival",
+  "leave.type.early_departure": "Early Departure",
+  "leave.status.pending": "Pending",
+  "leave.status.approved": "**APPROVED**",
+  "leave.status.rejected": "**REJECTED**"
 }

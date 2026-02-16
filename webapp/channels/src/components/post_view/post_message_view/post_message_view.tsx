@@ -104,6 +104,18 @@ class PostMessageView extends React.PureComponent<Props, State> {
                 });
             }
 
+            // Pre-translate leave type and status enum values
+            if (formattedData.LeaveType && typeof formattedData.LeaveType === 'string') {
+                formattedData.LeaveType = this.props.intl.formatMessage(
+                    {id: `leave.type.${formattedData.LeaveType}`, defaultMessage: formattedData.LeaveType},
+                );
+            }
+            if (formattedData.Status && typeof formattedData.Status === 'string') {
+                formattedData.Status = this.props.intl.formatMessage(
+                    {id: `leave.status.${formattedData.Status}`, defaultMessage: formattedData.Status},
+                );
+            }
+
             try {
                 let translated = this.props.intl.formatMessage(
                     {id: messageKey, defaultMessage: post.message},

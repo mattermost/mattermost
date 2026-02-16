@@ -268,20 +268,16 @@ func (s *AttendanceService) CreateLeaveRequest(ctx context.Context, userID, user
 
 	idHex := req.ID.Hex()
 
+	msgKey := leaveMessageKey(leaveType)
+	msgData := leaveMessageData(username, leaveType, dates, reason, timeStr, string(model.LeaveStatusPending))
+
 	// Post info message to main channel (no buttons)
 	infoPost, err := s.mm.CreatePost(&mattermost.Post{
 		ChannelID: channelID,
 		Message:   "@" + username,
 		Props: mattermost.Props{
-			MessageKey: "leave.msg.request_info",
-			MessageData: map[string]any{
-				"Username":     username,
-				"LeaveType":    leaveTypeLabel(ctx, leaveType),
-				"Dates":        strings.Join(dates, ", "),
-				"Reason":       reason,
-				"ExpectedTime": timeStr,
-				"Status":       i18n.T(ctx, "leave.status.pending"),
-			},
+			MessageKey:  msgKey,
+			MessageData: msgData,
 		},
 	})
 	if err != nil {
@@ -293,15 +289,8 @@ func (s *AttendanceService) CreateLeaveRequest(ctx context.Context, userID, user
 		ChannelID: approvalChannelID,
 		Message:   "@all",
 		Props: mattermost.Props{
-			MessageKey: "leave.msg.request_approval",
-			MessageData: map[string]any{
-				"Username":     username,
-				"LeaveType":    leaveTypeLabel(ctx, leaveType),
-				"Dates":        strings.Join(dates, ", "),
-				"Reason":       reason,
-				"ExpectedTime": timeStr,
-				"Status":       i18n.T(ctx, "leave.status.pending"),
-			},
+			MessageKey:  msgKey,
+			MessageData: msgData,
 			Attachments: []mattermost.Attachment{{
 				Actions: []mattermost.Action{
 					{
@@ -338,21 +327,21 @@ func (s *AttendanceService) CreateLeaveRequest(ctx context.Context, userID, user
 	return s.store.UpdateLeaveRequest(ctx, req)
 }
 
-func (s *AttendanceService) ApproveLeave(ctx context.Context, requestID, approverID, approverUsername string) (string, error) {
+func (s *AttendanceService) ApproveLeave(ctx context.Context, requestID, approverID, approverUsername string) (*LeaveUpdateResult, error) {
 	id, err := bson.ObjectIDFromHex(requestID)
 	if err != nil {
-		return "", fmt.Errorf("invalid request ID: %w", err)
+		return nil, fmt.Errorf("invalid request ID: %w", err)
 	}
 
 	req, err := s.store.GetLeaveRequestByID(ctx, id)
 	if err != nil {
-		return "", fmt.Errorf("get leave request: %w", err)
+		return nil, fmt.Errorf("get leave request: %w", err)
 	}
 	if req == nil {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.not_found"))
+		return nil, fmt.Errorf(i18n.T(ctx, "attendance.err.not_found"))
 	}
 	if req.Status != model.LeaveStatusPending {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
+		return nil, fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
 	}
 	now := time.Now()
 	req.Status = model.LeaveStatusApproved
@@ -361,16 +350,20 @@ func (s *AttendanceService) ApproveLeave(ctx context.Context, requestID, approve
 	req.ApprovedAt = &now
 
 	if err := s.store.UpdateLeaveRequest(ctx, req); err != nil {
-		return "", fmt.Errorf("update leave request: %w", err)
+		return nil, fmt.Errorf("update leave request: %w", err)
 	}
 
-	updatedMsg := formatLeaveMsg(ctx, req.Username, req.Type,
-		req.Dates, req.Reason, req.ExpectedTime, i18n.T(ctx, "leave.status.approved"), "")
+	msgKey := leaveMessageKey(req.Type)
+	msgData := leaveMessageData(req.Username, req.Type, req.Dates, req.Reason, req.ExpectedTime, string(req.Status))
 
 	// Update info post in main channel (status only)
 	s.mm.UpdatePost(req.PostID, &mattermost.Post{
 		ChannelID: req.ChannelID,
-		Message:   updatedMsg,
+		Message:   "@" + req.Username,
+		Props: mattermost.Props{
+			MessageKey:  msgKey,
+			MessageData: msgData,
+		},
 	})
 
 	// Reply in thread to notify requester
@@ -387,24 +380,24 @@ func (s *AttendanceService) ApproveLeave(ctx context.Context, requestID, approve
 		},
 	})
 
-	return updatedMsg, nil
+	return &LeaveUpdateResult{MessageKey: msgKey, MessageData: msgData}, nil
 }
 
-func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecterID, rejecterUsername, reason string) (string, error) {
+func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecterID, rejecterUsername, reason string) error {
 	id, err := bson.ObjectIDFromHex(requestID)
 	if err != nil {
-		return "", fmt.Errorf("invalid request ID: %w", err)
+		return fmt.Errorf("invalid request ID: %w", err)
 	}
 
 	req, err := s.store.GetLeaveRequestByID(ctx, id)
 	if err != nil {
-		return "", fmt.Errorf("get leave request: %w", err)
+		return fmt.Errorf("get leave request: %w", err)
 	}
 	if req == nil {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.not_found"))
+		return fmt.Errorf(i18n.T(ctx, "attendance.err.not_found"))
 	}
 	if req.Status != model.LeaveStatusPending {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
+		return fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
 	}
 	now := time.Now()
 	req.Status = model.LeaveStatusRejected
@@ -414,23 +407,31 @@ func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecter
 	req.RejectReason = reason
 
 	if err := s.store.UpdateLeaveRequest(ctx, req); err != nil {
-		return "", fmt.Errorf("update leave request: %w", err)
+		return fmt.Errorf("update leave request: %w", err)
 	}
 
-	updatedMsg := formatLeaveMsg(ctx, req.Username, req.Type,
-		req.Dates, req.Reason, req.ExpectedTime, i18n.T(ctx, "leave.status.rejected"), "")
+	msgKey := leaveMessageKey(req.Type)
+	msgData := leaveMessageData(req.Username, req.Type, req.Dates, req.Reason, req.ExpectedTime, string(req.Status))
 
 	// Update info post in main channel (status only)
 	s.mm.UpdatePost(req.PostID, &mattermost.Post{
 		ChannelID: req.ChannelID,
-		Message:   updatedMsg,
+		Message:   "@" + req.Username,
+		Props: mattermost.Props{
+			MessageKey:  msgKey,
+			MessageData: msgData,
+		},
 	})
 
 	// Update approval post (remove buttons, show updated status)
 	s.mm.UpdatePost(req.ApprovalPostID, &mattermost.Post{
 		ChannelID: req.ApprovalChannelID,
-		Message:   updatedMsg,
-		Props:     mattermost.Props{Attachments: []mattermost.Attachment{}},
+		Message:   "@" + req.Username,
+		Props: mattermost.Props{
+			MessageKey:  msgKey,
+			MessageData: msgData,
+			Attachments: []mattermost.Attachment{},
+		},
 	})
 
 	// Reply in thread to notify requester
@@ -451,7 +452,7 @@ func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecter
 		},
 	})
 
-	return updatedMsg, nil
+	return nil
 }
 
 func validateDateList(ctx context.Context, dates []string) error {
@@ -470,53 +471,31 @@ func validateDateList(ctx context.Context, dates []string) error {
 	return nil
 }
 
-func formatLeaveMsg(ctx context.Context, username string, leaveTypeRaw model.LeaveType, dates []string, reason, timeStr, status, extra string) string {
-	var msg string
-	switch leaveTypeRaw {
-	case model.LeaveTypeLateArrival:
-		msg = fmt.Sprintf("%s\n| | |\n|:--|:--|\n| %s | @%s |\n| %s | %s |\n| %s | %s |\n| %s | %s |\n| %s | %s |",
-			i18n.T(ctx, "leave.header.late"),
-			i18n.T(ctx, "leave.field.user"), username,
-			i18n.T(ctx, "leave.field.date"), dates[0],
-			i18n.T(ctx, "leave.field.arrival"), timeStr,
-			i18n.T(ctx, "leave.field.reason"), reason,
-			i18n.T(ctx, "leave.field.status"), status)
-	case model.LeaveTypeEarlyDeparture:
-		msg = fmt.Sprintf("%s\n| | |\n|:--|:--|\n| %s | @%s |\n| %s | %s |\n| %s | %s |\n| %s | %s |\n| %s | %s |",
-			i18n.T(ctx, "leave.header.early"),
-			i18n.T(ctx, "leave.field.user"), username,
-			i18n.T(ctx, "leave.field.date"), dates[0],
-			i18n.T(ctx, "leave.field.departure"), timeStr,
-			i18n.T(ctx, "leave.field.reason"), reason,
-			i18n.T(ctx, "leave.field.status"), status)
-	default:
-		msg = fmt.Sprintf("%s\n| | |\n|:--|:--|\n| %s | @%s |\n| %s | %s |\n| %s | %s |\n| %s | %s |\n| %s | %s |",
-			i18n.T(ctx, "leave.header.leave"),
-			i18n.T(ctx, "leave.field.user"), username,
-			i18n.T(ctx, "leave.field.type"), leaveTypeLabel(ctx, leaveTypeRaw),
-			i18n.T(ctx, "leave.field.dates"), strings.Join(dates, ", "),
-			i18n.T(ctx, "leave.field.reason"), reason,
-			i18n.T(ctx, "leave.field.status"), status)
-	}
-	if extra != "" {
-		msg += "\n" + extra
-	}
-	return msg
+// LeaveUpdateResult holds the MessageKey and MessageData for updating leave posts.
+type LeaveUpdateResult struct {
+	MessageKey  string
+	MessageData map[string]any
 }
 
-func leaveTypeLabel(ctx context.Context, t model.LeaveType) string {
-	switch t {
-	case model.LeaveTypeAnnual:
-		return i18n.T(ctx, "leave.type.annual")
-	case model.LeaveTypeEmergency:
-		return i18n.T(ctx, "leave.type.emergency")
-	case model.LeaveTypeSick:
-		return i18n.T(ctx, "leave.type.sick")
+func leaveMessageKey(leaveType model.LeaveType) string {
+	switch leaveType {
 	case model.LeaveTypeLateArrival:
-		return i18n.T(ctx, "leave.type.late")
+		return "leave.msg.late"
 	case model.LeaveTypeEarlyDeparture:
-		return i18n.T(ctx, "leave.type.early")
+		return "leave.msg.early"
 	default:
-		return string(t)
+		return "leave.msg.leave"
 	}
 }
+
+func leaveMessageData(username string, leaveType model.LeaveType, dates []string, reason, timeStr, status string) map[string]any {
+	return map[string]any{
+		"Username":     username,
+		"LeaveType":    string(leaveType),
+		"Dates":        strings.Join(dates, ", "),
+		"Reason":       reason,
+		"ExpectedTime": timeStr,
+		"Status":       status,
+	}
+}
+
