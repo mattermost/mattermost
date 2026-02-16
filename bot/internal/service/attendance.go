@@ -354,10 +354,6 @@ func (s *AttendanceService) ApproveLeave(ctx context.Context, requestID, approve
 	if req.Status != model.LeaveStatusPending {
 		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
 	}
-	if req.UserID == approverID {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.self_approve"))
-	}
-
 	now := time.Now()
 	req.Status = model.LeaveStatusApproved
 	req.ApproverID = approverID
@@ -410,10 +406,6 @@ func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecter
 	if req.Status != model.LeaveStatusPending {
 		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.already_processed", map[string]any{"Status": string(req.Status)}))
 	}
-	if req.UserID == rejecterID {
-		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.self_reject"))
-	}
-
 	now := time.Now()
 	req.Status = model.LeaveStatusRejected
 	req.ApproverID = rejecterID
