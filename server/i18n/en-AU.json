@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4677,7 +4677,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_footer",
@@ -11715,5 +11715,141 @@
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
     "translation": "Text exceeds maximum size for language detection."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Translation task must include an object type."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Failed to create translation."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is required for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Failed to detect language using translation provider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Failed to mask content for translation."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Post object cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Auto-translation is not available. Please contact your system administrator about upgrading your enterprise licence."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Invalid language code provided."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Failed to update translation with new mask values."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Content contains no translatable text."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Translation provider is not available."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Translation provider is not initialised."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Unable to process auto-translation request."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Translation contains unrecognised tokens."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Translation contains invalid tokens."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Unable to parse JSON content."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Unsupported content type for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Content cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Content exceeds maximum size for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Required ID cannot be empty."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Invalid ID format."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Workers must be between 1 and 32."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Invalid language code. Use a standard ISO code such as 'en', 'ja', or 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Translation object cannot be null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Invalid object ID."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Invalid object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Invalid object type."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Invalid translation provider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Invalid translation text."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Invalid translation type."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Invalid translation type. Must be 'string' or 'object'."
   }
 ]
