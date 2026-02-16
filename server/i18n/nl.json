@@ -10040,10 +10040,6 @@
     "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
   },

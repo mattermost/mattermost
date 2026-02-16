@@ -10018,10 +10018,6 @@
     "translation": "无法过滤配置。"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "用户角色和访客状态不一致。"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "无法注册自定义个人资料属性组"
   },

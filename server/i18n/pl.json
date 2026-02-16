@@ -10032,10 +10032,6 @@
     "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Role użytkowników nie są zgodne ze statusem gościa."
-  },
-  {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
     "translation": "Nie można utworzyć pola atrybutu profilu niestandardowego"
   },

@@ -10073,10 +10073,6 @@
     "translation": "Failed to restore post file attachments."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "User roles are not consistent with guest status."
-  },
-  {
     "id": "app.post.restore_post_version.not_allowed.app_error",
     "translation": "You do not have the appropriate permissions."
   },
