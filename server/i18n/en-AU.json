@@ -11599,5 +11599,9 @@
   {
     "id": "api.channel.post_update_channel_autotranslation_message.disabled",
     "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s enabled Auto-translation for this channel. All new messages will appear in your preferred language."
   }
 ]
