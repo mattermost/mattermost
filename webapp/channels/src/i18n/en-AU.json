@@ -2886,6 +2886,7 @@
   "admin.site.localization.restrictDMAndGMDescription": "By default, any member of a direct message or group message can enable auto-translation in those channels. If restricted, auto-translation will not be available in direct messages and group messages.",
   "admin.site.localization.restrictDMAndGMTitle": "Restrict auto-translation on direct messages and group messages",
   "admin.site.localization.targetLanguagesDescription": "Choose which languages you'd like to make available for auto-translation.",
+  "admin.site.localization.targetLanguagesTitle": "Languages allowed",
   "admin.site.move_thread": "Move thread",
   "admin.site.notices": "Notices",
   "admin.site.posts": "Posts",
