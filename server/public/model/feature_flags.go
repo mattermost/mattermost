@@ -125,8 +125,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MobileSSOCodeExchange = true
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
-	f.AutoTranslation = false
+	f.AutoTranslation = true
 
 	f.BurnOnRead = true
 
