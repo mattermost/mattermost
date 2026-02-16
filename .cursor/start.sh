@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo ">>> Mattermost Cursor Agent: start.sh"
-
-# Ensure MM_NO_DOCKER is set for any ad-hoc make commands
+# ============================================
+# PATH setup
+# Docker ENV vars may not carry through to the
+# shell when Cursor runs start scripts.
+# ============================================
+export GOPATH="${GOPATH:-/home/ubuntu/go}"
+export PATH="/usr/local/go/bin:${GOPATH}/bin:/usr/local/bin:${PATH}"
 export MM_NO_DOCKER=true
+
+echo ">>> Mattermost Cursor Agent: start.sh"
 
 WORKSPACE_ROOT="$(pwd)"
 

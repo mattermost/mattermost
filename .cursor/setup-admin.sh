@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PATH setup — Docker ENV may not carry through
+export GOPATH="${GOPATH:-/home/ubuntu/go}"
+export PATH="/usr/local/go/bin:${GOPATH}/bin:/usr/local/bin:${PATH}"
+
 # Creates the initial admin user and default team for the
 # Cursor Cloud Agent dev environment.
 #

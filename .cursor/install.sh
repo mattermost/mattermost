@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ============================================
+# PATH setup
+# Docker ENV vars may not carry through to the
+# shell when Cursor runs install scripts.
+# Explicitly ensure Go, Node, and GOPATH/bin
+# are on PATH.
+# ============================================
+export GOPATH="${GOPATH:-/home/ubuntu/go}"
+export PATH="/usr/local/go/bin:${GOPATH}/bin:/usr/local/bin:${PATH}"
+
 echo ">>> Mattermost Cursor Agent: install.sh"
 echo ">>> Working directory: $(pwd)"
 echo ">>> User: $(whoami)"
