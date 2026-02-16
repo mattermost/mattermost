@@ -2801,12 +2801,28 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
     "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
     "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
     "translation": "Burn-on-read posts require an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
   },
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
@@ -5549,10 +5565,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
@@ -10051,6 +10063,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} setting must be set to true when {{.EnableCJKAnalyzers}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",

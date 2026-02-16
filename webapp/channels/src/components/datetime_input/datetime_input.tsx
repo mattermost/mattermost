@@ -22,14 +22,14 @@ import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
-    const start = moment(value);
-    const diff = start.minute() % roundedTo;
+export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
+    const diff = value.minute() % roundedTo;
     if (diff === 0) {
-        return value;
+        // Always return a new moment for consistency, even if no rounding needed
+        return moment(value).seconds(0).milliseconds(0);
     }
     const remainder = roundedTo - diff;
-    return start.add(remainder, 'm').seconds(0).milliseconds(0);
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {

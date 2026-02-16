@@ -1,44 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import IconButton from 'components/global_header/header_icon_button';
+import {showFlaggedPosts} from 'actions/views/rhs';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import SavedPostsButton from './saved_posts_button';
 
-const mockDispatch = jest.fn();
-let mockState: GlobalState;
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
+jest.mock('actions/views/rhs', () => ({
+    closeRightHandSide: jest.fn(() => ({type: 'MOCK_CLOSE_RHS'})),
+    showFlaggedPosts: jest.fn(() => ({type: 'MOCK_SHOW_FLAGGED_POSTS'})),
 }));
 
 describe('components/global/AtMentionsButton', () => {
-    beforeEach(() => {
-        mockState = {views: {rhs: {isSidebarOpen: true}}} as GlobalState;
-    });
+    const initialState = {
+        views: {
+            rhs: {
+                isSidebarOpen: true,
+            },
+        },
+    } as unknown as GlobalState;
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SavedPostsButton/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should show active mentions', () => {
-        const wrapper = shallow(
+    test('should show active mentions', async () => {
+        renderWithContext(
             <SavedPostsButton/>,
+            initialState,
         );
 
-        wrapper.find(IconButton).simulate('click', {
-            preventDefault: jest.fn(),
-        });
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+        await userEvent.click(screen.getByRole('button', {name: 'Saved messages'}));
+        expect(showFlaggedPosts).toHaveBeenCalledTimes(1);
     });
 });
