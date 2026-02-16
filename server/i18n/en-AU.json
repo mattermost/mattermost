@@ -11610,10 +11610,110 @@
   },
   {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
-    "translation": "Auto translation feature is not available."
+    "translation": "Auto-translation feature is unavailable."
   },
   {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
     "translation": "No changes in the patch."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating Auto-translation status"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Auto-translation is not enabled for this channel."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Auto-translation is unavailable."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "This feature is not enabled."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Unable to switch to email authentication because user is not using OAuth or SAML authentication."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent call failed."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Failed to parse AI summarisation response."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Failed to delete recap."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Failed to get recap."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Failed to get channel."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Failed to get last-viewed timestamp."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Failed to get team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Failed to get recaps."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Failed to save recap channel."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Failed to update recap."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Translation task must include an object ID."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Text exceeds maximum size for language detection."
   }
 ]
