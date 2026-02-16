@@ -430,6 +430,43 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, retu
 }
 
 func init() {
+	hookNameToId["UserWillJoinTeam"] = UserWillJoinTeamID
+}
+
+type Z_UserWillJoinTeamArgs struct {
+	A *Context
+	B *model.Team
+	C *model.User
+	D *model.User
+}
+
+type Z_UserWillJoinTeamReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillJoinTeam(c *Context, team *model.Team, user *model.User, actor *model.User) string {
+	_args := &Z_UserWillJoinTeamArgs{c, team, user, actor}
+	_returns := &Z_UserWillJoinTeamReturns{}
+	if g.implemented[UserWillJoinTeamID] {
+		if err := g.client.Call("Plugin.UserWillJoinTeam", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillJoinTeam to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillJoinTeam(args *Z_UserWillJoinTeamArgs, returns *Z_UserWillJoinTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillJoinTeam(c *Context, team *model.Team, user *model.User, actor *model.User) string
+	}); ok {
+		returns.A = hook.UserWillJoinTeam(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillJoinTeam called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamID
 }
 
