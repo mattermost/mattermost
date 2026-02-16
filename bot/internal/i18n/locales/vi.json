@@ -57,6 +57,7 @@
   "attendance.err.date_required": "cần ít nhất một ngày",
   "attendance.err.invalid_date": "ngày không hợp lệ \"{{.Date}}\"",
   "attendance.err.past_date": "ngày {{.Date}} đã qua",
+  "attendance.err.duplicate_leave": "bạn đã có yêu cầu nghỉ phép cho ngày: {{.Dates}}",
 
   "leave.type.annual": "Nghỉ phép năm",
   "leave.type.emergency": "Nghỉ khẩn cấp",

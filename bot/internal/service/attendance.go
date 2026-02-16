@@ -235,6 +235,18 @@ func (s *AttendanceService) CreateLeaveRequest(ctx context.Context, userID, user
 		return fmt.Errorf("validate dates: %w", err)
 	}
 
+	// Check for overlapping leave requests (pending or approved) on the same dates
+	existing, err := s.store.FindLeaveRequestsByUserAndDates(ctx, userID, dates)
+	if err != nil {
+		return fmt.Errorf("check existing leaves: %w", err)
+	}
+	for _, e := range existing {
+		if e.Type == leaveType && (e.Status == model.LeaveStatusPending || e.Status == model.LeaveStatusApproved) {
+			overlap := findOverlap(dates, e.Dates)
+			return fmt.Errorf(i18n.T(ctx, "attendance.err.duplicate_leave", map[string]any{"Dates": strings.Join(overlap, ", ")}))
+		}
+	}
+
 	// Resolve approval channel before creating any posts
 	channelInfo, err := s.mm.GetChannel(channelID)
 	if err != nil {
@@ -467,6 +479,20 @@ func validateDateList(ctx context.Context, dates []string) error {
 		}
 	}
 	return nil
+}
+
+func findOverlap(a, b []string) []string {
+	set := make(map[string]struct{}, len(b))
+	for _, v := range b {
+		set[v] = struct{}{}
+	}
+	var out []string
+	for _, v := range a {
+		if _, ok := set[v]; ok {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // LeaveUpdateResult holds the MessageKey and MessageData for updating leave posts.

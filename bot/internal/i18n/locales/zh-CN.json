@@ -57,6 +57,7 @@
   "attendance.err.date_required": "至少需要一个日期",
   "attendance.err.invalid_date": "无效日期 \"{{.Date}}\"",
   "attendance.err.past_date": "日期 {{.Date}} 已过期",
+  "attendance.err.duplicate_leave": "您已有该日期的休假申请：{{.Dates}}",
 
   "leave.type.annual": "年假",
   "leave.type.emergency": "紧急假",

@@ -57,6 +57,7 @@
   "attendance.err.date_required": "at least one date is required",
   "attendance.err.invalid_date": "invalid date \"{{.Date}}\"",
   "attendance.err.past_date": "date {{.Date}} is in the past",
+  "attendance.err.duplicate_leave": "you already have a leave request for: {{.Dates}}",
 
   "leave.type.annual": "Annual Leave",
   "leave.type.emergency": "Emergency Leave",

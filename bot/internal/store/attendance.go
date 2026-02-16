@@ -103,6 +103,22 @@ func (s *AttendanceStore) GetLeaveRequestByID(ctx context.Context, id bson.Objec
 	return &req, nil
 }
 
+// FindLeaveRequestsByUserAndDates returns leave requests for a user that contain any of the given dates.
+func (s *AttendanceStore) FindLeaveRequestsByUserAndDates(ctx context.Context, userID string, dates []string) ([]model.LeaveRequest, error) {
+	cursor, err := s.leave.Find(ctx, bson.M{
+		"user_id": userID,
+		"dates":   bson.M{"$elemMatch": bson.M{"$in": dates}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("find leave requests: %w", err)
+	}
+	var results []model.LeaveRequest
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, fmt.Errorf("decode leave requests: %w", err)
+	}
+	return results, nil
+}
+
 // UpdateLeaveRequest updates an existing leave request.
 func (s *AttendanceStore) UpdateLeaveRequest(ctx context.Context, req *model.LeaveRequest) error {
 	req.UpdatedAt = time.Now()
