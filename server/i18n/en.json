@@ -9709,12 +9709,20 @@
     "translation": "Invalid channel id."
   },
   {
+    "id": "model.channel_bookmark.is_valid.command.missing_or_invalid.app_error",
+    "translation": "Command is missing or invalid."
+  },
+  {
     "id": "model.channel_bookmark.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
   {
     "id": "model.channel_bookmark.is_valid.display_name.app_error",
     "translation": "Display name missing."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.exclusive_fields.app_error",
+    "translation": "Invalid properties. Can only use properties supported by bookmark type."
   },
   {
     "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",

@@ -39,6 +39,8 @@ func bookmarkWithFileInfoSliceColumns() []string {
 		"cb.Emoji",
 		"cb.Type",
 		"COALESCE(cb.OriginalId, '') as OriginalId",
+		"COALESCE(cb.ParentId, '') as ParentId",
+		"COALESCE(cb.Command, '') as Command",
 		"COALESCE(fi.Id, '') as FileId",
 		"COALESCE(fi.Name, '') as FileName",
 		"COALESCE(fi.Extension, '') as Extension",
@@ -163,8 +165,8 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 
 	sql, args, sqlErr := s.getQueryBuilder().
 		Insert("ChannelBookmarks").
-		Columns("Id", "CreateAt", "UpdateAt", "DeleteAt", "ChannelId", "OwnerId", "FileInfoId", "DisplayName", "SortOrder", "LinkUrl", "ImageUrl", "Emoji", "Type").
-		Values(bookmark.Id, bookmark.CreateAt, bookmark.UpdateAt, bookmark.DeleteAt, bookmark.ChannelId, bookmark.OwnerId, bookmark.FileId, bookmark.DisplayName, bookmark.SortOrder, bookmark.LinkUrl, bookmark.ImageUrl, bookmark.Emoji, bookmark.Type).
+		Columns("Id", "CreateAt", "UpdateAt", "DeleteAt", "ChannelId", "OwnerId", "FileInfoId", "DisplayName", "SortOrder", "LinkUrl", "ImageUrl", "Emoji", "Type", "OriginalId", "ParentId", "Command").
+		Values(bookmark.Id, bookmark.CreateAt, bookmark.UpdateAt, bookmark.DeleteAt, bookmark.ChannelId, bookmark.OwnerId, bookmark.FileId, bookmark.DisplayName, bookmark.SortOrder, bookmark.LinkUrl, bookmark.ImageUrl, bookmark.Emoji, bookmark.Type, bookmark.OriginalId, bookmark.ParentId, bookmark.Command).
 		ToSql()
 
 	if sqlErr != nil {
@@ -208,6 +210,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		Set("ImageUrl", bookmark.ImageUrl).
 		Set("Emoji", bookmark.Emoji).
 		Set("FileInfoId", bookmark.FileId).
+		Set("Command", bookmark.Command).
 		Set("UpdateAt", bookmark.UpdateAt).
 		Where(sq.Eq{
 			"Id":       bookmark.Id,
