@@ -10948,10 +10948,6 @@
     "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Misslyckades med att skriva över inlägg med rensat inlägg när flaggat inlägg raderades permanent."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Misslyckades med att samla in kommentaren från granskaren"
   },

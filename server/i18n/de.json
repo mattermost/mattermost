@@ -10924,10 +10924,6 @@
     "translation": "Gekennzeichneter Beitrag können nicht abgerufen werden, da der Beitrag nicht gekennzeichnet ist."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Beim dauerhaften Löschen von markierten Beiträgen konnte der Beitrag nicht mit dem gelöschten Beitrag überschrieben werden."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Kommentar des Überprüfers konnte nicht zugeordnet werden"
   },

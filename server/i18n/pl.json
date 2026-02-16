@@ -10928,10 +10928,6 @@
     "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Nie udało się nadpisać postu z usuniętym postem podczas trwałego usuwania oflagowanego postu."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Nie udało się zebrać komentarza recenzenta"
   },
