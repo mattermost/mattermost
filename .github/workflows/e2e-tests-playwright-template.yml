@@ -121,15 +121,17 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       workers: "${{ steps.generate-workers.outputs.workers }}"
+      start_time: "${{ steps.generate-workers.outputs.start_time }}"
     steps:
       - name: ci/generate-workers
         id: generate-workers
         run: |
           echo "workers=$(jq -nc '[range(1; ${{ inputs.workers }} + 1)]')" >> $GITHUB_OUTPUT
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     continue-on-error: true
     needs:
       - generate-test-variables
@@ -240,7 +242,7 @@ jobs:
 
   run-failed-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     needs:
       - run-tests
       - calculate-results
@@ -297,6 +299,7 @@ jobs:
   report:
     runs-on: ubuntu-24.04
     needs:
+      - generate-test-variables
       - run-tests
       - calculate-results
       - run-failed-tests
@@ -306,6 +309,9 @@ jobs:
       failed: "${{ steps.final-results.outputs.failed }}"
       commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
       report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
+      duration: "${{ steps.duration.outputs.duration }}"
+      duration_display: "${{ steps.duration.outputs.duration_display }}"
+      retest_display: "${{ steps.duration.outputs.retest_display }}"
     defaults:
       run:
         working-directory: e2e-tests
@@ -374,6 +380,38 @@ jobs:
 
           REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
           echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
+      - name: ci/compute-duration
+        id: duration
+        env:
+          START_TIME: ${{ needs.generate-test-variables.outputs.start_time }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
+          RETEST_SPEC_COUNT: ${{ steps.final-results.outputs.failed_specs_count }}
+        run: |
+          ELAPSED=$(($(date +%s) - START_TIME))
+          MINUTES=$((ELAPSED / 60))
+          SECONDS=$((ELAPSED % 60))
+          DURATION="${MINUTES}m ${SECONDS}s"
+
+          # Duration icons: >15m high alert, >12m warning, otherwise clock
+          if [ "$MINUTES" -ge 15 ]; then
+            DURATION_DISPLAY=":rotating_light: ${DURATION}"
+          elif [ "$MINUTES" -ge 12 ]; then
+            DURATION_DISPLAY=":warning: ${DURATION}"
+          else
+            DURATION_DISPLAY=":clock3: ${DURATION}"
+          fi
+
+          # Retest indicator with spec count
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RETEST_DISPLAY=":repeat: re-run ${RETEST_SPEC_COUNT} spec(s)"
+          else
+            RETEST_DISPLAY=""
+          fi
+
+          echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+          echo "duration_display=${DURATION_DISPLAY}" >> $GITHUB_OUTPUT
+          echo "retest_display=${RETEST_DISPLAY}" >> $GITHUB_OUTPUT
+
       - name: ci/publish-report
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
@@ -386,6 +424,8 @@ jobs:
           COMMIT_SHA: ${{ inputs.commit_sha }}
           REF_BRANCH: ${{ inputs.ref_branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
@@ -401,6 +441,12 @@ jobs:
             SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
           fi
 
+          # Build retest part for message
+          RETEST_PART=""
+          if [ -n "$RETEST_DISPLAY" ]; then
+            RETEST_PART=" | ${RETEST_DISPLAY}"
+          fi
+
           # Build payload with attachments
           PAYLOAD=$(cat <<EOF
           {
@@ -408,7 +454,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE} | [full report](${REPORT_URL})"
+              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE} | ${DURATION_DISPLAY}${RETEST_PART} | [full report](${REPORT_URL})"
             }]
           }
           EOF
@@ -430,6 +476,8 @@ jobs:
           FAILED_SPECS: ${{ steps.final-results.outputs.failed_specs }}
           COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
+          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
         run: |
           {
             echo "## E2E Test Results - Playwright ${TEST_TYPE}"
@@ -460,6 +508,12 @@ jobs:
             echo "| failed_specs_count | ${FAILED_SPECS_COUNT} |"
             echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
             echo "| failed_specs | ${FAILED_SPECS:-none} |"
+            echo "| duration | ${DURATION_DISPLAY} |"
+            if [ "$RETEST_RESULT" != "skipped" ]; then
+              echo "| retested | Yes |"
+            else
+              echo "| retested | No |"
+            fi
 
             echo ""
             echo "---"
@@ -483,7 +537,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: success
           target_url: ${{ needs.report.outputs.report_url }}
 
@@ -501,6 +555,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: failure
           target_url: ${{ needs.report.outputs.report_url }}
