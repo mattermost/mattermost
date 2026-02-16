@@ -33,10 +33,6 @@ describe('RecapConfiguration', () => {
         unreadChannels: mockUnreadChannels,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('Recap Name Input', () => {
         it('should render name input field', () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);

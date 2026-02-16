@@ -1,42 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import * as CustomStatusSelectors from 'selectors/views/custom_status';
 
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import CustomStatusText from './custom_status_text';
 
 jest.mock('selectors/views/custom_status');
 
 describe('components/custom_status/custom_status_text', () => {
-    const store = mockStore({});
+    beforeEach(() => {
+        (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(true);
+    });
 
     it('should match snapshot', () => {
-        const wrapper = mount(<CustomStatusText/>, {wrappingComponent: Provider, wrappingComponentProps: {store}});
+        const {container} = renderWithContext(<CustomStatusText text='Available'/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot with props', () => {
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <CustomStatusText
                 text='In a meeting'
+                className='custom-class'
             />,
-            {wrappingComponent: Provider, wrappingComponentProps: {store}},
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should not render when EnableCustomStatus in config is false', () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(false);
-        const wrapper = mount(<CustomStatusText/>, {wrappingComponent: Provider, wrappingComponentProps: {store}});
+        const {container} = renderWithContext(<CustomStatusText/>);
 
-        expect(wrapper.isEmptyRender()).toBeTruthy();
+        expect(container).toBeEmptyDOMElement();
     });
 });

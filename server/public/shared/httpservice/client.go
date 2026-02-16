@@ -28,6 +28,11 @@ var reservedIPRanges []*net.IPNet
 // IsReservedIP checks whether the target IP belongs to reserved IP address ranges to avoid SSRF attacks to the internal
 // network of the Mattermost server
 func IsReservedIP(ip net.IP) bool {
+	// Canonicalize IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1) to their
+	// native IPv4 form so that IPv4 CIDR ranges match correctly.
+	if ip4 := ip.To4(); ip4 != nil {
+		ip = ip4
+	}
 	for _, ipRange := range reservedIPRanges {
 		if ipRange.Contains(ip) {
 			return true

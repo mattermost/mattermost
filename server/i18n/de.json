@@ -790,10 +790,6 @@
     "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanal {{.Channel}} konnte nicht stumm geschaltet werden, da du kein Mitglied bist."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Du wirst keine Benachrichtigungen mehr für {{.Channel}} erhalten bis die Stummschaltung aufgehoben wurde."
   },
@@ -4628,11 +4624,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8566,10 +8562,6 @@
     "translation": "Die CA-Datei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server ist nicht verfügbar."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
@@ -8612,10 +8604,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server kann den Newsletter nicht abonnieren."
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
@@ -10512,10 +10500,6 @@
     "translation": "Die Zuweisung der Zugriffskontrollrichtlinie für Kanäle konnte nicht aufgehoben werden."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Der aktive Status der Zugriffskontrollrichtlinie konnte nicht geändert werden."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Die Auswertung der Zugriffskontrollrichtlinie ist fehlgeschlagen."
   },
@@ -10996,18 +10980,6 @@
     "translation": "Nicht unterstützter Autotranslationsanbieter."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Ungültiges Fetch-Timeout für die Autotranslation-Einstellungen. Muss eine positive Zahl sein."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Ungültige Zeitüberschreitung für neue Beiträge bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Ungültiges Zeitlimit für Benachrichtigungen bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Die Kanal-ID stimmt nicht mit der Kanal-ID des markierten Beitrags überein."
   },
@@ -11432,66 +11404,6 @@
     "translation": "Ungültiges Zeitfeld."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanal nicht gefunden."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Ich kann keine Übersetzung bekommen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Aktive Sprachen können nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Der Status der aktivierten Kanal-Autotranslation kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Es ist nicht möglich, den Status der aktivierten Benutzerautoübersetzung zu erhalten."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Die Sprache des Benutzers kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Der Status der aktivierten Kanal-Autotranslation kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Mitglied nicht gefunden."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Das Parsen der Übersetzungsmetadaten JSON ist fehlgeschlagen."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Fehler beim Erstellen der Abfrage."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Die Übersetzung kann nicht gespeichert werden."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Validierung der Übersetzung fehlgeschlagen. Das Übersetzungsobjekt ist ungültig."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Die Übersetzungsmetadaten konnten nicht in JSON serialisiert werden."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Status der automatischen Kanalübersetzung kann nicht gesetzt werden."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Der Status \"Benutzerautoübersetzung aktiviert\" konnte nicht gesetzt werden."
-  },
-  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "Du hast nicht die Erlaubnis, diesen Beitrag als Löschen-nach-Lesen zu markieren. Du musst ein Mitglied des Kanals sein."
   },
@@ -11686,5 +11598,217 @@
   {
     "id": "app.update_scheduled_post.convert_to_post.error",
     "translation": "Geplante Nachricht kann nicht in das Nachrichtenformat konvertiert werden."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Diese Funktion ist nicht aktiviert."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "Du hast keine Erlaubnis, auf diese Zusammenfassung zuzugreifen."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Der Schalter kann nicht auf E-Mail-Authentifizierung umgestellt werden, da der Benutzer keine OAuth- oder SAML-Authentifizierung verwendet."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Der Anruf des AI-Agenten ist fehlgeschlagen."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Die Antwort auf die AI-Zusammenfassung konnte nicht analysiert werden."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Das Löschen der Zusammenfassung ist fehlgeschlagen."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Zusammenfassungskanäle konnten nicht gelöscht werden."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Keine Zusammenfassung erhalten."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Der Kanal wurde nicht gefunden."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Zusammenfassungskanal nicht gefunden."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Der Zeitstempel der letzten Ansicht konnte nicht ermittelt werden."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Team konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Zusammenfassungen nicht gefunden."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Die Zusammenfassung konnte nicht als gelesen markiert werden."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Keine Erlaubnis für Zusammenfassungen."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Zusammenfassung konnte nicht gespeichert werden."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Zusammenfassungskanal konnte nicht gespeichert werden."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Zusammenfassung konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Die Übersetzungsaufgabe muss eine Objekt-ID enthalten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Die Übersetzungsaufgabe muss einen Objekttyp enthalten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Eine Übersetzungsaufgabe kann nicht null sein."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Die Übersetzung konnte nicht erstellt werden."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Für die Erkennung von Sprache ist der Kontext erforderlich."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Der Text überschreitet die maximale Größe für die Spracherkennung."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Die Erkennung der Sprache durch den Übersetzungsanbieter ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Der Inhalt konnte nicht für die Übersetzung maskiert werden."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Das Post-Objekt kann nicht null sein."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Auto-Übersetzung ist nicht verfügbar. Bitte kontaktiere deinen Systemadministrator, um deine Unternehmenslizenz zu aktualisieren."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Der angegebene Code für die Sprache ist ungültig."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Die Übersetzung konnte nicht mit neuen Maskenwerten aktualisiert werden."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Der Inhalt enthält keinen übersetzbaren Text."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Übersetzungsanbieter ist nicht verfügbar."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Der Übersetzungsanbieter ist nicht initialisiert."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Auto-Übersetzungsanfrage kann nicht bearbeitet werden."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Die Übersetzung enthält nicht erkannte Token."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Die Übersetzung enthält ungültige Token."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Der JSON-Inhalt kann nicht geparst werden."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Nicht unterstützter Inhaltstyp für die Übersetzung."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Der Inhalt kann nicht null sein."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Der Inhalt überschreitet die maximale Größe für die Übersetzung."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Die erforderliche ID darf nicht leer sein."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Ungültiges ID-Format."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Ungültige Konfiguration des Autotranslationsagenten: Der AI-Dienst darf nicht leer sein."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Ungültige Zeitüberschreitung für die Einstellungen der automatischen Übersetzung. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Ungültiger Code für die Sprache. Verwende einen ISO-Standardcode wie \"en\", \"ja\" oder \"fr\"."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Das Übersetzungsobjekt kann nicht null sein."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Ungültige Objekt-ID."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Ungültiges Objekt JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Ungültiger Objekttyp."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Ungültiger Übersetzungsanbieter."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Ungültiger Übersetzungstext."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Ungültiger Übersetzungstyp."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Ungültiger Übersetzungstyp. Muss 'String' oder 'Objekt' sein."
   }
 ]

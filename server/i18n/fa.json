@@ -6941,10 +6941,6 @@
     "translation": "ارتباط امن"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "کانال {{.Channel}} بیصدا نمی شود زیرا عضو آن نیستید."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },

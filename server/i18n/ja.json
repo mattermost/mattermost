@@ -788,10 +788,6 @@
     "translation": "指定したチャンネルが見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)を使用してください。"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "あなたはメンバーではないため、チャンネル {{.Channel}} をミュートできません。"
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "チャンネルミュートがオフになるまで {{.Channel}} の通知を受け取らなくなります。"
   },
@@ -8558,10 +8554,6 @@
     "translation": "{{.Backend}} のCAファイルを開くことができませんでした"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWSサーバーは使用できません。"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
   },
@@ -8600,10 +8592,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "プラグイン {{.Id}} は、既存のバージョンと同じかより新しいため、インストールをスキップします。"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWSサーバーがニュースレターを購読できませんでした。"
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -10436,10 +10424,6 @@
   {
     "id": "app.pap.is_ready.app_error",
     "translation": "アクセス制御サービスの準備ができていません。"
-  },
-  {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "アクセス制御ポリシーの有効化状況を変更できませんでした。"
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

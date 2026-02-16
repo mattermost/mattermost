@@ -186,7 +186,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -221,7 +221,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -265,7 +265,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -295,7 +295,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -325,7 +325,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Assigned
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -337,7 +337,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Removed
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -349,7 +349,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Retained
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -988,10 +988,10 @@ func TestCanFlagPost(t *testing.T) {
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", ContentFlaggingPropertyNameStatus)
+		statusField, err := th.Server.propertyAccessService.GetPropertyFieldByName(anonymousCallerId, groupId, "", ContentFlaggingPropertyNameStatus)
 		require.NoError(t, err)
 
-		propertyValue, err := th.Server.propertyService.CreatePropertyValue(&model.PropertyValue{
+		propertyValue, err := th.Server.propertyAccessService.CreatePropertyValue(anonymousCallerId, &model.PropertyValue{
 			TargetID:   post.Id,
 			GroupID:    groupId,
 			FieldID:    statusField.ID,
@@ -1007,7 +1007,7 @@ func TestCanFlagPost(t *testing.T) {
 
 		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1015,7 +1015,7 @@ func TestCanFlagPost(t *testing.T) {
 
 		// Can't fleg when post already flagged in retained status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRetained + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1023,7 +1023,7 @@ func TestCanFlagPost(t *testing.T) {
 
 		// Can't fleg when post already flagged in removed status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRemoved + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1069,7 +1069,7 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check status property
-		statusValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		statusValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[ContentFlaggingPropertyNameStatus].ID,
@@ -1079,7 +1079,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusPending+`"`, string(statusValues[0].Value))
 
 		// Check reporting user property
-		userValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		userValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
@@ -1089,7 +1089,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(userValues[0].Value))
 
 		// Check reason property
-		reasonValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reasonValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingReason].ID,
@@ -1099,7 +1099,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"spam"`, string(reasonValues[0].Value))
 
 		// Check comment property
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
@@ -1253,7 +1253,7 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
@@ -1287,7 +1287,7 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		timeValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingTime].ID,
@@ -2223,7 +2223,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check actor user property
-		actorValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		actorValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorUserID].ID,
@@ -2233,7 +2233,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"`+th.SystemAdminUser.Id+`"`, string(actorValues[0].Value))
 
 		// Check actor comment property
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,
@@ -2243,7 +2243,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"This post violates community guidelines"`, string(commentValues[0].Value))
 
 		// Check action time property
-		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		timeValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActionTime].ID,
@@ -2309,7 +2309,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2333,7 +2333,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2375,7 +2375,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,
@@ -2403,7 +2403,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,

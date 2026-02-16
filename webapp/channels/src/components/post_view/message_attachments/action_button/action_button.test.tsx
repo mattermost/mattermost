@@ -117,4 +117,54 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button.style.length).toBe(0);
     });
+
+    test('should not show tooltip when action.tooltip is undefined', async () => {
+        const props = {
+            ...baseProps,
+            action: {...baseProps.action, tooltip: undefined},
+        };
+
+        renderWithContext(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
+
+        // Hover over the button
+        await userEvent.hover(button);
+
+        // Tooltip should not appear
+        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    });
+
+    test('should not show tooltip when action.tooltip is empty string', async () => {
+        const props = {
+            ...baseProps,
+            action: {...baseProps.action, tooltip: ''},
+        };
+
+        renderWithContext(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
+
+        // Hover over the button
+        await userEvent.hover(button);
+
+        // Tooltip should not appear
+        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    });
+
+    test('should show tooltip when action.tooltip is provided', async () => {
+        const props = {
+            ...baseProps,
+            action: {...baseProps.action, tooltip: 'This is a tooltip'},
+        };
+
+        renderWithContext(<ActionButton {...props}/>);
+        const button = screen.getByRole('button');
+
+        // Hover over the button
+        await userEvent.hover(button);
+
+        // Wait for tooltip to appear (WithTooltip has a delay)
+        const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('This is a tooltip');
+    });
 });

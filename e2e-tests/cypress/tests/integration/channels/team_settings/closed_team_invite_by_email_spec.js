@@ -114,6 +114,9 @@ describe('Team Settings', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#input_password-input').type(password);
 
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         // # Attempt to create an account by clicking on the 'Create Account' button
         cy.findByText('Create account').click();
 

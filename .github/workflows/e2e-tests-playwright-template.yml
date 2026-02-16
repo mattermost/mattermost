@@ -1,0 +1,465 @@
+---
+name: E2E Tests - Playwright Template
+on:
+  workflow_call:
+    inputs:
+      # Test configuration
+      test_type:
+        description: "Type of test run (smoke or full)"
+        type: string
+        required: true
+      test_filter:
+        description: "Test filter arguments (e.g., --grep @smoke)"
+        type: string
+        required: true
+      timeout_minutes:
+        description: "Job timeout in minutes"
+        type: number
+        required: false
+        default: 60
+      enabled_docker_services:
+        description: "Space-separated list of docker services to enable"
+        type: string
+        required: false
+        default: "postgres inbucket"
+
+      # Common build variables
+      commit_sha:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      build_id:
+        type: string
+        required: true
+      server_image_tag:
+        description: "Server image tag (e.g., master or short SHA)"
+        type: string
+        required: true
+      server:
+        type: string
+        required: false
+        default: onprem
+      server_edition:
+        description: "Server edition: enterprise (default), fips, or team"
+        type: string
+        required: false
+        default: enterprise
+      server_image_repo:
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+        type: string
+        required: false
+        default: mattermostdevelopment
+      server_image_aliases:
+        description: "Comma-separated alias tags for description (e.g., 'release-11.4, release-11')"
+        type: string
+        required: false
+
+      # Reporting options
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      report_type:
+        type: string
+        required: false
+      ref_branch:
+        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+
+      # Commit status configuration
+      context_name:
+        description: "GitHub commit status context name"
+        type: string
+        required: true
+
+    outputs:
+      passed:
+        description: "Number of passed tests"
+        value: ${{ jobs.report.outputs.passed }}
+      failed:
+        description: "Number of failed tests"
+        value: ${{ jobs.report.outputs.failed }}
+      report_url:
+        description: "URL to test report on S3"
+        value: ${{ jobs.report.outputs.report_url }}
+
+    secrets:
+      MM_LICENSE:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+env:
+  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/set-initial-status
+        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          status: pending
+
+  run-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      TEST_FILTER: "${{ inputs.test_filter }}"
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+      BUILD_ID: "${{ inputs.build_id }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/run-tests
+        run: |
+          make cloud-init
+          make
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
+  calculate-results:
+    runs-on: ubuntu-24.04
+    needs:
+      - run-tests
+    if: always()
+    outputs:
+      passed: ${{ steps.calculate.outputs.passed }}
+      failed: ${{ steps.calculate.outputs.failed }}
+      flaky: ${{ steps.calculate.outputs.flaky }}
+      skipped: ${{ steps.calculate.outputs.skipped }}
+      total_specs: ${{ steps.calculate.outputs.total_specs }}
+      failed_specs: ${{ steps.calculate.outputs.failed_specs }}
+      failed_specs_count: ${{ steps.calculate.outputs.failed_specs_count }}
+      failed_tests: ${{ steps.calculate.outputs.failed_tests }}
+      commit_status_message: ${{ steps.calculate.outputs.commit_status_message }}
+      total: ${{ steps.calculate.outputs.total }}
+      pass_rate: ${{ steps.calculate.outputs.pass_rate }}
+      passing: ${{ steps.calculate.outputs.passing }}
+      color: ${{ steps.calculate.outputs.color }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
+          path: e2e-tests/playwright/
+      - name: ci/calculate
+        id: calculate
+        uses: ./.github/actions/calculate-playwright-results
+        with:
+          original-results-path: e2e-tests/playwright/results/reporter/results.json
+
+  run-failed-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    needs:
+      - run-tests
+      - calculate-results
+    if: >-
+      always() &&
+      needs.calculate-results.result == 'success' &&
+      needs.calculate-results.outputs.failed != '0' &&
+      fromJSON(needs.calculate-results.outputs.failed_specs_count) <= 20
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
+      BUILD_ID: "${{ inputs.build_id }}-retest"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/run-failed-specs
+        env:
+          SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
+        run: |
+          echo "Retesting failed specs: $SPEC_FILES"
+          make cloud-init
+          make start-server run-specs
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/upload-retest-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
+  report:
+    runs-on: ubuntu-24.04
+    needs:
+      - run-tests
+      - calculate-results
+      - run-failed-tests
+    if: always() && needs.calculate-results.result == 'success'
+    outputs:
+      passed: "${{ steps.final-results.outputs.passed }}"
+      failed: "${{ steps.final-results.outputs.failed }}"
+      commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
+      report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/setup-node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+
+      # Download original results (always needed)
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
+          path: e2e-tests/playwright/
+
+      # Download retest results (only if retest ran)
+      - name: ci/download-retest-results
+        if: needs.run-failed-tests.result != 'skipped'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: e2e-tests/playwright/retest-results/
+
+      # Calculate results (with optional merge of retest results)
+      - name: ci/calculate-results
+        id: final-results
+        uses: ./.github/actions/calculate-playwright-results
+        with:
+          original-results-path: e2e-tests/playwright/results/reporter/results.json
+          retest-results-path: ${{ needs.run-failed-tests.result != 'skipped' && 'e2e-tests/playwright/retest-results/results/reporter/results.json' || '' }}
+
+      - name: ci/aws-configure
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: ci/upload-to-s3
+        id: upload-to-s3
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+          PR_NUMBER: "${{ inputs.pr_number }}"
+          RUN_ID: "${{ github.run_id }}"
+          COMMIT_SHA: "${{ inputs.commit_sha }}"
+          TEST_TYPE: "${{ inputs.test_type }}"
+        run: |
+          LOCAL_RESULTS_PATH="playwright/results/"
+          LOCAL_LOGS_PATH="playwright/logs/"
+
+          # Use PR number if available, otherwise use commit SHA prefix
+          if [ -n "$PR_NUMBER" ]; then
+            S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/playwright-${TEST_TYPE}/${RUN_ID}"
+          else
+            S3_PATH="server-commit-${COMMIT_SHA::7}/e2e-reports/playwright-${TEST_TYPE}/${RUN_ID}"
+          fi
+
+          if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
+            aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
+              --acl public-read --cache-control "no-cache"
+          fi
+
+          REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
+          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
+      - name: ci/publish-report
+        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
+          COLOR: ${{ steps.final-results.outputs.color }}
+          REPORT_URL: ${{ steps.upload-to-s3.outputs.report_url }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          REPORT_TYPE: ${{ inputs.report_type }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          REF_BRANCH: ${{ inputs.ref_branch }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          # Capitalize test type
+          TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
+
+          # Build source line based on report type
+          COMMIT_SHORT="${COMMIT_SHA::7}"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}"
+          if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
+            SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
+            SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          else
+            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
+          fi
+
+          # Build payload with attachments
+          PAYLOAD=$(cat <<EOF
+          {
+            "username": "E2E Test",
+            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+            "attachments": [{
+              "color": "${COLOR}",
+              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE} | [full report](${REPORT_URL})"
+            }]
+          }
+          EOF
+          )
+
+          # Send to webhook
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+      - name: ci/write-job-summary
+        if: always()
+        env:
+          REPORT_URL: ${{ steps.upload-to-s3.outputs.report_url }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          PASSED: ${{ steps.final-results.outputs.passed }}
+          FAILED: ${{ steps.final-results.outputs.failed }}
+          FLAKY: ${{ steps.final-results.outputs.flaky }}
+          SKIPPED: ${{ steps.final-results.outputs.skipped }}
+          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
+          FAILED_SPECS_COUNT: ${{ steps.final-results.outputs.failed_specs_count }}
+          FAILED_SPECS: ${{ steps.final-results.outputs.failed_specs }}
+          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
+          FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
+        run: |
+          {
+            echo "## E2E Test Results - Playwright ${TEST_TYPE}"
+            echo ""
+
+            if [ "$FAILED" = "0" ]; then
+              echo "All tests passed: **${PASSED} passed**"
+            else
+              echo "<details>"
+              echo "<summary>${FAILED} failed, ${PASSED} passed</summary>"
+              echo ""
+              echo "| Test | File |"
+              echo "|------|------|"
+              echo "${FAILED_TESTS}"
+              echo "</details>"
+            fi
+
+            echo ""
+            echo "### Calculation Outputs"
+            echo ""
+            echo "| Output | Value |"
+            echo "|--------|-------|"
+            echo "| passed | ${PASSED} |"
+            echo "| failed | ${FAILED} |"
+            echo "| flaky | ${FLAKY} |"
+            echo "| skipped | ${SKIPPED} |"
+            echo "| total_specs | ${TOTAL_SPECS} |"
+            echo "| failed_specs_count | ${FAILED_SPECS_COUNT} |"
+            echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
+            echo "| failed_specs | ${FAILED_SPECS:-none} |"
+
+            echo ""
+            echo "---"
+            echo "[View Full Report](${REPORT_URL})"
+          } >> $GITHUB_STEP_SUMMARY
+      - name: ci/assert-results
+        run: |
+          [ "${{ steps.final-results.outputs.failed }}" = "0" ]
+
+  update-success-status:
+    runs-on: ubuntu-24.04
+    if: always() && needs.report.result == 'success' && needs.calculate-results.result == 'success'
+    needs:
+      - calculate-results
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          status: success
+          target_url: ${{ needs.report.outputs.report_url }}
+
+  update-failure-status:
+    runs-on: ubuntu-24.04
+    if: always() && (needs.report.result != 'success' || needs.calculate-results.result != 'success')
+    needs:
+      - calculate-results
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          status: failure
+          target_url: ${{ needs.report.outputs.report_url }}

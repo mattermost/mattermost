@@ -14,6 +14,11 @@ describe('components/ChannelSelectorModal', () => {
     const channel1: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-1', team_id: 'teamid1'}));
     const channel2: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-2', team_id: 'teamid2'}));
     const channel3: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-3', team_id: 'teamid1'}));
+    const groupSyncedChannel: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({
+        id: 'channel-4',
+        team_id: 'teamid3',
+        group_constrained: true,
+    }));
 
     const defaultProps = {
         excludeNames: [],
@@ -59,5 +64,21 @@ describe('components/ChannelSelectorModal', () => {
         ]});
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('excludes group constrained channels when requested', () => {
+        const wrapper = shallowWithIntl(
+            <ChannelSelectorModal
+                {...defaultProps}
+                excludeGroupConstrained={true}
+            />,
+        );
+        wrapper.setState({channels: [
+            channel1,
+            groupSyncedChannel,
+        ]});
+
+        const options = (wrapper.find('MultiSelect').props() as any).options;
+        expect(options.find((channel: ChannelWithTeamData) => channel.id === groupSyncedChannel.id)).toBeUndefined();
     });
 });

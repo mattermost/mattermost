@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const WEBSOCKET_HELLO = 'hello';
+import {WebSocketEvents} from './websocket_events';
+import type {WebSocketMessage} from './websocket_message';
 
 export type MessageListener = (msg: WebSocketMessage) => void;
 export type FirstConnectListener = () => void;
@@ -149,10 +150,10 @@ export default class WebSocketClient {
         // Setup network event listener
         // Remove existing listeners if any
         if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
+            globalThis.window?.removeEventListener('online', this.onlineHandler);
         }
         if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
+            globalThis.window?.removeEventListener('offline', this.offlineHandler);
         }
 
         this.onlineHandler = () => {
@@ -198,8 +199,8 @@ export default class WebSocketClient {
             });
         };
 
-        window.addEventListener('online', this.onlineHandler);
-        window.addEventListener('offline', this.offlineHandler);
+        globalThis.window?.addEventListener('online', this.onlineHandler);
+        globalThis.window?.addEventListener('offline', this.offlineHandler);
 
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
@@ -362,7 +363,7 @@ export default class WebSocketClient {
                 }
             } else if (this.eventCallback || this.messageListeners.size > 0) {
                 // We check the hello packet, which is always the first packet in a stream.
-                if (msg.event === WEBSOCKET_HELLO && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
+                if (msg.event === WebSocketEvents.Hello && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
                     console.log('got connection id ', msg.data.connection_id); //eslint-disable-line no-console
                     // If we already have a connectionId present, and server sends a different one,
                     // that means it's either a long timeout, or server restart, or sequence number is not found.
@@ -558,11 +559,11 @@ export default class WebSocketClient {
         }
 
         if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
+            globalThis.window?.removeEventListener('online', this.onlineHandler);
             this.onlineHandler = null;
         }
         if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
+            globalThis.window?.removeEventListener('offline', this.offlineHandler);
             this.offlineHandler = null;
         }
     }
@@ -655,7 +656,7 @@ export default class WebSocketClient {
     acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
         const data = {
             post_id: postId,
-            user_agent: window.navigator.userAgent,
+            user_agent: globalThis.window?.navigator?.userAgent ?? '',
             status,
             reason,
             data: postedData,
@@ -674,18 +675,4 @@ export default class WebSocketClient {
         };
         this.sendMessage('get_statuses_by_ids', data, callback);
     }
-}
-
-export type WebSocketBroadcast = {
-    omit_users: Record<string, boolean>;
-    user_id: string;
-    channel_id: string;
-    team_id: string;
-}
-
-export type WebSocketMessage<T = any> = {
-    event: string;
-    data: T;
-    broadcast: WebSocketBroadcast;
-    seq: number;
 }

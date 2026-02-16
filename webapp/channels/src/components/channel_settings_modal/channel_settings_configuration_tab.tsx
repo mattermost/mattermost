@@ -3,12 +3,13 @@
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
+import {getChannelAutotranslation} from 'mattermost-redux/selectors/entities/channels';
 
 import ColorInput from 'components/color_input';
 import type {TextboxElement} from 'components/textbox';
@@ -18,6 +19,7 @@ import type {SaveChangesPanelState} from 'components/widgets/modals/components/s
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import './channel_settings_configuration_tab.scss';
+import type {GlobalState} from 'types/store';
 
 const CHANNEL_BANNER_MAX_CHARACTER_LIMIT = 1024;
 const CHANNEL_BANNER_MIN_CHARACTER_LIMIT = 0;
@@ -32,9 +34,23 @@ type Props = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+    canManageChannelTranslation?: boolean;
+    canManageBanner?: boolean;
 }
 
-function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, showTabSwitchError}: Props) {
+function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
+    return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
+        (originalBannerInfo?.background_color?.trim() || '') !== (updatedBannerInfo?.background_color?.trim() || '') ||
+        originalBannerInfo?.enabled !== updatedBannerInfo?.enabled;
+}
+
+function ChannelSettingsConfigurationTab({
+    channel,
+    setAreThereUnsavedChanges,
+    showTabSwitchError,
+    canManageChannelTranslation,
+    canManageBanner,
+}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -44,7 +60,13 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
     const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
 
+    const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
+    const autoTranslationSubHeading = formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
+
     const initialBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
+
+    const initialIsChannelAutotranslated = useSelector((state: GlobalState) => getChannelAutotranslation(state, channel.id));
+    const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
 
     const [formError, setFormError] = useState('');
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
@@ -112,16 +134,16 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
 
     const toggleTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
-    const hasUnsavedChanges = useCallback(() => {
-        return (updatedChannelBanner.text?.trim() || '') !== (initialBannerInfo?.text?.trim() || '') ||
-            (updatedChannelBanner.background_color?.trim() || '') !== (initialBannerInfo?.background_color?.trim() || '') ||
-            updatedChannelBanner.enabled !== initialBannerInfo?.enabled;
-    }, [initialBannerInfo, updatedChannelBanner]);
+    const handleAutoTranslationToggle = useCallback(async () => {
+        setIsChannelAutotranslated((prev) => !prev);
+    }, []);
+
+    const hasUnsavedChanges = bannerHasChanges(initialBannerInfo, updatedChannelBanner) ||
+        isChannelAutotranslated !== initialIsChannelAutotranslated;
 
     useEffect(() => {
-        const unsavedChanges = hasUnsavedChanges();
-        setRequireConfirm(unsavedChanges);
-        setAreThereUnsavedChanges?.(unsavedChanges);
+        setRequireConfirm(hasUnsavedChanges);
+        setAreThereUnsavedChanges?.(hasUnsavedChanges);
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleServerError = useCallback((err: ServerError) => {
@@ -150,15 +172,19 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             return false;
         }
 
-        const updated: Channel = {
-            ...channel,
-        };
+        const updated: Partial<Channel> = {};
 
-        updated.banner_info = {
-            text: updatedChannelBanner.text?.trim() || '',
-            background_color: updatedChannelBanner.background_color?.trim() || '',
-            enabled: updatedChannelBanner.enabled,
-        };
+        if (bannerHasChanges(initialBannerInfo, updatedChannelBanner)) {
+            updated.banner_info = {
+                text: updatedChannelBanner.text?.trim() || '',
+                background_color: updatedChannelBanner.background_color?.trim() || '',
+                enabled: updatedChannelBanner.enabled,
+            };
+        }
+
+        if (isChannelAutotranslated !== initialIsChannelAutotranslated) {
+            updated.autotranslation = isChannelAutotranslated;
+        }
 
         const {error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
@@ -167,7 +193,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
         }
 
         return true;
-    }, [channel, dispatch, formatMessage, handleServerError, updatedChannelBanner]);
+    }, [channel, dispatch, formatMessage, handleServerError, initialBannerInfo, initialIsChannelAutotranslated, isChannelAutotranslated, updatedChannelBanner]);
 
     const handleSaveChanges = useCallback(async () => {
         const success = await handleSave();
@@ -211,86 +237,122 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
 
     return (
         <div className='ChannelSettingsModal__configurationTab'>
-            <div className='channel_banner_header'>
-                <div className='channel_banner_header__text'>
-                    <label
-                        className='Input_legend'
-                        aria-label={heading}
-                    >
-                        {heading}
-                    </label>
-                    <label
-                        className='Input_subheading'
-                        aria-label={heading}
-                    >
-                        {subHeading}
-                    </label>
-                </div>
+            {canManageBanner && (
+                <>
+                    <div className='channel_banner_header'>
+                        <div className='channel_banner_header__text'>
+                            <label
+                                className='Input_legend'
+                                aria-label={heading}
+                            >
+                                {heading}
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                aria-label={heading}
+                            >
+                                {subHeading}
+                            </label>
+                        </div>
 
-                <div className='channel_banner_header__toggle'>
-                    <Toggle
-                        id='channelBannerToggle'
-                        ariaLabel={heading}
-                        size='btn-md'
-                        disabled={false}
-                        onToggle={handleToggle}
-                        toggled={updatedChannelBanner.enabled}
-                        tabIndex={0}
-                        toggleClassName='btn-toggle-primary'
-                    />
-                </div>
-            </div>
-
-            {
-                updatedChannelBanner.enabled &&
-                <div className='channel_banner_section_body'>
-                    {/*Banner text section*/}
-                    <div className='setting_section'>
-                        <span
-                            className='setting_title'
-                            aria-label={bannerTextSettingTitle}
-                        >
-                            {bannerTextSettingTitle}
-                        </span>
-
-                        <div className='setting_body'>
-                            <AdvancedTextbox
-                                id='channel_banner_banner_text_textbox'
-                                value={updatedChannelBanner.text!}
-                                channelId={channel.id}
-                                onKeyPress={() => {}}
-                                showCharacterCount={true}
-                                useChannelMentions={false}
-                                onChange={handleTextChange}
-                                preview={showBannerTextPreview}
-                                togglePreview={toggleTextPreview}
-                                hasError={characterLimitExceeded}
-                                createMessage={bannerTextPlaceholder}
-                                maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
-                                minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
+                        <div className='channel_banner_header__toggle'>
+                            <Toggle
+                                id='channelBannerToggle'
+                                ariaLabel={heading}
+                                size='btn-md'
+                                disabled={false}
+                                onToggle={handleToggle}
+                                toggled={updatedChannelBanner.enabled}
+                                tabIndex={0}
+                                toggleClassName='btn-toggle-primary'
                             />
                         </div>
                     </div>
 
-                    {/*Banner background color section*/}
-                    <div className='setting_section'>
-                        <span
-                            className='setting_title'
-                            aria-label={bannerColorSettingTitle}
-                        >
-                            {bannerColorSettingTitle}
-                        </span>
+                    {
+                        updatedChannelBanner.enabled &&
+                        <div className='channel_banner_section_body'>
+                            {/*Banner text section*/}
+                            <div className='setting_section'>
+                                <span
+                                    className='setting_title'
+                                    aria-label={bannerTextSettingTitle}
+                                >
+                                    {bannerTextSettingTitle}
+                                </span>
 
-                        <div className='setting_body'>
-                            <ColorInput
-                                id='channel_banner_banner_background_color_picker'
-                                onChange={handleColorChange}
-                                value={updatedChannelBanner.background_color || ''}
-                            />
+                                <div className='setting_body'>
+                                    <AdvancedTextbox
+                                        id='channel_banner_banner_text_textbox'
+                                        value={updatedChannelBanner.text!}
+                                        channelId={channel.id}
+                                        onKeyPress={() => {}}
+                                        showCharacterCount={true}
+                                        useChannelMentions={false}
+                                        onChange={handleTextChange}
+                                        preview={showBannerTextPreview}
+                                        togglePreview={toggleTextPreview}
+                                        hasError={characterLimitExceeded}
+                                        createMessage={bannerTextPlaceholder}
+                                        maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                        minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
+                                    />
+                                </div>
+                            </div>
+
+                            {/*Banner background color section*/}
+                            <div className='setting_section'>
+                                <span
+                                    className='setting_title'
+                                    aria-label={bannerColorSettingTitle}
+                                >
+                                    {bannerColorSettingTitle}
+                                </span>
+
+                                <div className='setting_body'>
+                                    <ColorInput
+                                        id='channel_banner_banner_background_color_picker'
+                                        onChange={handleColorChange}
+                                        value={updatedChannelBanner.background_color || ''}
+                                    />
+                                </div>
+                            </div>
                         </div>
+                    }
+                </>
+            )}
+
+            {canManageChannelTranslation && (
+                <div className='channel_translation_header'>
+                    <div className='channel_translation_header__text'>
+                        <label
+                            className='Input_legend'
+                            aria-label={autoTranslationHeading}
+                        >
+                            {autoTranslationHeading}
+                        </label>
+                        <label
+                            className='Input_subheading'
+                            aria-label={autoTranslationSubHeading}
+                        >
+                            {autoTranslationSubHeading}
+                        </label>
+                    </div>
+
+                    <div className='channel_translation_header__toggle'>
+                        <Toggle
+                            id='channelTranslationToggle'
+                            ariaLabel={autoTranslationHeading}
+                            size='btn-md'
+                            disabled={false}
+                            onToggle={handleAutoTranslationToggle}
+                            toggled={isChannelAutotranslated}
+                            tabIndex={0}
+                            toggleClassName='btn-toggle-primary'
+                        />
                     </div>
                 </div>
-            }
+            )}
 
             {showSaveChangesPanel && (
                 <SaveChangesPanel

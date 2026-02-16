@@ -229,8 +229,7 @@ function ChannelSettingsInfoTab({
         }
 
         // Build updated channel object
-        const updated: Channel = {
-            ...channel,
+        const updated: Partial<Channel> = {
             display_name: displayName.trim(),
             name: channelUrl.trim(),
             purpose: channelPurpose.trim(),
@@ -245,12 +244,12 @@ function ChannelSettingsInfoTab({
 
         // After every successful save, update local state to match the saved values
         // with this, we make sure that the unsavedChanges check will return false after saving
-        setDisplayName(data?.display_name ?? updated.display_name);
-        setChannelURL(data?.name ?? updated.name);
-        setChannelPurpose(data?.purpose ?? updated.purpose);
-        setChannelHeader(data?.header ?? updated.header);
+        setDisplayName(data?.display_name ?? updated.display_name ?? '');
+        setChannelURL(data?.name ?? updated.name ?? '');
+        setChannelPurpose(data?.purpose ?? updated.purpose ?? '');
+        setChannelHeader(data?.header ?? updated.header ?? '');
         return true;
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
+    }, [channel, displayName, channelType, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {

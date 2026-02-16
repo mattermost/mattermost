@@ -200,6 +200,7 @@ const initialComponents: PluginsState['components'] = {
     DesktopNotificationHooks: [],
     BottomTeamSidebar: [],
     ChannelHeader: [],
+    ChannelHeaderIcon: [],
     ChannelIntroButton: [],
     CustomRouteComponent: [],
     FilesDropdown: [],

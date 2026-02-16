@@ -790,10 +790,6 @@
     "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Je zal geen meldingen ontvangen voor {{.Channel}} tot het dempen van het kanaal is uitgeschakeld."
   },
@@ -4608,11 +4604,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 140+"
+    "translation": "Versie 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 140+"
+    "translation": "Versie 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8566,10 +8562,6 @@
     "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is niet beschikbaar."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
@@ -8592,10 +8584,6 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contacteer de verkoopsafdeling"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
@@ -10528,10 +10516,6 @@
     "translation": "Kan toegangscontrolebeleid niet weghalen van de kanalen."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Kon de actieve status van het toegangscontrolebeleid niet wijzigen."
-  },
-  {
     "id": "ent.access_control.sync_job.app_error",
     "translation": "Fout bij het uitvoeren van de sync taak voor toegangscontrole."
   },
@@ -11008,18 +10992,6 @@
     "translation": "Niet-ondersteunde provider voor automatische vertalingen."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
   },
@@ -11444,66 +11416,6 @@
     "translation": "Ongeldig tijdveld."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanaal niet gevonden."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Kan geen vertaling ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Kan de actieve talen niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus voor de gebruiker niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Kan de taal van de gebruiker niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Lid niet gevonden."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Fout bij het verwerken van de JSON vertaalmetagegevens."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Fout bij het maken van de query."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Fout bij het bewaren van de vertaling."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Vertaalvalidatie mislukt. Het vertaalobject is ongeldig."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Het serialiseren van vertaalmetagegevens naar JSON is mislukt."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Kan automatische vertaling van het kanaal niet inschakelen."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
-  },
-  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "Je hebt geen toestemming om dit bericht te verbranden. Je moet lid zijn van het kanaal."
   },
@@ -11698,5 +11610,217 @@
   {
     "id": "app.update_scheduled_post.convert_to_post.error",
     "translation": "Kan gepland bericht niet omzetten naar berichtformaat."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Deze functie is niet ingeschakeld."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "Je hebt geen toegang tot deze samenvatting."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent aanroepen mislukt."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Fout bij het verwerken van het AI-samenvattingsantwoord"
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Fout bij het verwijderen van de samenvatting."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Fout bij het verwijderen van de kanelen voor samenvattingen."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Fout bij het ophalen van de samenvatting."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Kanaal niet gevonden."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Fout bij het opahelen van de kanalen voor samenvattingen."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Fout bij het ophalen van de laatst bekeken tijdstempel."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Fout bij het ophalen van het team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Het is niet gelukt om samenvattingen op te halen."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Het is niet gelukt om de samenvatting als gelezen te markeren."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Geen toestemming voor samenvatting."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Fout bij het bewaren van samenvatting."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Het is niet gelukt om het kanaal voor samenvatting op te slaan."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Fout bij het bijwerken van de samenvatting."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Kan niet overschakelen naar e-mailauthenticatie omdat gebruiker geen OAuth- of SAML-authenticatie gebruikt."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "De vertaaltaak moet een object-ID bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "De vertaaltaak moet een objecttype bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Vertaaltaken kunnen niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Fout bij het maken van de vertaling."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is nodig voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Tekst overschrijdt maximale grootte voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Taal is niet gedetecteerd met behulp van vertaalprovider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Inhoud niet gemaskeerd voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Berichtobject kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Automatische vertaling is niet beschikbaar. Neem contact op met je systeembeheerder over het upgraden van je bedrijfslicentie."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Ongeldige taalcode opgegeven."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Fout bij het bijwerken van de vertaling met de nieuwe maskerwaarden."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Inhoud bevat geen vertaalbare tekst."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Er is geen vertaaldienst beschikbaar."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Vertaalprovider is niet geïnitialiseerd."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Kan automatische vertaalaanvraag niet verwerken."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Vertaling bevat onherkende tokens."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Vertaling bevat ongeldige tokens."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Kan JSON-inhoud niet parsen."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Niet-ondersteund inhoudstype voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Inhoud kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Inhoud overschrijdt maximale grootte voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Vereiste ID kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Ongeldig ID-formaat."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Ongeldige auto-vertalingen agents configuratie: AI-service mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Ongeldige time-out voor auto-vertalingen instelling. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Ongeldige taalcode. Gebruik een standaard ISO-code zoals 'en', 'ja' of 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Vertaalobject kan niet null zijn."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Ongeldig object id."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Ongeldig object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Ongeldig objecttype."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Ongeldige vertaalprovider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Ongeldige vertaaltekst."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Ongeldig vertaaltype."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Ongeldig vertaaltype. Moet 'string' of 'object' zijn."
   }
 ]

@@ -6,6 +6,7 @@ import type {PopoutViewProps} from '@mattermost/desktop-api';
 import {Client4} from 'mattermost-redux/client';
 
 import DesktopApp from 'utils/desktop_api';
+import {getBasePath} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
 
 import BrowserPopouts from './browser_popouts';
@@ -27,7 +28,7 @@ export async function popoutThread(
     onFocusPost: (postId: string, returnTo: string) => void,
 ) {
     const popoutListeners = await popout(
-        `/_popout/thread/${teamName}/${threadId}`,
+        `${getBasePath()}/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
             titleTemplate,
@@ -54,7 +55,7 @@ export async function popoutRhsPlugin(
     channelName: string,
 ) {
     const listeners = await popout(
-        `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
+        `${getBasePath()}/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
         {
             isRHS: true,
             titleTemplate,
@@ -64,6 +65,21 @@ export async function popoutRhsPlugin(
     pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
 
     return listeners;
+}
+
+export async function popoutHelp() {
+    return popout(
+        '/_popout/help',
+        {
+
+            // Not really RHS, but this gives a desirable window size.
+            isRHS: true,
+
+            // Note: titleTemplate is intentionally omitted so that the desktop
+            // app uses document.title, allowing dynamic title updates as the
+            // user navigates between help pages.
+        },
+    );
 }
 
 /**

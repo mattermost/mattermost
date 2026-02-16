@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -128,7 +126,6 @@ const baseProps = {
 
 describe('ChannelSettingsInfoTab', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         mockChannelPropertiesPermission = true;
         mockConvertToPublicPermission = true;
         mockConvertToPrivatePermission = true;
@@ -204,7 +201,6 @@ describe('ChannelSettingsInfoTab', () => {
         // Verify patchChannel was called with the updated values (without type change).
         // Note: URL should remain unchanged when editing existing channels
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             display_name: 'Updated Channel Name',
             name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Updated purpose',
@@ -244,7 +240,6 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             display_name: 'Channel Name With Whitespace', // Whitespace should be trimmed
             name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Purpose with whitespace', // Whitespace should be trimmed

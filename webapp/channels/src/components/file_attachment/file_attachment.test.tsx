@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import FileAttachment from './file_attachment';
@@ -168,13 +168,13 @@ describe('FileAttachment', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should blur file attachment link after click', () => {
+    test('should blur file attachment link after click', async () => {
         const props = {...baseProps, compactDisplay: true};
         renderWithContext(<FileAttachment {...props}/>);
 
         const link = screen.getByText(baseProps.fileInfo.name);
         const blur = jest.spyOn(link, 'blur');
-        fireEvent.click(link);
+        await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
     });
 
