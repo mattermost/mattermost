@@ -101,6 +101,7 @@ export async function run(): Promise<void> {
     core.info(`Failed Specs Count: ${calc.failedSpecsCount}`);
     core.info(`Commit Status Message: ${calc.commitStatusMessage}`);
     core.info(`Failed Specs: ${calc.failedSpecs || "none"}`);
+    core.info(`Test Duration: ${calc.testDuration}`);
     core.endGroup();
 
     // Set all outputs
@@ -118,4 +119,5 @@ export async function run(): Promise<void> {
     core.setOutput("pass_rate", calc.passRate);
     core.setOutput("passing", calc.passing);
     core.setOutput("color", calc.color);
+    core.setOutput("test_duration", calc.testDuration);
 }
