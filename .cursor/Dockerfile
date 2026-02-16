@@ -40,7 +40,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ============================================
 ENV GO_VERSION=1.24.13
 RUN curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-    | tar -C /usr/local -xzf -
+    | tar -C /usr/local -xzf - \
+    && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+    && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/home/ubuntu/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
