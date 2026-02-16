@@ -73,7 +73,6 @@ exports[`components/AddUserToChannelModal should match snapshot 1`] = `
         <Connect(SuggestionBox)
           className="form-control focused"
           completeOnTab={false}
-          delayInputUpdate={true}
           listComponent={[Function]}
           listPosition="bottom"
           maxLength="64"

@@ -52,7 +52,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
       aria-label="quick switch input"
       className="form-control focused"
       completeOnTab={false}
-      delayInputUpdate={true}
       forceSuggestionsWhenBlur={true}
       id="quickSwitchInput"
       listComponent={[Function]}
