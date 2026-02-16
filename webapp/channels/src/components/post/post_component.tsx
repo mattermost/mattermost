@@ -54,6 +54,7 @@ import type {ModalData} from 'types/actions';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import {withPostErrorBoundary} from './post_error_boundary';
+import PostHeaderTranslateIcon from './post_header_translate_icon';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -128,10 +129,14 @@ export type Props = {
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
+    preventClickInteraction?: boolean;
 };
+
+const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -139,6 +144,7 @@ function PostComponent(props: Props) {
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
+    const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
@@ -152,6 +158,8 @@ function PostComponent(props: Props) {
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
+
+    const {locale} = useIntl();
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -318,6 +326,7 @@ function PostComponent(props: Props) {
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
+            'post--modal': isModal,
         });
     };
 
@@ -419,6 +428,11 @@ function PostComponent(props: Props) {
         }
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
+    const translation = PostUtils.getPostTranslation(post, locale);
+
+    // Only show translation for normal (no custom type) posts
+    const isTranslating = translation?.state === 'processing' && post.type === '';
+
     const handleRevealBurnOnRead = useCallback(async (postId: string) => {
         setBurnOnReadRevealing(true);
         setBurnOnReadRevealError(null);
@@ -487,7 +501,13 @@ function PostComponent(props: Props) {
         handleBurnOnReadClick(false);
     }, [handleBurnOnReadClick]);
 
-    const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
+    const postClass = classNames(
+        'post__body',
+        {
+            'post--edited': PostUtils.isEdited(post),
+            'search-item-snippet': isSearchResultItem,
+        },
+    );
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -564,6 +584,8 @@ function PostComponent(props: Props) {
                         mentionHighlight: props.isMentionSearch,
                     }}
                     isRHS={isRHS}
+                    isChannelAutotranslated={props.isChannelAutotranslated}
+                    userLanguage={locale}
                 />
             </PostBodyAdditionalContent>
         );
@@ -575,6 +597,7 @@ function PostComponent(props: Props) {
                 pluginPostTypes={props.pluginPostTypes}
                 isRHS={isRHS}
                 compactDisplay={props.compactDisplay}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         );
     }
@@ -694,10 +717,15 @@ function PostComponent(props: Props) {
                 data-testid={postAriaLabelDivTestId}
                 post={post}
                 className={getClassName()}
+                style={props.preventClickInteraction ? preventInteractionStyle : undefined}
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
+                autotranslated={props.isChannelAutotranslated}
             >
+                {props.isChannelAutotranslated && isTranslating && (
+                    <div className='post-message__shimmer'/>
+                )}
                 {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
                     <div
                         className='search-channel__name__container'
@@ -739,7 +767,9 @@ function PostComponent(props: Props) {
                     channelId={post.channel_id}
                 />
                 <div
-                    className={`post__content ${props.center ? 'center' : ''}`}
+                    className={classNames('post__content', {
+                        center: props.center,
+                    })}
                     data-testid='postContent'
                 >
                     <div className='post__img'>
@@ -776,6 +806,13 @@ function PostComponent(props: Props) {
                                         postAuthorId={post.user_id}
                                     />
                                 )}
+                                {!isModal && !props.isConsecutivePost && props.isChannelAutotranslated && (
+                                    <PostHeaderTranslateIcon
+                                        postId={post.id}
+                                        translationState={translation?.state}
+                                        postType={post.type}
+                                    />
+                                )}
                                 {Boolean(post.props && post.props.card) &&
                                     <WithTooltip
                                         title={
@@ -801,7 +838,7 @@ function PostComponent(props: Props) {
                                 }
                                 {visibleMessage}
                             </div>
-                            {!props.isPostBeingEdited &&
+                            {!isModal && !props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
                                 teamId={teamId}

@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	"github.com/mholt/archives"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type archiveExtractor struct {
@@ -38,7 +40,7 @@ func getExtAlsoTarGz(name string) string {
 	return filepath.Ext(name)
 }
 
-func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
+func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
 	ext := getExtAlsoTarGz(name)
 
 	// Create a temporary file, using `*` control the random component while preserving the extension.
@@ -81,12 +83,19 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 			}
 			defer file.Close()
 
-			data, err := io.ReadAll(file)
-			if err != nil {
-				return err
+			// Limit the size of decompressed archive entries to prevent
+			// memory exhaustion from zip bombs or other malicious archives.
+			var reader io.Reader = file
+			if maxFileSize > 0 {
+				reader = utils.NewLimitedReaderWithError(file, maxFileSize)
 			}
 
-			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data))
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return fmt.Errorf("error reading archive entry %s: %w", path, err)
+			}
+
+			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize)
 			if extractErr == nil {
 				text.WriteString(subtext + " ")
 			}

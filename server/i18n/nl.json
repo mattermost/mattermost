@@ -8562,10 +8562,6 @@
     "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is niet beschikbaar."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
@@ -11682,5 +11678,149 @@
   {
     "id": "app.recap.update.app_error",
     "translation": "Fout bij het bijwerken van de samenvatting."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Kan niet overschakelen naar e-mailauthenticatie omdat gebruiker geen OAuth- of SAML-authenticatie gebruikt."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "De vertaaltaak moet een object-ID bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "De vertaaltaak moet een objecttype bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Vertaaltaken kunnen niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Fout bij het maken van de vertaling."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is nodig voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Tekst overschrijdt maximale grootte voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Taal is niet gedetecteerd met behulp van vertaalprovider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Inhoud niet gemaskeerd voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Berichtobject kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Automatische vertaling is niet beschikbaar. Neem contact op met je systeembeheerder over het upgraden van je bedrijfslicentie."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Ongeldige taalcode opgegeven."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Fout bij het bijwerken van de vertaling met de nieuwe maskerwaarden."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Inhoud bevat geen vertaalbare tekst."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Er is geen vertaaldienst beschikbaar."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Vertaalprovider is niet geïnitialiseerd."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Kan automatische vertaalaanvraag niet verwerken."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Vertaling bevat onherkende tokens."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Vertaling bevat ongeldige tokens."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Kan JSON-inhoud niet parsen."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Niet-ondersteund inhoudstype voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Inhoud kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Inhoud overschrijdt maximale grootte voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Vereiste ID kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Ongeldig ID-formaat."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Ongeldige auto-vertalingen agents configuratie: AI-service mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Ongeldige time-out voor auto-vertalingen instelling. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Ongeldige taalcode. Gebruik een standaard ISO-code zoals 'en', 'ja' of 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Vertaalobject kan niet null zijn."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Ongeldig object id."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Ongeldig object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Ongeldig objecttype."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Ongeldige vertaalprovider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Ongeldige vertaaltekst."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Ongeldig vertaaltype."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Ongeldig vertaaltype. Moet 'string' of 'object' zijn."
   }
 ]

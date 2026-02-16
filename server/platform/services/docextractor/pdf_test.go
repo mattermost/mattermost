@@ -14,7 +14,7 @@ import (
 
 func TestPdfEmptyFile(t *testing.T) {
 	extractor := pdfExtractor{}
-	_, err := extractor.Extract("test.pdf", bytes.NewReader([]byte{}))
+	_, err := extractor.Extract("test.pdf", bytes.NewReader([]byte{}), 0)
 	require.Error(t, err)
 }
 
@@ -23,7 +23,7 @@ func TestPdfFile(t *testing.T) {
 	contentText := "\nThis is a simple document that contains some text."
 	content, err := testutils.ReadTestFile("sample-doc.pdf")
 	require.NoError(t, err)
-	extractedText, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content))
+	extractedText, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 0)
 	require.NoError(t, err)
 	require.Equal(t, contentText, extractedText)
 }
@@ -32,6 +32,6 @@ func TestWrongPdfFile(t *testing.T) {
 	extractor := pdfExtractor{}
 	content, err := testutils.ReadTestFile("sample-doc.docx")
 	require.NoError(t, err)
-	_, err = extractor.Extract("sample-doc.pdf", bytes.NewReader(content))
+	_, err = extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 0)
 	require.Error(t, err)
 }

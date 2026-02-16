@@ -25,7 +25,11 @@ func userLanguageKey(userID, channelID string) string {
 	return fmt.Sprintf("lang:%s:%s", userID, channelID)
 }
 
-// Cluster invalidation handler
+func postTranslationEtagKey(channelID string) string {
+	return fmt.Sprintf("etag:%s", channelID)
+}
+
+// Cluster invalidation handler for user auto-translation cache
 func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateUserAutoTranslation(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.userAutoTranslationCache.Purge()
@@ -34,12 +38,23 @@ func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateUserAutoTranslat
 	}
 }
 
+// Cluster invalidation handler for post translation etag cache
+func (s *LocalCacheAutoTranslationStore) handleClusterInvalidatePostTranslationEtag(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.postTranslationEtagCache.Purge()
+	} else {
+		s.rootStore.postTranslationEtagCache.Remove(string(msg.Data))
+	}
+}
+
 // ClearCaches purges all auto-translation caches
 func (s LocalCacheAutoTranslationStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.userAutoTranslationCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.postTranslationEtagCache)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postTranslationEtagCache.Name())
 	}
 }
 
@@ -132,4 +147,49 @@ func (s LocalCacheAutoTranslationStore) InvalidateUserLocaleCache(userID string)
 	if s.rootStore.metrics != nil && len(toDelete) > 0 {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
 	}
+}
+
+// GetLatestPostUpdateAtForChannel returns the most recent updateAt timestamp for post translations
+// in the given channel (across all locales, with caching)
+func (s LocalCacheAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+	key := postTranslationEtagKey(channelID)
+
+	var updateAt int64
+	if err := s.rootStore.doStandardReadCache(s.rootStore.postTranslationEtagCache, key, &updateAt); err == nil {
+		return updateAt, nil
+	}
+
+	updateAt, err := s.AutoTranslationStore.GetLatestPostUpdateAtForChannel(channelID)
+	if err != nil {
+		return 0, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.postTranslationEtagCache, key, updateAt)
+	return updateAt, nil
+}
+
+// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel
+// This should be called after saving a new post translation
+func (s LocalCacheAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {
+	key := postTranslationEtagKey(channelID)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postTranslationEtagCache, key, nil)
+
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postTranslationEtagCache.Name())
+	}
+}
+
+// Save wraps the underlying Save and invalidates the post translation etag cache for post translations
+func (s LocalCacheAutoTranslationStore) Save(translation *model.Translation) error {
+	err := s.AutoTranslationStore.Save(translation)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate post translation etag cache only for post translations
+	if translation.ChannelID != "" && translation.ObjectType == model.TranslationObjectTypePost {
+		s.InvalidatePostTranslationEtag(translation.ChannelID)
+	}
+
+	return nil
 }

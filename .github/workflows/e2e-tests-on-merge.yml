@@ -1,0 +1,134 @@
+---
+name: E2E Tests (master/release - merge)
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        required: true
+        description: "Branch name (e.g., 'master' or 'release-11.4')"
+      commit_sha:
+        type: string
+        required: true
+        description: "Commit SHA to test"
+      server_image_tag:
+        type: string
+        required: true
+        description: "Docker image tag (e.g., 'abc1234_def5678' or 'master')"
+
+jobs:
+  generate-build-variables:
+    runs-on: ubuntu-24.04
+    outputs:
+      report_type: "${{ steps.vars.outputs.report_type }}"
+      ref_branch: "${{ steps.vars.outputs.ref_branch }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 50
+      - name: ci/generate-variables
+        id: vars
+        env:
+          BRANCH: ${{ inputs.branch }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+        run: |
+          # Strip refs/heads/ prefix if present
+          BRANCH="${BRANCH#refs/heads/}"
+
+          # Validate branch is master or release-X.Y
+          if [[ "$BRANCH" == "master" ]]; then
+            echo "report_type=MASTER" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+            echo "report_type=RELEASE" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Branch ${BRANCH} must be 'master' or 'release-X.Y' format."
+            exit 1
+          fi
+
+          echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
+
+          # Validate commit exists on the branch
+          if ! git merge-base --is-ancestor "$COMMIT_SHA" HEAD; then
+            echo "::error::Commit ${COMMIT_SHA} is not on branch ${BRANCH}."
+            exit 1
+          fi
+
+  # Enterprise Edition
+  e2e-cypress:
+    needs: generate-build-variables
+    uses: ./.github/workflows/e2e-tests-cypress.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      skip_smoke: true
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+
+  e2e-playwright:
+    needs: generate-build-variables
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      skip_smoke: true
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Enterprise FIPS Edition
+  e2e-cypress-fips:
+    needs: generate-build-variables
+    uses: ./.github/workflows/e2e-tests-cypress.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      server_edition: fips
+      skip_smoke: true
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+
+  e2e-playwright-fips:
+    needs: generate-build-variables
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      server_edition: fips
+      skip_smoke: true
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

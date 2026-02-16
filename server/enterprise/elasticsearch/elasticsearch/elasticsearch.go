@@ -164,9 +164,27 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 			http.StatusInternalServerError).Wrap(err)
 	}
 
+	opts := []func(*types.IndexTemplateMapping){}
+	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
+	if *es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
+		if slices.Contains(es.plugins, "analysis-nori") {
+			opts = append(opts, common.WithNoriAnalyzer())
+		}
+		if slices.Contains(es.plugins, "analysis-kuromoji") {
+			opts = append(opts, common.WithKuromojiAnalyzer())
+		}
+		if slices.Contains(es.plugins, "analysis-smartcn") {
+			opts = append(opts, common.WithSmartCNAnalyzer())
+		}
+
+		if len(opts) == 0 {
+			es.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review elasticsearch settings.")
+		}
+	}
+
 	// Set up posts index template.
 	_, err = es.client.API.Indices.PutIndexTemplate(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts).
-		Request(common.GetPostTemplate(es.Platform.Config())).
+		Request(common.GetPostTemplate(es.Platform.Config(), opts...)).
 		Do(ctx)
 	if err != nil {
 		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
@@ -295,6 +313,30 @@ func (es *ElasticsearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		}
 	}
 	return postIndexes, nil
+}
+
+func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
+	variants := []string{fieldName}
+
+	if es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
+		!*es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
+		!common.ContainsCJK(query) {
+		return variants
+	}
+
+	if slices.Contains(es.plugins, "analysis-nori") {
+		variants = append(variants, fieldName+".nori")
+	}
+
+	if slices.Contains(es.plugins, "analysis-kuromoji") {
+		variants = append(variants, fieldName+".kuromoji")
+	}
+
+	if slices.Contains(es.plugins, "analysis-smartcn") {
+		variants = append(variants, fieldName+".smartcn")
+	}
+
+	return variants
 }
 
 func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
@@ -448,13 +490,13 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 					{
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"message"},
+							Fields:          es.getFieldVariants("message", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"attachments"},
+							Fields:          es.getFieldVariants("attachments", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
@@ -494,13 +536,13 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						{
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"message"},
+								Fields:          es.getFieldVariants("message", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"attachments"},
+								Fields:          es.getFieldVariants("attachments", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
@@ -555,6 +597,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 		},
 	)
 
+	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{
 		HighlightQuery: &types.Query{
 			Bool: fullHighlightsQuery,

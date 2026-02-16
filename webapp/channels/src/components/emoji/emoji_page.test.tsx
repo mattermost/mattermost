@@ -1,18 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ShallowWrapper} from 'enzyme';
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Link} from 'react-router-dom';
 
-import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import EmojiList from './emoji_list';
 import EmojiPage from './emoji_page';
 
 jest.mock('utils/utils', () => ({
     localizeMessage: jest.fn().mockReturnValue('Custom Emoji'),
+}));
+
+jest.mock('./emoji_list', () => ({
+    __esModule: true,
+    default: () => <div data-testid='emoji-list'/>,
+}));
+
+jest.mock('components/permissions_gates/any_team_permission_gate', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => <div data-testid='permission-gate'>{children}</div>,
 }));
 
 describe('EmojiPage', () => {
@@ -30,27 +36,31 @@ describe('EmojiPage', () => {
     };
 
     it('should render without crashing', () => {
-        const wrapper: ShallowWrapper = shallow(<EmojiPage {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<EmojiPage {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     it('should render the emoji list and the add button with permission', () => {
-        const wrapper: ShallowWrapper = shallow(<EmojiPage {...defaultProps}/>);
-        expect(wrapper.find(EmojiList).exists()).toBe(true);
-        expect(wrapper.find(AnyTeamPermissionGate).exists()).toBe(true);
-        expect(wrapper.find(Link).prop('to')).toBe('/team/emoji/add');
+        renderWithContext(<EmojiPage {...defaultProps}/>);
+        expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
+        expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
+        expect(screen.getByRole('link')).toHaveAttribute('href', '/team/emoji/add');
     });
 
     it('should not render the add button if permission is not granted', () => {
-        const wrapper: ShallowWrapper = shallow(
-            <EmojiPage {...defaultProps}/>,
-        ).setProps({teamName: '', actions: {loadRolesIfNeeded: mockLoadRolesIfNeeded}});
-        expect(wrapper.find(AnyTeamPermissionGate).exists()).toBe(true);
-        expect(wrapper.find(Link).exists()).toBe(true); // Update this to match your permission setup
+        renderWithContext(
+            <EmojiPage
+                {...defaultProps}
+                teamName=''
+                actions={{loadRolesIfNeeded: mockLoadRolesIfNeeded}}
+            />,
+        );
+        expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
+        expect(screen.getByRole('link')).toBeInTheDocument();
     });
 
     it('should render EmojiList component', () => {
-        const wrapper = shallow(<EmojiPage {...defaultProps}/>);
-        expect(wrapper.find(EmojiList).exists()).toBe(true);
+        renderWithContext(<EmojiPage {...defaultProps}/>);
+        expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
     });
 });
