@@ -108,7 +108,7 @@ describe("calculateResultsFromSpecs", () => {
         expect(calc.totalSpecs).toBe(2);
         expect(calc.failedSpecs).toBe("");
         expect(calc.failedSpecsCount).toBe(0);
-        expect(calc.commitStatusMessage).toBe("2 passed in 2 spec files");
+        expect(calc.commitStatusMessage).toBe("100% passed (2), 2 specs");
     });
 
     it("should calculate all outputs correctly for results with failures", () => {
@@ -136,7 +136,7 @@ describe("calculateResultsFromSpecs", () => {
         expect(calc.failedSpecs).toBe("tests/integration/channels.spec.ts");
         expect(calc.failedSpecsCount).toBe(1);
         expect(calc.commitStatusMessage).toBe(
-            "1 failed, 1 passed in 2 spec files",
+            "50.0% passed (1/2), 1 failed, 2 specs",
         );
         expect(calc.failedTests).toContain("should create a channel");
     });
@@ -230,7 +230,7 @@ describe("merge simulation", () => {
         expect(finalCalc.totalSpecs).toBe(3);
         expect(finalCalc.failedSpecs).toBe("");
         expect(finalCalc.failedSpecsCount).toBe(0);
-        expect(finalCalc.commitStatusMessage).toBe("3 passed in 3 spec files");
+        expect(finalCalc.commitStatusMessage).toBe("100% passed (3), 3 specs");
     });
 
     it("should handle case where retest still fails", () => {
