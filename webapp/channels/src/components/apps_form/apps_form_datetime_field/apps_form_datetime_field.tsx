@@ -9,7 +9,7 @@ import type {AppField} from '@mattermost/types/apps';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
 
