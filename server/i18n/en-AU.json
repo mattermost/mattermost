@@ -11595,5 +11595,9 @@
   {
     "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
     "translation": "Failed to post Auto-translation update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
   }
 ]
