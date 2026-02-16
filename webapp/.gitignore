@@ -1,6 +1,7 @@
 .eslintcache
 junit.xml
 node_modules
+.parcel-cache
 *.tsbuildinfo
 .rollup.cache
 *.tar.gz

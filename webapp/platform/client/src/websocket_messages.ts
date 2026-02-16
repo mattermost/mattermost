@@ -420,6 +420,16 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
     recap_id: string;
 }>;
 
+// Post translation messages
+
+export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
+    language: string;
+    object_id: string;
+    src_lang: string;
+    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+    translation: string;
+}>;
+
 // Plugin and integration messages
 
 export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSocketEvents.PluginDisabled, {

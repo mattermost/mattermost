@@ -4449,7 +4449,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.Empty(t, post.FileIds)
 
 		// Verify that TemporaryPost exists with original content
-		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 		require.NoError(t, tmpErr)
 		require.NotNil(t, tmpPost)
 		assert.Equal(t, "burn on read message with file", tmpPost.Message)
@@ -4472,7 +4472,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.NotNil(t, err)
 
 		// Verify TemporaryPost is also deleted
-		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 		assert.Error(t, tmpErr)
 		assert.True(t, store.IsErrNotFound(tmpErr))
 	})
@@ -5006,6 +5006,51 @@ func TestRevealPost(t *testing.T) {
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
 		require.Len(t, revealedPost.Metadata.Files, 1)
 	})
+
+	t.Run("updateTemporaryPostIfAllRead bypasses cache to get fresh data", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a third user to have multiple recipients
+		user3 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		th.AddUserToChannel(t, user3, th.BasicChannel)
+
+		post := createBurnOnReadPost()
+
+		// Get initial TemporaryPost ExpireAt (should be max TTL - 24 hours)
+		tmpPostInitial, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
+		require.NoError(t, err)
+		initialExpireAt := tmpPostInitial.ExpireAt
+
+		// First reveal by user2 creates a read receipt
+		_, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Nil(t, appErr)
+
+		// Get the read receipt's ExpireAt (should be 5 minutes)
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
+		require.NoError(t, err)
+
+		// Verify receipt ExpireAt is less than initial tmpPost ExpireAt (5 minutes vs 24 hours)
+		require.Less(t, receipt.ExpireAt, initialExpireAt)
+
+		// At this point, user3 hasn't revealed yet, so TemporaryPost shouldn't be updated
+		tmpPostAfterFirstReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, initialExpireAt, tmpPostAfterFirstReveal.ExpireAt)
+
+		// Now user3 reveals - this should trigger updateTemporaryPostIfAllRead
+		_, appErr = th.App.RevealPost(th.Context, post, user3.Id, "")
+		require.Nil(t, appErr)
+
+		// Fetch the TemporaryPost with cache bypass to verify it was updated
+		tmpPostAfterAllReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+
+		// Verify the ExpireAt was updated to match the shortest receipt ExpireAt
+		require.Less(t, tmpPostAfterAllReveal.ExpireAt, initialExpireAt)
+		// Should be close to the first recipient's ExpireAt (within a few ms due to timing)
+		require.InDelta(t, receipt.ExpireAt, tmpPostAfterAllReveal.ExpireAt, 10000) // 10 second tolerance
+	})
 }
 
 func TestBurnPost(t *testing.T) {
@@ -5320,5 +5365,264 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NotNil(t, post.Metadata)
 		require.NotZero(t, post.Metadata.ExpireAt)
 		require.Greater(t, post.Metadata.ExpireAt, model.GetMillis())
+	})
+}
+
+func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	}()
+
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		cfg.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds = model.NewPointer(600)
+		cfg.ServiceSettings.BurnOnReadDurationSeconds = model.NewPointer(600)
+	})
+
+	t.Run("should allow burn-on-read posts in direct messages with another user", func(t *testing.T) {
+		// Create a direct message channel between two different users
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeDirect, dmChannel.Type)
+
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			Message:   "This is a burn-on-read message in DM",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
+
+	t.Run("should allow burn-on-read posts in group messages", func(t *testing.T) {
+		// Create a group message channel with at least 3 users
+		user3 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		gmChannel := th.CreateGroupChannel(t, th.BasicUser2, user3)
+		require.Equal(t, model.ChannelTypeGroup, gmChannel.Type)
+
+		// This should succeed - group messages allow BoR
+		post := &model.Post{
+			ChannelId: gmChannel.Id,
+			Message:   "This is a burn-on-read message in GM",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, gmChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
+
+	t.Run("should allow burn-on-read posts from bot users", func(t *testing.T) {
+		// Create a bot user
+		bot := &model.Bot{
+			Username:    "testbot",
+			DisplayName: "Test Bot",
+			Description: "Test Bot for burn-on-read (bots can send BoR for OTP, integrations, etc.)",
+			OwnerId:     th.BasicUser.Id,
+		}
+		createdBot, appErr := th.App.CreateBot(th.Context, bot)
+		require.Nil(t, appErr)
+
+		// Get the bot user
+		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		require.Nil(t, appErr)
+		require.True(t, botUser.IsBot)
+
+		// Create a burn-on-read post as bot (should succeed - bots can send BoR)
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This is a burn-on-read message from bot",
+			UserId:    botUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
+
+	t.Run("should reject burn-on-read posts in self DMs", func(t *testing.T) {
+		// Create a self DM channel (user messaging themselves)
+		selfDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeDirect, selfDMChannel.Type)
+
+		// Try to create a burn-on-read post in self DM
+		post := &model.Post{
+			ChannelId: selfDMChannel.Id,
+			Message:   "This is a burn-on-read message to myself",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		_, _, err := th.App.CreatePost(th.Context, post, selfDMChannel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.self_dm.app_error", err.Id)
+	})
+
+	t.Run("should reject burn-on-read posts in DMs with bots/AI agents", func(t *testing.T) {
+		// Create a bot user
+		bot := &model.Bot{
+			Username:    "aiagent",
+			DisplayName: "AI Agent",
+			Description: "Test AI Agent for burn-on-read restrictions",
+			OwnerId:     th.BasicUser.Id,
+		}
+		createdBot, appErr := th.App.CreateBot(th.Context, bot)
+		require.Nil(t, appErr)
+
+		// Get the bot user
+		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		require.Nil(t, appErr)
+		require.True(t, botUser.IsBot)
+
+		// Create a DM channel between the regular user and the bot
+		dmWithBotChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, botUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeDirect, dmWithBotChannel.Type)
+
+		// Try to create a burn-on-read post in DM with bot (regular user sending)
+		post := &model.Post{
+			ChannelId: dmWithBotChannel.Id,
+			Message:   "This is a burn-on-read message to AI agent",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		_, _, err := th.App.CreatePost(th.Context, post, dmWithBotChannel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", err.Id)
+	})
+
+	t.Run("should reject burn-on-read posts in DMs with deleted users", func(t *testing.T) {
+		// Create a user that we'll delete
+		userToDelete := th.CreateUser(t)
+		th.LinkUserToTeam(t, userToDelete, th.BasicTeam)
+
+		// Create a DM channel between the regular user and the user we'll delete
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, userToDelete.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeDirect, dmChannel.Type)
+
+		// Delete the user
+		appErr = th.App.PermanentDeleteUser(th.Context, userToDelete)
+		require.Nil(t, appErr)
+
+		// Try to create a burn-on-read post in DM with deleted user
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			Message:   "This is a burn-on-read message to deleted user",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		// This should fail because we can't validate the other user (deleted)
+		_, _, err := th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.user.app_error", err.Id)
+	})
+
+	t.Run("should allow burn-on-read posts in public channels", func(t *testing.T) {
+		// This should succeed - public channel, regular user
+		require.Equal(t, model.ChannelTypeOpen, th.BasicChannel.Type)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This is a burn-on-read message in public channel",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
+
+	t.Run("should allow burn-on-read posts in private channels", func(t *testing.T) {
+		// Create a private channel using helper
+		createdPrivateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		require.Equal(t, model.ChannelTypePrivate, createdPrivateChannel.Type)
+
+		// This should succeed - private channel, regular user
+		post := &model.Post{
+			ChannelId: createdPrivateChannel.Id,
+			Message:   "This is a burn-on-read message in private channel",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, createdPrivateChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
+}
+
+func TestGetBurnOnReadPost(t *testing.T) {
+	t.Run("success - temporary post found", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "placeholder message",
+			FileIds:   model.StringArray{"file1"},
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		temporaryPost := &model.TemporaryPost{
+			ID:       post.Id,
+			Type:     model.PostTypeBurnOnRead,
+			ExpireAt: model.GetMillis() + 3600000,
+			Message:  "actual secret message",
+			FileIDs:  model.StringArray{"file2", "file3"},
+		}
+
+		_, err := th.App.Srv().Store().TemporaryPost().Save(th.Context, temporaryPost)
+		require.NoError(t, err)
+
+		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, resultPost)
+		assert.Equal(t, temporaryPost.Message, resultPost.Message)
+		assert.Equal(t, temporaryPost.FileIDs, resultPost.FileIds)
+		// Ensure original post is not modified
+		assert.Equal(t, "placeholder message", post.Message)
+		assert.Equal(t, model.StringArray{"file1"}, post.FileIds)
+	})
+
+	t.Run("temporary post not found - returns app error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "placeholder message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+
+		require.NotNil(t, appErr)
+		require.Nil(t, resultPost)
+		assert.Equal(t, "app.post.get_post.app_error", appErr.Id)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 }
