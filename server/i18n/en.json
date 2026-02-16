@@ -6535,6 +6535,10 @@
     "translation": "User AuthData is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "User email has an invalid length."
   },
@@ -6545,10 +6549,6 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "User roles are not consistent with guest status."
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
@@ -6605,6 +6605,18 @@
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "User roles are not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
