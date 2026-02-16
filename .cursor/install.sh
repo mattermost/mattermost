@@ -104,15 +104,13 @@ cd "${WORKSPACE_ROOT}/server"
 make prepackaged-binaries
 
 # ============================================
-# Generate default config then apply overrides
-# config/config.json is gitignored, so a fresh
-# clone won't have it. Generate it first, then
-# create the Cloud Agent config with overrides.
+# Cloud Agent config
+# Copy the pre-built config from .cursor/ into
+# server/config/. No jq transformation needed —
+# the config is committed as a static file.
 # ============================================
-echo ">>> Generating default config..."
+echo ">>> Setting up Cloud Agent config..."
 cd "${WORKSPACE_ROOT}/server"
-make config-reset
-echo ">>> Applying Cloud Agent config overrides..."
 make cursor-cloud-setup-config
 
 # ============================================
