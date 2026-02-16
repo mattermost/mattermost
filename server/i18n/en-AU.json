@@ -11591,5 +11591,9 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Invalid time field."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Failed to post Auto-translation update message."
   }
 ]
