@@ -1458,7 +1458,9 @@ export function getChannelBanner(state: GlobalState, channelId: string): Channel
     return channel ? channel.banner_info : undefined;
 }
 
-export function getChannelAutotranslation(state: GlobalState, channelId: string): boolean {
+// isChannelAutotranslated returns whether the channel is autotranslated
+// in general terms in this server.
+export function isChannelAutotranslated(state: GlobalState, channelId: string): boolean {
     const channel = getChannel(state, channelId);
     const config = getConfig(state);
 
@@ -1475,22 +1477,19 @@ export function getChannelAutotranslation(state: GlobalState, channelId: string)
     return true;
 }
 
-export function getMyChannelAutotranslation(state: GlobalState, channelId: string): boolean {
-    const locale = getCurrentUserLocale(state);
-    const channel = getChannel(state, channelId);
-    const myChannelMember = getMyChannelMember(state, channelId);
-    const config = getConfig(state);
-    const targetLanguages = config?.AutoTranslationLanguages?.split(',');
-    return Boolean(
-        config?.EnableAutoTranslation === 'true' &&
-        channel?.autotranslation &&
-        !myChannelMember?.autotranslation_disabled &&
-        targetLanguages?.includes(locale),
-    );
-}
+// isMyChannelAutotranslated returns whether the current user is seeing the autotranslated
+// version of the channel.
+export function isMyChannelAutotranslated(state: GlobalState, channelId: string): boolean {
+    if (!isChannelAutotranslated(state, channelId)) {
+        return false;
+    }
 
-export function isChannelAutotranslated(state: GlobalState, channelId: string): boolean {
-    return getMyChannelAutotranslation(state, channelId);
+    if (!isUserLanguageSupportedForAutotranslation(state)) {
+        return false;
+    }
+
+    const myChannelMember = getMyChannelMember(state, channelId);
+    return !myChannelMember?.autotranslation_disabled;
 }
 
 export function isUserLanguageSupportedForAutotranslation(state: GlobalState): boolean {

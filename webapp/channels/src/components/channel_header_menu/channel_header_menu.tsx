@@ -11,7 +11,7 @@ import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {
-    getChannelAutotranslation,
+    isChannelAutotranslated as isChannelAutotranslatedSelector,
     getCurrentChannel,
     isCurrentChannelDefault,
     isCurrentChannelFavorite,
@@ -60,7 +60,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
-    const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? getChannelAutotranslation(state, channel.id) : false));
+    const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
 
     const isReadonly = false;
 

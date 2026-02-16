@@ -17,7 +17,7 @@ import ChannelHeaderGroupMenu from './channel_header_group_menu';
 const GM_CHANNEL_ID = 'gm_channel_id';
 const CURRENT_USER_ID = 'user_id';
 
-function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
+function getBaseState(): DeepPartial<GlobalState> {
     const channel = TestHelper.getChannelMock({
         id: GM_CHANNEL_ID,
         type: 'G' as const,
@@ -44,7 +44,6 @@ function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalS
                 },
             },
         },
-        ...overrides,
     };
 }
 
@@ -129,5 +128,50 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.queryByText(/Auto-translation/i)).not.toBeInTheDocument();
+    });
+
+    it('does not show Channel Settings when the channel is archived', () => {
+        const archivedChannel = TestHelper.getChannelMock({
+            ...channel,
+            delete_at: 1234567890,
+        });
+        const archivedChannelState = getBaseState();
+        archivedChannelState.entities!.channels!.channels![GM_CHANNEL_ID]!.delete_at = 1234567890;
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu
+                    {...defaultProps}
+                    channel={archivedChannel}
+                />
+            </WithTestMenuContext>,
+            archivedChannelState,
+        );
+
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    it('does not show Settings submenu when the channel is archived', () => {
+        const archivedChannel = TestHelper.getChannelMock({
+            ...channel,
+            delete_at: 1234567890,
+        });
+        const archivedChannelState = getStateWithRestrictedDMAndGM();
+        archivedChannelState.entities!.channels!.channels![GM_CHANNEL_ID] = {
+            ...archivedChannelState.entities!.channels!.channels![GM_CHANNEL_ID],
+            delete_at: 1234567890,
+        };
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu
+                    {...defaultProps}
+                    channel={archivedChannel}
+                />
+            </WithTestMenuContext>,
+            archivedChannelState,
+        );
+
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
     });
 });

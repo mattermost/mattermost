@@ -273,11 +273,11 @@ function ChannelSettingsInfoTab({
         // After every successful save, update local state to match the saved values
         // with this, we make sure that the unsavedChanges check will return false after saving
         if (!isDMorGroupChannel) {
-            setDisplayName(data?.display_name ?? updated.display_name ?? '');
-            setChannelURL(data?.name ?? updated.name ?? '');
-            setChannelPurpose(data?.purpose ?? updated.purpose ?? '');
+            setDisplayName(data?.display_name ?? updated.display_name ?? channel.display_name);
+            setChannelURL(data?.name ?? updated.name ?? channel.name);
+            setChannelPurpose(data?.purpose ?? updated.purpose ?? channel.purpose);
         }
-        setChannelHeader(data?.header ?? updated.header ?? '');
+        setChannelHeader(data?.header ?? updated.header ?? channel.header);
         return true;
     }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError]);
 

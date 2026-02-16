@@ -78,51 +78,55 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 </>
             )}
             {!isArchived && (
-                <MenuItemNotification
-                    user={user}
-                    channel={channel}
-                />
-            )}
-            {canAccessChannelSettingsForChannel ? (
                 <>
-                    <MenuItemChannelSettings
-                        channel={channel}
-                    />
-                    {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
-                        <MenuItemConvertToPrivate
+                    {(
+                        <MenuItemNotification
+                            user={user}
                             channel={channel}
                         />
                     )}
-                </>
-            ) : (
-                <>
-                    {(!isArchived && isGuest(user.roles)) && (
-                        <EditConversationHeader
-                            leadingElement={<CogOutlineIcon size='18px'/>}
-                            channel={channel}
-                        />
-                    )}
-                    {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
-                        <Menu.SubMenu
-                            id={'channelSettings'}
-                            labels={
-                                <FormattedMessage
-                                    id='channel_header.settings'
-                                    defaultMessage='Settings'
+                    {canAccessChannelSettingsForChannel ? (
+                        <>
+                            <MenuItemChannelSettings
+                                channel={channel}
+                            />
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                                <MenuItemConvertToPrivate
+                                    channel={channel}
                                 />
-                            }
-                            leadingElement={<CogOutlineIcon size={18}/>}
-                            trailingElements={<ChevronRightIcon size={16}/>}
-                            menuId={'channelSettings-menu'}
-                            menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                        >
-                            <EditConversationHeader
-                                channel={channel}
-                            />
-                            <MenuItemConvertToPrivate
-                                channel={channel}
-                            />
-                        </Menu.SubMenu>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {(isGuest(user.roles)) && (
+                                <EditConversationHeader
+                                    leadingElement={<CogOutlineIcon size='18px'/>}
+                                    channel={channel}
+                                />
+                            )}
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                                <Menu.SubMenu
+                                    id={'channelSettings'}
+                                    labels={
+                                        <FormattedMessage
+                                            id='channel_header.settings'
+                                            defaultMessage='Settings'
+                                        />
+                                    }
+                                    leadingElement={<CogOutlineIcon size={18}/>}
+                                    trailingElements={<ChevronRightIcon size={16}/>}
+                                    menuId={'channelSettings-menu'}
+                                    menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                                >
+                                    <EditConversationHeader
+                                        channel={channel}
+                                    />
+                                    <MenuItemConvertToPrivate
+                                        channel={channel}
+                                    />
+                                </Menu.SubMenu>
+                            )}
+                        </>
                     )}
                 </>
             )}
