@@ -67,7 +67,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call the hook through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// Verify the file download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -122,7 +122,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call the hook through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// Verify the file download was allowed
 		assert.Empty(t, rejectionReason)
@@ -200,7 +200,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call hooks - first one should reject, second should not be called
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		assert.NotEmpty(t, rejectionReason)
 		assert.Contains(t, rejectionReason, "Rejected by first plugin")
@@ -222,7 +222,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// No plugins means no rejection
 		assert.Empty(t, rejectionReason)
@@ -280,7 +280,7 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call the hook through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// Verify the file download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -339,7 +339,7 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call the hook for thumbnail download type through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeThumbnail)
 
 		// Verify the thumbnail download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -399,7 +399,7 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 
 		// Create plugin context
 		// Call the hook for preview download type through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypePreview)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypePreview)
 
 		// Verify the preview download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -452,7 +452,7 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Call the hook through the app method
-		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// Verify the file download was allowed
 		assert.Empty(t, rejectionReason)
@@ -510,13 +510,13 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Test File download type
-		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeFile)
 
 		// Test Thumbnail download type
-		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypeThumbnail)
 
 		// Test Preview download type
-		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypePreview)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, "", model.FileDownloadTypePreview)
 
 		// Verify all three download types were received
 		assert.Len(t, downloadTypesReceived, 3)

@@ -1757,13 +1757,17 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 }
 
 // sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected.
-func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string, rejectionReason string, downloadType model.FileDownloadType) {
+// When connectionID is provided, the event is only sent to that specific connection.
+func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string, connectionID string, rejectionReason string, downloadType model.FileDownloadType) {
 	if userID == "" {
 		a.Log().Debug("Skipping websocket event for public file download rejection")
 		return
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventFileDownloadRejected, "", info.ChannelId, userID, nil, "")
+	if connectionID != "" {
+		message.GetBroadcast().ConnectionId = connectionID
+	}
 	message.Add("file_id", info.Id)
 	message.Add("file_name", info.Name)
 	message.Add("rejection_reason", rejectionReason)
@@ -1775,7 +1779,7 @@ func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string,
 
 // RunFileWillBeDownloadedHook executes the FileWillBeDownloaded hook with a timeout.
 // Returns empty string to allow download, or a rejection reason to block it.
-func (a *App) RunFileWillBeDownloadedHook(rctx request.CTX, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+func (a *App) RunFileWillBeDownloadedHook(rctx request.CTX, fileInfo *model.FileInfo, userID string, connectionID string, downloadType model.FileDownloadType) string {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(model.PluginSettingsDefaultHookTimeoutSeconds)*time.Second)
 	defer cancel()
 
@@ -1804,7 +1808,7 @@ func (a *App) RunFileWillBeDownloadedHook(rctx request.CTX, fileInfo *model.File
 			rejectionReasonString = loaded.(string)
 		}
 		if rejectionReasonString != "" {
-			a.sendFileDownloadRejectedEvent(fileInfo, userID, rejectionReasonString, downloadType)
+			a.sendFileDownloadRejectedEvent(fileInfo, userID, connectionID, rejectionReasonString, downloadType)
 		}
 		return rejectionReasonString
 	case <-ctx.Done():
@@ -1812,7 +1816,7 @@ func (a *App) RunFileWillBeDownloadedHook(rctx request.CTX, fileInfo *model.File
 		a.Log().Warn("FileWillBeDownloaded hook timed out, blocking download",
 			mlog.String("file_id", fileInfo.Id),
 			mlog.String("user_id", userID))
-		a.sendFileDownloadRejectedEvent(fileInfo, userID, timeoutMessage, downloadType)
+		a.sendFileDownloadRejectedEvent(fileInfo, userID, connectionID, timeoutMessage, downloadType)
 		return timeoutMessage
 	}
 }

@@ -584,7 +584,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before file download
-	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, model.FileDownloadTypeFile)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeFile)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -642,7 +642,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before file thumbnail download
-	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, model.FileDownloadTypeThumbnail)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeThumbnail)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -769,7 +769,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before file preview download
-	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, model.FileDownloadTypePreview)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypePreview)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -872,7 +872,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before public file download (no user session for public files)
-	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, "", model.FileDownloadTypePublic)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, "", r.Header.Get(model.ConnectionId), model.FileDownloadTypePublic)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
