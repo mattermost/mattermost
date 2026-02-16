@@ -30,27 +30,7 @@ cursor-cloud-setup-config:
 		exit 1; \
 	fi
 	@cp ./config/config.json $(CURSOR_CLOUD_CONFIG)
-	@jq ' \
-		.ServiceSettings.SiteURL = "http://localhost:8065" | \
-		.ServiceSettings.ListenAddress = ":8065" | \
-		.ServiceSettings.EnableLocalMode = true | \
-		.ServiceSettings.LocalModeSocketLocation = "/var/tmp/mattermost_cursor_cloud.sock" | \
-		.SqlSettings.DriverName = "postgres" | \
-		.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" | \
-		.LogSettings.EnableConsole = true | \
-		.LogSettings.ConsoleLevel = "INFO" | \
-		.LogSettings.EnableSentry = false | \
-		.LogSettings.EnableDiagnostics = false | \
-		.FileSettings.Directory = "./data/" | \
-		.PluginSettings.Directory = "./plugins" | \
-		.PluginSettings.ClientDirectory = "./client/plugins" | \
-		.PluginSettings.EnableUploads = true | \
-		.ElasticsearchSettings.EnableIndexing = false | \
-		.ElasticsearchSettings.EnableSearching = false | \
-		.LdapSettings.Enable = false | \
-		.LdapSettings.EnableSync = false \
-	' $(CURSOR_CLOUD_CONFIG) > $(CURSOR_CLOUD_CONFIG).tmp \
-	&& mv $(CURSOR_CLOUD_CONFIG).tmp $(CURSOR_CLOUD_CONFIG)
+	@jq '.ServiceSettings.SiteURL = "http://localhost:8065" | .ServiceSettings.ListenAddress = ":8065" | .ServiceSettings.EnableLocalMode = true | .ServiceSettings.LocalModeSocketLocation = "/var/tmp/mattermost_cursor_cloud.sock" | .SqlSettings.DriverName = "postgres" | .SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" | .LogSettings.EnableConsole = true | .LogSettings.ConsoleLevel = "INFO" | .LogSettings.EnableSentry = false | .LogSettings.EnableDiagnostics = false | .FileSettings.Directory = "./data/" | .PluginSettings.Directory = "./plugins" | .PluginSettings.ClientDirectory = "./client/plugins" | .PluginSettings.EnableUploads = true | .ElasticsearchSettings.EnableIndexing = false | .ElasticsearchSettings.EnableSearching = false | .LdapSettings.Enable = false | .LdapSettings.EnableSync = false' $(CURSOR_CLOUD_CONFIG) > $(CURSOR_CLOUD_CONFIG).tmp && mv $(CURSOR_CLOUD_CONFIG).tmp $(CURSOR_CLOUD_CONFIG)
 	@echo "Cloud Agent config ready: $(CURSOR_CLOUD_CONFIG)"
 
 # -----------------------------------------------
