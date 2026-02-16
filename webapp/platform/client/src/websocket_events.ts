@@ -91,4 +91,6 @@ export const enum WebSocketEvents {
     ContentFlaggingReportValueUpdated = 'content_flagging_report_value_updated',
     RecapUpdated = 'recap_updated',
     PostTranslationUpdated = 'post_translation_updated',
+    FileDownloadRejected = 'file_download_rejected',
+    ShowToast = 'show_toast',
 }

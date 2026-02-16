@@ -10928,10 +10928,6 @@
     "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Overschrijven van bericht met verwijderd bericht mislukt bij definitief verwijderen van gemarkeerd bericht."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
   },
@@ -11822,5 +11818,33 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "Ongeldig vertaaltype. Moet 'string' of 'object' zijn."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Automatische vertaling is niet toegestaan voor dit kanaal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "De automatische vertaalfunctie is niet beschikbaar."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Geen wijzigingen in de patch."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Fout bij het plaatsen van het automatische vertaalupdate bericht."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s heeft automatische vertaling voor dit kanaal uitgeschakeld. Alle nieuwe berichten verschijnen in de oorspronkelijke taal."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s heeft automatische vertalingen ingeschakeld voor dit kanaal. Alle nieuwe berichten verschijnen in de taal van je voorkeur."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Kon gebruiker niet ophalen tijdens het bijwerken van de automatische vertaalstatus"
   }
 ]

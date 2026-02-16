@@ -2197,8 +2197,16 @@
     "translation": "Mismatched flagged post ID specified."
   },
   {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "File download rejected by plugin"
   },
   {
     "id": "api.file.get_file_info.app_error",
@@ -2209,8 +2217,20 @@
     "translation": "File doesn't have a preview image."
   },
   {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "File preview download rejected by plugin"
+  },
+  {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
     "translation": "File doesn't have a thumbnail image."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "File thumbnail download rejected by plugin"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Public file download rejected by plugin"
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
@@ -4547,6 +4567,10 @@
     "translation": "AD/LDAP not available on this server."
   },
   {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
+  },
+  {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "User is not an OAuth or SAML user."
   },
@@ -6535,6 +6559,10 @@
     "translation": "User AuthData is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "User email has an invalid length."
   },
@@ -6545,10 +6573,6 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "User roles are not consistent with guest status."
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
@@ -6605,6 +6629,18 @@
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "User roles are not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -8035,6 +8071,14 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Unable to mark all threads as read by channel"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Message is required"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "User ID is required"
   },
   {
     "id": "app.update_error",
@@ -11782,11 +11826,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
