@@ -438,9 +438,7 @@ func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecter
 	rejectData := map[string]any{
 		"Username": req.Username,
 		"Approver": rejecterUsername,
-	}
-	if reason != "" {
-		rejectData["Reason"] = reason
+		"Reason":   reason,
 	}
 	s.mm.CreatePost(&mattermost.Post{
 		ChannelID: req.ChannelID,

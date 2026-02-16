@@ -342,21 +342,24 @@ func (h *AttendanceHandler) HandleLeaveForm(w http.ResponseWriter, r *http.Reque
 			SubmitLabel: i18n.T(ctx, "attendance.dialog.submit"),
 			Elements: []mattermost.DialogElement{
 				{
-					DisplayName: i18n.T(ctx, "attendance.field.type"),
-					Name:        "leave_type",
-					Type:        "select",
-					Options: []mattermost.SelectOption{
-						{Text: i18n.T(ctx, "leave.option.annual"), Value: string(model.LeaveTypeAnnual)},
-						{Text: i18n.T(ctx, "leave.option.emergency"), Value: string(model.LeaveTypeEmergency)},
-						{Text: i18n.T(ctx, "leave.option.sick"), Value: string(model.LeaveTypeSick)},
-					},
+					DisplayName: i18n.T(ctx, "attendance.field.date1"),
+					Name:        "date1",
+					Type:        "text",
+					SubType:     "date",
 				},
 				{
-					DisplayName: i18n.T(ctx, "attendance.field.dates"),
-					Name:        "dates",
-					Type:        "textarea",
-					HelpText:    i18n.T(ctx, "attendance.helptext.dates"),
-					Placeholder: i18n.T(ctx, "attendance.placeholder.dates"),
+					DisplayName: i18n.T(ctx, "attendance.field.date2"),
+					Name:        "date2",
+					Type:        "text",
+					SubType:     "date",
+					Optional:    true,
+				},
+				{
+					DisplayName: i18n.T(ctx, "attendance.field.date3"),
+					Name:        "date3",
+					Type:        "text",
+					SubType:     "date",
+					Optional:    true,
 				},
 				{
 					DisplayName: i18n.T(ctx, "attendance.field.reason"),
@@ -389,11 +392,10 @@ func (h *AttendanceHandler) HandleLeaveSubmit(w http.ResponseWriter, r *http.Req
 
 	ctx := h.localeCtx(r.Context(), sub.UserID)
 
-	// Parse comma-separated dates
+	// Collect dates from individual fields
 	var dates []string
-	for _, d := range strings.Split(sub.Submission["dates"], ",") {
-		d = strings.TrimSpace(d)
-		if d != "" {
+	for _, key := range []string{"date1", "date2", "date3"} {
+		if d := strings.TrimSpace(sub.Submission[key]); d != "" {
 			dates = append(dates, d)
 		}
 	}
@@ -403,7 +405,7 @@ func (h *AttendanceHandler) HandleLeaveSubmit(w http.ResponseWriter, r *http.Req
 		sub.UserID,
 		sub.UserName,
 		sub.ChannelID,
-		model.LeaveType(sub.Submission["leave_type"]),
+		model.LeaveTypeAnnual,
 		dates,
 		sub.Submission["reason"],
 		"",
