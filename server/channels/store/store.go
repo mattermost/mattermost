@@ -425,6 +425,7 @@ type PostStore interface {
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
+	PermanentDeleteAssociatedData(postIds []string) error
 }
 
 type UserStore interface {
@@ -1181,6 +1182,10 @@ type AutoTranslationStore interface {
 	// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel.
 	// This should be called after saving a new post translation.
 	InvalidatePostTranslationEtag(channelID string)
+	// GetTranslationsSinceForChannel returns translations updated after `since` for posts in the
+	// given channel and destination language. Only non-processing translations are returned.
+	// The result is keyed by post ID.
+	GetTranslationsSinceForChannel(channelID, dstLang string, since int64) (map[string]*model.Translation, error)
 }
 
 type ContentFlaggingStore interface {
@@ -1206,7 +1211,7 @@ type TemporaryPostStore interface {
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	GetExpiredPosts(rctx request.CTX) ([]string, error)
+	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -1,113 +1,64 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/CommercialSupportModal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal more-modal more-direct-channels"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="commercialSupportModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  show={true}
->
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-  >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h4"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Commercial Support"
-        id="commercial_support.title"
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <div
-      className="CommercialSupportModal"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
-        id="commercial_support_modal.description"
-        values={
-          Object {
-            "supportLink": [Function],
-          }
-        }
-      />
-      <div
-        className="CommercialSupportModal__packet_contents_download"
-      >
-        <strong>
-          <MemoizedFormattedMessage
-            defaultMessage="Select your Support Packet contents to download"
-            id="commercial_support_modal.download_contents"
-          />
-        </strong>
-      </div>
-      <div
-        className="CommercialSupportModal__option"
-        key="basic.server.logs"
-      >
-        <input
-          checked={true}
-          className="CommercialSupportModal__options__checkbox"
-          disabled={true}
-          id="basic.server.logs"
-          name="basic.server.logs"
-          onChange={[Function]}
-          type="checkbox"
-        />
-        <MemoizedFormattedMessage
-          defaultMessage="Server Logs"
-          id="mettormost.plugin.metrics.support.packet"
-        >
-          <Component />
-        </MemoizedFormattedMessage>
-      </div>
-      <div
-        className="CommercialSupportModal__download"
-      >
-        <a
-          className="btn btn-primary DownloadSupportPacket"
-          onClick={[Function]}
-          rel="noopener noreferrer"
-        >
-          <i
-            className="icon icon-download-outline"
-          />
-          <MemoizedFormattedMessage
-            defaultMessage="Download Support Packet"
-            id="commercial_support.download_support_packet"
-          />
-        </a>
+<div>
+  <div>
+    <div>
+      <div>
+        Commercial Support
       </div>
     </div>
-  </ModalBody>
-</Modal>
+    <div>
+      <div
+        class="CommercialSupportModal"
+      >
+        If you're experiencing issues, 
+        <a
+          href="https://support.mattermost.com/hc/en-us/requests/new"
+        >
+          submit a support ticket
+        </a>
+        . To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment.
+        <div
+          class="CommercialSupportModal__packet_contents_download"
+        >
+          <strong>
+            Select your Support Packet contents to download
+          </strong>
+        </div>
+        <div
+          class="CommercialSupportModal__option"
+        >
+          <input
+            checked=""
+            class="CommercialSupportModal__options__checkbox"
+            disabled=""
+            id="basic.server.logs"
+            name="basic.server.logs"
+            type="checkbox"
+          />
+          <label
+            class="CommercialSupportModal__options_checkbox_label"
+            for="basic.server.logs"
+          >
+            Server Logs
+          </label>
+        </div>
+        <div
+          class="CommercialSupportModal__download"
+        >
+          <a
+            class="btn btn-primary DownloadSupportPacket"
+            rel="noopener noreferrer"
+          >
+            <i
+              class="icon icon-download-outline"
+            />
+            Download Support Packet
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 `;

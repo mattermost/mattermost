@@ -80,7 +80,7 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci --workspace=platform/client --workspace=platform/components -- --coverage
+          npm run test-ci --workspace=platform/client --workspace=platform/components --workspace=platform/shared -- --coverage
       - name: ci/upload-coverage-artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -88,6 +88,7 @@ jobs:
           path: |
             ./webapp/platform/client/coverage
             ./webapp/platform/components/coverage
+            ./webapp/platform/shared/coverage
           retention-days: 1
 
   test-mattermost-redux:
