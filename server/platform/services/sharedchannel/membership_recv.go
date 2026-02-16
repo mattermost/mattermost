@@ -77,6 +77,16 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 	var successCount, skipCount, failCount int
 
 	for _, change := range syncMsg.MembershipChanges {
+		if change.ChannelId != syncMsg.ChannelId {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch in membership change",
+				mlog.String("expected", syncMsg.ChannelId),
+				mlog.String("got", change.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+			failCount++
+			continue
+		}
+
 		// Check for conflicts
 		shouldSkip, _ := scs.checkMembershipConflict(change.UserId, change.ChannelId, change.ChangeTime)
 		if shouldSkip {
@@ -126,6 +136,10 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), change.UserId)
 	if err != nil {
 		return fmt.Errorf("cannot get user for channel add: %w", err)
+	}
+
+	if user.GetRemoteID() != rc.RemoteId {
+		return fmt.Errorf("membership add sync failed: %w", ErrRemoteIDMismatch)
 	}
 
 	// Check user permissions for private channels
@@ -178,11 +192,17 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 		// Continue anyway to update sync status - the channel might be deleted
 	}
 
+	rctx := request.EmptyContext(scs.server.Log())
+	user, userErr := scs.server.GetStore().User().Get(rctx.Context(), change.UserId)
+	if userErr != nil {
+		return fmt.Errorf("cannot get user for channel remove: %w", userErr)
+	}
+	if user.GetRemoteID() != rc.RemoteId {
+		return fmt.Errorf("membership remove sync failed: %w", ErrRemoteIDMismatch)
+	}
+
 	// Use the app layer's remove user method if channel still exists
 	if channel != nil {
-		rctx := request.EmptyContext(scs.server.Log())
-		// We use empty string for removerUserId to indicate system-initiated removal
-		// This also ensures we bypass permission checks intended for user-initiated removals
 		appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
 		if appErr != nil {
 			// Ignore "not found" errors - the user might already be removed
