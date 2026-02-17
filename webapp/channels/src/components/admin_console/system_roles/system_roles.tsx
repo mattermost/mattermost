@@ -45,7 +45,7 @@ const columns: Column[] = [
     },
 ];
 
-const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
+const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'shared_channel_manager', 'secure_connection_manager'];
 
 const noop = () => {};
 

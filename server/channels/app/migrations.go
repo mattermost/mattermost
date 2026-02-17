@@ -18,17 +18,19 @@ import (
 )
 
 const (
-	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
-	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
-	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
-	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
-	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
-	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
-	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
-	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
-	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
-	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v5"
+	EmojisPermissionsMigrationKey                   = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey    = "SharedChannelManagerRoleCreationMigrationComplete"
+	SecureConnectionManagerRoleCreationMigrationKey = "SecureConnectionManagerRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                    = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey       = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                     = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                 = "v5"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -346,6 +348,62 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
 
 	if err := s.Store().System().Save(&system); err != nil {
 		return fmt.Errorf("failed to mark custom group admin role creation migration as completed: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(SharedChannelManagerRoleCreationMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	roles := model.MakeDefaultRoles()
+	if _, err := s.Store().Role().GetByName(context.Background(), model.SharedChannelManagerRoleId); err != nil {
+		if _, err := s.Store().Role().Save(roles[model.SharedChannelManagerRoleId]); err != nil {
+			return fmt.Errorf("failed to create new role %s: %w", model.SharedChannelManagerRoleId, err)
+		}
+	}
+
+	system := model.System{
+		Name:  SharedChannelManagerRoleCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().Save(&system); err != nil {
+		return fmt.Errorf("failed to mark shared channel manager role creation migration as completed: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doSecureConnectionManagerRoleCreationMigration() error {
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(SecureConnectionManagerRoleCreationMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	roles := model.MakeDefaultRoles()
+	if _, err := s.Store().Role().GetByName(context.Background(), model.SecureConnectionManagerRoleId); err != nil {
+		if _, err := s.Store().Role().Save(roles[model.SecureConnectionManagerRoleId]); err != nil {
+			return fmt.Errorf("failed to create new role %s: %w", model.SecureConnectionManagerRoleId, err)
+		}
+	}
+
+	system := model.System{
+		Name:  SecureConnectionManagerRoleCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().Save(&system); err != nil {
+		return fmt.Errorf("failed to mark secure connection manager role creation migration as completed: %w", err)
 	}
 
 	return nil
@@ -842,6 +900,8 @@ func (s *Server) doAppMigrations() {
 		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
+		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
+		{"Secure Connection Manager Role Creation Migration", s.doSecureConnectionManagerRoleCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
