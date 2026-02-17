@@ -4612,11 +4612,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -11862,5 +11862,33 @@
   {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
     "translation": "Bei der Validierung des Benutzers für Löschen-nach-Lesen Nachrichten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Teams eine Team Gast Rolle. Anzahl der Team-Gäste: {{.TeamGuestCount}}, Teams insgesamt: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Der Benutzer hat die Rolle eines Team Gastes, ist aber kein System Gast."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} Einstellung muss auf true gesetzt werden, wenn {{.EnableCJKAnalyzers}} auf true gesetzt ist"
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Dieser Endpunkt ist veraltet und deaktiviert. Bitte aktualisiere deine mobile App."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Die Einstellungen von {{.Service}} können nicht abgerufen werden"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Der Benutzer hat die Rolle eines Gastes im Kanal, ist aber kein Gast im System."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Kanälen eine Gastrolle. Anzahl der Gäste in den Kanälen: {{.ChannelGuestCount}}, Kanäle insgesamt: {{.TotalChannels}}."
   }
 ]
