@@ -17,7 +17,7 @@ import (
 // enumerating user IDs they shouldn't have access to.
 func TestGetGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("basic retrieval", func(t *testing.T) {
