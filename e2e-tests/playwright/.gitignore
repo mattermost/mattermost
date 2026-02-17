@@ -14,3 +14,13 @@ test/.eslintcache
 # build
 dist
 *.tsbuildinfo
+
+# e2e-ai-agents temporary files (not for tracking)
+.e2e-ai-agents/traceability-input.json
+.e2e-ai-agents/metrics/
+.e2e-ai-agents/reports/
+playwright-report.json
+
+# NOTE: .e2e-ai-agents/traceability.json is tracked (test-to-file manifest)
+# NOTE: .e2e-ai-agents/plan.json is tracked (impact analysis plan)
+# NOTE: .e2e-ai-agents/impact.json is tracked (impact report)
