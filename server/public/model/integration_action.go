@@ -734,14 +734,15 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S
+// Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
-	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	lastChar := value[len(value)-1]
+	if !strings.ContainsRune("dwmHMS", rune(lastChar)) {
 		return false
 	}
 

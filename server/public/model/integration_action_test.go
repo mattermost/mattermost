@@ -1280,6 +1280,39 @@ func TestSubmitDialogResponse_IsValid(t *testing.T) {
 	}
 }
 
+func TestValidateRelativePattern(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"valid days", "+1d", true},
+		{"valid weeks", "+2w", true},
+		{"valid months", "+3m", true},
+		{"valid hours", "+2H", true},
+		{"valid minutes", "+30M", true},
+		{"valid seconds", "+90S", true},
+		{"negative days", "-1d", true},
+		{"negative hours", "-2H", true},
+		{"multi-digit number", "+99d", true},
+		{"max digits", "+999d", true},
+		{"lowercase h rejected", "+1h", false},
+		{"lowercase s rejected", "+1s", false},
+		{"uppercase D rejected", "+1D", false},
+		{"uppercase W rejected", "+1W", false},
+		{"no number", "+d", false},
+		{"empty", "", false},
+		{"too long", "+9999d", false},
+		{"no sign", "1d", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, validateRelativePattern(tt.input))
+		})
+	}
+}
+
 func TestValidateDateFormat(t *testing.T) {
 	tests := []struct {
 		name        string
