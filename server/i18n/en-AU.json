@@ -7995,7 +7995,7 @@
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
-    "translation": "Failed to send ''licence up for renewal'' emails"
+    "translation": "Failed to send licence renewal notification email"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8639,7 +8639,7 @@
   },
   {
     "id": "app.plugin.skip_installation.app_error",
-    "translation": "Skipping installation of plugin {{.Id}} because existing version is equal or newer."
+    "translation": "Skipping installation of plugin {{.Id}} because the existing version is equal or newer."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
