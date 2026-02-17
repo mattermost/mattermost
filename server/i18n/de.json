@@ -11846,5 +11846,21 @@
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
     "translation": "Die Zahl der Worker muss zwischen 1 und 32 liegen."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Löschen-nach-Lesen-Beiträge sind in direkten Nachrichten mit Bots oder KI-Agenten nicht erlaubt."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Bei der Validierung des Kanals für Löschen-Nach-Lesen Nachrichten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Wenn du dir selbst eine Nachricht sendest, sind Löschen-Nach-Lesen Nachrichten nicht erlaubt."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Bei der Validierung des Benutzers für Löschen-nach-Lesen Nachrichten ist ein Fehler aufgetreten."
   }
 ]
