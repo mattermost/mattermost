@@ -6825,7 +6825,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initialise rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "Unable to initialise rate-limiting memory store. Check MemoryStoreSize config setting."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
@@ -8639,7 +8639,7 @@
   },
   {
     "id": "app.plugin.skip_installation.app_error",
-    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
+    "translation": "Skipping installation of plugin {{.Id}} because existing version is equal or newer."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -10625,7 +10625,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
-    "translation": "Invalid team member update: A team member always has a user scheme."
+    "translation": "Invalid team member update: a team member always has a user scheme."
   },
   {
     "id": "api.upload.invalid_type_for_shared_channel.app_error",
