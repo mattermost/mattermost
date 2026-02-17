@@ -74,17 +74,24 @@
       "**/admin/**",
       "**/security/**",
       "**/*.sql"
-    ]
+    ],
+    "enforcementMode": "advisory",
+    "failOnMustAddTests": false,
+    "blockActions": []
   },
   "git": {
     "since": "origin/master",
     "includeUncommitted": true
   },
   "pipeline": {
-    "enabled": false,
+    "enabled": true,
     "scenarios": 3,
     "outputDir": "specs/functional/ai-assisted",
     "heal": true,
-    "mcp": true
+    "mcp": true,
+    "mcpAllowFallback": true,
+    "mcpTimeout": 30000,
+    "parallelGeneration": true,
+    "parallelLimit": 4
   }
 }

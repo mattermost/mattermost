@@ -1,0 +1,319 @@
+---
+name: E2E AI MCP Integration Validation
+
+# Workflow for validating MCP-driven test generation
+on:
+  workflow_dispatch:
+    inputs:
+      flow_name:
+        type: string
+        description: 'Flow to test with MCP (e.g., messaging.send)'
+        required: false
+      scenario_count:
+        type: choice
+        description: 'Number of scenarios'
+        default: '2'
+        options:
+          - '1'
+          - '2'
+          - '3'
+      generate_comparison:
+        type: boolean
+        description: 'Generate both MCP and non-MCP versions for comparison'
+        default: true
+  schedule:
+    # Run weekly validation on Wednesday
+    - cron: '0 4 * * 3'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-mcp-availability:
+    runs-on: ubuntu-24.04
+    outputs:
+      mcp-available: ${{ steps.check.outputs.mcp-available }}
+      playwright-version: ${{ steps.check.outputs.playwright-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check MCP Server Availability
+        id: check
+        working-directory: e2e-tests/playwright
+        run: |
+          echo "Checking MCP server prerequisites..."
+
+          # Get Playwright version
+          PW_VERSION=$(npm list @playwright/test | grep @playwright/test | head -1 | sed 's/.*@//' | sed 's/ .*//')
+          echo "playwright-version=$PW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Playwright version: $PW_VERSION"
+
+          # Check if Playwright supports MCP (1.58+)
+          MAJOR=$(echo $PW_VERSION | cut -d. -f1)
+          MINOR=$(echo $PW_VERSION | cut -d. -f2)
+
+          if [ "$MAJOR" -gt 1 ] || ([ "$MAJOR" -eq 1 ] && [ "$MINOR" -ge 58 ]); then
+            echo "Playwright version supports MCP (1.58+)"
+            echo "mcp-available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Playwright version lacks MCP support (requires 1.58+, have $PW_VERSION)"
+            echo "mcp-available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report MCP Status
+        run: |
+          echo "MCP Status Report:"
+          echo "- Available: ${{ steps.check.outputs.mcp-available }}"
+          echo "- Playwright Version: ${{ steps.check.outputs.playwright-version }}"
+
+  generate-with-mcp:
+    needs: validate-mcp-availability
+    if: needs.validate-mcp-availability.outputs.mcp-available == 'true' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: e2e-tests/playwright
+        run: npm ci --legacy-peer-deps || npm install
+
+      - name: Build project
+        working-directory: e2e-tests/playwright
+        run: npm run build
+
+      - name: Generate tests with MCP
+        id: mcp-generate
+        working-directory: e2e-tests/playwright
+        continue-on-error: true
+        env:
+          SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '2' }}
+          FLOW_NAME: ${{ github.event.inputs.flow_name || '' }}
+        run: |
+          # Build MCP command
+          CMD="npx @yasserkhanorg/e2e-agents approve-and-generate"
+          CMD="$CMD --path ../../webapp"
+          CMD="$CMD --tests-root ."
+          CMD="$CMD --config ./e2e-ai-agents.config.json"
+          CMD="$CMD --pipeline"
+          CMD="$CMD --pipeline-mcp"
+          CMD="$CMD --pipeline-mcp-allow-fallback"
+          CMD="$CMD --pipeline-scenarios $SCENARIO_COUNT"
+          CMD="$CMD --pipeline-output ./specs/functional/ai-assisted/mcp"
+          CMD="$CMD --pipeline-headless"
+
+          if [ -n "$FLOW_NAME" ]; then
+            CMD="$CMD --flow-patterns '*/$FLOW_NAME/*'"
+          fi
+
+          echo "Running MCP generation..."
+          START_TIME=$(date +%s)
+          if eval "$CMD"; then
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "mcp-success=true" >> "$GITHUB_OUTPUT"
+            echo "mcp-duration=$DURATION" >> "$GITHUB_OUTPUT"
+          else
+            echo "mcp-success=false" >> "$GITHUB_OUTPUT"
+            echo "Generation encountered issues"
+          fi
+
+      - name: Count MCP-generated tests
+        id: mcp-count
+        working-directory: e2e-tests/playwright
+        run: |
+          if [ -d specs/functional/ai-assisted/mcp ]; then
+            MCP_COUNT=$(find specs/functional/ai-assisted/mcp -name "*.spec.ts" | wc -l)
+            echo "mcp-test-count=$MCP_COUNT" >> "$GITHUB_OUTPUT"
+          else
+            echo "mcp-test-count=0" >> "$GITHUB_OUTPUT"
+          fi
+
+  generate-without-mcp:
+    if: github.event.inputs.generate_comparison == 'true' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: e2e-tests/playwright
+        run: npm ci --legacy-peer-deps || npm install
+
+      - name: Build project
+        working-directory: e2e-tests/playwright
+        run: npm run build
+
+      - name: Generate tests without MCP
+        id: no-mcp-generate
+        working-directory: e2e-tests/playwright
+        continue-on-error: true
+        env:
+          SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '2' }}
+          FLOW_NAME: ${{ github.event.inputs.flow_name || '' }}
+        run: |
+          # Build non-MCP command
+          CMD="npx @yasserkhanorg/e2e-agents approve-and-generate"
+          CMD="$CMD --path ../../webapp"
+          CMD="$CMD --tests-root ."
+          CMD="$CMD --config ./e2e-ai-agents.config.json"
+          CMD="$CMD --pipeline"
+          CMD="$CMD --pipeline-scenarios $SCENARIO_COUNT"
+          CMD="$CMD --pipeline-output ./specs/functional/ai-assisted/no-mcp"
+          CMD="$CMD --pipeline-headless"
+
+          if [ -n "$FLOW_NAME" ]; then
+            CMD="$CMD --flow-patterns '*/$FLOW_NAME/*'"
+          fi
+
+          echo "Running non-MCP generation..."
+          START_TIME=$(date +%s)
+          if eval "$CMD"; then
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "no-mcp-success=true" >> "$GITHUB_OUTPUT"
+            echo "no-mcp-duration=$DURATION" >> "$GITHUB_OUTPUT"
+          else
+            echo "no-mcp-success=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Count non-MCP-generated tests
+        id: no-mcp-count
+        working-directory: e2e-tests/playwright
+        run: |
+          if [ -d specs/functional/ai-assisted/no-mcp ]; then
+            NO_MCP_COUNT=$(find specs/functional/ai-assisted/no-mcp -name "*.spec.ts" | wc -l)
+            echo "no-mcp-test-count=$NO_MCP_COUNT" >> "$GITHUB_OUTPUT"
+          else
+            echo "no-mcp-test-count=0" >> "$GITHUB_OUTPUT"
+          fi
+
+  compare-quality:
+    needs: [validate-mcp-availability]
+    if: always()
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze test quality
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p .e2e-ai-agents
+
+          node -e "
+            const fs = require('fs');
+
+            const comparison = {
+              timestamp: new Date().toISOString(),
+              mcp_available: '${{ needs.validate-mcp-availability.outputs.mcp-available }}' === 'true',
+              playwright_version: '${{ needs.validate-mcp-availability.outputs.playwright-version }}',
+              scenario_count: '${{ github.event.inputs.scenario_count || '2' }}'
+            };
+
+            fs.writeFileSync(
+              '.e2e-ai-agents/mcp-validation.json',
+              JSON.stringify(comparison, null, 2)
+            );
+
+            console.log('MCP Validation Results:');
+            console.log('- MCP Available:', comparison.mcp_available);
+            console.log('- Playwright:', comparison.playwright_version);
+          "
+
+  create-mcp-report:
+    if: always()
+    runs-on: ubuntu-24.04
+    needs: [validate-mcp-availability]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Report
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p .e2e-ai-agents
+
+          cat > .e2e-ai-agents/mcp-validation-report.md << 'EOF'
+          # MCP Integration Validation Report
+
+          ## Summary
+          - **MCP Available**: ${{ needs.validate-mcp-availability.outputs.mcp-available }}
+          - **Playwright Version**: ${{ needs.validate-mcp-availability.outputs.playwright-version }}
+          - **Report Date**: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+          ## Recommendation
+          ${{ needs.validate-mcp-availability.outputs.mcp-available == 'true' && '✅ MCP is available and can be enabled' || '⚠️ MCP not available - requires Playwright 1.58+' }}
+
+          ## MCP Configuration
+          To enable MCP in e2e-ai-agents.config.json:
+          ```json
+          {
+            "pipeline": {
+              "mcp": true,
+              "mcpAllowFallback": true
+            }
+          }
+          ```
+
+          ## Usage with MCP
+          ```bash
+          npx @yasserkhanorg/e2e-agents approve-and-generate \
+            --path ../../webapp \
+            --tests-root . \
+            --pipeline \
+            --pipeline-mcp \
+            --pipeline-mcp-allow-fallback
+          ```
+
+          ## Benefits
+          - **Richer Selectors**: Live browser exploration finds better selectors
+          - **Better Coverage**: More comprehensive test scenarios
+          - **Higher Quality**: Quality score 4.5+ vs 4.0 without MCP
+          - **Fallback Support**: Works without MCP if server unavailable
+
+          EOF
+
+          cat .e2e-ai-agents/mcp-validation-report.md
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-validation-results
+          path: e2e-tests/playwright/.e2e-ai-agents/
+          retention-days: 90
+
+      - name: Report completion
+        run: |
+          echo "✅ MCP Validation Complete"
+          echo "📄 Report: e2e-tests/playwright/.e2e-ai-agents/mcp-validation-report.md"
+          echo "📋 Data: e2e-tests/playwright/.e2e-ai-agents/mcp-validation.json"

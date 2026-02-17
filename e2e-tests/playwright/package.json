@@ -31,8 +31,10 @@
     "test:ai:plan": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js plan --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:generate": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline",
     "test:ai:auto-generate": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-scenarios 3 --pipeline-headless",
+    "test:ai:generate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-allow-fallback --pipeline-scenarios 3 --pipeline-headless",
     "test:ai:heal": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js auto-heal-pr --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:heal-failures": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js auto-heal-pr --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
+    "test:ai:validate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-allow-fallback --pipeline-scenarios 2",
     "test:ai:finalize": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js finalize-generated-tests --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:health": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js llm-health"
   },
