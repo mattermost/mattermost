@@ -677,8 +677,8 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MaxDate))
 		// Validate time_interval for datetime fields
 		timeInterval := e.TimeInterval
 		if timeInterval == 0 {

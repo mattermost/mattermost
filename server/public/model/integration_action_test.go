@@ -1396,13 +1396,42 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
+			MinDate:      "2025-01-01T00:00:00Z",
+			MaxDate:      "2025-12-31T23:59:59Z",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "+2H",
+			MaxDate:      "+7d",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject datetime DialogElement with date-only min/max", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
 			MinDate:      "2025-01-01",
 			MaxDate:      "2025-12-31",
 			TimeInterval: 30,
 			Optional:     false,
 		}
 		err := element.IsValid()
-		assert.NoError(t, err)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid datetime format")
 	})
 
 	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {
