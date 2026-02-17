@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "plan-impact-local-mlqm3n4l-0fbf85",
+  "sourceRunId": "impact-local-mlqm3n4l-0fbf85",
+  "generatedAt": "2026-02-17T13:01:25.034Z",
+  "source": "impact",
+  "runSet": "full",
+  "confidence": 31,
+  "reasons": [
+    "Impact analysis emitted warnings; broader safety coverage is recommended.",
+    "Uncovered P0/P1 flows were detected.",
+    "P0 flows are impacted by this change set.",
+    "Dependency graph expansion was truncated; broader safety run is recommended."
+  ],
+  "recommendedTests": [
+    "specs/accessibility/channels/account_menu_keyboard.spec.ts (flags: SiteURL (on), ListenAddress (on), Forward80To443 (on), ConnectionSecurity (on), TLSCertFile (on), UseLetsEncrypt (on), TLSKeyFile (on), LetsEncryptCertificateCacheFile (on), ReadTimeout (on), WriteTimeout (on), MaximumPayloadSizeBytes (on), WebserverMode (on), EnableInsecureOutgoingConnections (on), ManagedResourcePaths (on), EnableSecurityFixAlert (on), EnableTesting (on), EnableDeveloper (on), EnableClientPerformanceDebugging (on), AllowedUntrustedInternalConnections (on), EnableDesktopLandingPage (on), EnableCustomGroups (on), RefreshPostStatsRunTime (on), DeleteAccountLink (on), EnableEmojiPicker (on), EnableCustomEmoji (on), ThreadAutoFollow (on), CollapsedThreads (on), AllowSyncedDrafts (on), ScheduledPosts (on), PostPriority (on), AllowPersistentNotifications (on), PersistentNotificationMaxRecipients (on), PersistentNotificationIntervalMinutes (on), PersistentNotificationMaxCount (on), AllowPersistentNotificationsForGuests (on), EnableBurnOnRead (on), BurnOnReadDurationSeconds (on), BurnOnReadMaximumTimeToLiveSeconds (on), EnableLinkPreviews (on), RestrictLinkPreviews (on), EnablePermalinkPreviews (on), EnableSVGs (on), EnableLatex (on), EnableInlineLatex (on), GoogleDeveloperKey (on), UniqueEmojiReactionLimitPerPost (on), EnableEmailInvitations (on), EnableMultifactorAuthentication (on), EnforceMultifactorAuthentication (on), EnableIncomingWebhooks (on), EnableOutgoingWebhooks (on), EnableOutgoingOAuthConnections (on), EnableCommands (on), EnableOAuthServiceProvider (on), EnableDynamicClientRegistration (on), OutgoingIntegrationRequestsTimeout (on), EnablePostUsernameOverride (on), EnablePostIconOverride (on), EnableUserAccessTokens (on), EnableBotAccountCreation (on), DisableBotsWhenOwnerIsDeactivated (on), EnableGifPicker (on), AllowCorsFrom (on), CorsExposedHeaders (on), CorsAllowCredentials (on), CorsDebug (on), FrameAncestors (on), ExperimentalEnableAuthenticationTransfer (on), EnableChannelViewedMessages (on), ExperimentalEnableDefaultChannelLeaveJoinMessages (on), ExperimentalEnableHardenedMode (on), EnableTutorial (on), EnableOnboardingFlow (on), EnableUserTypingMessages (on), TimeBetweenUserTypingUpdatesMilliseconds (on), MaximumLoginAttempts (on), MinimumHashtagLength (on), PostEditTimeLimit (on), ExtendSessionLengthWithActivity (on), TerminateSessionsOnPasswordChange (on), SessionLengthWebInHours (on), SessionLengthMobileInHours (on), SessionLengthSSOInHours (on), SessionCacheInMinutes (on), SessionIdleTimeoutInMinutes (on))",
+    "specs/accessibility/channels/add_people_to_channel_dialog.spec.ts",
+    "specs/accessibility/channels/intro_channel.spec.ts",
+    "specs/accessibility/channels/settings_dialog/settings.spec.ts",
+    "specs/accessibility/channels/team_menu.spec.ts (flags: SiteURL (on), ListenAddress (on), Forward80To443 (on), ConnectionSecurity (on), TLSCertFile (on), UseLetsEncrypt (on), TLSKeyFile (on), LetsEncryptCertificateCacheFile (on), ReadTimeout (on), WriteTimeout (on), MaximumPayloadSizeBytes (on), WebserverMode (on), EnableInsecureOutgoingConnections (on), ManagedResourcePaths (on), EnableSecurityFixAlert (on), EnableTesting (on), EnableDeveloper (on), EnableClientPerformanceDebugging (on), AllowedUntrustedInternalConnections (on), EnableDesktopLandingPage (on), EnableCustomGroups (on), RefreshPostStatsRunTime (on), DeleteAccountLink (on), EnableEmojiPicker (on), EnableCustomEmoji (on), ThreadAutoFollow (on), CollapsedThreads (on), AllowSyncedDrafts (on), ScheduledPosts (on), PostPriority (on), AllowPersistentNotifications (on), PersistentNotificationMaxRecipients (on), PersistentNotificationIntervalMinutes (on), PersistentNotificationMaxCount (on), AllowPersistentNotificationsForGuests (on), EnableBurnOnRead (on), BurnOnReadDurationSeconds (on), BurnOnReadMaximumTimeToLiveSeconds (on), EnableLinkPreviews (on), RestrictLinkPreviews (on), EnablePermalinkPreviews (on), EnableSVGs (on), EnableLatex (on), EnableInlineLatex (on), GoogleDeveloperKey (on), UniqueEmojiReactionLimitPerPost (on), EnableEmailInvitations (on), EnableMultifactorAuthentication (on), EnforceMultifactorAuthentication (on), EnableIncomingWebhooks (on), EnableOutgoingWebhooks (on), EnableOutgoingOAuthConnections (on), EnableCommands (on), EnableOAuthServiceProvider (on), EnableDynamicClientRegistration (on), OutgoingIntegrationRequestsTimeout (on), EnablePostUsernameOverride (on), EnablePostIconOverride (on), EnableUserAccessTokens (on), EnableBotAccountCreation (on), DisableBotsWhenOwnerIsDeactivated (on), EnableGifPicker (on), AllowCorsFrom (on), CorsExposedHeaders (on), CorsAllowCredentials (on), CorsDebug (on), FrameAncestors (on), ExperimentalEnableAuthenticationTransfer (on), EnableChannelViewedMessages (on), ExperimentalEnableDefaultChannelLeaveJoinMessages (on), ExperimentalEnableHardenedMode (on), EnableTutorial (on), EnableOnboardingFlow (on), EnableUserTypingMessages (on), TimeBetweenUserTypingUpdatesMilliseconds (on), MaximumLoginAttempts (on), MinimumHashtagLength (on), PostEditTimeLimit (on), ExtendSessionLengthWithActivity (on), TerminateSessionsOnPasswordChange (on), SessionLengthWebInHours (on), SessionLengthMobileInHours (on), SessionLengthSSOInHours (on), SessionCacheInMinutes (on), SessionIdleTimeoutInMinutes (on))",
+    "specs/functional/channels/content_flagging/edge-cases/author-deletes-message-before-review.spec.ts",
+    "specs/functional/channels/file_attachments/edit_message_with_attachment.spec.ts (flags: WysiwygEditor (on))",
+    "specs/functional/channels/mentions/multiple_mentions.spec.ts",
+    "specs/functional/channels/message_scroll/thread_appears_and_scrollable_in_the_rhs.spec.ts (flags: MoveThreadsEnabled (on))",
+    "specs/functional/channels/search/find_channels.spec.ts",
+    "specs/functional/channels/search/search_box_clear_button.spec.ts",
+    "specs/functional/channels/search/search_box_suggestions.spec.ts",
+    "specs/functional/channels/search/team_selector.spec.ts",
+    "specs/functional/channels/threads/threads_list.spec.ts (flags: MoveThreadsEnabled (on))",
+    "specs/visual/channels/intro_channel.spec.ts",
+    "specs/visual/channels/settings_dialog/settings_dialog.spec.ts"
+  ],
+  "requiredNewTests": [
+    "messaging.send: Send Message",
+    "messaging.realtime: Realtime Receive Messages",
+    "messaging.persistence: Message Persistence",
+    "messaging.markdown: Markdown Rendering",
+    "channels.switch: Channel Switching",
+    "threads.popout: Multi-window Threads"
+  ],
+  "policy": {
+    "riskyFiles": [],
+    "triggeredRules": [
+      "dependency-graph-truncated",
+      "low-confidence",
+      "warning-threshold",
+      "p0-with-gaps"
+    ],
+    "applied": {
+      "minConfidenceForTargeted": 60,
+      "safeMergeMinConfidence": 85,
+      "forceFullOnWarningsAtOrAbove": 3,
+      "forceFullOnP0WithGaps": true,
+      "forceFullOnRiskyFiles": true,
+      "riskyFilePatterns": [
+        "**/auth/**",
+        "**/permissions/**",
+        "**/admin/**",
+        "**/security/**",
+        "**/*.sql"
+      ],
+      "enforcementMode": "advisory",
+      "blockOnActions": [
+        "must-add-tests"
+      ]
+    }
+  },
+  "decision": {
+    "action": "must-add-tests",
+    "title": "Must add tests",
+    "summary": "Detected 6 uncovered P0/P1 flow(s). Add or update tests before merge."
+  },
+  "enforcement": {
+    "mode": "advisory",
+    "blockOnActions": [
+      "must-add-tests"
+    ],
+    "matchedAction": true,
+    "shouldFail": false,
+    "summary": "Advisory mode active: recommendations do not fail CI by default."
+  },
+  "metrics": {
+    "changedFiles": 0,
+    "impactedFlows": 15,
+    "p0Flows": 8,
+    "p1Flows": 7,
+    "p2Flows": 0,
+    "uncoveredP0P1Flows": 6,
+    "warnings": 3
+  },
+  "nextActions": {
+    "requiresUserApprovalForGeneration": true,
+    "runRecommendedTests": "node -e \"const fs=require('fs'); const p=JSON.parse(fs.readFileSync('/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/.e2e-ai-agents/plan.json','utf8')); const tests=p.recommendedTests.map((t)=>t.replace(/ \\(flags:.*\\)$/,'')); console.log(tests.join(' '));\" | xargs npx playwright test",
+    "runSmokeSuite": "npx playwright test --grep @smoke --project=chrome",
+    "runFullSuite": "npx playwright test --project=chrome",
+    "approveAndGenerate": "npx e2e-ai-agents approve-and-generate --path \"/Users/yasserkhan/Documents/mattermost/mattermost/webapp\" --tests-root \"/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright\" --pipeline --pipeline-mcp --since \"origin/master\"",
+    "generateMissingTests": "npx e2e-ai-agents approve-and-generate --path \"/Users/yasserkhan/Documents/mattermost/mattermost/webapp\" --tests-root \"/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright\" --pipeline --since \"origin/master\"",
+    "healGeneratedTests": "npx e2e-ai-agents approve-and-generate --path \"/Users/yasserkhan/Documents/mattermost/mattermost/webapp\" --tests-root \"/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright\" --pipeline --pipeline-mcp --since \"origin/master\"",
+    "commitGeneratedTests": "npx e2e-ai-agents finalize-generated-tests --path \"/Users/yasserkhan/Documents/mattermost/mattermost/webapp\" --tests-root \"/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright\" --commit-message \"test(e2e): add generated coverage and healed specs\"",
+    "openPullRequest": "npx e2e-ai-agents finalize-generated-tests --path \"/Users/yasserkhan/Documents/mattermost/mattermost/webapp\" --tests-root \"/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright\" --create-pr"
+  },
+  "insights": {}
+}

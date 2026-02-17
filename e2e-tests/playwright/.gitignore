@@ -15,12 +15,28 @@ test/.eslintcache
 dist
 *.tsbuildinfo
 
-# e2e-ai-agents temporary files (not for tracking)
+# e2e-ai-agents temporary files (auto-generated, not for tracking)
 .e2e-ai-agents/traceability-input.json
+.e2e-ai-agents/feedback-input.json
+.e2e-ai-agents/feedback-metrics.json
 .e2e-ai-agents/metrics/
+.e2e-ai-agents/metrics-*.json
+.e2e-ai-agents/metrics-*.jsonl
 .e2e-ai-agents/reports/
+.e2e-ai-agents/llm-health.json
+.e2e-ai-agents/mcp-comparison.json
+.e2e-ai-agents/mcp-validation.json
+.e2e-ai-agents/healing-summary.json
+.e2e-ai-agents/generation-summary.json
+.e2e-ai-agents/ci-summary.md
 playwright-report.json
 
-# NOTE: .e2e-ai-agents/traceability.json is tracked (test-to-file manifest)
-# NOTE: .e2e-ai-agents/plan.json is tracked (impact analysis plan)
-# NOTE: .e2e-ai-agents/impact.json is tracked (impact report)
+# Claude IDE cache
+.claude/
+
+# NOTE: Files TO TRACK in .e2e-ai-agents/ (needed for PR/CI decisions):
+# - traceability.json (test-to-file manifest for impact analysis)
+# - plan.json (test plan with recommendations)
+# - impact.json (impact analysis of code changes)
+# - gap.json (test gaps - uncovered flows)
+# All other .e2e-ai-agents files are temporary/auto-generated
