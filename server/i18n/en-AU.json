@@ -65,11 +65,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -11843,5 +11843,49 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "Invalid translation type. Must be 'string' or 'object'."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} setting must be set to true when {{.EnableCJKAnalyzers}} is set to true"
   }
 ]
