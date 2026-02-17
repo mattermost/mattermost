@@ -24,7 +24,7 @@ const AdminSectionPanel: React.FC<Props> = ({
 }) => {
     return (
         <div className='AdminSectionPanel'>
-                {(title || description) && (
+            {(title || description) && (
                 <div className='AdminSectionPanel__header'>
                     {title && (
                         <h3 className='AdminSectionPanel__title'>
