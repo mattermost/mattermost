@@ -215,6 +215,8 @@ type Props = {
     timePickerInterval?: number;
     allowPastDates?: boolean;
     allowManualTimeEntry?: boolean;
+    minDateTime?: Moment;
+    maxDateTime?: Moment;
 }
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -226,6 +228,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
     timePickerInterval,
     allowPastDates = false,
     allowManualTimeEntry = false,
+    minDateTime,
+    maxDateTime,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
@@ -309,10 +313,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
             startTime = getRoundedTime(currentTime, timePickerInterval);
         }
 
-        setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
+        let options = getTimeInIntervals(startTime, timePickerInterval);
+
+        if (minDateTime && timeForOptions.isSame(minDateTime, 'date')) {
+            options = options.filter((opt) => !opt.isBefore(minDateTime, 'minute'));
+        }
+        if (maxDateTime && timeForOptions.isSame(maxDateTime, 'date')) {
+            options = options.filter((opt) => !opt.isAfter(maxDateTime, 'minute'));
+        }
+
+        setTimeOptions(options);
     };
 
-    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone]);
+    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone, minDateTime, maxDateTime]);
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         // Use existing time if available, otherwise use current time in display timezone
@@ -377,13 +390,26 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
+    const disabledDays = (() => {
+        const matchers: Array<{before: Date} | {after: Date}> = [];
+        if (minDateTime) {
+            matchers.push({before: minDateTime.clone().startOf('day').toDate()});
+        } else if (!allowPastDates) {
+            matchers.push({before: currentTime.toDate()});
+        }
+        if (maxDateTime) {
+            matchers.push({after: maxDateTime.clone().startOf('day').toDate()});
+        }
+        return matchers.length > 0 ? matchers : undefined;
+    })();
+
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
         selected: displayTime?.toDate(),
         defaultMonth: displayTime?.toDate() || new Date(),
         onDayClick: handleDayChange,
-        disabled: allowPastDates ? undefined : {before: currentTime.toDate()},
+        disabled: disabledDays,
         showOutsideDays: true,
     };
 
