@@ -45,6 +45,9 @@ e2e-tests/playwright/specs/**/*-window.png
 e2e-tests/playwright/specs/accessibility/**/*-snapshots
 e2e-tests/playwright/.eslintcache
 
+# Git worktrees for isolated feature branches
+.worktrees
+
 # ignore temporary added configuration for pgloader
 server/tests/temp.load
 
