@@ -173,7 +173,7 @@ func TestProcessMemberAdd_AllowsOwnRemoteUser(t *testing.T) {
 	mockSharedChannelStore.On("GetUserChanges", userId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
 
 	// Expect the add to proceed
-	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true).Return(&model.ChannelMember{}, nil)
+	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, false).Return(&model.ChannelMember{}, nil)
 	mockSharedChannelStore.On("UpdateUserLastMembershipSyncAt", userId, channelId, remoteId, int64(1000)).Return(nil)
 
 	syncMsg := &model.SyncMsg{
@@ -191,7 +191,7 @@ func TestProcessMemberAdd_AllowsOwnRemoteUser(t *testing.T) {
 	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
 	require.NoError(t, err)
 
-	mockApp.AssertCalled(t, "AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true)
+	mockApp.AssertCalled(t, "AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, false)
 }
 
 func TestProcessMemberRemove_RejectsLocalUser(t *testing.T) {
