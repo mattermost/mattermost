@@ -21,6 +21,7 @@ type PostList struct {
 	// HasBurnOnRead indicates whether there are any burn on read posts in the list
 	// this is not sent to the client
 	BurnOnReadPosts map[string]*Post `json:"-"`
+	ExpiredPosts    map[string]*Post `json:"-"`
 }
 
 func NewPostList() *PostList {
@@ -30,6 +31,7 @@ func NewPostList() *PostList {
 		NextPostId:      "",
 		PrevPostId:      "",
 		BurnOnReadPosts: make(map[string]*Post),
+		ExpiredPosts:    make(map[string]*Post),
 	}
 }
 
@@ -44,6 +46,10 @@ func (o *PostList) Clone() *PostList {
 	for k, v := range o.BurnOnReadPosts {
 		burnOnReadPostsCopy[k] = v.Clone()
 	}
+	expiredPostsCopy := make(map[string]*Post)
+	for k, v := range o.ExpiredPosts {
+		expiredPostsCopy[k] = v.Clone()
+	}
 	return &PostList{
 		Order:                     orderCopy,
 		Posts:                     postsCopy,
@@ -52,6 +58,7 @@ func (o *PostList) Clone() *PostList {
 		HasNext:                   o.HasNext,
 		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
 		BurnOnReadPosts:           burnOnReadPostsCopy,
+		ExpiredPosts:              expiredPostsCopy,
 	}
 }
 

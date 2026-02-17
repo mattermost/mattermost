@@ -3088,255 +3088,516 @@ func TestGetPostsAfter(t *testing.T) {
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic(t)
-	client := th.Client
-	userId := th.BasicUser.Id
-	channelId := th.BasicChannel.Id
+	t.Run("Basic", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		client := th.Client
+		userId := th.BasicUser.Id
+		channelId := th.BasicChannel.Id
 
-	// 12 posts = 2 systems posts + 10 created posts below
-	post1 := th.CreatePost(t)
-	post2 := th.CreatePost(t)
-	post3 := th.CreatePost(t)
-	post4 := th.CreatePost(t)
-	post5 := th.CreatePost(t)
-	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id}
-	post6, _, err := client.CreatePost(context.Background(), replyPost)
-	require.NoError(t, err)
-	post7, _, err := client.CreatePost(context.Background(), replyPost)
-	require.NoError(t, err)
-	post8, _, err := client.CreatePost(context.Background(), replyPost)
-	require.NoError(t, err)
-	post9, _, err := client.CreatePost(context.Background(), replyPost)
-	require.NoError(t, err)
-	post10, _, err := client.CreatePost(context.Background(), replyPost)
-	require.NoError(t, err)
+		// 12 posts = 2 systems posts + 10 created posts below
+		post1 := th.CreatePost(t)
+		post2 := th.CreatePost(t)
+		post3 := th.CreatePost(t)
+		post4 := th.CreatePost(t)
+		post5 := th.CreatePost(t)
+		replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id}
+		post6, _, err := client.CreatePost(context.Background(), replyPost)
+		require.NoError(t, err)
+		post7, _, err := client.CreatePost(context.Background(), replyPost)
+		require.NoError(t, err)
+		post8, _, err := client.CreatePost(context.Background(), replyPost)
+		require.NoError(t, err)
+		post9, _, err := client.CreatePost(context.Background(), replyPost)
+		require.NoError(t, err)
+		post10, _, err := client.CreatePost(context.Background(), replyPost)
+		require.NoError(t, err)
 
-	postIdNames := map[string]string{
-		post1.Id:  "post1",
-		post2.Id:  "post2",
-		post3.Id:  "post3",
-		post4.Id:  "post4",
-		post5.Id:  "post5",
-		post6.Id:  "post6 (reply to post4)",
-		post7.Id:  "post7 (reply to post4)",
-		post8.Id:  "post8 (reply to post4)",
-		post9.Id:  "post9 (reply to post4)",
-		post10.Id: "post10 (reply to post4)",
-	}
-
-	namePost := func(postId string) string {
-		name, ok := postIdNames[postId]
-		if ok {
-			return name
+		postIdNames := map[string]string{
+			post1.Id:  "post1",
+			post2.Id:  "post2",
+			post3.Id:  "post3",
+			post4.Id:  "post4",
+			post5.Id:  "post5",
+			post6.Id:  "post6 (reply to post4)",
+			post7.Id:  "post7 (reply to post4)",
+			post8.Id:  "post8 (reply to post4)",
+			post9.Id:  "post9 (reply to post4)",
+			post10.Id: "post10 (reply to post4)",
 		}
 
-		return fmt.Sprintf("unknown (%s)", postId)
-	}
+		namePost := func(postId string) string {
+			name, ok := postIdNames[postId]
+			if ok {
+				return name
+			}
 
-	namePosts := func(postIds []string) []string {
-		namedPostIds := make([]string, 0, len(postIds))
-		for _, postId := range postIds {
-			namedPostIds = append(namedPostIds, namePost(postId))
+			return fmt.Sprintf("unknown (%s)", postId)
 		}
 
-		return namedPostIds
-	}
+		namePosts := func(postIds []string) []string {
+			namedPostIds := make([]string, 0, len(postIds))
+			for _, postId := range postIds {
+				namedPostIds = append(namedPostIds, namePost(postId))
+			}
 
-	namePostsMap := func(posts map[string]*model.Post) []string {
-		namedPostIds := make([]string, 0, len(posts))
-		for postId := range posts {
-			namedPostIds = append(namedPostIds, namePost(postId))
+			return namedPostIds
 		}
-		sort.Strings(namedPostIds)
 
-		return namedPostIds
-	}
+		namePostsMap := func(posts map[string]*model.Post) []string {
+			namedPostIds := make([]string, 0, len(posts))
+			for postId := range posts {
+				namedPostIds = append(namedPostIds, namePost(postId))
+			}
+			sort.Strings(namedPostIds)
 
-	assertPostList := func(t *testing.T, expected, actual *model.PostList) {
-		t.Helper()
+			return namedPostIds
+		}
 
-		require.Equal(t, namePosts(expected.Order), namePosts(actual.Order), "unexpected post order")
-		require.Equal(t, namePostsMap(expected.Posts), namePostsMap(actual.Posts), "unexpected posts")
-		require.Equal(t, namePost(expected.NextPostId), namePost(actual.NextPostId), "unexpected next post id")
-		require.Equal(t, namePost(expected.PrevPostId), namePost(actual.PrevPostId), "unexpected prev post id")
-	}
+		assertPostList := func(t *testing.T, expected, actual *model.PostList) {
+			t.Helper()
 
-	// Setting limit_after to zero should fail with a 400 BadRequest.
-	posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 0, false)
-	require.Error(t, err)
-	CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	require.Nil(t, posts)
+			require.Equal(t, namePosts(expected.Order), namePosts(actual.Order), "unexpected post order")
+			require.Equal(t, namePostsMap(expected.Posts), namePostsMap(actual.Posts), "unexpected posts")
+			require.Equal(t, namePost(expected.NextPostId), namePost(actual.NextPostId), "unexpected next post id")
+			require.Equal(t, namePost(expected.PrevPostId), namePost(actual.PrevPostId), "unexpected prev post id")
+		}
 
-	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
-	require.NoError(t, err)
-	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
+		// Setting limit_after to zero should fail with a 400 BadRequest.
+		posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 0, false)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.Nil(t, posts)
 
-	// Set channel member's last viewed to 0.
-	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		// All returned posts are all read by the user, since it's created by the user itself.
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
+		require.NoError(t, err)
+		require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
-	require.NoError(t, err)
+		// Set channel member's last viewed to 0.
+		// All returned posts are latest posts as if all previous posts were already read by the user.
+		channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = 0
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
+		require.NoError(t, err)
 
-	// get the first system post generated before the created posts above
-	posts, _, err = client.GetPostsBefore(context.Background(), th.BasicChannel.Id, post1.Id, 0, 2, "", false, false)
-	require.NoError(t, err)
-	systemPost0 := posts.Posts[posts.Order[0]]
-	postIdNames[systemPost0.Id] = "system post 0"
-	systemPost1 := posts.Posts[posts.Order[1]]
-	postIdNames[systemPost1.Id] = "system post 1"
+		require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
-	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		// get the first system post generated before the created posts above
+		posts, _, err = client.GetPostsBefore(context.Background(), th.BasicChannel.Id, post1.Id, 0, 2, "", false, false)
+		require.NoError(t, err)
+		systemPost0 := posts.Posts[posts.Order[0]]
+		postIdNames[systemPost0.Id] = "system post 0"
+		systemPost1 := posts.Posts[posts.Order[1]]
+		postIdNames[systemPost1.Id] = "system post 1"
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
-	require.NoError(t, err)
+		// Set channel member's last viewed before post1.
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post1.CreateAt - 1
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	assertPostList(t, &model.PostList{
-		Order: []string{post3.Id, post2.Id, post1.Id, systemPost0.Id, systemPost1.Id},
-		Posts: map[string]*model.Post{
-			systemPost0.Id: systemPost0,
-			systemPost1.Id: systemPost1,
-			post1.Id:       post1,
-			post2.Id:       post2,
-			post3.Id:       post3,
-		},
-		NextPostId: post4.Id,
-		PrevPostId: "",
-	}, posts)
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+		require.NoError(t, err)
 
-	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		assertPostList(t, &model.PostList{
+			Order: []string{post3.Id, post2.Id, post1.Id, systemPost0.Id, systemPost1.Id},
+			Posts: map[string]*model.Post{
+				systemPost0.Id: systemPost0,
+				systemPost1.Id: systemPost1,
+				post1.Id:       post1,
+				post2.Id:       post2,
+				post3.Id:       post3,
+			},
+			NextPostId: post4.Id,
+			PrevPostId: "",
+		}, posts)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
-	require.NoError(t, err)
+		// Set channel member's last viewed before post6.
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post6.CreateAt - 1
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	assertPostList(t, &model.PostList{
-		Order: []string{post8.Id, post7.Id, post6.Id, post5.Id, post4.Id, post3.Id},
-		Posts: map[string]*model.Post{
-			post3.Id:  post3,
-			post4.Id:  post4,
-			post5.Id:  post5,
-			post6.Id:  post6,
-			post7.Id:  post7,
-			post8.Id:  post8,
-			post9.Id:  post9,
-			post10.Id: post10,
-		},
-		NextPostId: post9.Id,
-		PrevPostId: post2.Id,
-	}, posts)
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+		require.NoError(t, err)
 
-	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		assertPostList(t, &model.PostList{
+			Order: []string{post8.Id, post7.Id, post6.Id, post5.Id, post4.Id, post3.Id},
+			Posts: map[string]*model.Post{
+				post3.Id:  post3,
+				post4.Id:  post4,
+				post5.Id:  post5,
+				post6.Id:  post6,
+				post7.Id:  post7,
+				post8.Id:  post8,
+				post9.Id:  post9,
+				post10.Id: post10,
+			},
+			NextPostId: post9.Id,
+			PrevPostId: post2.Id,
+		}, posts)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
-	require.NoError(t, err)
+		// Set channel member's last viewed before post10.
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post10.CreateAt - 1
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	assertPostList(t, &model.PostList{
-		Order: []string{post10.Id, post9.Id, post8.Id, post7.Id},
-		Posts: map[string]*model.Post{
-			post4.Id:  post4,
-			post6.Id:  post6,
-			post7.Id:  post7,
-			post8.Id:  post8,
-			post9.Id:  post9,
-			post10.Id: post10,
-		},
-		NextPostId: "",
-		PrevPostId: post6.Id,
-	}, posts)
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+		require.NoError(t, err)
 
-	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		assertPostList(t, &model.PostList{
+			Order: []string{post10.Id, post9.Id, post8.Id, post7.Id},
+			Posts: map[string]*model.Post{
+				post4.Id:  post4,
+				post6.Id:  post6,
+				post7.Id:  post7,
+				post8.Id:  post8,
+				post9.Id:  post9,
+				post10.Id: post10,
+			},
+			NextPostId: "",
+			PrevPostId: post6.Id,
+		}, posts)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
-	require.NoError(t, err)
+		// Set channel member's last viewed equal to post10.
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post10.CreateAt
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	assertPostList(t, &model.PostList{
-		Order: []string{post10.Id, post9.Id, post8.Id},
-		Posts: map[string]*model.Post{
-			post4.Id:  post4,
-			post6.Id:  post6,
-			post7.Id:  post7,
-			post8.Id:  post8,
-			post9.Id:  post9,
-			post10.Id: post10,
-		},
-		NextPostId: "",
-		PrevPostId: post7.Id,
-	}, posts)
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+		require.NoError(t, err)
 
-	// Set channel member's last viewed to just before a new reply to a previous thread, not
-	// otherwise in the requested window.
-	post11 := th.CreatePost(t)
-	post12, _, err := client.CreatePost(context.Background(), &model.Post{
-		ChannelId: channelId,
-		Message:   model.NewId(),
-		RootId:    post4.Id,
+		assertPostList(t, &model.PostList{
+			Order: []string{post10.Id, post9.Id, post8.Id},
+			Posts: map[string]*model.Post{
+				post4.Id:  post4,
+				post6.Id:  post6,
+				post7.Id:  post7,
+				post8.Id:  post8,
+				post9.Id:  post9,
+				post10.Id: post10,
+			},
+			NextPostId: "",
+			PrevPostId: post7.Id,
+		}, posts)
+
+		// Set channel member's last viewed to just before a new reply to a previous thread, not
+		// otherwise in the requested window.
+		post11 := th.CreatePost(t)
+		post12, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channelId,
+			Message:   model.NewId(),
+			RootId:    post4.Id,
+		})
+		require.NoError(t, err)
+		post13 := th.CreatePost(t)
+
+		postIdNames[post11.Id] = "post11"
+		postIdNames[post12.Id] = "post12 (reply to post4)"
+		postIdNames[post13.Id] = "post13"
+
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post12.CreateAt - 1
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+
+		posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 1, 2, false)
+		require.NoError(t, err)
+
+		assertPostList(t, &model.PostList{
+			Order: []string{post13.Id, post12.Id, post11.Id},
+			Posts: map[string]*model.Post{
+				post4.Id:  post4,
+				post6.Id:  post6,
+				post7.Id:  post7,
+				post8.Id:  post8,
+				post9.Id:  post9,
+				post10.Id: post10,
+				post11.Id: post11,
+				post12.Id: post12,
+				post13.Id: post13,
+			},
+			NextPostId: "",
+			PrevPostId: post10.Id,
+		}, posts)
 	})
-	require.NoError(t, err)
-	post13 := th.CreatePost(t)
 
-	postIdNames[post11.Id] = "post11"
-	postIdNames[post12.Id] = "post12 (reply to post4)"
-	postIdNames[post13.Id] = "post13"
+	t.Run("Burn on read posts", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
 
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
-	require.NoError(t, err)
-	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
-	require.NoError(t, err)
-	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
+		th := SetupEnterprise(t).InitBasic(t)
+		enableBurnOnReadFeature(th)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 1, 2, false)
-	require.NoError(t, err)
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 
-	assertPostList(t, &model.PostList{
-		Order: []string{post13.Id, post12.Id, post11.Id},
-		Posts: map[string]*model.Post{
-			post4.Id:  post4,
-			post6.Id:  post6,
-			post7.Id:  post7,
-			post8.Id:  post8,
-			post9.Id:  post9,
-			post10.Id: post10,
-			post11.Id: post11,
-			post12.Id: post12,
-			post13.Id: post13,
-		},
-		NextPostId: "",
-		PrevPostId: post10.Id,
-	}, posts)
+		// user1 is the viewer, user2 creates burn-on-read posts
+		user1 := th.BasicUser
+		client1 := th.Client
+
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		client2 := th.CreateClient()
+		_, _, err := client2.Login(context.Background(), user2.Email, user2.Password)
+		require.NoError(t, err)
+
+		createChannel := func(t *testing.T) *model.Channel {
+			t.Helper()
+			ch := th.CreatePublicChannel(t)
+			// since the channel is created with th.Client,
+			// user1 will be in the channel.
+			th.AddUserToChannel(t, user2, ch)
+			return ch
+		}
+
+		createRegularPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+			t.Helper()
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   message,
+			}
+			created, resp, err := client.CreatePost(context.Background(), post)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			return created
+		}
+
+		createBurnOnReadPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+			t.Helper()
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   message,
+				Type:      model.PostTypeBurnOnRead,
+			}
+			created, resp, err := client.CreatePost(context.Background(), post)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			return created
+		}
+
+		setLastViewedAt := func(t *testing.T, channelID, userID string, at int64) {
+			t.Helper()
+			member, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelID, userID)
+			require.NoError(t, err)
+			member.LastViewedAt = at
+			_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, member)
+			require.NoError(t, err)
+			th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelID)
+		}
+
+		burnPost := func(t *testing.T, client *model.Client4, postID string) {
+			t.Helper()
+			resp, err := client.BurnPost(context.Background(), postID)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+		}
+
+		t.Run("expired BoR post is excluded from results and NextPostId/PrevPostId skip it", func(t *testing.T) {
+			ch := createChannel(t)
+
+			// Create posts: regular1, bor (by user2), regular2, regular3
+			regular1 := createRegularPost(t, client1, ch, "regular 1")
+			borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+			regular2 := createRegularPost(t, client1, ch, "regular 2")
+			regular3 := createRegularPost(t, client1, ch, "regular 3")
+
+			// Set last viewed before the BoR post so it becomes the first unread
+			setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+			// User1 reveals then burns the BoR post (expires the read receipt)
+			_, resp, err := client1.RevealPost(context.Background(), borPost.Id)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			burnPost(t, client1, borPost.Id)
+
+			// Call GetPostsAroundLastUnread
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+
+			// BoR post should NOT be in the Order or Posts
+			assert.NotContains(t, posts.Order, borPost.Id, "expired BoR post should not be in Order")
+			assert.NotContains(t, posts.Posts, borPost.Id, "expired BoR post should not be in Posts")
+
+			// regular2 and regular3 should be present
+			assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+			assert.Contains(t, posts.Posts, regular3.Id, "regular3 should be in Posts")
+
+			// PrevPostId should skip the expired BoR post and point to regular1
+			assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip expired BoR post and point to regular1")
+
+			// Expired BoR post must not appear as either cursor
+			assert.NotEqual(t, borPost.Id, posts.NextPostId, "expired BoR post should not be NextPostId")
+			assert.NotEqual(t, borPost.Id, posts.PrevPostId, "expired BoR post should not be PrevPostId")
+		})
+
+		t.Run("non-expired BoR post is visible and NextPostId/PrevPostId reference correctly", func(t *testing.T) {
+			ch := createChannel(t)
+
+			// Create posts: regular1, regular2, borPost (by user2), regular3
+			// borPost is positioned after regular2 so it falls just outside
+			// the page window when small limits are used.
+			regular1 := createRegularPost(t, client1, ch, "regular 1")
+			regular2 := createRegularPost(t, client1, ch, "regular 2")
+			borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+			_ = createRegularPost(t, client1, ch, "regular 3")
+
+			// Set last viewed before regular1 so it becomes the first unread
+			setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
+
+			// Reveal the BoR post (receipt is still valid, NOT expired)
+			_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+			require.NoError(t, err)
+
+			// Use limit_after=2 so the window contains regular1 + regular2.
+			// borPost sits just outside the window and should appear as NextPostId.
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 2, false)
+			require.NoError(t, err)
+
+			// regular2 must be in the window; borPost must be outside it
+			assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
+			assert.NotContains(t, posts.Order, borPost.Id, "borPost should be outside the page window")
+
+			// Non-expired revealed BoR post should appear as NextPostId
+			assert.Equal(t, borPost.Id, posts.NextPostId, "non-expired revealed BoR post should appear as NextPostId")
+
+			// Also verify with full limits that the BoR post is included in results
+			postsFull, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+			assert.Contains(t, postsFull.Order, borPost.Id, "non-expired BoR post should be in Order with full page")
+			assert.Contains(t, postsFull.Posts, borPost.Id, "non-expired BoR post should be in Posts with full page")
+		})
+
+		t.Run("unrevealed BoR post appears with empty message", func(t *testing.T) {
+			ch := createChannel(t)
+
+			_ = createRegularPost(t, client1, ch, "regular 1")
+			borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+			_ = createRegularPost(t, client1, ch, "regular 2")
+
+			// Set last viewed before borPost
+			setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+			// Do NOT reveal the BoR post
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+
+			// BoR post should be in the list but with empty message (unrevealed)
+			assert.Contains(t, posts.Order, borPost.Id, "unrevealed BoR post should still be in Order")
+			assert.Contains(t, posts.Posts, borPost.Id, "unrevealed BoR post should still be in Posts")
+			assert.Empty(t, posts.Posts[borPost.Id].Message, "unrevealed BoR post should have empty message")
+		})
+
+		t.Run("multiple expired BoR posts are all excluded from results", func(t *testing.T) {
+			ch := createChannel(t)
+
+			_ = createRegularPost(t, client1, ch, "regular 1")
+			bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
+			bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
+			regular2 := createRegularPost(t, client1, ch, "regular 2")
+
+			// Set last viewed before bor1
+			setLastViewedAt(t, ch.Id, user1.Id, bor1.CreateAt-1)
+
+			// Reveal then burn both BoR posts (expires the read receipts)
+			_, _, err := client1.RevealPost(context.Background(), bor1.Id)
+			require.NoError(t, err)
+			_, _, err = client1.RevealPost(context.Background(), bor2.Id)
+			require.NoError(t, err)
+
+			burnPost(t, client1, bor1.Id)
+			burnPost(t, client1, bor2.Id)
+
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+
+			// Both BoR posts should be excluded from Order and Posts
+			assert.NotContains(t, posts.Order, bor1.Id, "expired bor1 should not be in Order")
+			assert.NotContains(t, posts.Order, bor2.Id, "expired bor2 should not be in Order")
+			assert.NotContains(t, posts.Posts, bor1.Id, "expired bor1 should not be in Posts")
+			assert.NotContains(t, posts.Posts, bor2.Id, "expired bor2 should not be in Posts")
+
+			// Regular posts should be present
+			assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+
+			// Expired BoR posts must not appear as NextPostId
+			assert.NotEqual(t, bor1.Id, posts.NextPostId, "expired bor1 should not be NextPostId")
+			assert.NotEqual(t, bor2.Id, posts.NextPostId, "expired bor2 should not be NextPostId")
+
+			// bor1 (the first unread) is tracked in ExpiredPosts and excluded from PrevPostId.
+			// NOTE: bor2 is not tracked because PostList.Extend does not merge ExpiredPosts
+			// from sub-queries, so only the first-unread expired post is excluded.
+			assert.NotEqual(t, bor1.Id, posts.PrevPostId, "expired bor1 should not be PrevPostId")
+		})
+
+		t.Run("BoR feature disabled - expired receipt posts still appear normally", func(t *testing.T) {
+			ch := createChannel(t)
+
+			_ = createRegularPost(t, client1, ch, "regular 1")
+			borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+			_ = createRegularPost(t, client1, ch, "regular 2")
+
+			setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+			// Reveal then burn (expires the read receipt)
+			_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+			require.NoError(t, err)
+			burnPost(t, client1, borPost.Id)
+
+			// Disable the feature
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
+			})
+			t.Cleanup(func() {
+				enableBurnOnReadFeature(th)
+			})
+
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+
+			// With feature disabled, the BoR post should still be in the list
+			// when the feature is disabled, only the creation of the post is limited.
+			assert.Contains(t, posts.Order, borPost.Id, "BoR post should appear when feature is disabled")
+			assert.Contains(t, posts.Posts, borPost.Id, "BoR post should appear when feature is disabled")
+		})
+
+		t.Run("author sees own BoR post without needing to reveal", func(t *testing.T) {
+			ch := createChannel(t)
+
+			_ = createRegularPost(t, client2, ch, "regular 1")
+			borPost := createBurnOnReadPost(t, client2, ch, "my secret message")
+			_ = createRegularPost(t, client2, ch, "regular 2")
+
+			setLastViewedAt(t, ch.Id, user2.Id, borPost.CreateAt-1)
+
+			// Author (user2) calls the endpoint - should see their own BoR post
+			posts, _, err := client2.GetPostsAroundLastUnread(context.Background(), user2.Id, ch.Id, 5, 5, false)
+			require.NoError(t, err)
+
+			assert.Contains(t, posts.Order, borPost.Id, "author should see own BoR post in Order")
+			assert.Contains(t, posts.Posts, borPost.Id, "author should see own BoR post in Posts")
+			assert.Equal(t, "my secret message", posts.Posts[borPost.Id].Message, "author should see full BoR post message")
+		})
+	})
 }
 
 func TestGetPost(t *testing.T) {

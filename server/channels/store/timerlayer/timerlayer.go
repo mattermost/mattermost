@@ -6691,6 +6691,22 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostIdAfter(channelID string, timestamp int64, collapsedThreads bool, excludeIds []string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostIdAfter(channelID, timestamp, collapsedThreads, excludeIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostIdAfter", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
 	start := time.Now()
 
@@ -6703,6 +6719,22 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostIdAfterTime", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostIdBefore(channelID string, timestamp int64, collapsedThreads bool, excludeIds []string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostIdBefore(channelID, timestamp, collapsedThreads, excludeIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostIdBefore", success, elapsed)
 	}
 	return result, err
 }

@@ -1790,14 +1790,22 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 }
 
 func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, nil)
 }
 
 func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, nil)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
+func (s *SqlPostStore) GetPostIdBefore(channelId string, time int64, collapsedThreads bool, excludeIds []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludeIds)
+}
+
+func (s *SqlPostStore) GetPostIdAfter(channelId string, time int64, collapsedThreads bool, excludeIds []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludeIds)
+}
+
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludeIds []string) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1822,6 +1830,10 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		Where(conditions).
 		OrderBy("Posts.CreateAt " + sort).
 		Limit(1)
+
+	if len(excludeIds) > 0 {
+		query = query.Where(sq.NotEq{"Posts.Id": excludeIds})
+	}
 
 	var postId string
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
