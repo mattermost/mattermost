@@ -197,7 +197,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel."
+    "translation": "You cannot modify an archived channel."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -985,7 +985,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since Unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
@@ -10665,7 +10665,7 @@
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
-    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
+    "translation": "Notifications for newly flagged posts cannot be disabled for reviewers."
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
