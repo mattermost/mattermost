@@ -329,11 +329,7 @@ func TestProcessMemberAdd_RejectsLocalUser_ErrorMessage(t *testing.T) {
 		IsAdd:      true,
 		ChangeTime: 1000,
 	}
-	syncMsg := &model.SyncMsg{
-		ChannelId: channelId,
-	}
-
-	err := scs.processMemberAdd(change, channel, rc, 1000, syncMsg)
+	err := scs.processMemberAdd(change, channel, rc, 1000)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 	assert.Contains(t, err.Error(), "membership add sync failed")
