@@ -10,7 +10,7 @@ import {LicenseSkuBadge} from 'components/widgets/badges';
 import './admin_section_panel.scss';
 
 type Props = {
-    title?: string;
+    title?: string | MessageDescriptor;
     description?: string | MessageDescriptor;
     licenseSku?: string;
     children: React.ReactNode;
@@ -24,11 +24,15 @@ const AdminSectionPanel: React.FC<Props> = ({
 }) => {
     return (
         <div className='AdminSectionPanel'>
-            {(title || description) && (
+                {(title || description) && (
                 <div className='AdminSectionPanel__header'>
                     {title && (
                         <h3 className='AdminSectionPanel__title'>
-                            {title}
+                            {typeof title === 'string' ? (
+                                title
+                            ) : (
+                                <FormattedMessage {...title}/>
+                            )}
                             {licenseSku && <LicenseSkuBadge sku={licenseSku}/>}
                         </h3>
                     )}
