@@ -4581,15 +4581,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версія 128+"
+    "translation": "Версія 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 138+"
+    "translation": "Версія 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 138+"
+    "translation": "Версія 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7610,10 +7610,6 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недоступний."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",

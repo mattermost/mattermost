@@ -236,10 +236,10 @@ export type ClientConfig = {
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
-    EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
 
     // Auto Translation Settings
+    AutoTranslationLanguages: string;
     EnableAutoTranslation: string;
     RestrictDMAndGMAutotranslation: string;
 };
@@ -888,6 +888,7 @@ export type ElasticsearchSettings = {
     Password: string;
     EnableIndexing: boolean;
     EnableSearching: boolean;
+    EnableCJKAnalyzers: boolean;
     EnableAutocomplete: boolean;
     Sniff: boolean;
     PostIndexReplicas: number;
@@ -1015,7 +1016,6 @@ export type ExportSettings = {
 
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
-    EnableChannelScopeAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
 };
 

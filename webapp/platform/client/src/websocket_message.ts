@@ -22,6 +22,7 @@ export type WebSocketMessage = (
     Messages.PostDraft |
     Messages.PersistentNotificationTriggered |
     Messages.ScheduledPost |
+    Messages.PostTranslationUpdated |
 
     Messages.ThreadUpdated |
     Messages.ThreadFollowedChanged |
@@ -90,6 +91,9 @@ export type WebSocketMessage = (
     Messages.ContentFlaggingReportValueUpdated |
 
     Messages.RecapUpdated |
+
+    Messages.FileDownloadRejected |
+    Messages.ShowToast |
 
     Messages.Plugin |
     Messages.PluginStatusesChanged |

@@ -17,11 +17,6 @@ on:
         type: number
         required: false
         default: 1
-      timeout_minutes:
-        description: "Job timeout in minutes"
-        type: number
-        required: false
-        default: 30
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
@@ -46,6 +41,20 @@ on:
         type: string
         required: false
         default: onprem
+      server_edition:
+        description: "Server edition: enterprise (default), fips, or team"
+        type: string
+        required: false
+        default: enterprise
+      server_image_repo:
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+        type: string
+        required: false
+        default: mattermostdevelopment
+      server_image_aliases:
+        description: "Comma-separated alias tags for description (e.g., 'release-11.4, release-11')"
+        type: string
+        required: false
 
       # Reporting options
       enable_reporting:
@@ -53,6 +62,10 @@ on:
         required: false
         default: false
       report_type:
+        type: string
+        required: false
+      ref_branch:
+        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
         type: string
         required: false
       pr_number:
@@ -92,7 +105,7 @@ on:
         required: false
 
 env:
-  SERVER_IMAGE: "mattermostdevelopment/mattermost-enterprise-edition:${{ inputs.server_image_tag }}"
+  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
   update-initial-status:
@@ -106,7 +119,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "with image tag: ${{ inputs.server_image_tag }}"
+          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: pending
 
   generate-test-cycle:
@@ -114,19 +127,21 @@ jobs:
     outputs:
       status_check_url: "${{ steps.generate-cycle.outputs.status_check_url }}"
       workers: "${{ steps.generate-workers.outputs.workers }}"
+      start_time: "${{ steps.generate-workers.outputs.start_time }}"
     steps:
       - name: ci/generate-workers
         id: generate-workers
         run: |
           echo "workers=$(jq -nc '[range(${{ inputs.workers }})]')" >> $GITHUB_OUTPUT
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -154,7 +169,7 @@ jobs:
 
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 30
     continue-on-error: ${{ inputs.workers > 1 }}
     needs:
       - generate-test-cycle
@@ -187,7 +202,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -203,7 +218,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: cypress-${{ inputs.test_type }}-results-${{ matrix.worker_index }}
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -227,16 +242,15 @@ jobs:
       total: ${{ steps.calculate.outputs.total }}
       pass_rate: ${{ steps.calculate.outputs.pass_rate }}
       color: ${{ steps.calculate.outputs.color }}
+      test_duration: ${{ steps.calculate.outputs.test_duration }}
+      end_time: ${{ steps.record-end-time.outputs.end_time }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/download-results
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/calculate
@@ -244,10 +258,13 @@ jobs:
         uses: ./.github/actions/calculate-cypress-results
         with:
           original-results-path: e2e-tests/cypress/results
+      - name: ci/record-end-time
+        id: record-end-time
+        run: echo "end_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   run-failed-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    timeout-minutes: 30
     needs:
       - generate-test-cycle
       - run-tests
@@ -279,7 +296,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -298,7 +315,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: cypress-${{ inputs.test_type }}-retest-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -316,17 +333,17 @@ jobs:
       passed: "${{ steps.final-results.outputs.passed }}"
       failed: "${{ steps.final-results.outputs.failed }}"
       commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
+      duration: "${{ steps.duration.outputs.duration }}"
+      duration_display: "${{ steps.duration.outputs.duration_display }}"
+      retest_display: "${{ steps.duration.outputs.retest_display }}"
     defaults:
       run:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -337,7 +354,7 @@ jobs:
         if: needs.run-failed-tests.result == 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/use-previous-calculation
@@ -354,6 +371,7 @@ jobs:
           echo "total=${{ needs.calculate-results.outputs.total }}" >> $GITHUB_OUTPUT
           echo "pass_rate=${{ needs.calculate-results.outputs.pass_rate }}" >> $GITHUB_OUTPUT
           echo "color=${{ needs.calculate-results.outputs.color }}" >> $GITHUB_OUTPUT
+          echo "test_duration=${{ needs.calculate-results.outputs.test_duration }}" >> $GITHUB_OUTPUT
           {
             echo "failed_tests<<EOF"
             echo "${{ needs.calculate-results.outputs.failed_tests }}"
@@ -365,14 +383,14 @@ jobs:
         if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: cypress-${{ inputs.test_type }}-retest-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: e2e-tests/cypress/retest-results/
       - name: ci/calculate-results
         if: needs.run-failed-tests.result != 'skipped'
@@ -400,6 +418,7 @@ jobs:
             echo "total=${{ steps.use-previous.outputs.total }}" >> $GITHUB_OUTPUT
             echo "pass_rate=${{ steps.use-previous.outputs.pass_rate }}" >> $GITHUB_OUTPUT
             echo "color=${{ steps.use-previous.outputs.color }}" >> $GITHUB_OUTPUT
+            echo "test_duration=${{ steps.use-previous.outputs.test_duration }}" >> $GITHUB_OUTPUT
             {
               echo "failed_tests<<EOF"
               echo "$USE_PREVIOUS_FAILED_TESTS"
@@ -416,6 +435,7 @@ jobs:
             echo "total=${{ steps.recalculate.outputs.total }}" >> $GITHUB_OUTPUT
             echo "pass_rate=${{ steps.recalculate.outputs.pass_rate }}" >> $GITHUB_OUTPUT
             echo "color=${{ steps.recalculate.outputs.color }}" >> $GITHUB_OUTPUT
+            echo "test_duration=${{ steps.recalculate.outputs.test_duration }}" >> $GITHUB_OUTPUT
             {
               echo "failed_tests<<EOF"
               echo "$RECALCULATE_FAILED_TESTS"
@@ -423,11 +443,61 @@ jobs:
             } >> $GITHUB_OUTPUT
           fi
 
+      - name: ci/compute-duration
+        id: duration
+        env:
+          START_TIME: ${{ needs.generate-test-cycle.outputs.start_time }}
+          FIRST_PASS_END_TIME: ${{ needs.calculate-results.outputs.end_time }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
+          RETEST_SPEC_COUNT: ${{ needs.calculate-results.outputs.failed_specs_count }}
+          TEST_DURATION: ${{ steps.final-results.outputs.test_duration }}
+        run: |
+          NOW=$(date +%s)
+          ELAPSED=$((NOW - START_TIME))
+          MINUTES=$((ELAPSED / 60))
+          SECONDS=$((ELAPSED % 60))
+          DURATION="${MINUTES}m ${SECONDS}s"
+
+          # Compute first-pass and re-run durations
+          FIRST_PASS_ELAPSED=$((FIRST_PASS_END_TIME - START_TIME))
+          FP_MIN=$((FIRST_PASS_ELAPSED / 60))
+          FP_SEC=$((FIRST_PASS_ELAPSED % 60))
+          FIRST_PASS="${FP_MIN}m ${FP_SEC}s"
+
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RERUN_ELAPSED=$((NOW - FIRST_PASS_END_TIME))
+            RR_MIN=$((RERUN_ELAPSED / 60))
+            RR_SEC=$((RERUN_ELAPSED % 60))
+            RUN_BREAKDOWN=" (first-pass: ${FIRST_PASS}, re-run: ${RR_MIN}m ${RR_SEC}s)"
+          else
+            RUN_BREAKDOWN=""
+          fi
+
+          # Duration icons: >20m high alert, >15m warning, otherwise clock
+          if [ "$MINUTES" -ge 20 ]; then
+            DURATION_DISPLAY=":rotating_light: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          elif [ "$MINUTES" -ge 15 ]; then
+            DURATION_DISPLAY=":warning: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          else
+            DURATION_DISPLAY=":clock3: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          fi
+
+          # Retest indicator with spec count
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RETEST_DISPLAY=":repeat: re-run ${RETEST_SPEC_COUNT} spec(s)"
+          else
+            RETEST_DISPLAY=""
+          fi
+
+          echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+          echo "duration_display=${DURATION_DISPLAY}" >> $GITHUB_OUTPUT
+          echo "retest_display=${RETEST_DISPLAY}" >> $GITHUB_OUTPUT
+
       - name: ci/upload-combined-results
         if: inputs.workers > 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: cypress-${{ inputs.test_type }}-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -435,17 +505,36 @@ jobs:
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
           REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          PASS_RATE: ${{ steps.final-results.outputs.pass_rate }}
-          PASSED: ${{ steps.final-results.outputs.passed }}
-          TOTAL: ${{ steps.final-results.outputs.total }}
-          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
+          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           COLOR: ${{ steps.final-results.outputs.color }}
           REPORT_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
           TEST_TYPE: ${{ inputs.test_type }}
+          REPORT_TYPE: ${{ inputs.report_type }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          REF_BRANCH: ${{ inputs.ref_branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
+
+          # Build source line based on report type
+          COMMIT_SHORT="${COMMIT_SHA::7}"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}"
+          if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
+            SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
+            SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          else
+            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
+          fi
+
+          # Build retest part for message
+          RETEST_PART=""
+          if [ -n "$RETEST_DISPLAY" ]; then
+            RETEST_PART=" | ${RETEST_DISPLAY}"
+          fi
 
           # Build payload with attachments
           PAYLOAD=$(cat <<EOF
@@ -454,7 +543,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n:open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${PASS_RATE}% (${PASSED}/${TOTAL}) in ${TOTAL_SPECS} spec files | [full report](${REPORT_URL})"
+              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
             }]
           }
           EOF
@@ -475,6 +564,8 @@ jobs:
           FAILED_SPECS: ${{ steps.final-results.outputs.failed_specs }}
           COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
+          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
         run: |
           {
             echo "## E2E Test Results - Cypress ${TEST_TYPE}"
@@ -504,6 +595,12 @@ jobs:
             echo "| failed_specs_count | ${FAILED_SPECS_COUNT} |"
             echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
             echo "| failed_specs | ${FAILED_SPECS:-none} |"
+            echo "| duration | ${DURATION_DISPLAY} |"
+            if [ "$RETEST_RESULT" != "skipped" ]; then
+              echo "| retested | Yes |"
+            else
+              echo "| retested | No |"
+            fi
 
             echo ""
             echo "---"
@@ -528,7 +625,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: success
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
 
@@ -547,6 +644,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: failure
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
