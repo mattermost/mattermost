@@ -61,7 +61,14 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
         Object.values(files).forEach((file) => {
             const id = file.channel_id;
 
-            if (!channels[id] || !myMembers[id]) {
+            if (!channels[id]) {
+                // Fetch channel data independently so a 403 on the membership request (e.g. for public channels
+                // the user hasn't joined) doesn't prevent the channel from being loaded.
+                promises.push(dispatch(getChannel(id)));
+            }
+
+            if (!myMembers[id]) {
+                // Best-effort: will 403 for non-member public channels, which is fine.
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
 
