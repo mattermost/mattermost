@@ -73,7 +73,8 @@ runs:
         while IFS= read -r file; do
           [ -z "$file" ] && continue
           if [[ ! "$file" =~ ^e2e-tests/ ]] && \
-             [[ ! "$file" =~ ^\.github/workflows/e2e- ]]; then
+             [[ ! "$file" =~ ^\.github/workflows/e2e- ]] && \
+             [[ ! "$file" =~ ^\.github/actions/ ]]; then
             echo "Non-E2E file found: $file"
             E2E_TEST_ONLY="false"
             break

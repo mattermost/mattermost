@@ -41,6 +41,7 @@ const (
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
+	HeaderRejectReason              = "X-Reject-Reason"
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
@@ -3254,6 +3255,17 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId 
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
 func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userId string, props map[string]string) (*Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId).Join("notify_props"), props)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// UpdateChannelMemberAutotranslation will update the autotranslation setting for a user in a channel.
+func (c *Client4) UpdateChannelMemberAutotranslation(ctx context.Context, channelId, userId string, autoTranslationDisabled bool) (*Response, error) {
+	requestBody := map[string]any{"autotranslation_disabled": autoTranslationDisabled}
+	r, err := c.doAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId).Join("autotranslation"), requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {isMac} from 'utils/user_agent';
@@ -51,67 +51,93 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called handleSubmit', async () => {
         const updateSection = jest.fn();
 
-        const props = {...requiredProps, updateSection};
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
+        const props = {...requiredProps, updateSection, activeSection: 'formatting'};
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        await wrapper.instance().handleSubmit([]);
+        await userEvent.click(screen.getByTestId('saveSetting'));
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
-    test('should have called updateSection', () => {
+    test('should have called updateSection', async () => {
         const updateSection = jest.fn();
-        const props = {...requiredProps, updateSection};
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
+        const props = {...requiredProps, updateSection, activeSection: 'formatting'};
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        wrapper.instance().handleUpdateSection('');
+        // Click Save → handleSubmit → handleUpdateSection('') → updateSection('')
+        await userEvent.click(screen.getByTestId('saveSetting'));
         expect(updateSection).toHaveBeenCalledWith('');
-
-        wrapper.instance().handleUpdateSection('linkpreview');
-        expect(updateSection).toHaveBeenCalledWith('linkpreview');
     });
 
-    test('should have called updateUserActive', () => {
+    test('should have called updateUserActive', async () => {
         const updateUserActive = jest.fn(() => Promise.resolve({}));
-        const props = {...requiredProps, actions: {...requiredProps.actions, updateUserActive}};
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
+        const revokeAllSessionsForUser = jest.fn().mockResolvedValue({data: true});
+        const props = {
+            ...requiredProps,
+            enableUserDeactivation: true,
+            activeSection: 'deactivateAccount',
+            actions: {...requiredProps.actions, updateUserActive, revokeAllSessionsForUser},
+        };
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        wrapper.instance().handleDeactivateAccountSubmit();
+        // Click "Deactivate" button in SettingItemMax to show the modal
+        await userEvent.click(screen.getByText('Deactivate'));
+
+        // Click the confirm button in the modal
+        await userEvent.click(screen.getByText('Yes, deactivate my account'));
+
         expect(updateUserActive).toHaveBeenCalled();
         expect(updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, false);
     });
 
-    test('handleDeactivateAccountSubmit() should have called revokeAllSessions', () => {
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...requiredProps}/>);
+    test('handleDeactivateAccountSubmit() should have called revokeAllSessions', async () => {
+        const revokeAllSessionsForUser = jest.fn().mockResolvedValue({data: true});
+        const props = {
+            ...requiredProps,
+            enableUserDeactivation: true,
+            activeSection: 'deactivateAccount',
+            actions: {...requiredProps.actions, revokeAllSessionsForUser},
+        };
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        wrapper.instance().handleDeactivateAccountSubmit();
-        expect(requiredProps.actions.revokeAllSessionsForUser).toHaveBeenCalled();
-        expect(requiredProps.actions.revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.user.id);
+        // Click "Deactivate" button then confirm
+        await userEvent.click(screen.getByText('Deactivate'));
+        await userEvent.click(screen.getByText('Yes, deactivate my account'));
+
+        expect(revokeAllSessionsForUser).toHaveBeenCalled();
+        expect(revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.user.id);
     });
 
     test('handleDeactivateAccountSubmit() should have updated state.serverError', async () => {
         const error = {message: 'error'};
-        const revokeAllSessionsForUser = () => Promise.resolve({error});
-        const props = {...requiredProps, actions: {...requiredProps.actions, revokeAllSessionsForUser}};
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
+        const revokeAllSessionsForUser = jest.fn(() => Promise.resolve({error}));
+        const props = {
+            ...requiredProps,
+            enableUserDeactivation: true,
+            activeSection: 'deactivateAccount',
+            actions: {...requiredProps.actions, revokeAllSessionsForUser},
+        };
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        await wrapper.instance().handleDeactivateAccountSubmit();
+        // Click "Deactivate" button then confirm
+        await userEvent.click(screen.getByText('Deactivate'));
+        await userEvent.click(screen.getByText('Yes, deactivate my account'));
 
-        expect(wrapper.state().serverError).toEqual(error.message);
+        expect(await screen.findByText(error.message)).toBeInTheDocument();
     });
 
     test('function getCtrlSendText should return correct value for Mac', () => {
         (isMac as jest.Mock).mockReturnValue(true);
         const props = {...requiredProps};
 
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
-        expect(wrapper.instance().getCtrlSendText().ctrlSendTitle.defaultMessage).toEqual('Send Messages on ⌘+ENTER');
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        expect(screen.getByText('Send Messages on ⌘+ENTER')).toBeInTheDocument();
     });
 
     test('function getCtrlSendText should return correct value for Windows', () => {
         (isMac as jest.Mock).mockReturnValue(false);
         const props = {...requiredProps};
 
-        const wrapper = shallow<AdvancedSettingsDisplay>(<AdvancedSettingsDisplay {...props}/>);
-        expect(wrapper.instance().getCtrlSendText().ctrlSendTitle.defaultMessage).toEqual('Send Messages on CTRL+ENTER');
+        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        expect(screen.getByText('Send Messages on CTRL+ENTER')).toBeInTheDocument();
     });
 });

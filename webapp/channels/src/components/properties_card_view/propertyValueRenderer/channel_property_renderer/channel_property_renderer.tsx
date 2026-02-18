@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
 import type {ChannelFieldMetadata} from 'components/properties_card_view/properties_card_view';
 import SidebarBaseChannelIcon from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel_icon';
 
@@ -19,7 +18,7 @@ type Props = {
 
 export default function ChannelPropertyRenderer({value, metadata}: Props) {
     const channelId = value.value as string;
-    const channel = usePropertyCardViewChannelLoader(channelId, metadata?.getChannel);
+    const channel = metadata?.channel;
 
     return (
         <div

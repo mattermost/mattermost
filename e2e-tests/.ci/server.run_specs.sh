@@ -55,13 +55,37 @@ playwright)
   # Convert comma-separated to space-separated for playwright
   SPEC_ARGS=$(echo "$SPEC_FILES" | tr ',' ' ')
 
+  # Initialize playwright report and logs directory
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
+cd e2e-tests/playwright
+rm -rf logs results storage_state
+mkdir -p logs results
+touch logs/mattermost.log
+EOF
+
+  # Install dependencies
+  mme2e_log "Prepare Playwright: install dependencies"
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/playwright
+npm install --cache /tmp/empty-cache
+EOF
+
   # Run playwright with specific spec files
   LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright npm run test:ci -- "$SPEC_ARGS" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
 
   # Collect run results (if results.json exists)
-  if [ -f ../playwright/results/results.json ]; then
-    mme2e_log "Results file found at ../playwright/results/results.json"
+  if [ -f ../playwright/results/reporter/results.json ]; then
+    jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
+{
+  passed: .stats.expected,
+  failed: .stats.unexpected,
+  failed_expected: (.stats.skipped + .stats.flaky)
+}
+EOF
+    mme2e_log "Results file found and summary generated"
   fi
 
   # Collect server logs

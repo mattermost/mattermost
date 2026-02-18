@@ -80,6 +80,7 @@ export interface CalculationResult {
     passRate: string;
     passing: number;
     color: string;
+    testDuration: string;
 }
 
 export interface FailedTest {
