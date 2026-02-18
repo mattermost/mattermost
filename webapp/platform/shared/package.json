@@ -8,6 +8,7 @@
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/shared#readme",
   "license": "MIT",
   "files": [
+    "build/webpack-web-app-externals.cjs",
     "dist",
     "src"
   ],
@@ -31,6 +32,10 @@
       "source": "./src/index.ts",
       "import": "./dist/module.js",
       "require": "./dist/main.js"
+    },
+    "./build/webpack-web-app-externals": {
+      "source": "./build/webpack-web-app-externals.cjs",
+      "require": "./build/webpack-web-app-externals.cjs"
     },
     "./*": {
       "types": [
