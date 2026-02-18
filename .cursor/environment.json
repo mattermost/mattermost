@@ -14,9 +14,9 @@
       "description": "Builds and runs the Mattermost backend server on :8065 with hot-reload via Air. Auto-restarts on Go file changes."
     },
     {
-      "name": "Webapp Dev Server",
-      "command": "cd webapp && make dev",
-      "description": "Runs webpack-dev-server on :9005 with hot module replacement. Use http://localhost:9005 (not 8065) to view UI changes live."
+      "name": "Webapp Watcher",
+      "command": "cd webapp && make run",
+      "description": "Runs webpack in watch mode, rebuilding channels/dist/ on file changes. The Go server on :8065 serves the updated assets automatically."
     },
     {
       "name": "Server Tests",
@@ -26,12 +26,8 @@
   ],
   "ports": [
     {
-      "name": "Mattermost Server (API)",
+      "name": "Mattermost",
       "port": 8065
-    },
-    {
-      "name": "Webapp Dev Server (HMR)",
-      "port": 9005
     }
   ]
 }

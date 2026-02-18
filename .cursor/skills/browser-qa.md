@@ -9,18 +9,17 @@ This skill teaches you how to use the `agent-browser` CLI to interact with a run
 
 ## Environment
 
-- **Webapp Dev Server (preferred for UI work)**: `http://localhost:9005` -- serves the webapp with hot module replacement; use this when verifying UI changes
-- **Mattermost Server (API / static build)**: `http://localhost:8065` -- serves the Go API and the last static webapp build; use this for API-only checks or when the dev server is not running
+- **Mattermost URL**: `http://localhost:8065` -- serves both the API and webapp assets
 - **Browser**: agent-browser manages its own headless Chromium (installed via `agent-browser install --with-deps`)
 - **All commands use**: `agent-browser <command>` (no `--cdp` flag needed; agent-browser launches and manages its own browser)
 
-**Important**: When verifying webapp code changes, always use port **9005** (the webpack dev server). Port 8065 serves a static build that does not reflect source changes until `npm run build` is run manually.
+Webapp source changes are picked up automatically by the webpack watcher running in the Webapp Watcher terminal. After a change, reload the page at `http://localhost:8065` to see the update.
 
 ## Quick Start
 
 ```bash
-# 1. Open Mattermost (use port 9005 when the webapp dev server is running)
-agent-browser open http://localhost:9005
+# 1. Open Mattermost
+agent-browser open http://localhost:8065
 
 # 2. Take a snapshot to see interactive elements
 agent-browser snapshot -i
@@ -45,7 +44,7 @@ If sample data was injected (`make inject-test-data`):
 ### Login Flow
 
 ```bash
-agent-browser open http://localhost:9005/login
+agent-browser open http://localhost:8065/login
 agent-browser snapshot -i
 
 # Find the login input (look for input with name="loginId" or placeholder containing "Email" or "Username")
@@ -90,7 +89,7 @@ cd server && make cursor-cloud-setup-admin
 ```
 
 If you need to set up via browser instead (e.g., testing the signup flow):
-1. Navigate to `http://localhost:9005` (or `http://localhost:8065` if the dev server is not running) - it will redirect to `/signup_user_complete`
+1. Navigate to `http://localhost:8065` - it will redirect to `/signup_user_complete`
 2. Fill in email, username, password
 3. The first account automatically becomes system admin
 4. Complete or skip the onboarding wizard
@@ -113,7 +112,7 @@ If you need to set up via browser instead (e.g., testing the signup flow):
 
 ```bash
 # Navigate to a channel (e.g., Town Square)
-agent-browser open http://localhost:9005/dev/channels/town-square
+agent-browser open http://localhost:8065/dev/channels/town-square
 agent-browser wait --load networkidle
 agent-browser snapshot -i
 
@@ -144,7 +143,7 @@ agent-browser snapshot -i
 
 ```bash
 # Option 1: Direct URL navigation
-agent-browser open http://localhost:9005/dev/channels/off-topic
+agent-browser open http://localhost:8065/dev/channels/off-topic
 
 # Option 2: Click channel in sidebar
 agent-browser snapshot -i
@@ -225,10 +224,9 @@ npx playwright test --grep "relevant test pattern"
 
 ### Page not loading
 ```bash
-# Verify Mattermost server is running (API is always on 8065)
+# Verify Mattermost server is running
 curl -s http://localhost:8065/api/v4/system/ping
 # If not, check the Mattermost Server terminal
-# If the API works but the UI on :9005 doesn't load, check the Webapp Dev Server terminal
 ```
 
 ### Stale refs
