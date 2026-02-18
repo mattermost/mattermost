@@ -587,7 +587,9 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: [expect.objectContaining({
+                terms: expectedOrder,
+            })],
         }));
     });
 
@@ -670,7 +672,9 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: [expect.objectContaining({
+                terms: expectedOrder,
+            })],
         }));
     });
 
@@ -757,7 +761,9 @@ describe('components/SwitchChannelProvider', () => {
             'channel_other_user1',
         ];
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: [expect.objectContaining({
+                terms: expectedOrder,
+            })],
         }));
     });
 
@@ -992,7 +998,9 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: [expect.objectContaining({
+                terms: expectedOrder,
+            })],
         }));
     });
 
