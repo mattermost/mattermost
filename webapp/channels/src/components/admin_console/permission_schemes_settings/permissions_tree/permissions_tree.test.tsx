@@ -231,7 +231,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
             }));
         });
 
-        describe('for enterprise license', () => {
+        describe('for enterprise-advanced license', () => {
             [LicenseSkus.Entry, LicenseSkus.EnterpriseAdvanced].forEach((licenseSku) => test(licenseSku, () => {
                 const props = {
                     ...defaultProps,
