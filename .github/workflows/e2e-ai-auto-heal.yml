@@ -52,14 +52,15 @@ jobs:
         with:
           workflow: e2e-tests-playwright.yml
           run_id: ${{ github.event.workflow_run.id }}
-          name: playwright-report
+          pattern: playwright-*-*-results
           path: test-results/
+          merge-multiple: true
 
       - name: Analyze test failures
         id: analyze
         run: |
-          if [ -f test-results/results.json ]; then
-            FAILURES=$(jq '[.suites[].tests[] | select(.status == "failed" or .status == "timedOut")] | length' test-results/results.json || echo 0)
+          if [ -f test-results/results/reporter/results.json ]; then
+            FAILURES=$(jq '[.suites[].tests[] | select(.status == "failed" or .status == "timedOut")] | length' test-results/results/reporter/results.json || echo 0)
             if [ "$FAILURES" -gt 0 ]; then
               echo "failures-detected=true" >> "$GITHUB_OUTPUT"
               echo "failure-count=$FAILURES" >> "$GITHUB_OUTPUT"
@@ -132,7 +133,7 @@ jobs:
         working-directory: e2e-tests/playwright
         run: |
           mkdir -p .e2e-ai-agents
-          cat > .e2e-ai-agents/healing-summary.json <<'JSONEOF'
+          cat > .e2e-ai-agents/healing-summary.json <<JSONEOF
           {
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "healingMethod": "e2e-agents auto-heal",
@@ -160,6 +161,9 @@ jobs:
           git commit -m "fix(e2e): Auto-healed test failures Automated healing using e2e-agents.
           Failures detected: ${{ needs.detect-failures.outputs.failure-count }}
           Healing method: UI re-discovery and selector refinement"
+
+          # Push branch to remote
+          git push origin "$BRANCH_NAME"
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 

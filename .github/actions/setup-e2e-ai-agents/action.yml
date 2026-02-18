@@ -24,10 +24,6 @@ inputs:
     description: 'Anthropic API key for e2e-agents'
     required: true
 
-outputs:
-  anthropic-api-key:
-    description: 'Anthropic API key (for reference)'
-    value: ${{ inputs.anthropic-api-key }}
 
 runs:
   using: 'composite'

@@ -141,12 +141,21 @@ jobs:
             exit 0
           fi
 
-          TEST_COUNT=$(find specs/functional/ai-assisted -name "*.spec.ts" | wc -l)
-          echo "test-count=$TEST_COUNT" >> "$GITHUB_OUTPUT"
+          # Track newly created files by checking git status (only staged/untracked files)
+          # This excludes pre-existing files and only counts newly generated specs
+          NEW_TESTS=$(git status --short specs/functional/ai-assisted 2>/dev/null | grep -E '\.(spec\.ts|spec\.js)' | wc -l)
 
-          if [ "$TEST_COUNT" -gt 0 ]; then
-            echo "Generated $TEST_COUNT test files"
-            find specs/functional/ai-assisted -name "*.spec.ts" | head -10
+          # If git status shows no changes, check if there are untracked files
+          if [ "$NEW_TESTS" -eq 0 ]; then
+            NEW_TESTS=$(git ls-files --others --exclude-standard specs/functional/ai-assisted 2>/dev/null | grep -E '\.(spec\.ts|spec\.js)' | wc -l)
+          fi
+
+          echo "test-count=$NEW_TESTS" >> "$GITHUB_OUTPUT"
+
+          if [ "$NEW_TESTS" -gt 0 ]; then
+            echo "Generated $NEW_TESTS new test files"
+            git status --short specs/functional/ai-assisted 2>/dev/null | grep -E '\.(spec\.ts|spec\.js)' | head -10 || \
+            git ls-files --others --exclude-standard specs/functional/ai-assisted 2>/dev/null | grep -E '\.(spec\.ts|spec\.js)' | head -10
           fi
 
       - name: Run generated tests (dry-run)
@@ -244,6 +253,9 @@ jobs:
 
             See generation-summary.json for details on generated specs."
 
+          # Push branch to remote
+          git push origin "$BRANCH_NAME"
+
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Create pull request
@@ -264,12 +276,17 @@ jobs:
             const scenarioCount = process.env.SCENARIO_COUNT;
             const priorityFlows = process.env.PRIORITY_FLOWS;
 
+            // Determine base branch - use github.base_ref for PR events, or extract from context.ref
+            const baseBranch = context.payload.pull_request?.base?.ref ||
+                               context.ref?.replace('refs/heads/', '') ||
+                               'master';
+
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `E2E: Auto-generated tests for ${testCount} scenarios`,
               head: branchName,
-              base: context.ref,
+              base: baseBranch,
               body: `## Auto-Generated E2E Tests
 
                 Generated ${testCount} test scenarios using e2e-ai-agents:

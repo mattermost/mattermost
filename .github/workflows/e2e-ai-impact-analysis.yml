@@ -38,11 +38,19 @@ jobs:
       - name: Run impact analysis
         working-directory: e2e-tests/playwright
         run: |
+          # Determine comparison ref: use BASE_REF for PR events, fallback to master for manual dispatch
+          SINCE_REF="${BASE_REF:-master}"
+          if [ -z "$BASE_REF" ]; then
+            SINCE_REF="origin/master"
+          else
+            SINCE_REF="origin/$BASE_REF"
+          fi
+
           node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact \
             --path ../../webapp \
             --tests-root . \
             --config ./e2e-ai-agents.config.json \
-            --since origin/$BASE_REF
+            --since "$SINCE_REF"
 
       - name: Extract impact summary
         working-directory: e2e-tests/playwright
