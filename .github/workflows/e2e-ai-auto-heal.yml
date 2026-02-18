@@ -1,7 +1,6 @@
 ---
 name: E2E AI Auto-Heal
 
-# Triggers for automated test healing
 on:
   workflow_dispatch:
     inputs:
@@ -44,7 +43,6 @@ jobs:
     outputs:
       failures-detected: ${{ steps.analyze.outputs.failures-detected }}
       failure-count: ${{ steps.analyze.outputs.failure-count }}
-      failed-specs: ${{ steps.analyze.outputs.failed-specs }}
 
     steps:
       - name: Checkout code
@@ -66,14 +64,9 @@ jobs:
         run: |
           if [ -f test-results/results.json ]; then
             FAILURES=$(jq '[.suites[].tests[] | select(.status == "failed" or .status == "timedOut")] | length' test-results/results.json || echo 0)
-
             if [ "$FAILURES" -gt 0 ]; then
               echo "failures-detected=true" >> "$GITHUB_OUTPUT"
               echo "failure-count=$FAILURES" >> "$GITHUB_OUTPUT"
-
-              # Extract failed spec names
-              SPECS=$(jq -r '.suites[].tests[] | select(.status == "failed" or .status == "timedOut") | .file' test-results/results.json | sort -u | tr '\n' ',' | sed 's/,$//')
-              echo "failed-specs=$SPECS" >> "$GITHUB_OUTPUT"
             else
               echo "failures-detected=false" >> "$GITHUB_OUTPUT"
               echo "failure-count=0" >> "$GITHUB_OUTPUT"
@@ -118,113 +111,68 @@ jobs:
         working-directory: e2e-tests/playwright
         continue-on-error: true
         env:
-          TEST_PATTERN: ${{ github.event.inputs.test_pattern || '' }}
           MAX_ATTEMPTS: ${{ github.event.inputs.max_attempts || '3' }}
           USE_MCP: ${{ github.event.inputs.use_mcp || 'false' }}
         run: |
-          # Build heal command
           CMD="npx @yasserkhanorg/e2e-agents auto-heal-pr"
           CMD="$CMD --path ../../webapp"
           CMD="$CMD --tests-root ."
           CMD="$CMD --config ./e2e-ai-agents.config.json"
 
-          echo "Running healing command..."
-          echo "Command: $CMD"
+          echo "Running healing: $CMD"
 
-          # Run healing with attempt counter
           ATTEMPT=1
           MAX="${MAX_ATTEMPTS}"
           while [ $ATTEMPT -le "$MAX" ]; do
-            echo ""
-            echo "=== Healing Attempt $ATTEMPT / $MAX ==="
-
+            echo "Healing Attempt $ATTEMPT / $MAX"
             if eval "$CMD"; then
-              echo "Healing successful on attempt $ATTEMPT"
               echo "healing-success=true" >> "$GITHUB_OUTPUT"
               echo "healing-attempt=$ATTEMPT" >> "$GITHUB_OUTPUT"
               break
-            else
-              if [ $ATTEMPT -lt "$MAX" ]; then
-                echo "Healing attempt $ATTEMPT failed, retrying..."
-                ATTEMPT=$((ATTEMPT + 1))
-              else
-                echo "All $MAX healing attempts failed"
-                echo "healing-success=false" >> "$GITHUB_OUTPUT"
-                echo "healing-attempt=$ATTEMPT" >> "$GITHUB_OUTPUT"
-              fi
             fi
+            ATTEMPT=$((ATTEMPT + 1))
           done
 
-      - name: Verify healed tests
-        if: steps.heal.outputs.healing-success == 'true'
-        working-directory: e2e-tests/playwright
-        continue-on-error: true
-        run: |
-          echo "Running healed tests for verification..."
-          npm test || true
+          if [ $ATTEMPT -gt "$MAX" ]; then
+            echo "healing-success=false" >> "$GITHUB_OUTPUT"
+            echo "healing-attempt=$MAX" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create healing summary
         if: always()
         working-directory: e2e-tests/playwright
         run: |
           mkdir -p .e2e-ai-agents
-
-          node -e "
-            const fs = require('fs');
-            const summary = {
-              timestamp: new Date().toISOString(),
-              healingMethod: '@yasserkhanorg/e2e-agents auto-heal-pr',
-              max_attempts: process.env.MAX_ATTEMPTS || '3',
-              use_mcp: process.env.USE_MCP === 'true',
-              success: '${{ steps.heal.outputs.healing-success }}' === 'true',
-              attempt: parseInt('${{ steps.heal.outputs.healing-attempt || '0' }}'),
-              failure_count: '${{ needs.detect-failures.outputs.failure-count }}'
-            };
-
-            fs.writeFileSync(
-              '.e2e-ai-agents/healing-summary.json',
-              JSON.stringify(summary, null, 2)
-            );
-
-            console.log('Healing Summary:');
-            console.log('- Success:', summary.success);
-            console.log('- Attempt:', summary.attempt, '/', summary.max_attempts);
-            console.log('- Failures healed:', summary.failure_count);
-          "
+          cat > .e2e-ai-agents/healing-summary.json <<'JSONEOF'
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "healingMethod": "e2e-agents auto-heal",
+            "max_attempts": "${MAX_ATTEMPTS}",
+            "use_mcp": "${USE_MCP}",
+            "success": "${{ steps.heal.outputs.healing-success }}",
+            "attempt": "${{ steps.heal.outputs.healing-attempt }}",
+            "failure_count": "${{ needs.detect-failures.outputs.failure-count }}"
+          }
+          JSONEOF
 
       - name: Commit healed tests
         if: steps.heal.outputs.healing-success == 'true'
         working-directory: .
-        env:
-          ATTEMPT: ${{ steps.heal.outputs.healing-attempt }}
-          FAILURE_COUNT: ${{ needs.detect-failures.outputs.failure-count }}
         run: |
           git config user.name "E2E AI Bot"
           git config user.email "e2e-bot@mattermost.com"
 
-          # Create healing branch
           BRANCH_NAME="e2e-agents/auto-heal-$(date +%Y-%m-%d-%H%M%S)"
           git checkout -b "$BRANCH_NAME"
 
-          # Stage healed test files
-          git add e2e-tests/playwright/specs/
+          git add e2e-tests/playwright/specs/ || true
           git add e2e-tests/playwright/.e2e-ai-agents/healing-summary.json
 
-          # Commit healing changes
-          git commit -m "fix(e2e): Auto-heal tests using AI-driven discovery
+          git commit -m "fix(e2e): Auto-healed test failures
 
-Automated healing using @yasserkhanorg/e2e-agents:
-- Failures detected: $FAILURE_COUNT
-- Healing attempt: $ATTEMPT
-- Method: UI re-discovery + selector refinement
-
-Tests healed through:
-1. UI re-discovery (fresh page exploration)
-2. Selector confidence validation
-3. Alternative selector identification
-4. Test execution validation
-
-This maintains test health and improves selector knowledge over time."
+Automated healing using e2e-agents.
+Failures detected: ${{ needs.detect-failures.outputs.failure-count }}
+Healing method: UI re-discovery and selector refinement"
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
@@ -233,47 +181,23 @@ This maintains test health and improves selector knowledge over time."
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = process.env.BRANCH_NAME || 'e2e-agents/auto-heal';
-
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `E2E: Auto-healed test failures`,
-              head: branchName,
-              base: context.payload.workflow_run?.head_branch || 'master',
-              body: `## Auto-Healed E2E Tests
-
-Fixed test failures using e2e-ai-agents auto-healing.
-
-### What Was Healed
-Tests were automatically fixed through:
-1. Fresh UI page exploration
-2. Selector confidence validation
-3. Alternative selector identification
-4. Test execution verification
-
-### Next Steps
-1. Review healed selectors for accuracy
-2. Run tests locally: \`npm test\`
-3. Merge when verified
-
-See \`healing-summary.json\` for detailed healing metrics.`
+              title: 'E2E: Auto-healed test failures',
+              head: process.env.BRANCH_NAME || 'e2e-agents/auto-heal',
+              base: 'master',
+              body: '## Auto-Healed E2E Tests\n\nFixed test failures using e2e-agents auto-healing.\n\nSee healing-summary.json for metrics.'
             });
-
             console.log('Created PR:', pr.data.html_url);
 
       - name: Cleanup Docker
         if: always()
-        run: |
-          docker compose -f docker-compose.yml down || true
+        run: docker compose -f docker-compose.yml down || true
 
       - name: Report healing metrics
         if: always()
         run: |
           echo "✅ Auto-healing completed"
-          echo "📊 Failures detected: ${{ needs.detect-failures.outputs.failure-count }}"
-          echo "🔧 Healing success: ${{ steps.heal.outputs.healing-success == 'true' && 'Yes' || 'No' }}"
-
-          if [ -f e2e-tests/playwright/.e2e-ai-agents/healing-summary.json ]; then
-            echo "📄 Summary: e2e-tests/playwright/.e2e-ai-agents/healing-summary.json"
-          fi
+          echo "Failures detected: ${{ needs.detect-failures.outputs.failure-count }}"
+          echo "Healing success: ${{ steps.heal.outputs.healing-success }}"

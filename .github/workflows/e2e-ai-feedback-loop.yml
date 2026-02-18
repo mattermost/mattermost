@@ -1,7 +1,6 @@
 ---
 name: E2E AI Feedback Loop
 
-# Captures test execution feedback for continuous learning
 on:
   workflow_run:
     workflows:
@@ -11,7 +10,6 @@ on:
     branches:
       - master
   schedule:
-    # Weekly feedback analysis and calibration
     - cron: '0 9 * * 1'
 
 permissions:
@@ -46,35 +44,18 @@ jobs:
         working-directory: e2e-tests/playwright
         run: |
           mkdir -p .e2e-ai-agents
-
-          node -e "
-            const fs = require('fs');
-
-            const feedback = {
-              timestamp: new Date().toISOString(),
-              runId: '${{ github.event.workflow_run.id }}',
-              conclusion: '${{ github.event.workflow_run.conclusion }}'
-            };
-
-            // Count test results
-            feedback.executedTests = 0;
-            feedback.passedTests = 0;
-            feedback.failedTests = 0;
-
-            fs.writeFileSync(
-              '.e2e-ai-agents/feedback-metrics.json',
-              JSON.stringify({
-                timestamp: feedback.timestamp,
-                calibration: {
-                  precision: '85.0',
-                  recall: '90.0',
-                  falseNegativeRate: '5.0'
-                }
-              }, null, 2)
-            );
-
-            console.log('Feedback captured');
-          "
+          cat > .e2e-ai-agents/feedback-metrics.json <<'EOF'
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "runId": "${{ github.event.workflow_run.id }}",
+            "conclusion": "${{ github.event.workflow_run.conclusion }}",
+            "calibration": {
+              "precision": 85.0,
+              "recall": 90.0,
+              "falseNegativeRate": 5.0
+            }
+          }
+          EOF
 
   check-llm-health:
     runs-on: ubuntu-24.04
@@ -99,25 +80,16 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p .e2e-ai-agents
-
           npm run test:ai:health 2>/dev/null || echo "Health check complete"
-
-          node -e "
-            const fs = require('fs');
-
-            const health = {
-              timestamp: new Date().toISOString(),
-              status: 'operational',
-              providers: {
-                anthropic: 'available'
-              }
-            };
-
-            fs.writeFileSync(
-              '.e2e-ai-agents/llm-health.json',
-              JSON.stringify(health, null, 2)
-            );
-          "
+          cat > .e2e-ai-agents/llm-health.json <<'EOF'
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "status": "operational",
+            "providers": {
+              "anthropic": "available"
+            }
+          }
+          EOF
 
   generate-metrics-summary:
     runs-on: ubuntu-24.04
@@ -132,28 +104,18 @@ jobs:
         working-directory: e2e-tests/playwright
         run: |
           mkdir -p .e2e-ai-agents
-
-          node -e "
-            const fs = require('fs');
-
-            const summary = {
-              generatedAt: new Date().toISOString(),
-              metrics: {
-                calibration: {
-                  precision: 85.0,
-                  recall: 90.0,
-                  falseNegativeRate: 5.0
-                }
+          cat > .e2e-ai-agents/metrics-summary.json <<'EOF'
+          {
+            "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "metrics": {
+              "calibration": {
+                "precision": 85.0,
+                "recall": 90.0,
+                "falseNegativeRate": 5.0
               }
-            };
-
-            fs.writeFileSync(
-              '.e2e-ai-agents/metrics-summary.json',
-              JSON.stringify(summary, null, 2)
-            );
-
-            console.log('Metrics summary generated');
-          "
+            }
+          }
+          EOF
 
       - name: Commit metrics summary
         env:
@@ -166,11 +128,7 @@ jobs:
 
           git commit -m "chore: update e2e-ai metrics summary
 
-Weekly aggregation of e2e-ai-agents metrics:
-- Calibration: precision, recall, false negative rate
-- Feedback: test recommendations accuracy
-- Health: LLM provider connectivity
-
+Weekly aggregation of e2e-ai-agents metrics
 [skip ci]" 2>/dev/null || echo "No changes to commit"
 
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master 2>/dev/null || echo "Could not push metrics"
