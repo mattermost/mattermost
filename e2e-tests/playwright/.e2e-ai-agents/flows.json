@@ -214,12 +214,18 @@
       "name": "Delete Message",
       "priority": "P1",
       "keywords": [
-        "delete",
-        "message"
+        "delete message",
+        "delete post",
+        "message deletion",
+        "remove message",
+        "author-deletes",
+        "deleted-message"
       ],
       "paths": [
         "channels/src/components/post/**",
-        "channels/src/components/post_edit_history/**"
+        "channels/src/components/post_edit_history/**",
+        "channels/src/components/drafts/**",
+        "channels/src/actions/*delete*"
       ],
       "tests": [],
       "audience": [
@@ -233,8 +239,14 @@
       "name": "Threads",
       "priority": "P1",
       "keywords": [
-        "thread",
-        "threads"
+        "threads_list",
+        "threads",
+        "reply",
+        "thread list",
+        "rhs",
+        "change threads",
+        "arrow keys",
+        "thread_appears"
       ],
       "paths": [
         "channels/src/components/threading/**"
