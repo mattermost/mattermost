@@ -60,7 +60,7 @@ jobs:
         id: analyze
         run: |
           if [ -f test-results/results/reporter/results.json ]; then
-            FAILURES=$(jq '[.suites[].tests[] | select(.status == "failed" or .status == "timedOut")] | length' test-results/results/reporter/results.json || echo 0)
+            FAILURES=$(jq '[.. | select(.status? == "failed" or .status? == "timedOut")] | length' test-results/results/reporter/results.json || echo 0)
             if [ "$FAILURES" -gt 0 ]; then
               echo "failures-detected=true" >> "$GITHUB_OUTPUT"
               echo "failure-count=$FAILURES" >> "$GITHUB_OUTPUT"
@@ -78,6 +78,8 @@ jobs:
     if: needs.detect-failures.outputs.failures-detected == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    env:
+      MAX_ATTEMPTS: ${{ github.event.inputs.max_attempts || '3' }}
 
     steps:
       - name: Checkout code
@@ -99,8 +101,6 @@ jobs:
         id: heal
         working-directory: e2e-tests/playwright
         continue-on-error: true
-        env:
-          MAX_ATTEMPTS: ${{ github.event.inputs.max_attempts || '3' }}
         run: |
           CMD="npx @yasserkhanorg/e2e-agents auto-heal-pr"
           CMD="$CMD --path ../../webapp"
