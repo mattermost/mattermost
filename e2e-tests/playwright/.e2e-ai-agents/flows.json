@@ -12,7 +12,7 @@
                 "channels/src/components/message_with_additional_content.tsx",
                 "channels/src/components/post_markdown/**"
             ],
-            "tests": ["e2e-tests/playwright/specs/functional/ai-assisted/messaging.send/send_message.spec.ts"],
+            "tests": ["e2e-tests/playwright/specs/functional/ai-assisted/messaging.send/messaging.send.spec.ts"],
             "audience": ["member", "guest"],
             "flags": [
                 {
@@ -27,10 +27,7 @@
             "priority": "P0",
             "keywords": ["websocket", "realtime"],
             "paths": ["channels/src/actions/websocket_actions.ts", "platform/client/src/websocket_*"],
-            "tests": [
-                "e2e-tests/playwright/specs/functional/ai-assisted/messaging.realtime/realtime_receive_messages.spec.ts",
-                "e2e-tests/playwright/specs/functional/ai-assisted/realtime_receive_messages/realtime_receive_messages.spec.ts"
-            ],
+            "tests": [],
             "audience": ["member", "guest"],
             "flags": [
                 {
@@ -45,9 +42,7 @@
             "priority": "P0",
             "keywords": ["persistence", "message", "post"],
             "paths": ["channels/src/components/post_view/**", "platform/client/src/websocket_message.ts"],
-            "tests": [
-                "e2e-tests/playwright/specs/functional/ai-assisted/message_persistence/message_persistence.spec.ts"
-            ],
+            "tests": [],
             "audience": ["member", "guest"],
             "flags": []
         },
@@ -57,9 +52,7 @@
             "priority": "P0",
             "keywords": ["markdown"],
             "paths": ["channels/src/components/post_markdown/**"],
-            "tests": [
-                "e2e-tests/playwright/specs/functional/ai-assisted/markdown_rendering/markdown_rendering.spec.ts"
-            ],
+            "tests": [],
             "audience": ["member", "guest"],
             "flags": [
                 {

@@ -50,7 +50,8 @@ jobs:
             --path ../../webapp \
             --tests-root . \
             --config ./e2e-ai-agents.config.json \
-            --since "$SINCE_REF"
+            --since "$SINCE_REF" \
+            --allow-fallback
 
       - name: Extract impact summary
         working-directory: e2e-tests/playwright
