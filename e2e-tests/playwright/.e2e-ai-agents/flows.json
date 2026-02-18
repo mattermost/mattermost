@@ -131,49 +131,9 @@
         "channels/src/components/channel_settings_modal/**"
       ],
       "tests": [
-        "specs/accessibility/channels/account_settings_sidebar.spec.ts",
-        "specs/accessibility/channels/add_people_to_channel_dialog.spec.ts",
-        "specs/accessibility/channels/browse_channels_dialog.spec.ts",
-        "specs/accessibility/channels/direct_messages_dialog.spec.ts",
-        "specs/accessibility/channels/intro_channel.spec.ts",
-        "specs/accessibility/channels/invite_people_dialog.spec.ts",
-        "specs/accessibility/channels/settings_dialog/advanced.spec.ts",
-        "specs/accessibility/channels/settings_dialog/display.spec.ts",
-        "specs/accessibility/channels/settings_dialog/notifications.spec.ts",
-        "specs/accessibility/channels/settings_dialog/sidebar.spec.ts",
-        "specs/accessibility/channels/team_menu.spec.ts",
-        "specs/functional/channels/account_settings/profile/popover_fields.spec.ts",
-        "specs/functional/channels/center_view/page_up_down_scroll.spec.ts",
-        "specs/functional/channels/channel_banner/channel_banner.spec.ts",
-        "specs/functional/channels/content_flagging/edge-cases/author-deletes-message-before-review.spec.ts",
-        "specs/functional/channels/content_flagging/edge-cases/author-edits-message-during-review.spec.ts",
-        "specs/functional/channels/content_flagging/flagging/flag-messages.spec.ts",
-        "specs/functional/channels/content_flagging/notifications/author-notification.spec.ts",
-        "specs/functional/channels/content_flagging/notifications/reporter-notification.spec.ts",
-        "specs/functional/channels/content_flagging/reviewer-actions/reviewer-actions.spec.ts",
-        "specs/functional/channels/content_flagging/reviewer-reports/cross-team-flag-reports-global-reviewers.spec.ts",
-        "specs/functional/channels/content_flagging/reviewer-reports/multiple-reviewers-receive-same-flag.spec.ts",
-        "specs/functional/channels/custom_profile_attributes/custom_attributes.spec.ts",
-        "specs/functional/channels/custom_profile_attributes/user_settings.spec.ts",
         "specs/functional/channels/drafts/drafts_on_deleted_message.spec.ts",
-        "specs/functional/channels/emoji_picker/emoji_picker.spec.ts",
-        "specs/functional/channels/file_attachments/edit_file_attachment.spec.ts",
-        "specs/functional/channels/gif_picker/gif_picker_search.spec.ts",
-        "specs/functional/channels/keyboard_shortcuts/shift_up_shortcut.spec.ts",
-        "specs/functional/channels/message_priority/standard_priority.spec.ts",
-        "specs/functional/channels/message_scroll/thread_appears_and_scrollable_in_the_rhs.spec.ts",
-        "specs/functional/channels/notifications/notification.spec.ts",
-        "specs/functional/channels/notifications/system_console.spec.ts",
-        "specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
-        "specs/functional/channels/search/find_channels.spec.ts",
         "specs/functional/channels/search/find_channels_korean.spec.ts",
-        "specs/functional/channels/search/team_selector.spec.ts",
-        "specs/functional/channels/settings/notifications/highlight_without_notification.spec.ts",
-        "specs/functional/channels/sidebar_right/page_up_down_scroll.spec.ts",
-        "specs/functional/channels/unreads_filter/unreads_filter.spec.ts",
-        "specs/visual/channels/archived_channel_icons.spec.ts",
-        "specs/visual/channels/intro_channel.spec.ts",
-        "specs/visual/channels/settings_dialog/settings_dialog.spec.ts"
+        "specs/functional/channels/unreads_filter/unreads_filter.spec.ts"
       ],
       "audience": [
         "member",
@@ -215,9 +175,7 @@
         "channels/src/components/channel_header_menu/**",
         "channels/src/components/channel_settings_modal/**"
       ],
-      "tests": [
-        "specs/functional/channels/search/search_box_clear_button.spec.ts"
-      ],
+      "tests": [],
       "audience": [
         "member",
         "guest"
@@ -281,9 +239,7 @@
       "paths": [
         "channels/src/components/threading/**"
       ],
-      "tests": [
-        "specs/functional/channels/threads/threads_list.spec.ts"
-      ],
+      "tests": [],
       "audience": [
         "member",
         "guest"
@@ -354,9 +310,7 @@
         "channels/src/components/channel_settings_modal/**"
       ],
       "tests": [
-        "specs/accessibility/channels/account_menu_keyboard.spec.ts",
         "specs/accessibility/channels/settings_dialog/settings.spec.ts",
-        "specs/accessibility/channels/theme_settings.spec.ts",
         "specs/functional/channels/team_settings/team_settings_modal.spec.ts"
       ],
       "audience": [

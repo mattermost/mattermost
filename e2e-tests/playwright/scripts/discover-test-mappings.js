@@ -192,8 +192,11 @@ function discoverMappings(minConfidence = 0.5) {
       // Sort by score descending
       candidates.sort((a, b) => b.score - a.score);
       const bestCandidate = candidates[0];
+      const hasOnlyCandidate = candidates.length === 1;
+      const isClearWinner = candidates.length > 1 && bestCandidate.score > candidates[1].score + 0.15;
+      const isTie = candidates.length > 1 && Math.abs(bestCandidate.score - candidates[1].score) < 0.01;
 
-      if (candidates.length === 1 || bestCandidate.score > candidates[1].score + 0.15) {
+      if (hasOnlyCandidate || isClearWinner) {
         // Single candidate or clear winner (> 0.15 ahead of second place)
         const flowId = bestCandidate.flow;
         if (!mappings[flowId]) {
@@ -215,27 +218,45 @@ function discoverMappings(minConfidence = 0.5) {
             reason: 'Best candidate selected, but others were close',
           });
         }
-      } else {
-        // Multiple candidates with similar scores: select best candidate if margin is not too small
-        // Prefer assigning the top candidate to get coverage rather than leaving test unmapped
-        const flowId = bestCandidate.flow;
-        if (!mappings[flowId]) {
-          mappings[flowId] = [];
-        }
-        mappings[flowId].push({
-          path: testFile.path,
-          confidence: Number(bestCandidate.score.toFixed(2)),
-          signals: bestCandidate.signals,
-        });
-        diagnostics.mappedTests++;
-
-        // Log as ambiguous for review
+      } else if (isTie) {
+        // Exact tie: cannot determine which flow is correct without additional context
+        // Don't map - let user resolve the ambiguity by improving flow definitions
         diagnostics.ambiguousMappings.push({
           testPath: testFile.path,
-          selected: { flow: bestCandidate.flow, score: Number(bestCandidate.score.toFixed(2)) },
-          otherCandidates: candidates.slice(1).map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
-          reason: 'Multiple candidates with similar scores - best candidate selected',
+          candidates: candidates.map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
+          reason: 'Tied candidates - unable to determine correct flow without user input',
         });
+      } else {
+        // Multiple candidates with meaningful score gap but less than 0.15
+        // Only map if the margin is significant enough (e.g., 0.05+)
+        const margin = bestCandidate.score - candidates[1].score;
+        if (margin >= 0.05) {
+          // Reasonable gap: assign to best candidate
+          const flowId = bestCandidate.flow;
+          if (!mappings[flowId]) {
+            mappings[flowId] = [];
+          }
+          mappings[flowId].push({
+            path: testFile.path,
+            confidence: Number(bestCandidate.score.toFixed(2)),
+            signals: bestCandidate.signals,
+          });
+          diagnostics.mappedTests++;
+
+          diagnostics.ambiguousMappings.push({
+            testPath: testFile.path,
+            selected: { flow: bestCandidate.flow, score: Number(bestCandidate.score.toFixed(2)) },
+            otherCandidates: candidates.slice(1).map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
+            reason: `Marginal leader selected (gap: ${margin.toFixed(2)})`,
+          });
+        } else {
+          // Insufficient margin: treat as unresolvable ambiguity
+          diagnostics.ambiguousMappings.push({
+            testPath: testFile.path,
+            candidates: candidates.map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
+            reason: `Too close to call (${margin.toFixed(2)} margin) - multiple flows equally valid`,
+          });
+        }
       }
     }
   }
