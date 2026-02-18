@@ -21,26 +21,15 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Setup E2E AI Agents environment
+        uses: ./.github/actions/setup-e2e-ai-agents
         with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
-
-      - name: Install dependencies
-        working-directory: e2e-tests/playwright
-        run: npm ci
+          fetch-depth: '0'
+          skip-build: 'true'
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Run gap analysis
         working-directory: e2e-tests/playwright
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js gap \
             --path ../../webapp \
@@ -64,7 +53,7 @@ jobs:
 
       - name: Post PR comment with gap analysis
         if: github.event_name == 'pull_request' && steps.gap_summary.outputs.report_exists == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const fs = require('fs');
@@ -115,7 +104,7 @@ jobs:
 
       - name: Upload gap report as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gap-analysis-report
           path: e2e-tests/playwright/.e2e-ai-agents/reports/gap-report.md

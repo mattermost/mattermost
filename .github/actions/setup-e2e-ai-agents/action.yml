@@ -1,0 +1,65 @@
+name: Setup E2E AI Agents Environment
+description: |
+  Checks out code, sets up Node.js, installs dependencies, and builds the E2E AI agents environment.
+  Used by E2E AI workflows to provide consistent setup with Anthropic API and MCP integration.
+
+inputs:
+  working-directory:
+    description: 'Working directory for npm commands'
+    required: false
+    default: 'e2e-tests/playwright'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  fetch-depth:
+    description: 'Fetch depth for checkout'
+    required: false
+    default: '0'
+  enable-npm-cache:
+    description: 'Enable npm caching for faster builds'
+    required: false
+    default: 'true'
+  skip-build:
+    description: 'Skip npm run build step'
+    required: false
+    default: 'false'
+  anthropic-api-key:
+    description: 'Anthropic API key for e2e-agents'
+    required: true
+
+outputs:
+  anthropic-api-key:
+    description: 'Anthropic API key (for reference)'
+    value: ${{ inputs.anthropic-api-key }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.enable-npm-cache == 'true' && 'npm' || '' }}
+        cache-dependency-path: ${{ inputs.enable-npm-cache == 'true' && format('{0}/package-lock.json', inputs.working-directory) || '' }}
+
+    - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: npm ci --legacy-peer-deps || npm install
+
+    - name: Build project
+      if: inputs.skip-build != 'true'
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: npm run build
+
+    - name: Export Anthropic API Key
+      shell: bash
+      run: |
+        echo "ANTHROPIC_API_KEY=${{ inputs.anthropic-api-key }}" >> $GITHUB_ENV

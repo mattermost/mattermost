@@ -18,10 +18,6 @@ on:
           - '2'
           - '3'
           - '5'
-      use_mcp:
-        type: boolean
-        description: 'Use Playwright MCP server for richer generation'
-        default: false
       auto_commit:
         type: boolean
         description: 'Auto-commit tests to new branch'
@@ -43,19 +39,12 @@ jobs:
       priority-flows: ${{ steps.gap-analysis.outputs.priority-flows }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Setup E2E AI Agents environment
+        uses: ./.github/actions/setup-e2e-ai-agents
         with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        working-directory: e2e-tests/playwright
-        run: npm ci --legacy-peer-deps || npm install
+          fetch-depth: '0'
+          skip-build: 'true'
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Analyze test gaps
         id: gap-analysis
@@ -94,23 +83,11 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Setup E2E AI Agents environment
+        uses: ./.github/actions/setup-e2e-ai-agents
         with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        working-directory: e2e-tests/playwright
-        run: npm ci --legacy-peer-deps || npm install
-
-      - name: Build project
-        working-directory: e2e-tests/playwright
-        run: npm run build
+          fetch-depth: '0'
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Generate tests for gaps
         id: generate
@@ -118,7 +95,6 @@ jobs:
         continue-on-error: true
         env:
           SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '3' }}
-          USE_MCP: ${{ github.event.inputs.use_mcp || 'false' }}
           FLOW_NAME: ${{ github.event.inputs.flow_name || '' }}
         run: |
           # Build base command
@@ -130,12 +106,8 @@ jobs:
           CMD="$CMD --pipeline-scenarios $SCENARIO_COUNT"
           CMD="$CMD --pipeline-output ./specs/functional/ai-assisted"
           CMD="$CMD --pipeline-headless"
-
-          # Add MCP if requested
-          if [ "$USE_MCP" = "true" ]; then
-            CMD="$CMD --pipeline-mcp"
-            CMD="$CMD --pipeline-mcp-allow-fallback"
-          fi
+          CMD="$CMD --pipeline-mcp"
+          CMD="$CMD --pipeline-mcp-allow-fallback"
 
           # Add specific flow if provided
           if [ -n "$FLOW_NAME" ]; then
@@ -192,7 +164,7 @@ jobs:
               timestamp: new Date().toISOString(),
               generationMethod: 'e2e-ai-agents approve-and-generate',
               scenario_count: process.env.SCENARIO_COUNT || '3',
-              use_mcp: process.env.USE_MCP === 'true',
+              use_mcp: true,
               flow_filter: process.env.FLOW_NAME || 'all',
               test_count: 0,
               generated_specs: []
@@ -237,7 +209,6 @@ jobs:
         env:
           TEST_COUNT: ${{ steps.verify.outputs.test-count }}
           SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '3' }}
-          USE_MCP: ${{ github.event.inputs.use_mcp || 'false' }}
           FLOW_FILTER: ${{ github.event.inputs.flow_name || 'all P0/P1 gaps' }}
         run: |
           git config user.name "E2E AI Bot"
@@ -254,16 +225,16 @@ jobs:
           # Commit with details
           git commit -m "feat(e2e): Auto-generated AI tests for $TEST_COUNT scenarios
 
-Generated using @yasserkhanorg/e2e-agents approve-and-generate workflow:
-- Scenario count: $SCENARIO_COUNT
-- MCP enabled: $USE_MCP
-- Flow filter: $FLOW_FILTER
-- Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            Generated using @yasserkhanorg/e2e-agents approve-and-generate workflow:
+            - Scenario count: $SCENARIO_COUNT
+            - MCP enabled: true
+            - Flow filter: $FLOW_FILTER
+            - Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
-Tests are ready for review and validation. Run with:
-  npm test -- --grep '@ai-generated'
+            Tests are ready for review and validation. Run with:
+              npm test -- --grep '@ai-generated'
 
-See generation-summary.json for details on generated specs."
+            See generation-summary.json for details on generated specs."
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
@@ -271,12 +242,11 @@ See generation-summary.json for details on generated specs."
         if: |
           github.event.inputs.auto_commit == 'true' &&
           steps.verify.outputs.test-count > 0
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           TEST_COUNT: ${{ steps.verify.outputs.test-count }}
           GAP_COUNT: ${{ needs.check-gaps.outputs.gap-count }}
           SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '3' }}
-          USE_MCP: ${{ github.event.inputs.use_mcp || 'false' }}
           PRIORITY_FLOWS: ${{ needs.check-gaps.outputs.priority-flows }}
         with:
           script: |
@@ -284,7 +254,6 @@ See generation-summary.json for details on generated specs."
             const testCount = process.env.TEST_COUNT;
             const gapCount = process.env.GAP_COUNT;
             const scenarioCount = process.env.SCENARIO_COUNT;
-            const useMcp = process.env.USE_MCP;
             const priorityFlows = process.env.PRIORITY_FLOWS;
 
             const pr = await github.rest.pulls.create({
@@ -295,23 +264,23 @@ See generation-summary.json for details on generated specs."
               base: context.ref,
               body: `## Auto-Generated E2E Tests
 
-Generated ${testCount} test scenarios using e2e-ai-agents:
-- **Scenario count**: ${scenarioCount}
-- **MCP enabled**: ${useMcp}
-- **Test count**: ${testCount}
+                Generated ${testCount} test scenarios using e2e-ai-agents:
+                - **Scenario count**: ${scenarioCount}
+                - **MCP enabled**: true
+                - **Test count**: ${testCount}
 
-### Generated Files
-See \`e2e-tests/playwright/specs/functional/ai-assisted/\` for new test files.
+                ### Generated Files
+                See \`e2e-tests/playwright/specs/functional/ai-assisted/\` for new test files.
 
-### Next Steps
-1. Review generated tests for correctness
-2. Run tests locally: \`npm test -- --grep '@ai-generated'\`
-3. Address any failures with feedback loop
-4. Merge when ready
+                ### Next Steps
+                1. Review generated tests for correctness
+                2. Run tests locally: \`npm test -- --grep '@ai-generated'\`
+                3. Address any failures with feedback loop
+                4. Merge when ready
 
-### Gap Analysis
-- Gaps detected: ${gapCount}
-- Priority flows: ${priorityFlows}`
+                ### Gap Analysis
+                - Gaps detected: ${gapCount}
+                - Priority flows: ${priorityFlows}`
             });
 
             console.log('Created PR:', pr.data.html_url);
