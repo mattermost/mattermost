@@ -67,24 +67,14 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings, configSrc LogConfigSrc,
 func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings, configSrc LogConfigSrc) (mlog.LoggerConfiguration, error) {
 	cfg := make(mlog.LoggerConfiguration)
 
+	var targetCfg mlog.TargetCfg
+	var err error
+
 	// add the simple audit config
 	if *auditSettings.FileEnabled {
-		fileOpts, err := makeFileOptionsWithParams(
-			*auditSettings.FileName,
-			*auditSettings.FileMaxSizeMB,
-			*auditSettings.FileMaxAgeDays,
-			*auditSettings.FileMaxBackups,
-			*auditSettings.FileCompress,
-		)
+		targetCfg, err = makeSimpleFileTarget(*auditSettings.FileName, "error", true)
 		if err != nil {
-			return nil, fmt.Errorf("cannot encode file options: %w", err)
-		}
-
-		targetCfg := mlog.TargetCfg{
-			Type:         "file",
-			Options:      fileOpts,
-			MaxQueueSize: *auditSettings.FileMaxQueueSize,
-			Format:       "json",
+			return nil, err
 		}
 
 		// apply audit specific levels
@@ -315,10 +305,6 @@ func makePlainFormatOptions(enableColor bool) json.RawMessage {
 }
 
 func makeFileOptions(filename string) (json.RawMessage, error) {
-	return makeFileOptionsWithParams(filename, LogRotateSizeMB, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
-}
-
-func makeFileOptionsWithParams(filename string, maxSize, maxAge, maxBackups int, compress bool) (json.RawMessage, error) {
 	opts := struct {
 		Filename    string `json:"filename"`
 		Max_size    int    `json:"max_size"`
@@ -327,10 +313,10 @@ func makeFileOptionsWithParams(filename string, maxSize, maxAge, maxBackups int,
 		Compress    bool   `json:"compress"`
 	}{
 		Filename:    filename,
-		Max_size:    maxSize,
-		Max_age:     maxAge,
-		Max_backups: maxBackups,
-		Compress:    compress,
+		Max_size:    LogRotateSizeMB,
+		Max_age:     LogRotateMaxAge,
+		Max_backups: LogRotateMaxBackups,
+		Compress:    LogCompress,
 	}
 
 	b, err := json.Marshal(opts)
