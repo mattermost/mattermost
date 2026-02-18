@@ -78,6 +78,16 @@ done
 # the agent doesn't need browser access.
 # ============================================
 
+# ============================================
+# mmctl socket symlink
+# The config uses a custom socket path
+# (/var/tmp/mattermost_cursor_cloud.sock) but
+# mmctl --local expects the default path.
+# Create a symlink so mmctl works out of the box.
+# ============================================
+echo ">>> Creating mmctl socket symlink..."
+ln -sf /var/tmp/mattermost_cursor_cloud.sock /var/tmp/mattermost_local.socket
+
 echo ""
 echo ">>> All services started!"
 echo ">>> PostgreSQL: localhost:5432 (mmuser:mostest / mattermost_test)"

@@ -22,8 +22,8 @@ SOCKET="/var/tmp/mattermost_cursor_cloud.sock"
 ADMIN_EMAIL="admin@localhost"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="Passw0rd!"
-TEAM_NAME="default"
-TEAM_DISPLAY="Default"
+TEAM_NAME="dev"
+TEAM_DISPLAY="Development"
 
 echo ">>> Mattermost Admin Setup"
 

@@ -84,8 +84,8 @@ cursor-cloud-setup-admin:
 	@echo "Waiting for server to start..."
 	@./scripts/wait-for-system-start.sh
 	@echo "Creating admin user..."
-	@bin/mmctl user create --email admin@example.com --username admin --password 'Admin@1234' --system-admin --email-verified --local 2>/dev/null || echo "Admin user already exists"
-	@echo "Creating default team..."
-	@bin/mmctl team create --name dev-team --display-name "Dev Team" --local 2>/dev/null || echo "Team already exists"
-	@bin/mmctl team users add dev-team admin --local 2>/dev/null || echo "User already in team"
-	@echo "Admin setup complete: username=admin password=Admin@1234"
+	@bin/mmctl user create --email admin@localhost --username admin --password 'Passw0rd!' --system-admin --email-verified --local 2>/dev/null || echo "Admin user already exists"
+	@echo "Creating dev team..."
+	@bin/mmctl team create --name dev --display-name "Development" --local 2>/dev/null || echo "Team already exists"
+	@bin/mmctl team users add dev admin --local 2>/dev/null || echo "User already in team"
+	@echo "Admin setup complete: username=admin password=Passw0rd!"
