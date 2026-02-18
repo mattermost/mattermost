@@ -72,6 +72,6 @@ echo ">>> Adding admin to default team..."
 
 echo ""
 echo ">>> Admin setup complete!"
-echo ">>> Login at http://localhost:8065"
+echo ">>> Login at http://localhost:9005 (webapp dev server) or http://localhost:8065 (static build)"
 echo ">>>   Username: ${ADMIN_USERNAME}"
 echo ">>>   Password: ${ADMIN_PASSWORD}"

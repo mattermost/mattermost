@@ -10,8 +10,8 @@ This environment runs natively on Ubuntu without Docker. PostgreSQL, Redis, and 
 
 ## Environment Overview
 
-- **Server**: Go backend at `server/` -- runs on `http://localhost:8065`
-- **Webapp**: React/TypeScript frontend at `webapp/` -- runs via webpack-dev-server
+- **Server**: Go backend at `server/` -- API and static assets on `http://localhost:8065`
+- **Webapp**: React/TypeScript frontend at `webapp/` -- webpack-dev-server on `http://localhost:9005` (use this for UI development)
 - **Database**: PostgreSQL 14 on `localhost:5432` (user: `mmuser`, password: `mostest`, database: `mattermost_test`)
 - **Redis**: `localhost:6379`
 - **Browser**: agent-browser manages headless Chromium on-demand (no persistent Chrome process)
@@ -38,16 +38,18 @@ cd server && make cursor-cloud-run-server
 The server:
 - Sets `MM_NO_DOCKER=true` (skips Docker)
 - Uses `config/config-cursor-cloud.json` (dedicated config for this environment)
-- Builds webapp client assets and runs the Go server
-- Listens on `:8065`
+- Serves the API and static webapp assets on `:8065`
+- For live UI development, use the Webapp Dev Server on `:9005` instead
 
 ### Run the Webapp Dev Server
 
 ```bash
-cd webapp && npm run dev
+cd webapp && make dev
 ```
 
-Or use `make dev` from the `webapp/` directory. This starts webpack-dev-server with hot module replacement.
+This starts webpack-dev-server with hot module replacement on **port 9005**. Use `http://localhost:9005` to view the webapp during development -- changes to React/TypeScript/SCSS files are picked up automatically without a manual rebuild. The dev server proxies API requests to the Go server on port 8065.
+
+**Important**: When using agent-browser or verifying UI changes, navigate to `http://localhost:9005` (not 8065). Port 8065 serves the last static build and will not reflect webapp source changes until a full `npm run build`.
 
 ### Build Webapp Only
 
