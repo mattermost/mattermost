@@ -7407,6 +7407,10 @@
     "translation": "Unable to get postpriority for post"
   },
   {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Unable to get postpriority for post with context"
+  },
+  {
     "id": "app.post_reminder_dm",
     "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },

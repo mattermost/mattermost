@@ -71,7 +71,7 @@ describe('Team Settings', () => {
             cy.get('#allowedDomains').should('have.text', 'corp.mattermost.com, mattermost.com');
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
 
         // # Open the 'Invite People' full screen modal
