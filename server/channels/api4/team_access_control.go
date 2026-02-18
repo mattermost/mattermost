@@ -291,7 +291,8 @@ func updateTeamAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	// Prevent Team Admins from updating policies that would exclude themselves
 	if len(policy.Rules) > 0 {
 		expression := policy.Rules[0].Expression
-		if appErr := c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, expression); appErr != nil {
+		appErr = c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, expression)
+		if appErr != nil {
 			c.Err = appErr
 			return
 		}
@@ -411,7 +412,8 @@ func assignChannelsToTeamPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 	model.AddEventParameterToAuditRec(auditRec, "team_id", teamID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIDs)
 
-	if appErr := c.App.ValidateTeamPolicyChannelAssignment(c.AppContext, teamID, assignments.ChannelIDs); appErr != nil {
+	appErr = c.App.ValidateTeamPolicyChannelAssignment(c.AppContext, teamID, assignments.ChannelIDs)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
