@@ -7407,6 +7407,10 @@
     "translation": "Unable to get postpriority for post"
   },
   {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Unable to get postpriority for post with context"
+  },
+  {
     "id": "app.post_reminder_dm",
     "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
@@ -8587,6 +8591,10 @@
   {
     "id": "ent.autotranslation.add_task.nil_task",
     "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Translation task cannot be added because the worker has been stopped."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
