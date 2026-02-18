@@ -10884,10 +10884,6 @@
     "translation": "Нельга атрымаць пазначанае паведамленне, бо яно не пазначана."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Не атрымалася перазапісаць паведамленне ачышчаным паведамленнем пры пастаянным выдаленні пазначанага паведамлення."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Не атрымалася сабраць каментар рэцэнзента"
   },

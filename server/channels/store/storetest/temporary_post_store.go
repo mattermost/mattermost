@@ -108,7 +108,7 @@ func testTemporaryPostDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTemporaryPostGetExpiredPosts(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("should get expired posts", func(t *testing.T) {
+	t.Run("should get expired posts with pagination", func(t *testing.T) {
 		now := model.GetMillis()
 		pastTime := now - 3600000 // 1 hour ago
 
@@ -132,10 +132,80 @@ func testTemporaryPostGetExpiredPosts(t *testing.T, rctx request.CTX, ss store.S
 		_, err = ss.TemporaryPost().Save(rctx, validPost)
 		require.NoError(t, err)
 
-		// Get expired posts
-		expiredPosts, err := ss.TemporaryPost().GetExpiredPosts(rctx)
+		// Get expired posts with empty lastPostId (first page)
+		expiredPosts, err := ss.TemporaryPost().GetExpiredPosts(rctx, "", 100)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(expiredPosts))
-		require.Equal(t, expiredPost.ID, expiredPosts[0])
+		require.GreaterOrEqual(t, len(expiredPosts), 1)
+		require.Contains(t, expiredPosts, expiredPost.ID)
+		require.NotContains(t, expiredPosts, validPost.ID)
+
+		// Cleanup
+		_ = ss.TemporaryPost().Delete(rctx, expiredPost.ID)
+		_ = ss.TemporaryPost().Delete(rctx, validPost.ID)
+	})
+
+	t.Run("should return empty when no expired posts exist", func(t *testing.T) {
+		now := model.GetMillis()
+
+		// Create only non-expired posts
+		validPost := &model.TemporaryPost{
+			ID:       model.NewId(),
+			Type:     model.PostTypeDefault,
+			ExpireAt: now + 3600000, // 1 hour from now
+			Message:  "Valid message",
+		}
+		_, err := ss.TemporaryPost().Save(rctx, validPost)
+		require.NoError(t, err)
+
+		expiredPosts, err := ss.TemporaryPost().GetExpiredPosts(rctx, "", 100)
+		require.NoError(t, err)
+		require.Empty(t, expiredPosts)
+
+		// Cleanup
+		_ = ss.TemporaryPost().Delete(rctx, validPost.ID)
+	})
+
+	t.Run("should respect limit and paginate using lastPostId cursor", func(t *testing.T) {
+		now := model.GetMillis()
+		pastTime := now - 3600000 // 1 hour ago
+
+		// Create multiple expired posts
+		expiredPostIDs := make([]string, 5)
+		for i := range 5 {
+			post := &model.TemporaryPost{
+				ID:       model.NewId(),
+				Type:     model.PostTypeDefault,
+				ExpireAt: pastTime,
+				Message:  "Expired message",
+			}
+			_, err := ss.TemporaryPost().Save(rctx, post)
+			require.NoError(t, err)
+			expiredPostIDs[i] = post.ID
+		}
+
+		// Get first batch with limit of 2
+		firstBatch, err := ss.TemporaryPost().GetExpiredPosts(rctx, "", 2)
+		require.NoError(t, err)
+		require.Len(t, firstBatch, 2)
+
+		// Collect all expired posts through pagination
+		var allCollectedIDs []string
+		lastPostId := ""
+		for {
+			batch, err := ss.TemporaryPost().GetExpiredPosts(rctx, lastPostId, 2)
+			require.NoError(t, err)
+			if len(batch) == 0 {
+				break
+			}
+			allCollectedIDs = append(allCollectedIDs, batch...)
+			lastPostId = batch[len(batch)-1]
+		}
+
+		require.ElementsMatch(t, expiredPostIDs, allCollectedIDs)
+
+		// Cleanup
+		for _, id := range expiredPostIDs {
+			_ = ss.TemporaryPost().Delete(rctx, id)
+		}
 	})
 }

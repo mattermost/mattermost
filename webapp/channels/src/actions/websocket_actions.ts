@@ -3,14 +3,17 @@
 
 /* eslint-disable max-lines */
 
+import React from 'react';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
+import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
@@ -25,6 +28,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
     ChannelTypes,
     EmojiTypes,
+    FileTypes,
     GroupTypes,
     PostTypes,
     TeamTypes,
@@ -134,7 +138,7 @@ import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
+import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -143,12 +147,14 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import DialogRouter from 'components/dialog_router';
+import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -681,6 +687,12 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
+        break;
+    case WebSocketEvents.FileDownloadRejected:
+        dispatch(handleFileDownloadRejected(msg));
+        break;
+    case WebSocketEvents.ShowToast:
+        dispatch(handleShowToast(msg));
         break;
     default:
     }
@@ -2044,5 +2056,106 @@ export function handleRecapUpdated(msg: WebSocketMessages.RecapUpdated): ThunkAc
     return async (doDispatch) => {
         // Fetch the updated recap and dispatch to Redux
         doDispatch(getRecap(recapId));
+    };
+}
+
+export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRejected): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const {file_id: fileId, file_name: fileName, rejection_reason: rejectionReason, channel_id: channelId, post_id: postId, download_type: downloadType} = msg.data;
+
+        // Store the rejected file ID in Redux state
+        dispatch({
+            type: FileTypes.FILE_DOWNLOAD_REJECTED,
+            data: {
+                file_id: fileId,
+                file_name: fileName,
+                rejection_reason: rejectionReason,
+                channel_id: channelId,
+                post_id: postId,
+                download_type: downloadType,
+            },
+        });
+
+        // Handle different download types appropriately:
+        // - Thumbnail: Small preview in message list, loaded automatically, no modal, no toast
+        // - Preview: Can be either:
+        //   a) Large image in channel list (SingleImageView) - loaded automatically, no modal, no toast
+        //   b) Full-screen modal view - user clicked, modal open, close it WITH toast
+        // - File: User clicked download button, close modal WITH toast
+        // - Public: User requested public link, close modal WITH toast
+
+        if (downloadType === FileDownloadTypes.THUMBNAIL) {
+            // Thumbnails are loaded automatically in the background
+            // No modal to close, no toast to show
+            return;
+        }
+
+        if (downloadType === FileDownloadTypes.PREVIEW) {
+            // Check if the file preview modal is actually open
+            const state = getState();
+            const isModalOpen = state.views?.modals?.modalState?.[ModalIdentifiers.FILE_PREVIEW_MODAL]?.open;
+
+            if (!isModalOpen) {
+                // Preview was loaded in channel list (SingleImageView), not in modal
+                // This is an automatic background load, no toast needed
+                return;
+            }
+
+            // Modal is open, so user clicked to view the preview
+            // Close the modal and show toast to explain why
+            // Continue to close modal and show toast below
+        }
+
+        // Close the file preview modal for preview (when open), file, and public rejections
+        dispatch(closeModal(ModalIdentifiers.FILE_PREVIEW_MODAL));
+
+        // Show a toast notification to explain why the modal was closed
+        // Use normalized message format for all file types
+        const intl = getIntl();
+
+        const displayMessage = intl.formatMessage(
+            {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        // Show toast notification using the existing InfoToast system
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
+                    // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+function handleShowToast(msg: WebSocketMessages.ShowToast): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const {message, position} = msg.data;
+        if (message) {
+            const toastPosition = position as 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | undefined;
+            doDispatch(openModal({
+                modalId: ModalIdentifiers.INFO_TOAST,
+                dialogType: InfoToast,
+                dialogProps: {
+                    content: {
+                        message,
+                        icon: React.createElement(InformationOutlineIcon, {size: 18}),
+                    },
+                    position: toastPosition || 'bottom-right',
+                    onExited: () => {
+                        doDispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                    },
+                },
+            }));
+        }
     };
 }

@@ -3006,7 +3006,7 @@ const AdminDefinition: AdminDefinitionType = {
                     sections: [
                         {
                             key: 'PostSettings.Threads',
-                            title: 'Threads',
+                            title: defineMessage({id: 'admin.posts.sections.threads.title', defaultMessage: 'Threads'}),
                             description: defineMessage({id: 'admin.posts.sections.threads.description', defaultMessage: 'Configure threaded discussions and auto-follow defaults.'}),
                             settings: [
                                 {
@@ -3066,7 +3066,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Drafts',
-                            title: 'Drafts and Scheduled Posts',
+                            title: defineMessage({id: 'admin.posts.sections.drafts.title', defaultMessage: 'Drafts and Scheduled Posts'}),
                             description: defineMessage({id: 'admin.posts.sections.drafts.description', defaultMessage: 'Control draft syncing and scheduled sending.'}),
                             settings: [
                                 {
@@ -3089,7 +3089,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Priority',
-                            title: 'Priority & Urgent Notifications',
+                            title: defineMessage({id: 'admin.posts.sections.priority.title', defaultMessage: 'Priority & Urgent Notifications'}),
                             description: defineMessage({id: 'admin.posts.sections.priority.description', defaultMessage: 'Set message priority and repeating notifications for urgent delivery.'}),
                             settings: [
                                 {
@@ -3223,8 +3223,8 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.BurnOnRead',
-                            title: 'Self-Deleting Messages',
-                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being sent or read.'}),
+                            title: defineMessage({id: 'admin.posts.sections.burnOnRead.title', defaultMessage: 'Burn-on-Read Messages'}),
+                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being read.'}),
                             license_sku: LicenseSkus.EnterpriseAdvanced,
                             component: LicensedSectionContainer,
                             componentProps: {
@@ -3333,7 +3333,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Previews',
-                            title: 'Content & Previews',
+                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Previews'}),
                             description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
                             settings: [
                                 {
@@ -3437,7 +3437,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Performance',
-                            title: 'Performance & Limits',
+                            title: defineMessage({id: 'admin.posts.sections.performance.title', defaultMessage: 'Performance & Limits'}),
                             description: defineMessage({id: 'admin.posts.sections.performance.description', defaultMessage: 'Configure limits that protect client performance and rendering.'}),
                             settings: [
                                 {

@@ -219,12 +219,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     handleImageLoaded = (index: number) => {
         this.setState((prevState) => {
-            return {
+            const newState = {
                 loaded: {
                     ...prevState.loaded,
                     [index]: true,
                 },
             };
+            return newState;
         });
     };
 

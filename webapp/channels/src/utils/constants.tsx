@@ -175,6 +175,7 @@ export const TrialPeriodDays = {
 };
 
 export const suitePluginIds = {
+    agents: 'mattermost-ai',
     playbooks: 'playbooks',
     focalboard: 'focalboard',
 
@@ -927,6 +928,10 @@ export const FileTypes = {
     SVG: 'svg',
     OTHER: 'other',
     LICENSE_EXTENSION: '.mattermost-license',
+};
+
+export const HttpHeaders = {
+    REJECT_REASON: 'X-Reject-Reason',
 };
 
 export const NotificationLevels = {
