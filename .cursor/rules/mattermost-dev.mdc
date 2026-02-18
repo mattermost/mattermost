@@ -11,23 +11,42 @@ This environment runs natively on Ubuntu without Docker. PostgreSQL, Redis, and 
 ## Environment Overview
 
 - **Server**: Go backend at `server/` -- runs on `http://localhost:8065`
-- **Webapp**: React/TypeScript frontend at `webapp/` -- runs via webpack-dev-server
+- **Webapp**: React/TypeScript frontend at `webapp/` -- pre-built and also available via webpack-dev-server for HMR
 - **Database**: PostgreSQL 14 on `localhost:5432` (user: `mmuser`, password: `mostest`, database: `mattermost_test`)
 - **Redis**: `localhost:6379`
-- **Browser**: agent-browser manages headless Chromium on-demand (no persistent Chrome process)
+- **Browser**: agent-browser manages headless Chromium on-demand (pre-installed, no setup needed)
 - **Docker**: Disabled (`MM_NO_DOCKER=true`). All services run natively. Never use `docker`, `docker-compose`, or `make start-docker`.
+
+## Pre-configured Environment
+
+On session start, the following are automatically set up:
+
+- **PostgreSQL** and **Redis** are running
+- **Webapp** is pre-built at `webapp/channels/dist/` (server can serve pages immediately)
+- **Server** starts automatically in the "Mattermost Server" terminal with Air hot-reload
+- **Admin user** is created automatically when the server becomes healthy:
+  - Username: `admin`
+  - Password: `Passw0rd!`
+  - Team: `dev` (display name: "Development")
+- **agent-browser** Chromium is pre-installed (no need to run `agent-browser install`)
+
+### Quick Status Check
+
+```bash
+wt status   # Check all services
+wt port     # Get the server port number (prints just "8065")
+wt admin    # Show admin credentials
+```
 
 ## Building and Running
 
 ### Server Hot-Reload
 
-The server terminal runs with **Air** for automatic hot-reload. When you edit Go files, Air detects the change, rebuilds the server, and restarts it automatically. You do NOT need to manually restart the server after making Go changes.
+The "Mattermost Server" terminal runs with **Air** for automatic hot-reload. When you edit Go files, Air detects the change, rebuilds the server, and restarts it automatically. You do NOT need to manually restart the server after making Go changes.
 
-If you need to manually restart the server (e.g., after config changes), use tmux:
+If you need to manually restart the server (e.g., after config changes), find the server terminal and interrupt it (Ctrl+C), then re-run:
 ```bash
-tmux send-keys -t "Mattermost Server" C-c
-sleep 2
-tmux send-keys -t "Mattermost Server" "cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml" Enter
+cd server && air -c ../.cursor/.air.toml
 ```
 
 To run the server without Air (manual mode):
@@ -38,19 +57,23 @@ cd server && make cursor-cloud-run-server
 The server:
 - Sets `MM_NO_DOCKER=true` (skips Docker)
 - Uses `config/config-cursor-cloud.json` (dedicated config for this environment)
-- Builds webapp client assets and runs the Go server
+- Serves pre-built webapp client assets and runs the Go server
 - Listens on `:8065`
 
-### Run the Webapp Dev Server
+### Webapp Dev Server (for frontend HMR)
 
+The "Webapp Dev Server" terminal automatically starts webpack-dev-server with hot module replacement. This means CSS/JS changes are reflected instantly without rebuilding.
+
+If you need to restart it manually:
 ```bash
 cd webapp && npm run dev
 ```
 
-Or use `make dev` from the `webapp/` directory. This starts webpack-dev-server with hot module replacement.
+**Important**: When making frontend-only changes (CSS, JS, React components), use the webapp dev server URL for instant feedback. The Go server at :8065 serves the pre-built static bundle and requires a rebuild to reflect frontend changes.
 
 ### Build Webapp Only
 
+If you need to rebuild the static webapp (e.g., to update what the Go server serves):
 ```bash
 cd webapp && npm run build --workspace=channels
 ```
@@ -193,3 +216,39 @@ cd server && make setup-go-work
 - Use `make cursor-cloud-*` targets instead of the standard `make run-server`, `make test-server`, etc. The standard targets try to start Docker services.
 - Server tests that need database access will use the `MM_SQLSETTINGS_DATASOURCE` environment variable.
 - The webapp uses npm workspaces. Always use `--workspace=channels` (or the appropriate workspace) when running workspace-specific commands.
+
+## Enterprise Edition Limitations
+
+This environment runs the **Team Edition** (open source) build. The following features are **enterprise-only** and will NOT work:
+
+- Announcement banners (`AnnouncementSettings.EnableBanner`)
+- LDAP/SAML authentication
+- Compliance/audit features
+- Data retention policies
+- Elasticsearch (beyond basic DB search)
+- Custom permissions/schemes (advanced)
+- `mmctl --local` mode (the local mode socket is NOT created by Team Edition)
+- Guest accounts (some features)
+- Shared channels / remote clusters
+
+If you encounter a feature that seems to be configured but doesn't appear in the client, check `server/config/client.go` to see if it's gated behind `BuildEnterpriseReady`. Enterprise features are stripped from the client config in Team Edition builds.
+
+### Admin Management Without mmctl --local
+
+Since local mode doesn't work in Team Edition, use the REST API for admin tasks:
+
+```bash
+# Login and get token
+TOKEN=$(curl -s -D - -X POST http://localhost:8065/api/v4/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"login_id":"admin","password":"Passw0rd!"}' 2>/dev/null \
+  | grep -i "^token:" | awk '{print $2}' | tr -d '\r\n')
+
+# Use the token for API calls
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8065/api/v4/users/me
+```
+
+Or modify the database directly:
+```bash
+PGPASSWORD=mostest psql -h localhost -U mmuser -d mattermost_test -c "YOUR SQL HERE"
+```

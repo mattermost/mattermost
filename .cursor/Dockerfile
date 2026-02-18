@@ -16,6 +16,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Build essentials
     make git curl wget build-essential zip unzip jq ca-certificates gnupg lsb-release sudo \
+    # Terminal multiplexer (for running server in named sessions)
+    tmux \
     # XML security (Mattermost SAML support)
     xmlsec1 \
     # Document processing (Mattermost file previews)

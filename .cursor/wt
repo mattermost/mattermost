@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# wt - Workspace Tool for the Cursor Cloud Agent environment
+# Provides quick access to environment information.
+#
+# Usage:
+#   wt port          - Show which port the Mattermost server is running on
+#   wt status        - Show status of all services
+#   wt admin         - Show admin credentials
+#   wt logs          - Show recent server logs
+#   wt help          - Show this help
+
+set -euo pipefail
+
+case "${1:-help}" in
+    port)
+        # Check if server is listening on 8065
+        if curl -s -o /dev/null -w "%{http_code}" "http://localhost:8065/api/v4/system/ping" 2>/dev/null | grep -q "200"; then
+            echo "8065"
+        else
+            # Fall back to checking what's actually listening
+            PORT=$(ss -tlnp 2>/dev/null | grep -oP '(?<=:)(8065|808[0-9])(?=\s)' | head -1 || true)
+            if [ -n "${PORT}" ]; then
+                echo "${PORT}"
+            else
+                echo "Server does not appear to be running on any expected port."
+                echo "Expected port: 8065"
+                echo "Check server terminal or run: ss -tlnp | grep -E '806[0-9]|808[0-9]'"
+                exit 1
+            fi
+        fi
+        ;;
+    status)
+        echo "=== Mattermost Environment Status ==="
+        echo ""
+        # PostgreSQL
+        if sudo -u postgres pg_isready -q 2>/dev/null; then
+            echo "PostgreSQL: RUNNING (localhost:5432)"
+        else
+            echo "PostgreSQL: NOT RUNNING"
+        fi
+        # Redis
+        if redis-cli ping 2>/dev/null | grep -q PONG; then
+            echo "Redis:      RUNNING (localhost:6379)"
+        else
+            echo "Redis:      NOT RUNNING"
+        fi
+        # Mattermost Server
+        SERVER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8065/api/v4/system/ping" 2>/dev/null || echo "000")
+        if [ "${SERVER_STATUS}" = "200" ]; then
+            echo "Server:     RUNNING (localhost:8065)"
+        else
+            echo "Server:     NOT RUNNING (HTTP status: ${SERVER_STATUS})"
+        fi
+        # Webapp Dev Server
+        WEBAPP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:9005" 2>/dev/null || echo "000")
+        if [ "${WEBAPP_STATUS}" != "000" ]; then
+            echo "Webapp Dev: RUNNING (localhost:9005)"
+        else
+            echo "Webapp Dev: NOT RUNNING"
+        fi
+        echo ""
+        ;;
+    admin)
+        echo "=== Admin Credentials ==="
+        echo "Username: admin"
+        echo "Password: Passw0rd!"
+        echo "URL:      http://localhost:8065"
+        echo "Team:     dev (Development)"
+        ;;
+    logs)
+        if [ -f /tmp/mattermost-admin-setup.log ]; then
+            echo "=== Admin Setup Log ==="
+            cat /tmp/mattermost-admin-setup.log
+            echo ""
+        fi
+        ;;
+    help|--help|-h)
+        echo "wt - Workspace Tool for Mattermost Cursor Cloud Agent"
+        echo ""
+        echo "Usage:"
+        echo "  wt port     - Show server port (prints just the number)"
+        echo "  wt status   - Show status of all services"
+        echo "  wt admin    - Show admin credentials"
+        echo "  wt logs     - Show setup logs"
+        echo "  wt help     - Show this help"
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Run 'wt help' for usage."
+        exit 1
+        ;;
+esac

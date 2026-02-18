@@ -28,7 +28,7 @@ if ! sudo pg_lsclusters -h | grep -q "14.*main"; then
     sudo pg_createcluster 14 main
 fi
 
-sudo pg_ctlcluster 14 main start
+sudo pg_ctlcluster 14 main start 2>/dev/null || true
 
 # Wait for PostgreSQL to be ready
 echo ">>> Waiting for PostgreSQL to be ready..."
@@ -44,7 +44,6 @@ for i in $(seq 1 30); do
 done
 
 # Create dev database and user (idempotent)
-# Using 2>/dev/null || true so these don't fail if already exist
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'mostest';" 2>/dev/null || true
 sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='mmuser'" | grep -q 1 \
     || sudo -u postgres psql -c "CREATE USER mmuser WITH PASSWORD 'mostest' SUPERUSER CREATEDB;" 2>/dev/null
@@ -57,7 +56,7 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='mattermost_t
 # config at /etc/redis/redis.conf.
 # ============================================
 echo ">>> Starting Redis..."
-sudo service redis-server start
+sudo service redis-server start 2>/dev/null || true
 
 # Wait for Redis to be ready
 for i in $(seq 1 10); do
@@ -72,10 +71,68 @@ for i in $(seq 1 10); do
 done
 
 # ============================================
+# Install tmux if not present
+# Required for managing server process in a
+# named session. The Dockerfile should include
+# it, but this is a safety net.
+# ============================================
+if ! command -v tmux &>/dev/null; then
+    echo ">>> Installing tmux..."
+    sudo apt-get update -qq && sudo apt-get install -y -qq tmux 2>/dev/null
+fi
+
+# ============================================
+# Ensure server/client symlink exists
+# If webapp was pre-built during install but
+# the symlink is missing, create it.
+# ============================================
+if [ -d "${WORKSPACE_ROOT}/webapp/channels/dist" ] && [ ! -e "${WORKSPACE_ROOT}/server/client" ]; then
+    echo ">>> Creating server/client symlink..."
+    cd "${WORKSPACE_ROOT}/server"
+    ln -nfs ../webapp/channels/dist client
+fi
+
+# ============================================
+# Ensure wt CLI is installed
+# Safety net in case install.sh didn't run or
+# the symlink was lost.
+# ============================================
+if [ -f "${WORKSPACE_ROOT}/.cursor/wt" ] && ! command -v wt &>/dev/null; then
+    chmod +x "${WORKSPACE_ROOT}/.cursor/wt"
+    sudo ln -sf "${WORKSPACE_ROOT}/.cursor/wt" /usr/local/bin/wt
+fi
+
+# ============================================
+# Ensure Go workspace is set up
+# go.work is gitignored and may not exist yet.
+# ============================================
+if [ ! -f "${WORKSPACE_ROOT}/server/go.work" ]; then
+    echo ">>> Setting up Go workspace..."
+    cd "${WORKSPACE_ROOT}/server" && make setup-go-work 2>/dev/null || true
+fi
+
+# ============================================
+# Background: Admin user + team setup
+# Launches a background process that waits for
+# the server to become healthy, then creates
+# the admin user and default team via REST API.
+# This runs asynchronously so start.sh doesn't
+# block on the server starting.
+# ============================================
+echo ">>> Launching background admin setup (will run when server is ready)..."
+(
+    cd "${WORKSPACE_ROOT}"
+    bash .cursor/setup-admin.sh >> /tmp/mattermost-admin-setup.log 2>&1
+) &
+ADMIN_SETUP_PID=$!
+echo ">>> Admin setup running in background (PID: ${ADMIN_SETUP_PID})"
+echo ">>> Logs at /tmp/mattermost-admin-setup.log"
+
+# ============================================
 # NOTE: Chrome is NOT started here.
 # agent-browser manages its own Chromium
-# lifecycle on-demand. This saves memory when
-# the agent doesn't need browser access.
+# lifecycle on-demand. Chromium binaries are
+# pre-installed during the install phase.
 # ============================================
 
 echo ""
@@ -83,8 +140,11 @@ echo ">>> All services started!"
 echo ">>> PostgreSQL: localhost:5432 (mmuser:mostest / mattermost_test)"
 echo ">>> Redis:      localhost:6379"
 echo ""
-echo ">>> To start the Mattermost server, use the terminal command:"
-echo ">>>   cd server && make cursor-cloud-run-server"
+echo ">>> The Mattermost server will start automatically in the 'Mattermost Server' terminal."
+echo ">>> Admin user will be created automatically when the server is ready."
+echo ">>>   Username: admin"
+echo ">>>   Password: Passw0rd!"
+echo ">>>   Team:     dev (Development)"
 echo ""
-echo ">>> To create the admin user (after server is running):"
-echo ">>>   bash .cursor/setup-admin.sh"
+echo ">>> To check admin setup progress:"
+echo ">>>   cat /tmp/mattermost-admin-setup.log"

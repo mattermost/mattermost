@@ -95,6 +95,23 @@ cd "${WORKSPACE_ROOT}/webapp"
 npm install
 
 # ============================================
+# Pre-build webapp
+# Build the channels webapp so the server can
+# serve static files immediately. Without this,
+# the first request to the server returns an
+# error because root.html doesn't exist.
+# ============================================
+echo ">>> Pre-building webapp (channels)..."
+cd "${WORKSPACE_ROOT}/webapp"
+npm run build --workspace=channels
+
+# Create the server/client symlink to the built webapp
+echo ">>> Creating server/client symlink..."
+cd "${WORKSPACE_ROOT}/server"
+ln -nfs ../webapp/channels/dist client
+mkdir -p ../webapp/channels/dist/files
+
+# ============================================
 # Prepackaged binaries (mmctl)
 # Builds bin/mmctl which is needed for local
 # mode admin user creation and management.
@@ -126,7 +143,39 @@ echo ">>> Installing agent-browser skills..."
 cd "${WORKSPACE_ROOT}"
 npx -y skills add vercel-labs/agent-browser -a cursor -y --all
 
+# ============================================
+# agent-browser Chromium
+# Ensure the headless Chromium binary is
+# downloaded. This prevents agents from needing
+# to run this on first browser use.
+# ============================================
+echo ">>> Installing agent-browser Chromium..."
+agent-browser install --with-deps 2>/dev/null || echo ">>> agent-browser install skipped (may not be available yet)"
+
+# ============================================
+# Install tmux if not present
+# Needed for running server in named sessions.
+# The Dockerfile should include it, but this is
+# a safety net for existing images.
+# ============================================
+if ! command -v tmux &>/dev/null; then
+    echo ">>> Installing tmux..."
+    sudo apt-get update -qq && sudo apt-get install -y -qq tmux
+fi
+
+# ============================================
+# Install wt (Workspace Tool) CLI
+# Provides quick access to environment info
+# like port numbers, service status, and creds.
+# ============================================
+echo ">>> Installing wt CLI..."
+chmod +x "${WORKSPACE_ROOT}/.cursor/wt"
+sudo ln -sf "${WORKSPACE_ROOT}/.cursor/wt" /usr/local/bin/wt
+
 echo ""
 echo ">>> Install complete!"
-echo ">>> Go modules cached, webapp built, mmctl compiled."
+echo ">>> Go modules cached, webapp pre-built, mmctl compiled."
 echo ">>> Config generated at server/config/config-cursor-cloud.json"
+echo ">>> Webapp pre-built at webapp/channels/dist/"
+echo ">>> agent-browser Chromium installed"
+echo ">>> wt CLI available (run 'wt help')"

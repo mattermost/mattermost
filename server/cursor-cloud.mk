@@ -78,14 +78,10 @@ cursor-cloud-test-server-quick: setup-go-work gotestsum
 # -----------------------------------------------
 # Setup admin: create initial admin user and team
 # Run AFTER the server is started.
+# Uses the REST API + direct DB, not mmctl --local
+# (local mode socket may not exist in Team Edition).
 # -----------------------------------------------
 .PHONY: cursor-cloud-setup-admin
 cursor-cloud-setup-admin:
-	@echo "Waiting for server to start..."
-	@./scripts/wait-for-system-start.sh
-	@echo "Creating admin user..."
-	@bin/mmctl user create --email admin@example.com --username admin --password 'Admin@1234' --system-admin --email-verified --local 2>/dev/null || echo "Admin user already exists"
-	@echo "Creating default team..."
-	@bin/mmctl team create --name dev-team --display-name "Dev Team" --local 2>/dev/null || echo "Team already exists"
-	@bin/mmctl team users add dev-team admin --local 2>/dev/null || echo "User already in team"
-	@echo "Admin setup complete: username=admin password=Admin@1234"
+	@echo "Running admin setup via REST API..."
+	@bash ../.cursor/setup-admin.sh
