@@ -13,8 +13,9 @@ root = "."
 tmp_dir = "/tmp/air"
 
 [build]
-  # Build command — same as cursor-cloud-run-server but compiles a binary
-  cmd = "MM_NO_DOCKER=true go build -tags '$(BUILD_TAGS)' -o /tmp/air/mattermost ./cmd/mattermost"
+  # Build command — sets BuildNumber=dev so the server adds 'unsafe-eval' to CSP
+  # (required for webpack watch-mode source maps) and skips rewriting root.html.
+  cmd = "MM_NO_DOCKER=true go build -ldflags '-X github.com/mattermost/mattermost/server/public/model.BuildNumber=dev' -tags '$(BUILD_TAGS)' -o /tmp/air/mattermost ./cmd/mattermost"
   # Binary to run
   bin = "/tmp/air/mattermost"
   # Full binary command with env vars (air <v1.62 doesn't support [build.env])
