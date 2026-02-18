@@ -315,7 +315,11 @@
       "paths": [
         "channels/src/components/**"
       ],
-      "tests": [],
+      "tests": [
+        "specs/accessibility/common/login.spec.ts",
+        "specs/accessibility/common/reset_password.spec.ts",
+        "specs/accessibility/common/signup_user_complete.spec.ts"
+      ],
       "audience": [
         "member",
         "guest"

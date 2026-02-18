@@ -37,9 +37,11 @@
     "test:ai:validate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-allow-fallback --pipeline-scenarios 2",
     "test:ai:finalize": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js finalize-generated-tests --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:health": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js llm-health",
-    "test:manifest:generate": "node scripts/generate-flow-manifest.js",
-    "test:manifest:validate": "node scripts/validate-flow-coverage.js",
-    "test:manifest:validate:strict": "node scripts/validate-flow-coverage.js --strict"
+    "test:manifest:discover": "node scripts/discover-test-mappings.js",
+    "test:manifest:merge": "node scripts/merge-test-mappings.js",
+    "test:manifest:validate": "node scripts/validate-manifest.js",
+    "test:manifest:validate:strict": "node scripts/validate-manifest.js --strict",
+    "test:manifest:sync": "npm run test:manifest:discover && npm run test:manifest:merge && npm run test:manifest:validate"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
