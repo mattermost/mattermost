@@ -41,7 +41,8 @@
     "test:manifest:merge": "node scripts/merge-test-mappings.js",
     "test:manifest:validate": "node scripts/validate-manifest.js",
     "test:manifest:validate:strict": "node scripts/validate-manifest.js --strict",
-    "test:manifest:sync": "npm run test:manifest:discover && npm run test:manifest:merge && npm run test:manifest:validate"
+    "test:manifest:validate:pre-gap": "node scripts/validate-manifest.js --pre-gap",
+    "test:manifest:sync": "npm run test:manifest:discover && npm run test:manifest:merge && npm run test:manifest:validate:pre-gap"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",

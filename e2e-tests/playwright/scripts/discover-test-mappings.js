@@ -26,11 +26,16 @@ const DIAGNOSTICS_PATH = path.join(__dirname, '../.e2e-ai-agents/manifest-diagno
 /**
  * Extract tokens from a file path
  * e.g., specs/functional/messaging.send/messaging.send.spec.ts
- *    → ['messaging', 'send']
+ *    → ['messaging', 'send', 'messaging', 'send']
  */
 function extractPathTokens(filePath) {
   return filePath
     .split(/[/-]/)
+    .flatMap(segment => {
+      // Further split on dots and underscores
+      return segment.split(/[._]/);
+
+    })
     .filter(token => token && token !== 'specs' && token !== 'spec' && token !== 'ts' && token !== 'js')
     .map(token => token.toLowerCase());
 }
@@ -104,12 +109,24 @@ function scoreMatch(testPath, testTokens, testTitle, testImports, flow) {
   }
 
   // Signal 4: Import path overlap
-  const importOverlap = testImports.filter(imp =>
-    flow.paths?.some(flowPath => {
-      const normalized = flowPath.replace(/\*\*?\/?$/, '').toLowerCase();
-      return imp.includes(normalized.replace(/\//g, ''));
-    })
-  );
+  const importOverlap = testImports.filter(imp => {
+    return flow.paths?.some(flowPath => {
+      // Normalize both paths consistently: remove wildcards, lowercase, split on / . and _
+      const normalizedFlow = flowPath
+        .replace(/\*\*?\/?$/, '')
+        .toLowerCase()
+        .split(/[/._]/)
+        .filter(t => t);
+
+      const normalizedImp = imp
+        .toLowerCase()
+        .split(/[/._]/)
+        .filter(t => t);
+
+      // Check for meaningful overlap (at least one token in common)
+      return normalizedFlow.some(token => normalizedImp.includes(token));
+    });
+  });
   if (importOverlap.length > 0) {
     score += 0.1;
     signals.push('import_match');
@@ -171,24 +188,55 @@ function discoverMappings(minConfidence = 0.5) {
 
     if (candidates.length === 0) {
       diagnostics.unmappedTests.push(testFile.path);
-    } else if (candidates.length === 1) {
-      const flowId = candidates[0].flow;
-      if (!mappings[flowId]) {
-        mappings[flowId] = [];
-      }
-      mappings[flowId].push({
-        path: testFile.path,
-        confidence: Number(candidates[0].score.toFixed(2)),
-        signals: candidates[0].signals,
-      });
-      diagnostics.mappedTests++;
     } else {
-      // Ambiguous: multiple flows could match
+      // Sort by score descending
       candidates.sort((a, b) => b.score - a.score);
-      diagnostics.ambiguousMappings.push({
-        testPath: testFile.path,
-        candidates: candidates.map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
-      });
+      const bestCandidate = candidates[0];
+
+      if (candidates.length === 1 || bestCandidate.score > candidates[1].score + 0.15) {
+        // Single candidate or clear winner (> 0.15 ahead of second place)
+        const flowId = bestCandidate.flow;
+        if (!mappings[flowId]) {
+          mappings[flowId] = [];
+        }
+        mappings[flowId].push({
+          path: testFile.path,
+          confidence: Number(bestCandidate.score.toFixed(2)),
+          signals: bestCandidate.signals,
+        });
+        diagnostics.mappedTests++;
+
+        // If not a clear winner, still log as ambiguous for review
+        if (candidates.length > 1 && bestCandidate.score <= candidates[1].score + 0.15) {
+          diagnostics.ambiguousMappings.push({
+            testPath: testFile.path,
+            selected: { flow: bestCandidate.flow, score: Number(bestCandidate.score.toFixed(2)) },
+            otherCandidates: candidates.slice(1).map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
+            reason: 'Best candidate selected, but others were close',
+          });
+        }
+      } else {
+        // Multiple candidates with similar scores: select best candidate if margin is not too small
+        // Prefer assigning the top candidate to get coverage rather than leaving test unmapped
+        const flowId = bestCandidate.flow;
+        if (!mappings[flowId]) {
+          mappings[flowId] = [];
+        }
+        mappings[flowId].push({
+          path: testFile.path,
+          confidence: Number(bestCandidate.score.toFixed(2)),
+          signals: bestCandidate.signals,
+        });
+        diagnostics.mappedTests++;
+
+        // Log as ambiguous for review
+        diagnostics.ambiguousMappings.push({
+          testPath: testFile.path,
+          selected: { flow: bestCandidate.flow, score: Number(bestCandidate.score.toFixed(2)) },
+          otherCandidates: candidates.slice(1).map(c => ({ flow: c.flow, score: Number(c.score.toFixed(2)) })),
+          reason: 'Multiple candidates with similar scores - best candidate selected',
+        });
+      }
     }
   }
 
@@ -248,7 +296,13 @@ function main() {
     console.log('⚠️  Ambiguous mappings (multiple candidates):');
     diagnostics.ambiguousMappings.slice(0, 3).forEach(m => {
       console.log(`   ${m.testPath}`);
-      m.candidates.forEach(c => console.log(`     → ${c.flow} (${c.score})`));
+      // Handle both old format (candidates) and new format (selected + otherCandidates)
+      if (m.candidates) {
+        m.candidates.forEach(c => console.log(`     → ${c.flow} (${c.score})`));
+      } else if (m.selected) {
+        console.log(`     ✓ ${m.selected.flow} (${m.selected.score})`);
+        m.otherCandidates.forEach(c => console.log(`     → ${c.flow} (${c.score})`));
+      }
     });
     if (diagnostics.ambiguousMappings.length > 3) {
       console.log(`   ... and ${diagnostics.ambiguousMappings.length - 3} more\n`);

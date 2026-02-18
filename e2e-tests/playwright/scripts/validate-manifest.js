@@ -94,7 +94,13 @@ function reportDiagnostics() {
     items.push(`⚠️  Ambiguous mappings (${diagnostics.ambiguousMappings.length}):`);
     diagnostics.ambiguousMappings.slice(0, 3).forEach(m => {
       items.push(`   ${m.testPath}`);
-      m.candidates.forEach(c => items.push(`     → ${c.flow} (${c.score})`));
+      // Handle both old format (candidates) and new format (selected + otherCandidates)
+      if (m.candidates) {
+        m.candidates.forEach(c => items.push(`     → ${c.flow} (${c.score})`));
+      } else if (m.selected) {
+        items.push(`     ✓ ${m.selected.flow} (${m.selected.score})`);
+        m.otherCandidates?.forEach(c => items.push(`     → ${c.flow} (${c.score})`));
+      }
     });
     if (diagnostics.ambiguousMappings.length > 3) {
       items.push(`   ... and ${diagnostics.ambiguousMappings.length - 3} more`);
@@ -132,6 +138,7 @@ function reportDiagnostics() {
 function main() {
   const argv = process.argv.slice(2);
   const strict = argv.includes('--strict');
+  const preGap = argv.includes('--pre-gap');
 
   console.log('✅ Validating manifest...\n');
 
@@ -143,16 +150,25 @@ function main() {
     process.exit(1);
   }
 
-  // Check P0 coverage
+  // Check P0 coverage (with mode handling)
   const p0Errors = validateP0Coverage();
   if (p0Errors.length > 0) {
-    console.error('❌ P0 Coverage Validation Failed:\n');
-    p0Errors.forEach(err => console.error(err));
-    process.exit(1);
+    if (preGap) {
+      // Pre-gap mode: warn only, don't fail
+      // Gap analysis is supposed to FIND these gaps, so validation shouldn't block it
+      console.warn('⚠️  P0 Coverage Warnings (pre-gap mode):\n');
+      p0Errors.forEach(err => console.warn(err));
+      console.log('(Not failing in pre-gap mode - gap analysis will address these)\n');
+    } else {
+      // Normal mode: fail if P0 gaps still exist after gap analysis
+      console.error('❌ P0 Coverage Validation Failed:\n');
+      p0Errors.forEach(err => console.error(err));
+      process.exit(1);
+    }
+  } else {
+    console.log('✅ All test paths exist');
+    console.log('✅ P0 flows have coverage\n');
   }
-
-  console.log('✅ All test paths exist');
-  console.log('✅ P0 flows have coverage\n');
 
   // Report diagnostics
   const diagnostics = reportDiagnostics();

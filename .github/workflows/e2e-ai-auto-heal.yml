@@ -99,7 +99,7 @@ jobs:
 
       - name: Sync test mappings
         working-directory: e2e-tests/playwright
-        run: npm run test:manifest:sync || true
+        run: npm run test:manifest:sync
 
       - name: Run auto-healing
         id: heal

@@ -52,7 +52,7 @@ jobs:
 
       - name: Sync test mappings
         working-directory: e2e-tests/playwright
-        run: npm run test:manifest:sync || true
+        run: npm run test:manifest:sync
 
       - name: Analyze test gaps
         id: gap-analysis
@@ -103,7 +103,7 @@ jobs:
 
       - name: Sync test mappings before generation
         working-directory: e2e-tests/playwright
-        run: npm run test:manifest:sync || true
+        run: npm run test:manifest:sync
 
       - name: Generate tests for gaps
         id: generate
