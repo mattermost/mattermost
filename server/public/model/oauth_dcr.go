@@ -105,9 +105,9 @@ func IsValidDCRRedirectURIPattern(pattern string) bool {
 		}
 	}
 	// Reject malformed wildcard runs. Supported tokens are "*" and "**".
-if strings.Contains(pattern, "***") {
-    return false
-}
+	if strings.Contains(pattern, "***") {
+		return false
+	}
 
 	// Replace wildcard tokens with concrete placeholders so URL parsing can validate
 	// overall shape (scheme, host, and URI formatting).
