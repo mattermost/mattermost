@@ -99,6 +99,16 @@ fi
 echo ">>> Creating mmctl socket symlink..."
 ln -sf /var/tmp/mattermost_cursor_cloud.sock /var/tmp/mattermost_local.socket
 
+# ============================================
+# Enable Claude documentation
+# Copies CLAUDE.OPTIONAL.md files to CLAUDE.md
+# throughout the repo for local-only docs.
+# ============================================
+if [ -x "${WORKSPACE_ROOT}/enable-claude-docs.sh" ]; then
+    echo ">>> Enabling Claude documentation..."
+    bash "${WORKSPACE_ROOT}/enable-claude-docs.sh"
+fi
+
 echo ""
 echo ">>> All services started!"
 echo ">>> PostgreSQL: localhost:5432 (mmuser:mostest / mattermost_test)"
