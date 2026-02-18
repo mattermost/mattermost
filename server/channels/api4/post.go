@@ -327,7 +327,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
-	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+	c.App.AddCursorIdsForPostList(clientPostList, c.AppContext.Session().UserId, afterPost, beforePost, since, page, perPage, collapsedThreads)
 
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
@@ -408,8 +408,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
-	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
-	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, c.AppContext.Session().UserId, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, c.AppContext.Session().UserId, collapsedThreads)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

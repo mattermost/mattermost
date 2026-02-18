@@ -392,6 +392,7 @@ type PostStore interface {
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdAfter(channelID string, timestamp int64, collapsedThreads bool, excludeIds []string) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	GetPostIdBefore(channelID string, timestamp int64, collapsedThreads bool, excludeIds []string) (string, error)
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)

@@ -3367,6 +3367,10 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 			// since the channel is created with th.Client,
 			// user1 will be in the channel.
 			th.AddUserToChannel(t, user2, ch)
+			t.Cleanup(func() {
+				_, err := th.Client.DeleteChannel(context.Background(), ch.Id)
+				require.NoError(t, err)
+			})
 			return ch
 		}
 
@@ -3444,10 +3448,6 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 			// PrevPostId should skip the expired BoR post and point to regular1
 			assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip expired BoR post and point to regular1")
-
-			// Expired BoR post must not appear as either cursor
-			assert.NotEqual(t, borPost.Id, posts.NextPostId, "expired BoR post should not be NextPostId")
-			assert.NotEqual(t, borPost.Id, posts.PrevPostId, "expired BoR post should not be PrevPostId")
 		})
 
 		t.Run("non-expired BoR post is visible and NextPostId/PrevPostId reference correctly", func(t *testing.T) {
@@ -3510,7 +3510,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		t.Run("multiple expired BoR posts are all excluded from results", func(t *testing.T) {
 			ch := createChannel(t)
 
-			_ = createRegularPost(t, client1, ch, "regular 1")
+			regular1 := createRegularPost(t, client1, ch, "regular 1")
 			bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
 			bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
 			regular2 := createRegularPost(t, client1, ch, "regular 2")
@@ -3539,14 +3539,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 			// Regular posts should be present
 			assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
 
-			// Expired BoR posts must not appear as NextPostId
-			assert.NotEqual(t, bor1.Id, posts.NextPostId, "expired bor1 should not be NextPostId")
-			assert.NotEqual(t, bor2.Id, posts.NextPostId, "expired bor2 should not be NextPostId")
-
-			// bor1 (the first unread) is tracked in ExpiredPosts and excluded from PrevPostId.
-			// NOTE: bor2 is not tracked because PostList.Extend does not merge ExpiredPosts
-			// from sub-queries, so only the first-unread expired post is excluded.
-			assert.NotEqual(t, bor1.Id, posts.PrevPostId, "expired bor1 should not be PrevPostId")
+			assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip both expired BoR posts and point to regular1")
 		})
 
 		t.Run("BoR feature disabled - expired receipt posts still appear normally", func(t *testing.T) {
@@ -3596,6 +3589,72 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 			assert.Contains(t, posts.Order, borPost.Id, "author should see own BoR post in Order")
 			assert.Contains(t, posts.Posts, borPost.Id, "author should see own BoR post in Posts")
 			assert.Equal(t, "my secret message", posts.Posts[borPost.Id].Message, "author should see full BoR post message")
+		})
+
+		t.Run("NextPostId skips expired BoR posts outside the page window", func(t *testing.T) {
+			ch := createChannel(t)
+
+			// regular1 is the first unread. regular2 fits in the page window.
+			// bor1 and bor2 sit just beyond the window, then regular3 follows.
+			// NextPostId must skip both expired BoR posts and point to regular3.
+			regular1 := createRegularPost(t, client1, ch, "regular 1")
+			regular2 := createRegularPost(t, client1, ch, "regular 2")
+			bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
+			bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
+			regular3 := createRegularPost(t, client1, ch, "regular 3")
+
+			setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
+
+			// Reveal then burn both BoR posts
+			_, _, err := client1.RevealPost(context.Background(), bor1.Id)
+			require.NoError(t, err)
+			_, _, err = client1.RevealPost(context.Background(), bor2.Id)
+			require.NoError(t, err)
+			burnPost(t, client1, bor1.Id)
+			burnPost(t, client1, bor2.Id)
+
+			// limitAfter=2 → window = [regular1, regular2]
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 2, false)
+			require.NoError(t, err)
+
+			assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
+			assert.NotContains(t, posts.Order, bor1.Id, "bor1 should not be in the page window")
+			assert.NotContains(t, posts.Order, bor2.Id, "bor2 should not be in the page window")
+
+			assert.Equal(t, regular3.Id, posts.NextPostId, "NextPostId should skip expired BoR posts and point to regular3")
+		})
+
+		t.Run("PrevPostId skips expired BoR posts outside the page window", func(t *testing.T) {
+			ch := createChannel(t)
+
+			// regular1, then bor1+bor2 (expired), then regular2 is the first unread.
+			// PrevPostId must skip both expired BoR posts and point to regular1.
+			regular1 := createRegularPost(t, client1, ch, "regular 1")
+			bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
+			bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
+			regular2 := createRegularPost(t, client1, ch, "regular 2")
+			regular3 := createRegularPost(t, client1, ch, "regular 3")
+
+			setLastViewedAt(t, ch.Id, user1.Id, regular2.CreateAt-1)
+
+			// Reveal then burn both BoR posts
+			_, _, err := client1.RevealPost(context.Background(), bor1.Id)
+			require.NoError(t, err)
+			_, _, err = client1.RevealPost(context.Background(), bor2.Id)
+			require.NoError(t, err)
+			burnPost(t, client1, bor1.Id)
+			burnPost(t, client1, bor2.Id)
+
+			// limitBefore=1 → only 1 post before regular2, which is... bor2 is the
+			// immediate predecessor but it's expired. The page should end up with
+			// regular2+regular3 and PrevPostId should skip bor2 and bor1.
+			posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 5, false)
+			require.NoError(t, err)
+
+			assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
+			assert.Contains(t, posts.Order, regular3.Id, "regular3 should be in the page window")
+
+			assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip expired BoR posts and point to regular1")
 		})
 	})
 }

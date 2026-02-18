@@ -390,6 +390,34 @@ func (_m *PostStore) GetMaxPostSize() int {
 	return r0
 }
 
+// GetVisiblePostIdAroundTime provides a mock function with given fields: channelID, timestamp, before, collapsedThreads, userID
+func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error) {
+	ret := _m.Called(channelID, timestamp, before, collapsedThreads, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetVisiblePostIdAroundTime")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) (string, error)); ok {
+		return rf(channelID, timestamp, before, collapsedThreads, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) string); ok {
+		r0 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool, string) error); ok {
+		r1 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNthRecentPostTime provides a mock function with given fields: n
 func (_m *PostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	ret := _m.Called(n)

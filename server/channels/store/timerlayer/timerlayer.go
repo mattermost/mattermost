@@ -6707,6 +6707,22 @@ func (s *TimerLayerPostStore) GetPostIdAfter(channelID string, timestamp int64, 
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetVisiblePostIdAroundTime(channelID, timestamp, before, collapsedThreads, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetVisiblePostIdAroundTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
 	start := time.Now()
 

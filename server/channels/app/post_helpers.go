@@ -293,7 +293,7 @@ func (a *App) filterBurnOnReadPosts(postList *model.PostList) *model.AppError {
 
 	// Remove burn-on-read posts from the list
 	for _, postID := range burnOnReadPostIDs {
-		a.removePostFromList(postList, postID, true)
+		a.removePostFromList(postList, postID)
 	}
 
 	// Filter Order slice directly to ensure all burn-on-read posts are removed
@@ -398,7 +398,7 @@ func (a *App) revealBurnOnReadPostsForUser(rctx request.CTX, postList *model.Pos
 
 		// If receipt expired, remove post from list
 		if a.isReceiptExpired(receipt) {
-			a.removePostFromList(postList, post.Id, true)
+			a.removePostFromList(postList, post.Id)
 			continue
 		}
 
