@@ -344,6 +344,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(true),
 					EnableUserManagedAttributes:       model.NewPointer(true),
+					EnableTeamAdminPolicyManagement:   model.NewPointer(true),
 				},
 			},
 			"",
@@ -351,6 +352,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
 				"EnableUserManagedAttributes":       "true",
+				"EnableTeamAdminPolicyManagement":   "true",
 			},
 		},
 		{
@@ -359,6 +361,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(false),
 					EnableUserManagedAttributes:       model.NewPointer(false),
+					EnableTeamAdminPolicyManagement:   model.NewPointer(false),
 				},
 			},
 			"",
@@ -366,6 +369,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableTeamAdminPolicyManagement":   "false",
 			},
 		},
 		{
@@ -376,6 +380,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableTeamAdminPolicyManagement":   "false",
 			},
 		},
 		{

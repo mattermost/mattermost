@@ -4448,7 +4448,10 @@ components:
           description: The ID of the user to start the test after (for pagination).
         channelId:
           type: string
-          description: The channel ID to contextually test the expression against (required for channel admins).
+          description: The channel ID for channel-specific permission checks (required for channel admins). Mutually exclusive with teamId.
+        teamId:
+          type: string
+          description: The team ID for team-specific permission checks (required for team admins). Mutually exclusive with channelId.
     CELExpression:
       type: object
       properties:
@@ -4457,7 +4460,10 @@ components:
           description: The CEL expression to visualize.
         channelId:
           type: string
-          description: The channel ID to contextually test the expression against (required for channel admins).
+          description: The channel ID for channel-specific permission checks (required for channel admins). Mutually exclusive with teamId.
+        teamId:
+          type: string
+          description: The team ID for team-specific permission checks (required for team admins). Mutually exclusive with channelId.
     VisualExpression:
       type: object
       properties:

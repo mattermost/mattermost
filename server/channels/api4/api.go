@@ -373,6 +373,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitCustomProfileAttributes()
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
+	api.InitTeamAccessControlPolicy()
 	api.InitContentFlagging()
 	api.InitAgents()
 
