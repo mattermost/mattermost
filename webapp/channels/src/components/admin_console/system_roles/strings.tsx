@@ -85,7 +85,7 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
         },
         type: {
             id: 'admin.permissions.roles.shared_channel_manager.type',
-            defaultMessage: 'Shared Channels',
+            defaultMessage: 'System Role',
         },
     }),
     secure_connection_manager: defineMessages({
@@ -99,7 +99,7 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
         },
         type: {
             id: 'admin.permissions.roles.secure_connection_manager.type',
-            defaultMessage: 'Secure Connections',
+            defaultMessage: 'System Role',
         },
     }),
 };
