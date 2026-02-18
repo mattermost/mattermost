@@ -126,7 +126,19 @@ echo ">>> Installing agent-browser skills..."
 cd "${WORKSPACE_ROOT}"
 npx -y skills add vercel-labs/agent-browser -a cursor -y --all
 
+# ============================================
+# Playwright browsers for agent-browser
+# agent-browser uses Playwright under the hood.
+# Pre-install Chromium so `agent-browser open`
+# works without needing `agent-browser install
+# --with-deps` first.
+# ============================================
+echo ">>> Installing Playwright browsers (Chromium)..."
+cd "${WORKSPACE_ROOT}"
+npx -y playwright install chromium
+
 echo ""
 echo ">>> Install complete!"
 echo ">>> Go modules cached, webapp built, mmctl compiled."
+echo ">>> Playwright Chromium installed for agent-browser."
 echo ">>> Config generated at server/config/config-cursor-cloud.json"

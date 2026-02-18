@@ -33,6 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxss1 libglib2.0-0 libx11-6 libxcb1 libxext6 \
     # Fonts (needed for Chromium to render pages correctly)
     fonts-liberation fonts-noto-color-emoji \
+    # Terminal multiplexer (for managing server/webapp terminals)
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================
