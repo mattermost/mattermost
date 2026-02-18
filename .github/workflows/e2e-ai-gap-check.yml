@@ -32,6 +32,10 @@ jobs:
           skip-build: 'true'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      - name: Sync test mappings
+        working-directory: e2e-tests/playwright
+        run: npm run test:manifest:sync
+
       - name: Run gap analysis
         working-directory: e2e-tests/playwright
         run: |

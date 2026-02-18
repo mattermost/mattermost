@@ -97,6 +97,10 @@ jobs:
           docker compose -f docker-compose.yml up -d
           timeout 300 bash -c 'until curl -s http://localhost:8065/api/v4/system/ping | grep -q ok; do sleep 2; done' || exit 1
 
+      - name: Sync test mappings
+        working-directory: e2e-tests/playwright
+        run: npm run test:manifest:sync || true
+
       - name: Run auto-healing
         id: heal
         working-directory: e2e-tests/playwright

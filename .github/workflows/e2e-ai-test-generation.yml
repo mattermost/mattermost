@@ -50,6 +50,10 @@ jobs:
           skip-build: 'true'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      - name: Sync test mappings
+        working-directory: e2e-tests/playwright
+        run: npm run test:manifest:sync || true
+
       - name: Analyze test gaps
         id: gap-analysis
         working-directory: e2e-tests/playwright
@@ -96,6 +100,10 @@ jobs:
         uses: ./.github/actions/setup-e2e-ai-agents
         with:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Sync test mappings before generation
+        working-directory: e2e-tests/playwright
+        run: npm run test:manifest:sync || true
 
       - name: Generate tests for gaps
         id: generate
