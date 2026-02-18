@@ -21,10 +21,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
       - name: Setup E2E AI Agents environment
         uses: ./.github/actions/setup-e2e-ai-agents
         with:
-          fetch-depth: '0'
           skip-build: 'true'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
