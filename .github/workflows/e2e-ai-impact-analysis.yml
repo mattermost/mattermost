@@ -1,0 +1,137 @@
+name: E2E-Agents Impact Analysis
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/**'
+      - 'e2e-tests/playwright/**'
+      - '.github/workflows/e2e-ai-impact-analysis.yml'
+    branches:
+      - 'master'
+      - 'main'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  impact-analysis:
+    name: Impact Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.base_ref }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: e2e-tests/playwright
+        run: npm ci
+
+      - name: Run impact analysis
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact \
+            --path ../../webapp \
+            --tests-root . \
+            --config ./e2e-ai-agents.config.json \
+            --since origin/$BASE_REF
+
+      - name: Extract impact summary
+        working-directory: e2e-tests/playwright
+        id: impact_summary
+        run: |
+          PLAN_FILE=".e2e-ai-agents/reports/impact-plan.md"
+          if [ -f "$PLAN_FILE" ]; then
+            echo "report_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "report_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post PR comment with impact analysis
+        if: github.event_name == 'pull_request' && steps.impact_summary.outputs.report_exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'e2e-tests/playwright/.e2e-ai-agents/reports/impact-plan.md';
+
+            if (!fs.existsSync(reportPath)) {
+              console.log('Impact report not found, skipping comment');
+              return;
+            }
+
+            const fullReport = fs.readFileSync(reportPath, 'utf8');
+            let comment = '';
+            comment += '## 📈 E2E Test Impact Analysis\n\n';
+
+            comment += 'This PR affects the following test coverage:\n\n';
+
+            const affectedSection = fullReport.substring(
+              fullReport.indexOf('Impacted Flows:'),
+              fullReport.indexOf('Changed Files:')
+            );
+
+            if (affectedSection && affectedSection.length > 20) {
+              const flows = affectedSection.split('\n').filter(l => l.includes('[P0]') || l.includes('[P1]'));
+              if (flows.length > 0) {
+                comment += '**Affected Flows:**\n';
+                flows.slice(0, 10).forEach(flow => {
+                  comment += `- ${flow}\n`;
+                });
+                comment += '\n';
+              } else {
+                comment += '✅ No critical test flows affected\n\n';
+              }
+            }
+
+            const decisionMatch = fullReport.match(/Decision: (.*)\n/);
+            if (decisionMatch) {
+              const decision = decisionMatch[1];
+              if (decision.includes('must-add-tests')) {
+                comment += '⚠️ **Recommendation**: Tests should be added for affected flows\n\n';
+              } else if (decision.includes('should-add-tests')) {
+                comment += '📋 **Recommendation**: Consider adding tests for affected flows\n\n';
+              } else {
+                comment += '✅ **Recommendation**: Current test coverage is sufficient\n\n';
+              }
+            }
+
+            comment += '**How to Generate Tests:**\n';
+            comment += '```bash\n';
+            comment += 'npm run test:ai:generate --scenarios 3\n';
+            comment += 'npm run test -- ai-assisted\n';
+            comment += 'npm run test:ai:finalize --create-pr\n';
+            comment += '```\n\n';
+
+            comment += '📖 [View full impact report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+            comment += '📚 [E2E Testing Guide](./e2e-tests/playwright/AI_TESTING_GUIDE.md)\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Upload impact report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impact-analysis-report
+          path: e2e-tests/playwright/.e2e-ai-agents/reports/impact-plan.md
+          retention-days: 30

@@ -126,10 +126,7 @@ jobs:
 
           git add e2e-tests/playwright/.e2e-ai-agents/metrics-summary.json 2>/dev/null || true
 
-          git commit -m "chore: update e2e-ai metrics summary
-
-Weekly aggregation of e2e-ai-agents metrics
-[skip ci]" 2>/dev/null || echo "No changes to commit"
+          git commit -m "chore: update e2e-ai metrics summary Weekly aggregation of e2e-ai-agents metrics [skip ci]" 2>/dev/null || echo "No changes to commit"
 
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master 2>/dev/null || echo "Could not push metrics"
 

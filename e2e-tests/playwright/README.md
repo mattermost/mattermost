@@ -215,6 +215,46 @@ Use `data-testid` only when:
 
 For all test examples, see [docs/accessibility/](docs/accessibility/) for comprehensive patterns and best practices.
 
+## AI-Assisted Test Generation
+
+Mattermost uses **e2e-agents** to intelligently identify test coverage gaps and generate tests using Claude AI. This helps catch bugs faster and ensures critical features are well-tested.
+
+### Quick Start
+
+To see which test coverage gaps exist in the current codebase:
+
+```bash
+npm run test:ai:gap
+```
+
+This produces a report showing:
+- Which user flows are not adequately tested
+- Confidence scores for each gap
+- Recommended fixes
+
+### Typical Workflow
+
+1. **Identify gaps**: `npm run test:ai:gap` — Detect untested critical flows
+2. **Plan tests**: `npm run test:ai:plan` — Get recommendations on what to test
+3. **Generate tests**: `npm run test:ai:generate` — Auto-create test files
+4. **Run & heal**: `npm run test -- ai-assisted` — Execute and auto-fix failures
+5. **Finalize**: `npm run test:ai:finalize` — Commit generated tests to repo
+
+### When to Use
+
+- **After adding new features** — Ensure they're tested
+- **On risky file changes** — Auth, permissions, admin features
+- **Before merging to main** — Validate test coverage
+- **When test debt builds up** — Gap analysis identifies priorities
+
+### Full Guide
+
+See [AI_TESTING_GUIDE.md](./AI_TESTING_GUIDE.md) for:
+- Detailed command reference
+- Configuration options
+- Workflow examples
+- Troubleshooting
+
 ## Page/Component Object Model
 
 See https://playwright.dev/docs/test-pom.

@@ -1,0 +1,122 @@
+name: E2E-Agents Gap Analysis
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/**'
+      - 'e2e-tests/playwright/**'
+      - '.github/workflows/e2e-ai-gap-check.yml'
+    branches:
+      - 'master'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gap-analysis:
+    name: Gap Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: e2e-tests/playwright
+        run: npm ci
+
+      - name: Run gap analysis
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js gap \
+            --path ../../webapp \
+            --tests-root . \
+            --config ./e2e-ai-agents.config.json
+
+      - name: Extract gap summary
+        working-directory: e2e-tests/playwright
+        id: gap_summary
+        run: |
+          REPORT_FILE=".e2e-ai-agents/reports/gap-report.md"
+          if [ -f "$REPORT_FILE" ]; then
+            P0_GAPS=$(grep -c "^\- \[P0\]" "$REPORT_FILE" || echo "0")
+            P1_GAPS=$(grep -c "^\- \[P1\]" "$REPORT_FILE" || echo "0")
+            echo "p0_gaps=$P0_GAPS" >> $GITHUB_OUTPUT
+            echo "p1_gaps=$P1_GAPS" >> $GITHUB_OUTPUT
+            echo "report_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "report_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post PR comment with gap analysis
+        if: github.event_name == 'pull_request' && steps.gap_summary.outputs.report_exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'e2e-tests/playwright/.e2e-ai-agents/reports/gap-report.md';
+
+            if (!fs.existsSync(reportPath)) {
+              console.log('Gap report not found, skipping comment');
+              return;
+            }
+
+            const fullReport = fs.readFileSync(reportPath, 'utf8');
+            let essentialReport = '';
+            essentialReport += '## 📊 E2E Test Gap Analysis\n\n';
+
+            const flowMatch = fullReport.match(/Flows: P0=(\d+) P1=(\d+) P2=(\d+)/);
+            if (flowMatch) {
+              essentialReport += `**Coverage Summary:**\n`;
+              essentialReport += `- P0 (Critical) flows: ${flowMatch[1]}\n`;
+              essentialReport += `- P1 (High) flows: ${flowMatch[2]}\n`;
+              essentialReport += `- P2 (Medium) flows: ${flowMatch[3]}\n\n`;
+            }
+
+            const gapSection = fullReport.substring(
+              fullReport.indexOf('Coverage Gaps'),
+              fullReport.indexOf('Recommended Tests')
+            );
+
+            if (gapSection && gapSection.length > 50) {
+              essentialReport += '**Coverage Gaps:**\n';
+              essentialReport += gapSection.split('\n').slice(1, 15).join('\n') + '\n\n';
+            }
+
+            essentialReport += '**Next Steps:**\n';
+            essentialReport += '1. Review gaps above\n';
+            essentialReport += '2. Generate tests: `npm run test:ai:generate`\n';
+            essentialReport += '3. Validate: `npm run test -- ai-assisted`\n';
+            essentialReport += '4. Commit: `npm run test:ai:finalize`\n\n';
+
+            essentialReport += '📖 [View full gap report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+            essentialReport += '📚 [E2E Testing Guide](./e2e-tests/playwright/AI_TESTING_GUIDE.md)\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: essentialReport
+            });
+
+      - name: Upload gap report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gap-analysis-report
+          path: e2e-tests/playwright/.e2e-ai-agents/reports/gap-report.md
+          retention-days: 30

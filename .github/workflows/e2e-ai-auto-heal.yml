@@ -168,11 +168,9 @@ jobs:
           git add e2e-tests/playwright/specs/ || true
           git add e2e-tests/playwright/.e2e-ai-agents/healing-summary.json
 
-          git commit -m "fix(e2e): Auto-healed test failures
-
-Automated healing using e2e-agents.
-Failures detected: ${{ needs.detect-failures.outputs.failure-count }}
-Healing method: UI re-discovery and selector refinement"
+          git commit -m "fix(e2e): Auto-healed test failures Automated healing using e2e-agents.
+          Failures detected: ${{ needs.detect-failures.outputs.failure-count }}
+          Healing method: UI re-discovery and selector refinement"
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
