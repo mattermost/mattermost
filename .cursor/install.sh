@@ -83,7 +83,7 @@ go mod download
 echo ">>> Installing Go tools..."
 go install github.com/vektra/mockery/v2@v2.53.4
 go install gotest.tools/gotestsum@v1.11.0
-go install github.com/air-verse/air@latest
+go install github.com/air-verse/air@v1.61.7
 
 # ============================================
 # Webapp dependencies

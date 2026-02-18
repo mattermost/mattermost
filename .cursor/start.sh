@@ -72,6 +72,17 @@ for i in $(seq 1 10); do
 done
 
 # ============================================
+# Ensure air is installed
+# install.sh should have installed it, but if
+# the Go version changed or binary is missing,
+# install a compatible version as a safety net.
+# ============================================
+if ! command -v air &>/dev/null; then
+    echo ">>> Installing air (Go hot-reload)..."
+    go install github.com/air-verse/air@v1.61.7
+fi
+
+# ============================================
 # NOTE: Chrome is NOT started here.
 # agent-browser manages its own Chromium
 # lifecycle on-demand. This saves memory when

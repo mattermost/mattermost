@@ -10,7 +10,7 @@
   "terminals": [
     {
       "name": "Mattermost Server",
-      "command": "cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml",
+      "command": "export PATH=$HOME/go/bin:$PATH && cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml",
       "description": "Builds and runs the Mattermost backend server on :8065 with hot-reload via Air. Auto-restarts on Go file changes."
     },
     {
