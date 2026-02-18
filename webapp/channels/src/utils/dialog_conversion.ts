@@ -7,7 +7,6 @@ import type {DialogElement} from '@mattermost/types/integrations';
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {stringToMoment} from 'utils/date_utils';
-import {escapeHtml} from 'utils/text_formatting';
 
 // Dialog element types (from legacy Interactive Dialog spec)
 export const DialogElementTypes = {
