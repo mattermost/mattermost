@@ -208,7 +208,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
     });
 
     describe('should show auto translation permissions', () => {
-        describe('for non-enterprise license', () => {
+        describe('for non-enterprise-advanced license', () => {
             ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.E20].forEach((licenseSku) => test(licenseSku, () => {
                 const props = {
                     ...defaultProps,
