@@ -24,6 +24,7 @@ export default class ChannelsCenterView {
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
+    readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
     readonly messageDeleted;
     readonly postText;
@@ -39,6 +40,7 @@ export default class ChannelsCenterView {
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.autotranslationBadge = container.locator('.autotranslation-header');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
             page.locator('#FlagPostModal div.modal-content'),
             page,

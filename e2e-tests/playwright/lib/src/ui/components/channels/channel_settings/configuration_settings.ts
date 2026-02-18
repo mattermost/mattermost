@@ -36,6 +36,22 @@ export default class ConfigurationSettings {
         }
     }
 
+    async enableChannelAutotranslation() {
+        const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (!classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
+    async disableChannelAutotranslation() {
+        const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
     async setChannelBannerText(text: string) {
         const textBox = this.container.getByTestId('channel_banner_banner_text_textbox');
         await expect(textBox).toBeVisible();

@@ -62,3 +62,14 @@ export {
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';
+
+export {
+    enableAutotranslationConfig,
+    disableAutotranslationConfig,
+    enableChannelAutotranslation,
+    disableChannelAutotranslation,
+    setUserChannelAutotranslation,
+    setMockSourceLanguage,
+    hasAutotranslationLicense,
+} from './autotranslation_helpers';
+export type {EnableAutotranslationOptions} from './autotranslation_helpers';
