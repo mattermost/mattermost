@@ -389,6 +389,66 @@ describe('dialog_conversion', () => {
             const result = getDefaultValue(element);
             expect(result).toBeNull();
         });
+
+        it('should handle dynamic multiselect defaults with comma-separated values', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                multiselect: true,
+                default: 'Product1,Product2',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Product1', value: 'Product1'},
+                {label: 'Product2', value: 'Product2'},
+            ]);
+        });
+
+        it('should handle dynamic multiselect defaults with spaced comma-separated values', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                multiselect: true,
+                default: 'Product1, Product2, Product3',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Product1', value: 'Product1'},
+                {label: 'Product2', value: 'Product2'},
+                {label: 'Product3', value: 'Product3'},
+            ]);
+        });
+
+        it('should handle dynamic multiselect defaults with array input', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                multiselect: true,
+                default: ['Product1', 'Product2'],
+            } as unknown as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Product1', value: 'Product1'},
+                {label: 'Product2', value: 'Product2'},
+            ]);
+        });
+
+        it('should handle dynamic single select default unchanged', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: 'Product1,Product2',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual({
+                label: 'Product1,Product2',
+                value: 'Product1,Product2',
+            });
+        });
     });
 
     describe('getOptions', () => {
