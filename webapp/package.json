@@ -6,7 +6,7 @@
     "npm": "^10 || ^11"
   },
   "scripts": {
-    "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
+    "postinstall": "patch-package && npm run build --workspace platform/types --workspace platform/client --workspace platform/components --workspace platform/shared",
     "build": "node scripts/build.mjs",
     "run": "node scripts/run.mjs",
     "dev-server": "node scripts/dev-server.mjs",
@@ -18,7 +18,7 @@
     "check-types": "npm run check-types --workspaces --if-present",
     "i18n-extract": "npm run i18n-extract --workspaces --if-present",
     "i18n-extract:check": "npm run i18n-extract:check --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules .parcel-cache",
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
@@ -90,6 +90,7 @@
     "platform/components",
     "platform/eslint-plugin",
     "platform/mattermost-redux",
+    "platform/shared",
     "platform/types"
   ]
 }

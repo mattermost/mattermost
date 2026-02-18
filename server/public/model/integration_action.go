@@ -338,6 +338,16 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
+// DialogDateTimeConfig groups date/datetime specific configuration
+type DialogDateTimeConfig struct {
+	// TimeInterval: Minutes between time options in dropdown (default: 60)
+	TimeInterval int `json:"time_interval,omitempty"`
+	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+	LocationTimezone string `json:"location_timezone,omitempty"`
+	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -354,7 +364,11 @@ type DialogElement struct {
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
-	// Date/datetime field specific properties
+
+	// Date/datetime field configuration
+	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+
+	// Simple date/datetime configuration (fallback when datetime_config not provided)
 	MinDate      string `json:"min_date,omitempty"`
 	MaxDate      string `json:"max_date,omitempty"`
 	TimeInterval int    `json:"time_interval,omitempty"`

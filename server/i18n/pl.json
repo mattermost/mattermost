@@ -4585,11 +4585,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 142+"
+    "translation": "Wersja 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 142+"
+    "translation": "Wersja 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10928,10 +10928,6 @@
     "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Nie udało się nadpisać postu z usuniętym postem podczas trwałego usuwania oflagowanego postu."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Nie udało się zebrać komentarza recenzenta"
   },
@@ -11710,5 +11706,153 @@
   {
     "id": "ent.autotranslation.feature_unavailable",
     "translation": "Automatyczne tłumaczenie nie jest dostępne. Skontaktuj się z administratorem systemu, aby Aktualizuj licencję korporacyjną."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest dozwolone dla tego Kanału."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Funkcja automatycznego tłumaczenia nie jest dostępna."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Brak zmian w aktualizacji."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Nie udało się opublikować wiadomości o aktualizacji automatycznego tłumaczenia."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s wyłączył automatyczne tłumaczenie dla tego Kanału. Wszystkie nowe wiadomości będą wyświetlane w oryginalnym języku."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s włączył automatyczne tłumaczenie dla tego Kanału. Wszystkie nowe wiadomości będą wyświetlane w preferowanym przez Ciebie języku."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Nie udało się pobrać użytkownika podczas aktualizacji statusu autotłumaczenia"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest włączone dla tego Kanału."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest dostępne."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Uwierzytelnianie oparte na plikach cookie nie jest dozwolone dla tego punktu końcowego. Użyj uwierzytelniania opartego na Nagłówkach."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Nie można przełączyć na uwierzytelnianie e-mail, ponieważ użytkownik nie korzysta z uwierzytelniania OAuth lub SAML."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Podano nieprawidłowy kod języka."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Nie udało się zaktualizować tłumaczenia o nowe wartości maski."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Treść nie zawiera tekstu, który można przetłumaczyć."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Dostawca tłumaczeń nie jest dostępny."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Dostawca tłumaczeń nie został zainicjowany."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Nie można przetworzyć żądania automatycznego tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Tłumaczenie zawiera nierozpoznane tokeny."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Tłumaczenie zawiera nieprawidłowe tokeny."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Nie można przeanalizować zawartości JSON."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Nieobsługiwany typ zawartości dla tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Treść nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Zawartość przekracza maksymalny rozmiar tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Wymagany identyfikator nie może być pusty."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Nieprawidłowy format ID."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Nieprawidłowa konfiguracja agentów autotranslacji: Usługa AI nie może być pusta."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu dla ustawień autotranslacji. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Liczba pracowników musi wynosić od 1 do 32."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Nieprawidłowy kod języka. Użyj standardowego kodu ISO, takiego jak \"en\", \"ja\" lub \"fr\"."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Obiekt tłumaczenia nie może mieć wartości null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Nieprawidłowy identyfikator obiektu."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Nieprawidłowy obiekt JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Nieprawidłowy typ obiektu."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Nieprawidłowy dostawca tłumaczeń."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Nieprawidłowy tekst tłumaczenia."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ tłumaczenia."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Nieprawidłowy typ tłumaczenia. Musi to być \"string\" lub \"object\"."
   }
 ]
