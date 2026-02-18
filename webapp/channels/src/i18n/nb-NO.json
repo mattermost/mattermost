@@ -22,6 +22,7 @@
   "about.licensed": "Lisensiert av:",
   "about.loadmetric": "Belastning:",
   "about.notice": "Mattermost er muliggjort av programvare med åpen kildekode som brukes i <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> og <linkMobile>mobil</linkMobile> apper.",
+  "about.planNameLearn": "Finn ut mer om Mattermost {planName} på {link}",
   "about.privacy": "Personvernerklæring",
   "about.serverDisconnected": "frakoblet",
   "about.serverHostname": "Vertsnavn:",

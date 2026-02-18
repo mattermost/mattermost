@@ -59,7 +59,6 @@ jobs:
       server_image_tag: ${{ inputs.server_image_tag }}
       server_image_repo: mattermost
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: RELEASE_CUT
@@ -81,7 +80,6 @@ jobs:
       server_image_tag: ${{ inputs.server_image_tag }}
       server_image_repo: mattermost
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: RELEASE_CUT
@@ -102,7 +100,6 @@ jobs:
       server_edition: fips
       server_image_repo: mattermost
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: RELEASE_CUT
@@ -125,7 +122,6 @@ jobs:
       server_edition: fips
       server_image_repo: mattermost
       server_image_aliases: ${{ inputs.server_image_aliases }}
-      skip_smoke: true
       server: onprem
       enable_reporting: true
       report_type: RELEASE_CUT

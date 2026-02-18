@@ -9,7 +9,7 @@ import {TranslateIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {setMyChannelAutotranslation} from 'mattermost-redux/actions/channels';
-import {isChannelAutotranslated, isUserLanguageSupportedForAutotranslation} from 'mattermost-redux/selectors/entities/channels';
+import {isMyChannelAutotranslated, isUserLanguageSupportedForAutotranslation} from 'mattermost-redux/selectors/entities/channels';
 
 import {openModal} from 'actions/views/modals';
 
@@ -27,7 +27,7 @@ interface Props extends Menu.FirstMenuItemProps {
 const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
 
-    const isAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslated(state, channel.id));
+    const isAutotranslated = useSelector((state: GlobalState) => isMyChannelAutotranslated(state, channel.id));
     const isLanguageSupported = useSelector(isUserLanguageSupportedForAutotranslation);
 
     const handleAutotranslationToggle = useCallback(() => {

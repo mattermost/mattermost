@@ -158,6 +158,9 @@ describe('Group Message Conversion To Private Channel', () => {
             // Open the GM
             cy.visit(`/${testTeam1.name}/messages/${gm.name}`);
 
+            // Wait until the channel is loaded
+            cy.get('#channelHeaderDropdownButton').should('be.visible');
+
             // convert via API call
             const timestamp = Date.now();
             cy.apiConvertGMToPrivateChannel(gm.id, testTeam2.id, `Channel ${timestamp}`, `c-${timestamp}`).then(() => {
