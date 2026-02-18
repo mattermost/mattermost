@@ -1,4 +1,7 @@
-import { test, expect } from '@playwright/test';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {test, expect} from '@mattermost/playwright-lib';
 
 /**
  * Seed Test - Initial State for AI Test Generation
@@ -7,50 +10,54 @@ import { test, expect } from '@playwright/test';
  * It demonstrates the baseline pattern that generated tests should follow.
  *
  * The AI agent uses this as a reference for:
- * - How to structure tests
- * - How to navigate Mattermost
- * - How to interact with UI elements
+ * - How to authenticate using Mattermost utilities (pw fixture)
+ * - How to navigate Mattermost UI
+ * - How to interact with page elements
+ * - Configuration from playwright.config.ts
  */
-test.describe('Mattermost E2E - Seed Setup', () => {
-  test('seed: authenticate and explore UI', async ({ page }) => {
-    // Navigate to Mattermost server
-    await page.goto('http://localhost:8065');
+test(
+    'seed: authenticate and explore UI',
+    {tag: ['@ai-generated', '@seed']},
+    async ({pw, page}) => {
+        // # Setup: Authenticate user and navigate to app
+        // Uses baseURL from playwright.config.ts automatically
+        // Credentials come from testConfig via @mattermost/playwright-lib
 
-    // Wait for login form to load
-    await page.waitForSelector('input[id="loginId"]', { timeout: 10000 });
+        // Set landing page as seen so we skip intro
+        await pw.hasSeenLandingPage();
 
-    // Login with test credentials
-    const username = process.env.MM_TEST_USER || 'testuser';
-    const password = process.env.MM_TEST_PASSWORD || 'Test@123';
+        // # Go to login page
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
 
-    await page.fill('input[id="loginId"]', username);
-    await page.fill('input[id="passwd"]', password);
-    await page.click('button[type="submit"]');
+        // # Get admin client for any admin operations needed
+        const {adminClient} = await pw.getAdminClient();
 
-    // Wait for main app to load
-    await page.waitForSelector('[data-testid="sidebar"]', { timeout: 15000 });
-    await page.waitForSelector('[data-testid="postListContent"]', { timeout: 15000 });
+        // # Perform user login
+        // Uses user credentials from testConfig (environment variables)
+        await pw.loginPage.login();
 
-    // Verify we're logged in
-    const mainContent = await page.locator('[data-testid="postListContent"]');
-    await expect(mainContent).toBeVisible();
+        // # Verify logged in and main app is loaded
+        await pw.toMainPage();
+        await page.waitForLoadState('networkidle');
 
-    // Navigate to first available channel
-    const firstChannel = page.locator('[data-testid="sidebar"] [data-testid="sidebarChannel"]:first-child');
-    if (await firstChannel.isVisible()) {
-      await firstChannel.click();
-      await page.waitForTimeout(500); // Brief delay for channel load
-    }
+        // # Navigate to first available channel
+        const channelSidebar = page.locator('button[aria-label*="channel"]').first();
+        if (await channelSidebar.isVisible()) {
+            await channelSidebar.click();
+            await page.waitForLoadState('networkidle');
+        }
 
-    // Verify channel content is loaded
-    const channelHeader = await page.locator('[data-testid="channelHeaderTitle"]');
-    await expect(channelHeader).toBeVisible();
+        // # Verify we're in a channel ready for testing
+        const channelHeader = page.locator('[data-testid="channelHeaderTitle"]');
+        await expect(channelHeader).toBeVisible({timeout: 10000});
 
-    // UI is now ready for exploration
-    // AI agent can now:
-    // - Send messages
-    // - Click UI elements
-    // - Navigate channels
-    // - Verify content
-  });
-});
+        // UI is now ready for exploration
+        // AI agent can now:
+        // - Send messages via postMessage()
+        // - Click and interact with UI elements
+        // - Navigate between channels
+        // - Verify content using expect()
+        // - Use pw utilities for common operations
+    },
+);
