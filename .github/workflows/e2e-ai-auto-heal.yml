@@ -133,7 +133,7 @@ jobs:
 
           # Run healing with attempt counter
           ATTEMPT=1
-          MAX="${{ github.event.inputs.max_attempts || '3' }}"
+          MAX="${MAX_ATTEMPTS}"
           while [ $ATTEMPT -le "$MAX" ]; do
             echo ""
             echo "=== Healing Attempt $ATTEMPT / $MAX ==="
@@ -177,7 +177,7 @@ jobs:
               max_attempts: process.env.MAX_ATTEMPTS || '3',
               use_mcp: process.env.USE_MCP === 'true',
               success: '${{ steps.heal.outputs.healing-success }}' === 'true',
-              attempt: parseInt('${{ steps.heal.outputs.healing-attempt }}' || '0'),
+              attempt: parseInt('${{ steps.heal.outputs.healing-attempt || '0' }}'),
               failure_count: '${{ needs.detect-failures.outputs.failure-count }}'
             };
 
@@ -240,7 +240,7 @@ This maintains test health and improves selector knowledge over time."
               repo: context.repo.repo,
               title: `E2E: Auto-healed test failures`,
               head: branchName,
-              base: context.ref,
+              base: context.payload.workflow_run?.head_branch || 'master',
               body: `## Auto-Healed E2E Tests
 
 Fixed test failures using e2e-ai-agents auto-healing.

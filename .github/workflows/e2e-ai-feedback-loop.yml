@@ -156,6 +156,8 @@ jobs:
           "
 
       - name: Commit metrics summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "E2E AI Bot"
           git config user.email "e2e-bot@mattermost.com"
@@ -171,7 +173,7 @@ Weekly aggregation of e2e-ai-agents metrics:
 
 [skip ci]" 2>/dev/null || echo "No changes to commit"
 
-          git push 2>/dev/null || echo "Could not push metrics"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master 2>/dev/null || echo "Could not push metrics"
 
       - name: Report metrics status
         run: |
