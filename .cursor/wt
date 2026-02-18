@@ -14,19 +14,13 @@ set -euo pipefail
 case "${1:-help}" in
     port)
         # Check if server is listening on 8065
-        if curl -s -o /dev/null -w "%{http_code}" "http://localhost:8065/api/v4/system/ping" 2>/dev/null | grep -q "200"; then
+        SERVER_PING=$(curl -s --connect-timeout 2 "http://localhost:8065/api/v4/system/ping" 2>/dev/null || echo "")
+        if echo "${SERVER_PING}" | grep -q "OK"; then
             echo "8065"
         else
-            # Fall back to checking what's actually listening
-            PORT=$(ss -tlnp 2>/dev/null | grep -oP '(?<=:)(8065|808[0-9])(?=\s)' | head -1 || true)
-            if [ -n "${PORT}" ]; then
-                echo "${PORT}"
-            else
-                echo "Server does not appear to be running on any expected port."
-                echo "Expected port: 8065"
-                echo "Check server terminal or run: ss -tlnp | grep -E '806[0-9]|808[0-9]'"
-                exit 1
-            fi
+            echo "Server does not appear to be running on port 8065."
+            echo "Check the 'Mattermost Server' terminal or run: curl http://localhost:8065/api/v4/system/ping"
+            exit 1
         fi
         ;;
     status)
@@ -45,15 +39,14 @@ case "${1:-help}" in
             echo "Redis:      NOT RUNNING"
         fi
         # Mattermost Server
-        SERVER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8065/api/v4/system/ping" 2>/dev/null || echo "000")
-        if [ "${SERVER_STATUS}" = "200" ]; then
+        SERVER_PING=$(curl -s --connect-timeout 2 "http://localhost:8065/api/v4/system/ping" 2>/dev/null || echo "")
+        if echo "${SERVER_PING}" | grep -q "OK"; then
             echo "Server:     RUNNING (localhost:8065)"
         else
-            echo "Server:     NOT RUNNING (HTTP status: ${SERVER_STATUS})"
+            echo "Server:     NOT RUNNING"
         fi
         # Webapp Dev Server
-        WEBAPP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:9005" 2>/dev/null || echo "000")
-        if [ "${WEBAPP_STATUS}" != "000" ]; then
+        if curl -s --connect-timeout 2 -o /dev/null "http://localhost:9005" 2>/dev/null; then
             echo "Webapp Dev: RUNNING (localhost:9005)"
         else
             echo "Webapp Dev: NOT RUNNING"

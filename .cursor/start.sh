@@ -120,6 +120,8 @@ fi
 # block on the server starting.
 # ============================================
 echo ">>> Launching background admin setup (will run when server is ready)..."
+# Clean previous log file
+rm -f /tmp/mattermost-admin-setup.log
 (
     cd "${WORKSPACE_ROOT}"
     bash .cursor/setup-admin.sh >> /tmp/mattermost-admin-setup.log 2>&1

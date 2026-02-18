@@ -26,7 +26,7 @@ echo ">>> Server URL: ${SERVER_URL}"
 echo ">>> Waiting for Mattermost server to be ready..."
 MAX_WAIT=180
 for i in $(seq 1 ${MAX_WAIT}); do
-    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SERVER_URL}/api/v4/system/ping" 2>/dev/null || echo "000")
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 "${SERVER_URL}/api/v4/system/ping" 2>/dev/null) || HTTP_STATUS="000"
     if [ "${HTTP_STATUS}" = "200" ]; then
         echo ">>> Server is ready (HTTP 200 on /api/v4/system/ping)."
         break
@@ -61,13 +61,8 @@ CREATE_STATUS=$(echo "${CREATE_RESPONSE}" | tail -n 1)
 if [ "${CREATE_STATUS}" = "201" ]; then
     USER_ID=$(echo "${CREATE_BODY}" | jq -r '.id')
     echo ">>> Admin user created (id: ${USER_ID})."
-elif echo "${CREATE_BODY}" | jq -r '.id' 2>/dev/null | grep -q "^[a-z0-9]"; then
-    USER_ID=$(echo "${CREATE_BODY}" | jq -r '.id')
-    echo ">>> Admin user response (id: ${USER_ID}, status: ${CREATE_STATUS})."
 else
-    echo ">>> Admin user creation returned status ${CREATE_STATUS}."
-    echo ">>> Response: ${CREATE_BODY}"
-    # Try to look up the user in case it already exists
+    echo ">>> Admin user already exists (or creation returned ${CREATE_STATUS}), continuing..."
     USER_ID=""
 fi
 
