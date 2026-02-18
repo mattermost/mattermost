@@ -122,6 +122,11 @@ func (c *SearchChannelStore) reindexChannelPosts(rctx request.CTX, channelID str
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				rctx.Logger().Info("Starting reindexChannelPosts",
+					mlog.String("channel_id", channelID),
+					mlog.String("channel_type", string(channelType)),
+					mlog.String("search_engine", engineCopy.GetName()))
+
 				if err := engineCopy.UpdatePostsChannelTypeByChannelId(rctx, channelID, string(channelType)); err != nil {
 					rctx.Logger().Error("Failed to update channel_type on posts in reindexChannelPosts. Consider running a full bulk index",
 						mlog.String("channel_id", channelID),

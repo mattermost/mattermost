@@ -43,6 +43,10 @@ func (ps *PlatformService) backfillPostsChannelType(engine searchengine.SearchEn
 		}
 
 		for chType, channelIDs := range byType {
+			rctx.Logger().Info("Backfilling channel_type batch",
+				mlog.String("channel_type", chType),
+				mlog.Int("channel_count", len(channelIDs)),
+				mlog.Int("page", page))
 			if appErr := engine.BackfillPostsChannelType(rctx, channelIDs, chType); appErr != nil {
 				rctx.Logger().Error("Failed to backfill channel_type on posts",
 					mlog.String("channel_type", chType),

@@ -944,7 +944,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 			mlog.Int("failure_count", len(response.Failures)),
 			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
 	}
-	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType))
+	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
 
 	return nil
 }
