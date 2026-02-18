@@ -807,7 +807,7 @@ func (es *ElasticsearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx req
 		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(response.Failures) > 0 {
-		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; reindexing may be required to prevent missing posts",
+		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_id", channelID),
 			mlog.Int("failure_count", len(response.Failures)),
 			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
@@ -869,7 +869,7 @@ func (es *ElasticsearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX,
 		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(response.Failures) > 0 {
-		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; reindexing may be required to prevent missing posts",
+		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_type", channelType),
 			mlog.Int("failure_count", len(response.Failures)),
 			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))

@@ -868,7 +868,7 @@ func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx reques
 		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(response.Failures) > 0 {
-		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; reindexing may be required to prevent missing posts",
+		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_id", channelID),
 			mlog.Int("failure_count", len(response.Failures)),
 			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
@@ -927,7 +927,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 		return model.NewAppError("Opensearch.BackfillPostsChannelType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	requestsPerSecond := 1000
+	requestsPerSecond := 10000
 	response, err := os.client.UpdateByQuery(ctx, opensearchapi.UpdateByQueryReq{
 		Indices: postIndexes,
 		Body:    bytes.NewReader(queryBuf),
@@ -939,7 +939,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(response.Failures) > 0 {
-		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; reindexing may be required to prevent missing posts",
+		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_type", channelType),
 			mlog.Int("failure_count", len(response.Failures)),
 			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))

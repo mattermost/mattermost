@@ -30,15 +30,21 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			ps.Log().Error("Failed to update search engine config", mlog.Err(err))
 		}
 
-		startingES := ps.SearchEngine.ElasticsearchEngine != nil && !model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) && model.SafeDereference(newConfig.ElasticsearchSettings.EnableIndexing)
-		stoppingES := ps.SearchEngine.ElasticsearchEngine != nil && model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) && !model.SafeDereference(newConfig.ElasticsearchSettings.EnableIndexing)
+		oldESCfg := oldConfig.ElasticsearchSettings
+		newESCfg := newConfig.ElasticsearchSettings
+		startingES := ps.SearchEngine.ElasticsearchEngine != nil &&
+			!model.SafeDereference(oldESCfg.EnableIndexing) &&
+			model.SafeDereference(newESCfg.EnableIndexing)
+		stoppingES := ps.SearchEngine.ElasticsearchEngine != nil &&
+			model.SafeDereference(oldESCfg.EnableIndexing) &&
+			!model.SafeDereference(newESCfg.EnableIndexing)
 		connectionChanged := ps.SearchEngine.ElasticsearchEngine != nil &&
-			(model.SafeDereference(oldConfig.ElasticsearchSettings.ConnectionURL) != model.SafeDereference(newConfig.ElasticsearchSettings.ConnectionURL) ||
-				model.SafeDereference(oldConfig.ElasticsearchSettings.Username) != model.SafeDereference(newConfig.ElasticsearchSettings.Username) ||
-				model.SafeDereference(oldConfig.ElasticsearchSettings.Password) != model.SafeDereference(newConfig.ElasticsearchSettings.Password) ||
-				model.SafeDereference(oldConfig.ElasticsearchSettings.Sniff) != model.SafeDereference(newConfig.ElasticsearchSettings.Sniff))
-		startingBackfill := !model.SafeDereference(oldConfig.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
-			model.SafeDereference(newConfig.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership)
+			(model.SafeDereference(oldESCfg.ConnectionURL) != model.SafeDereference(newESCfg.ConnectionURL) ||
+				model.SafeDereference(oldESCfg.Username) != model.SafeDereference(newESCfg.Username) ||
+				model.SafeDereference(oldESCfg.Password) != model.SafeDereference(newESCfg.Password) ||
+				model.SafeDereference(oldESCfg.Sniff) != model.SafeDereference(newESCfg.Sniff))
+		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
+			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
 		if startingES {
 			ps.Go(func() {
@@ -46,7 +52,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 					ps.Log().Error(err.Error())
 					return
 				}
-				if model.SafeDereference(newConfig.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) {
+				if model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership) {
 					ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
 				}
 			})
@@ -58,7 +64,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			})
 		} else if connectionChanged {
 			ps.Go(func() {
-				if model.SafeDereference(oldConfig.ElasticsearchSettings.EnableIndexing) {
+				if model.SafeDereference(oldESCfg.EnableIndexing) {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 						ps.Log().Error(err.Error())
 					}
