@@ -206,4 +206,52 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
             }));
         });
     });
+
+    describe('should show auto translation permissions', () => {
+        describe('for non-enterprise-advanced license', () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.E20].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: licenseSku === '' ? 'false' : 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                const wrapper = shallow(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+                const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
+                expect(groups[1].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[1].permissions).not.toContain('manage_private_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_private_channel_auto_translation');
+            }));
+        });
+
+        describe('for enterprise-advanced license', () => {
+            [LicenseSkus.Entry, LicenseSkus.EnterpriseAdvanced].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                const wrapper = shallow(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+                const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
+                expect(groups[1].permissions).toContain('manage_public_channel_auto_translation');
+                expect(groups[1].permissions).not.toContain('manage_private_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[2].permissions).toContain('manage_private_channel_auto_translation');
+            }));
+        });
+    });
 });
