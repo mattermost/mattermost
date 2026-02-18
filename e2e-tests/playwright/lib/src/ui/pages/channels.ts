@@ -4,7 +4,14 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelsPost, ChannelSettingsModal, SettingsModal, components, InvitePeopleModal} from '@/ui/components';
+import {
+    ChannelsPost,
+    ChannelSettingsModal,
+    SettingsModal,
+    TeamSettingsModal,
+    components,
+    InvitePeopleModal,
+} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -150,6 +157,14 @@ export default class ChannelsPage {
         const lastPost = await sidebarRight.getLastPost();
 
         return {rootPost, sidebarRight, lastPost};
+    }
+
+    async openTeamSettings(): Promise<TeamSettingsModal> {
+        await this.page.locator('#sidebarTeamMenuButton').click();
+        await this.page.getByText('Team settings').first().click();
+        await this.teamSettingsModal.toBeVisible();
+
+        return this.teamSettingsModal;
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {

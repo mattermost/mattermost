@@ -4,6 +4,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     ChevronRightIcon,
@@ -15,11 +16,17 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {canAccessChannelSettings} from 'selectors/views/channel_settings';
+
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
+import type {GlobalState} from 'types/store';
+
+import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
+import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
@@ -39,12 +46,14 @@ interface Props extends Menu.FirstMenuItemProps {
     isFavorite: boolean;
     pluginItems: ReactNode[];
     isChannelBookmarksEnabled: boolean;
+    isChannelAutotranslated: boolean;
 }
 
-const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, ...rest}: Props) => {
+const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
+    const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
     return (
         <>
@@ -69,38 +78,62 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 </>
             )}
             {!isArchived && (
-                <MenuItemNotification
-                    user={user}
-                    channel={channel}
-                />
-            )}
-            {(!isArchived && isGuest(user.roles)) && (
-                <EditConversationHeader
-                    leadingElement={<CogOutlineIcon size='18px'/>}
-                    channel={channel}
-                />
-            )}
-            {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
-                <Menu.SubMenu
-                    id={'channelSettings'}
-                    labels={
-                        <FormattedMessage
-                            id='channel_header.settings'
-                            defaultMessage='Settings'
+                <>
+                    {(
+                        <MenuItemNotification
+                            user={user}
+                            channel={channel}
                         />
-                    }
-                    leadingElement={<CogOutlineIcon size={18}/>}
-                    trailingElements={<ChevronRightIcon size={16}/>}
-                    menuId={'channelSettings-menu'}
-                    menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                >
-                    <EditConversationHeader
-                        channel={channel}
-                    />
-                    <MenuItemConvertToPrivate
-                        channel={channel}
-                    />
-                </Menu.SubMenu>
+                    )}
+                    {canAccessChannelSettingsForChannel ? (
+                        <>
+                            <MenuItemChannelSettings
+                                channel={channel}
+                            />
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                                <MenuItemConvertToPrivate
+                                    channel={channel}
+                                />
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {(isGuest(user.roles)) && (
+                                <EditConversationHeader
+                                    leadingElement={<CogOutlineIcon size='18px'/>}
+                                    channel={channel}
+                                />
+                            )}
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                                <Menu.SubMenu
+                                    id={'channelSettings'}
+                                    labels={
+                                        <FormattedMessage
+                                            id='channel_header.settings'
+                                            defaultMessage='Settings'
+                                        />
+                                    }
+                                    leadingElement={<CogOutlineIcon size={18}/>}
+                                    trailingElements={<ChevronRightIcon size={16}/>}
+                                    menuId={'channelSettings-menu'}
+                                    menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                                >
+                                    <EditConversationHeader
+                                        channel={channel}
+                                    />
+                                    <MenuItemConvertToPrivate
+                                        channel={channel}
+                                    />
+                                </Menu.SubMenu>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
+            {isChannelAutotranslated && (
+                <MenuItemAutotranslation
+                    channel={channel}
+                />
             )}
             {!isArchived && !isGuest(user.roles) && isChannelBookmarksEnabled && (
                 <MenuItemChannelBookmarks
