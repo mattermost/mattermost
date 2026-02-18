@@ -36,7 +36,10 @@
     "test:ai:heal-failures": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js auto-heal-pr --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:validate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-allow-fallback --pipeline-scenarios 2",
     "test:ai:finalize": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js finalize-generated-tests --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
-    "test:ai:health": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js llm-health"
+    "test:ai:health": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js llm-health",
+    "test:manifest:generate": "node scripts/generate-flow-manifest.js",
+    "test:manifest:validate": "node scripts/validate-flow-coverage.js",
+    "test:manifest:validate:strict": "node scripts/validate-flow-coverage.js --strict"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
