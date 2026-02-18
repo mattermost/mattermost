@@ -1,10 +1,10 @@
 {
   "mode": "gap",
   "runMetadata": {
-    "runId": "gap-local-mlqnu9p4-9hl1kg",
-    "startedAt": "2026-02-17T13:50:03.158Z",
-    "completedAt": "2026-02-17T13:50:07.908Z",
-    "durationMs": 4748,
+    "runId": "gap-local-mls4358z-a65l67",
+    "startedAt": "2026-02-18T14:12:37.330Z",
+    "completedAt": "2026-02-18T22:57:15.725Z",
+    "durationMs": 31478394,
     "sinceRef": "origin/master",
     "appPath": "/Users/yasserkhan/Documents/mattermost/mattermost/webapp",
     "testsRoot": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright"
@@ -996,6 +996,7 @@
         "channels/src/components/suggestion/command_provider/app_provider.tsx",
         "channels/src/components/cloud_usage_modal/index.tsx",
         "channels/src/components/analytics/team_analytics/team_analytics.tsx",
+        "channels/src/components/admin_console/ldap_wizard/ldap_wizard.tsx",
         "channels/src/components/activity_log_modal/components/more_info.tsx",
         "channels/src/components/activity_log_modal/components/device_icon.tsx",
         "channels/src/components/activity_log_modal/components/activity_log.tsx",
@@ -1081,7 +1082,6 @@
         "channels/src/components/threading/global_threads/thread_list/virtualized_thread_list_row.tsx",
         "channels/src/components/threading/global_threads/thread_list/virtualized_thread_list.tsx",
         "channels/src/components/team_sidebar/index.ts",
-        "channels/src/components/team_settings_modal/index.ts",
         "channels/src/components/team_settings/team_info_tab/team_name_section.tsx",
         "channels/src/components/team_settings/team_info_tab/team_info_tab.tsx",
         "channels/src/components/team_settings/team_info_tab/team_description_section.tsx",
@@ -1332,7 +1332,6 @@
         "channels/src/components/admin_console/license_settings/modals/ee_license_modal.tsx",
         "channels/src/components/admin_console/license_settings/modals/confirm_license_removal_modal.tsx",
         "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_right_panel.tsx",
-        "channels/src/components/admin_console/ldap_wizard/ldap_wizard.tsx",
         "channels/src/components/admin_console/ldap_wizard/ldap_text_setting.tsx",
         "channels/src/components/admin_console/ldap_wizard/ldap_expandable_setting.tsx",
         "channels/src/components/admin_console/jobs/table.tsx",
@@ -1756,7 +1755,8 @@
         "channels/src/components/properties_card_view/propertyValueRenderer/user_property_renderer/selectable_user_property_renderer.tsx",
         "channels/src/components/add_users_to_team_modal/index.ts",
         "channels/src/components/add_user_to_channel_modal/index.ts",
-        "channels/src/components/reset_status_modal/index.ts"
+        "channels/src/components/reset_status_modal/index.ts",
+        "channels/src/components/interactive_dialog/dialog_element/index.ts"
       ],
       "audience": [
         "system_admin",
@@ -2936,10 +2936,12 @@
       "flowId": "messaging.send",
       "flowName": "Send Message",
       "priority": "P0",
-      "coveredBy": [],
-      "score": 0,
+      "coveredBy": [
+        "specs/functional/ai-assisted/messaging.send/messaging.send.spec.ts"
+      ],
+      "score": 1,
       "expectedTests": [
-        "specs/functional/ai-assisted/messaging.send/send_message.spec.ts"
+        "specs/functional/ai-assisted/messaging.send/messaging.send.spec.ts"
       ],
       "source": "catalog"
     },
@@ -2949,10 +2951,7 @@
       "priority": "P0",
       "coveredBy": [],
       "score": 0,
-      "expectedTests": [
-        "specs/functional/ai-assisted/messaging.realtime/realtime_receive_messages.spec.ts",
-        "specs/functional/ai-assisted/realtime_receive_messages/realtime_receive_messages.spec.ts"
-      ],
+      "expectedTests": [],
       "source": "catalog"
     },
     {
@@ -2961,9 +2960,7 @@
       "priority": "P0",
       "coveredBy": [],
       "score": 0,
-      "expectedTests": [
-        "specs/functional/ai-assisted/message_persistence/message_persistence.spec.ts"
-      ],
+      "expectedTests": [],
       "source": "catalog"
     },
     {
@@ -2972,9 +2969,7 @@
       "priority": "P0",
       "coveredBy": [],
       "score": 0,
-      "expectedTests": [
-        "specs/functional/ai-assisted/markdown_rendering/markdown_rendering.spec.ts"
-      ],
+      "expectedTests": [],
       "source": "catalog"
     },
     {
@@ -3128,127 +3123,6 @@
     }
   ],
   "gaps": [
-    {
-      "id": "messaging.send",
-      "name": "Send Message",
-      "kind": "flow",
-      "score": 87,
-      "priority": "P0",
-      "reasons": [
-        "Path match: channels/src/components/post_view/**",
-        "Path match: channels/src/components/post/**",
-        "Path match: channels/src/components/post_markdown/**",
-        "Path match: channels/src/components/message_with_additional_content.tsx"
-      ],
-      "keywords": [
-        "message",
-        "post",
-        "send"
-      ],
-      "files": [
-        "channels/src/components/post_view/reaction_list/reaction_list.tsx",
-        "channels/src/components/post_view/reaction/reaction_tooltip/index.ts",
-        "channels/src/components/post_view/post_message_view/post_message_view.tsx",
-        "channels/src/components/post_view/post_message_preview/avatar/avatar.tsx",
-        "channels/src/components/post_view/post_list_virtualized/post_list_virtualized.tsx",
-        "channels/src/components/post_view/message_attachments/message_attachment/message_attachment.tsx",
-        "channels/src/components/post_view/embedded_bindings/embedded_binding/embedded_binding.tsx",
-        "channels/src/components/post_view/commented_on/commented_on.tsx",
-        "channels/src/components/post_view/channel_intro_message/index.ts",
-        "channels/src/components/post_view/channel_intro_message/channel_intro_message.tsx",
-        "channels/src/components/post/post_component.tsx",
-        "channels/src/components/post/index.tsx",
-        "channels/src/components/post_view/post_time/post_time.tsx",
-        "channels/src/components/post_view/post_attachment_opengraph/post_attachment_opengraph.tsx",
-        "channels/src/components/post_markdown/system_message_helpers.tsx",
-        "channels/src/components/post_view/post_body_additional_content/post_body_additional_content.tsx",
-        "channels/src/components/post_view/message_attachments/message_attachment_list.tsx",
-        "channels/src/components/post_view/embedded_bindings/embedded_bindings.tsx",
-        "channels/src/components/post_view/combined_system_message/last_users.tsx",
-        "channels/src/components/post_markdown/post_markdown.tsx",
-        "channels/src/components/post_markdown/index.ts",
-        "channels/src/components/post_view/post_aria_label_div.tsx",
-        "channels/src/components/post_view/reaction_list/index.ts",
-        "channels/src/components/post_view/post_message_preview/post_message_preview.tsx",
-        "channels/src/components/post_view/post_list_virtualized/latest_post_reader.tsx",
-        "channels/src/components/post_view/post_list_row/post_list_row.tsx",
-        "channels/src/components/post_view/post_list/post_list.tsx",
-        "channels/src/components/post_view/post_list/index.tsx",
-        "channels/src/components/post_view/post_edited_indicator/index.ts",
-        "channels/src/components/post_view/combined_user_activity_post/index.ts",
-        "channels/src/components/post/user_profile.tsx",
-        "channels/src/components/post/post_options.tsx",
-        "channels/src/components/post_view/burn_on_read_timer_chip/burn_on_read_timer_chip.tsx",
-        "channels/src/components/post_view/burn_on_read_concealed_placeholder/burn_on_read_concealed_placeholder.tsx",
-        "channels/src/components/post_view/reaction/index.ts",
-        "channels/src/components/post_view/post_edited_indicator/post_edited_indicator.tsx",
-        "channels/src/components/post_view/post_view.tsx",
-        "channels/src/components/post_view/index.ts",
-        "channels/src/components/post_view/show_more/index.ts",
-        "channels/src/components/post_view/post_reaction/post_reaction.tsx",
-        "channels/src/components/post_view/post_message_preview/index.ts",
-        "channels/src/components/post_view/post_list_row/index.ts",
-        "channels/src/components/post_view/post_image/post_image.tsx",
-        "channels/src/components/post_view/post_flag_icon/post_flag_icon.tsx",
-        "channels/src/components/post_view/post_attachment_opengraph/index.ts",
-        "channels/src/components/post_view/post_add_channel_member/post_add_channel_member.tsx",
-        "channels/src/components/post_view/data_spillage_report/data_spillage_report.tsx",
-        "channels/src/components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions.tsx",
-        "channels/src/components/post_view/channel_intro_message/add_members_button.tsx",
-        "channels/src/components/post/post_header_translate_icon.tsx",
-        "channels/src/components/post/actions.ts",
-        "channels/src/components/post_view/burn_on_read_expiration_handler/burn_on_read_expiration_handler.tsx",
-        "channels/src/components/post_view/embedded_bindings/select_binding/select_binding.tsx",
-        "channels/src/components/post_view/embedded_bindings/button_binding/button_binding.tsx",
-        "channels/src/components/message_with_additional_content.tsx",
-        "channels/src/components/post_view/new_message_separator/new_message_separator.tsx",
-        "channels/src/components/post_view/channel_intro_message/pluggable_intro_buttons/pluggable_intro_buttons.tsx",
-        "channels/src/components/post_view/post_time/index.ts",
-        "channels/src/components/post_view/post_recent_reactions/index.ts",
-        "channels/src/components/post_view/post_message_view/index.ts",
-        "channels/src/components/post_view/post_header_custom_status/post_header_custom_status.tsx",
-        "channels/src/components/post_view/post_body_additional_content/index.ts",
-        "channels/src/components/post_view/post_attachment_container/post_attachment_container.tsx",
-        "channels/src/components/post_view/message_attachments/action_menu/index.ts",
-        "channels/src/components/post_view/gm_conversion_message/gm_conversion_message.tsx",
-        "channels/src/components/post_view/floating_timestamp/index.ts",
-        "channels/src/components/post_view/channel_intro_message/pluggable_intro_buttons/index.ts",
-        "channels/src/components/post_view/burn_on_read_badge/burn_on_read_badge.tsx",
-        "channels/src/components/post_view/acknowledgements/post_acknowledgements_users_popover.tsx",
-        "channels/src/components/post_view/acknowledgements/index.ts",
-        "channels/src/components/post_view/message_attachments/action_menu/action_menu.tsx",
-        "channels/src/components/post_view/reaction/reaction.tsx",
-        "channels/src/components/post_view/message_attachments/message_attachment/index.ts",
-        "channels/src/components/post_view/embedded_bindings/embedded_binding/index.ts",
-        "channels/src/components/post_view/commented_on/index.ts"
-      ],
-      "audience": [
-        "member",
-        "guest"
-      ],
-      "flags": [
-        {
-          "name": "WysiwygEditor",
-          "source": "featureFlag",
-          "defaultState": "on"
-        }
-      ],
-      "blastRadius": {
-        "audience": [
-          "member",
-          "guest"
-        ],
-        "flags": [
-          {
-            "name": "WysiwygEditor",
-            "source": "featureFlag",
-            "defaultState": "on"
-          }
-        ],
-        "summary": "broad; flagged-on",
-        "scoreDelta": 2
-      }
-    },
     {
       "id": "messaging.realtime",
       "name": "Realtime Receive Messages",
@@ -3662,6 +3536,7 @@
     "specs/accessibility/channels/intro_channel.spec.ts",
     "specs/accessibility/channels/settings_dialog/settings.spec.ts",
     "specs/accessibility/channels/team_menu.spec.ts (flags: SiteURL (on), ListenAddress (on), Forward80To443 (on), ConnectionSecurity (on), TLSCertFile (on), UseLetsEncrypt (on), TLSKeyFile (on), LetsEncryptCertificateCacheFile (on), ReadTimeout (on), WriteTimeout (on), MaximumPayloadSizeBytes (on), WebserverMode (on), EnableInsecureOutgoingConnections (on), ManagedResourcePaths (on), EnableSecurityFixAlert (on), EnableTesting (on), EnableDeveloper (on), EnableClientPerformanceDebugging (on), AllowedUntrustedInternalConnections (on), EnableDesktopLandingPage (on), EnableCustomGroups (on), RefreshPostStatsRunTime (on), DeleteAccountLink (on), EnableEmojiPicker (on), EnableCustomEmoji (on), ThreadAutoFollow (on), CollapsedThreads (on), AllowSyncedDrafts (on), ScheduledPosts (on), PostPriority (on), AllowPersistentNotifications (on), PersistentNotificationMaxRecipients (on), PersistentNotificationIntervalMinutes (on), PersistentNotificationMaxCount (on), AllowPersistentNotificationsForGuests (on), EnableBurnOnRead (on), BurnOnReadDurationSeconds (on), BurnOnReadMaximumTimeToLiveSeconds (on), EnableLinkPreviews (on), RestrictLinkPreviews (on), EnablePermalinkPreviews (on), EnableSVGs (on), EnableLatex (on), EnableInlineLatex (on), GoogleDeveloperKey (on), UniqueEmojiReactionLimitPerPost (on), EnableEmailInvitations (on), EnableMultifactorAuthentication (on), EnforceMultifactorAuthentication (on), EnableIncomingWebhooks (on), EnableOutgoingWebhooks (on), EnableOutgoingOAuthConnections (on), EnableCommands (on), EnableOAuthServiceProvider (on), EnableDynamicClientRegistration (on), OutgoingIntegrationRequestsTimeout (on), EnablePostUsernameOverride (on), EnablePostIconOverride (on), EnableUserAccessTokens (on), EnableBotAccountCreation (on), DisableBotsWhenOwnerIsDeactivated (on), EnableGifPicker (on), AllowCorsFrom (on), CorsExposedHeaders (on), CorsAllowCredentials (on), CorsDebug (on), FrameAncestors (on), ExperimentalEnableAuthenticationTransfer (on), EnableChannelViewedMessages (on), ExperimentalEnableDefaultChannelLeaveJoinMessages (on), ExperimentalEnableHardenedMode (on), EnableTutorial (on), EnableOnboardingFlow (on), EnableUserTypingMessages (on), TimeBetweenUserTypingUpdatesMilliseconds (on), MaximumLoginAttempts (on), MinimumHashtagLength (on), PostEditTimeLimit (on), ExtendSessionLengthWithActivity (on), TerminateSessionsOnPasswordChange (on), SessionLengthWebInHours (on), SessionLengthMobileInHours (on), SessionLengthSSOInHours (on), SessionCacheInMinutes (on), SessionIdleTimeoutInMinutes (on))",
+    "specs/functional/ai-assisted/messaging.send/messaging.send.spec.ts (flags: WysiwygEditor (on))",
     "specs/functional/channels/content_flagging/edge-cases/author-deletes-message-before-review.spec.ts",
     "specs/functional/channels/file_attachments/edit_message_with_attachment.spec.ts (flags: WysiwygEditor (on))",
     "specs/functional/channels/mentions/multiple_mentions.spec.ts",
@@ -3685,7 +3560,7 @@
       "seedFiles": 250,
       "expandedFiles": 1200,
       "analyzedFiles": 2845,
-      "analyzedEdges": 10553,
+      "analyzedEdges": 10551,
       "maxDepth": 3,
       "truncated": true
     },
@@ -3695,29 +3570,12 @@
       "mapPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/.e2e-ai-agents/subsystem-risk-map.json",
       "mapFound": true,
       "rulesLoaded": 7,
-      "filesMatched": 435,
-      "ruleMatches": 435,
-      "boostedFlows": 347
+      "filesMatched": 436,
+      "ruleMatches": 436,
+      "boostedFlows": 348
     }
   },
   "testSuggestions": [
-    {
-      "flowId": "messaging.send",
-      "flowName": "Send Message",
-      "priority": "P0",
-      "rationale": "Path match: channels/src/components/post_view/**; Path match: channels/src/components/post/**; Path match: channels/src/components/post_markdown/**; Path match: channels/src/components/message_with_additional_content.tsx",
-      "sourceFiles": [
-        "channels/src/components/post_view/reaction_list/reaction_list.tsx",
-        "channels/src/components/post_view/reaction/reaction_tooltip/index.ts",
-        "channels/src/components/post_view/post_message_view/post_message_view.tsx",
-        "channels/src/components/post_view/post_message_preview/avatar/avatar.tsx",
-        "channels/src/components/post_view/post_list_virtualized/post_list_virtualized.tsx",
-        "channels/src/components/post_view/message_attachments/message_attachment/message_attachment.tsx"
-      ],
-      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/messaging.send.spec.ts",
-      "framework": "playwright",
-      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Send Message critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/post_view/reaction_list/reaction_list.tsx, channels/src/components/post_view/reaction/reaction_tooltip/index.ts, channels/src/components/post_view/post_message_view/post_message_view.tsx, channels/src/components/post_view/post_message_preview/avatar/avatar.tsx, channels/src/components/post_view/post_list_virtualized/post_list_virtualized.tsx, channels/src/components/post_view/message_attachments/message_attachment/message_attachment.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
-    },
     {
       "flowId": "messaging.realtime",
       "flowName": "Realtime Receive Messages",
@@ -3800,22 +3658,12 @@
     "runner": "playwright-agents",
     "results": [
       {
-        "flowId": "messaging.send",
-        "flowName": "Send Message",
-        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/messaging.send",
-        "generateStatus": "failed",
-        "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
-        "failureCategory": "unknown",
-        "failureCode": "unknown"
-      },
-      {
         "flowId": "messaging.realtime",
         "flowName": "Realtime Receive Messages",
         "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/messaging.realtime",
         "generateStatus": "failed",
         "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
+        "error": "spawnSync claude ETIMEDOUT",
         "failureCategory": "unknown",
         "failureCode": "unknown"
       },
@@ -3825,7 +3673,7 @@
         "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/messaging.persistence",
         "generateStatus": "failed",
         "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
+        "error": "spawnSync claude ETIMEDOUT",
         "failureCategory": "unknown",
         "failureCode": "unknown"
       },
@@ -3835,7 +3683,7 @@
         "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/messaging.markdown",
         "generateStatus": "failed",
         "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
+        "error": "spawnSync claude ETIMEDOUT",
         "failureCategory": "unknown",
         "failureCode": "unknown"
       },
@@ -3845,7 +3693,7 @@
         "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/channels.switch",
         "generateStatus": "failed",
         "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
+        "error": "spawnSync claude ETIMEDOUT",
         "failureCategory": "unknown",
         "failureCode": "unknown"
       },
@@ -3855,7 +3703,7 @@
         "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/threads.popout",
         "generateStatus": "failed",
         "healStatus": "failed",
-        "error": "Error: Claude Code cannot be launched inside another Claude Code session.\nNested sessions share runtime resources and will crash all active sessions.\nTo bypass this check, unset the CLAUDECODE environment variable.",
+        "error": "spawnSync claude ETIMEDOUT",
         "failureCategory": "unknown",
         "failureCode": "unknown"
       }
@@ -3868,23 +3716,6 @@
     }
   },
   "suggestedNewTests": [
-    {
-      "flowId": "messaging.send",
-      "flowName": "Send Message",
-      "priority": "P0",
-      "rationale": "Path match: channels/src/components/post_view/**; Path match: channels/src/components/post/**; Path match: channels/src/components/post_markdown/**; Path match: channels/src/components/message_with_additional_content.tsx",
-      "sourceFiles": [
-        "channels/src/components/post_view/reaction_list/reaction_list.tsx",
-        "channels/src/components/post_view/reaction/reaction_tooltip/index.ts",
-        "channels/src/components/post_view/post_message_view/post_message_view.tsx",
-        "channels/src/components/post_view/post_message_preview/avatar/avatar.tsx",
-        "channels/src/components/post_view/post_list_virtualized/post_list_virtualized.tsx",
-        "channels/src/components/post_view/message_attachments/message_attachment/message_attachment.tsx"
-      ],
-      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/messaging.send.spec.ts",
-      "framework": "playwright",
-      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Send Message critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/post_view/reaction_list/reaction_list.tsx, channels/src/components/post_view/reaction/reaction_tooltip/index.ts, channels/src/components/post_view/post_message_view/post_message_view.tsx, channels/src/components/post_view/post_message_preview/avatar/avatar.tsx, channels/src/components/post_view/post_list_virtualized/post_list_virtualized.tsx, channels/src/components/post_view/message_attachments/message_attachment/message_attachment.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
-    },
     {
       "flowId": "messaging.realtime",
       "flowName": "Realtime Receive Messages",

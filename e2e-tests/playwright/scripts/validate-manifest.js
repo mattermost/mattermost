@@ -79,57 +79,66 @@ function validateP0Coverage() {
 }
 
 /**
- * Report ambiguities and low-confidence mappings
+ * Categorize diagnostics into blocking vs non-blocking
+ * Blocking: issues that prevent correct operation or indicate misconfiguration
+ * Non-blocking: informational or advisory
  */
-function reportDiagnostics() {
+function categorizeDiagnostics() {
   if (!fs.existsSync(DIAGNOSTICS_PATH)) {
-    return { count: 0, items: [] };
+    return { blocking: 0, warnings: 0, info: 0, items: { blocking: [], warnings: [], info: [] } };
   }
 
   const diagnostics = JSON.parse(fs.readFileSync(DIAGNOSTICS_PATH, 'utf8'));
-  const items = [];
+  const items = { blocking: [], warnings: [], info: [] };
 
-  // Ambiguous mappings
+  // Low-confidence mappings (< 0.8) are warnings - not high confidence
+  // These are still mapped and used, but worth noting
+  if (diagnostics.lowConfidenceMappings?.length > 0) {
+    items.warnings.push(`⚠️  Low-confidence mappings (${diagnostics.lowConfidenceMappings.length}, < 0.8):`);
+    diagnostics.lowConfidenceMappings.slice(0, 3).forEach(m => {
+      items.warnings.push(`   ${m.test} → ${m.flow} (${m.confidence})`);
+    });
+    if (diagnostics.lowConfidenceMappings.length > 3) {
+      items.warnings.push(`   ... and ${diagnostics.lowConfidenceMappings.length - 3} more`);
+    }
+  }
+
+  // Ambiguous mappings: informational - indicate tests that could map to multiple flows
+  // These are either unresolved or flagged for review
   if (diagnostics.ambiguousMappings?.length > 0) {
-    items.push(`⚠️  Ambiguous mappings (${diagnostics.ambiguousMappings.length}):`);
+    items.info.push(`📌 Ambiguous mappings (${diagnostics.ambiguousMappings.length}):`);
     diagnostics.ambiguousMappings.slice(0, 3).forEach(m => {
-      items.push(`   ${m.testPath}`);
+      items.info.push(`   ${m.testPath}`);
       // Handle both old format (candidates) and new format (selected + otherCandidates)
       if (m.candidates) {
-        m.candidates.forEach(c => items.push(`     → ${c.flow} (${c.score})`));
+        m.candidates.forEach(c => items.info.push(`     → ${c.flow} (${c.score})`));
       } else if (m.selected) {
-        items.push(`     ✓ ${m.selected.flow} (${m.selected.score})`);
-        m.otherCandidates?.forEach(c => items.push(`     → ${c.flow} (${c.score})`));
+        items.info.push(`     ✓ ${m.selected.flow} (${m.selected.score})`);
+        m.otherCandidates?.forEach(c => items.info.push(`     → ${c.flow} (${c.score})`));
       }
     });
     if (diagnostics.ambiguousMappings.length > 3) {
-      items.push(`   ... and ${diagnostics.ambiguousMappings.length - 3} more`);
+      items.info.push(`   ... and ${diagnostics.ambiguousMappings.length - 3} more`);
     }
   }
 
-  // Low-confidence mappings
-  if (diagnostics.lowConfidenceMappings?.length > 0) {
-    items.push(`\n⚠️  Low-confidence mappings (${diagnostics.lowConfidenceMappings.length}, < 0.8):`);
-    diagnostics.lowConfidenceMappings.slice(0, 3).forEach(m => {
-      items.push(`   ${m.test} → ${m.flow} (${m.confidence})`);
-    });
-    if (diagnostics.lowConfidenceMappings.length > 3) {
-      items.push(`   ... and ${diagnostics.lowConfidenceMappings.length - 3} more`);
-    }
-  }
-
-  // Unmapped tests (informational only)
+  // Unmapped tests: informational - help with gap analysis awareness
   if (diagnostics.unmappedTests?.length > 0) {
-    items.push(`\n📋 Unmapped tests (${diagnostics.unmappedTests.length}):`);
+    items.info.push(`📋 Unmapped tests (${diagnostics.unmappedTests.length}):`);
     diagnostics.unmappedTests.slice(0, 3).forEach(t => {
-      items.push(`   ${t}`);
+      items.info.push(`   ${t}`);
     });
     if (diagnostics.unmappedTests.length > 3) {
-      items.push(`   ... and ${diagnostics.unmappedTests.length - 3} more`);
+      items.info.push(`   ... and ${diagnostics.unmappedTests.length - 3} more`);
     }
   }
 
-  return { count: items.length, items };
+  return {
+    blocking: items.blocking.length,
+    warnings: items.warnings.length,
+    info: items.info.length,
+    items
+  };
 }
 
 /**
@@ -142,7 +151,7 @@ function main() {
 
   console.log('✅ Validating manifest...\n');
 
-  // Check paths exist
+  // Check paths exist (always blocking)
   const pathErrors = validateTestPathsExist();
   if (pathErrors.length > 0) {
     console.error('❌ Path Validation Failed:\n');
@@ -152,6 +161,8 @@ function main() {
 
   // Check P0 coverage (with mode handling)
   const p0Errors = validateP0Coverage();
+  let p0BlockingErrors = p0Errors.length;
+
   if (p0Errors.length > 0) {
     if (preGap) {
       // Pre-gap mode: warn only, don't fail
@@ -159,6 +170,7 @@ function main() {
       console.warn('⚠️  P0 Coverage Warnings (pre-gap mode):\n');
       p0Errors.forEach(err => console.warn(err));
       console.log('(Not failing in pre-gap mode - gap analysis will address these)\n');
+      p0BlockingErrors = 0;  // Not blocking in pre-gap mode
     } else {
       // Normal mode: fail if P0 gaps still exist after gap analysis
       console.error('❌ P0 Coverage Validation Failed:\n');
@@ -170,10 +182,25 @@ function main() {
     console.log('✅ P0 flows have coverage\n');
   }
 
-  // Report diagnostics
-  const diagnostics = reportDiagnostics();
-  if (diagnostics.items.length > 0) {
-    diagnostics.items.forEach(item => console.log(item));
+  // Categorize and report diagnostics
+  const diagResult = categorizeDiagnostics();
+
+  // Print blocking issues (always fail)
+  if (diagResult.items.blocking.length > 0) {
+    console.error('❌ Blocking Issues:\n');
+    diagResult.items.blocking.forEach(item => console.error(item));
+    console.error();
+  }
+
+  // Print warnings
+  if (diagResult.items.warnings.length > 0) {
+    diagResult.items.warnings.forEach(item => console.log(item));
+    console.log();
+  }
+
+  // Print informational items
+  if (diagResult.items.info.length > 0) {
+    diagResult.items.info.forEach(item => console.log(item));
     console.log();
   }
 
@@ -186,11 +213,28 @@ function main() {
   console.log(`   P0 flows with coverage: ${p0WithTests}/${p0Total}`);
   console.log(`   Total flows: ${catalog.flows.length}`);
 
-  if (strict && diagnostics.count > 0) {
-    console.error('\n❌ Ambiguities detected in strict mode.\n');
+  // Strict validation gate status
+  console.log(`\n🚪 Strict gate status:`);
+  console.log(`   Blocking issues: ${diagResult.blocking + p0BlockingErrors}`);
+  console.log(`   Warnings: ${diagResult.warnings}`);
+  console.log(`   Informational: ${diagResult.info}`);
+
+  // Determine exit code
+  const totalBlocking = diagResult.blocking + p0BlockingErrors;
+
+  if (totalBlocking > 0) {
+    // Blocking issues always fail (regardless of strict mode)
+    console.error(`\n❌ Validation failed: ${totalBlocking} blocking issue(s)\n`);
     process.exit(1);
   }
 
+  if (strict && diagResult.warnings > 0) {
+    // In strict mode, warnings also fail
+    console.error(`\n❌ Strict mode enabled: ${diagResult.warnings} warning(s) detected\n`);
+    process.exit(1);
+  }
+
+  // Success
   console.log('\n✨ Validation complete!');
 }
 

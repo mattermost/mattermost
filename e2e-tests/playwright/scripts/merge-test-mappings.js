@@ -3,12 +3,15 @@
 /**
  * Merge Test Mappings into flows.json
  *
- * Non-destructive merge:
- * - Keep existing valid test paths
+ * Self-correcting non-destructive merge:
+ * - Keep existing test paths only if re-discovered with sufficient confidence OR allowlisted
  * - Add newly discovered mappings above confidence threshold
- * - Remove only missing-file paths
+ * - Remove stale mappings no longer supported by rediscovery
+ * - Remove missing-file paths
  * - Normalize to specs/... paths
  * - Sort + dedupe
+ *
+ * This prevents false-positive mappings from persisting indefinitely.
  */
 
 const fs = require('fs');
@@ -37,7 +40,7 @@ function normalizePath(testPath) {
 }
 
 /**
- * Main merge logic
+ * Main merge logic with self-correction
  */
 function mergeTestMappings() {
   if (!fs.existsSync(MAPPINGS_PATH)) {
@@ -51,39 +54,69 @@ function mergeTestMappings() {
   let mergedFlows = 0;
   let addedTests = 0;
   let removedTests = 0;
+  let staleMappings = 0;
+  const staleRemovals = [];
 
   for (const flow of catalog.flows) {
     const flowId = flow.id;
     const existingTests = flow.tests || [];
     const discoveredTests = mappings[flowId] || [];
+    const allowlist = flow.manualPreservePaths || [];  // Optional allowlist field in flows.json
 
-    // Step 1: Keep existing valid paths
+    // Build set of re-discovered paths for quick lookup
+    const rediscoveredSet = new Set(
+      discoveredTests
+        .filter(d => d.confidence >= MIN_CONFIDENCE)
+        .map(d => normalizePath(d.path))
+    );
+
+    // Step 1: Filter existing tests - keep only if re-discovered, allowlisted, or file missing (will handle separately)
     const validExisting = existingTests
       .map(t => normalizePath(t))
       .filter(t => {
         if (!testExists(t)) {
+          // Missing file: always remove
           console.log(`  Removing missing: ${flowId} → ${t}`);
           removedTests++;
+          staleMappings++;
+          staleRemovals.push({ flow: flowId, test: t, reason: 'file missing' });
           return false;
         }
-        return true;
+
+        if (rediscoveredSet.has(t)) {
+          // Re-discovered in this cycle: keep
+          return true;
+        }
+
+        if (allowlist.includes(t)) {
+          // On allowlist: keep
+          return true;
+        }
+
+        // Not re-discovered and not allowlisted: remove as stale
+        console.log(`  Removing stale: ${flowId} → ${t}`);
+        removedTests++;
+        staleMappings++;
+        staleRemovals.push({ flow: flowId, test: t, reason: 'no longer discovered in rediscovery' });
+        return false;
       });
 
     // Step 2: Add newly discovered mappings (high confidence only)
     const newMappings = discoveredTests
       .filter(d => d.confidence >= MIN_CONFIDENCE)
-      .map(d => normalizePath(d.path));
+      .map(d => normalizePath(d.path))
+      .filter(d => !validExisting.includes(d));  // Avoid duplicates
 
     // Step 3: Merge: existing + new, dedupe, sort
     const merged = [...new Set([...validExisting, ...newMappings])].sort();
 
     // Step 4: Track changes
-    if (merged.length > validExisting.length) {
-      addedTests += merged.length - validExisting.length;
-      console.log(`  Updated: ${flowId} (added ${merged.length - validExisting.length} tests)`);
+    if (newMappings.length > 0) {
+      addedTests += newMappings.length;
+      console.log(`  Updated: ${flowId} (added ${newMappings.length} tests)`);
       mergedFlows++;
-    } else if (merged.length < validExisting.length) {
-      console.log(`  Cleaned: ${flowId} (removed ${validExisting.length - merged.length} missing tests)`);
+    } else if (merged.length < existingTests.length) {
+      console.log(`  Cleaned: ${flowId} (removed ${existingTests.length - merged.length} tests)`);
       mergedFlows++;
     }
 
@@ -93,7 +126,7 @@ function mergeTestMappings() {
   // Write updated flows.json
   fs.writeFileSync(FLOWS_JSON_PATH, JSON.stringify(catalog, null, 2) + '\n');
 
-  return { success: true, mergedFlows, addedTests, removedTests };
+  return { success: true, mergedFlows, addedTests, removedTests, staleMappings, staleRemovals };
 }
 
 /**
@@ -112,7 +145,18 @@ function main() {
   console.log(`   Flows updated: ${result.mergedFlows}`);
   console.log(`   Tests added: ${result.addedTests}`);
   console.log(`   Tests removed: ${result.removedTests}`);
+  if (result.staleMappings > 0) {
+    console.log(`   Stale mappings removed: ${result.staleMappings}`);
+  }
   console.log(`   Min confidence threshold: ${MIN_CONFIDENCE}\n`);
+
+  if (result.staleRemovals.length > 0 && result.staleRemovals.length <= 5) {
+    console.log('📋 Removed stale mappings:');
+    result.staleRemovals.forEach(r => {
+      console.log(`   ${r.flow}: ${r.test} (${r.reason})`);
+    });
+    console.log();
+  }
 }
 
 main();
