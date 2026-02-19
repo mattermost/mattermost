@@ -37,6 +37,11 @@ install: $(DEVDASH_BIN) ## Install mmake CLI to ~/.local/bin
 	@mkdir -p $(CONFIG_DIR)
 	@echo "==> Installing mmake to $(INSTALL_DIR)/mmake..."
 	@cp $(DEVDASH_BIN) $(INSTALL_DIR)/mmake
+	@# macOS: clear quarantine and sign to prevent Gatekeeper killing the binary
+	@if [ "$$(uname -s)" = "Darwin" ]; then \
+		xattr -cr $(INSTALL_DIR)/mmake 2>/dev/null || true; \
+		codesign --force --sign - $(INSTALL_DIR)/mmake 2>/dev/null || true; \
+	fi
 	@# Move existing config to persistent location if not already symlinked
 	@if [ -f .devdash.json ] && [ ! -L .devdash.json ]; then \
 		mv .devdash.json $(CONFIG_DIR)/.devdash.json; \
