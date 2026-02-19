@@ -22,6 +22,11 @@ jobs:
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-24.04
     steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+
       - name: Checkout documentation repo
         uses: actions/checkout@v4
         with:
@@ -119,7 +124,7 @@ jobs:
 
             Follow these steps in order. Complete each step before moving to the next.
 
-            1. **Read the PR diff** using `git diff` against the base branch to understand what changed.
+            1. **Read the PR diff** using `gh pr diff ${{ github.event.issue.number }}` to understand what changed.
             2. **Categorize each changed file** by documentation relevance using one or more of these labels:
               - API changes (new endpoints, changed parameters, changed responses)
               - Configuration changes (new or modified settings in `config.go` or `feature_flags.go`)
