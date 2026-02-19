@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	sq "github.com/mattermost/squirrel"
@@ -129,7 +130,10 @@ func (s *SqlViewStore) Get(id string) (*model.View, error) {
 
 	var row dbView
 	if err = s.GetReplica().Get(&row, query, args...); err != nil {
-		return nil, store.NewErrNotFound("View", id)
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("View", id)
+		}
+		return nil, errors.Wrapf(err, "failed to get view with id=%s", id)
 	}
 
 	return row.toModel()
