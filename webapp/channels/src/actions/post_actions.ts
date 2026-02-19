@@ -382,23 +382,24 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
                 // Fetch any obfuscated channel mentions not yet in the store
                 const unresolvedSlugs = extractUnresolvedObfuscatedSlugs(post.message, allChannelsList);
                 let combinedChannels = allChannelsList;
-                if (unresolvedSlugs.length > 0 && teamId) {
-                    const fetchedChannels = await Promise.all(
-                        unresolvedSlugs.map((slug) =>
-                            Client4.getChannelByName(teamId, slug).catch(() => null),
+                if (unresolvedSlugs.size > 0 && teamId) {
+                    const fetchPromises: Array<Promise<ServerChannel | null>> = [];
+                    unresolvedSlugs.forEach((slug) =>
+                        fetchPromises.push(
+                            Client4.getChannelByName(teamId, slug).catch(
+                                () => null,
+                            ),
                         ),
                     );
+                    const fetchedChannels = await Promise.all(fetchPromises);
                     const validFetched = fetchedChannels.filter(
                         (ch): ch is ServerChannel => ch !== null,
                     );
 
-                    // Review - no need of length check as the inner loop will just not run if there are no valid fetched channels
-                    if (validFetched.length > 0) {
-                        for (const ch of validFetched) {
-                            dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: ch});
-                        }
-                        combinedChannels = [...allChannelsList, ...validFetched];
+                    for (const ch of validFetched) {
+                        dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: ch});
                     }
+                    combinedChannels = [...allChannelsList, ...validFetched];
                 }
 
                 editablePost = {

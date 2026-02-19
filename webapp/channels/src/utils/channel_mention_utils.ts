@@ -81,9 +81,9 @@ export function resolveDisplayMentionsToSlugs(
 export function extractUnresolvedObfuscatedSlugs(
     message: string,
     channels: Channel[],
-): string[] {
+): Set<string> {
     if (!message) {
-        return [];
+        return new Set<string>();
     }
 
     const knownNames = new Set<string>();
@@ -103,8 +103,7 @@ export function extractUnresolvedObfuscatedSlugs(
         }
     }
 
-    // Review - this should ideally return a set instead of creating a new array.
-    return [...unresolved];
+    return unresolved;
 }
 
 export function convertSlugsToDisplayMentions(
