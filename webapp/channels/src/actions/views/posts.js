@@ -4,7 +4,7 @@
 import {logError} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -30,10 +30,10 @@ export function editPost(post) {
         const config = getConfig(state);
         // if (config.UseSecureChannelURLs === 'true') {
         if (true) {
-            const myChannelsList = getMyChannels(state);
+            const allChannelsList = Object.values(getAllChannels(state));
             resolvedPost = {
                 ...post,
-                message: resolveDisplayMentionsToSlugs(post.message, myChannelsList),
+                message: resolveDisplayMentionsToSlugs(post.message, allChannelsList),
             };
         }
 

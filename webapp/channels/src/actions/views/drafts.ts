@@ -9,7 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -116,10 +116,10 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             const config = getConfig(state);
             // if (config.UseSecureChannelURLs === 'true') {
             if (true) {
-                const myChannelsList = getMyChannels(state);
+                const allChannelsList = Object.values(getAllChannels(state));
                 serverDraft = {
                     ...updatedValue,
-                    message: resolveDisplayMentionsToSlugs(updatedValue.message, myChannelsList),
+                    message: resolveDisplayMentionsToSlugs(updatedValue.message, allChannelsList),
                 };
             }
 

@@ -3,7 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {resolveDisplayMentionsToSlugs, convertSlugsToDisplayMentions, hasObfuscatedSlug} from './channel_mention_utils';
+import {resolveDisplayMentionsToSlugs, convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs, hasObfuscatedSlug} from './channel_mention_utils';
 
 function makeChannel(name: string, displayName: string): Channel {
     return {
@@ -214,5 +214,45 @@ describe('convertSlugsToDisplayMentions', () => {
         expect(resolved).toBe(`Check ~${OBFUSCATED_1} and ~${OBFUSCATED_2}`);
         const restored = convertSlugsToDisplayMentions(resolved, channels);
         expect(restored).toBe(original);
+    });
+});
+
+describe('extractUnresolvedObfuscatedSlugs', () => {
+    const channels = [
+        makeChannel(OBFUSCATED_1, 'Town Square'),
+        makeChannel(OBFUSCATED_2, 'Off Topic'),
+    ];
+
+    it('should return empty array for empty message', () => {
+        expect(extractUnresolvedObfuscatedSlugs('', channels)).toEqual([]);
+    });
+
+    it('should return empty array when all obfuscated slugs are known', () => {
+        const message = `Check ~${OBFUSCATED_1} and ~${OBFUSCATED_2}`;
+        expect(extractUnresolvedObfuscatedSlugs(message, channels)).toEqual([]);
+    });
+
+    it('should return unresolved obfuscated slugs', () => {
+        const message = `Check ~${OBFUSCATED_1} and ~${OBFUSCATED_3}`;
+        expect(extractUnresolvedObfuscatedSlugs(message, channels)).toEqual([OBFUSCATED_3]);
+    });
+
+    it('should ignore non-obfuscated slugs', () => {
+        const message = 'Check ~town-square and ~general';
+        expect(extractUnresolvedObfuscatedSlugs(message, channels)).toEqual([]);
+    });
+
+    it('should deduplicate repeated unresolved slugs', () => {
+        const message = `~${OBFUSCATED_3} and ~${OBFUSCATED_3} again`;
+        expect(extractUnresolvedObfuscatedSlugs(message, channels)).toEqual([OBFUSCATED_3]);
+    });
+
+    it('should return empty array when message has no mentions', () => {
+        expect(extractUnresolvedObfuscatedSlugs('Hello world', channels)).toEqual([]);
+    });
+
+    it('should return empty array for null/undefined message', () => {
+        expect(extractUnresolvedObfuscatedSlugs(null as unknown as string, channels)).toEqual([]);
+        expect(extractUnresolvedObfuscatedSlugs(undefined as unknown as string, channels)).toEqual([]);
     });
 });

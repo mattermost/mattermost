@@ -72,6 +72,39 @@ export function resolveDisplayMentionsToSlugs(
  * Only channels with obfuscated slugs (26-char alphanumeric names) are
  * considered. Channels with custom or human-readable slugs are left untouched.
  */
+/**
+ * Extracts obfuscated channel slugs from a message that are NOT present
+ * in the provided channel list. Returns a deduplicated array of unresolved
+ * slug strings.
+ */
+export function extractUnresolvedObfuscatedSlugs(
+    message: string,
+    channels: Channel[],
+): string[] {
+    if (!message) {
+        return [];
+    }
+
+    const knownNames = new Set<string>();
+    for (const channel of channels) {
+        if (OBFUSCATED_SLUG_PATTERN.test(channel.name)) {
+            knownNames.add(channel.name);
+        }
+    }
+
+    const unresolved = new Set<string>();
+    const mentionRegex = /~([a-z0-9][a-z0-9_-]*)/gi;
+    let match;
+    while ((match = mentionRegex.exec(message)) !== null) {
+        const slug = match[1];
+        if (OBFUSCATED_SLUG_PATTERN.test(slug) && !knownNames.has(slug)) {
+            unresolved.add(slug);
+        }
+    }
+
+    return [...unresolved];
+}
+
 export function convertSlugsToDisplayMentions(
     message: string,
     channels: Channel[],

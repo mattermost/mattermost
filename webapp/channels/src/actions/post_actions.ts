@@ -5,16 +5,18 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessages} from '@mattermost/client';
+import type {Channel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
-import {getChannel, getMyChannels, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getChannel, getMyChannels, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
@@ -45,7 +47,7 @@ import {
     RHSStates,
     StoragePrefixes,
 } from 'utils/constants';
-import {convertSlugsToDisplayMentions} from 'utils/channel_mention_utils';
+import {convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs} from 'utils/channel_mention_utils';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
@@ -323,10 +325,10 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFuncAsync<boolean, GlobalState> {
     const getFilesForPost = makeGetFilesForPost();
 
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const state = getState();
         let post = PostSelectors.getPost(state, postId);
 
@@ -375,10 +377,33 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
             let editablePost = post;
             // if (config.UseSecureChannelURLs === 'true') {
             if (true) {
-                const myChannelsList = getMyChannels(state);
+                // Use getAllChannels for broader coverage than getMyChannels —
+                // this includes any channel ever loaded into the Redux store.
+                const allChannelsList = Object.values(getAllChannels(state));
+
+                // Fetch any obfuscated channel mentions not yet in the store
+                const unresolvedSlugs = extractUnresolvedObfuscatedSlugs(post.message, allChannelsList);
+                let combinedChannels = allChannelsList;
+                if (unresolvedSlugs.length > 0 && teamId) {
+                    const fetchedChannels = await Promise.all(
+                        unresolvedSlugs.map((slug) =>
+                            Client4.getChannelByName(teamId, slug).catch(() => null),
+                        ),
+                    );
+                    const validFetched = fetchedChannels.filter(
+                        (ch): ch is Channel => ch !== null,
+                    );
+                    if (validFetched.length > 0) {
+                        for (const ch of validFetched) {
+                            dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: ch});
+                        }
+                        combinedChannels = [...allChannelsList, ...validFetched];
+                    }
+                }
+
                 editablePost = {
                     ...post,
-                    message: convertSlugsToDisplayMentions(post.message, myChannelsList),
+                    message: convertSlugsToDisplayMentions(post.message, combinedChannels),
                 };
             }
             actions.push(setGlobalItem(storageKey, editablePost));

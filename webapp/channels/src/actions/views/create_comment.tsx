@@ -10,7 +10,7 @@ import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-re
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {PostTypes} from 'mattermost-redux/constants/posts';
-import {getChannel, getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getChannel, getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
@@ -75,8 +75,8 @@ export function submitPost(
         const config = getConfig(state);
         // if (config.UseSecureChannelURLs === 'true') {
         if (true) {
-            const allMyChannels = getMyChannels(state);
-            post.message = resolveDisplayMentionsToSlugs(post.message, allMyChannels);
+            const allChannelsList = Object.values(getAllChannels(state));
+            post.message = resolveDisplayMentionsToSlugs(post.message, allChannelsList);
         }
 
         const channel = getChannel(state, channelId);
