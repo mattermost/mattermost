@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToABACPage, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {
+    expect,
+    test,
+    enableABAC,
+    navigateToABACPage,
+    verifyUserInChannel,
+    verifyUserNotInChannel,
+    runSyncJob,
+} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -312,26 +320,26 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Location
+        // Set up TWO attribute fields: Department AND Office
         const attributeFields: CustomProfileAttribute[] = [
             {name: 'Department', type: 'text', value: ''},
-            {name: 'Location', type: 'text', value: ''},
+            {name: 'Office', type: 'text', value: ''},
         ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create users:
-        // 1. engineerRemoteUser: Dept=Engineering, Location=Remote → satisfies BOTH (after edit)
-        // 2. engineerOfficeUser: Dept=Engineering, Location=Office → satisfies ORIGINAL only, NOT the edited policy
+        // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
+        // 2. engineerOfficeUser: Dept=Engineering, Office=HQ → satisfies ORIGINAL only, NOT the edited policy
         // 3. salesUser: Dept=Sales → doesn't satisfy any policy
 
         const engineerRemoteUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
-            {name: 'Location', type: 'text', value: 'Remote'},
+            {name: 'Office', type: 'text', value: 'Remote'},
         ]);
 
         const engineerOfficeUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
-            {name: 'Location', type: 'text', value: 'Office'},
+            {name: 'Office', type: 'text', value: 'HQ'},
         ]);
 
         const salesUser = await createUserForABAC(adminClient, attributeFieldsMap, [
@@ -372,86 +380,85 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(3000);
 
         // Verify initial state after original policy sync
-        // Using library helper verifyUserInChannel(client, userId, channelId)
         await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
         await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
 
         // ===========================================
-        // STEP 1-2: Edit policy to ADD another attribute (Location=Remote)
-        // New expression: Department=Engineering AND Location=Remote
+        // STEP 1-2: Edit policy to ADD another attribute (Office=Remote)
+        // New expression: Department=Engineering AND Office=Remote
         // ===========================================
 
-        // Navigate to ABAC page and find the policy
-        await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
+        // Navigate back to ABAC list page
+        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.waitForTimeout(2000);
+        
+        // Verify we're on the list page by checking for "Add policy" button
+        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+        await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
-        // Search for and click the policy
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
+        // Try to find the policy row first without search
+        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
+
+        // If not visible, use search
+        if (!isPolicyVisible) {
+            const policySearchInput = page.locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]').first();
+            if (await policySearchInput.isVisible({timeout: 3000})) {
+                await policySearchInput.click();
+                await policySearchInput.fill(policyName);
+                await page.waitForTimeout(1500);
+            }
         }
 
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-        await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
+        // Click policy to edit
+        await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
         await policyRowLocator.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
-        // Verify Auto-add is ON
-        const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
-        if (await autoAddCheckbox.isVisible({timeout: 3000})) {
-            const isChecked = await autoAddCheckbox.isChecked();
-            if (!isChecked) {
-                await autoAddCheckbox.click();
-                await page.waitForTimeout(500);
+        // Check if "Add attribute" button is disabled (means attributes not loaded)
+        // If so, reload to fetch the Office attribute
+        const addAttributeButtonCheck = page.getByRole('button', {name: /add attribute/i});
+        if (await addAttributeButtonCheck.isVisible({timeout: 2000})) {
+            const isDisabled = await addAttributeButtonCheck.isDisabled();
+            if (isDisabled) {
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+                await page.waitForTimeout(1000);
             }
         }
 
-        // Switch to Advanced mode to add AND condition
-        const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
-        if (await advancedModeButton.isVisible({timeout: 5000})) {
-            await advancedModeButton.click();
-            // Wait longer for Monaco editor to fully initialize after mode switch
-            await page.waitForTimeout(2000);
-        }
-
-        // Find Monaco editor and update expression to include Location
-        // Monaco editor has a visual layer that intercepts clicks, so we need to:
-        // 1. Wait for editor to be fully loaded with content
-        // 2. Click on the .view-lines area with {force: true} to focus
-        // 3. Use keyboard to select all and type the new expression
-        const monacoContainer = page.locator('.monaco-editor').first();
-        await monacoContainer.waitFor({state: 'visible', timeout: 10000});
-
-        // Wait for the view-lines to have content (editor is loaded)
-        const editorLines = page.locator('.monaco-editor .view-lines').first();
-        await editorLines.waitFor({state: 'visible', timeout: 5000});
-
-        // Wait for editor content to be populated (should have some text from original policy)
-        await page.waitForTimeout(500);
-
-        // Click to focus the editor
-        await editorLines.click({force: true});
-        await page.waitForTimeout(300);
-
-        // Use platform-specific select all (Meta+a on Mac, Control+a on others)
-        const isMac = process.platform === 'darwin';
-        await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-        await page.waitForTimeout(200);
-
-        // Type the new CEL expression with delay for stability
-        const newExpression = 'user.attributes.Department == "Engineering" && user.attributes.Location == "Remote"';
-        await page.keyboard.type(newExpression, {delay: 10});
+        // Stay in Simple Mode and add a second attribute row
+        const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
+        await addAttributeButton.waitFor({state: 'visible', timeout: 5000});
+        await addAttributeButton.click();
         await page.waitForTimeout(1000);
 
-        // Wait for the "Valid" indicator to confirm the expression is valid
-        const validIndicator = page.locator('text=Valid').first();
-        try {
-            await validIndicator.waitFor({state: 'visible', timeout: 10000});
-        } catch {
-            // Ignore if Valid indicator doesn't appear
-        }
+        // The attribute dropdown opens automatically after clicking "Add attribute"
+        // Wait for the menu to be visible and select "Office"
+        const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+        await attributeMenu.waitFor({state: 'visible', timeout: 5000});
+        
+        const officeOption = attributeMenu.locator('li:has-text("Office")').first();
+        await officeOption.waitFor({state: 'visible', timeout: 5000});
+        await officeOption.click({force: true});
+        await page.waitForTimeout(500);
+
+        // Select operator "==" (is)
+        const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
+        await operatorButton.waitFor({state: 'visible', timeout: 5000});
+        await operatorButton.click({force: true});
+        await page.waitForTimeout(500);
+
+        const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
+        await operatorOption.click({force: true});
+        await page.waitForTimeout(500);
+
+        // Fill value "Remote"
+        const valueInput = page.locator('.values-editor__simple-input').last();
+        await valueInput.waitFor({state: 'visible', timeout: 5000});
+        await valueInput.fill('Remote');
+        await page.waitForTimeout(500);
 
         // ===========================================
         // STEP 3: Test Access Rule
@@ -473,9 +480,20 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Navigate to ABAC page and wait for sync job to complete
+        // Navigate to ABAC page
         await navigateToABACPage(page);
+        await page.waitForTimeout(1000);
+        
+        // Manually trigger a sync job to apply the policy changes
+        await runSyncJob(page, false);
         await waitForLatestSyncJob(page);
+        
+        // Trigger a SECOND sync job - sometimes the first sync only processes additions
+        await runSyncJob(page, false);
+        await waitForLatestSyncJob(page);
+
+        // Additional wait for membership changes to propagate
+        await page.waitForTimeout(3000);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
@@ -534,31 +552,31 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Location
+        // Set up TWO attribute fields: Department AND Office
         const attributeFields: CustomProfileAttribute[] = [
             {name: 'Department', type: 'text', value: ''},
-            {name: 'Location', type: 'text', value: ''},
+            {name: 'Office', type: 'text', value: ''},
         ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create users:
-        // 1. engineerRemoteUser: Dept=Engineering, Location=Remote → satisfies ORIGINAL (both rules)
-        // 2. engineerOfficeUser: Dept=Engineering, Location=Office → satisfies EDITED policy (Dept only)
-        // 3. salesRemoteUser: Dept=Sales, Location=Remote → doesn't satisfy (wrong Dept)
+        // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)
+        // 2. engineerOfficeUser: Dept=Engineering, Office=HQ → satisfies EDITED policy (Dept only)
+        // 3. salesRemoteUser: Dept=Sales, Office=Remote → doesn't satisfy (wrong Dept)
 
         const engineerRemoteUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
-            {name: 'Location', type: 'text', value: 'Remote'},
+            {name: 'Office', type: 'text', value: 'Remote'},
         ]);
 
         const engineerOfficeUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
-            {name: 'Location', type: 'text', value: 'Office'},
+            {name: 'Office', type: 'text', value: 'HQ'},
         ]);
 
         const salesRemoteUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Sales'},
-            {name: 'Location', type: 'text', value: 'Remote'},
+            {name: 'Office', type: 'text', value: 'Remote'},
         ]);
 
         // Add users to team
@@ -579,7 +597,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // ===========================================
         // PRECONDITION: Create ORIGINAL policy with TWO attributes
-        // Department=Engineering AND Location=Remote
+        // Department=Engineering AND Office=Remote
         // Auto-add ON
         // ===========================================
         const policyName = `ABAC-RemoveRule-${await pw.random.id()}`;
@@ -587,7 +605,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Use advanced mode for multi-attribute policy
         await createAdvancedPolicy(page, {
             name: policyName,
-            celExpression: 'user.attributes.Department == "Engineering" && user.attributes.Location == "Remote"',
+            celExpression: 'user.attributes.Department == "Engineering" && user.attributes.Office == "Remote"',
             autoSync: true, // Auto-add is ON
             channels: [privateChannel.display_name],
         });
@@ -596,10 +614,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(3000);
 
         // Verify initial state after original policy sync
-        // Using library helper verifyUserInChannel(client, userId, channelId)
+        // Original policy: Department=Engineering AND Office=Remote
+        // - engineerRemoteUser: satisfies → should be auto-added
+        // - engineerOfficeUser: does NOT satisfy (HQ != Remote) → should NOT be in channel
+        // - salesRemoteUser: does NOT satisfy (Sales != Engineering) → should be auto-removed
         await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-        await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
-        await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
+        await verifyUserNotInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
+        await verifyUserNotInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
 
         // ===========================================
         // STEP 1-2: Edit policy to REMOVE Location rule
@@ -607,19 +628,32 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // This makes policy LESS restrictive
         // ===========================================
 
-        // Navigate to ABAC page and find the policy
-        await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
+        // Navigate back to ABAC list page
+        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.waitForTimeout(2000);
+        
+        // Verify we're on the list page by checking for "Add policy" button
+        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+        await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
-        // Search for and click the policy
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
+        // Try to find the policy row first without search
+        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
+
+        // If not visible, try with search
+        if (!isPolicyVisible) {
+            // Use a more specific selector for the search input in the policies table
+            const policySearchInput = page.locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]').first();
+            if (await policySearchInput.isVisible({timeout: 3000})) {
+                await policySearchInput.click();
+                await policySearchInput.fill(policyName);
+                // DON'T press Enter - just wait for the search to filter
+                await page.waitForTimeout(1500);
+            }
         }
 
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-        await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
+        // Wait for policy row to be visible
+        await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
         await policyRowLocator.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
@@ -647,19 +681,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             }
         }
 
-        // Find Monaco editor and update expression to REMOVE Location rule
-        // Monaco editor has a visual layer that intercepts clicks, so we need to:
-        // 1. Wait for editor to be fully loaded with content
-        // 2. Click on the .view-lines area with {force: true} to focus
-        // 3. Use keyboard to select all and type the new expression
+        // Find Monaco editor and update expression to REMOVE Office rule
         monacoContainer = page.locator('.monaco-editor').first();
         await monacoContainer.waitFor({state: 'visible', timeout: 10000});
 
-        // Wait for the view-lines to have content (editor is loaded)
         const editorLines = page.locator('.monaco-editor .view-lines').first();
         await editorLines.waitFor({state: 'visible', timeout: 5000});
-
-        // Wait for editor content to be populated
         await page.waitForTimeout(500);
 
         // Click to focus the editor
@@ -671,7 +698,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
         await page.waitForTimeout(200);
 
-        // Type the new CEL expression (REMOVING Location rule) with delay for stability
+        // Type the new CEL expression (REMOVING Office rule)
         const newExpression = 'user.attributes.Department == "Engineering"';
         await page.keyboard.type(newExpression, {delay: 10});
         await page.waitForTimeout(1000);
