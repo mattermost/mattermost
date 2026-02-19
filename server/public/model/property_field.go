@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
@@ -26,6 +27,23 @@ const (
 	PropertyFieldTargetTypeMaxRunes = 255
 	PropertyFieldObjectTypeMaxRunes = 255
 )
+
+// PropertyFieldTargetLevel represents the hierarchy level of a property field.
+// Used both for TargetType field values and for conflict detection results.
+type PropertyFieldTargetLevel string
+
+const (
+	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
+	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
+	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
+)
+
+// validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
+var validPSAv2TargetTypes = []string{
+	string(PropertyFieldTargetLevelSystem),
+	string(PropertyFieldTargetLevelTeam),
+	string(PropertyFieldTargetLevelChannel),
+}
 
 type PropertyField struct {
 	ID         string            `json:"id"`
@@ -137,6 +155,12 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
+	// PSAv2 properties (with ObjectType) must have TargetType as system, team, or channel (cannot be empty)
+	// PSAv1 properties (without ObjectType) can have any string as TargetType
+	if !pf.IsPSAv1() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
 	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
@@ -233,6 +257,20 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	if patch.TargetType != nil {
 		pf.TargetType = *patch.TargetType
 	}
+}
+
+// IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
+// Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
+// enforced by the idx_propertyfields_unique_legacy database constraint, rather than
+// the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
+func (pf *PropertyField) IsPSAv1() bool {
+	return pf.ObjectType == ""
+}
+
+// IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
+// PSAv2 target level (system, team, or channel).
+func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {
+	return slices.Contains(validPSAv2TargetTypes, targetType)
 }
 
 type PropertyFieldSearchCursor struct {
