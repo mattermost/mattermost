@@ -522,7 +522,13 @@ export async function setupWikiWithPageViaAPI(
     pageTitle: string = 'Test Page',
     pageContent?: string,
     channelNamePrefix: string = 'Test Channel',
-): Promise<{page: Page; channelsPage: any; channel: Channel; wiki: {id: string; title: string}; wikiPage: {id: string; title: string}}> {
+): Promise<{
+    page: Page;
+    channelsPage: any;
+    channel: Channel;
+    wiki: {id: string; title: string};
+    wikiPage: {id: string; title: string};
+}> {
     const {team, user, adminClient} = sharedPagesSetup;
 
     const channel = await createTestChannel(adminClient, team.id, channelNamePrefix);

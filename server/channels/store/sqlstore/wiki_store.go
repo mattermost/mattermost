@@ -450,9 +450,7 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 			if _, execErr := transaction.ExecBuilder(propertyValuesUpdateQuery); execErr != nil {
 				return errors.Wrap(execErr, "failed to soft delete property values for wiki")
 			}
-
 		}
-
 		// Delete all page drafts for this wiki (WikiId is stored in Drafts.ChannelId for page drafts)
 		pageDraftsDeleteQuery := s.getQueryBuilder().
 			Delete("Drafts").

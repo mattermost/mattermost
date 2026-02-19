@@ -146,6 +146,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {refetchWikiBundle} from 'actions/wiki_actions';
+import {getCurrentLocale} from 'selectors/i18n';
 import {makePageDraftKey} from 'selectors/page_drafts';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
@@ -160,8 +161,8 @@ import {handleActiveEditorDraftCreated, handleActiveEditorDraftUpdated, handleAc
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
-import {getPageReceiveActions} from 'utils/page_utils';
 import {getIntl} from 'utils/i18n';
+import {getPageReceiveActions} from 'utils/page_utils';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -2528,10 +2529,22 @@ export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.C
     };
 }
 
-export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated) {
-    return {
-        type: PostTypes.POST_TRANSLATION_UPDATED,
-        data: msg.data,
+export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const locale = getCurrentLocale(getState());
+        const t = msg.data.translations[locale];
+        if (!t) {
+            return;
+        }
+
+        dispatch({
+            type: PostTypes.POST_TRANSLATION_UPDATED,
+            data: {
+                object_id: msg.data.object_id,
+                language: locale,
+                ...t,
+            },
+        });
     };
 }
 
