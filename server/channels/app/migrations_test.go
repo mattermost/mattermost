@@ -10,6 +10,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDoSetupBoardsPropertyField(t *testing.T) {
+	t.Run("should register property group and board field", func(t *testing.T) {
+		th := Setup(t)
+
+		group, err := th.Store.PropertyGroup().Get(model.BoardsPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+
+		field, err := th.Store.PropertyField().GetFieldByName(group.ID, "", model.BoardsPropertyFieldNameBoard)
+		require.NoError(t, err)
+		require.NotNil(t, field)
+		require.Equal(t, model.BoardsPropertyFieldNameBoard, field.Name)
+		require.Equal(t, "post", field.ObjectType)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		err := th.Server.doSetupBoardsPropertyField()
+		require.NoError(t, err)
+
+		group, err := th.Store.PropertyGroup().Get(model.BoardsPropertyGroupName)
+		require.NoError(t, err)
+
+		field, err := th.Store.PropertyField().GetFieldByName(group.ID, "", model.BoardsPropertyFieldNameBoard)
+		require.NoError(t, err)
+		require.Equal(t, model.BoardsPropertyFieldNameBoard, field.Name)
+	})
+}
+
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
 		//we need to call the Setup method and run the full setup instead of

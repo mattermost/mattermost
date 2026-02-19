@@ -1,0 +1,186 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package model
+
+import (
+	"net/http"
+	"unicode/utf8"
+)
+
+type ViewType string
+type SubviewType string
+
+const (
+	ViewTypeBoard ViewType = "board"
+
+	SubviewTypeKanban SubviewType = "kanban"
+
+	ViewTitleMaxRunes       = 256
+	ViewDescriptionMaxRunes = 1024
+	ViewIconMaxRunes        = 256
+
+	BoardsPropertyGroupName      = "boards"
+	BoardsPropertyFieldNameBoard = "board"
+)
+
+type View struct {
+	Id          string          `json:"id"`
+	ChannelId   string          `json:"channel_id"`
+	Type        ViewType        `json:"type"`
+	CreatorId   string          `json:"creator_id"`
+	Title       string          `json:"title"`
+	Description string          `json:"description,omitempty"`
+	Icon        string          `json:"icon,omitempty"`
+	SortOrder   int             `json:"sort_order"`
+	Props       *ViewBoardProps `json:"props,omitempty"`
+	CreateAt    int64           `json:"create_at"`
+	UpdateAt    int64           `json:"update_at"`
+	DeleteAt    int64           `json:"delete_at"`
+}
+
+type ViewBoardProps struct {
+	LinkedProperties []string  `json:"linked_properties"`
+	Subviews         []Subview `json:"subviews"`
+}
+
+type Subview struct {
+	Id    string      `json:"id"`
+	Title string      `json:"title"`
+	Type  SubviewType `json:"type"`
+}
+
+func (s *Subview) PreSave() {
+	if s.Id == "" {
+		s.Id = NewId()
+	}
+}
+
+func (s *Subview) IsValid() *AppError {
+	if !IsValidId(s.Id) {
+		return NewAppError("Subview.IsValid", "model.subview.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.Title == "" {
+		return NewAppError("Subview.IsValid", "model.subview.is_valid.title.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
+
+	if s.Type != SubviewTypeKanban {
+		return NewAppError("Subview.IsValid", "model.subview.is_valid.type.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+type ViewPatch struct {
+	Title       *string         `json:"title"`
+	Description *string         `json:"description"`
+	Icon        *string         `json:"icon"`
+	SortOrder   *int            `json:"sort_order"`
+	Props       *ViewBoardProps `json:"props"`
+}
+
+func (o *View) Auditable() map[string]any {
+	return map[string]any{
+		"id":         o.Id,
+		"channel_id": o.ChannelId,
+		"type":       o.Type,
+		"creator_id": o.CreatorId,
+		"create_at":  o.CreateAt,
+		"update_at":  o.UpdateAt,
+		"delete_at":  o.DeleteAt,
+	}
+}
+
+func (o *View) Clone() *View {
+	v := *o
+	return &v
+}
+
+func (o *View) IsValid() *AppError {
+	if !IsValidId(o.Id) {
+		return NewAppError("View.IsValid", "model.view.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(o.ChannelId) {
+		return NewAppError("View.IsValid", "model.view.is_valid.channel_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if !IsValidId(o.CreatorId) {
+		return NewAppError("View.IsValid", "model.view.is_valid.creator_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type != ViewTypeBoard {
+		return NewAppError("View.IsValid", "model.view.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Title == "" || utf8.RuneCountInString(o.Title) > ViewTitleMaxRunes {
+		return NewAppError("View.IsValid", "model.view.is_valid.title.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(o.Description) > ViewDescriptionMaxRunes {
+		return NewAppError("View.IsValid", "model.view.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(o.Icon) > ViewIconMaxRunes {
+		return NewAppError("View.IsValid", "model.view.is_valid.icon.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.CreateAt == 0 {
+		return NewAppError("View.IsValid", "model.view.is_valid.create_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.UpdateAt == 0 {
+		return NewAppError("View.IsValid", "model.view.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Props != nil {
+		for _, subview := range o.Props.Subviews {
+			if err := subview.IsValid(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (o *View) PreSave() {
+	if o.Id == "" {
+		o.Id = NewId()
+	}
+
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+	}
+	o.UpdateAt = o.CreateAt
+	o.DeleteAt = 0
+
+	if o.Props != nil {
+		for i := range o.Props.Subviews {
+			o.Props.Subviews[i].PreSave()
+		}
+	}
+}
+
+func (o *View) PreUpdate() {
+	o.UpdateAt = GetMillis()
+}
+
+func (o *View) Patch(patch *ViewPatch) {
+	if patch.Title != nil {
+		o.Title = *patch.Title
+	}
+	if patch.Description != nil {
+		o.Description = *patch.Description
+	}
+	if patch.Icon != nil {
+		o.Icon = *patch.Icon
+	}
+	if patch.SortOrder != nil {
+		o.SortOrder = *patch.SortOrder
+	}
+	if patch.Props != nil {
+		o.Props = patch.Props
+	}
+}
