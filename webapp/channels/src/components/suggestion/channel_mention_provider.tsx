@@ -7,7 +7,6 @@ import {defineMessage, useIntl} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions.js';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
@@ -15,9 +14,9 @@ import store from 'stores/redux_store';
 
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
+import {hasObfuscatedSlug} from 'utils/channel_mention_utils';
 import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
-import {hasObfuscatedSlug} from 'utils/channel_mention_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 import Provider from './provider';
@@ -182,7 +181,7 @@ export default class ChannelMentionProvider extends Provider {
 
         this.startNewRequest(prefix);
 
-        const state = store.getState();
+        // const state = store.getState();
         // const useSecureURLs = getConfig(state).UseSecureChannelURLs === 'true';
         const useSecureURLs = true;
 

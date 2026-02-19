@@ -4,8 +4,8 @@
 import {logError} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {getAllChannels, getMyChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -14,8 +14,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getPermalinkURL} from 'selectors/urls';
 
-import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
 import {resolveDisplayMentionsToSlugs} from 'utils/channel_mention_utils';
+import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
@@ -27,8 +27,10 @@ export function editPost(post) {
         const state = getState();
         let resolvedPost = post;
 
-        const config = getConfig(state);
+        // const config = getConfig(state);
         // if (config.UseSecureChannelURLs === 'true') {
+
+        // eslint-disable-next-line no-constant-condition
         if (true) {
             const allChannelsList = Object.values(getAllChannels(state));
             resolvedPost = {

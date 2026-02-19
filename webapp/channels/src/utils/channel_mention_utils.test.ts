@@ -100,6 +100,7 @@ describe('resolveDisplayMentionsToSlugs', () => {
             makeChannel(OBFUSCATED_1, 'My Channel'),
             makeChannel(OBFUSCATED_2, 'My Channel!'),
         ];
+
         // Both display names slugify to "my-channel"
         const message = 'See ~my-channel';
         const result = resolveDisplayMentionsToSlugs(message, channelsWithCollision);
@@ -126,8 +127,8 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
     it('should only transform obfuscated channels in a mixed set', () => {
         const mixedChannels = [
-            makeChannel('town-square', 'Town Square'),           // non-obfuscated - skip
-            makeChannel(OBFUSCATED_1, 'Engineering'),            // obfuscated - transform
+            makeChannel('town-square', 'Town Square'), // non-obfuscated - skip
+            makeChannel(OBFUSCATED_1, 'Engineering'), // obfuscated - transform
         ];
         const message = 'See ~town-square and ~engineering';
         const result = resolveDisplayMentionsToSlugs(message, mixedChannels);
@@ -191,8 +192,8 @@ describe('convertSlugsToDisplayMentions', () => {
 
     it('should only transform obfuscated channels in a mixed set', () => {
         const mixedChannels = [
-            makeChannel('town-square', 'Town Square'),           // non-obfuscated - skip
-            makeChannel(OBFUSCATED_1, 'Engineering'),            // obfuscated - transform
+            makeChannel('town-square', 'Town Square'), // non-obfuscated - skip
+            makeChannel(OBFUSCATED_1, 'Engineering'), // obfuscated - transform
         ];
         const message = `See ~town-square and ~${OBFUSCATED_1}`;
         const result = convertSlugsToDisplayMentions(message, mixedChannels);

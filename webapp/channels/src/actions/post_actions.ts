@@ -5,18 +5,18 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessages} from '@mattermost/client';
-import type { Channel, ServerChannel } from "@mattermost/types/channels";
+import type {ServerChannel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
-import {getAllChannels, getChannel, getMyChannels, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {Client4} from 'mattermost-redux/client';
+import {getChannel, getMyChannels, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
@@ -40,6 +40,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
 
+import {convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs} from 'utils/channel_mention_utils';
 import {
     ActionTypes,
     Constants,
@@ -47,7 +48,6 @@ import {
     RHSStates,
     StoragePrefixes,
 } from 'utils/constants';
-import {convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs} from 'utils/channel_mention_utils';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
@@ -375,7 +375,9 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
         ) {
             // Convert real channel name mentions to display slugs for readable editing
             let editablePost = post;
+
             // if (config.UseSecureChannelURLs === 'true') {
+            // eslint-disable-next-line no-constant-condition
             if (true) {
                 const allChannelsList = Object.values(getMyChannels(state));
 
