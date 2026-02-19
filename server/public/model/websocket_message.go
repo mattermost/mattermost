@@ -105,6 +105,8 @@ const (
 	WebsocketEventViewCreated                         WebsocketEventType = "view_created"
 	WebsocketEventViewUpdated                         WebsocketEventType = "view_updated"
 	WebsocketEventViewDeleted                         WebsocketEventType = "view_deleted"
+	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
+	WebsocketEventShowToast                           WebsocketEventType = "show_toast"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

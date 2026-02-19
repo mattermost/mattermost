@@ -1052,6 +1052,7 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postID string) (*model.PostPriority, error)
+	GetForPostWithContext(rctx request.CTX, postID string) (*model.PostPriority, error)
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 	Save(priority *model.PostPriority) (*model.PostPriority, error)
 	Delete(postID string) error
@@ -1136,6 +1137,7 @@ type PropertyFieldStore interface {
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
+	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }
 
 type PropertyValueStore interface {
@@ -1191,6 +1193,10 @@ type AutoTranslationStore interface {
 	// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel.
 	// This should be called after saving a new post translation.
 	InvalidatePostTranslationEtag(channelID string)
+	// GetTranslationsSinceForChannel returns translations updated after `since` for posts in the
+	// given channel and destination language. Only non-processing translations are returned.
+	// The result is keyed by post ID.
+	GetTranslationsSinceForChannel(channelID, dstLang string, since int64) (map[string]*model.Translation, error)
 }
 
 type ContentFlaggingStore interface {
