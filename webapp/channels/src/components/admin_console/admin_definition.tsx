@@ -2543,9 +2543,7 @@ const AdminDefinition: AdminDefinitionType = {
                             }),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             validate: (value) => {
-                                console.log('value', value);
                                 if (value && !semver.valid(value)) {
-                                    console.log('invalid version number');
                                     return new ValidationResult(false, defineMessage({
                                         id: 'admin.customization.minimumDesktopAppVersionError',
                                         defaultMessage: 'Invalid version number. Must be a valid semantic version (e.g. 5.0.0).',
