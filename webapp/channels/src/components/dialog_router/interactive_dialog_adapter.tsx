@@ -445,7 +445,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             url: lookupPath || '',
             callback_id: callbackId ?? '',
             state: state ?? '',
-            submission: convertedValues as {[x: string]: string},
+            submission: convertedValues,
             user_id: '',
             channel_id: '',
             team_id: '',

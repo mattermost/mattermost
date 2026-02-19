@@ -15,22 +15,18 @@ import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
-import {formatDateForDisplay} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
+import type {RangeConfig} from './use_range_date_picker';
+import {useRangeDatePicker} from './use_range_date_picker';
+
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
-    const diff = value.minute() % roundedTo;
-    if (diff === 0) {
-        // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
-    }
-    const remainder = roundedTo - diff;
-    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
-}
+// Re-exported from date_utils for backward compatibility
+export {getRoundedTime} from 'utils/date_utils';
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
     let time = moment(startTime);
@@ -206,6 +202,14 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     );
 };
 
+// Helper to convert moment to Date for react-day-picker (preserves year/month/day without UTC shift)
+function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
+    if (!m) {
+        return undefined;
+    }
+    return new Date(m.year(), m.month(), m.date());
+}
+
 type Props = {
     time: Moment | null;
     handleChange: (date: Moment | null) => void;
@@ -214,6 +218,7 @@ type Props = {
     relativeDate?: boolean;
     timePickerInterval?: number;
     allowPastDates?: boolean;
+    rangeConfig?: RangeConfig;
     allowManualTimeEntry?: boolean;
 }
 
@@ -225,6 +230,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     relativeDate,
     timePickerInterval,
     allowPastDates = false,
+    rangeConfig,
     allowManualTimeEntry = false,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
@@ -279,22 +285,6 @@ const DateTimeInputContainer: React.FC<Props> = ({
         };
     }, [handleKeyDown]);
 
-    // Auto-round time if it's not already on an interval boundary
-    // This ensures consistent behavior across all callers (DND, Custom Status, Post Reminder, etc.)
-    // Uses default 30-minute interval if not specified
-    // Skip for manual entry fields (user types exact minutes)
-    useEffect(() => {
-        if (time && !allowManualTimeEntry) {
-            const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
-            const rounded = getRoundedTime(time, interval);
-
-            // Only update if the time actually needs rounding
-            if (!rounded.isSame(time, 'minute')) {
-                handleChange(rounded);
-            }
-        }
-    }, [time, timePickerInterval, handleChange, allowManualTimeEntry]);
-
     const setTimeAndOptions = () => {
         // Use displayTime if available, otherwise use currentTime for generating dropdown
         // This ensures dropdown always has options even for optional fields with null time
@@ -313,6 +303,26 @@ const DateTimeInputContainer: React.FC<Props> = ({
     };
 
     useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone]);
+
+    // Auto-round time to interval boundary when not using manual entry
+    useEffect(() => {
+        if (time && !allowManualTimeEntry) {
+            const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+            if (time.minute() % interval !== 0) {
+                handleChange(getRoundedTime(time, interval));
+            }
+        }
+    }, [time, allowManualTimeEntry, timePickerInterval, handleChange]);
+
+    // Range calendar logic (no-ops when rangeConfig is undefined)
+    const {rangeDatePickerProps, disabledDays} = useRangeDatePicker({
+        rangeConfig,
+        allowPastDates,
+        currentTime,
+        displayTime,
+        isPopperOpen,
+        handlePopperOpenState,
+    });
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         // Use existing time if available, otherwise use current time in display timezone
@@ -334,8 +344,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
-            const roundedTime = getRoundedTime(baseTime, timePickerInterval);
-            handleChange(roundedTime);
+
+            // For manual entry fields, preserve exact time (no rounding)
+            const updatedTime = allowManualTimeEntry ? baseTime : getRoundedTime(baseTime, timePickerInterval);
+            handleChange(updatedTime);
         } else if (timezone) {
             // Use moment.tz array syntax to create moment directly in timezone
             // This is the same pattern used by manual entry (which works correctly)
@@ -377,13 +389,14 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
-    const datePickerProps: DayPickerProps = {
+    // Use range picker props from hook, or build single-mode props
+    const datePickerProps: DayPickerProps = rangeDatePickerProps || {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: displayTime?.toDate(),
-        defaultMonth: displayTime?.toDate() || new Date(),
+        selected: momentToLocalDate(displayTime),
+        defaultMonth: momentToLocalDate(displayTime) || new Date(),
         onDayClick: handleDayChange,
-        disabled: allowPastDates ? undefined : {before: currentTime.toDate()},
+        disabled: disabledDays,
         showOutsideDays: true,
     };
 

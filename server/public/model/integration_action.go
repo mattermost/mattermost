@@ -342,6 +342,12 @@ type Dialog struct {
 type DialogDateTimeConfig struct {
 	// TimeInterval: Minutes between time options in dropdown (default: 60)
 	TimeInterval int `json:"time_interval,omitempty"`
+	// IsRange: Enable date/datetime range selection (start and end)
+	IsRange bool `json:"is_range,omitempty"`
+	// AllowSingleDayRange: Allow start and end to be the same day in range mode
+	AllowSingleDayRange bool `json:"allow_single_day_range,omitempty"`
+	// RangeLayout: Layout for range fields - "horizontal" (side-by-side) or "vertical" (stacked)
+	RangeLayout string `json:"range_layout,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
 	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown

@@ -4,7 +4,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import type {AppField} from '@mattermost/types/apps';
+import type {AppField, DateTimeRangeValue, AppFormValue} from '@mattermost/types/apps';
+import {isDateTimeRangeValue} from '@mattermost/types/apps';
 
 import DatePicker from 'components/date_picker/date_picker';
 
@@ -12,8 +13,8 @@ import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} f
 
 type Props = {
     field: AppField;
-    value: string | null;
-    onChange: (name: string, value: string | null) => void;
+    value: string | DateTimeRangeValue | null;
+    onChange: (name: string, value: AppFormValue) => void;
     setIsInteracting?: (isInteracting: boolean) => void;
 };
 
@@ -26,21 +27,52 @@ const AppsFormDateField: React.FC<Props> = ({
     const intl = useIntl();
     const [isPopperOpen, setIsPopperOpen] = useState(false);
 
+    // Extract datetime config with fallback to top-level fields
+    const config = field.datetime_config || {};
+    const isRange = config.is_range ?? false;
+    const allowSingleDayRange = config.allow_single_day_range ?? false;
+
     const dateValue = useMemo(() => {
-        return stringToDate(value);
-    }, [value]);
+        if (isRange && isDateTimeRangeValue(value)) {
+            const dates = [stringToDate(value.start)];
+            if (value.end) {
+                dates.push(stringToDate(value.end));
+            }
+            return dates.filter((d): d is Date => d !== null);
+        }
+        return stringToDate(value as string);
+    }, [value, isRange]);
 
     const displayValue = useMemo(() => {
         if (!dateValue) {
             return '';
         }
 
-        try {
-            return formatDateForDisplay(dateValue, intl.locale);
-        } catch {
-            return '';
+        if (isRange && Array.isArray(dateValue)) {
+            if (dateValue.length === 0) {
+                return '';
+            }
+            const formattedStart = formatDateForDisplay(dateValue[0], intl.locale);
+            try {
+                if (dateValue.length === 1) {
+                    return formattedStart;
+                }
+                return `${formattedStart} - ${formatDateForDisplay(dateValue[1], intl.locale)}`;
+            } catch {
+                return '';
+            }
         }
-    }, [dateValue, intl.locale]);
+
+        if (dateValue instanceof Date) {
+            try {
+                return formatDateForDisplay(dateValue, intl.locale);
+            } catch {
+                return '';
+            }
+        }
+
+        return '';
+    }, [dateValue, intl.locale, isRange]);
 
     const handleDateChange = useCallback((date: Date | undefined) => {
         if (!date) {
@@ -52,6 +84,41 @@ const AppsFormDateField: React.FC<Props> = ({
         onChange(field.name, newValue);
         setIsPopperOpen(false);
     }, [field.name, onChange]);
+
+    const handleRangeChange = useCallback((range: {from?: Date; to?: Date} | undefined) => {
+        if (!range || !range.from) {
+            onChange(field.name, null);
+            return;
+        }
+
+        const start = dateToString(range.from);
+        if (!start) {
+            onChange(field.name, null);
+            return;
+        }
+
+        // Validate same-day range based on allow_single_day_range setting
+        let validTo = range.to;
+        if (range.to && !allowSingleDayRange) {
+            const from = range.from;
+            const to = range.to;
+            if (
+                from.getFullYear() === to.getFullYear() &&
+                from.getMonth() === to.getMonth() &&
+                from.getDate() === to.getDate()
+            ) {
+                validTo = undefined;
+            }
+        }
+
+        const end = validTo ? dateToString(validTo) : undefined;
+        const rangeResult: DateTimeRangeValue = {start, ...(end ? {end} : {})};
+
+        onChange(field.name, rangeResult);
+        if (validTo) {
+            setIsPopperOpen(false);
+        }
+    }, [field.name, onChange, allowSingleDayRange]);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
@@ -89,19 +156,32 @@ const AppsFormDateField: React.FC<Props> = ({
         <i className='icon-calendar-outline'/>
     );
 
+    const rangePickerValue = isRange && Array.isArray(dateValue) && dateValue.length > 0 ? {
+        from: dateValue[0],
+        to: dateValue.length > 1 ? dateValue[1] : undefined,
+    } : undefined;
+
+    const datePickerProps = isRange ? {
+        mode: 'range' as const,
+        selected: rangePickerValue,
+        defaultMonth: rangePickerValue?.from,
+        onSelect: handleRangeChange,
+        disabled: field.readonly ? true : disabledDays,
+    } : {
+        mode: 'single' as const,
+        selected: (dateValue instanceof Date ? dateValue : undefined),
+        defaultMonth: (dateValue instanceof Date ? dateValue : undefined),
+        onSelect: handleDateChange,
+        disabled: field.readonly ? true : disabledDays,
+    };
+
     return (
         <div>
             <DatePicker
                 isPopperOpen={isPopperOpen}
                 handlePopperOpenState={handlePopperOpenState}
                 locale={intl.locale}
-                datePickerProps={{
-                    mode: 'single',
-                    selected: dateValue || undefined,
-                    defaultMonth: dateValue || undefined,
-                    onSelect: handleDateChange,
-                    disabled: field.readonly ? true : disabledDays,
-                }}
+                datePickerProps={datePickerProps}
                 value={displayValue || undefined}
                 icon={calendarIcon}
             >

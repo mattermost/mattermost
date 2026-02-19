@@ -1623,5 +1623,110 @@ describe('dialog_conversion', () => {
                 });
             });
         });
+
+        describe('convertDialogToAppForm with datetime_config', () => {
+            it('should pass through datetime_config when present', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'range_field',
+                        type: 'datetime',
+                        display_name: 'Range Field',
+                        optional: false,
+                        datetime_config: {
+                            is_range: true,
+                            time_interval: 30,
+                            range_layout: 'horizontal',
+                            allow_single_day_range: true,
+                        },
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'range_field',
+                    type: 'datetime',
+                    datetime_config: {
+                        is_range: true,
+                        time_interval: 30,
+                        range_layout: 'horizontal',
+                        allow_single_day_range: true,
+                    },
+                });
+            });
+
+            it('should use datetime_config.time_interval over top-level', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'test_field',
+                        type: 'datetime',
+                        display_name: 'Test Field',
+                        optional: false,
+                        time_interval: 60, // Top-level (legacy)
+                        datetime_config: {
+                            time_interval: 15, // Should take precedence
+                        },
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0].datetime_config?.time_interval).toBe(15);
+                expect(form.fields?.[0].time_interval).toBe(60); // Also present as fallback
+            });
+
+            it('should handle fields without datetime_config (legacy)', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'legacy_field',
+                        type: 'datetime',
+                        display_name: 'Legacy Field',
+                        optional: false,
+                        min_date: 'today',
+                        max_date: '+30d',
+                        time_interval: 30,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'legacy_field',
+                    type: 'datetime',
+                    min_date: 'today',
+                    max_date: '+30d',
+                    time_interval: 30,
+                });
+                expect(form.fields?.[0].datetime_config).toBeUndefined();
+            });
+        });
     });
 });

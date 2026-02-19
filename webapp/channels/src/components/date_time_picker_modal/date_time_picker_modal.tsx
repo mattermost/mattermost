@@ -10,9 +10,10 @@ import {GenericModal} from '@mattermost/components';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import Constants from 'utils/constants';
+import {getRoundedTime} from 'utils/date_utils';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 

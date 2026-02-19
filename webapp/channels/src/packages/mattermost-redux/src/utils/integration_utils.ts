@@ -4,6 +4,7 @@
 import {parseISO, isValid} from 'date-fns';
 import {defineMessage} from 'react-intl';
 
+import {isDateTimeRangeValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
 // Validation patterns for exact storage format matching
@@ -46,12 +47,15 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    // Check if value is empty (handles arrays for multiselect)
+    // Check if value is empty (handles arrays for multiselect, structured ranges, and primitives)
     let isEmpty;
     if (value === 0) {
         isEmpty = false;
     } else if (Array.isArray(value)) {
         isEmpty = value.length === 0;
+    } else if (isDateTimeRangeValue(value)) {
+        // DateTimeRangeValue — not empty if start is present
+        isEmpty = !value.start;
     } else {
         isEmpty = !value;
     }
@@ -61,6 +65,19 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',
         });
+    }
+
+    // Check if required range field has both start and end.
+    // Optional range fields can be submitted with a partial value (start only)
+    // or null — the server should handle both cases.
+    if (!elem.optional && elem.datetime_config?.is_range) {
+        const isValidRange = isDateTimeRangeValue(value) && value.start && value.end;
+        if (!isValidRange) {
+            return defineMessage({
+                id: 'interactive_dialog.error.range_incomplete',
+                defaultMessage: 'Both start and end dates are required.',
+            });
+        }
     }
 
     const type = elem.type;
@@ -113,7 +130,19 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
         }
     } else if (type === 'date' || type === 'datetime') {
         // Validate date/datetime format and range constraints
-        if (value && typeof value === 'string') {
+        if (isDateTimeRangeValue(value)) {
+            // Validate both start and end strings individually
+            const startError = validateDateTimeValue(value.start, elem);
+            if (startError) {
+                return startError;
+            }
+            if (value.end) {
+                const endError = validateDateTimeValue(value.end, elem);
+                if (endError) {
+                    return endError;
+                }
+            }
+        } else if (value && typeof value === 'string') {
             const validationError = validateDateTimeValue(value, elem);
             if (validationError) {
                 return validationError;

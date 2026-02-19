@@ -302,6 +302,18 @@ function onDateTimeDialogRequest(req, res) {
         case 'relative':
             dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
             break;
+        case 'range_horizontal':
+            dialog = webhookUtils.getDateRangeHorizontalDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'range_vertical':
+            dialog = webhookUtils.getDateRangeVerticalDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'range_single_day':
+            dialog = webhookUtils.getDateRangeSingleDayDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'datetime_range':
+            dialog = webhookUtils.getDateTimeRangeDialog(body.trigger_id, webhookBaseUrl);
+            break;
         case 'timezone-manual':
             dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
             break;

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DateTimeRangeValue} from './apps';
 import type {MessageAttachment} from './message_attachments';
 import type {IDMappedObjects} from './utilities';
 
@@ -171,7 +172,7 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string | string[];
+        [x: string]: string | string[] | DateTimeRangeValue;
     };
     cancelled: boolean;
     type?: string;
@@ -200,6 +201,9 @@ export type DialogElement = {
     // Date/datetime configuration
     datetime_config?: {
         time_interval?: number;
+        is_range?: boolean;
+        allow_single_day_range?: boolean;
+        range_layout?: 'horizontal' | 'vertical';
         location_timezone?: string;
         allow_manual_time_entry?: boolean;
     };

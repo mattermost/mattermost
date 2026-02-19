@@ -3,8 +3,11 @@
 
 import {parseISO, isValid, format} from 'date-fns';
 import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import {getCurrentMomentForTimezone, parseDateInTimezone} from './timezone';
+
+const DEFAULT_TIME_ROUNDING_INTERVAL = 30;
 
 export enum DateReference {
 
@@ -183,5 +186,19 @@ export function dateToString(date: Date | null): string | null {
         return null;
     }
     return format(date, DATE_FORMAT);
+}
+
+/**
+ * Round a moment time UP to the next interval boundary.
+ * e.g. with a 30-minute interval, 3:17 PM → 3:30 PM, 3:00 PM → 3:00 PM
+ */
+export function getRoundedTime(value: Moment, roundedTo = DEFAULT_TIME_ROUNDING_INTERVAL): Moment {
+    const diff = value.minute() % roundedTo;
+    if (diff === 0) {
+        // Always return a new moment for consistency, even if no rounding needed
+        return moment(value).seconds(0).milliseconds(0);
+    }
+    const remainder = roundedTo - diff;
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 

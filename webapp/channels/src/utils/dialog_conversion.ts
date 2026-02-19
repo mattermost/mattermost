@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import type {AppForm, AppField, AppFormValue, AppSelectOption, AppFormValues} from '@mattermost/types/apps';
-import type {DialogElement} from '@mattermost/types/integrations';
+import {isDateTimeRangeValue} from '@mattermost/types/apps';
+import type {DialogElement, DialogSubmission} from '@mattermost/types/integrations';
+
+type DialogSubmissionValues = DialogSubmission['submission'];
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
@@ -596,7 +599,9 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
                 normalized[key] = extractedValue;
             }
         } else {
-            // Keep primitive values as-is (but skip empty/nil values)
+            // Keep primitive values and structured types (e.g., DateTimeRangeValue) as-is.
+            // DateTimeRangeValue has {start, end?} — no 'value' key, so it correctly
+            // falls through here without being treated as a select option.
             normalized[key] = value;
         }
     });
@@ -636,8 +641,11 @@ export function convertAppFormValuesToDialogSubmission(
     values: AppFormValues,
     elements: DialogElement[] | undefined,
     options: ConversionOptions,
-): {submission: Record<string, unknown>; errors: ValidationError[]} {
-    const submission: Record<string, unknown> = {};
+): {submission: DialogSubmissionValues; errors: ValidationError[]} {
+    // Internal record uses 'any' because intermediate processing assigns booleans,
+    // AppSelectOptions, etc. before converting them to their final string forms.
+    // The return type ensures callers see the correct narrowed type.
+    const submission: Record<string, any> = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
     const errors: ValidationError[] = [];
 
     if (!elements) {
@@ -750,8 +758,13 @@ export function convertAppFormValuesToDialogSubmission(
 
         case DialogElementTypes.DATE:
         case DialogElementTypes.DATETIME:
-            // Date and datetime values should be passed through as strings (ISO format)
-            submission[element.name] = String(value);
+            // Range values are structured objects {start, end?} — pass through as-is
+            // Single date/datetime values are strings (ISO format)
+            if (isDateTimeRangeValue(value)) {
+                submission[element.name] = value;
+            } else {
+                submission[element.name] = String(value);
+            }
             break;
         default:
             submission[element.name] = String(value);

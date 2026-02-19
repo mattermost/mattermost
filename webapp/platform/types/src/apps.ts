@@ -387,7 +387,17 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+// Structured type for date/datetime range values (replaces string[] representation)
+export type DateTimeRangeValue = {
+    start: string;
+    end?: string;
+};
+
+export function isDateTimeRangeValue(v: unknown): v is DateTimeRangeValue {
+    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'start' in v;
+}
+
+export type AppFormValue = string | AppSelectOption | AppSelectOption[] | DateTimeRangeValue | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -404,6 +414,10 @@ function isAppFormValue(v: unknown): v is AppFormValue {
 
     if (Array.isArray(v)) {
         return v.every(isAppSelectOption);
+    }
+
+    if (isDateTimeRangeValue(v)) {
+        return true;
     }
 
     return isAppSelectOption(v);
@@ -440,6 +454,9 @@ export type AppFieldType = string;
 // DateTime field configuration
 export type DateTimeConfig = {
     time_interval?: number; // Minutes between time options (default: 60)
+    is_range?: boolean; // Enable date/datetime range selection
+    allow_single_day_range?: boolean; // Allow start and end to be the same day
+    range_layout?: 'horizontal' | 'vertical'; // Layout for range fields
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     allow_manual_time_entry?: boolean; // Allow text entry for time
 };

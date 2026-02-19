@@ -327,6 +327,230 @@ describe('components/datetime_input/DateTimeInput', () => {
         });
     });
 
+    describe('range mode', () => {
+        // Build dates relative to the current month so the calendar shows them
+        // without needing fake timers (which break userEvent).
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+
+        // Helper: create a UTC ISO string for a given day in the current month
+        const dayISO = (day: number) => {
+            const d = new Date(Date.UTC(year, month, day, 10, 0, 0));
+            return d.toISOString();
+        };
+
+        // Helper: create a moment for a given day in the current month
+        const dayMoment = (day: number) => moment(dayISO(day));
+
+        const onRangeChangeMock = jest.fn();
+
+        const baseRangeProps = {
+            time: null,
+            handleChange: jest.fn(),
+            allowPastDates: true,
+            timezone: 'UTC',
+            rangeConfig: {
+                rangeValue: {from: null, to: null},
+                isStartField: true,
+                onRangeChange: onRangeChangeMock,
+                allowSingleDayRange: false,
+            },
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('should render in range mode', () => {
+            renderWithContext(
+                <DateTimeInput {...baseRangeProps}/>,
+            );
+
+            expect(screen.getByText('Date')).toBeInTheDocument();
+        });
+
+        test('should call onRangeChange when selecting range start', async () => {
+            const onRangeChange = jest.fn();
+
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{...baseRangeProps.rangeConfig, onRangeChange}}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            const dayButton = screen.getByText('15');
+            await userEvent.click(dayButton);
+
+            expect(onRangeChange).toHaveBeenCalled();
+            const [startDate, endDate] = onRangeChange.mock.calls[0];
+            expect(startDate).toBeInstanceOf(Date);
+            expect(endDate).toBeNull();
+        });
+
+        test('should call onRangeChange when completing range', async () => {
+            const onRangeChange = jest.fn();
+
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        onRangeChange,
+                        rangeValue: {from: dayMoment(10), to: null},
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            const dayButton = screen.getByText('20');
+            await userEvent.click(dayButton);
+
+            expect(onRangeChange).toHaveBeenCalled();
+            const [startDate, endDate] = onRangeChange.mock.calls[0];
+            expect(startDate).toBeInstanceOf(Date);
+            expect(endDate).toBeInstanceOf(Date);
+        });
+
+        test('should reset range when clicking new date after complete range', async () => {
+            const onRangeChange = jest.fn();
+
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        onRangeChange,
+                        rangeValue: {from: dayMoment(10), to: dayMoment(20)},
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            const dayButton = screen.getByText('25');
+            await userEvent.click(dayButton);
+
+            expect(onRangeChange).toHaveBeenCalled();
+            const [startDate, endDate] = onRangeChange.mock.calls[0];
+            expect(startDate).toBeInstanceOf(Date);
+            expect(endDate).toBeNull();
+        });
+
+        test('should toggle start date disabled state when allowSingleDayRange changes', async () => {
+            const rangeValue = {from: dayMoment(15), to: null};
+
+            const {rerender} = renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        rangeValue,
+                        isStartField: false,
+                        allowSingleDayRange: false,
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            // Day 15 should be disabled (same-day not allowed)
+            expect(screen.getByText('15').closest('button')).toBeDisabled();
+
+            rerender(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        rangeValue,
+                        isStartField: false,
+                        allowSingleDayRange: true,
+                    }}
+                />,
+            );
+
+            // Day 15 should now be enabled
+            expect(screen.getByText('15').closest('button')).not.toBeDisabled();
+        });
+
+        test('should disable dates before start when isStartField is false', async () => {
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        rangeValue: {from: dayMoment(15), to: null},
+                        isStartField: false,
+                        allowSingleDayRange: false,
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            // Day 14 should be disabled (before start)
+            expect(screen.getByText('14').closest('button')).toBeDisabled();
+
+            // Day 16 should be enabled (after start)
+            expect(screen.getByText('16').closest('button')).not.toBeDisabled();
+        });
+
+        test('should disable start date when allowSingleDayRange is false', async () => {
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        rangeValue: {from: dayMoment(15), to: null},
+                        isStartField: false,
+                        allowSingleDayRange: false,
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            // Day 15 (start) should be disabled when same-day not allowed
+            expect(screen.getByText('15').closest('button')).toBeDisabled();
+
+            // Day 16 should be the first enabled day
+            expect(screen.getByText('16').closest('button')).not.toBeDisabled();
+        });
+
+        test('should allow selecting start date when allowSingleDayRange is true', async () => {
+            renderWithContext(
+                <DateTimeInput
+                    {...baseRangeProps}
+                    rangeConfig={{
+                        ...baseRangeProps.rangeConfig,
+                        rangeValue: {from: dayMoment(15), to: null},
+                        isStartField: false,
+                        allowSingleDayRange: true,
+                    }}
+                />,
+            );
+
+            const dateButton = screen.getByText('Date').closest('.date-time-input');
+            await userEvent.click(dateButton!);
+
+            // Day 15 (start) should be enabled when same-day range allowed
+            expect(screen.getByText('15').closest('button')).not.toBeDisabled();
+
+            // Day 14 (before start) should still be disabled
+            expect(screen.getByText('14').closest('button')).toBeDisabled();
+        });
+    });
+
     describe('parseTimeString', () => {
         it('should parse 12-hour format with AM/PM', () => {
             expect(parseTimeString('12a')).toEqual({hours: 0, minutes: 0}); // 12 AM = 00:00

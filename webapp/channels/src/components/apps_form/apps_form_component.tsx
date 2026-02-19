@@ -204,18 +204,23 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
             if (field.type === AppFieldTypes.BOOL) {
                 defaultValue = false;
             } else if (field.type === AppFieldTypes.DATETIME && field.is_required && !field.value) {
-                // Set default to current time for required datetime fields
-                const currentTime = timezone ? moment.tz(timezone) : moment();
+                // Only set default for single datetime fields (not ranges)
+                const isRange = field.datetime_config?.is_range ?? false;
 
-                // Use sanitized time_interval (guaranteed to be valid)
-                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+                if (!isRange) {
+                    // Set default to current time for required single datetime fields
+                    const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Round up to next time interval
-                const minutesMod = currentTime.minutes() % timePickerInterval;
-                const defaultMoment = minutesMod === 0 ?
-                    currentTime.clone().seconds(0).milliseconds(0) :
-                    currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
-                defaultValue = momentToString(defaultMoment, true);
+                    // Use sanitized time_interval (guaranteed to be valid)
+                    const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+
+                    // Round up to next time interval
+                    const minutesMod = currentTime.minutes() % timePickerInterval;
+                    const defaultMoment = minutesMod === 0 ?
+                        currentTime.clone().seconds(0).milliseconds(0) :
+                        currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
+                    defaultValue = momentToString(defaultMoment, true);
+                }
             }
 
             values[field.name] = field.value || defaultValue;
@@ -471,7 +476,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    onChange = (name: string, value: any) => {
+    onChange = (name: string, value: AppFormValue) => {
         const field = this.props.form.fields?.find((f) => f.name === name);
         if (!field) {
             return;
@@ -770,6 +775,7 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
+        datetime_config: f.datetime_config,
     })) as DialogElement[];
 }
 
