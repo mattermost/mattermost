@@ -40,22 +40,17 @@ WORKSPACE_ROOT="$(pwd)"
 # To enable: uncomment the block below and choose
 # ONE of the two auth methods (SSH or HTTPS token).
 # ============================================
-# ENTERPRISE_DIR="${WORKSPACE_ROOT}/../enterprise"
-# if [ ! -d "${ENTERPRISE_DIR}" ]; then
-#     echo ">>> Cloning mattermost/enterprise..."
-#
-#     # Option A: SSH auth (default — works if SSH key is configured)
-#     git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
-#
-#     # Option B: HTTPS with token (use if SSH is unavailable)
-#     # Requires GITHUB_TOKEN env var with repo access.
-#     # git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/mattermost/enterprise.git" "${ENTERPRISE_DIR}"
-#
-#     echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
-# else
-#     echo ">>> Enterprise repo already exists at ${ENTERPRISE_DIR}, pulling latest..."
-#     cd "${ENTERPRISE_DIR}" && git pull
-# fi
+ENTERPRISE_DIR="${WORKSPACE_ROOT}/../enterprise"
+if [ ! -d "${ENTERPRISE_DIR}" ]; then
+    echo ">>> Cloning mattermost/enterprise..."
+
+    git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
+
+    echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
+else
+    echo ">>> Enterprise repo already exists at ${ENTERPRISE_DIR}, pulling latest..."
+    cd "${ENTERPRISE_DIR}" && git pull
+fi
 
 # ============================================
 # Go workspace setup
