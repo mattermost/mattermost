@@ -185,11 +185,22 @@ agent-browser screenshot --full /tmp/qa-full.png
 # Then read the screenshot file to analyze it visually
 ```
 
+### Uploading Screenshots to S3 for Pull Requests
+
+When working on a PR, upload before/after screenshots to S3 so they can be embedded in the PR description. See the [S3 Screenshots skill](.cursor/skills/s3-screenshots.md) for full details.
+
+```bash
+# Upload a screenshot and get a public URL
+aws s3 cp /tmp/qa-screenshot.png "s3://${AWS_S3_BUCKET_NAME}/screenshots/pr-1234/description.png"
+echo "![Screenshot](https://${AWS_S3_BUCKET_NAME}.s3.amazonaws.com/screenshots/pr-1234/description.png)"
+```
+
 ### Combined Approach (Recommended)
 
 For thorough QA, always use both:
 1. `snapshot -i` to verify functional correctness (elements exist, text is right)
 2. `screenshot /tmp/step-N.png` to verify visual correctness (layout, styling)
+3. Upload key screenshots to S3 when they need to be shared in a PR (see [S3 Screenshots skill](.cursor/skills/s3-screenshots.md))
 
 ## Common QA Workflows
 
@@ -197,17 +208,20 @@ For thorough QA, always use both:
 
 1. Start with a clean state (login, navigate to relevant page)
 2. Follow the bug reproduction steps using agent-browser commands
-3. Take a screenshot at each step for documentation
+3. Take a "before" screenshot at each step for documentation
 4. Use `snapshot -i` to identify the state of UI elements
 5. Compare actual vs. expected behavior
+6. Upload key screenshots to S3 if they will be included in a PR
 
 ### Verify a Fix
 
-1. Apply the code fix
-2. Restart the server if needed (`make cursor-cloud-run-server`)
-3. Repeat the reproduction steps
-4. Verify the bug no longer occurs (both functionally and visually)
-5. Take "after" screenshots
+1. Capture "before" screenshots showing the bug (upload to S3 for the PR)
+2. Apply the code fix
+3. Wait for rebuild (webpack ~3s for webapp, Air ~20s for server)
+4. Repeat the reproduction steps
+5. Verify the bug no longer occurs (both functionally and visually)
+6. Capture "after" screenshots and upload to S3
+7. Include before/after comparison in the PR description
 
 ### Write a Playwright E2E Test
 

@@ -100,6 +100,22 @@ echo ">>> Creating mmctl socket symlink..."
 ln -sf /var/tmp/mattermost_cursor_cloud.sock /var/tmp/mattermost_local.socket
 
 # ============================================
+# AWS CLI configuration
+# AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and
+# AWS_S3_BUCKET_NAME are injected as env vars
+# by Cursor Cloud Agent. Set a default region
+# so the CLI works without interactive prompts.
+# ============================================
+if command -v aws &>/dev/null && [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+    echo ">>> Configuring AWS CLI..."
+    aws configure set default.region "${AWS_DEFAULT_REGION:-us-east-1}"
+    aws configure set default.output json
+    echo ">>> AWS CLI configured (region: ${AWS_DEFAULT_REGION:-us-east-1})."
+else
+    echo ">>> AWS CLI not configured (missing binary or credentials)."
+fi
+
+# ============================================
 # Enable Claude documentation
 # Copies CLAUDE.OPTIONAL.md files to CLAUDE.md
 # throughout the repo for local-only docs.

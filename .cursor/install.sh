@@ -132,8 +132,29 @@ echo ">>> Installing Playwright browsers (Chromium)..."
 cd "${WORKSPACE_ROOT}"
 npx -y playwright install chromium
 
+# ============================================
+# AWS CLI
+# Needed for uploading screenshots to S3 so
+# agents can include before/after images in
+# Pull Request descriptions. Authenticated via
+# AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY
+# env vars injected by Cursor Cloud Agent.
+# ============================================
+if ! command -v aws &>/dev/null; then
+    echo ">>> Installing AWS CLI..."
+    cd /tmp
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+    unzip -qo awscliv2.zip
+    sudo ./aws/install --update
+    rm -rf awscliv2.zip aws/
+    echo ">>> AWS CLI installed: $(aws --version)"
+else
+    echo ">>> AWS CLI already installed: $(aws --version)"
+fi
+
 echo ""
 echo ">>> Install complete!"
 echo ">>> Go modules cached, webapp built, mmctl compiled."
 echo ">>> Playwright Chromium installed for agent-browser."
+echo ">>> AWS CLI installed for S3 screenshot uploads."
 echo ">>> Config generated at server/config/config-cursor-cloud.json"
