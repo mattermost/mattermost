@@ -1126,7 +1126,9 @@ func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON strin
 		return appErr
 	}
 
-	tmpPost = a.PreparePostForClient(rctx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+	// Use master context to avoid replica lag when fetching priority for newly created posts
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
+	tmpPost = a.PreparePostForClient(masterCtx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
 
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
