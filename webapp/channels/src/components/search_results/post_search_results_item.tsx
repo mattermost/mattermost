@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 
 import PostComponent from 'components/post';
 
@@ -25,7 +25,7 @@ type Props = {
 }
 
 export default function PostSearchResultsItem(props: Props) {
-    const autotranslated = useSelector((state: GlobalState) => isChannelAutotranslated(state, props.post.channel_id));
+    const autotranslated = useSelector((state: GlobalState) => isMyChannelAutotranslated(state, props.post.channel_id));
     return (
         <div
             className='search-item__container'

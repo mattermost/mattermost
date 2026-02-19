@@ -25,6 +25,15 @@ export function getFilePublicLink(state: GlobalState) {
     return state.entities.files.filePublicLink;
 }
 
+export function getRejectedFiles(state: GlobalState): Set<string> {
+    return state.entities.files.rejectedFiles || new Set();
+}
+
+export function isFileRejected(state: GlobalState, fileId: string): boolean {
+    const rejectedFiles = getRejectedFiles(state);
+    return rejectedFiles.has(fileId);
+}
+
 export function makeGetFileIdsForPost(): (state: GlobalState, postId: string) => string[] {
     return createSelector(
         'makeGetFileIdsForPost',

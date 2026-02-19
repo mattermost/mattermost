@@ -40,6 +40,17 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 	}
 
 	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority(), scheduledPost.RootId)
+	if c.Err != nil {
+		return
+	}
+
+	// Validate burn-on-read restrictions for scheduled post
+	post := &model.Post{
+		ChannelId: scheduledPost.ChannelId,
+		UserId:    scheduledPost.UserId,
+		Type:      scheduledPost.Type,
+	}
+	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 
 func requireScheduledPostsEnabled(c *Context) {
