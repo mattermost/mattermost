@@ -72,11 +72,42 @@ for i in $(seq 1 10); do
 done
 
 # ============================================
+# Ensure air is installed
+# install.sh should have installed it, but if
+# the Go version changed or binary is missing,
+# install a compatible version as a safety net.
+# ============================================
+if ! command -v air &>/dev/null; then
+    echo ">>> Installing air (Go hot-reload)..."
+    go install github.com/air-verse/air@v1.61.7
+fi
+
+# ============================================
 # NOTE: Chrome is NOT started here.
 # agent-browser manages its own Chromium
 # lifecycle on-demand. This saves memory when
 # the agent doesn't need browser access.
 # ============================================
+
+# ============================================
+# mmctl socket symlink
+# The config uses a custom socket path
+# (/var/tmp/mattermost_cursor_cloud.sock) but
+# mmctl --local expects the default path.
+# Create a symlink so mmctl works out of the box.
+# ============================================
+echo ">>> Creating mmctl socket symlink..."
+ln -sf /var/tmp/mattermost_cursor_cloud.sock /var/tmp/mattermost_local.socket
+
+# ============================================
+# Enable Claude documentation
+# Copies CLAUDE.OPTIONAL.md files to CLAUDE.md
+# throughout the repo for local-only docs.
+# ============================================
+if [ -x "${WORKSPACE_ROOT}/enable-claude-docs.sh" ]; then
+    echo ">>> Enabling Claude documentation..."
+    bash "${WORKSPACE_ROOT}/enable-claude-docs.sh"
+fi
 
 echo ""
 echo ">>> All services started!"

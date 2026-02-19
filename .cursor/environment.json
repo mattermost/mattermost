@@ -10,13 +10,13 @@
   "terminals": [
     {
       "name": "Mattermost Server",
-      "command": "cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml",
+      "command": "export PATH=$HOME/go/bin:$PATH && cd server && make cursor-cloud-run-server-prereqs && air -c ../.cursor/.air.toml",
       "description": "Builds and runs the Mattermost backend server on :8065 with hot-reload via Air. Auto-restarts on Go file changes."
     },
     {
-      "name": "Webapp Dev Server",
-      "command": "echo 'Ready: cd webapp && npm run dev'",
-      "description": "Start the webpack dev server for hot-reloading frontend changes. Only needed for active webapp development."
+      "name": "Webapp Watcher",
+      "command": "cd webapp && make run",
+      "description": "Runs webpack in watch mode, rebuilding channels/dist/ on file changes. The Go server on :8065 serves the updated assets automatically."
     },
     {
       "name": "Server Tests",

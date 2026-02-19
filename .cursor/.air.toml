@@ -13,12 +13,13 @@ root = "."
 tmp_dir = "/tmp/air"
 
 [build]
-  # Build command — same as cursor-cloud-run-server but compiles a binary
-  cmd = "MM_NO_DOCKER=true go build -tags '$(BUILD_TAGS)' -o /tmp/air/mattermost ./cmd/mattermost"
+  # Build command — sets BuildNumber=dev so the server adds 'unsafe-eval' to CSP
+  # (required for webpack watch-mode source maps) and skips rewriting root.html.
+  cmd = "MM_NO_DOCKER=true go build -ldflags '-X github.com/mattermost/mattermost/server/public/model.BuildNumber=dev' -tags '$(BUILD_TAGS)' -o /tmp/air/mattermost ./cmd/mattermost"
   # Binary to run
   bin = "/tmp/air/mattermost"
-  # Args passed to the binary
-  args_bin = []
+  # Full binary command with env vars (air <v1.62 doesn't support [build.env])
+  full_bin = "MM_NO_DOCKER=true MM_CONFIG=config/config-cursor-cloud.json /tmp/air/mattermost"
   # Watch these extensions
   include_ext = ["go", "tpl", "tmpl", "html"]
   # Ignore these directories
@@ -36,9 +37,8 @@ tmp_dir = "/tmp/air"
   # Wait for old process to die before starting new one (ms)
   kill_delay = 2000
 
-[build.env]
-  MM_NO_DOCKER = "true"
-  MM_CONFIG = "config/config-cursor-cloud.json"
+# Note: Environment variables are passed via full_bin above because
+# air v1.61.7 doesn't support the [build.env] section.
 
 [log]
   time = false

@@ -9,9 +9,11 @@ This skill teaches you how to use the `agent-browser` CLI to interact with a run
 
 ## Environment
 
-- **Mattermost URL**: `http://localhost:8065`
+- **Mattermost URL**: `http://localhost:8065` -- serves both the API and webapp assets
 - **Browser**: agent-browser manages its own headless Chromium (installed via `agent-browser install --with-deps`)
 - **All commands use**: `agent-browser <command>` (no `--cdp` flag needed; agent-browser launches and manages its own browser)
+
+Webapp source changes are picked up automatically by the webpack watcher running in the Webapp Watcher terminal. After a change, reload the page at `http://localhost:8065` to see the update.
 
 ## Quick Start
 
@@ -31,9 +33,9 @@ agent-browser snapshot -i
 
 ## Admin Login
 
-Default dev admin credentials (created via `make cursor-cloud-setup-admin`):
+Default dev admin credentials (created via `make cursor-cloud-setup-admin` or `bash .cursor/setup-admin.sh`):
 - **Username**: `admin`
-- **Password**: `Admin@1234`
+- **Password**: `Passw0rd!`
 
 If sample data was injected (`make inject-test-data`):
 - **Username**: `sysadmin`
@@ -50,7 +52,7 @@ agent-browser snapshot -i
 # Find the submit button (look for button with text "Log in")
 
 agent-browser fill @eLoginInput "admin"
-agent-browser fill @ePasswordInput "Admin@1234"
+agent-browser fill @ePasswordInput "Passw0rd!"
 agent-browser click @eLoginButton
 agent-browser wait --load networkidle
 agent-browser snapshot -i
@@ -58,7 +60,7 @@ agent-browser snapshot -i
 
 After login, you may be redirected to:
 - `/preparing-workspace` (first-time onboarding wizard) - complete or skip it
-- `/dev-team/channels/town-square` (default channel) - you are ready
+- `/dev/channels/town-square` (default channel) - you are ready
 
 ### Save Login State (Optional)
 
@@ -76,9 +78,9 @@ On a fresh Mattermost install with no users, the preferred setup is via mmctl:
 ```bash
 cd server
 ./scripts/wait-for-system-start.sh
-bin/mmctl user create --email admin@example.com --username admin --password 'Admin@1234' --system-admin --email-verified --local
-bin/mmctl team create --name dev-team --display-name "Dev Team" --local
-bin/mmctl team users add dev-team admin --local
+bin/mmctl user create --email admin@localhost --username admin --password 'Passw0rd!' --system-admin --email-verified --local
+bin/mmctl team create --name dev --display-name "Development" --local
+bin/mmctl team users add dev admin --local
 ```
 
 Or use the make target:
@@ -110,7 +112,7 @@ If you need to set up via browser instead (e.g., testing the signup flow):
 
 ```bash
 # Navigate to a channel (e.g., Town Square)
-agent-browser open http://localhost:8065/dev-team/channels/town-square
+agent-browser open http://localhost:8065/dev/channels/town-square
 agent-browser wait --load networkidle
 agent-browser snapshot -i
 
@@ -141,7 +143,7 @@ agent-browser snapshot -i
 
 ```bash
 # Option 1: Direct URL navigation
-agent-browser open http://localhost:8065/dev-team/channels/off-topic
+agent-browser open http://localhost:8065/dev/channels/off-topic
 
 # Option 2: Click channel in sidebar
 agent-browser snapshot -i

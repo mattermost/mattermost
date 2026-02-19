@@ -1,0 +1,68 @@
+---
+description: Known issues and tips for working in the Cursor Cloud Agent environment
+globs:
+alwaysApply: true
+---
+
+# Known Issues & Tips
+
+## Initial Build Time
+
+After the environment boots, the **Mattermost Server** (Go compilation via Air) and the **Webapp Watcher** (webpack initial build) both need time to compile before the server is reachable. This typically takes **60-90 seconds** combined.
+
+During this window, `curl http://localhost:8065` will return "connection refused". **Wait for both tmux sessions to finish building before testing the server.** You can check readiness by:
+
+```bash
+# Poll until the server responds
+for i in $(seq 1 90); do
+    if curl -sf http://localhost:8065/api/v4/system/ping >/dev/null 2>&1; then
+        echo "Server is ready"; break
+    fi
+    sleep 1
+done
+
+# Check that webpack finished compiling
+tmux capture-pane -t webapp_watcher -p -S -10 | grep "compiled"
+```
+
+## Admin User Setup
+
+The admin user and default "dev" team are **not** created automatically on boot. After the server is running and responding on port 8065, run:
+
+```bash
+bash .cursor/setup-admin.sh
+```
+
+This creates:
+- **Username:** `admin` / **Password:** `Passw0rd!` / **Role:** system_admin
+- **Team:** `dev` (display name "Development")
+
+The script is idempotent -- safe to run multiple times.
+
+## agent-browser Quirks
+
+- **Use `@ref` selectors, not CSS or text strings.** Call `agent-browser snapshot` first to get the accessibility tree with `@ref` identifiers, then use those refs with `fill`, `click`, etc. The `type` command with `--selector` can hang, and `click` with text containing special characters (apostrophes, quotes) will fail with CSS parsing errors.
+- **Prefer `fill` over `type`.** `agent-browser fill @refN "text"` clears the field first and is more reliable.
+- **Dismiss modals via `find`.** If a button or link text contains special characters, use `agent-browser find text "partial text" click` instead of `agent-browser click "full text"`.
+
+### Recommended browser interaction pattern:
+
+```bash
+agent-browser open http://localhost:8065/login
+agent-browser snapshot                        # get @refs
+agent-browser fill @e4 "admin"                # fill username (ref from snapshot)
+agent-browser fill @e5 "Passw0rd!"            # fill password
+agent-browser click @e8                       # click Log in
+sleep 3
+agent-browser screenshot                      # verify visually
+```
+
+## Mail Server Connection Errors (Harmless)
+
+On every server startup, the logs will show:
+
+```
+Mail server connection test failed: dial tcp [::1]:10025: connect: connection refused
+```
+
+This is expected -- no SMTP server is configured in the dev environment. The error is harmless and does not affect functionality. Ignore it.

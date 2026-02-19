@@ -11,7 +11,7 @@ This environment runs natively on Ubuntu without Docker. PostgreSQL, Redis, and 
 ## Environment Overview
 
 - **Server**: Go backend at `server/` -- runs on `http://localhost:8065`
-- **Webapp**: React/TypeScript frontend at `webapp/` -- runs via webpack-dev-server
+- **Webapp**: React/TypeScript frontend at `webapp/` -- webpack watch mode rebuilds assets served by the server on `http://localhost:8065`
 - **Database**: PostgreSQL 14 on `localhost:5432` (user: `mmuser`, password: `mostest`, database: `mattermost_test`)
 - **Redis**: `localhost:6379`
 - **Browser**: agent-browser manages headless Chromium on-demand (no persistent Chrome process)
@@ -38,16 +38,18 @@ cd server && make cursor-cloud-run-server
 The server:
 - Sets `MM_NO_DOCKER=true` (skips Docker)
 - Uses `config/config-cursor-cloud.json` (dedicated config for this environment)
-- Builds webapp client assets and runs the Go server
-- Listens on `:8065`
+- Serves the API and webapp assets on `:8065`
+- Built with `BuildNumber=dev` so that webpack watch-mode source maps work correctly
 
-### Run the Webapp Dev Server
+### Webapp Watch Mode
+
+The Webapp Watcher terminal runs webpack in watch mode:
 
 ```bash
-cd webapp && npm run dev
+cd webapp && make run
 ```
 
-Or use `make dev` from the `webapp/` directory. This starts webpack-dev-server with hot module replacement.
+This watches for file changes and rebuilds `webapp/channels/dist/` automatically. Since the Go server serves assets from that directory, changes are visible at `http://localhost:8065` after a page reload -- no separate port or dev server needed.
 
 ### Build Webapp Only
 
