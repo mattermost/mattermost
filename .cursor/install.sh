@@ -22,92 +22,20 @@ WORKSPACE_ROOT="$(pwd)"
 
 # ============================================
 # Enterprise repo
-# Clone is enabled by default.
-#
-# To disable enterprise clone explicitly:
-#   MM_CLONE_ENTERPRISE=false bash .cursor/install.sh
-#
-# Optional override for clone path:
-#   MM_ENTERPRISE_DIR=/some/path/enterprise
-# The default remains ../enterprise relative to the
-# repo root to match server/Makefile expectations.
+# Temporarily disabled due private-repo auth
+# failures in the Cursor install environment.
 # ============================================
-MM_CLONE_ENTERPRISE="${MM_CLONE_ENTERPRISE:-true}"
-ENTERPRISE_DIR="${MM_ENTERPRISE_DIR:-${WORKSPACE_ROOT}/../enterprise}"
-ENTERPRISE_PARENT_DIR="$(dirname "${ENTERPRISE_DIR}")"
-ENTERPRISE_REPO_SSH_URL="${MM_ENTERPRISE_REPO_SSH_URL:-ssh://git@github.com/mattermost/enterprise.git}"
-ENTERPRISE_REPO_HTTPS_URL="${MM_ENTERPRISE_REPO_HTTPS_URL:-https://github.com/mattermost/enterprise.git}"
-
-if [ -n "${MM_ENTERPRISE_DIR:-}" ]; then
-    export BUILD_ENTERPRISE_DIR="${ENTERPRISE_DIR}"
-    echo ">>> Using custom BUILD_ENTERPRISE_DIR=${BUILD_ENTERPRISE_DIR}"
-fi
-
-clone_enterprise_repo() {
-    local clone_log
-    clone_log="$(mktemp)"
-    local ssh_cmd="${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}"
-
-    echo ">>> Attempting SSH clone from ${ENTERPRISE_REPO_SSH_URL}..."
-    if GIT_SSH_COMMAND="${ssh_cmd}" git clone "${ENTERPRISE_REPO_SSH_URL}" "${ENTERPRISE_DIR}" >"${clone_log}" 2>&1; then
-        rm -f "${clone_log}"
-        return 0
-    fi
-
-    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    if [ -n "${token}" ]; then
-        echo ">>> SSH clone failed. Retrying with HTTPS token auth..."
-        local auth_header
-        auth_header="$(printf "x-access-token:%s" "${token}" | base64 | tr -d '\n')"
-        if git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" \
-            clone "${ENTERPRISE_REPO_HTTPS_URL}" "${ENTERPRISE_DIR}" >>"${clone_log}" 2>&1; then
-            rm -f "${clone_log}"
-            return 0
-        fi
-    fi
-
-    echo ">>> ERROR: Unable to clone mattermost/enterprise."
-    echo ">>> Checked SSH and HTTPS token auth paths."
-    echo ">>> Verify your GitHub credentials have access to ${ENTERPRISE_REPO_HTTPS_URL}."
-    echo ">>> Last git output:"
-    sed -n '1,12p' "${clone_log}"
-    rm -f "${clone_log}"
-    return 1
-}
-
-if [ "${MM_CLONE_ENTERPRISE}" = "true" ]; then
-    if [ -d "${ENTERPRISE_DIR}/.git" ]; then
-        echo ">>> Enterprise repo already exists at ${ENTERPRISE_DIR}, pulling latest..."
-        cd "${ENTERPRISE_DIR}" && git pull
-    else
-        if [ ! -d "${ENTERPRISE_DIR}" ] && { [ ! -d "${ENTERPRISE_PARENT_DIR}" ] || [ ! -w "${ENTERPRISE_PARENT_DIR}" ]; }; then
-            if command -v sudo &>/dev/null; then
-                echo ">>> Parent dir is not writable (${ENTERPRISE_PARENT_DIR}), preparing ${ENTERPRISE_DIR} with sudo..."
-                sudo mkdir -p "${ENTERPRISE_DIR}"
-                sudo chown "$(id -u)":"$(id -g)" "${ENTERPRISE_DIR}"
-            else
-                echo ">>> ERROR: Cannot create ${ENTERPRISE_DIR} (parent not writable and sudo unavailable)."
-                exit 1
-            fi
-        fi
-
-        if [ -d "${ENTERPRISE_DIR}" ] && [ ! -w "${ENTERPRISE_DIR}" ]; then
-            if command -v sudo &>/dev/null; then
-                echo ">>> Enterprise dir is not writable, fixing ownership with sudo..."
-                sudo chown -R "$(id -u)":"$(id -g)" "${ENTERPRISE_DIR}"
-            else
-                echo ">>> ERROR: ${ENTERPRISE_DIR} exists but is not writable and sudo is unavailable."
-                exit 1
-            fi
-        fi
-
-        echo ">>> Cloning mattermost/enterprise..."
-        clone_enterprise_repo
-        echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
-    fi
-else
-    echo ">>> Skipping enterprise clone (MM_CLONE_ENTERPRISE=false)."
-fi
+# MM_CLONE_ENTERPRISE="${MM_CLONE_ENTERPRISE:-false}"
+# ENTERPRISE_DIR="${MM_ENTERPRISE_DIR:-${WORKSPACE_ROOT}/../enterprise}"
+# if [ -n "${MM_ENTERPRISE_DIR:-}" ]; then
+#     export BUILD_ENTERPRISE_DIR="${ENTERPRISE_DIR}"
+#     echo ">>> Using custom BUILD_ENTERPRISE_DIR=${BUILD_ENTERPRISE_DIR}"
+# fi
+# if [ "${MM_CLONE_ENTERPRISE}" = "true" ]; then
+#     echo ">>> Cloning mattermost/enterprise..."
+#     git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
+# fi
+echo ">>> Skipping enterprise clone (temporarily disabled)."
 
 # ============================================
 # Go workspace setup
