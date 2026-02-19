@@ -9,49 +9,64 @@ import (
 	"github.com/mattermost/mattermost/tools/devdash/model"
 )
 
-// internalSubs are sub-projects within the mattermost repo.
-var internalSubs = []struct {
-	name        string
-	makefileSub string
-	pkgJSONSub  string
-}{
-	{"mattermost", "Makefile", ""},
-}
+// internalDirs are well-known sub-projects within the mattermost repo
+// that should always be discovered even if the root Makefile is absent.
+var internalDirs = []string{"server", "webapp", "e2e-tests", "api"}
 
 func ScanAll(mmRoot string, subPkgDepth int) ([]model.Repo, error) {
 	var repos []model.Repo
+	mmName := filepath.Base(mmRoot)
 
-	// 1. Internal sub-projects
-	for _, sub := range internalSubs {
-		mfPath := filepath.Join(mmRoot, sub.makefileSub)
-		if _, err := os.Stat(mfPath); err != nil {
+	// 1. Internal: root Makefile + well-known sub-projects
+	// Root Makefile (may not exist on all branches)
+	rootMf := filepath.Join(mmRoot, "Makefile")
+	if fileExists(rootMf) {
+		repo := model.Repo{
+			Name:         mmName,
+			Path:         mmRoot,
+			Kind:         model.RepoKindInternal,
+			MakefilePath: rootMf,
+		}
+		if targets, err := ParseMakeTargets(rootMf); err == nil {
+			repo.MakeTargets = targets
+		}
+		repos = append(repos, repo)
+	}
+
+	// Well-known internal sub-directories (always scanned regardless of root Makefile)
+	for _, dir := range internalDirs {
+		dirPath := filepath.Join(mmRoot, dir)
+		if !fileExists(dirPath) {
+			continue
+		}
+		mfPath := filepath.Join(dirPath, "Makefile")
+		pkgPath := filepath.Join(dirPath, "package.json")
+		hasMakefile := fileExists(mfPath)
+		hasPkgJSON := fileExists(pkgPath)
+		if !hasMakefile && !hasPkgJSON {
 			continue
 		}
 
 		repo := model.Repo{
-			Name:         sub.name,
-			Path:         filepath.Dir(mfPath),
-			Kind:         model.RepoKindInternal,
-			MakefilePath: mfPath,
+			Name: mmName + "/" + dir,
+			Path: dirPath,
+			Kind: model.RepoKindInternal,
 		}
-
-		targets, err := ParseMakeTargets(mfPath)
-		if err == nil {
-			repo.MakeTargets = targets
-		}
-
-		if sub.pkgJSONSub != "" {
-			pkgPath := filepath.Join(mmRoot, sub.pkgJSONSub)
-			if _, err := os.Stat(pkgPath); err == nil {
-				repo.PackageJSON = pkgPath
-				scripts, err := ParseNpmScripts(pkgPath)
-				if err == nil {
-					repo.NpmScripts = scripts
-				}
+		if hasMakefile {
+			repo.MakefilePath = mfPath
+			if targets, err := ParseMakeTargets(mfPath); err == nil {
+				repo.MakeTargets = targets
 			}
 		}
-
-		repos = append(repos, repo)
+		if hasPkgJSON {
+			repo.PackageJSON = pkgPath
+			if scripts, err := ParseNpmScripts(pkgPath); err == nil {
+				repo.NpmScripts = scripts
+			}
+		}
+		if len(repo.MakeTargets) > 0 || len(repo.NpmScripts) > 0 {
+			repos = append(repos, repo)
+		}
 	}
 
 	// 2. Sibling repos (other projects alongside mattermost)
