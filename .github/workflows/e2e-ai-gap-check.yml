@@ -1,18 +1,13 @@
 name: E2E-Agents Gap Analysis
 
 on:
-  pull_request:
-    paths:
-      - 'webapp/**'
-      - 'e2e-tests/playwright/**'
-      - '.github/workflows/e2e-ai-gap-check.yml'
-    branches:
-      - 'master'
+  schedule:
+    # Run gap analysis daily at 2 AM UTC (baseline report, not PR blocker)
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   gap-analysis:
@@ -59,56 +54,12 @@ jobs:
             echo "report_exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Post PR comment with gap analysis
-        if: github.event_name == 'pull_request' && steps.gap_summary.outputs.report_exists == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          script: |
-            const fs = require('fs');
-            const reportPath = 'e2e-tests/playwright/.e2e-ai-agents/reports/gap-report.md';
-
-            if (!fs.existsSync(reportPath)) {
-              console.log('Gap report not found, skipping comment');
-              return;
-            }
-
-            const fullReport = fs.readFileSync(reportPath, 'utf8');
-            let essentialReport = '';
-            essentialReport += '## 📊 E2E Test Gap Analysis\n\n';
-
-            const flowMatch = fullReport.match(/Flows: P0=(\d+) P1=(\d+) P2=(\d+)/);
-            if (flowMatch) {
-              essentialReport += `**Coverage Summary:**\n`;
-              essentialReport += `- P0 (Critical) flows: ${flowMatch[1]}\n`;
-              essentialReport += `- P1 (High) flows: ${flowMatch[2]}\n`;
-              essentialReport += `- P2 (Medium) flows: ${flowMatch[3]}\n\n`;
-            }
-
-            const gapSection = fullReport.substring(
-              fullReport.indexOf('Coverage Gaps'),
-              fullReport.indexOf('Recommended Tests')
-            );
-
-            if (gapSection && gapSection.length > 50) {
-              essentialReport += '**Coverage Gaps:**\n';
-              essentialReport += gapSection.split('\n').slice(1, 15).join('\n') + '\n\n';
-            }
-
-            essentialReport += '**Next Steps:**\n';
-            essentialReport += '1. Review gaps above\n';
-            essentialReport += '2. Generate tests: `npm run test:ai:generate`\n';
-            essentialReport += '3. Validate: `npm run test -- ai-assisted`\n';
-            essentialReport += '4. Commit: `npm run test:ai:finalize`\n\n';
-
-            essentialReport += '📖 [View full gap report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
-            essentialReport += '📚 [E2E Testing Guide](./e2e-tests/playwright/AI_TESTING_GUIDE.md)\n';
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: essentialReport
-            });
+      - name: Report baseline gap metrics
+        if: steps.gap_summary.outputs.report_exists == 'true'
+        run: |
+          echo "📊 Gap Analysis Report Generated"
+          echo "Report location: .e2e-ai-agents/reports/gap-report.md"
+          echo "This is a baseline report (not a PR blocker). Gaps should be tracked separately."
 
       - name: Upload gap report as artifact
         if: always()

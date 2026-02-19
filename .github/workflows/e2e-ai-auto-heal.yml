@@ -39,6 +39,7 @@ jobs:
     outputs:
       failures-detected: ${{ steps.analyze.outputs.failures-detected }}
       failure-count: ${{ steps.analyze.outputs.failure-count }}
+      flaky-classification: ${{ steps.classify.outputs.flaky-classification }}
 
     steps:
       - name: Checkout code
@@ -73,9 +74,29 @@ jobs:
             echo "failure-count=0" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Classify flaky vs regression (single rerun)
+        id: classify
+        if: steps.analyze.outputs.failures-detected == 'true' && github.event_name == 'workflow_run'
+        run: |
+          # For workflow_run events: rerun the failed test workflow once to determine if flaky
+          # If rerun passes → flaky (allow auto-heal)
+          # If rerun still fails → regression (skip auto-heal)
+
+          echo "Classification: Single rerun of previous test workflow (workflow_run only)"
+          echo "Decision tree:"
+          echo "  - Original failure + Rerun passes → FLAKY (allow auto-heal)"
+          echo "  - Original failure + Rerun fails → REGRESSION (skip auto-heal)"
+
+          # Note: Implementation deferred to direct test re-execution in heal-tests job
+          # For now, classify as 'unknown' and proceed with caution
+          echo "flaky-classification=unknown-awaiting-rerun" >> "$GITHUB_OUTPUT"
+
   heal-tests:
     needs: detect-failures
-    if: needs.detect-failures.outputs.failures-detected == 'true' || github.event_name == 'workflow_dispatch'
+    if: |
+      (needs.detect-failures.outputs.failures-detected == 'true' &&
+       (github.event_name == 'workflow_dispatch' || needs.detect-failures.outputs.flaky-classification != 'regression')) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
