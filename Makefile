@@ -4,8 +4,10 @@
 
 DEVDASH_DIR := tools/devdash
 DEVDASH_BIN := $(DEVDASH_DIR)/bin/devdash
+INSTALL_DIR := $(HOME)/.local/bin
+CONFIG_DIR  := $(HOME)/.config/devdash
 
-.PHONY: default dashboard dashboard-clean run stop check-all clean init-cli-tools edit-config help
+.PHONY: default dashboard dashboard-clean run stop check-all clean install uninstall init-cli-tools edit-config help
 
 default: dashboard
 
@@ -29,6 +31,36 @@ check-all: ## Run all linters, style, and type checks
 	@$(MAKE) -C server check-style
 	@$(MAKE) -C webapp check-style
 	@$(MAKE) -C webapp check-types
+
+install: $(DEVDASH_BIN) ## Install mmake CLI to ~/.local/bin
+	@mkdir -p $(INSTALL_DIR)
+	@mkdir -p $(CONFIG_DIR)
+	@echo "==> Installing mmake to $(INSTALL_DIR)/mmake..."
+	@cp $(DEVDASH_BIN) $(INSTALL_DIR)/mmake
+	@# Move existing config to persistent location if not already symlinked
+	@if [ -f .devdash.json ] && [ ! -L .devdash.json ]; then \
+		mv .devdash.json $(CONFIG_DIR)/.devdash.json; \
+	fi
+	@if [ ! -f $(CONFIG_DIR)/.devdash.json ]; then \
+		echo '{}' > $(CONFIG_DIR)/.devdash.json; \
+	fi
+	@ln -sf $(CONFIG_DIR)/.devdash.json .devdash.json
+	@# Symlink binary back so `make` still works without rebuilding
+	@ln -sf $(INSTALL_DIR)/mmake $(DEVDASH_BIN)
+	@echo "==> Installed!"
+	@echo "    Binary: $(INSTALL_DIR)/mmake"
+	@echo "    Config: $(CONFIG_DIR)/.devdash.json"
+	@if ! echo "$$PATH" | tr ':' '\n' | grep -qx "$(INSTALL_DIR)"; then \
+		echo ""; \
+		echo "    NOTE: $(INSTALL_DIR) is not on your PATH."; \
+		echo "    Add to your shell rc: export PATH=\"$(INSTALL_DIR):\$$PATH\""; \
+	fi
+
+uninstall: ## Remove mmake CLI
+	@echo "==> Removing mmake..."
+	@rm -f $(INSTALL_DIR)/mmake
+	@rm -f $(DEVDASH_BIN)
+	@echo "==> Done."
 
 clean: ## Clean all build artifacts
 	@$(MAKE) -C server clean
