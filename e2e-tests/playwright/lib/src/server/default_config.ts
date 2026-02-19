@@ -280,11 +280,6 @@ const defaultServerConfig: AdminConfig = {
     ExperimentalAuditSettings: {
         FileEnabled: false,
         FileName: '',
-        FileMaxSizeMB: 100,
-        FileMaxAgeDays: 0,
-        FileMaxBackups: 0,
-        FileCompress: false,
-        FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
         Certificate: '',
     },
