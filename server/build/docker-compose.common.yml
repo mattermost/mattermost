@@ -137,6 +137,8 @@ services:
   loki:
     image: "grafana/loki:3.0.0"
     logging: *default-logging
+    volumes:
+      - "./docker/loki/loki-config.yaml:/etc/loki/local-config.yaml:Z"
     networks:
       - mm-test
   promtail:
