@@ -10894,10 +10894,6 @@
     "translation": "投稿がフラグ立てされていないためフラグ立てした投稿を取得できませんでした。"
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "フラグ立てした投稿を完全に削除する際、検閲済みの投稿で元の投稿を上書きできませんでした。"
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "レビュワーコメントを変換できませんでした"
   },

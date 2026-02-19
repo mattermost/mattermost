@@ -6,7 +6,7 @@
     min-height: variables.$channel-banner-height;
     max-height: variables.$channel-banner-height;
     justify-content: center;
-    padding-block: 6px;
+    padding-block: 5px;
     padding-inline: 24px;
     white-space: nowrap;
 
@@ -15,7 +15,7 @@
         overflow: hidden;
         max-width: 100%;
         font-size: 13px;
-        line-height: 20px;
+        line-height: 13px;
         text-align: center;
         text-overflow: ellipsis;
 
