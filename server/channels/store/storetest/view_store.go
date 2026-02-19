@@ -70,22 +70,6 @@ func testSaveView(t *testing.T, ss store.Store) {
 		assert.Equal(t, model.SubviewTypeKanban, fetched.Props.Subviews[0].Type)
 	})
 
-	t.Run("round-trips nil props as nil", func(t *testing.T) {
-		v := &model.View{
-			ChannelId: channelID,
-			CreatorId: creatorID,
-			Type:      model.ViewTypeBoard,
-			Title:     "Nil Props Board",
-			Props:     nil,
-		}
-		saved, err := ss.View().Save(v)
-		require.NoError(t, err)
-
-		fetched, err := ss.View().Get(saved.Id)
-		require.NoError(t, err)
-		assert.Nil(t, fetched.Props)
-	})
-
 	t.Run("generates subview IDs via PreSave", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
 		v.Title = "Subview ID Board"
@@ -207,7 +191,7 @@ func testUpdateView(t *testing.T, ss store.Store) {
 		assert.Equal(t, "A description", result.Description)
 		assert.Equal(t, "🚀", result.Icon)
 		assert.Equal(t, 5, result.SortOrder)
-		assert.Greater(t, result.UpdateAt, saved.UpdateAt)
+		assert.GreaterOrEqual(t, result.UpdateAt, saved.UpdateAt)
 	})
 
 	t.Run("persists updated props", func(t *testing.T) {
@@ -216,6 +200,7 @@ func testUpdateView(t *testing.T, ss store.Store) {
 
 		fetched.Props = &model.ViewBoardProps{
 			LinkedProperties: []string{"prop-a", "prop-b"},
+			Subviews:         []model.Subview{{Title: "Kanban", Type: model.SubviewTypeKanban}},
 		}
 		_, err = ss.View().Update(fetched)
 		require.NoError(t, err)

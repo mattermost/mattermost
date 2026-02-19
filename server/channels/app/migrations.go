@@ -600,34 +600,6 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
-func (s *Server) doSetupBoardsPropertyField() error {
-	group, err := s.Store().PropertyGroup().Register(model.BoardsPropertyGroupName)
-	if err != nil {
-		return fmt.Errorf("failed to register boards property group: %w", err)
-	}
-
-	_, err = s.Store().PropertyField().GetFieldByName(group.ID, "", model.BoardsPropertyFieldNameBoard)
-	if err == nil {
-		return nil
-	}
-	var nfErr *store.ErrNotFound
-	if !errors.As(err, &nfErr) {
-		return fmt.Errorf("failed to check for board property field: %w", err)
-	}
-
-	_, err = s.Store().PropertyField().Create(&model.PropertyField{
-		GroupID:    group.ID,
-		Name:       model.BoardsPropertyFieldNameBoard,
-		Type:       model.PropertyFieldTypeText,
-		ObjectType: "post",
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create board property field: %w", err)
-	}
-
-	return nil
-}
 
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.

@@ -20,6 +20,10 @@ func validView() *View {
 		Title:     "My Board",
 		CreateAt:  1,
 		UpdateAt:  1,
+		Props: &ViewBoardProps{
+			LinkedProperties: []string{NewId()},
+			Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+		},
 	}
 }
 
@@ -213,22 +217,47 @@ func TestViewIsValidWithSubviews(t *testing.T) {
 		Valid       bool
 	}{
 		{
-			"valid view with valid subview",
+			"valid view with valid subview and linked property",
 			func() *View {
 				v := validView()
 				v.Props = &ViewBoardProps{
-					Subviews: []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+					LinkedProperties: []string{NewId()},
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
 				}
 				return v
 			}(),
 			true,
 		},
 		{
+			"board requires props",
+			func() *View { v := validView(); v.Props = nil; return v }(),
+			false,
+		},
+		{
+			"board requires at least one subview",
+			func() *View {
+				v := validView()
+				v.Props = &ViewBoardProps{LinkedProperties: []string{NewId()}, Subviews: nil}
+				return v
+			}(),
+			false,
+		},
+		{
+			"board requires at least one linked property",
+			func() *View {
+				v := validView()
+				v.Props = &ViewBoardProps{Subviews: []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}}}
+				return v
+			}(),
+			false,
+		},
+		{
 			"view with invalid subview id",
 			func() *View {
 				v := validView()
 				v.Props = &ViewBoardProps{
-					Subviews: []Subview{{Id: "invalid", Title: "Kanban", Type: SubviewTypeKanban}},
+					LinkedProperties: []string{NewId()},
+					Subviews:         []Subview{{Id: "invalid", Title: "Kanban", Type: SubviewTypeKanban}},
 				}
 				return v
 			}(),
@@ -239,7 +268,8 @@ func TestViewIsValidWithSubviews(t *testing.T) {
 			func() *View {
 				v := validView()
 				v.Props = &ViewBoardProps{
-					Subviews: []Subview{{Id: NewId(), Title: "", Type: SubviewTypeKanban}},
+					LinkedProperties: []string{NewId()},
+					Subviews:         []Subview{{Id: NewId(), Title: "", Type: SubviewTypeKanban}},
 				}
 				return v
 			}(),
@@ -250,7 +280,8 @@ func TestViewIsValidWithSubviews(t *testing.T) {
 			func() *View {
 				v := validView()
 				v.Props = &ViewBoardProps{
-					Subviews: []Subview{{Id: NewId(), Title: "Kanban", Type: "invalid"}},
+					LinkedProperties: []string{NewId()},
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: "invalid"}},
 				}
 				return v
 			}(),
@@ -374,7 +405,7 @@ func TestViewPatch(t *testing.T) {
 				assert.Empty(t, v.Description)
 				assert.Empty(t, v.Icon)
 				assert.Zero(t, v.SortOrder)
-				assert.Nil(t, v.Props)
+				assert.NotNil(t, v.Props)
 			},
 		},
 	}

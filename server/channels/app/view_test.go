@@ -19,6 +19,10 @@ func makeTestView(channelID, userID string) *model.View {
 		Type:      model.ViewTypeBoard,
 		CreatorId: userID,
 		Title:     "Test View",
+		Props: &model.ViewBoardProps{
+			Subviews:         []model.Subview{{Title: "Default", Type: model.SubviewTypeKanban}},
+			LinkedProperties: []string{model.NewId()},
+		},
 	}
 }
 
@@ -32,6 +36,20 @@ func TestAppCreateView(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, saved.Id)
 		assert.Equal(t, th.BasicChannel.Id, saved.ChannelId)
+	})
+
+	t.Run("board view without subviews fails validation", func(t *testing.T) {
+		view := makeTestView(th.BasicChannel.Id, th.BasicUser.Id)
+		view.Props.Subviews = nil
+		_, appErr := th.App.CreateView(th.Context, view)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("board view without linked properties fails validation", func(t *testing.T) {
+		view := makeTestView(th.BasicChannel.Id, th.BasicUser.Id)
+		view.Props.LinkedProperties = nil
+		_, appErr := th.App.CreateView(th.Context, view)
+		require.NotNil(t, appErr)
 	})
 }
 

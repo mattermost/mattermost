@@ -134,7 +134,13 @@ func (o *View) IsValid() *AppError {
 		return NewAppError("View.IsValid", "model.view.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Props != nil {
+	if o.Type == ViewTypeBoard {
+		if o.Props == nil || len(o.Props.Subviews) == 0 {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.subviews.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if len(o.Props.LinkedProperties) == 0 {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.linked_properties.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
 		for _, subview := range o.Props.Subviews {
 			if err := subview.IsValid(); err != nil {
 				return err
@@ -165,6 +171,12 @@ func (o *View) PreSave() {
 
 func (o *View) PreUpdate() {
 	o.UpdateAt = GetMillis()
+
+	if o.Props != nil {
+		for i := range o.Props.Subviews {
+			o.Props.Subviews[i].PreSave()
+		}
+	}
 }
 
 func (o *View) Patch(patch *ViewPatch) {

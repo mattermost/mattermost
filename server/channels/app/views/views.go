@@ -5,31 +5,9 @@ package views
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
-// CreateView saves a new view and seeds its initial state.
-//
-// A default kanban subview is always created if none are provided, following
-// the spec requirement that every board starts with a kanban presentation.
-//
-// The system-level "board" property field ID is pre-populated in LinkedProperties
-// so that the board can filter cards by their board membership.
 func (vs *ViewService) CreateView(view *model.View) (*model.View, error) {
-	if view.Props == nil {
-		view.Props = &model.ViewBoardProps{}
-	}
-
-	if len(view.Props.Subviews) == 0 {
-		view.Props.Subviews = []model.Subview{
-			{Title: i18n.T("app.view.default_subview.title"), Type: model.SubviewTypeKanban},
-		}
-	}
-
-	if len(view.Props.LinkedProperties) == 0 {
-		view.Props.LinkedProperties = []string{vs.boardPropertyFieldID}
-	}
-
 	return vs.store.Save(view)
 }
 

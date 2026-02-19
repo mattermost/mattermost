@@ -14,55 +14,12 @@ import (
 func TestCreateView(t *testing.T) {
 	th := Setup(t)
 
-	t.Run("seeds default kanban subview when none provided", func(t *testing.T) {
+	t.Run("saves and returns view", func(t *testing.T) {
 		view := makeView()
 		saved, err := th.service.CreateView(view)
 		require.NoError(t, err)
-		require.Len(t, saved.Props.Subviews, 1)
-		require.Equal(t, model.SubviewTypeKanban, saved.Props.Subviews[0].Type)
-		require.NotEmpty(t, saved.Props.Subviews[0].Id)
-	})
-
-	t.Run("seeds default subview when Props is nil", func(t *testing.T) {
-		view := makeView()
-		view.Props = nil
-		saved, err := th.service.CreateView(view)
-		require.NoError(t, err)
-		require.NotNil(t, saved.Props)
-		require.Len(t, saved.Props.Subviews, 1)
-	})
-
-	t.Run("preserves provided subviews", func(t *testing.T) {
-		view := makeView()
-		view.Props = &model.ViewBoardProps{
-			Subviews: []model.Subview{
-				{Title: "Custom", Type: model.SubviewTypeKanban},
-			},
-		}
-		saved, err := th.service.CreateView(view)
-		require.NoError(t, err)
-		require.Len(t, saved.Props.Subviews, 1)
-		require.Equal(t, "Custom", saved.Props.Subviews[0].Title)
-	})
-
-	t.Run("seeds board property field ID in LinkedProperties", func(t *testing.T) {
-		view := makeView()
-		saved, err := th.service.CreateView(view)
-		require.NoError(t, err)
-		require.Len(t, saved.Props.LinkedProperties, 1)
-		require.Equal(t, th.service.boardPropertyFieldID, saved.Props.LinkedProperties[0])
-	})
-
-	t.Run("preserves provided LinkedProperties", func(t *testing.T) {
-		customID := model.NewId()
-		view := makeView()
-		view.Props = &model.ViewBoardProps{
-			LinkedProperties: []string{customID},
-		}
-		saved, err := th.service.CreateView(view)
-		require.NoError(t, err)
-		require.Len(t, saved.Props.LinkedProperties, 1)
-		require.Equal(t, customID, saved.Props.LinkedProperties[0])
+		require.NotEmpty(t, saved.Id)
+		require.Equal(t, view.Title, saved.Title)
 	})
 }
 

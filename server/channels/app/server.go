@@ -236,14 +236,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	if err = s.doSetupBoardsPropertyField(); err != nil {
-		return nil, errors.Wrapf(err, "unable to setup board property field")
-	}
-
 	s.viewService, err = views.New(views.ServiceConfig{
-		ViewStore:          s.Store().View(),
-		PropertyGroupStore: s.Store().PropertyGroup(),
-		PropertyFieldStore: s.Store().PropertyField(),
+		ViewStore: s.Store().View(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create views service")

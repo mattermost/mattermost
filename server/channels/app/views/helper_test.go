@@ -31,24 +31,8 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	boardGroup, err := dbStore.PropertyGroup().Register(model.BoardsPropertyGroupName)
-	require.NoError(tb, err, "failed to register boards property group")
-
-	seededField, err := dbStore.PropertyField().Create(&model.PropertyField{
-		GroupID:    boardGroup.ID,
-		Name:       model.BoardsPropertyFieldNameBoard,
-		Type:       model.PropertyFieldTypeText,
-		ObjectType: "post",
-	})
-	require.NoError(tb, err, "failed to seed board property field")
-
-	svc, err := New(ServiceConfig{
-		ViewStore:          dbStore.View(),
-		PropertyGroupStore: dbStore.PropertyGroup(),
-		PropertyFieldStore: dbStore.PropertyField(),
-	})
+	svc, err := New(ServiceConfig{ViewStore: dbStore.View()})
 	require.NoError(tb, err)
-	require.Equal(tb, seededField.ID, svc.boardPropertyFieldID)
 
 	return &TestHelper{
 		service: svc,
