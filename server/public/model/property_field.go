@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
@@ -36,6 +37,13 @@ const (
 	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
 	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
 )
+
+// validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
+var validPSAv2TargetTypes = []string{
+	string(PropertyFieldTargetLevelSystem),
+	string(PropertyFieldTargetLevelTeam),
+	string(PropertyFieldTargetLevelChannel),
+}
 
 type PropertyField struct {
 	ID         string            `json:"id"`
@@ -149,10 +157,7 @@ func (pf *PropertyField) IsValid() error {
 
 	// PSAv2 properties (with ObjectType) must have TargetType as system, team, or channel (cannot be empty)
 	// PSAv1 properties (without ObjectType) can have any string as TargetType
-	if !pf.IsPSAv1() &&
-		pf.TargetType != string(PropertyFieldTargetLevelSystem) &&
-		pf.TargetType != string(PropertyFieldTargetLevelTeam) &&
-		pf.TargetType != string(PropertyFieldTargetLevelChannel) {
+	if !pf.IsPSAv1() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -260,6 +265,12 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 // the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
 func (pf *PropertyField) IsPSAv1() bool {
 	return pf.ObjectType == ""
+}
+
+// IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
+// PSAv2 target level (system, team, or channel).
+func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {
+	return slices.Contains(validPSAv2TargetTypes, targetType)
 }
 
 type PropertyFieldSearchCursor struct {
