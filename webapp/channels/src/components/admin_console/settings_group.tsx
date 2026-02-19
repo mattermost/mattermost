@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 type Props = {
     id?: string;
     show?: boolean;
     header?: React.ReactNode;
-    title?: React.ReactNode;
+    title?: string | MessageDescriptor;
     subtitle?: React.ReactNode;
     children?: React.ReactNode;
     container?: boolean;
@@ -35,7 +37,15 @@ const SettingsGroup = ({
 
     let sectionTitle = null;
     if (!header && title) {
-        sectionTitle = <div className={'section-title'}>{title}</div>;
+        sectionTitle = (
+            <div className={'section-title'}>
+                {typeof title === 'string' ? (
+                    title
+                ) : (
+                    <FormattedMessage {...title}/>
+                )}
+            </div>
+        );
     }
 
     let sectionSubtitle = null;
