@@ -930,6 +930,10 @@ export const FileTypes = {
     LICENSE_EXTENSION: '.mattermost-license',
 };
 
+export const HttpHeaders = {
+    REJECT_REASON: 'X-Reject-Reason',
+};
+
 export const NotificationLevels = {
     DEFAULT: 'default',
     ALL: 'all',
@@ -1304,6 +1308,8 @@ export const DefaultRolePermissions = {
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
+        Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     team_admin: [
