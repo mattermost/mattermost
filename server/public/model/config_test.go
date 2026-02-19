@@ -2136,6 +2136,40 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
 	})
+
+	t.Run("DCR redirect URI allowlist validation", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+
+		// Valid allowlist
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/**", "https://*.test.com/callback", "http://localhost:*"}
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		// Empty/whitespace entry rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Non-http(s) scheme rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed pattern (too short) rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed wildcard expression rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/***"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {
