@@ -17,8 +17,15 @@
 }
 
 .localization-section-title {
+    display: flex;
     margin: unset;
     font-size: 16px;
+    gap: 6px;
+    
+    .Tag {
+        position: relative;
+        top: -1px;
+    }
 }
 
 .localization-section-description {
@@ -89,5 +96,11 @@
         color: var(--link-color);
         font-size: 12px;
     }
+}
+
+.autotranslation-error.error-message {
+    color: var(--error-text);
+    font-size: 12px;
+    font-weight: 400;
 }
 

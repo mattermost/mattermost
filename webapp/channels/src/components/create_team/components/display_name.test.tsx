@@ -5,7 +5,7 @@ import React from 'react';
 
 import DisplayName from 'components/create_team/components/display_name';
 
-import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -55,7 +55,8 @@ describe('/components/create_team/components/display_name', () => {
         };
 
         const input = screen.getByRole('textbox');
-        fireEvent.change(input, {target: {value: teamDisplayName}});
+        await userEvent.clear(input);
+        await userEvent.type(input, teamDisplayName);
 
         await userEvent.click(screen.getByRole('button', {name: /next/i}));
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitAccessControlPolicy() {
@@ -392,9 +393,11 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CSRF barrier: only allow header-based auth (reject cookie-only sessions)
-	if r.Header.Get(model.HeaderAuth) == "" {
-		c.SetInvalidParam("Authorization")
+	// CSRF barrier: only allow header-based auth (reject cookie sessions)
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+	if token == "" || tokenLocation == app.TokenLocationCookie {
+		c.Err = model.NewAppError("updateActiveStatus", "api.context.session_cookie_not_allowed.app_error", nil,
+			"This endpoint requires header-based authentication", http.StatusUnauthorized)
 		return
 	}
 
@@ -708,7 +711,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit, c.AppContext.Session().UserId)
 
 	if appErr != nil {
 		c.Err = appErr

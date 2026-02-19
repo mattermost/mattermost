@@ -107,28 +107,23 @@ func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+var versionPrefixes = []string{
+	"Mattermost Mobile/",
+	"Mattermost/",
+	"mmctl/",
+	"Franz/",
+}
+
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
-	if index := strings.Index(userAgentString, "Mattermost Mobile/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost Mobile/"):]
-		// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
+	for _, prefix := range versionPrefixes {
+		if index := strings.Index(userAgentString, prefix); index != -1 {
+			afterPrefix := userAgentString[index+len(prefix):]
+			if fields := strings.Fields(afterPrefix); len(fields) > 0 {
+				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
+				return limitStringLength(fields[0], maxUserAgentVersionLength)
+			}
+		}
 	}
-
-	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
-		afterVersion := userAgentString[index+len("mmctl/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
-		afterVersion := userAgentString[index+len("Franz/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
 	return getUAVersion(ua.Browser.Version)
 }
 

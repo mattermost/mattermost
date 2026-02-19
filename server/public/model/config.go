@@ -236,11 +236,12 @@ const (
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
-	PluginSettingsDefaultDirectory         = "./plugins"
-	PluginSettingsDefaultClientDirectory   = "./client/plugins"
-	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultDirectory          = "./plugins"
+	PluginSettingsDefaultClientDirectory    = "./client/plugins"
+	PluginSettingsDefaultEnableMarketplace  = true
+	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
@@ -348,6 +349,7 @@ type ServiceSettings struct {
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -555,6 +557,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDynamicClientRegistration == nil {
 		s.EnableDynamicClientRegistration = NewPointer(false)
+	}
+
+	if s.DCRRedirectURIAllowlist == nil {
+		s.DCRRedirectURIAllowlist = []string{}
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -1266,16 +1272,17 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"` // telemetry: none
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	ButtonText        *string `access:"authentication_openid"` // telemetry: none
-	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"` // telemetry: none
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	ButtonText           *string `access:"authentication_openid"` // telemetry: none
+	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1318,18 +1325,24 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.ButtonColor == nil {
 		s.ButtonColor = NewPointer(buttonColor)
 	}
+
+	// Note: Preferred username is not supported for Google.
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 type Office365Settings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"`
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"`
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	DirectoryId          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1368,6 +1381,10 @@ func (s *Office365Settings) setDefaults() {
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewPointer("")
 	}
+
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 func (s *Office365Settings) SSOSettings() *SSOSettings {
@@ -1380,6 +1397,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserAPIEndpoint = s.UserAPIEndpoint
+	ssoSettings.UsePreferredUsername = s.UsePreferredUsername
 	return &ssoSettings
 }
 
@@ -2785,24 +2803,13 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
-}
-
-// AutoTranslationTimeoutsInMs defines content-aware timeout thresholds.
-// Based on LibreTranslate benchmark findings, timeouts are set according to content length:
-// - Short: ≤200 runes
-// - Medium: ≤500 runes
-// - Long: >500 runes
-// - Notification: preserved for notification-specific timeout requirements
-type AutoTranslationTimeoutsInMs struct {
-	Short        *int `access:"site_localization,cloud_restrictable"` // ≤200 runes, default: 1200ms
-	Medium       *int `access:"site_localization,cloud_restrictable"` // ≤500 runes, default: 2500ms
-	Long         *int `access:"site_localization,cloud_restrictable"` // >500 runes, default: 6000ms
-	Notification *int `access:"site_localization,cloud_restrictable"` // Notification timeout, default: 300ms
 }
 
 // LibreTranslateProviderSettings configures the LibreTranslate translation provider.
@@ -2828,10 +2835,13 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.TargetLanguages = &[]string{"en"}
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.Workers == nil {
+		s.Workers = NewPointer(4)
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = NewPointer(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
@@ -2842,23 +2852,9 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Agents = &AgentsProviderSettings{}
 	}
 	s.Agents.SetDefaults()
-}
 
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.Short == nil {
-		s.Short = NewPointer(1200)
-	}
-
-	if s.Medium == nil {
-		s.Medium = NewPointer(2500)
-	}
-
-	if s.Long == nil {
-		s.Long = NewPointer(6000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
 	}
 }
 
@@ -3132,6 +3128,7 @@ type ElasticsearchSettings struct {
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableCJKAnalyzers            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -3191,6 +3188,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearching == nil {
 		s.EnableSearching = NewPointer(false)
+	}
+
+	if s.EnableCJKAnalyzers == nil {
+		s.EnableCJKAnalyzers = NewPointer(false)
 	}
 
 	if s.EnableAutocomplete == nil {
@@ -3561,6 +3562,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 					break
 				}
 			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
+				}
+			}
 		}
 	}
 }
@@ -3895,17 +3905,12 @@ func (s *ExportSettings) SetDefaults() {
 
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
-	EnableChannelScopeAccessControl   *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAttributeBasedAccessControl == nil {
 		s.EnableAttributeBasedAccessControl = NewPointer(false)
-	}
-
-	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(true)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
@@ -4707,6 +4712,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, pattern := range s.DCRRedirectURIAllowlist {
+		trimmed := strings.TrimSpace(pattern)
+		if trimmed == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !IsValidDCRRedirectURIPattern(trimmed) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// we check if file has a valid parent, the server will try to create the socket
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
@@ -4731,6 +4746,13 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", map[string]any{
 			"Searching":      "ElasticsearchSettings.EnableSearching",
 			"EnableIndexing": "ElasticsearchSettings.EnableIndexing",
+		}, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableCJKAnalyzers && !*s.EnableSearching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error", map[string]any{
+			"EnableCJKAnalyzers": "ElasticsearchSettings.EnableCJKAnalyzers",
+			"Searching":          "ElasticsearchSettings.EnableSearching",
 		}, "", http.StatusBadRequest)
 	}
 
@@ -4850,20 +4872,14 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.Short != nil && *s.TimeoutsMs.Short <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.short.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Medium != nil && *s.TimeoutsMs.Medium <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.medium.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Long != nil && *s.TimeoutsMs.Long <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.long.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 32)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 32) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -5087,6 +5103,12 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.CacheSettings.RedisPassword != nil {
 		*o.CacheSettings.RedisPassword = FakeSetting
+	}
+
+	if o.AutoTranslationSettings.LibreTranslate != nil &&
+		o.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*o.AutoTranslationSettings.LibreTranslate.APIKey != "" {
+		*o.AutoTranslationSettings.LibreTranslate.APIKey = FakeSetting
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)

@@ -92,10 +92,6 @@ describe('RecapChannelCard', () => {
         create_at: 1000,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render channel name', () => {
         renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,

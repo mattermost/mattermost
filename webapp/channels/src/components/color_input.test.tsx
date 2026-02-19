@@ -74,7 +74,7 @@ describe('components/ColorInput', () => {
         expect(container.querySelector('.color-popover')).toBeInTheDocument();
     });
 
-    test('should keep what the user types in the textbox until blur', () => {
+    test('should keep what the user types in the textbox until blur', async () => {
         let currentValue = '#ffffff';
         const onChange = jest.fn((value: string) => {
             currentValue = value;
@@ -91,9 +91,11 @@ describe('components/ColorInput', () => {
         const input = screen.getByRole('textbox');
         const colorIcon = container.querySelector('.color-icon') as HTMLElement;
 
+        // Simulate focus on input - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(input);
 
-        fireEvent.change(input, {target: {value: '#abc'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, '#abc');
         expect(onChange).toHaveBeenLastCalledWith('#aabbcc');
         expect(input).toHaveValue('#abc');
         expect(colorIcon.style.backgroundColor).toBe('rgb(170, 187, 204)');

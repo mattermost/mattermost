@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannelModal from './unarchive_channel_modal';
@@ -25,57 +24,71 @@ describe('components/unarchive_channel_modal', () => {
         update_at: 1508265709607,
     });
 
-    const currentTeamDetails = {
-        name: 'mattermostDev',
-    };
-
     const baseProps = {
         channel,
-        currentTeamDetails,
         actions: {
             unarchiveChannel: jest.fn(),
         },
         onExited: jest.fn(),
-        penultimateViewedChannelName: 'my-prev-channel',
     };
 
     test('should match snapshot for unarchive_channel_modal', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <UnarchiveChannelModal {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match state when onHide is called', () => {
-        const wrapper = shallow<UnarchiveChannelModal>(
+    test('should match state when onHide is called', async () => {
+        renderWithContext(
             <UnarchiveChannelModal {...baseProps}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        // Modal should be visible initially
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+        // Click cancel button
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
-    test('should have called actions.unarchiveChannel when handleUnarchive is called', () => {
-        const actions = {unarchiveChannel: jest.fn()};
-        const props = {...baseProps, actions};
-        const wrapper = shallow<UnarchiveChannelModal>(
+    test('should have called actions.unarchiveChannel when handleUnarchive is called', async () => {
+        const unarchiveChannel = jest.fn();
+        const props = {...baseProps, actions: {unarchiveChannel}};
+        renderWithContext(
             <UnarchiveChannelModal {...props}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().handleUnarchive();
+        // Click unarchive button
+        await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
 
-        expect(actions.unarchiveChannel).toHaveBeenCalledTimes(1);
-        expect(actions.unarchiveChannel).toHaveBeenCalledWith(props.channel.id);
+        expect(unarchiveChannel).toHaveBeenCalledTimes(1);
+        expect(unarchiveChannel).toHaveBeenCalledWith(props.channel.id);
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
-    test('should have called props.onHide when Modal.onExited is called', () => {
-        const wrapper = shallow(
-            <UnarchiveChannelModal {...baseProps}/>,
+    test('should have called props.onExited on Cancel', async () => {
+        const onExited = jest.fn();
+        renderWithContext(
+            <UnarchiveChannelModal
+                {...baseProps}
+                onExited={onExited}
+            />,
         );
 
-        wrapper.find(Modal).props().onExited!(document.createElement('div'));
-        expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        // Close modal to trigger onExited
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        await waitFor(() => {
+            expect(onExited).toHaveBeenCalledTimes(1);
+        });
     });
 });

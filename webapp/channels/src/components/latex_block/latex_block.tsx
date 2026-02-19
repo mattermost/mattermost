@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import CodeBlock from 'components/code_block/code_block';
 
-type Katex = typeof import('katex');
+type Katex = typeof import('katex').default;
 
 type Props = {
     content: string;

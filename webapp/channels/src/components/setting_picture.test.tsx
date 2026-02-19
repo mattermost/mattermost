@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
 
-import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 const helpText: ReactNode = (
     <FormattedMessage
@@ -209,7 +209,7 @@ describe('components/SettingItemMin', () => {
 
         // Trigger file change
         const fileInput = screen.getByTestId('uploadPicture');
-        fireEvent.change(fileInput, {target: {files: [mockFile]}});
+        await userEvent.upload(fileInput, mockFile);
 
         expect(props.onFileChange).toHaveBeenCalledTimes(1);
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/opensearch-project/opensearch-go/v4"
@@ -115,6 +116,16 @@ func (s *OpensearchInterfaceTestSuite) TearDownSuite() {
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupTest() {
+	if strings.Contains(s.T().Name(), "CJK") {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+		})
+	} else {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+		})
+	}
+
 	s.CommonTestSuite.ESImpl = s.th.App.SearchEngine().ElasticsearchEngine
 
 	if s.CommonTestSuite.ESImpl.IsActive() {

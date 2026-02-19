@@ -2104,10 +2104,6 @@
     "translation": "चैनल म्यूट बंद होने तक आपको {{.Channel}} के लिए सूचनाएं प्राप्त नहीं होंगी।"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "चैनल {{.Channel}} को म्यूट नहीं किया जा सका क्योंकि आप सदस्य नहीं हैं।"
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "निर्दिष्ट चैनल नहीं मिल सका। चैनलों की पहचान करने के लिए कृपया [चैनल हैंडल](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) का उपयोग करें।"
   },

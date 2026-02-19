@@ -88,13 +88,48 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      aria-describedby="username-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      placeholder="Enter username"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      aria-describedby="email-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -113,22 +148,6 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                     <span>
                       Email
                     </span>
-                  </label>
-                </div>
-              </div>
-              <div
-                class="field-row"
-              >
-                <div
-                  class="field-column left"
-                >
-                  <label>
-                    Email
-                    <input
-                      class="form-control"
-                      type="text"
-                      value=""
-                    />
                   </label>
                 </div>
                 <div
@@ -219,7 +238,9 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -314,13 +335,48 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      aria-describedby="username-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      placeholder="Enter username"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      aria-describedby="email-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -339,22 +395,6 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                     <span>
                       Email
                     </span>
-                  </label>
-                </div>
-              </div>
-              <div
-                class="field-row"
-              >
-                <div
-                  class="field-column left"
-                >
-                  <label>
-                    Email
-                    <input
-                      class="form-control"
-                      type="text"
-                      value=""
-                    />
                   </label>
                 </div>
                 <div
@@ -445,7 +485,9 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -540,13 +582,48 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      aria-describedby="username-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      placeholder="Enter username"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      aria-describedby="email-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -565,22 +642,6 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                     <span>
                       Email
                     </span>
-                  </label>
-                </div>
-              </div>
-              <div
-                class="field-row"
-              >
-                <div
-                  class="field-column left"
-                >
-                  <label>
-                    Email
-                    <input
-                      class="form-control"
-                      type="text"
-                      value=""
-                    />
                   </label>
                 </div>
                 <div
@@ -671,7 +732,9 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -766,13 +829,48 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      aria-describedby="username-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      placeholder="Enter username"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      aria-describedby="email-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -791,22 +889,6 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                     <span>
                       Email
                     </span>
-                  </label>
-                </div>
-              </div>
-              <div
-                class="field-row"
-              >
-                <div
-                  class="field-column left"
-                >
-                  <label>
-                    Email
-                    <input
-                      class="form-control"
-                      type="text"
-                      value=""
-                    />
                   </label>
                 </div>
                 <div
@@ -903,7 +985,9 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -998,13 +1082,48 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      aria-describedby="username-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      placeholder="Enter username"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      aria-describedby="email-error"
+                      aria-invalid="false"
+                      class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -1023,22 +1142,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                     <span>
                       Email
                     </span>
-                  </label>
-                </div>
-              </div>
-              <div
-                class="field-row"
-              >
-                <div
-                  class="field-column left"
-                >
-                  <label>
-                    Email
-                    <input
-                      class="form-control"
-                      type="text"
-                      value=""
-                    />
                   </label>
                 </div>
                 <div
@@ -1129,7 +1232,9 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -1224,13 +1329,50 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         />
                       </svg>
                     </span>
-                    <span>
-                      some-user
-                    </span>
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter username"
+                      readonly=""
+                      style="cursor: not-allowed;"
+                      type="text"
+                      value="some-user"
+                    />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                >
+                  <label>
+                    Email
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      class="form-control"
+                      disabled=""
+                      readonly=""
+                      style="cursor: not-allowed;"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+              >
+                <div
+                  class="field-column left"
                 >
                   <label>
                     Authentication Method
@@ -1251,25 +1393,33 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                     </span>
                   </label>
                 </div>
-              </div>
-              <div
-                class="field-row"
-              >
                 <div
-                  class="field-column left"
+                  class="field-column right"
                 >
                   <label>
-                    Email
+                    Auth Data
+                    <span>
+                      <svg
+                        height="100%"
+                        viewBox="0 0 24 24"
+                        width="100%"
+                      >
+                        <path
+                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                          fill="inherit"
+                        />
+                      </svg>
+                    </span>
                     <input
+                      aria-describedby="authdata-error"
+                      aria-invalid="false"
                       class="form-control"
+                      placeholder="Enter auth data"
                       type="text"
                       value=""
                     />
                   </label>
                 </div>
-                <div
-                  class="field-column right"
-                />
               </div>
             </div>
           </div>
@@ -1358,7 +1508,9 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         </button>
       </div>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>

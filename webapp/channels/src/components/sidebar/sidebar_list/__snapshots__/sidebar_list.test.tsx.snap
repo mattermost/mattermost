@@ -1,97 +1,53 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SidebarList should match snapshot 1`] = `
-<Fragment>
-  <GlobalThreadsLink />
-  <DraftsLink />
-  <RecapsLink />
+<div>
+  <div
+    data-testid="GlobalThreadsLink"
+  />
+  <div
+    data-testid="DraftsLink"
+  />
+  <div
+    data-testid="RecapsLink"
+  />
   <div
     aria-label="channel sidebar region"
-    className="SidebarNavContainer a11y__region"
-    data-a11y-disable-nav={false}
+    class="SidebarNavContainer a11y__region"
+    data-a11y-disable-nav="false"
     data-a11y-sort-order="7"
     id="sidebar-left"
-    onTransitionEnd={[Function]}
     role="application"
   >
-    <UnreadChannelIndicator
-      content={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="More unreads"
-          id="sidebar.unreads"
-        />
-      }
-      extraClass="nav-pills__unread-indicator-top"
-      name="Top"
-      onClick={[Function]}
-      show={false}
+    <div
+      data-testid="UnreadChannelIndicator"
     />
-    <UnreadChannelIndicator
-      content={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="More unreads"
-          id="sidebar.unreads"
-        />
-      }
-      extraClass="nav-pills__unread-indicator-bottom"
-      name="Bottom"
-      onClick={[Function]}
-      show={false}
+    <div
+      data-testid="UnreadChannelIndicator"
     />
-    <Scrollbars
-      onScroll={[Function]}
-    >
-      <DragDropContext
-        onBeforeCapture={[Function]}
-        onBeforeDragStart={[Function]}
-        onDragEnd={[Function]}
-        onDragStart={[Function]}
+    <div>
+      <div
+        data-rbd-droppable-context-id="0"
+        data-rbd-droppable-id="droppable-categories"
+        id="sidebar-droppable-categories"
       >
-        <Connect(Droppable)
-          direction="vertical"
-          droppableId="droppable-categories"
-          getContainerForClone={[Function]}
-          ignoreContainerClipping={false}
-          isCombineEnabled={false}
-          isDropDisabled={false}
-          mode="standard"
-          renderClone={null}
-          type="SIDEBAR_CATEGORY"
-        >
-          <Component />
-        </Connect(Droppable)>
-      </DragDropContext>
-    </Scrollbars>
+        <div
+          data-testid="sidebar-category"
+        />
+      </div>
+    </div>
   </div>
-</Fragment>
+</div>
 `;
 
 exports[`SidebarList should match snapshot 2`] = `
 <div
+  data-rbd-droppable-context-id="0"
+  data-rbd-droppable-id="droppable-categories"
   id="sidebar-droppable-categories"
 >
-  <Connect(SidebarCategory)
-    category={
-      Object {
-        "channel_ids": Array [
-          "channel_id",
-          "channel_id_2",
-        ],
-        "collapsed": false,
-        "display_name": "custom_category_1",
-        "id": "category1",
-        "muted": false,
-        "sorting": "alpha",
-        "team_id": "team1",
-        "type": "custom",
-        "user_id": "",
-      }
-    }
-    categoryIndex={0}
-    handleOpenMoreDirectChannelsModal={[MockFunction]}
-    isNewCategory={false}
-    key="category1"
-    setChannelRef={[Function]}
+  <div
+    data-testid="sidebar-category"
   />
 </div>
 `;

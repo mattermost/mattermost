@@ -7,7 +7,7 @@ import * as channelActions from 'actions/views/channel';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CloseChannel from './close_channel';
 
@@ -20,7 +20,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly, handle click event', () => {
+    test('renders the component correctly, handle click event', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <CloseChannel/>
@@ -30,7 +30,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
         const menuItem = screen.getByText('Close Channel');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(channelActions.goToLastViewedChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
     });
 });

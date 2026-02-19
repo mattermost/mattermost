@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/widgets/settings/AutocompleteSelector check snapshot with value prop and changing focus 1`] = `
+<div>
+  <div
+    class="form-group"
+    data-testid="autoCompleteSelector"
+  >
+    <label
+      class="control-label "
+    >
+      some label
+    </label>
+    <div
+      class=""
+    >
+      <input
+        class="form-control"
+        value="value from prop"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/widgets/settings/AutocompleteSelector check snapshot with value prop and changing focus 2`] = `
+<div>
+  <div
+    class="form-group"
+    data-testid="autoCompleteSelector"
+  >
+    <label
+      class="control-label "
+    >
+      some label
+    </label>
+    <div
+      class=""
+    >
+      <input
+        class="form-control"
+        value="value from input"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/widgets/settings/AutocompleteSelector render component with required props 1`] = `
+<div>
+  <div
+    class="form-group"
+    data-testid="autoCompleteSelector"
+  >
+    <label
+      class="control-label "
+    >
+      some label
+    </label>
+    <div
+      class=""
+    >
+      <input
+        class="form-control"
+        value="some value"
+      />
+    </div>
+  </div>
+</div>
+`;

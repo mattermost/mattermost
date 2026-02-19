@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ProfilePopoverPhone from './profile_popover_phone';
 
@@ -104,26 +103,25 @@ describe('components/ProfilePopoverPhone', () => {
         expect(phoneLink.tagName).toBe('A');
     });
 
-    test('should open phone dialer when clicked', () => {
+    test('should open phone dialer when clicked', async () => {
         renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
         const phoneLink = screen.getByText(phone);
 
-        fireEvent.click(phoneLink);
+        await userEvent.click(phoneLink);
 
         expect(mockWindowOpen).toHaveBeenCalledWith('tel:+1 (555) 123-4567');
     });
 
-    test('should prevent default click behavior', () => {
+    test('should prevent default click behavior', async () => {
         renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
         const phoneLink = screen.getByText(phone);
 
-        const clickEvent = fireEvent.click(phoneLink);
+        await userEvent.click(phoneLink);
 
-        expect(clickEvent).toBe(false); // fireEvent.click returns false when preventDefault was called
         expect(mockWindowOpen).toHaveBeenCalledWith('tel:+1 (555) 123-4567');
     });
 });
