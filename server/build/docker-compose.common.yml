@@ -141,13 +141,15 @@ services:
       - "./docker/loki/loki-config.yaml:/etc/loki/local-config.yaml:Z"
     networks:
       - mm-test
-  promtail:
-    image: "grafana/promtail:3.0.0"
+  otel-collector:
+    image: "otel/opentelemetry-collector-contrib:0.145.0"
+    logging: *default-logging
+    user: "0:0"
     volumes:
-      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml:Z"
+      - "./docker/otel-collector/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:Z"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "../logs:/logs:Z"
-    command: -config.file=/etc/promtail/docker-config.yaml
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "../logs:/logs:ro,Z"
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
     networks:
       - mm-test
