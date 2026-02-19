@@ -2,7 +2,7 @@
   "$schema": "https://cursor.com/schemas/environment.schema.json",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "."
   },
   "user": "ubuntu",
   "install": "bash .cursor/install.sh",
