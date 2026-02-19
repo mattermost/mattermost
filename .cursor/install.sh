@@ -21,35 +21,58 @@ echo ">>> npm version: $(npm --version)"
 WORKSPACE_ROOT="$(pwd)"
 
 # ============================================
-# Enterprise repo (COMMENTED OUT)
+# Enterprise repo
+# Clone is enabled by default.
 #
-# Uncomment this block when the Cloud Agent's
-# GitHub credentials have access to the private
-# mattermost/enterprise repo.
+# To disable enterprise clone explicitly:
+#   MM_CLONE_ENTERPRISE=false bash .cursor/install.sh
 #
-# The enterprise repo must be cloned as a SIBLING
-# of the repo root — i.e., at ../enterprise relative
-# to WORKSPACE_ROOT — so that server/Makefile's
-# BUILD_ENTERPRISE_DIR (../../enterprise from server/)
-# resolves correctly.
-#
-# Once cloned, `make setup-go-work` (below) will
-# automatically detect the directory and add it to
-# go.work. No manual go.work editing is needed.
-#
-# To enable: uncomment the block below and choose
-# ONE of the two auth methods (SSH or HTTPS token).
+# Optional override for clone path:
+#   MM_ENTERPRISE_DIR=/some/path/enterprise
+# The default remains ../enterprise relative to the
+# repo root to match server/Makefile expectations.
 # ============================================
-ENTERPRISE_DIR="${WORKSPACE_ROOT}/../enterprise"
-if [ ! -d "${ENTERPRISE_DIR}" ]; then
-    echo ">>> Cloning mattermost/enterprise..."
+MM_CLONE_ENTERPRISE="${MM_CLONE_ENTERPRISE:-true}"
+ENTERPRISE_DIR="${MM_ENTERPRISE_DIR:-${WORKSPACE_ROOT}/../enterprise}"
+ENTERPRISE_PARENT_DIR="$(dirname "${ENTERPRISE_DIR}")"
 
-    git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
+if [ -n "${MM_ENTERPRISE_DIR:-}" ]; then
+    export BUILD_ENTERPRISE_DIR="${ENTERPRISE_DIR}"
+    echo ">>> Using custom BUILD_ENTERPRISE_DIR=${BUILD_ENTERPRISE_DIR}"
+fi
 
-    echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
+if [ "${MM_CLONE_ENTERPRISE}" = "true" ]; then
+    if [ -d "${ENTERPRISE_DIR}/.git" ]; then
+        echo ">>> Enterprise repo already exists at ${ENTERPRISE_DIR}, pulling latest..."
+        cd "${ENTERPRISE_DIR}" && git pull
+    else
+        if [ ! -d "${ENTERPRISE_DIR}" ] && { [ ! -d "${ENTERPRISE_PARENT_DIR}" ] || [ ! -w "${ENTERPRISE_PARENT_DIR}" ]; }; then
+            if command -v sudo &>/dev/null; then
+                echo ">>> Parent dir is not writable (${ENTERPRISE_PARENT_DIR}), preparing ${ENTERPRISE_DIR} with sudo..."
+                sudo mkdir -p "${ENTERPRISE_DIR}"
+                sudo chown "$(id -u)":"$(id -g)" "${ENTERPRISE_DIR}"
+            else
+                echo ">>> ERROR: Cannot create ${ENTERPRISE_DIR} (parent not writable and sudo unavailable)."
+                exit 1
+            fi
+        fi
+
+        if [ -d "${ENTERPRISE_DIR}" ] && [ ! -w "${ENTERPRISE_DIR}" ]; then
+            if command -v sudo &>/dev/null; then
+                echo ">>> Enterprise dir is not writable, fixing ownership with sudo..."
+                sudo chown -R "$(id -u)":"$(id -g)" "${ENTERPRISE_DIR}"
+            else
+                echo ">>> ERROR: ${ENTERPRISE_DIR} exists but is not writable and sudo is unavailable."
+                exit 1
+            fi
+        fi
+
+        echo ">>> Cloning mattermost/enterprise..."
+        git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
+        echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
+    fi
 else
-    echo ">>> Enterprise repo already exists at ${ENTERPRISE_DIR}, pulling latest..."
-    cd "${ENTERPRISE_DIR}" && git pull
+    echo ">>> Skipping enterprise clone (MM_CLONE_ENTERPRISE=false)."
 fi
 
 # ============================================
