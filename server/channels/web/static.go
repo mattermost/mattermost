@@ -12,11 +12,13 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -65,6 +67,40 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		data := renderUnsupportedBrowser(c.AppContext, r)
 
 		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
+		if err != nil {
+			c.Logger.Error("Failed to render template", mlog.Err(err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	if !CheckDesktopAppCompatibility(r.UserAgent(), c.App.Srv().Config().ServiceSettings.MinimumDesktopAppVersion) {
+		w.Header().Set("Cache-Control", "no-store")
+
+		currentVersion, ok := app.GetDesktopAppVersion(r.UserAgent())
+		if !ok {
+			currentVersion = "unknown"
+		}
+		cfg := c.App.Srv().Config()
+
+		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", templates.Data{
+			Props: map[string]any{
+				"CurrentDesktopAppVersion": currentVersion,
+				"MinimumDesktopAppVersion": *cfg.ServiceSettings.MinimumDesktopAppVersion,
+				"DownloadLink":             *cfg.NativeAppSettings.AppDownloadLink,
+				"BackgroundImageURL":       "/static/images/admin-onboarding-background.jpg",
+				"LogoURL":                  "/static/images/logo.svg",
+				"AlertIconURL":             "/static/images/alert.svg",
+				"MetropolisFontURL":        "/static/fonts/Metropolis-SemiBold.woff",
+				"CopyrightYear":            time.Now().Year(),
+				"SiteName":                 *cfg.TeamSettings.SiteName,
+				"AboutLink":                *cfg.SupportSettings.AboutLink,
+				"PrivacyPolicyLink":        *cfg.SupportSettings.PrivacyPolicyLink,
+				"TermsOfServiceLink":       *cfg.SupportSettings.TermsOfServiceLink,
+				"HelpLink":                 *cfg.SupportSettings.HelpLink,
+			},
+		})
 		if err != nil {
 			c.Logger.Error("Failed to render template", mlog.Err(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)

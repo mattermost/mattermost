@@ -10429,6 +10429,10 @@
     "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
   },
   {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
+  },
+  {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
   },
