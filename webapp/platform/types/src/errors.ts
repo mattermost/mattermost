@@ -6,6 +6,7 @@ export type ServerError = {
     server_error_id?: string;
     stack?: string;
     message: string;
+    detailed_error?: string;
     status_code?: number;
     url?: string;
 };

@@ -18,6 +18,25 @@ export const DATE_FORMAT = 'yyyy-MM-dd';
 const MOMENT_DATETIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss[Z]';
 
 /**
+ * Format a date for display using user's locale
+ * Consistent format: "Jan 15, 2025" (short month, numeric day and year)
+ * Centralizes date formatting so it can be changed in one place
+ */
+export function formatDateForDisplay(date: Date, locale?: string): string {
+    try {
+        const userLocale = locale || navigator.language || 'en-US';
+        return new Intl.DateTimeFormat(userLocale, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        }).format(date);
+    } catch {
+        // Fallback to ISO format if locale formatting fails
+        return date.toLocaleDateString();
+    }
+}
+
+/**
  * Convert a string value (ISO format or relative) to a Moment object
  * For date-only fields, datetime formats are accepted and the date portion is extracted
  */
@@ -60,7 +79,8 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        return momentValue.utc().format(MOMENT_DATETIME_FORMAT);
+        // Clone to avoid mutating the original moment when converting to UTC
+        return momentValue.clone().utc().format(MOMENT_DATETIME_FORMAT);
     }
 
     // Store date only: "2025-01-14"

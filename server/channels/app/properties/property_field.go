@@ -11,8 +11,8 @@ import (
 )
 
 func (ps *PropertyService) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	// Legacy properties (ObjectType = "") skip conflict check
-	if field.ObjectType == "" {
+	// Legacy properties (PSAv1) skip conflict check
+	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)
 	}
 
@@ -112,8 +112,8 @@ func (ps *PropertyService) UpdatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
-		// Legacy properties (ObjectType = "") skip conflict check
-		if field.ObjectType == "" {
+		// Legacy properties (PSAv1) skip conflict check
+		if field.IsPSAv1() {
 			continue
 		}
 

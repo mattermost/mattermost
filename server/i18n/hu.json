@@ -7365,10 +7365,6 @@
     "translation": "Nem fog kapni értesítéseket a {{.Channel}} csatornán, amíg a csatorna el van némítva."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nem tudta elnémítani a {{.Channel}} csatornát, mivel Ön nem tagja annak."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },

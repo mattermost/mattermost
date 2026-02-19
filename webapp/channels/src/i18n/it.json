@@ -2652,7 +2652,7 @@
   "marketplace_modal.title": "Plugin Marketplace",
   "message_submit_error.invalidCommand": "Nessun comando trovato con l'innesco \"{command}\"'. ",
   "message_submit_error.sendAsMessageLink": "Clicca qui per inviare come messaggio.",
-  "mfa.confirm.complete": "**Configurazione completata!**",
+  "mfa.confirm.complete": "Configurazione completata!",
   "mfa.confirm.okay": "Okay",
   "mfa.confirm.secure": "Il tuo account è sicuro adesso. Al prossimo accesso, ti sarà chiesto un codice dall'app Google Authenticator sul tuo telefono.",
   "mfa.setup.badCode": "Codice non valide. Se il problema persiste, contatta l'Amministratore di Sistema.",

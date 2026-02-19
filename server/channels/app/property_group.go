@@ -10,9 +10,9 @@ import (
 // RegisterPropertyGroup registers a property group with the given name.
 // If the group already exists, it returns the existing group.
 func (a *App) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return a.Srv().propertyService.RegisterPropertyGroup(name)
+	return a.Srv().propertyAccessService.propertyService.RegisterPropertyGroup(name)
 }
 
 func (a *App) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return a.Srv().propertyService.GetPropertyGroup(name)
+	return a.Srv().propertyAccessService.propertyService.GetPropertyGroup(name)
 }

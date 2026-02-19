@@ -20,39 +20,39 @@ func (a *App) CreatePropertyField(field *model.PropertyField, bypassProtectedChe
 		)
 	}
 
-	return a.Srv().propertyService.CreatePropertyField(field)
+	return a.Srv().propertyAccessService.propertyService.CreatePropertyField(field)
 }
 
 func (a *App) GetPropertyField(groupID, id string) (*model.PropertyField, error) {
-	return a.Srv().propertyService.GetPropertyField(groupID, id)
+	return a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
 }
 
 func (a *App) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return a.Srv().propertyService.GetPropertyFields(groupID, ids)
+	return a.Srv().propertyAccessService.propertyService.GetPropertyFields(groupID, ids)
 }
 
 func (a *App) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return a.Srv().propertyService.GetPropertyFieldByName(groupID, targetID, name)
+	return a.Srv().propertyAccessService.propertyService.GetPropertyFieldByName(groupID, targetID, name)
 }
 
 func (a *App) CountActivePropertyFieldsForGroup(groupID string) (int64, error) {
-	return a.Srv().propertyService.CountActivePropertyFieldsForGroup(groupID)
+	return a.Srv().propertyAccessService.propertyService.CountActivePropertyFieldsForGroup(groupID)
 }
 
 func (a *App) CountAllPropertyFieldsForGroup(groupID string) (int64, error) {
-	return a.Srv().propertyService.CountAllPropertyFieldsForGroup(groupID)
+	return a.Srv().propertyAccessService.propertyService.CountAllPropertyFieldsForGroup(groupID)
 }
 
 func (a *App) CountActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
-	return a.Srv().propertyService.CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
+	return a.Srv().propertyAccessService.propertyService.CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (a *App) CountAllPropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
-	return a.Srv().propertyService.CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	return a.Srv().propertyAccessService.propertyService.CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (a *App) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return a.Srv().propertyService.SearchPropertyFields(groupID, opts)
+	return a.Srv().propertyAccessService.propertyService.SearchPropertyFields(groupID, opts)
 }
 
 func (a *App) UpdatePropertyField(groupID string, field *model.PropertyField, bypassProtectedCheck bool) (*model.PropertyField, error) {
@@ -71,7 +71,7 @@ func (a *App) UpdatePropertyFields(groupID string, fields []*model.PropertyField
 			ids[i] = f.ID
 		}
 
-		existingFields, err := a.Srv().propertyService.GetPropertyFields(groupID, ids)
+		existingFields, err := a.Srv().propertyAccessService.propertyService.GetPropertyFields(groupID, ids)
 		if err != nil {
 			return nil, err
 		}
@@ -89,12 +89,12 @@ func (a *App) UpdatePropertyFields(groupID string, fields []*model.PropertyField
 		}
 	}
 
-	return a.Srv().propertyService.UpdatePropertyFields(groupID, fields)
+	return a.Srv().propertyAccessService.propertyService.UpdatePropertyFields(groupID, fields)
 }
 
 func (a *App) DeletePropertyField(groupID, id string, bypassProtectedCheck bool) error {
 	if !bypassProtectedCheck {
-		existing, err := a.Srv().propertyService.GetPropertyField(groupID, id)
+		existing, err := a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
 		if err != nil {
 			return err
 		}
@@ -109,5 +109,5 @@ func (a *App) DeletePropertyField(groupID, id string, bypassProtectedCheck bool)
 		}
 	}
 
-	return a.Srv().propertyService.DeletePropertyField(groupID, id)
+	return a.Srv().propertyAccessService.propertyService.DeletePropertyField(groupID, id)
 }

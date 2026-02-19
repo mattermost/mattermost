@@ -9,10 +9,16 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
 type PropertyFieldType string
+// PropertyFieldTargetLevel represents the hierarchy level of a property field.
+// Used both for TargetType field values and for conflict detection results.
+type PropertyFieldTargetLevel string
+// PermissionLevel represents the access level for property field operations
+type PermissionLevel string
 
 const (
 	PropertyFieldTypeText        PropertyFieldType = "text"
@@ -26,16 +32,22 @@ const (
 	PropertyFieldTargetIDMaxRunes   = 255
 	PropertyFieldTargetTypeMaxRunes = 255
 	PropertyFieldObjectTypeMaxRunes = 255
-)
 
-// PermissionLevel represents the access level for property field operations
-type PermissionLevel string
+	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
+	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
+	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
 
-const (
 	PermissionLevelNone   PermissionLevel = "none"
 	PermissionLevelAdmin  PermissionLevel = "admin"
 	PermissionLevelMember PermissionLevel = "member"
 )
+
+// validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
+var validPSAv2TargetTypes = []string{
+	string(PropertyFieldTargetLevelSystem),
+	string(PropertyFieldTargetLevelTeam),
+	string(PropertyFieldTargetLevelChannel),
+}
 
 // PropertyFieldPermissions defines access control for operations on a property field
 type PropertyFieldPermissions struct {
@@ -79,16 +91,6 @@ func (p *PropertyFieldPermissions) Value() (driver.Value, error) {
 	}
 	return string(j), nil
 }
-
-// PropertyFieldTargetLevel represents the hierarchy level of a property field.
-// Used both for TargetType field values and for conflict detection results.
-type PropertyFieldTargetLevel string
-
-const (
-	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
-	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
-	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
-)
 
 type PropertyField struct {
 	ID          string                    `json:"id"`
@@ -142,6 +144,49 @@ func (pf *PropertyField) PreSave() {
 	pf.DeleteAt = 0
 }
 
+// EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
+// This ensures option IDs are always set, similar to how field IDs are auto-generated.
+func (pf *PropertyField) EnsureOptionIDs() error {
+	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+		return nil
+	}
+
+	if pf.Attrs == nil {
+		return nil
+	}
+
+	optionsRaw, ok := pf.Attrs[PropertyFieldAttributeOptions]
+	if !ok {
+		return nil
+	}
+
+	// Normalize with JSON to handle any slice type
+	optionsBytes, err := json.Marshal(optionsRaw)
+	if err != nil {
+		return fmt.Errorf("failed to marshal options for field ID %s: %w", pf.ID, err)
+	}
+
+	var options []map[string]any
+	if err := json.Unmarshal(optionsBytes, &options); err != nil {
+		return fmt.Errorf("invalid options format for field ID %s: %w", pf.ID, err)
+	}
+
+	for _, optMap := range options {
+		if id, ok := optMap["id"].(string); !ok || id == "" {
+			optMap["id"] = NewId()
+		}
+	}
+
+	// Convert back to []any to maintain type compatibility
+	optionsAny := make([]any, len(options))
+	for i, opt := range options {
+		optionsAny[i] = opt
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = optionsAny
+
+	return nil
+}
+
 func (pf *PropertyField) IsValid() error {
 	if !IsValidId(pf.ID) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
@@ -161,6 +206,12 @@ func (pf *PropertyField) IsValid() error {
 
 	if utf8.RuneCountInString(pf.TargetType) > PropertyFieldTargetTypeMaxRunes {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// PSAv2 properties (with ObjectType) must have TargetType as system, team, or channel (cannot be empty)
+	// PSAv1 properties (without ObjectType) can have any string as TargetType
+	if !pf.IsPSAv1() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
@@ -274,6 +325,20 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	if patch.TargetType != nil {
 		pf.TargetType = *patch.TargetType
 	}
+}
+
+// IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
+// Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
+// enforced by the idx_propertyfields_unique_legacy database constraint, rather than
+// the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
+func (pf *PropertyField) IsPSAv1() bool {
+	return pf.ObjectType == ""
+}
+
+// IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
+// PSAv2 target level (system, team, or channel).
+func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {
+	return slices.Contains(validPSAv2TargetTypes, targetType)
 }
 
 type PropertyFieldSearchCursor struct {

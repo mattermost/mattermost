@@ -180,7 +180,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         return this.state.canSave;
     };
 
-    doTestConfig = (success: () => void, error: (error: {message: string; detailed_message?: string}) => void): void => {
+    doTestConfig = (success: () => void, error: (error: {message: string; detailed_error?: string}) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -193,7 +193,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 });
                 success();
             },
-            (err: {message: string; detailed_message?: string}) => {
+            (err: {message: string; detailed_error?: string}) => {
                 this.setState({
                     configTested: false,
                     canSave: false,
@@ -412,6 +412,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 <RequestButton
                     id='testConfig'
                     requestAction={this.doTestConfig}
+                    includeDetailedError={true}
                     helpText={<FormattedMessage {...messages.testHelpText}/>}
                     buttonText={<FormattedMessage {...messages.elasticsearch_test_button}/>}
                     successMessage={defineMessage({

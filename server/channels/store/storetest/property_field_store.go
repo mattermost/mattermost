@@ -131,6 +131,61 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Empty(t, retrieved.ObjectType)
 	})
+
+	t.Run("should generate option IDs for multiselect fields without IDs", func(t *testing.T) {
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Option 1"},
+					map[string]any{"name": "Option 2"},
+					map[string]any{"name": "Option 3"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, field.ID)
+
+		// Verify options have IDs generated
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs for multiselect fields", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect with IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Verify existing IDs are preserved
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
+	})
 }
 
 func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -285,7 +340,11 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:     "unique-field-name", // Same name as the first field
 		Type:     model.PropertyFieldTypeSelect,
 		Attrs: map[string]any{
-			"options": []string{"a", "b", "c"},
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+				map[string]any{"name": "c"},
+			},
 		},
 	}
 	_, cErr = ss.PropertyField().Create(duplicateNameField)
@@ -441,7 +500,10 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			Name:    "Second field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
-				"options": []string{"a", "b"},
+				"options": []any{
+					map[string]any{"name": "a"},
+					map[string]any{"name": "b"},
+				},
 			},
 		}
 
@@ -461,7 +523,11 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		field2.Name = "Updated second"
 		field2.Attrs = map[string]any{
-			"options": []string{"x", "y", "z"},
+			"options": []any{
+				map[string]any{"name": "x"},
+				map[string]any{"name": "y"},
+				map[string]any{"name": "z"},
+			},
 		}
 
 		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
@@ -482,8 +548,97 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
-		require.ElementsMatch(t, []string{"x", "y", "z"}, updated2.Attrs["options"])
+		options := updated2.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+		optionNames := []string{}
+		for _, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option should have an ID")
+			optionNames = append(optionNames, optMap["name"].(string))
+		}
+		require.ElementsMatch(t, []string{"x", "y", "z"}, optionNames)
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
+	})
+
+	t.Run("should generate option IDs for multiselect fields on update", func(t *testing.T) {
+		// Create a multiselect field
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Update",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Original 1"},
+					map[string]any{"name": "Original 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, multiselectField.ID)
+
+		// Update with new options without IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"name": "Updated 1"},
+				map[string]any{"name": "Updated 2"},
+				map[string]any{"name": "Updated 3"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify options have IDs generated
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Updated option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Updated option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs on update", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		// Create a multiselect field with IDs
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Preserve IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Update with same IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"id": existingID1, "name": "Option 1 Updated"},
+				map[string]any{"id": existingID2, "name": "Option 2 Updated"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify existing IDs are preserved
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
 	})
 
 	t.Run("should not update any fields if one update is invalid", func(t *testing.T) {
@@ -908,7 +1063,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 1",
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID,
-		TargetType: "test_type",
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}
 
@@ -917,7 +1072,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 2",
 		Type:       model.PropertyFieldTypeSelect,
 		TargetID:   targetID,
-		TargetType: "other_type",
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		ObjectType: "user",
 	}
 
@@ -925,7 +1080,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		GroupID:    model.NewId(),
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
-		TargetType: "test_type",
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}
 
@@ -936,6 +1091,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID2,
 		TargetType: "test_type",
+		ObjectType: "",
 	}
 
 	for _, field := range []*model.PropertyField{field1, field2, field3, field4} {
@@ -978,12 +1134,13 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
 		},
 		{
-			name: "filter by target_type",
+			name: "filter by target_type and groupID",
 			opts: model.PropertyFieldSearchOpts{
-				TargetType: "test_type",
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
-			expectedIDs: []string{field1.ID, field3.ID},
+			expectedIDs: []string{field1.ID},
 		},
 		{
 			name: "filter by target_id",
@@ -1104,7 +1261,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by ObjectType with target_type filter",
 			opts: model.PropertyFieldSearchOpts{
 				ObjectType: "post",
-				TargetType: "test_type",
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
 			expectedIDs: []string{field1.ID, field3.ID},

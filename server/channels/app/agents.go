@@ -19,17 +19,18 @@ const (
 	minAIPluginVersionForBridge = "1.5.0"
 )
 
-// getBridgeClient returns a bridge client for making requests to the plugin bridge API
-func (a *App) getBridgeClient(userID string) *agentclient.Client {
+// GetBridgeClient returns a bridge client for making requests to the plugin bridge API
+func (a *App) GetBridgeClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
 }
 
-// isAIPluginBridgeAvailable checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)
-func (a *App) isAIPluginBridgeAvailable(rctx request.CTX) bool {
+// GetAIPluginBridgeStatus checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)
+// It returns a boolean indicating availability, and a reason string (translation ID) if unavailable.
+func (a *App) GetAIPluginBridgeStatus(rctx request.CTX) (bool, string) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		rctx.Logger().Debug("AI plugin bridge not available - plugin environment not initialized")
-		return false
+		return false, "app.agents.bridge.not_available.plugin_env_not_initialized"
 	}
 
 	// Check if plugin is active
@@ -37,7 +38,7 @@ func (a *App) isAIPluginBridgeAvailable(rctx request.CTX) bool {
 		rctx.Logger().Debug("AI plugin bridge not available - plugin is not active or not installed",
 			mlog.String("plugin_id", aiPluginID),
 		)
-		return false
+		return false, "app.agents.bridge.not_available.plugin_not_active"
 	}
 
 	// Get the plugin's manifest to check version
@@ -51,12 +52,12 @@ func (a *App) isAIPluginBridgeAvailable(rctx request.CTX) bool {
 					mlog.String("version", plugin.Manifest.Version),
 					mlog.Err(err),
 				)
-				return false
+				return false, "app.agents.bridge.not_available.plugin_version_parse_failed"
 			}
 
 			minVersion, err := semver.Parse(minAIPluginVersionForBridge)
 			if err != nil {
-				return false
+				return false, "app.agents.bridge.not_available.min_version_parse_failed"
 			}
 
 			if pluginVersion.LT(minVersion) {
@@ -65,20 +66,20 @@ func (a *App) isAIPluginBridgeAvailable(rctx request.CTX) bool {
 					mlog.String("current_version", plugin.Manifest.Version),
 					mlog.String("minimum_version", minAIPluginVersionForBridge),
 				)
-				return false
+				return false, "app.agents.bridge.not_available.plugin_version_too_old"
 			}
 
-			return true
+			return true, ""
 		}
 	}
 
-	return false
+	return false, "app.agents.bridge.not_available.plugin_not_registered"
 }
 
 // GetAgents retrieves all available agents from the bridge API
 func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAgentInfo, *model.AppError) {
 	// Check if the AI plugin is active and supports the bridge API (v1.5.0+)
-	if !a.isAIPluginBridgeAvailable(rctx) {
+	if available, _ := a.GetAIPluginBridgeStatus(rctx); !available {
 		return []agentclient.BridgeAgentInfo{}, nil
 	}
 
@@ -87,7 +88,7 @@ func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAg
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getBridgeClient(sessionUserID)
+	client := a.GetBridgeClient(sessionUserID)
 
 	agents, err := client.GetAgents(userID)
 	if err != nil {
@@ -133,7 +134,7 @@ func (a *App) GetUsersForAgents(rctx request.CTX, userID string) ([]*model.User,
 // GetLLMServices retrieves all available LLM services from the bridge API
 func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.BridgeServiceInfo, *model.AppError) {
 	// Check if the AI plugin is active and supports the bridge API (v1.5.0+)
-	if !a.isAIPluginBridgeAvailable(rctx) {
+	if available, _ := a.GetAIPluginBridgeStatus(rctx); !available {
 		return []agentclient.BridgeServiceInfo{}, nil
 	}
 
@@ -142,7 +143,7 @@ func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.Bri
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getBridgeClient(sessionUserID)
+	client := a.GetBridgeClient(sessionUserID)
 
 	services, err := client.GetServices(userID)
 	if err != nil {
