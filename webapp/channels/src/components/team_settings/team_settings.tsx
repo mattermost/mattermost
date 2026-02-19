@@ -10,26 +10,20 @@ import InfoTab from './team_info_tab';
 
 type Props = {
     activeTab: string;
-    hasChanges: boolean;
-    hasChangeTabError: boolean;
-    setHasChanges: (hasChanges: boolean) => void;
-    setHasChangeTabError: (hasChangesError: boolean) => void;
-    setJustSaved: (justSaved: boolean) => void;
-    closeModal: () => void;
-    collapseModal: () => void;
+    areThereUnsavedChanges: boolean;
+    showTabSwitchError: boolean;
+    setAreThereUnsavedChanges: (unsaved: boolean) => void;
+    setShowTabSwitchError: (error: boolean) => void;
     team?: Team;
 };
 
 const TeamSettings = ({
     activeTab = '',
-    closeModal,
-    collapseModal,
     team,
-    hasChanges,
-    hasChangeTabError,
-    setHasChanges,
-    setHasChangeTabError,
-    setJustSaved,
+    areThereUnsavedChanges,
+    showTabSwitchError,
+    setAreThereUnsavedChanges,
+    setShowTabSwitchError,
 }: Props) => {
     if (!team) {
         return null;
@@ -41,13 +35,10 @@ const TeamSettings = ({
         result = (
             <InfoTab
                 team={team}
-                hasChanges={hasChanges}
-                setHasChanges={setHasChanges}
-                hasChangeTabError={hasChangeTabError}
-                setHasChangeTabError={setHasChangeTabError}
-                setJustSaved={setJustSaved}
-                closeModal={closeModal}
-                collapseModal={collapseModal}
+                areThereUnsavedChanges={areThereUnsavedChanges}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+                setShowTabSwitchError={setShowTabSwitchError}
             />
         );
         break;
@@ -55,13 +46,10 @@ const TeamSettings = ({
         result = (
             <AccessTab
                 team={team}
-                hasChanges={hasChanges}
-                setHasChanges={setHasChanges}
-                hasChangeTabError={hasChangeTabError}
-                setHasChangeTabError={setHasChangeTabError}
-                setJustSaved={setJustSaved}
-                closeModal={closeModal}
-                collapseModal={collapseModal}
+                areThereUnsavedChanges={areThereUnsavedChanges}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+                setShowTabSwitchError={setShowTabSwitchError}
             />
         );
         break;

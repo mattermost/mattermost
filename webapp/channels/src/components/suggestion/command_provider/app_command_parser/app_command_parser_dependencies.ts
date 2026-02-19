@@ -11,6 +11,7 @@ import {sendEphemeralPost} from 'actions/global_actions';
 import reduxStore from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 
 import type {ParsedCommand} from './app_command_parser';
@@ -112,6 +113,13 @@ export type ExtendedAutocompleteSuggestion = AutocompleteSuggestion & {
 
 export const displayError = (err: string, channelID: string, rootID?: string) => {
     reduxStore.dispatch(sendEphemeralPost(err, channelID, rootID));
+};
+
+// Shim of mobile-version intl
+export const intlShim = {
+    formatMessage: (config: {id: string; defaultMessage?: string}, values?: {[name: string]: any}) => {
+        return getIntl().formatMessage(config, values);
+    },
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
