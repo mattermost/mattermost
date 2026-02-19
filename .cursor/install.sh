@@ -35,11 +35,45 @@ WORKSPACE_ROOT="$(pwd)"
 MM_CLONE_ENTERPRISE="${MM_CLONE_ENTERPRISE:-true}"
 ENTERPRISE_DIR="${MM_ENTERPRISE_DIR:-${WORKSPACE_ROOT}/../enterprise}"
 ENTERPRISE_PARENT_DIR="$(dirname "${ENTERPRISE_DIR}")"
+ENTERPRISE_REPO_SSH_URL="${MM_ENTERPRISE_REPO_SSH_URL:-ssh://git@github.com/mattermost/enterprise.git}"
+ENTERPRISE_REPO_HTTPS_URL="${MM_ENTERPRISE_REPO_HTTPS_URL:-https://github.com/mattermost/enterprise.git}"
 
 if [ -n "${MM_ENTERPRISE_DIR:-}" ]; then
     export BUILD_ENTERPRISE_DIR="${ENTERPRISE_DIR}"
     echo ">>> Using custom BUILD_ENTERPRISE_DIR=${BUILD_ENTERPRISE_DIR}"
 fi
+
+clone_enterprise_repo() {
+    local clone_log
+    clone_log="$(mktemp)"
+    local ssh_cmd="${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}"
+
+    echo ">>> Attempting SSH clone from ${ENTERPRISE_REPO_SSH_URL}..."
+    if GIT_SSH_COMMAND="${ssh_cmd}" git clone "${ENTERPRISE_REPO_SSH_URL}" "${ENTERPRISE_DIR}" >"${clone_log}" 2>&1; then
+        rm -f "${clone_log}"
+        return 0
+    fi
+
+    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+    if [ -n "${token}" ]; then
+        echo ">>> SSH clone failed. Retrying with HTTPS token auth..."
+        local auth_header
+        auth_header="$(printf "x-access-token:%s" "${token}" | base64 | tr -d '\n')"
+        if git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" \
+            clone "${ENTERPRISE_REPO_HTTPS_URL}" "${ENTERPRISE_DIR}" >>"${clone_log}" 2>&1; then
+            rm -f "${clone_log}"
+            return 0
+        fi
+    fi
+
+    echo ">>> ERROR: Unable to clone mattermost/enterprise."
+    echo ">>> Checked SSH and HTTPS token auth paths."
+    echo ">>> Verify your GitHub credentials have access to ${ENTERPRISE_REPO_HTTPS_URL}."
+    echo ">>> Last git output:"
+    sed -n '1,12p' "${clone_log}"
+    rm -f "${clone_log}"
+    return 1
+}
 
 if [ "${MM_CLONE_ENTERPRISE}" = "true" ]; then
     if [ -d "${ENTERPRISE_DIR}/.git" ]; then
@@ -68,7 +102,7 @@ if [ "${MM_CLONE_ENTERPRISE}" = "true" ]; then
         fi
 
         echo ">>> Cloning mattermost/enterprise..."
-        git clone git@github.com:mattermost/enterprise.git "${ENTERPRISE_DIR}"
+        clone_enterprise_repo
         echo ">>> Enterprise repo cloned to ${ENTERPRISE_DIR}"
     fi
 else
