@@ -6,6 +6,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {cleanUpUrlable} from 'utils/url';
 
 const OBFUSCATED_SLUG_PATTERN = /^[a-z0-9]{26}$/;
+const MENTION_REGEX = /~([a-z0-9][a-z0-9_-]*)/gi;
 
 /**
  * Returns true if the channel has an obfuscated slug — i.e. its name is a
@@ -52,7 +53,7 @@ export function resolveDisplayMentionsToSlugs(
         return message;
     }
 
-    return message.replace(/~([a-z0-9][a-z0-9_-]*)/gi, (match, slug) => {
+    return message.replace(MENTION_REGEX, (match, slug) => {
         const lowerSlug = slug.toLowerCase();
         const resolvedName = displaySlugToName.get(lowerSlug);
         if (resolvedName) {
@@ -93,15 +94,16 @@ export function extractUnresolvedObfuscatedSlugs(
     }
 
     const unresolved = new Set<string>();
-    const mentionRegex = /~([a-z0-9][a-z0-9_-]*)/gi;
+
     let match;
-    while ((match = mentionRegex.exec(message)) !== null) {
+    while ((match = MENTION_REGEX.exec(message)) !== null) {
         const slug = match[1];
         if (OBFUSCATED_SLUG_PATTERN.test(slug) && !knownNames.has(slug)) {
             unresolved.add(slug);
         }
     }
 
+    // Review - this should ideally return a set instead of creating a new array.
     return [...unresolved];
 }
 
@@ -119,20 +121,15 @@ export function convertSlugsToDisplayMentions(
             continue;
         }
         const displaySlug = cleanUpUrlable(channel.display_name);
-        if (displaySlug) {
-            nameToDisplaySlug.set(channel.name, displaySlug);
-        }
+        nameToDisplaySlug.set(channel.name, displaySlug);
     }
 
     if (nameToDisplaySlug.size === 0) {
         return message;
     }
 
-    return message.replace(/~([a-z0-9][a-z0-9_-]*)/gi, (match, slug) => {
+    return message.replace(MENTION_REGEX, (match, slug) => {
         const displaySlug = nameToDisplaySlug.get(slug);
-        if (displaySlug) {
-            return '~' + displaySlug;
-        }
-        return match;
+        return displaySlug ? '~' + displaySlug : match;
     });
 }

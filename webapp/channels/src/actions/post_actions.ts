@@ -5,7 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessages} from '@mattermost/client';
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel, ServerChannel } from "@mattermost/types/channels";
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -377,9 +377,7 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
             let editablePost = post;
             // if (config.UseSecureChannelURLs === 'true') {
             if (true) {
-                // Use getAllChannels for broader coverage than getMyChannels —
-                // this includes any channel ever loaded into the Redux store.
-                const allChannelsList = Object.values(getAllChannels(state));
+                const allChannelsList = Object.values(getMyChannels(state));
 
                 // Fetch any obfuscated channel mentions not yet in the store
                 const unresolvedSlugs = extractUnresolvedObfuscatedSlugs(post.message, allChannelsList);
@@ -391,8 +389,10 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
                         ),
                     );
                     const validFetched = fetchedChannels.filter(
-                        (ch): ch is Channel => ch !== null,
+                        (ch): ch is ServerChannel => ch !== null,
                     );
+
+                    // Review - no need of length check as the inner loop will just not run if there are no valid fetched channels
                     if (validFetched.length > 0) {
                         for (const ch of validFetched) {
                             dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: ch});
