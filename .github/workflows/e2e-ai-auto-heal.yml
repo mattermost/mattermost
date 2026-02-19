@@ -39,7 +39,7 @@ jobs:
     outputs:
       failures-detected: ${{ steps.analyze.outputs.failures-detected }}
       failure-count: ${{ steps.analyze.outputs.failure-count }}
-      flaky-classification: ${{ steps.classify.outputs.flaky-classification }}
+      can-rerun: ${{ steps.extract_tests.outputs.has-failed-tests }}
 
     steps:
       - name: Checkout code
@@ -74,29 +74,43 @@ jobs:
             echo "failure-count=0" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Classify flaky vs regression (single rerun)
-        id: classify
-        if: steps.analyze.outputs.failures-detected == 'true' && github.event_name == 'workflow_run'
+      - name: Extract failed test paths
+        id: extract_tests
+        if: steps.analyze.outputs.failures-detected == 'true'
         run: |
-          # For workflow_run events: rerun the failed test workflow once to determine if flaky
-          # If rerun passes → flaky (allow auto-heal)
-          # If rerun still fails → regression (skip auto-heal)
+          if [ -f test-results/results/reporter/results.json ]; then
+            # Extract file paths of failed tests using jq
+            jq -r '[.. | select(.status? == "failed" or .status? == "timedOut") | select(.file?) | .file] | unique | .[]' \
+              test-results/results/reporter/results.json > failed_tests.txt 2>/dev/null || true
 
-          echo "Classification: Single rerun of previous test workflow (workflow_run only)"
-          echo "Decision tree:"
-          echo "  - Original failure + Rerun passes → FLAKY (allow auto-heal)"
-          echo "  - Original failure + Rerun fails → REGRESSION (skip auto-heal)"
+            # Count extracted tests
+            TEST_COUNT=$(wc -l < failed_tests.txt || echo 0)
+            echo "Extracted $TEST_COUNT failed test paths for rerun classification"
 
-          # Note: Implementation deferred to direct test re-execution in heal-tests job
-          # For now, classify as 'unknown' and proceed with caution
-          echo "flaky-classification=unknown-awaiting-rerun" >> "$GITHUB_OUTPUT"
+            if [ "$TEST_COUNT" -gt 0 ]; then
+              echo "has-failed-tests=true" >> "$GITHUB_OUTPUT"
+              # Store first few test names for logging
+              echo "test-names=$(head -5 failed_tests.txt | tr '\n' ',' | sed 's/,$//')" >> "$GITHUB_OUTPUT"
+            else
+              echo "has-failed-tests=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "has-failed-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload failed test list
+        if: steps.extract_tests.outputs.has-failed-tests == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: failed-tests-for-rerun
+          path: failed_tests.txt
+          retention-days: 1
 
   heal-tests:
     needs: detect-failures
     if: |
-      (needs.detect-failures.outputs.failures-detected == 'true' &&
-       (github.event_name == 'workflow_dispatch' || needs.detect-failures.outputs.flaky-classification != 'regression')) ||
-      github.event_name == 'workflow_dispatch'
+      (github.event_name == 'workflow_dispatch') ||
+      (needs.detect-failures.outputs.failures-detected == 'true' && github.event_name == 'workflow_run')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
@@ -122,8 +136,112 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npm run test:manifest:sync
 
+      - name: Download failed test list for rerun
+        if: github.event_name == 'workflow_run' && needs.detect-failures.outputs.can-rerun == 'true'
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: e2e-tests-playwright.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: failed-tests-for-rerun
+          path: .
+
+      - name: Classify flaky vs regression (rerun failed tests)
+        id: classify
+        if: github.event_name == 'workflow_run'
+        working-directory: e2e-tests/playwright
+        continue-on-error: true
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual healing: allow all tests (user controlled)
+            echo "flaky-classification=flaky" >> "$GITHUB_OUTPUT"
+            echo "reason=workflow_dispatch (manual healing)" >> "$GITHUB_OUTPUT"
+            echo "Manual healing mode: skipping rerun classification"
+            exit 0
+          fi
+
+          # For workflow_run: rerun failed tests to classify
+          if [ ! -f ../failed_tests.txt ]; then
+            echo "⚠️  No failed test list available (missing artifact)"
+            echo "flaky-classification=unknown" >> "$GITHUB_OUTPUT"
+            echo "reason=no_failed_test_list" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Rerun the failed tests
+          TEST_COUNT=$(wc -l < ../failed_tests.txt)
+          echo "🔄 Rerunning $TEST_COUNT failed tests to classify as flaky vs regression..."
+          echo "Failed tests:"
+          head -10 ../failed_tests.txt | sed 's/^/  - /'
+
+          # Convert test paths to playwright args (path/test.spec.ts format)
+          PLAYWRIGHT_ARGS=""
+          while IFS= read -r test_path; do
+            if [ -n "$test_path" ]; then
+              # Normalize path relative to e2e-tests/playwright
+              TEST_FILE="${test_path#e2e-tests/playwright/}"
+              PLAYWRIGHT_ARGS="$PLAYWRIGHT_ARGS $TEST_FILE"
+            fi
+          done < ../failed_tests.txt
+
+          # Run single rerun of failed tests (timeout 30min for full suite)
+          set +e
+          npx playwright test $PLAYWRIGHT_ARGS --workers=4 2>&1 | tee rerun_output.log
+          RERUN_EXIT_CODE=$?
+          set -e
+
+          # Analyze rerun results
+          if [ $RERUN_EXIT_CODE -eq 0 ]; then
+            echo "✅ Rerun PASSED - Classifying as FLAKY"
+            echo "flaky-classification=flaky" >> "$GITHUB_OUTPUT"
+            echo "reason=rerun_passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Rerun FAILED - Classifying as REGRESSION"
+            echo "flaky-classification=regression" >> "$GITHUB_OUTPUT"
+            echo "reason=rerun_still_failed" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo ""
+          echo "Classification Result:"
+          echo "  Status: $(grep flaky-classification $GITHUB_OUTPUT | cut -d= -f2)"
+          echo "  Reason: $(grep reason $GITHUB_OUTPUT | cut -d= -f2)"
+
+      - name: Report classification decision
+        if: github.event_name == 'workflow_run'
+        run: |
+          CLASSIFICATION="${{ steps.classify.outputs.flaky-classification }}"
+          REASON="${{ steps.classify.outputs.reason }}"
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Flaky vs Regression Classification"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Classification: $CLASSIFICATION"
+          echo "Reason: $REASON"
+          echo ""
+
+          if [ "$CLASSIFICATION" = "flaky" ]; then
+            echo "✅ Result: FLAKY FAILURE DETECTED"
+            echo "   Action: Proceeding with auto-heal"
+            echo ""
+          elif [ "$CLASSIFICATION" = "regression" ]; then
+            echo "⚠️  Result: LIKELY REGRESSION DETECTED"
+            echo "   Action: SKIPPING auto-heal (not a selector issue)"
+            echo "   Recommendation: Manual investigation required"
+            echo ""
+          else
+            echo "❓ Result: CLASSIFICATION UNCERTAIN"
+            echo "   Action: SKIPPING auto-heal (cannot determine cause)"
+            echo "   Reason: $REASON"
+            echo ""
+          fi
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
       - name: Run auto-healing
         id: heal
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'workflow_run' && steps.classify.outputs.flaky-classification == 'flaky')
         working-directory: e2e-tests/playwright
         continue-on-error: true
         run: |
@@ -152,6 +270,19 @@ jobs:
             echo "healing-success=false" >> "$GITHUB_OUTPUT"
             echo "healing-attempt=$MAX" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Skip auto-heal for regression/unknown
+        if: |
+          github.event_name == 'workflow_run' &&
+          (steps.classify.outputs.flaky-classification == 'regression' ||
+           steps.classify.outputs.flaky-classification == 'unknown')
+        run: |
+          CLASSIFICATION="${{ steps.classify.outputs.flaky-classification }}"
+          echo ""
+          echo "⏭️  SKIPPED auto-heal: $CLASSIFICATION classification"
+          echo ""
+          echo "healing-success=false" >> "$GITHUB_OUTPUT"
+          echo "healing-attempt=0" >> "$GITHUB_OUTPUT"
 
       - name: Create healing summary
         if: always()
