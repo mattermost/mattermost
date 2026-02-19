@@ -1063,7 +1063,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 1",
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID,
-		TargetType: "test_type",
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}
 
@@ -1072,7 +1072,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 2",
 		Type:       model.PropertyFieldTypeSelect,
 		TargetID:   targetID,
-		TargetType: "other_type",
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		ObjectType: "user",
 	}
 
@@ -1080,7 +1080,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		GroupID:    model.NewId(),
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
-		TargetType: "test_type",
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}
 
@@ -1091,6 +1091,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID2,
 		TargetType: "test_type",
+		ObjectType: "",
 	}
 
 	for _, field := range []*model.PropertyField{field1, field2, field3, field4} {
@@ -1133,12 +1134,13 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
 		},
 		{
-			name: "filter by target_type",
+			name: "filter by target_type and groupID",
 			opts: model.PropertyFieldSearchOpts{
-				TargetType: "test_type",
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
-			expectedIDs: []string{field1.ID, field3.ID},
+			expectedIDs: []string{field1.ID},
 		},
 		{
 			name: "filter by target_id",
@@ -1259,7 +1261,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by ObjectType with target_type filter",
 			opts: model.PropertyFieldSearchOpts{
 				ObjectType: "post",
-				TargetType: "test_type",
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
 			expectedIDs: []string{field1.ID, field3.ID},
