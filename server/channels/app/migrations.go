@@ -620,6 +620,7 @@ func (s *Server) doSetupBoardsPropertyField() error {
 		Name:       model.BoardsPropertyFieldNameBoard,
 		Type:       model.PropertyFieldTypeText,
 		ObjectType: "post",
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create board property field: %w", err)
