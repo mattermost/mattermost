@@ -243,6 +243,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         await adminClient.addToTeam(team.id, satisfyingUserInChannel.id);
         await adminClient.addToTeam(team.id, nonSatisfyingUserInChannel.id);
 
+        // Wait for user attributes to be indexed before creating policy
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         // Create private channel and add users 2 and 3 (but NOT user 1)
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(satisfyingUserInChannel.id, privateChannel.id);

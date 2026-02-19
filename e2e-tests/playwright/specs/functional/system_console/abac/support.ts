@@ -263,10 +263,10 @@ export async function testAccessRule(
             const searchInput = modal.locator('input[placeholder*="Search" i]').first();
             if (await searchInput.isVisible({timeout: 2000})) {
                 await searchInput.fill(expectedUser);
-                await page.waitForTimeout(500);
+                await page.waitForTimeout(1000);
 
                 const userInResults = modal.locator(`text=@${expectedUser}`).first();
-                const isVisible = await userInResults.isVisible({timeout: 2000});
+                const isVisible = await userInResults.isVisible({timeout: 5000});
 
                 if (!isVisible) {
                     // console.error(`✗ Expected user "${expectedUser}" NOT found in matching results`);
@@ -274,7 +274,7 @@ export async function testAccessRule(
                 }
 
                 await searchInput.fill('');
-                await page.waitForTimeout(300);
+                await page.waitForTimeout(500);
             }
         }
     }
