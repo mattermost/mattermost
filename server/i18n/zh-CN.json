@@ -10994,10 +10994,6 @@
     "translation": "无法获取被标记消息，因为该消息未被标记。"
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "永久删除被标记消息时，使用已清理消息覆盖原消息失败。"
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "序列化审核员评论失败"
   },

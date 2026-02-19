@@ -9,7 +9,7 @@ import type {AppField} from '@mattermost/types/apps';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
 
@@ -20,37 +20,63 @@ type Props = {
     field: AppField;
     value: string | null;
     onChange: (name: string, value: string | null) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
+};
+
+// Helper to get timezone abbreviation (e.g., "MST", "EDT")
+const getTimezoneAbbreviation = (timezone: string): string => {
+    try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone,
+            timeZoneName: 'short',
+        });
+        const parts = formatter.formatToParts(now);
+        const tzPart = parts.find((part) => part.type === 'timeZoneName');
+        return tzPart?.value || timezone;
+    } catch {
+        return timezone;
+    }
 };
 
 const AppsFormDateTimeField: React.FC<Props> = ({
     field,
     value,
     onChange,
+    setIsInteracting,
 }) => {
-    const timezone = useSelector(getCurrentTimezone);
+    const userTimezone = useSelector(getCurrentTimezone);
 
-    const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+    // Extract datetime config with fallback to top-level fields
+    const config = field.datetime_config || {};
+    const locationTimezone = config.location_timezone;
+    const timePickerInterval = config.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const allowManualTimeEntry = config.allow_manual_time_entry ?? false;
+
+    // Use location_timezone if specified, otherwise fall back to user's timezone
+    const timezone = locationTimezone || userTimezone;
+
+    // Show timezone indicator when location_timezone is set
+    const showTimezoneIndicator = Boolean(locationTimezone);
 
     const momentValue = useMemo(() => {
-        let result;
-
         if (value) {
             const parsed = stringToMoment(value, timezone);
             if (parsed) {
-                result = parsed;
+                return parsed;
             }
         }
 
-        if (!result) {
-            // Default to current time for display only
-            result = timezone ? moment.tz(timezone) : moment();
+        // No automatic defaults - field starts empty
+        // Required fields get a default from apps_form_component.tsx
+        return null;
+    }, [value, timezone]);
+
+    const handleDateTimeChange = useCallback((date: moment.Moment | null) => {
+        if (!date) {
+            onChange(field.name, null);
+            return;
         }
-
-        // Round to interval boundary to match dropdown options
-        return getRoundedTime(result, timePickerInterval);
-    }, [value, timezone, timePickerInterval]);
-
-    const handleDateTimeChange = useCallback((date: moment.Moment) => {
         const newValue = momentToString(date, true);
         onChange(field.name, newValue);
     }, [field.name, onChange]);
@@ -69,13 +95,20 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
     return (
         <div className='apps-form-datetime-input'>
+            {showTimezoneIndicator && (
+                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px'}}>
+                    {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
+                </div>
+            )}
             <DateTimeInput
                 time={momentValue}
                 handleChange={handleDateTimeChange}
                 timezone={timezone}
-                relativeDate={true}
+                relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
                 allowPastDates={allowPastDates}
+                allowManualTimeEntry={allowManualTimeEntry}
+                setIsInteracting={setIsInteracting}
             />
         </div>
     );

@@ -10920,10 +10920,6 @@
     "translation": "İleti işaretlenmediği için işaretlenmiş ileti alınamadı."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken temizlenen iletinin üzerine yazılamadı."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
   },

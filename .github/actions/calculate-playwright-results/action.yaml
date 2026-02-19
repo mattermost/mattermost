@@ -45,6 +45,8 @@ outputs:
     description: Number of passing tests (passed + flaky)
   color:
     description: Color for webhook based on pass rate (green=100%, yellow=99%+, orange=98%+, red=<98%)
+  test_duration:
+    description: Test execution duration from stats (formatted as "Xm Ys")
 
 runs:
   using: node24

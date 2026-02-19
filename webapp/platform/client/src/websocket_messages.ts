@@ -423,11 +423,13 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
 // Post translation messages
 
 export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
-    language: string;
     object_id: string;
-    src_lang: string;
-    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
-    translation: string;
+    translations: Record<string, {
+        state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+        translation?: string;
+        translation_type?: string;
+        src_lang?: string;
+    }>;
 }>;
 
 // Plugin and integration messages
@@ -442,6 +444,20 @@ export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginS
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
     dialog: JsonEncodedValue<OpenDialogRequest>;
+}>;
+
+export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDownloadRejected, {
+    file_id: string;
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
+    post_id: string;
+    download_type: string;
+}>;
+
+export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
+    message: string;
+    position?: string;
 }>;
 
 /**
