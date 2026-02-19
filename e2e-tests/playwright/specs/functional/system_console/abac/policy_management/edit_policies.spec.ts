@@ -391,7 +391,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Navigate back to ABAC list page
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
-        
+
         // Verify we're on the list page by checking for "Add policy" button
         const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
         await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
@@ -402,7 +402,9 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // If not visible, use search
         if (!isPolicyVisible) {
-            const policySearchInput = page.locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]').first();
+            const policySearchInput = page
+                .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
+                .first();
             if (await policySearchInput.isVisible({timeout: 3000})) {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
@@ -438,7 +440,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Wait for the menu to be visible and select "Office"
         const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
         await attributeMenu.waitFor({state: 'visible', timeout: 5000});
-        
+
         const officeOption = attributeMenu.locator('li:has-text("Office")').first();
         await officeOption.waitFor({state: 'visible', timeout: 5000});
         await officeOption.click({force: true});
@@ -483,11 +485,11 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Navigate to ABAC page
         await navigateToABACPage(page);
         await page.waitForTimeout(1000);
-        
+
         // Manually trigger a sync job to apply the policy changes
         await runSyncJob(page, false);
         await waitForLatestSyncJob(page);
-        
+
         // Trigger a SECOND sync job - sometimes the first sync only processes additions
         await runSyncJob(page, false);
         await waitForLatestSyncJob(page);
@@ -631,7 +633,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Navigate back to ABAC list page
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
-        
+
         // Verify we're on the list page by checking for "Add policy" button
         const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
         await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
@@ -643,7 +645,9 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // If not visible, try with search
         if (!isPolicyVisible) {
             // Use a more specific selector for the search input in the policies table
-            const policySearchInput = page.locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]').first();
+            const policySearchInput = page
+                .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
+                .first();
             if (await policySearchInput.isVisible({timeout: 3000})) {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
