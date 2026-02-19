@@ -6,11 +6,9 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/require"
 )
-
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {

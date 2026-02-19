@@ -600,7 +600,6 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
-
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
 	// When a new property needs to be added, add it to the expectedPropertiesMap map and
