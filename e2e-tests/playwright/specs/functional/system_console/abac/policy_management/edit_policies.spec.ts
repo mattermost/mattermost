@@ -317,13 +317,28 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
+        // Delete ALL existing custom attributes to start fresh
+        try {
+            const existingFields = await adminClient.getCustomProfileAttributeFields();
+            for (const field of existingFields) {
+                try {
+                    await adminClient.deleteCustomProfileAttributeField(field.id);
+                } catch {
+                    // Ignore deletion errors
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch {
+            // Ignore if no fields exist
+        }
+
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Office
+        // Set up TWO attribute fields: Department AND Office with admin-managed attrs
         const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-            {name: 'Office', type: 'text', value: ''},
+            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
+            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
         ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
@@ -551,13 +566,28 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
+        // Delete ALL existing custom attributes to start fresh
+        try {
+            const existingFields = await adminClient.getCustomProfileAttributeFields();
+            for (const field of existingFields) {
+                try {
+                    await adminClient.deleteCustomProfileAttributeField(field.id);
+                } catch {
+                    // Ignore deletion errors
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch {
+            // Ignore if no fields exist
+        }
+
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Office
+        // Set up TWO attribute fields: Department AND Office with admin-managed attrs
         const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-            {name: 'Office', type: 'text', value: ''},
+            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
+            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
         ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
