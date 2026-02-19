@@ -1,29 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
+import test_helper from 'packages/mattermost-redux/test/test_helper';
 
 import {resolveDisplayMentionsToSlugs, convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs, hasObfuscatedSlug} from './channel_mention_utils';
-
-function makeChannel(name: string, displayName: string): Channel {
-    return {
-        id: `id-${name}`,
-        name,
-        display_name: displayName,
-        type: 'O',
-        team_id: 'team1',
-        create_at: 0,
-        update_at: 0,
-        delete_at: 0,
-        header: '',
-        purpose: '',
-        creator_id: '',
-        scheme_id: '',
-        group_constrained: false,
-        last_post_at: 0,
-        last_root_post_at: 0,
-    } as Channel;
-}
 
 // 26-char alphanumeric strings to simulate obfuscated slugs
 const OBFUSCATED_1 = 'abcdef1234567890abcdef1234'; // 26 chars
@@ -32,35 +12,35 @@ const OBFUSCATED_3 = 'mnopqr9012345678mnopqr9012'; // 26 chars
 
 describe('hasObfuscatedSlug', () => {
     it('should return true for 26-char alphanumeric name that differs from display slug', () => {
-        expect(hasObfuscatedSlug(makeChannel(OBFUSCATED_1, 'Town Square'))).toBe(true);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Town Square'}))).toBe(true);
     });
 
     it('should return false for human-readable name matching display slug', () => {
-        expect(hasObfuscatedSlug(makeChannel('town-square', 'Town Square'))).toBe(false);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: 'town-square', display_name: 'Town Square'}))).toBe(false);
     });
 
     it('should return false for custom name that is not 26-char alphanumeric', () => {
-        expect(hasObfuscatedSlug(makeChannel('custom-slug', 'Engineering Updates'))).toBe(false);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: 'custom-slug', display_name: 'Engineering Updates'}))).toBe(false);
     });
 
     it('should return false for name shorter than 26 chars', () => {
-        expect(hasObfuscatedSlug(makeChannel('abc123', 'Some Channel'))).toBe(false);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: 'abc123', display_name: 'Some Channel'}))).toBe(false);
     });
 
     it('should return false for name longer than 26 chars', () => {
-        expect(hasObfuscatedSlug(makeChannel('abcdef1234567890abcdef12345', 'Some Channel'))).toBe(false);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: 'abcdef1234567890abcdef12345', display_name: 'Some Channel'}))).toBe(false);
     });
 
     it('should return false for 26-char name containing hyphens', () => {
-        expect(hasObfuscatedSlug(makeChannel('abcdef-234567890abcdef1234', 'Some Channel'))).toBe(false);
+        expect(hasObfuscatedSlug(test_helper.getChannelMock({name: 'abcdef-234567890abcdef1234', display_name: 'Some Channel'}))).toBe(false);
     });
 });
 
 describe('resolveDisplayMentionsToSlugs', () => {
     const channels = [
-        makeChannel(OBFUSCATED_1, 'Town Square'),
-        makeChannel(OBFUSCATED_2, 'Off Topic'),
-        makeChannel(OBFUSCATED_3, 'My Cool Channel'),
+        test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Town Square'}),
+        test_helper.getChannelMock({name: OBFUSCATED_2, display_name: 'Off Topic'}),
+        test_helper.getChannelMock({name: OBFUSCATED_3, display_name: 'My Cool Channel'}),
     ];
 
     it('should replace a single display slug with the real channel name', () => {
@@ -97,8 +77,8 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
     it('should handle collision by using first match', () => {
         const channelsWithCollision = [
-            makeChannel(OBFUSCATED_1, 'My Channel'),
-            makeChannel(OBFUSCATED_2, 'My Channel!'),
+            test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'My Channel'}),
+            test_helper.getChannelMock({name: OBFUSCATED_2, display_name: 'My Channel!'}),
         ];
 
         // Both display names slugify to "my-channel"
@@ -109,7 +89,7 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
     it('should not replace when channel name equals the display slug (non-obfuscated channel)', () => {
         const channelsWithReadableSlug = [
-            makeChannel('town-square', 'Town Square'),
+            test_helper.getChannelMock({name: 'town-square', display_name: 'Town Square'}),
         ];
         const message = 'Check ~town-square';
         const result = resolveDisplayMentionsToSlugs(message, channelsWithReadableSlug);
@@ -118,7 +98,7 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
     it('should not alter channels with customized names that are not 26-char alphanumeric', () => {
         const channelsWithCustomName = [
-            makeChannel('custom-slug', 'Engineering Updates'),
+            test_helper.getChannelMock({name: 'custom-slug', display_name: 'Engineering Updates'}),
         ];
         const message = 'Check ~engineering-updates for updates';
         const result = resolveDisplayMentionsToSlugs(message, channelsWithCustomName);
@@ -127,8 +107,8 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
     it('should only transform obfuscated channels in a mixed set', () => {
         const mixedChannels = [
-            makeChannel('town-square', 'Town Square'), // non-obfuscated - skip
-            makeChannel(OBFUSCATED_1, 'Engineering'), // obfuscated - transform
+            test_helper.getChannelMock({name: 'town-square', display_name: 'Town Square'}), // non-obfuscated - skip
+            test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Engineering'}), // obfuscated - transform
         ];
         const message = 'See ~town-square and ~engineering';
         const result = resolveDisplayMentionsToSlugs(message, mixedChannels);
@@ -149,9 +129,9 @@ describe('resolveDisplayMentionsToSlugs', () => {
 
 describe('convertSlugsToDisplayMentions', () => {
     const channels = [
-        makeChannel(OBFUSCATED_1, 'Town Square'),
-        makeChannel(OBFUSCATED_2, 'Off Topic'),
-        makeChannel(OBFUSCATED_3, 'My Cool Channel'),
+        test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Town Square'}),
+        test_helper.getChannelMock({name: OBFUSCATED_2, display_name: 'Off Topic'}),
+        test_helper.getChannelMock({name: OBFUSCATED_3, display_name: 'My Cool Channel'}),
     ];
 
     it('should replace a real channel name with the display slug', () => {
@@ -174,7 +154,7 @@ describe('convertSlugsToDisplayMentions', () => {
 
     it('should not replace when name and display slug are the same (non-obfuscated channel)', () => {
         const channelsWithReadableSlug = [
-            makeChannel('town-square', 'Town Square'),
+            test_helper.getChannelMock({name: 'town-square', display_name: 'Town Square'}),
         ];
         const message = 'Check ~town-square';
         const result = convertSlugsToDisplayMentions(message, channelsWithReadableSlug);
@@ -183,7 +163,7 @@ describe('convertSlugsToDisplayMentions', () => {
 
     it('should not alter channels with customized names that are not 26-char alphanumeric', () => {
         const channelsWithCustomName = [
-            makeChannel('custom-slug', 'Engineering Updates'),
+            test_helper.getChannelMock({name: 'custom-slug', display_name: 'Engineering Updates'}),
         ];
         const message = 'Check ~custom-slug';
         const result = convertSlugsToDisplayMentions(message, channelsWithCustomName);
@@ -192,8 +172,8 @@ describe('convertSlugsToDisplayMentions', () => {
 
     it('should only transform obfuscated channels in a mixed set', () => {
         const mixedChannels = [
-            makeChannel('town-square', 'Town Square'), // non-obfuscated - skip
-            makeChannel(OBFUSCATED_1, 'Engineering'), // obfuscated - transform
+            test_helper.getChannelMock({name: 'town-square', display_name: 'Town Square'}), // non-obfuscated - skip
+            test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Engineering'}), // obfuscated - transform
         ];
         const message = `See ~town-square and ~${OBFUSCATED_1}`;
         const result = convertSlugsToDisplayMentions(message, mixedChannels);
@@ -220,8 +200,8 @@ describe('convertSlugsToDisplayMentions', () => {
 
 describe('extractUnresolvedObfuscatedSlugs', () => {
     const channels = [
-        makeChannel(OBFUSCATED_1, 'Town Square'),
-        makeChannel(OBFUSCATED_2, 'Off Topic'),
+        test_helper.getChannelMock({name: OBFUSCATED_1, display_name: 'Town Square'}),
+        test_helper.getChannelMock({name: OBFUSCATED_2, display_name: 'Off Topic'}),
     ];
 
     it('should return empty set for empty message', () => {
