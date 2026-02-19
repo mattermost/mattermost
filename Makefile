@@ -34,7 +34,6 @@ check-all: ## Run all linters, style, and type checks
 
 install: $(DEVDASH_BIN) ## Install mmake CLI to ~/.local/bin
 	@mkdir -p $(INSTALL_DIR)
-	@mkdir -p $(CONFIG_DIR)
 	@echo "==> Installing mmake to $(INSTALL_DIR)/mmake..."
 	@cp $(DEVDASH_BIN) $(INSTALL_DIR)/mmake
 	@# macOS: clear quarantine and sign to prevent Gatekeeper killing the binary
@@ -42,19 +41,11 @@ install: $(DEVDASH_BIN) ## Install mmake CLI to ~/.local/bin
 		xattr -cr $(INSTALL_DIR)/mmake 2>/dev/null || true; \
 		codesign --force --sign - $(INSTALL_DIR)/mmake 2>/dev/null || true; \
 	fi
-	@# Move existing config to persistent location if not already symlinked
-	@if [ -f .devdash.json ] && [ ! -L .devdash.json ]; then \
-		mv .devdash.json $(CONFIG_DIR)/.devdash.json; \
-	fi
-	@if [ ! -f $(CONFIG_DIR)/.devdash.json ]; then \
-		echo '{}' > $(CONFIG_DIR)/.devdash.json; \
-	fi
-	@ln -sf $(CONFIG_DIR)/.devdash.json .devdash.json
 	@# Symlink binary back so `make` still works without rebuilding
 	@ln -sf $(INSTALL_DIR)/mmake $(DEVDASH_BIN)
 	@echo "==> Installed!"
 	@echo "    Binary: $(INSTALL_DIR)/mmake"
-	@echo "    Config: $(CONFIG_DIR)/.devdash.json"
+	@echo "    Config: $(CONFIG_DIR)/config.json"
 	@if ! echo "$$PATH" | tr ':' '\n' | grep -qx "$(INSTALL_DIR)"; then \
 		echo ""; \
 		echo "    NOTE: $(INSTALL_DIR) is not on your PATH."; \

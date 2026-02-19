@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const configFile = ".devdash.json"
+const configFile = "config.json"
 
 // Favorites are stored as strings: "relativePath::cellID"
 // e.g. "mattermost/server::mattermost/server:run-server"
@@ -21,11 +21,25 @@ type Config struct {
 	Favorites []string `json:"favorites,omitempty"`
 }
 
-func configPath(root string) string {
-	if root == "" {
+// configDir returns ~/.config/devdash (or $XDG_CONFIG_HOME/devdash).
+func configDir() string {
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		return filepath.Join(xdg, "devdash")
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
 		return ""
 	}
-	return filepath.Join(root, configFile)
+	return filepath.Join(home, ".config", "devdash")
+}
+
+// configPath ignores the root parameter — config always lives in ~/.config/devdash/.
+func configPath(_ string) string {
+	dir := configDir()
+	if dir == "" {
+		return ""
+	}
+	return filepath.Join(dir, configFile)
 }
 
 func Load(root string) Config {
@@ -50,6 +64,11 @@ func Save(root string, c Config) error {
 	path := configPath(root)
 	if path == "" {
 		return nil
+	}
+
+	// Ensure config directory exists
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
 	}
 
 	sort.Strings(c.Favorites)
