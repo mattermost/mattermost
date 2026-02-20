@@ -2235,8 +2235,9 @@ func (s *RateLimitSettings) SetDefaults() {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress *bool `access:"site_users_and_teams"`
-	ShowFullName     *bool `access:"site_users_and_teams"`
+	ShowEmailAddress     *bool `access:"site_users_and_teams"`
+	ShowFullName         *bool `access:"site_users_and_teams"`
+	UseSecureChannelURLs *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -2246,6 +2247,10 @@ func (s *PrivacySettings) setDefaults() {
 
 	if s.ShowFullName == nil {
 		s.ShowFullName = NewPointer(true)
+	}
+
+	if s.UseSecureChannelURLs == nil {
+		s.UseSecureChannelURLs = NewPointer(false)
 	}
 }
 

@@ -12,7 +12,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getAllChannels, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
     getLatestInteractablePostId,
@@ -72,11 +72,8 @@ export function submitPost(
         } as unknown as Post;
 
         // Resolve display-name channel mentions back to real slugs when secure URLs are enabled
-        // const config = getConfig(state);
-        // if (config.UseSecureChannelURLs === 'true') {
-
-        // eslint-disable-next-line no-constant-condition
-        if (true) {
+        const config = getConfig(state);
+        if (config.UseSecureChannelURLs === 'true') {
             const allChannelsList = Object.values(getAllChannels(state));
             post.message = resolveDisplayMentionsToSlugs(post.message, allChannelsList);
         }

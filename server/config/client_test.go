@@ -151,6 +151,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"enable UseSecureChannelURLs prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					UseSecureChannelURLs: model.NewPointer(false),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"UseSecureChannelURLs": "false",
+			},
+		},
+		{
 			"Custom groups professional license",
 			&model.Config{},
 			"",

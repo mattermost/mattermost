@@ -5,7 +5,7 @@ import {logError} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -27,11 +27,8 @@ export function editPost(post) {
         const state = getState();
         let resolvedPost = post;
 
-        // const config = getConfig(state);
-        // if (config.UseSecureChannelURLs === 'true') {
-
-        // eslint-disable-next-line no-constant-condition
-        if (true) {
+        const config = getConfig(state);
+        if (config.UseSecureChannelURLs === 'true') {
             const allChannelsList = Object.values(getAllChannels(state));
             resolvedPost = {
                 ...post,

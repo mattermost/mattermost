@@ -7,6 +7,7 @@ import {defineMessage, useIntl} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions.js';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
@@ -181,9 +182,8 @@ export default class ChannelMentionProvider extends Provider {
 
         this.startNewRequest(prefix);
 
-        // const state = store.getState();
-        // const useSecureURLs = getConfig(state).UseSecureChannelURLs === 'true';
-        const useSecureURLs = true;
+        const state = store.getState();
+        const useSecureURLs = getConfig(state).UseSecureChannelURLs === 'true';
 
         const words = prefix.toLowerCase().split(/\s+/);
         const myChannelIds: Record<string, boolean> = {};

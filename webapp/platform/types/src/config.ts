@@ -642,6 +642,7 @@ export type RateLimitSettings = {
 export type PrivacySettings = {
     ShowEmailAddress: boolean;
     ShowFullName: boolean;
+    UseSecureChannelURLs: boolean;
 };
 
 export type SupportSettings = {

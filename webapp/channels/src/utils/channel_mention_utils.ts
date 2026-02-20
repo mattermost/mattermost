@@ -10,7 +10,7 @@ const MENTION_REGEX = /~([a-z0-9][a-z0-9_-]*)/gi;
 
 /**
  * Returns true if the channel has an obfuscated slug — i.e. its name is a
- * 26-character alphanumeric string AND differs from cleanUpUrlable(display_name).
+ * 26-character alphanumeric string AND differs from the default, system-generated slug.
  */
 export function hasObfuscatedSlug(channel: Channel): boolean {
     return (
@@ -72,8 +72,7 @@ export function resolveDisplayMentionsToSlugs(
  *
  * Only channels with obfuscated slugs (26-char alphanumeric names) are
  * considered. Channels with custom or human-readable slugs are left untouched.
- */
-/**
+ *
  * Extracts obfuscated channel slugs from a message that are NOT present
  * in the provided channel list. Returns a deduplicated array of unresolved
  * slug strings.
