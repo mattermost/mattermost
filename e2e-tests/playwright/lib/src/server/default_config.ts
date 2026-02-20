@@ -111,6 +111,7 @@ const defaultServerConfig: AdminConfig = {
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
         EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
