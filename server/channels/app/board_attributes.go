@@ -59,8 +59,8 @@ func (a *App) GetBoardAttributeFields() ([]*model.PropertyField, *model.AppError
 
 	// Sort by sort_order in attrs
 	sort.Slice(fields, func(i, j int) bool {
-		iOrder, _ := fields[i].Attrs["sort_order"].(float64)
-		jOrder, _ := fields[j].Attrs["sort_order"].(float64)
+		iOrder, _ := fields[i].Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder].(float64)
+		jOrder, _ := fields[j].Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder].(float64)
 		return int(iOrder) < int(jOrder)
 	})
 
