@@ -17,7 +17,7 @@ const ValidationWarningNameUnique = 'name_unique';
 const ValidationWarningNameTaken = 'name_taken';
 
 const boardPropertiesTableConfig: AttributesTableConfig<PropertyField> = {
-    i18n: {
+    labels: {
         attribute: {
             id: 'admin.system_properties.board_properties.table.property',
             defaultMessage: 'Attribute',

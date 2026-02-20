@@ -84,7 +84,7 @@ type Props = {
 }
 
 const userPropertiesTableConfig: AttributesTableConfig<UserPropertyField> = {
-    i18n: {
+    labels: {
         attribute: {
             id: 'admin.system_properties.user_properties.table.property',
             defaultMessage: 'Attribute',

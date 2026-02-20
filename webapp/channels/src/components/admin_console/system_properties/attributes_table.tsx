@@ -18,20 +18,21 @@ import PropertyValuesInput from './property_values_input';
 
 import {AdminConsoleListTable} from '../list_table';
 
-export type AttributesTableConfig<T extends PropertyField> = {
+/** Translatable labels for the attributes table (column headers, button, validation messages, input label). */
+export type AttributesTableLabels = {
+    attribute: MessageDescriptor;
+    type: MessageDescriptor;
+    values: MessageDescriptor;
+    actions: MessageDescriptor;
+    addAttribute: MessageDescriptor;
+    nameRequired: MessageDescriptor;
+    nameUnique: MessageDescriptor;
+    nameTaken: MessageDescriptor;
+    attributeNameInput: MessageDescriptor;
+};
 
-    // i18n keys
-    i18n: {
-        attribute: MessageDescriptor;
-        type: MessageDescriptor;
-        values: MessageDescriptor;
-        actions: MessageDescriptor;
-        addAttribute: MessageDescriptor;
-        nameRequired: MessageDescriptor;
-        nameUnique: MessageDescriptor;
-        nameTaken: MessageDescriptor;
-        attributeNameInput: MessageDescriptor;
-    };
+export type AttributesTableConfig<T extends PropertyField> = {
+    labels: AttributesTableLabels;
 
     // Validation warning IDs
     validationWarnings: {
@@ -95,7 +96,7 @@ export function AttributesTable<T extends PropertyField>({
                 header: () => {
                     return (
                         <ColHeaderLeft>
-                            <FormattedMessage {...config.i18n.attribute}/>
+                            <FormattedMessage {...config.labels.attribute}/>
                         </ColHeaderLeft>
                     );
                 },
@@ -110,21 +111,21 @@ export function AttributesTable<T extends PropertyField>({
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                {...config.i18n.nameRequired}
+                                {...config.labels.nameRequired}
                             />
                         );
                     } else if (warningId === config.validationWarnings.nameUnique) {
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                {...config.i18n.nameUnique}
+                                {...config.labels.nameUnique}
                             />
                         );
                     } else if (warningId === config.validationWarnings.nameTaken) {
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                {...config.i18n.nameTaken}
+                                {...config.labels.nameTaken}
                             />
                         );
                     }
@@ -134,7 +135,7 @@ export function AttributesTable<T extends PropertyField>({
                             <EditCell
                                 strong={true}
                                 value={getValue()}
-                                label={formatMessage(config.i18n.attributeNameInput)}
+                                label={formatMessage(config.labels.attributeNameInput)}
                                 deleted={toDelete}
                                 testid='property-field-input'
                                 // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -157,7 +158,7 @@ export function AttributesTable<T extends PropertyField>({
                 header: () => {
                     return (
                         <ColHeaderLeft>
-                            <FormattedMessage {...config.i18n.type}/>
+                            <FormattedMessage {...config.labels.type}/>
                         </ColHeaderLeft>
                     );
                 },
@@ -176,7 +177,7 @@ export function AttributesTable<T extends PropertyField>({
                 size: 300,
                 header: () => (
                     <ColHeaderLeft>
-                        <FormattedMessage {...config.i18n.values}/>
+                        <FormattedMessage {...config.labels.values}/>
                     </ColHeaderLeft>
                 ),
                 cell: ({row}) => (
@@ -196,7 +197,7 @@ export function AttributesTable<T extends PropertyField>({
                 header: () => {
                     return (
                         <ColHeaderRight>
-                            <FormattedMessage {...config.i18n.actions}/>
+                            <FormattedMessage {...config.labels.actions}/>
                         </ColHeaderRight>
                     );
                 },
@@ -243,7 +244,7 @@ export function AttributesTable<T extends PropertyField>({
             {canCreate && (
                 <LinkButton onClick={() => createField(undefined as unknown as T)}>
                     <PlusIcon size={16}/>
-                    <FormattedMessage {...config.i18n.addAttribute}/>
+                    <FormattedMessage {...config.labels.addAttribute}/>
                 </LinkButton>
             )}
         </>
