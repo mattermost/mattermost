@@ -39,13 +39,13 @@ func listBoardAttributeFields(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func createBoardAttributeField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.createBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.createBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -85,13 +85,13 @@ func createBoardAttributeField(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func patchBoardAttributeField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.patchBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -147,13 +147,13 @@ func patchBoardAttributeField(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func deleteBoardAttributeField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.deleteBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.deleteBoardAttributeField", "api.board_attributes.license_error", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
