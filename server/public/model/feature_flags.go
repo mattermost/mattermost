@@ -71,7 +71,9 @@ type FeatureFlags struct {
 
 	ContentFlagging bool
 
-	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	// DEPRECATED: Mobile SSO SAML code-exchange flow - disabled by default
+	// This feature is deprecated and will be removed in a future release.
+	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
 }
 
@@ -102,7 +104,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
-	f.MobileSSOCodeExchange = true
+	f.MobileSSOCodeExchange = false
 }
 
 // ToMap returns the feature flags as a map[string]string
