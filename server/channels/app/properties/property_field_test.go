@@ -553,7 +553,10 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Update non-name fields (Type, Attrs)
 		field.Type = model.PropertyFieldTypeSelect
 		field.Attrs = map[string]any{
-			"options": []string{"a", "b"},
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+			},
 		}
 
 		result, err := th.service.UpdatePropertyField(groupID, field)
