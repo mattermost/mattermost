@@ -275,6 +275,7 @@ export default class ChannelMentionProvider extends Provider {
                 return sortChannelsByTypeAndDisplayName('en', a, b);
             });
 
+            console.log({captured: captured[1]});
             resultCallback({
                 matchedPretext: captured[1],
                 groups: [
