@@ -2,518 +2,773 @@
 
 exports[`components/global/product_switcher should have an active button state when the switcher menu is open 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper  MenuWrapper--open"
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="true"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding"
+          />
+        </button>
+      </nav>
+      <div
+        aria-label="switcherOpen"
+        class="a11y__popup Menu"
+        id="product-switcher-menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu product-switcher-menu"
+          id="product-switcher-menu-dropdown"
+          role="menu"
+        >
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,7.75c0.69,0,1.25,0.56,1.25,1.25S6.69,10.25,6,10.25S4.75,9.69,4.75,9S5.31,7.75,6,7.75z M10.5,7.75c0.69,0,1.25,0.56,1.25,1.25s-0.56,1.25-1.25,1.25c-0.69,0-1.25-0.56-1.25-1.25S9.81,7.75,10.5,7.75z M16.25,9
+	c0-0.69-0.56-1.25-1.25-1.25S13.75,8.31,13.75,9s0.56,1.25,1.25,1.25S16.25,9.69,16.25,9z M4,3C2.895,3,2,3.895,2,5v8
+	c0,1.105,0.895,2,2,2h2v4l3.636-4H17c1.105,0,2-0.895,2-2V5c0-1.105-0.895-2-2-2H4z M11,13.5H9.318l-1.818,2v-2H6H4.5
+	c-0.552,0-1-0.448-1-1v-7c0-0.552,0.448-1,1-1h12c0.552,0,1,0.448,1,1v7c0,0.552-0.448,1-1,1H11z M10.063,16.5
+	C10.285,17.363,11.068,18,12,18h2.364L18,22v-4h2c1.104,0,2-0.896,2-2V8c0-0.932-0.637-1.715-1.5-1.937V8.5v7c0,0.552-0.448,1-1,1
+	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Channels
+            </div>
+            <svg
+              fill="var(--button-bg)"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+              />
+            </svg>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Boards"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16.736,3.191C15.327,2.431,13.714,2,12,2C6.477,2,2,6.477,2,12c0,5.523,4.477,10,10,10c5.523,0,10-4.477,10-10c0-1.708-0.428-3.316-1.183-4.722c-0.435,0.14-0.945,0.258-1.522,0.357C20.06,8.911,20.5,10.404,20.5,12c0,4.694-3.806,8.5-8.5,8.5
+	c-4.694,0-8.5-3.806-8.5-8.5c0-4.694,3.806-8.5,8.5-8.5c1.6,0,3.096,0.442,4.374,1.21C16.476,4.134,16.595,3.624,16.736,3.191z
+	 M16.084,6.943L16.084,6.943l-1.149,1.009c0,0,0,0,0,0L16.084,6.943z M15.233,6.36C14.281,5.813,13.177,5.5,12,5.5
+	c-3.59,0-6.5,2.91-6.5,6.5c0,3.59,2.91,6.5,6.5,6.5c3.59,0,6.5-2.91,6.5-6.5c0-1.17-0.309-2.268-0.85-3.216l-1.07,1.207
+	C16.85,10.606,17,11.285,17,12c0,2.761-2.239,5-5,5c-2.761,0-5-2.239-5-5c0-2.761,2.239-5,5-5c0.719,0,1.402,0.152,2.02,0.425
+	L15.233,6.36z M12.236,9.009C12.158,9.003,12.079,9,12,9c-1.657,0-3,1.343-3,3c0,1.657,1.343,3,3,3c1.657,0,3-1.343,3-3
+	c0-0.078-0.003-0.156-0.009-0.233c-0.362,0.326-0.81,0.487-1.285,0.48c-0.061-0.001-0.122-0.005-0.183-0.011l-0.051,0.051
+	C13.339,12.978,12.73,13.5,12,13.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.742,0.538-1.358,1.246-1.479l0.018-0.018
+	c-0.006-0.055-0.009-0.11-0.01-0.167C11.746,9.849,11.915,9.388,12.236,9.009z M12.889,10.792L12.889,10.792l0.01-0.011v0
+	L12.889,10.792z M13.367,9.329L13.367,9.329L13.012,9.64c-0.013,0.015-0.026,0.03-0.038,0.046c0.012-0.015,0.025-0.031,0.038-0.046
+	L13.367,9.329z M18.069,6.803c2.589-0.316,3.813-0.844,3.671-1.575c-0.141-0.722-1.044-0.788-2.736-0.215
+	c0.573-1.7,0.498-2.621-0.233-2.745c-0.722-0.124-1.25,1.109-1.574,3.697L13.012,9.64c-0.179,0.205-0.262,0.438-0.259,0.681
+	c0.003,0.166,0.053,0.32,0.147,0.46l-1.064,1.064c-0.092,0.092-0.092,0.24,0,0.332c0.092,0.092,0.24,0.092,0.332,0l1.07-1.07
+	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Boards
+            </div>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Playbooks"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8,3.5H6c-1.105,0-2,0.895-2,2V19c0,1.105,0.895,2,2,2h12c1.105,0,2-0.895,2-2V5.5c0-1.105-0.895-2-2-2h-2V5h1.5c0.552,0,1,0.448,1,1v12.5c0,0.552-0.448,1-1,1h-11c-0.552,0-1-0.448-1-1V6c0-0.552,0.448-1,1-1H8V3.5z M11,2
+	c-0.276,0-0.5,0.224-0.5,0.5V3H9v2.5h6V3h-1.5V2.5C13.5,2.224,13.276,2,13,2H11z M10.5,16H17v1h-6.5V16z M7.5,15.75H9v1.5H7.5V15.75
+	z M10.5,12H17v1h-6.5V12z M7.5,11.75H9v1.5H7.5V11.75z M10.5,8H17v1h-6.5V8z M7.409,9.091l-0.5-0.5l0.5-0.5l0.5,0.5L9,7.5L9.5,8
+	L7.909,9.591L7.409,9.091z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Playbooks
+            </div>
+          </a>
+          <div
+            data-testid="product-menu-list"
+          />
+          <li
+            class="MenuGroup menu-divider"
+            role="separator"
+            style="display: none;"
+          />
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should match snapshot 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper "
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="false"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding"
+          />
+        </button>
+      </nav>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should match snapshot for Entry license 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper "
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBrandingFreeEdition />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="false"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding-free-edition"
+          />
+        </button>
+      </nav>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should match snapshot with product switcher menu 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper  MenuWrapper--open"
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="true"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding"
+          />
+        </button>
+      </nav>
+      <div
+        aria-label="switcherOpen"
+        class="a11y__popup Menu"
+        id="product-switcher-menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu product-switcher-menu"
+          id="product-switcher-menu-dropdown"
+          role="menu"
+        >
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,7.75c0.69,0,1.25,0.56,1.25,1.25S6.69,10.25,6,10.25S4.75,9.69,4.75,9S5.31,7.75,6,7.75z M10.5,7.75c0.69,0,1.25,0.56,1.25,1.25s-0.56,1.25-1.25,1.25c-0.69,0-1.25-0.56-1.25-1.25S9.81,7.75,10.5,7.75z M16.25,9
+	c0-0.69-0.56-1.25-1.25-1.25S13.75,8.31,13.75,9s0.56,1.25,1.25,1.25S16.25,9.69,16.25,9z M4,3C2.895,3,2,3.895,2,5v8
+	c0,1.105,0.895,2,2,2h2v4l3.636-4H17c1.105,0,2-0.895,2-2V5c0-1.105-0.895-2-2-2H4z M11,13.5H9.318l-1.818,2v-2H6H4.5
+	c-0.552,0-1-0.448-1-1v-7c0-0.552,0.448-1,1-1h12c0.552,0,1,0.448,1,1v7c0,0.552-0.448,1-1,1H11z M10.063,16.5
+	C10.285,17.363,11.068,18,12,18h2.364L18,22v-4h2c1.104,0,2-0.896,2-2V8c0-0.932-0.637-1.715-1.5-1.937V8.5v7c0,0.552-0.448,1-1,1
+	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Channels
+            </div>
+            <svg
+              fill="var(--button-bg)"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+              />
+            </svg>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Boards"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16.736,3.191C15.327,2.431,13.714,2,12,2C6.477,2,2,6.477,2,12c0,5.523,4.477,10,10,10c5.523,0,10-4.477,10-10c0-1.708-0.428-3.316-1.183-4.722c-0.435,0.14-0.945,0.258-1.522,0.357C20.06,8.911,20.5,10.404,20.5,12c0,4.694-3.806,8.5-8.5,8.5
+	c-4.694,0-8.5-3.806-8.5-8.5c0-4.694,3.806-8.5,8.5-8.5c1.6,0,3.096,0.442,4.374,1.21C16.476,4.134,16.595,3.624,16.736,3.191z
+	 M16.084,6.943L16.084,6.943l-1.149,1.009c0,0,0,0,0,0L16.084,6.943z M15.233,6.36C14.281,5.813,13.177,5.5,12,5.5
+	c-3.59,0-6.5,2.91-6.5,6.5c0,3.59,2.91,6.5,6.5,6.5c3.59,0,6.5-2.91,6.5-6.5c0-1.17-0.309-2.268-0.85-3.216l-1.07,1.207
+	C16.85,10.606,17,11.285,17,12c0,2.761-2.239,5-5,5c-2.761,0-5-2.239-5-5c0-2.761,2.239-5,5-5c0.719,0,1.402,0.152,2.02,0.425
+	L15.233,6.36z M12.236,9.009C12.158,9.003,12.079,9,12,9c-1.657,0-3,1.343-3,3c0,1.657,1.343,3,3,3c1.657,0,3-1.343,3-3
+	c0-0.078-0.003-0.156-0.009-0.233c-0.362,0.326-0.81,0.487-1.285,0.48c-0.061-0.001-0.122-0.005-0.183-0.011l-0.051,0.051
+	C13.339,12.978,12.73,13.5,12,13.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.742,0.538-1.358,1.246-1.479l0.018-0.018
+	c-0.006-0.055-0.009-0.11-0.01-0.167C11.746,9.849,11.915,9.388,12.236,9.009z M12.889,10.792L12.889,10.792l0.01-0.011v0
+	L12.889,10.792z M13.367,9.329L13.367,9.329L13.012,9.64c-0.013,0.015-0.026,0.03-0.038,0.046c0.012-0.015,0.025-0.031,0.038-0.046
+	L13.367,9.329z M18.069,6.803c2.589-0.316,3.813-0.844,3.671-1.575c-0.141-0.722-1.044-0.788-2.736-0.215
+	c0.573-1.7,0.498-2.621-0.233-2.745c-0.722-0.124-1.25,1.109-1.574,3.697L13.012,9.64c-0.179,0.205-0.262,0.438-0.259,0.681
+	c0.003,0.166,0.053,0.32,0.147,0.46l-1.064,1.064c-0.092,0.092-0.092,0.24,0,0.332c0.092,0.092,0.24,0.092,0.332,0l1.07-1.07
+	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Boards
+            </div>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Playbooks"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8,3.5H6c-1.105,0-2,0.895-2,2V19c0,1.105,0.895,2,2,2h12c1.105,0,2-0.895,2-2V5.5c0-1.105-0.895-2-2-2h-2V5h1.5c0.552,0,1,0.448,1,1v12.5c0,0.552-0.448,1-1,1h-11c-0.552,0-1-0.448-1-1V6c0-0.552,0.448-1,1-1H8V3.5z M11,2
+	c-0.276,0-0.5,0.224-0.5,0.5V3H9v2.5h6V3h-1.5V2.5C13.5,2.224,13.276,2,13,2H11z M10.5,16H17v1h-6.5V16z M7.5,15.75H9v1.5H7.5V15.75
+	z M10.5,12H17v1h-6.5V12z M7.5,11.75H9v1.5H7.5V11.75z M10.5,8H17v1h-6.5V8z M7.409,9.091l-0.5-0.5l0.5-0.5l0.5,0.5L9,7.5L9.5,8
+	L7.909,9.591L7.409,9.091z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Playbooks
+            </div>
+          </a>
+          <div
+            data-testid="product-menu-list"
+          />
+          <li
+            class="MenuGroup menu-divider"
+            role="separator"
+            style="display: none;"
+          />
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should match snapshot without license 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper "
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBrandingFreeEdition />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="false"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding-free-edition"
+          />
+        </button>
+      </nav>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should render once when there are no top level products available 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper  MenuWrapper--open"
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="true"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding"
+          />
+        </button>
+      </nav>
+      <div
+        aria-label="switcherOpen"
+        class="a11y__popup Menu"
+        id="product-switcher-menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu product-switcher-menu"
+          id="product-switcher-menu-dropdown"
+          role="menu"
+        >
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,7.75c0.69,0,1.25,0.56,1.25,1.25S6.69,10.25,6,10.25S4.75,9.69,4.75,9S5.31,7.75,6,7.75z M10.5,7.75c0.69,0,1.25,0.56,1.25,1.25s-0.56,1.25-1.25,1.25c-0.69,0-1.25-0.56-1.25-1.25S9.81,7.75,10.5,7.75z M16.25,9
+	c0-0.69-0.56-1.25-1.25-1.25S13.75,8.31,13.75,9s0.56,1.25,1.25,1.25S16.25,9.69,16.25,9z M4,3C2.895,3,2,3.895,2,5v8
+	c0,1.105,0.895,2,2,2h2v4l3.636-4H17c1.105,0,2-0.895,2-2V5c0-1.105-0.895-2-2-2H4z M11,13.5H9.318l-1.818,2v-2H6H4.5
+	c-0.552,0-1-0.448-1-1v-7c0-0.552,0.448-1,1-1h12c0.552,0,1,0.448,1,1v7c0,0.552-0.448,1-1,1H11z M10.063,16.5
+	C10.285,17.363,11.068,18,12,18h2.364L18,22v-4h2c1.104,0,2-0.896,2-2V8c0-0.932-0.637-1.715-1.5-1.937V8.5v7c0,0.552-0.448,1-1,1
+	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Channels
+            </div>
+            <svg
+              fill="var(--button-bg)"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+              />
+            </svg>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Boards"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16.736,3.191C15.327,2.431,13.714,2,12,2C6.477,2,2,6.477,2,12c0,5.523,4.477,10,10,10c5.523,0,10-4.477,10-10c0-1.708-0.428-3.316-1.183-4.722c-0.435,0.14-0.945,0.258-1.522,0.357C20.06,8.911,20.5,10.404,20.5,12c0,4.694-3.806,8.5-8.5,8.5
+	c-4.694,0-8.5-3.806-8.5-8.5c0-4.694,3.806-8.5,8.5-8.5c1.6,0,3.096,0.442,4.374,1.21C16.476,4.134,16.595,3.624,16.736,3.191z
+	 M16.084,6.943L16.084,6.943l-1.149,1.009c0,0,0,0,0,0L16.084,6.943z M15.233,6.36C14.281,5.813,13.177,5.5,12,5.5
+	c-3.59,0-6.5,2.91-6.5,6.5c0,3.59,2.91,6.5,6.5,6.5c3.59,0,6.5-2.91,6.5-6.5c0-1.17-0.309-2.268-0.85-3.216l-1.07,1.207
+	C16.85,10.606,17,11.285,17,12c0,2.761-2.239,5-5,5c-2.761,0-5-2.239-5-5c0-2.761,2.239-5,5-5c0.719,0,1.402,0.152,2.02,0.425
+	L15.233,6.36z M12.236,9.009C12.158,9.003,12.079,9,12,9c-1.657,0-3,1.343-3,3c0,1.657,1.343,3,3,3c1.657,0,3-1.343,3-3
+	c0-0.078-0.003-0.156-0.009-0.233c-0.362,0.326-0.81,0.487-1.285,0.48c-0.061-0.001-0.122-0.005-0.183-0.011l-0.051,0.051
+	C13.339,12.978,12.73,13.5,12,13.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.742,0.538-1.358,1.246-1.479l0.018-0.018
+	c-0.006-0.055-0.009-0.11-0.01-0.167C11.746,9.849,11.915,9.388,12.236,9.009z M12.889,10.792L12.889,10.792l0.01-0.011v0
+	L12.889,10.792z M13.367,9.329L13.367,9.329L13.012,9.64c-0.013,0.015-0.026,0.03-0.038,0.046c0.012-0.015,0.025-0.031,0.038-0.046
+	L13.367,9.329z M18.069,6.803c2.589-0.316,3.813-0.844,3.671-1.575c-0.141-0.722-1.044-0.788-2.736-0.215
+	c0.573-1.7,0.498-2.621-0.233-2.745c-0.722-0.124-1.25,1.109-1.574,3.697L13.012,9.64c-0.179,0.205-0.262,0.438-0.259,0.681
+	c0.003,0.166,0.053,0.32,0.147,0.46l-1.064,1.064c-0.092,0.092-0.092,0.24,0,0.332c0.092,0.092,0.24,0.092,0.332,0l1.07-1.07
+	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Boards
+            </div>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Playbooks"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8,3.5H6c-1.105,0-2,0.895-2,2V19c0,1.105,0.895,2,2,2h12c1.105,0,2-0.895,2-2V5.5c0-1.105-0.895-2-2-2h-2V5h1.5c0.552,0,1,0.448,1,1v12.5c0,0.552-0.448,1-1,1h-11c-0.552,0-1-0.448-1-1V6c0-0.552,0.448-1,1-1H8V3.5z M11,2
+	c-0.276,0-0.5,0.224-0.5,0.5V3H9v2.5h6V3h-1.5V2.5C13.5,2.224,13.276,2,13,2H11z M10.5,16H17v1h-6.5V16z M7.5,15.75H9v1.5H7.5V15.75
+	z M10.5,12H17v1h-6.5V12z M7.5,11.75H9v1.5H7.5V11.75z M10.5,8H17v1h-6.5V8z M7.409,9.091l-0.5-0.5l0.5-0.5l0.5,0.5L9,7.5L9.5,8
+	L7.909,9.591L7.409,9.091z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Playbooks
+            </div>
+          </a>
+          <div
+            data-testid="product-menu-list"
+          />
+          <li
+            class="MenuGroup menu-divider"
+            role="separator"
+            style="display: none;"
+          />
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/global/product_switcher should render the correct amount of times when there are products available 1`] = `
 <div>
-  <MenuWrapper
-    animationComponent={[Function]}
-    className=""
-    open={true}
-  >
-    <ProductMenuContainer
-      onClick={[Function]}
+  <div>
+    <div
+      class="MenuWrapper  MenuWrapper--open"
     >
-      <ProductMenuButton
-        aria-controls="product-switcher-menu"
-        aria-expanded={true}
-        aria-label="Product switch menu"
-        style={
-          Object {
-            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
-            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
-          }
-        }
+      <nav
+        class="ProductMenuContainer-kJFYWA bJxYdd"
       >
-        <ProductsIcon
-          color="rgba(var(--sidebar-text-rgb), 0.56)"
-          size={20}
-        />
-        <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
-    <Menu
-      ariaLabel="switcherOpen"
-      className="product-switcher-menu"
-      id="product-switcher-menu"
-      listId="product-switcher-menu-dropdown"
-    >
-      <ProductMenuItem
-        active={true}
-        destination="/"
-        icon="product-channels"
-        onClick={[Function]}
-        text="Channels"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-boards"
-        id="product-menu-item-Boards"
-        key="Boards"
-        onClick={[Function]}
-        text="Boards"
-      />
-      <ProductMenuItem
-        active={false}
-        destination=""
-        icon="product-playbooks"
-        id="product-menu-item-Playbooks"
-        key="Playbooks"
-        onClick={[Function]}
-        text="Playbooks"
-      />
-      <Connect(ProductMenuList)
-        handleVisitConsoleClick={[Function]}
-        isMessaging={true}
-        onClick={[Function]}
-      />
-      <Memo(MenuGroup)>
-        <MenuStartTrial
-          id="startTrial"
-        />
-      </Memo(MenuGroup)>
-    </Menu>
-  </MenuWrapper>
+        <button
+          aria-controls="product-switcher-menu"
+          aria-expanded="true"
+          aria-label="Product switch menu"
+          class="ProductMenuButton-hbKrCl fFnSuH"
+          id="product_switch_menu"
+          style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
+          type="button"
+        >
+          <svg
+            fill="rgba(var(--sidebar-text-rgb), 0.56)"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z"
+            />
+          </svg>
+          <div
+            data-testid="product-branding"
+          />
+        </button>
+      </nav>
+      <div
+        aria-label="switcherOpen"
+        class="a11y__popup Menu"
+        id="product-switcher-menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu product-switcher-menu"
+          id="product-switcher-menu-dropdown"
+          role="menu"
+        >
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,7.75c0.69,0,1.25,0.56,1.25,1.25S6.69,10.25,6,10.25S4.75,9.69,4.75,9S5.31,7.75,6,7.75z M10.5,7.75c0.69,0,1.25,0.56,1.25,1.25s-0.56,1.25-1.25,1.25c-0.69,0-1.25-0.56-1.25-1.25S9.81,7.75,10.5,7.75z M16.25,9
+	c0-0.69-0.56-1.25-1.25-1.25S13.75,8.31,13.75,9s0.56,1.25,1.25,1.25S16.25,9.69,16.25,9z M4,3C2.895,3,2,3.895,2,5v8
+	c0,1.105,0.895,2,2,2h2v4l3.636-4H17c1.105,0,2-0.895,2-2V5c0-1.105-0.895-2-2-2H4z M11,13.5H9.318l-1.818,2v-2H6H4.5
+	c-0.552,0-1-0.448-1-1v-7c0-0.552,0.448-1,1-1h12c0.552,0,1,0.448,1,1v7c0,0.552-0.448,1-1,1H11z M10.063,16.5
+	C10.285,17.363,11.068,18,12,18h2.364L18,22v-4h2c1.104,0,2-0.896,2-2V8c0-0.932-0.637-1.715-1.5-1.937V8.5v7c0,0.552-0.448,1-1,1
+	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Channels
+            </div>
+            <svg
+              fill="var(--button-bg)"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+              />
+            </svg>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Boards"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16.736,3.191C15.327,2.431,13.714,2,12,2C6.477,2,2,6.477,2,12c0,5.523,4.477,10,10,10c5.523,0,10-4.477,10-10c0-1.708-0.428-3.316-1.183-4.722c-0.435,0.14-0.945,0.258-1.522,0.357C20.06,8.911,20.5,10.404,20.5,12c0,4.694-3.806,8.5-8.5,8.5
+	c-4.694,0-8.5-3.806-8.5-8.5c0-4.694,3.806-8.5,8.5-8.5c1.6,0,3.096,0.442,4.374,1.21C16.476,4.134,16.595,3.624,16.736,3.191z
+	 M16.084,6.943L16.084,6.943l-1.149,1.009c0,0,0,0,0,0L16.084,6.943z M15.233,6.36C14.281,5.813,13.177,5.5,12,5.5
+	c-3.59,0-6.5,2.91-6.5,6.5c0,3.59,2.91,6.5,6.5,6.5c3.59,0,6.5-2.91,6.5-6.5c0-1.17-0.309-2.268-0.85-3.216l-1.07,1.207
+	C16.85,10.606,17,11.285,17,12c0,2.761-2.239,5-5,5c-2.761,0-5-2.239-5-5c0-2.761,2.239-5,5-5c0.719,0,1.402,0.152,2.02,0.425
+	L15.233,6.36z M12.236,9.009C12.158,9.003,12.079,9,12,9c-1.657,0-3,1.343-3,3c0,1.657,1.343,3,3,3c1.657,0,3-1.343,3-3
+	c0-0.078-0.003-0.156-0.009-0.233c-0.362,0.326-0.81,0.487-1.285,0.48c-0.061-0.001-0.122-0.005-0.183-0.011l-0.051,0.051
+	C13.339,12.978,12.73,13.5,12,13.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.742,0.538-1.358,1.246-1.479l0.018-0.018
+	c-0.006-0.055-0.009-0.11-0.01-0.167C11.746,9.849,11.915,9.388,12.236,9.009z M12.889,10.792L12.889,10.792l0.01-0.011v0
+	L12.889,10.792z M13.367,9.329L13.367,9.329L13.012,9.64c-0.013,0.015-0.026,0.03-0.038,0.046c0.012-0.015,0.025-0.031,0.038-0.046
+	L13.367,9.329z M18.069,6.803c2.589-0.316,3.813-0.844,3.671-1.575c-0.141-0.722-1.044-0.788-2.736-0.215
+	c0.573-1.7,0.498-2.621-0.233-2.745c-0.722-0.124-1.25,1.109-1.574,3.697L13.012,9.64c-0.179,0.205-0.262,0.438-0.259,0.681
+	c0.003,0.166,0.053,0.32,0.147,0.46l-1.064,1.064c-0.092,0.092-0.092,0.24,0,0.332c0.092,0.092,0.24,0.092,0.332,0l1.07-1.07
+	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Boards
+            </div>
+          </a>
+          <a
+            class="MenuItem-fJA-dRx RqdsE"
+            href="/"
+            id="product-menu-item-Playbooks"
+            role="menuitem"
+          >
+            <svg
+              fill="var(--button-bg)"
+              height="24"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8,3.5H6c-1.105,0-2,0.895-2,2V19c0,1.105,0.895,2,2,2h12c1.105,0,2-0.895,2-2V5.5c0-1.105-0.895-2-2-2h-2V5h1.5c0.552,0,1,0.448,1,1v12.5c0,0.552-0.448,1-1,1h-11c-0.552,0-1-0.448-1-1V6c0-0.552,0.448-1,1-1H8V3.5z M11,2
+	c-0.276,0-0.5,0.224-0.5,0.5V3H9v2.5h6V3h-1.5V2.5C13.5,2.224,13.276,2,13,2H11z M10.5,16H17v1h-6.5V16z M7.5,15.75H9v1.5H7.5V15.75
+	z M10.5,12H17v1h-6.5V12z M7.5,11.75H9v1.5H7.5V11.75z M10.5,8H17v1h-6.5V8z M7.409,9.091l-0.5-0.5l0.5-0.5l0.5,0.5L9,7.5L9.5,8
+	L7.909,9.591L7.409,9.091z"
+              />
+            </svg>
+            <div
+              class="MenuItemTextContainer-fgrARD jWEHwE"
+            >
+              Playbooks
+            </div>
+          </a>
+          <div
+            data-testid="product-menu-list"
+          />
+          <li
+            class="MenuGroup menu-divider"
+            role="separator"
+            style="display: none;"
+          />
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 `;

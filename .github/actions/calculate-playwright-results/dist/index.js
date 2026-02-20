@@ -19106,6 +19106,12 @@ function computeStats(suites, originalStats, retestStats) {
     flaky
   };
 }
+function formatDuration(ms) {
+  const totalSeconds = Math.round(ms / 1e3);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
 function getColor(passRate) {
   if (passRate === 100) {
     return "#43A047";
@@ -19177,6 +19183,7 @@ function calculateResults(results) {
   const rateStr = rate === 100 ? "100%" : `${rate.toFixed(1)}%`;
   const specSuffix = totalSpecs > 0 ? `, ${totalSpecs} specs` : "";
   const commitStatusMessage = rate === 100 ? `${rateStr} passed (${passing})${specSuffix}` : `${rateStr} passed (${passing}/${total}), ${failed} failed${specSuffix}`;
+  const testDuration = formatDuration(stats.duration || 0);
   return {
     passed,
     failed,
@@ -19190,7 +19197,8 @@ function calculateResults(results) {
     total,
     passRate,
     passing,
-    color
+    color,
+    testDuration
   };
 }
 function mergeResults(original, retest) {
@@ -19284,6 +19292,7 @@ async function run() {
   info(`Failed Specs Count: ${calc.failedSpecsCount}`);
   info(`Commit Status Message: ${calc.commitStatusMessage}`);
   info(`Failed Specs: ${calc.failedSpecs || "none"}`);
+  info(`Test Duration: ${calc.testDuration}`);
   endGroup();
   setOutput("merged", merged.toString());
   setOutput("passed", calc.passed);
@@ -19299,6 +19308,7 @@ async function run() {
   setOutput("pass_rate", calc.passRate);
   setOutput("passing", calc.passing);
   setOutput("color", calc.color);
+  setOutput("test_duration", calc.testDuration);
 }
 
 // src/index.ts
