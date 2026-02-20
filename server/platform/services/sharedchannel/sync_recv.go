@@ -263,7 +263,13 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	}
 
 	for _, status := range syncMsg.Statuses {
-		scs.app.SaveAndBroadcastStatus(status)
+		if err := scs.upsertSyncUserStatus(rctx, status, rc); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user status",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", status.UserId),
+				mlog.Err(err))
+			syncResp.StatusErrors = append(syncResp.StatusErrors, status.UserId)
+		}
 	}
 
 	// Process membership changes after users have been synced
@@ -752,6 +758,26 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		retErr = errors.New(appErr.Error())
 	}
 	return savedAcknowledgement, retErr
+}
+
+func (scs *Service) upsertSyncUserStatus(rctx request.CTX, status *model.Status, rc *model.RemoteCluster) error {
+	user, err := scs.server.GetStore().User().Get(rctx.Context(), status.UserId)
+	if err != nil {
+		return fmt.Errorf("error getting user when syncing status: %w", err)
+	}
+
+	if user.GetRemoteID() != rc.RemoteId {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user status",
+			mlog.String("remote", rc.Name),
+			mlog.String("user_id", status.UserId),
+			mlog.String("user_remote_id", user.GetRemoteID()),
+		)
+		return fmt.Errorf("error updating user status: %w", ErrRemoteIDMismatch)
+	}
+
+	scs.app.SaveAndBroadcastStatus(status)
+
+	return nil
 }
 
 // transformMentionsOnReceive transforms mentions in received posts using explicit mentionTransforms.
