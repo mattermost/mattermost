@@ -37,7 +37,7 @@
       description: |
         Checks the syntax and validity of an access control policy expression.
         ##### Permissions
-        Must have `manage_system` permission, OR `manage_channel_access_rules` for the specified channel (via `channelId`), OR `manage_team` for the specified team (via `teamId`, requires `EnableTeamAdminPolicyManagement`). Only one of `channelId` or `teamId` can be provided.
+        Must have the `manage_system` permission.
       operationId: CheckAccessControlPolicyExpression
       requestBody:
         required: true
@@ -49,12 +49,6 @@
                 expression:
                   type: string
                   description: The expression to check.
-                channelId:
-                  type: string
-                  description: The channel ID for channel-specific permission checks. Mutually exclusive with teamId.
-                teamId:
-                  type: string
-                  description: The team ID for team-specific permission checks. Mutually exclusive with channelId.
       responses:
         "200":
           description: Expression check result.
@@ -72,8 +66,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/cel/validate_requester:
     post:
       tags:
@@ -81,9 +73,9 @@
       summary: Validate if the current user matches a CEL expression
       description: |
         Validates whether the current authenticated user matches the given CEL expression.
-        This is used to check self-inclusion before saving a policy.
+        This is used to determine if a channel admin can test expressions they match.
         ##### Permissions
-        Must have `manage_system` permission, OR `manage_channel_access_rules` for the specified channel (via `channelId`), OR `manage_team` for the specified team (via `teamId`, requires `EnableTeamAdminPolicyManagement`). Only one of `channelId` or `teamId` can be provided.
+        Must have `manage_system` permission OR be a channel admin for the specified channel (channelId required for channel admins).
       operationId: ValidateExpressionAgainstRequester
       requestBody:
         required: true
@@ -97,10 +89,7 @@
                   description: The CEL expression to validate against the current user.
                 channelId:
                   type: string
-                  description: The channel ID for channel-specific permission checks. Mutually exclusive with teamId.
-                teamId:
-                  type: string
-                  description: The team ID for team-specific permission checks. Mutually exclusive with channelId.
+                  description: The channel ID for channel-specific permission checks (required for channel admins).
               required:
                 - expression
       responses:
@@ -124,8 +113,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/cel/test:
     post:
       tags:
@@ -134,7 +121,7 @@
       description: |
         Tests an access control policy expression against users to see who would be affected.
         ##### Permissions
-        Must have `manage_system` permission, OR `manage_channel_access_rules` for the specified channel (via `channelId`), OR `manage_team` for the specified team (via `teamId`, requires `EnableTeamAdminPolicyManagement`). Only one of `channelId` or `teamId` can be provided.
+        Must have the `manage_system` permission.
       operationId: TestAccessControlPolicyExpression
       requestBody:
         required: true
@@ -157,8 +144,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/search:
     post:
       tags:
@@ -198,7 +183,7 @@
       description: |
         Provides a list of fields that can be used for autocompletion when creating/editing access control policy expressions.
         ##### Permissions
-        Must have `manage_system` permission, OR `manage_channel_access_rules` for the specified channel (via `channelId`), OR `manage_team` for the specified team (via `teamId`, requires `EnableTeamAdminPolicyManagement`). Only one of `channelId` or `teamId` can be provided.
+        Must have the `manage_system` permission.
       operationId: GetAccessControlPolicyAutocompleteFields
       parameters:
         - name: after
@@ -214,18 +199,6 @@
           schema:
             type: integer
             default: 60
-        - name: channelId
-          in: query
-          description: The channel ID for channel-specific permission checks. Mutually exclusive with teamId.
-          required: false
-          schema:
-            type: string
-        - name: teamId
-          in: query
-          description: The team ID for team-specific permission checks. Mutually exclusive with channelId.
-          required: false
-          schema:
-            type: string
       responses:
         "200":
           description: Autocomplete fields retrieved successfully.
@@ -241,8 +214,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   "/api/v4/access_control_policies/{policy_id}":
     get:
       tags:
@@ -580,7 +551,7 @@
       description: |
         Retrieves the visual AST for a CEL expression.
         ##### Permissions
-        Must have `manage_system` permission, OR `manage_channel_access_rules` for the specified channel (via `channelId`), OR `manage_team` for the specified team (via `teamId`, requires `EnableTeamAdminPolicyManagement`). Only one of `channelId` or `teamId` can be provided.
+        Must have the `manage_system` permission.
       operationId: GetCELVisualAST
       requestBody:
         required: true
@@ -603,8 +574,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/activate:
     put:
       tags:
@@ -629,479 +598,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AccessControlPolicy"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/search":
-    post:
-      tags:
-        - access control
-        - teams
-      summary: Search team access policies
-      description: |
-        Searches for access control policies scoped to the specified team. Only returns policies where all assigned channels belong to this team and the requesting user satisfies the policy rules (self-inclusion filter).
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: SearchTeamAccessPolicies
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AccessControlPolicySearch"
-      responses:
-        "200":
-          description: Search results for team access control policies.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessControlPoliciesWithCount"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies":
-    post:
-      tags:
-        - access control
-        - teams
-      summary: Create a team access policy
-      description: |
-        Creates a new access control policy scoped to the specified team. At least one channel must be provided. All channels must be private, belong to the team, and not be group-synced or shared.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: CreateTeamAccessPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - policy
-                - channel_ids
-              properties:
-                policy:
-                  $ref: "#/components/schemas/AccessControlPolicy"
-                channel_ids:
-                  type: array
-                  items:
-                    type: string
-                  description: The IDs of the private channels to assign the policy to. At least one is required.
-      responses:
-        "201":
-          description: Team access control policy created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessControlPolicy"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/{policy_id}":
-    get:
-      tags:
-        - access control
-        - teams
-      summary: Get a team access policy
-      description: |
-        Gets a specific access control policy by ID, if it is scoped to the specified team. Returns 404 if the policy is system-scoped or belongs to a different team.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: GetTeamAccessPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Team access control policy retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessControlPolicy"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-    put:
-      tags:
-        - access control
-        - teams
-      summary: Update a team access policy
-      description: |
-        Updates an access control policy that is scoped to the specified team. The requesting user must satisfy the policy rules (self-inclusion check).
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: UpdateTeamAccessPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AccessControlPolicy"
-      responses:
-        "200":
-          description: Team access control policy updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessControlPolicy"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-    delete:
-      tags:
-        - access control
-        - teams
-      summary: Delete a team access policy
-      description: |
-        Deletes an access control policy that is scoped to the specified team.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: DeleteTeamAccessPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Team access control policy deleted successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/{policy_id}/assign":
-    post:
-      tags:
-        - access control
-        - teams
-      summary: Assign channels to a team access policy
-      description: |
-        Assigns private channels to a team-scoped access control policy. All channels must be private, belong to the team, and not be group-synced or shared.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: AssignChannelsToTeamPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel_ids
-              properties:
-                channel_ids:
-                  type: array
-                  items:
-                    type: string
-                  description: The IDs of the private channels to assign. At least one is required.
-      responses:
-        "200":
-          description: Channels assigned to team policy successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/{policy_id}/unassign":
-    delete:
-      tags:
-        - access control
-        - teams
-      summary: Unassign channels from a team access policy
-      description: |
-        Unassigns channels from a team-scoped access control policy.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: UnassignChannelsFromTeamPolicy
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channel_ids
-              properties:
-                channel_ids:
-                  type: array
-                  items:
-                    type: string
-                  description: The IDs of the channels to unassign from the policy.
-      responses:
-        "200":
-          description: Channels unassigned from team policy successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/{policy_id}/channels":
-    get:
-      tags:
-        - access control
-        - teams
-      summary: Get channels for a team access policy
-      description: |
-        Retrieves a paginated list of channels assigned to a team-scoped access control policy.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: GetTeamPolicyChannels
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-        - name: policy_id
-          in: path
-          description: Policy GUID
-          required: true
-          schema:
-            type: string
-        - name: after
-          in: query
-          description: The channel ID to start after for pagination.
-          required: false
-          schema:
-            type: string
-        - name: limit
-          in: query
-          description: The maximum number of channels to return (1-200).
-          required: false
-          schema:
-            type: integer
-            default: 60
-      responses:
-        "200":
-          description: Channels retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChannelsWithCount"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/sync":
-    post:
-      tags:
-        - access control
-        - teams
-      summary: Trigger team policy sync
-      description: |
-        Triggers a membership sync job for the specified team's access control policies. The sync evaluates all applicable policies per channel and adjusts membership accordingly.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: TriggerTeamPolicySync
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Sync job created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  "/api/v4/teams/{team_id}/access_policies/sync/status":
-    get:
-      tags:
-        - access control
-        - teams
-      summary: Get team policy sync status
-      description: |
-        Returns the timestamp of the last successful sync for the specified team's access control policies.
-        ##### Permissions
-        Must have `manage_system` permission, OR `manage_team` for the specified team (requires `EnableTeamAdminPolicyManagement`).
-      operationId: GetTeamPolicySyncStatus
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Sync status retrieved successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  last_synced_at:
-                    type: integer
-                    format: int64
-                    description: Unix timestamp (milliseconds) of the last successful sync for this team. 0 if no sync has completed.
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
