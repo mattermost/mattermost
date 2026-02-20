@@ -108,7 +108,7 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
 });
 ChannelMentionSuggestion.displayName = 'ChannelMentionSuggestion';
 
-function getChannelMentionTerm(channel: Channel, useSecureURLs: boolean): string {
+function getChannelMentionTerm(channel: Channel, useSecureURLs = false): string {
     if (useSecureURLs && hasObfuscatedSlug(channel)) {
         return '~' + cleanUpUrlable(channel.display_name);
     }
@@ -224,8 +224,8 @@ export default class ChannelMentionProvider extends Provider {
         });
         resultCallback({
             groups: [
-                myChannelsGroup(myChannels, useSecureURLs),
-                moreChannelsGroup([], true, useSecureURLs),
+                myChannelsGroup(myChannels),
+                moreChannelsGroup([], true),
             ],
             matchedPretext: captured[1],
         });
@@ -275,12 +275,11 @@ export default class ChannelMentionProvider extends Provider {
                 return sortChannelsByTypeAndDisplayName('en', a, b);
             });
 
-            console.log({captured: captured[1]});
             resultCallback({
                 matchedPretext: captured[1],
                 groups: [
-                    myChannelsGroup(myChannels, useSecureURLs),
-                    moreChannelsGroup(moreChannels, false, useSecureURLs),
+                    myChannelsGroup(myChannels),
+                    moreChannelsGroup(moreChannels, false),
                 ],
             });
         };
@@ -300,8 +299,8 @@ export default class ChannelMentionProvider extends Provider {
     }
 }
 
-export function myChannelsGroup(items: Channel[], useSecureURLs = false) {
-    const terms = items.map((channel) => getChannelMentionTerm(channel, useSecureURLs));
+export function myChannelsGroup(items: Channel[]) {
+    const terms = items.map((channel) => getChannelMentionTerm(channel));
 
     return {
         key: 'myChannels',
@@ -312,7 +311,7 @@ export function myChannelsGroup(items: Channel[], useSecureURLs = false) {
     };
 }
 
-export function moreChannelsGroup(items: Channel[], loading: boolean, useSecureURLs = false) {
+export function moreChannelsGroup(items: Channel[], loading: boolean) {
     const label = defineMessage({id: 'suggestion.mention.morechannels', defaultMessage: 'Other Channels'});
 
     if (loading) {
@@ -327,7 +326,7 @@ export function moreChannelsGroup(items: Channel[], loading: boolean, useSecureU
         };
     }
 
-    const terms = items.map((channel) => getChannelMentionTerm(channel, useSecureURLs));
+    const terms = items.map((channel) => getChannelMentionTerm(channel));
 
     return {
         key: 'moreChannels',
