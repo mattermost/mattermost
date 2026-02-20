@@ -2482,7 +2482,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was deleted and status updated
@@ -2523,7 +2523,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated
@@ -2562,7 +2562,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 			deletedPost, appErr = th.App.GetSinglePost(th.Context, post.Id, true)
 			require.Nil(t, appErr)
 			require.True(t, deletedPost.DeleteAt > 0)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2845,7 +2845,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was retained
@@ -2892,7 +2892,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated to retained
