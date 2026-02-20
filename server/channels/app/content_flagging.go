@@ -89,10 +89,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return appErr
 	}
 
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	reportingUser, appErr := a.GetUser(reportingUserId)
 	if appErr != nil {
@@ -232,19 +229,17 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(post *model.Post, con
 	return nil
 }
 
-func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
-	group, err := a.Srv().propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
+func (a *App) ContentFlaggingGroupId() string {
+	group, err := a.Srv().propertyAccessService.Group(model.ContentFlaggingGroupName)
 	if err != nil {
-		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, "", http.StatusInternalServerError)
+		panic("cannot retrieve content flagging property group ID")
 	}
-	return group.ID, nil
+
+	return group.ID
 }
 
 func (a *App) GetPostContentFlaggingPropertyValue(postId, propertyFieldName string) (*model.PropertyValue, *model.AppError) {
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return nil, appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	statusPropertyField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, groupId, "", propertyFieldName)
 	if err != nil {
@@ -523,10 +518,7 @@ func (a *App) IsUserTeamContentReviewer(userId, teamId string) (bool, *model.App
 }
 
 func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.PropertyValue, *model.AppError) {
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return nil, appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	propertyValues, err := a.PropertyAccessService().SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
 	if err != nil {
@@ -570,10 +562,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return appErr
 	}
 
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {
@@ -712,10 +701,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {
@@ -974,10 +960,7 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 
 	status := strings.Trim(string(statusPropertyValue.Value), `"`)
 
-	groupId, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return appErr
-	}
+	groupId := a.ContentFlaggingGroupId()
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {

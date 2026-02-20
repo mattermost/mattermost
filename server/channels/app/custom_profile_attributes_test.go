@@ -18,8 +18,7 @@ func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
 		field, appErr := th.App.GetCPAField(anonymousCallerId, model.NewId())
@@ -158,8 +157,7 @@ func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := model.PropertyField{
@@ -288,8 +286,7 @@ func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{Name: model.NewId()})
@@ -420,8 +417,7 @@ func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaID,
@@ -676,8 +672,7 @@ func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaID,
@@ -756,8 +751,7 @@ func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	field := &model.PropertyField{
 		GroupID: cpaID,
@@ -841,8 +835,7 @@ func TestListCPAValues(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	userID := model.NewId()
 
@@ -896,8 +889,7 @@ func TestPatchCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
@@ -1022,8 +1014,7 @@ func TestDeleteCPAValues(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
 
-	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	cpaID := th.App.CpaGroupID()
 
 	userID := model.NewId()
 	otherUserID := model.NewId()

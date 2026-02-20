@@ -231,11 +231,7 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	groupId, appErr := c.App.ContentFlaggingGroupId()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
+	groupId := c.App.ContentFlaggingGroupId()
 
 	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {

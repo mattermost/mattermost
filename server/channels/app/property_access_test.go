@@ -18,9 +18,9 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
+
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -371,9 +371,9 @@ func TestGetPropertyFieldsReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
+
 
 	pluginID := "plugin-1"
 	userID := model.NewId()
@@ -474,9 +474,9 @@ func TestSearchPropertyFieldsReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
+
 
 	pluginID := "plugin-1"
 	userID := model.NewId()
@@ -581,9 +581,9 @@ func TestGetPropertyFieldByNameReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
+
 
 	pluginID := "plugin-1"
 	userID := model.NewId()
@@ -626,11 +626,9 @@ func TestCreatePropertyField_SourcePluginIDValidation(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows field creation without source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -778,11 +776,9 @@ func TestCreatePropertyFieldForPlugin(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("automatically sets source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -858,11 +854,9 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows update of unprotected field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -1039,11 +1033,9 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows bulk update of unprotected fields", func(t *testing.T) {
 		field1 := &model.PropertyField{GroupID: groupID, Name: "Field1", Type: model.PropertyFieldTypeText}
@@ -1137,11 +1129,9 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows deletion of unprotected field", func(t *testing.T) {
 		field := &model.PropertyField{GroupID: groupID, Name: "Unprotected", Type: model.PropertyFieldTypeText}
@@ -1219,11 +1209,9 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows creating value for public field", func(t *testing.T) {
 		field := &model.PropertyField{GroupID: groupID, Name: "Public", Type: model.PropertyFieldTypeText}
@@ -1334,11 +1322,9 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows deleting value for public field", func(t *testing.T) {
 		field := &model.PropertyField{GroupID: groupID, Name: "Public", Type: model.PropertyFieldTypeText}
@@ -1394,11 +1380,9 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
-
-	groupID := cpaGroupID
+	groupID := group.ID
 
 	t.Run("allows deleting all values when caller has write access to all fields", func(t *testing.T) {
 		field1 := &model.PropertyField{GroupID: groupID, Name: "Field1", Type: model.PropertyFieldTypeText}
@@ -1470,9 +1454,9 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, rerr := pas.RegisterPropertyGroup("cpa")
+	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
-	cpaGroupID = group.ID
+
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -1857,9 +1841,9 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, rerr := pas.RegisterPropertyGroup("cpa")
+	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
-	cpaGroupID = group.ID
+
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -1943,9 +1927,9 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, rerr := pas.RegisterPropertyGroup("cpa")
+	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
-	cpaGroupID = group.ID
+
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -2089,9 +2073,9 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
-	group, err := pas.RegisterPropertyGroup("cpa")
+	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-	cpaGroupID = group.ID
+
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -2616,8 +2600,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 	th := Setup(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	groupID := th.App.CpaGroupID()
 	pas := th.App.PropertyAccessService()
 
 	t.Run("allows deletion of orphaned protected field when plugin is uninstalled", func(t *testing.T) {

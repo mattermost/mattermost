@@ -193,11 +193,7 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupID, err := c.App.CpaGroupID()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
+	groupID := c.App.CpaGroupID()
 
 	if err := json.NewEncoder(w).Encode(map[string]string{"id": groupID}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

@@ -436,8 +436,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin-created CPA field gets source_plugin_id", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -498,8 +497,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can update its own protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -560,8 +558,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot update another plugin's protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -658,8 +655,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -715,8 +711,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot delete another plugin's protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -811,8 +806,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -888,8 +882,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot update values for another plugin's protected field", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		testTargetID := model.NewId()
 
@@ -1008,8 +1001,7 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
-		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		cpaID := th.App.CpaGroupID()
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
