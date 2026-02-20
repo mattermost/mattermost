@@ -21,6 +21,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
+import {isMessageDescriptor} from 'utils/i18n';
 
 import LDAPBooleanSetting from './ldap_boolean_setting';
 import LDAPButtonSetting from './ldap_button_setting';
@@ -592,20 +593,23 @@ const LDAPWizard = (props: Props) => {
                         defaultMessage='Sections'
                     />
                 </div>
-                {memoizedSections.map((section) => (
-                    <button
-                        key={section.key + '-sidebar-item'}
-                        className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
-                        onClick={() => {
-                            const sectionElement = sectionRefs.current[section.key];
-                            if (sectionElement) {
-                                sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
-                            }
-                        }}
-                    >
-                        {section.sectionTitle || section.title}
-                    </button>
-                ))}
+                {memoizedSections.map((section) => {
+                    const title = section.sectionTitle || section.title;
+                    return (
+                        <button
+                            key={section.key + '-sidebar-item'}
+                            className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                            onClick={() => {
+                                const sectionElement = sectionRefs.current[section.key];
+                                if (sectionElement) {
+                                    sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                }
+                            }}
+                        >
+                            {isMessageDescriptor(title) ? <FormattedMessage {...title}/> : title}
+                        </button>
+                    );
+                })}
             </div>
         );
     };
