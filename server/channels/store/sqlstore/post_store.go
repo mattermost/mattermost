@@ -2190,7 +2190,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
-	} else if s.getFeatureFlags().CJKSearch && (containsCJK(terms) || containsCJK(excludedTerms)) {
+	} else if s.getFeatureFlags().CJKSearch && (model.ContainsCJK(terms) || model.ContainsCJK(excludedTerms)) {
 		// CJK characters are not supported by PostgreSQL's to_tsvector/to_tsquery
 		// with the default English text search config. Fall back to LIKE matching.
 		//
