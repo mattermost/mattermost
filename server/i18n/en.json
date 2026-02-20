@@ -8461,44 +8461,20 @@
     "translation": "Unable to create the view."
   },
   {
-    "id": "app.view.create.no_permission.app_error",
-    "translation": "You do not have permission to create a view in this channel."
-  },
-  {
-    "id": "app.view.default_subview.title",
-    "translation": "Board"
-  },
-  {
     "id": "app.view.delete.app_error",
     "translation": "Unable to delete the view."
-  },
-  {
-    "id": "app.view.delete.no_permission.app_error",
-    "translation": "You do not have permission to delete this view."
   },
   {
     "id": "app.view.get.app_error",
     "translation": "Unable to get the view."
   },
   {
-    "id": "app.view.get.no_permission.app_error",
-    "translation": "You do not have permission to access this view."
-  },
-  {
     "id": "app.view.get_for_channel.app_error",
     "translation": "Unable to get views for this channel."
   },
   {
-    "id": "app.view.get_for_channel.no_permission.app_error",
-    "translation": "You do not have permission to access views in this channel."
-  },
-  {
     "id": "app.view.update.app_error",
     "translation": "Unable to update the view."
-  },
-  {
-    "id": "app.view.update.no_permission.app_error",
-    "translation": "You do not have permission to update this view."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -8643,10 +8619,6 @@
   {
     "id": "ent.autotranslation.add_task.nil_task",
     "translation": "Translation task cannot be null."
-  },
-  {
-    "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": "Translation task cannot be added because the worker has been stopped."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
@@ -11723,6 +11695,14 @@
   {
     "id": "model.view.is_valid.id.app_error",
     "translation": "Invalid view ID."
+  },
+  {
+    "id": "model.view.is_valid.props.linked_properties.app_error",
+    "translation": "Board view must have at least one linked property."
+  },
+  {
+    "id": "model.view.is_valid.props.subviews.app_error",
+    "translation": "Board view must have at least one subview."
   },
   {
     "id": "model.view.is_valid.title.app_error",
