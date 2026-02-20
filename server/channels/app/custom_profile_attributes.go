@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sort"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -17,11 +18,19 @@ const (
 	CustomProfileAttributesFieldLimit = 20
 )
 
-var cpaGroupID string
+var (
+	cpaGroupIDMu sync.Mutex
+	cpaGroupID   string
+)
 
 // ToDo: we should explore moving this to the database cache layer
 // instead of maintaining the ID cached at the application level
+//
+// CpaGroupID returns the group ID for custom profile attributes, registering it if necessary.
+// Only caches on success so transient failures can be retried on the next call.
 func (a *App) CpaGroupID() (string, error) {
+	cpaGroupIDMu.Lock()
+	defer cpaGroupIDMu.Unlock()
 	if cpaGroupID != "" {
 		return cpaGroupID, nil
 	}

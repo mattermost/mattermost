@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"sort"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,10 +17,16 @@ const (
 	BoardAttributesFieldLimit = 20
 )
 
-var boardAttributesGroupID string
+var (
+	boardAttributesGroupIDMu sync.Mutex
+	boardAttributesGroupID   string
+)
 
 // BoardAttributesGroupID returns the group ID for board attributes, registering it if necessary.
+// Only caches on success so transient failures can be retried on the next call.
 func (a *App) BoardAttributesGroupID() (string, error) {
+	boardAttributesGroupIDMu.Lock()
+	defer boardAttributesGroupIDMu.Unlock()
 	if boardAttributesGroupID != "" {
 		return boardAttributesGroupID, nil
 	}
