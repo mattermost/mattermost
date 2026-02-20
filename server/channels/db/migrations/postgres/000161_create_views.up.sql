@@ -1,4 +1,3 @@
--- morph:nontransactional
 CREATE TABLE IF NOT EXISTS Views (
     Id          VARCHAR(26)  PRIMARY KEY,
     ChannelId   VARCHAR(26)  NOT NULL,
@@ -13,7 +12,3 @@ CREATE TABLE IF NOT EXISTS Views (
     UpdateAt    BIGINT       NOT NULL,
     DeleteAt    BIGINT       NOT NULL DEFAULT 0
 );
-
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_views_channel_id ON Views(ChannelId);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_views_channel_id_delete_at ON Views(ChannelId, DeleteAt);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_views_creator_id ON Views(CreatorId);
