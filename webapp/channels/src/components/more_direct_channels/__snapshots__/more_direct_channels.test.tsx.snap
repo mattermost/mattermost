@@ -193,9 +193,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                       class="multi-select__help"
                       id="multiSelectMessageNote"
                     />
-                    <div
-                      class="filter-controls"
-                    />
                   </div>
                 </div>
               </div>
@@ -447,9 +444,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                     <div
                       class="multi-select__help"
                       id="multiSelectMessageNote"
-                    />
-                    <div
-                      class="filter-controls"
                     />
                   </div>
                 </div>

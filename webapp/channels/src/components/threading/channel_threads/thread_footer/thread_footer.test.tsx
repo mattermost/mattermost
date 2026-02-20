@@ -231,7 +231,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
             {useMockedStore: true},
         );
         await userEvent.click(container.querySelector('button.separated')!);
-        expect(store.getActions()).toEqual([
+        expect((store as any).getActions()).toEqual([
             {
                 type: 'SELECT_POST',
                 channelId: 'cid',
@@ -257,7 +257,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
 
         const buttons = container.querySelectorAll('button.separated');
         await userEvent.click(buttons[buttons.length - 1]);
-        expect(store.getActions()).toEqual(
+        expect((store as any).getActions()).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     type: 'FOLLOW_CHANGED_THREAD',
@@ -285,7 +285,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
 
         const buttons = container.querySelectorAll('button.separated');
         await userEvent.click(buttons[buttons.length - 1]);
-        expect(store.getActions()).toEqual(
+        expect((store as any).getActions()).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     type: 'FOLLOW_CHANGED_THREAD',
