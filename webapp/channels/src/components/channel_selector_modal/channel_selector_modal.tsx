@@ -34,6 +34,7 @@ type Props = {
     excludeGroupConstrained?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
+    customNoOptionsMessage?: React.ReactNode;
 }
 
 type State = {
@@ -232,6 +233,13 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
 
+        // Only show custom message when there are no options and user hasn't started searching
+        // If user is searching (searchTerm exists), show the default "No results found matching..." message
+        let customNoOptionsMessage;
+        if (this.props.customNoOptionsMessage && !this.props.searchTerm) {
+            customNoOptionsMessage = this.props.customNoOptionsMessage;
+        }
+
         return (
             <Modal
                 dialogClassName={'a11y__modal more-modal more-direct-channels channel-selector-modal'}
@@ -275,6 +283,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         saving={false}
                         loading={this.state.loadingChannels}
                         placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
+                        customNoOptionsMessage={customNoOptionsMessage}
                     />
                 </Modal.Body>
             </Modal>

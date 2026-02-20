@@ -62,3 +62,19 @@ export {
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';
+
+// ABAC (Attribute-Based Access Control) helpers
+export {
+    createUserWithAttributes,
+    enableABAC,
+    disableABAC,
+    navigateToABACPage,
+    createBasicPolicy,
+    createAdvancedPolicy,
+    editPolicy,
+    deletePolicy,
+    runSyncJob,
+    verifyUserInChannel,
+    verifyUserNotInChannel,
+    updateUserAttributes,
+} from './server';

@@ -11,7 +11,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
-import {getDirectTeammate, getMyChannelAutotranslation} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
@@ -85,7 +85,7 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps, locale: strin
         consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
     }
 
-    if (previousPost && post && consecutivePost && getMyChannelAutotranslation(state, post.channel_id)) {
+    if (previousPost && post && consecutivePost && isMyChannelAutotranslated(state, post.channel_id)) {
         const translation = getPostTranslation(post, locale);
         const previousTranslation = getPostTranslation(previousPost, locale);
         if (translation?.state !== previousTranslation?.state) {
