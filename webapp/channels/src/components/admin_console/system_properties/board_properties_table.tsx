@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
@@ -17,7 +18,7 @@ const ValidationWarningNameUnique = 'name_unique';
 const ValidationWarningNameTaken = 'name_taken';
 
 const boardPropertiesTableConfig: AttributesTableConfig<PropertyField> = {
-    labels: {
+    labels: defineMessages({
         attribute: {
             id: 'admin.system_properties.board_properties.table.property',
             defaultMessage: 'Attribute',
@@ -54,7 +55,7 @@ const boardPropertiesTableConfig: AttributesTableConfig<PropertyField> = {
             id: 'admin.system_properties.board_properties.table.property_name.input.name',
             defaultMessage: 'Attribute Name',
         },
-    },
+    }),
     validationWarnings: {
         nameRequired: ValidationWarningNameRequired,
         nameUnique: ValidationWarningNameUnique,
