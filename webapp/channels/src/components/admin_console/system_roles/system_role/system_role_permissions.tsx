@@ -249,7 +249,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                     <p>
                         <FormattedMessage
                             id='admin.permissions.roles.shared_channel_manager.introduction'
-                            defaultMessage='The built-in Shared Channel Manager role can be used to delegate the ability to share and unshare channels with existing secure connections to users other than the System Admin.'
+                            defaultMessage='The built-in Shared Channel Manager role can be used to delegate the ability to share and unshare channels with existing connections to remote servers to users other than the System Admin.'
                         />
                     </p>
                     <p>

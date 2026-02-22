@@ -81,7 +81,7 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
         },
         description: {
             id: 'admin.permissions.roles.shared_channel_manager.description',
-            defaultMessage: 'Can share and unshare channels with remote connections.',
+            defaultMessage: 'Can share and unshare channels with existing connections to remote servers.',
         },
         type: {
             id: 'admin.permissions.roles.shared_channel_manager.type',
