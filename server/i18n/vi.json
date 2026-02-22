@@ -5786,10 +5786,6 @@
     "translation": "Một hoặc nhiều quyền sau đây mà bạn đang cố gắng thêm hoặc xóa không được phép"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Máy chủ CWS không khả dụng."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
   },

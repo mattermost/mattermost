@@ -86,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.3 server
+// Based on v11.4 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -111,6 +111,7 @@ const defaultServerConfig: AdminConfig = {
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
         EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -627,6 +628,7 @@ const defaultServerConfig: AdminConfig = {
         Password: 'changeme',
         EnableIndexing: false,
         EnableSearching: false,
+        EnableCJKAnalyzers: false,
         EnableAutocomplete: false,
         Sniff: true,
         PostIndexReplicas: 1,
@@ -808,7 +810,6 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: true,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
@@ -844,13 +845,13 @@ const defaultServerConfig: AdminConfig = {
     AutoTranslationSettings: {
         Enable: false,
         Provider: '',
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
         LibreTranslate: {
             URL: '',
             APIKey: '',
         },
-        TargetLanguages: ['en'],
-        Workers: 4,
-        TimeoutMs: 5000,
         Agents: {
             LLMServiceID: '',
         },

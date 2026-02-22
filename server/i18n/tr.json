@@ -8562,10 +8562,6 @@
     "translation": "{{.Backend}} için CA dosyası açılamadı"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Müşteri site sunucusu kullanılamıyor."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },
@@ -10922,10 +10918,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "İleti işaretlenmediği için işaretlenmiş ileti alınamadı."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken temizlenen iletinin üzerine yazılamadı."
   },
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",

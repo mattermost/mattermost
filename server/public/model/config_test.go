@@ -1583,6 +1583,7 @@ func TestConfigSanitize(t *testing.T) {
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
 	*c.OpenIdSettings.Secret = "secret"
+	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
@@ -1599,6 +1600,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
+	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
@@ -1787,6 +1789,91 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 				pluginID2: {
 					"somesetting": 456,
+				},
+			},
+		},
+		"secret settings in sections are sanitized": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+						},
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
+				},
+			},
+		},
+		"secret settings across multiple sections": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "somesetting",
+										Type:   "text",
+										Secret: false,
+									},
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+								},
+							},
+							{
+								Key: "section2",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
@@ -2048,6 +2135,40 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
+	})
+
+	t.Run("DCR redirect URI allowlist validation", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+
+		// Valid allowlist
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/**", "https://*.test.com/callback", "http://localhost:*"}
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		// Empty/whitespace entry rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Non-http(s) scheme rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed pattern (too short) rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed wildcard expression rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/***"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 	})
 }
 

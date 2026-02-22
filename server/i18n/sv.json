@@ -8562,10 +8562,6 @@
     "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server är inte tillgänglig."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -10950,10 +10946,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Misslyckades med att skriva över inlägg med rensat inlägg när flaggat inlägg raderades permanent."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",

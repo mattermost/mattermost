@@ -7760,10 +7760,6 @@
     "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty systémovým administrátorem."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server není k dispozici."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Účty návštěvníků jsou zakázané"
   },
@@ -10862,5 +10858,77 @@
   {
     "id": "api.encoding_error",
     "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "ID kanálu neodpovídá ID kanálu nahlášeného příspěvku."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Nelze přidat oprávnění, které je omezeno týmovým nebo systémovým schématem oprávnění."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Nemáte oprávnění k přesunutí příkazu"
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Označení příspěvku typu „{{.PostType}}“ není povoleno."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Uživatel není kontrolorem obsahu."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Bylo zadáno neodpovídající ID označeného příspěvku."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Nepodařilo se získat informace o souboru."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "Pro veřejné klienty OAuth používající autorizační tok s autorizačním kódem je vyžadováno PKCE (Proof Key for Code Exchange)."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Poskytovatel služby OAuth je zakázán."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Neplatná konfigurace URL pro metadata autorizačního serveru."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Pro poskytování metadat autorizačního serveru musí být nakonfigurována adresa URL webu."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Neshoda parametru resource mezi autorizačním požadavkem a požadavkem na token."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Pro veřejné klienty OAuth nelze znovu vygenerovat tajný klíč."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Nemáte oprávnění aktivovat zprávu s automatickým smazáním. Musíte být členem kanálu."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Při vytváření zprávy se sebesmazáním došlo k chybě."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Zprávy se sebesmázáním nejsou povoleny. Povolte příslušný feature flag a nastavení služby."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Zprávy se sebesmazáním vyžadují licenci Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Uživatel generovaný AI musí být buď autorem příspěvku, nebo botem."
   }
 ]
