@@ -308,7 +308,7 @@ func TestAddAncillaryPermissions(t *testing.T) {
 	}
 }
 
-func TestMakeDefaultRolesContainsSharedChannelRoles(t *testing.T) {
+func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 	roles := MakeDefaultRoles()
 
 	t.Run("shared_channel_manager role exists with correct permissions", func(t *testing.T) {
