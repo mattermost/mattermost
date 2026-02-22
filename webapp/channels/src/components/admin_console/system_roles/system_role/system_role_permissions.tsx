@@ -255,7 +255,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                     <p>
                         <FormattedMessage
                             id='admin.permissions.roles.shared_channel_manager.permissions_info'
-                            defaultMessage='This role has the <b>manage_shared_channels</b> permission, which allows sharing and unsharing channels over existing secure connections.'
+                            defaultMessage='This role has the <b>manage_shared_channels</b> permission, which allows sharing and unsharing channels with existing connections to remote servers.'
                             values={{
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
@@ -277,7 +277,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                     <p>
                         <FormattedMessage
                             id='admin.permissions.roles.secure_connection_manager.permissions_info'
-                            defaultMessage='This role has the <b>manage_secure_connections</b> permission, which allows creating, editing, and deleting secure connections and inviting or uninviting remote servers to channels.'
+                            defaultMessage='This role has the <b>manage_secure_connections</b> permission, which allows creating, editing, and deleting secure connections to remote servers.'
                             values={{
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
