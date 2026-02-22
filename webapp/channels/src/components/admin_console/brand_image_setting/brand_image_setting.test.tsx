@@ -83,7 +83,9 @@ describe('components/admin_console/brand_image_setting', () => {
     test('should call setSaveNeeded when the delete button is pressed', async () => {
         renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await waitFor(() => userEvent.click(screen.getByTestId(deleteButtonTestId)));
+        const deleteButton = await screen.findByTestId(deleteButtonTestId);
+
+        await userEvent.click(deleteButton);
         await waitFor(() => expect(scope.isDone()).toBe(true));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
