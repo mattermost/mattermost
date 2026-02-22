@@ -152,7 +152,6 @@
     "jest-canvas-mock": "2.5.0",
     "jest-cli": "30.1.3",
     "jest-environment-jsdom": "30.1.0",
-    "jest-junit": "16.0.0",
     "jest-watch-typeahead": "3.0.1",
     "nock": "13.2.8",
     "node-fetch": "2.7.0",
