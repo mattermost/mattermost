@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {screen, renderWithContext, userEvent, cleanup, waitFor} from 'tests/react_testing_utils';
+import {screen, renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 
@@ -21,6 +22,16 @@ describe('components/admin_console/brand_image_setting', () => {
 
     const deleteButtonTestId = 'remove-image__btn';
 
+    let scope: nock.Scope;
+
+    beforeAll(() => {
+        scope = nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
+    });
+
+    afterAll(() => {
+        nock.cleanAll();
+    });
+
     /**
      * The previous test directly called 'handleSave' to test the 'deleteBrandImage' and 'uploadBrandImage' functions.
      *
@@ -34,34 +45,29 @@ describe('components/admin_console/brand_image_setting', () => {
      */
 
     test('should register and unregister save handler when mounted and unmounted respectively', () => {
-        renderWithContext(<BrandImageSetting {...baseProps}/>);
+        const {unmount} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
         expect(baseProps.registerSaveAction).toHaveBeenCalledTimes(1);
 
-        cleanup();
+        unmount();
 
         expect(baseProps.unRegisterSaveAction).toHaveBeenCalledTimes(1);
     });
 
     test('should show delete button if brand image exists', async () => {
-        /**
-         * The casts at the end exists to prevent you from having to provide a value for every property in the
-         * 'Promise<Response>' object thus preventing a TypeScript error.
-         */
-        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await waitFor(() => renderWithContext(<BrandImageSetting {...baseProps}/>));
+        await waitFor(() => expect(scope.isDone()).toBe(true));
 
-        expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
     });
 
     test('should hide delete button if the setting is disabled', async () => {
-        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
-
         const props = {...baseProps, disabled: true};
 
-        await waitFor(() => renderWithContext(<BrandImageSetting {...props}/>));
+        renderWithContext(<BrandImageSetting {...props}/>);
+
+        await waitFor(() => expect(scope.isDone()).toBe(true));
 
         expect(screen.queryByTestId(deleteButtonTestId)).toBe(null);
     });
@@ -75,11 +81,10 @@ describe('components/admin_console/brand_image_setting', () => {
     });
 
     test('should call setSaveNeeded when the delete button is pressed', async () => {
-        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await waitFor(() => renderWithContext(<BrandImageSetting {...baseProps}/>));
-
-        await userEvent.click(screen.getByTestId(deleteButtonTestId));
+        await waitFor(() => userEvent.click(screen.getByTestId(deleteButtonTestId)));
+        await waitFor(() => expect(scope.isDone()).toBe(true));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
