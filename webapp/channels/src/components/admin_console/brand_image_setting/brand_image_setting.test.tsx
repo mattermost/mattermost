@@ -6,7 +6,7 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {screen, renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 
@@ -55,33 +55,33 @@ describe('components/admin_console/brand_image_setting', () => {
     });
 
     test('should show delete button if brand image exists', async () => {
-        renderWithContext(<BrandImageSetting {...baseProps}/>);
+        const {getByTestId} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
         await waitFor(() => expect(scope.isDone()).toBe(true));
 
-        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+        expect(getByTestId(deleteButtonTestId)).toBeVisible();
     });
 
     test('should hide delete button if the setting is disabled', async () => {
         const props = {...baseProps, disabled: true};
 
-        renderWithContext(<BrandImageSetting {...props}/>);
+        const {queryByTestId} = renderWithContext(<BrandImageSetting {...props}/>);
 
-        await waitFor(() => expect(screen.queryByTestId(deleteButtonTestId)).toBe(null));
+        await waitFor(() => expect(queryByTestId(deleteButtonTestId)).toBe(null));
     });
 
     test('should call setSaveNeeded when a brand image is uploaded', async () => {
-        renderWithContext(<BrandImageSetting {...baseProps}/>);
+        const {getByTestId} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
+        await userEvent.upload(getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
 
     test('should call setSaveNeeded when the delete button is pressed', async () => {
-        renderWithContext(<BrandImageSetting {...baseProps}/>);
+        const {findByTestId} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        const deleteButton = await screen.findByTestId(deleteButtonTestId);
+        const deleteButton = await findByTestId(deleteButtonTestId);
 
         await userEvent.click(deleteButton);
 
