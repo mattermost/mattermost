@@ -376,7 +376,7 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
             // Convert real channel name mentions to display slugs for readable editing
             let editablePost = post;
 
-            if (config.UseSecureChannelURLs === 'true') {
+            if (config.UseSecureURLs === 'true') {
                 const allChannelsList = Object.values(getMyChannels(state));
 
                 // Fetch any obfuscated channel mentions not yet in the store

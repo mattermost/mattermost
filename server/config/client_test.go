@@ -151,16 +151,16 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"enable UseSecureChannelURLs prop",
+			"enable UseSecureURLs prop",
 			&model.Config{
 				PrivacySettings: model.PrivacySettings{
-					UseSecureChannelURLs: model.NewPointer(false),
+					UseSecureURLs: model.NewPointer(false),
 				},
 			},
 			"tag1",
 			nil,
 			map[string]string{
-				"UseSecureChannelURLs": "false",
+				"UseSecureURLs": "false",
 			},
 		},
 		{

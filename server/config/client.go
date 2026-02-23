@@ -72,7 +72,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["ShowEmailAddress"] = strconv.FormatBool(*c.PrivacySettings.ShowEmailAddress)
 	props["ShowFullName"] = strconv.FormatBool(*c.PrivacySettings.ShowFullName)
-	props["UseSecureChannelURLs"] = strconv.FormatBool(*c.PrivacySettings.UseSecureChannelURLs)
+	props["UseSecureURLs"] = strconv.FormatBool(*c.PrivacySettings.UseSecureURLs)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)

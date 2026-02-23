@@ -28,7 +28,7 @@ export function editPost(post) {
         let resolvedPost = post;
 
         const config = getConfig(state);
-        if (config.UseSecureChannelURLs === 'true') {
+        if (config.UseSecureURLs === 'true') {
             const allChannelsList = Object.values(getAllChannels(state));
             resolvedPost = {
                 ...post,

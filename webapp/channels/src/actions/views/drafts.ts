@@ -114,7 +114,7 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             let serverDraft = updatedValue;
 
             const config = getConfig(state);
-            if (config.UseSecureChannelURLs === 'true') {
+            if (config.UseSecureURLs === 'true') {
                 const allChannelsList = Object.values(getAllChannels(state));
                 serverDraft = {
                     ...updatedValue,

@@ -73,7 +73,7 @@ export function submitPost(
 
         // Resolve display-name channel mentions back to real slugs when secure URLs are enabled
         const config = getConfig(state);
-        if (config.UseSecureChannelURLs === 'true') {
+        if (config.UseSecureURLs === 'true') {
             const allChannelsList = Object.values(getAllChannels(state));
             post.message = resolveDisplayMentionsToSlugs(post.message, allChannelsList);
         }
