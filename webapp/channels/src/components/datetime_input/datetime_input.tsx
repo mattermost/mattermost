@@ -113,6 +113,8 @@ type TimeInputManualProps = {
     timezone?: string;
     isMilitaryTime: boolean;
     onTimeChange: (time: Moment) => void;
+    minDateTime?: Moment;
+    maxDateTime?: Moment;
 }
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
@@ -120,6 +122,8 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     timezone,
     isMilitaryTime,
     onTimeChange,
+    minDateTime,
+    maxDateTime,
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
@@ -173,10 +177,17 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             targetMoment = baseMoment;
         }
 
+        if (minDateTime && targetMoment.isBefore(minDateTime, 'minute')) {
+            targetMoment = minDateTime.clone();
+        }
+        if (maxDateTime && targetMoment.isAfter(maxDateTime, 'minute')) {
+            targetMoment = maxDateTime.clone();
+        }
+
         // Valid time - update (no auto-advance, no exclusion checking)
         onTimeChange(targetMoment);
         setTimeInputError(false);
-    }, [timeInputValue, time, timezone, onTimeChange]);
+    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
@@ -446,6 +457,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
                         onTimeChange={handleTimeChange}
+                        minDateTime={minDateTime}
+                        maxDateTime={maxDateTime}
                     />
                 ) : (
                     <Menu.Container
