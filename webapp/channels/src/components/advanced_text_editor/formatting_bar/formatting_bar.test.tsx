@@ -98,4 +98,78 @@ describe('FormattingBar', () => {
         const tooltipWrapper = container.querySelector('.tooltipContainer');
         expect(tooltipWrapper).toBeNull(); // Tooltip should not be visible when controls are shown
     });
+
+    describe('with additional controls', () => {
+        test('should have fewer visible controls when additional controls are present', () => {
+            // Mock narrow mode without additional controls (shows 3 icons normally)
+            const mockWithoutAdditional = jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({
+                wideMode: 'narrow',
+                ...splitFormattingBarControls('narrow', 0),
+            });
+
+            const {rerender} = renderWithContext(<FormattingBar {...baseProps}/>);
+
+            // Should show bold, italic, strike (3 icons)
+            expect(screen.getByLabelText('bold')).toBeInTheDocument();
+            expect(screen.getByLabelText('italic')).toBeInTheDocument();
+            expect(screen.getByLabelText('strike through')).toBeInTheDocument();
+
+            mockWithoutAdditional.mockRestore();
+
+            // Mock narrow mode WITH 2 additional controls (shows only 1 icon)
+            jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({
+                wideMode: 'narrow',
+                ...splitFormattingBarControls('narrow', 2),
+            });
+
+            const mockControl1 = <button key='priority-control'>{'Priority'}</button>;
+            const mockControl2 = <button key='bor-control'>{'Burn-on-Read'}</button>;
+
+            rerender(
+                <FormattingBar
+                    {...baseProps}
+                    additionalControls={[mockControl1, mockControl2]}
+                />,
+            );
+
+            // Should now show only bold (1 icon)
+            expect(screen.getByLabelText('bold')).toBeInTheDocument();
+            expect(screen.queryByLabelText('italic')).not.toBeInTheDocument();
+        });
+
+        test('should show only bold icon in narrow mode with 2+ additional controls', () => {
+            jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow', 2)});
+
+            const mockControl1 = <button key='priority-control'>{'Priority'}</button>;
+            const mockControl2 = <button key='bor-control'>{'Burn-on-Read'}</button>;
+
+            renderWithContext(
+                <FormattingBar
+                    {...baseProps}
+                    additionalControls={[mockControl1, mockControl2]}
+                />,
+            );
+
+            expect(screen.getByLabelText('bold')).toBeInTheDocument();
+            expect(screen.queryByLabelText('italic')).not.toBeInTheDocument();
+        });
+
+        test('should hide all base controls in min mode with additional controls', () => {
+            jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'min', ...splitFormattingBarControls('min', 3)});
+
+            const mockControl1 = <button key='priority-control'>{'Priority'}</button>;
+            const mockControl2 = <button key='ai-control'>{'AI Rewrite'}</button>;
+            const mockControl3 = <button key='bor-control'>{'Burn-on-Read'}</button>;
+
+            renderWithContext(
+                <FormattingBar
+                    {...baseProps}
+                    additionalControls={[mockControl1, mockControl2, mockControl3]}
+                />,
+            );
+
+            expect(screen.queryByLabelText('bold')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('show hidden formatting options')).toBeInTheDocument();
+        });
+    });
 });
