@@ -335,14 +335,13 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 		return appErr
 	}
 
-	message := fmt.Sprintf(
-		"@%s flagged a message for review.\n\nReason: %s\nChannel: ~%s\nTeam: %s\nPost Author: @%s\n\nOpen on a web browser or the Desktop app to view the full report and take action.",
-		reportingUser.Username,
-		reportingReason,
-		flaggedPostChannel.Name,
-		flaggedPostTeam.DisplayName,
-		flaggedPostAuthor.Username,
-	)
+	message := i18n.T("app.data_spillage.notification.reviewer_quarantine", map[string]any{
+		"ReportingUser":    reportingUser.Username,
+		"Reason":           reportingReason,
+		"ChannelName":      flaggedPostChannel.Name,
+		"TeamName":         flaggedPostTeam.DisplayName,
+		"PostAuthor":       flaggedPostAuthor.Username,
+	})
 
 	for _, channel := range channels {
 		post := &model.Post{
@@ -1130,7 +1129,7 @@ func (a *App) getReporterUserId(flaggedPostId, contentFlaggingGroupId string) (s
 	return reporterUserId, nil
 }
 
-func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.Post, messageTemplate string, flaggedPostAuthorUserId string) (*model.Post, *model.AppError) {
+func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.Post, i18nKey string, flaggedPostAuthorUserId string) (*model.Post, *model.AppError) {
 	channel, appErr := a.GetChannel(rctx, flaggedPost.ChannelId)
 	if appErr != nil {
 		return nil, appErr
@@ -1147,7 +1146,7 @@ func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.P
 	}
 
 	post := &model.Post{
-		Message:   fmt.Sprintf(messageTemplate, flaggedPost.Id, channel.DisplayName),
+		Message:   i18n.T(i18nKey, map[string]any{"PostId": flaggedPost.Id, "ChannelName": channel.DisplayName}),
 		UserId:    contentReviewBot.UserId,
 		ChannelId: dmChannel.Id,
 	}
@@ -1160,13 +1159,13 @@ func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.P
 	return createdPost, nil
 }
 
-func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post, messageTemplate string) (*model.Post, *model.AppError) {
+func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post, i18nKey string) (*model.Post, *model.AppError) {
 	userId, appErr := a.getReporterUserId(flaggedPost.Id, contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	return a.postContentReviewBotMessage(rctx, flaggedPost, messageTemplate, userId)
+	return a.postContentReviewBotMessage(rctx, flaggedPost, i18nKey, userId)
 }
 
 func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string) ([]*model.Post, *model.AppError) {
@@ -1285,7 +1284,7 @@ func (a *App) sendFlagPostNotification(rctx request.CTX, flaggedPost *model.Post
 	}
 
 	post := &model.Post{
-		Message:   fmt.Sprintf("Your post having ID `%s` in the channel `%s` has been flagged for review.", flaggedPost.Id, channel.DisplayName),
+		Message:   i18n.T("app.data_spillage.notification.author_quarantined", map[string]any{"PostId": flaggedPost.Id, "ChannelName": channel.DisplayName}),
 		UserId:    contentReviewBot.UserId,
 		ChannelId: dmChannel.Id,
 	}
@@ -1314,8 +1313,7 @@ func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *
 	}
 
 	if slices.Contains(deletePostNotifications, model.TargetAuthor) {
-		template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer."
-		post, appErr := a.postContentReviewBotMessage(rctx, flaggedPost, template, flaggedPost.UserId)
+		post, appErr := a.postContentReviewBotMessage(rctx, flaggedPost, "app.data_spillage.notification.author_removed", flaggedPost.UserId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to post delete post author message after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		} else {
@@ -1324,8 +1322,7 @@ func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *
 	}
 
 	if slices.Contains(deletePostNotifications, model.TargetReporter) {
-		template := "The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer."
-		post, appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template)
+		post, appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, "app.data_spillage.notification.reporter_removed")
 		if appErr != nil {
 			rctx.Logger().Error("Failed to post delete post reporter message after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		} else {
@@ -1356,8 +1353,7 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	}
 
 	if slices.Contains(keepPostNotifications, model.TargetAuthor) {
-		template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer."
-		post, appErr := a.postContentReviewBotMessage(rctx, flaggedPost, template, flaggedPost.UserId)
+		post, appErr := a.postContentReviewBotMessage(rctx, flaggedPost, "app.data_spillage.notification.author_restored", flaggedPost.UserId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to post retain post author message after restoring flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		} else {
@@ -1366,8 +1362,7 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	}
 
 	if slices.Contains(keepPostNotifications, model.TargetReporter) {
-		template := "The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer."
-		post, appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template)
+		post, appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, "app.data_spillage.notification.reporter_restored")
 		if appErr != nil {
 			rctx.Logger().Error("Failed to post retain post reporter message after restoring flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		} else {

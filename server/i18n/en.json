@@ -5527,6 +5527,30 @@
     "translation": "Failed to marshal flagging user's reason"
   },
   {
+    "id": "app.data_spillage.notification.author_quarantined",
+    "translation": "Your post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` has been quarantined for review."
+  },
+  {
+    "id": "app.data_spillage.notification.author_removed",
+    "translation": "Your post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` which was quarantined for review has been permanently removed by a reviewer."
+  },
+  {
+    "id": "app.data_spillage.notification.author_restored",
+    "translation": "Your post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` which was quarantined for review has been restored by a reviewer."
+  },
+  {
+    "id": "app.data_spillage.notification.reporter_removed",
+    "translation": "The post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` which you quarantined for review has been permanently removed by a reviewer."
+  },
+  {
+    "id": "app.data_spillage.notification.reporter_restored",
+    "translation": "The post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` which you quarantined for review has been restored by a reviewer."
+  },
+  {
+    "id": "app.data_spillage.notification.reviewer_quarantine",
+    "translation": "@{{.ReportingUser}} quarantined a message for review.\n\nReason: {{.Reason}}\nChannel: ~{{.ChannelName}}\nTeam: {{.TeamName}}\nPost Author: @{{.PostAuthor}}\n\nOpen on a web browser or the Desktop app to view the full report and take action."
+  },
+  {
     "id": "app.data_spillage.quarantine_post_confirmation.message",
     "translation": "The message from @{{.username}} has been quarantined for review. You will be notified once it is reviewed by a Reviewer."
   },
