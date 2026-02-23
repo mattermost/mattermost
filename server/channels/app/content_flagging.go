@@ -336,11 +336,11 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 	}
 
 	message := i18n.T("app.data_spillage.notification.reviewer_quarantine", map[string]any{
-		"ReportingUser":    reportingUser.Username,
-		"Reason":           reportingReason,
-		"ChannelName":      flaggedPostChannel.Name,
-		"TeamName":         flaggedPostTeam.DisplayName,
-		"PostAuthor":       flaggedPostAuthor.Username,
+		"ReportingUser": reportingUser.Username,
+		"Reason":        reportingReason,
+		"ChannelName":   flaggedPostChannel.Name,
+		"TeamName":      flaggedPostTeam.DisplayName,
+		"PostAuthor":    flaggedPostAuthor.Username,
 	})
 
 	for _, channel := range channels {
