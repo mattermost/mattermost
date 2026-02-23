@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {
     ContentFlaggingAdditionalSettings,
@@ -24,6 +25,18 @@ import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './content_flagging_settings.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.dataSpillage.title', defaultMessage: 'Data Spillage Handling'},
+    enableTitle: {id: 'admin.data_spillage.enableTitle', defaultMessage: 'Enable Data Spillage Handling'},
+    legacyTitle: {id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'},
+});
+
+export const searchableStrings: Array<string | MessageDescriptor> = [
+    messages.title,
+    messages.enableTitle,
+    messages.legacyTitle,
+];
 
 export default function ContentFlaggingSettings() {
     const [saving, setSaving] = useState(false);

@@ -923,6 +923,7 @@
   "admin.dataSpillage.reviewerSettings.title": "Content Reviewers",
   "admin.dataSpillage.reviewerSettings.toggle": "Enable or disable content reviewers for this team",
   "admin.dataSpillage.title": "Data Spillage Handling",
+  "admin.contentFlagging.title": "Content Flagging",
   "admin.developer.title": "Developer Settings",
   "admin.elasticsearch.backendDescription": "The type of the search backend. Changing this setting requires a server restart before taking effect.",
   "admin.elasticsearch.backendExample": "E.g.: \"elasticsearch\"",
