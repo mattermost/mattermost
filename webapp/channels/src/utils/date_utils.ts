@@ -108,12 +108,12 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
     default: {
         // Handle dynamic patterns like "+5d", "+2w", "+1m", "+2H", "+30M", "+90S"
         // Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwmHMS])$/);
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,3})([dwmHMS])$/);
         if (dynamicMatch) {
             const [, amount, unit] = dynamicMatch;
             const value = parseInt(amount, 10);
 
-            if (Math.abs(value) > 9999) {
+            if (Math.abs(value) > 999) {
                 return null;
             }
 
