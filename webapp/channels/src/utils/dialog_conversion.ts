@@ -268,8 +268,11 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
             if (element.multiselect) {
                 const values = Array.isArray(element.default)
                     ? element.default
-                    : String(element.default).split(',').map((val) => val.trim());
-                return values.map((v: string) => ({label: v, value: v}));
+                    : String(element.default).split(',');
+                const normalizedValues = values
+                    .map((val) => String(val).trim())
+                    .filter((val) => val.length > 0);
+                return normalizedValues.length > 0 ? normalizedValues.map((v) => ({label: v, value: v})) : null;
             }
             return {
                 label: String(element.default),
