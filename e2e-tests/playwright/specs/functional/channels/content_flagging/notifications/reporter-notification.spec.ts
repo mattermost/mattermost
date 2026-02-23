@@ -36,7 +36,7 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you flagged for review has been restored by a reviewer.`;
+    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you quarantined for review has been restored by a reviewer.`;
     await verifyReporterNotification(channelsPage, team.name, expected);
 });
 
@@ -71,6 +71,6 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you flagged for review has been permanently removed by a reviewer.`;
+    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you quarantined for review has been permanently removed by a reviewer.`;
     await verifyReporterNotification(channelsPage, team.name, expected);
 });

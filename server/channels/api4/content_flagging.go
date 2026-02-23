@@ -36,7 +36,7 @@ func (api *API) InitContentFlagging() {
 
 func requireContentFlaggingAvailable(c *Context) {
 	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
-		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.license", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.data_spillage.error.license", nil, "", http.StatusNotImplemented)
 		return
 	}
 }
@@ -49,7 +49,7 @@ func requireContentFlaggingEnabled(c *Context) {
 
 	contentFlaggingEnabled := c.App.Config().ContentFlaggingSettings.EnableContentFlagging
 	if contentFlaggingEnabled == nil || !*contentFlaggingEnabled {
-		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.disabled", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.data_spillage.error.disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 }
@@ -62,7 +62,7 @@ func requireTeamContentReviewer(c *Context, userId, teamId string) {
 	}
 
 	if !isReviewer {
-		c.Err = model.NewAppError("requireTeamContentReviewer", "api.content_flagging.error.user_not_reviewer", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("requireTeamContentReviewer", "api.data_spillage.error.user_not_reviewer", nil, "", http.StatusForbidden)
 		return
 	}
 }
@@ -193,7 +193,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !enabled {
-		c.Err = model.NewAppError("flagPost", "api.content_flagging.error.not_available_on_team", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("flagPost", "api.data_spillage.error.not_available_on_team", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -614,6 +614,6 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 
 func checkPostTypeFlaggable(c *Context, post *model.Post) {
 	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.data_spillage.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
 	}
 }

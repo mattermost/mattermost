@@ -3479,8 +3479,9 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             content_flagging: {
-                url: 'site_config/content_flagging',
-                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                url: 'site_config/data_spillage',
+                title: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
+                searchableStrings: ['Data Spillage', 'Data Spillage Handling', 'Content Assurance', 'Quarantine', 'Classified Data'],
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),

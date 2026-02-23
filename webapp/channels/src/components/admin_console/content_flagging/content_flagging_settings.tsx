@@ -101,8 +101,8 @@ export default function ContentFlaggingSettings() {
             <AdminHeader>
                 <div>
                     <FormattedMessage
-                        id='admin.contentFlagging.title'
-                        defaultMessage='Content Flagging'
+                        id='admin.dataSpillage.title'
+                        defaultMessage='Data Spillage Handling'
                     />
                 </div>
             </AdminHeader>
@@ -114,8 +114,8 @@ export default function ContentFlaggingSettings() {
                             id='EnableContentFlagging'
                             label={
                                 <FormattedMessage
-                                    id='admin.content_flagging.enableTitle'
-                                    defaultMessage='Enable content flagging'
+                                    id='admin.data_spillage.enableTitle'
+                                    defaultMessage='Enable Data Spillage Handling'
                                 />
                             }
                             value={contentFlaggingSettings?.EnableContentFlagging || false}

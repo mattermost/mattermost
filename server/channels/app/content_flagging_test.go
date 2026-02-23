@@ -1122,7 +1122,7 @@ func TestFlagPost(t *testing.T) {
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.reason_invalid", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.reason_invalid", appErr.Id)
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
@@ -2318,7 +2318,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2342,7 +2342,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 

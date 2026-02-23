@@ -8,7 +8,7 @@ const FLAG_REASON_INAPPROPRIATE: string = 'Inappropriate Content';
 const FLAG_REASON_INAPPROPRIATE_ALT: string = 'Inappropriate content';
 const FLAG_COMMENT: string = 'This message is inappropriate';
 const SYSTEM_MESSAGE = (username: string): string =>
-    `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
+    `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Content Reviewer. `;
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
@@ -273,7 +273,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
  * 2. Post a message
  * 3. Verify that flag message option is not available in the post menu
  */
-test('Verify the Flag message option is not available when feature is disabled', async ({pw}) => {
+test('Verify the Quarantine for Review option is not available when feature is disabled', async ({pw}) => {
     const {user, adminClient} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {

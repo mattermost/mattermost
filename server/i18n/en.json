@@ -1786,43 +1786,43 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "api.content_flagging.error.comment_required",
+    "id": "api.data_spillage.error.comment_required",
     "translation": "Please add a comment explaining why you’re flagging this message."
   },
   {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Message flagging reason cannot be longer than {{.MaxLength}} characters."
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Message quarantine reason cannot be longer than {{.MaxLength}} characters."
   },
   {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Content flagging feature is disabled."
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Data Spillage Handling feature is disabled."
   },
   {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Quarantining a post of type '{{.PostType}}' is not allowed."
   },
   {
-    "id": "api.content_flagging.error.license",
-    "translation": "Your license does not support content flagging."
+    "id": "api.data_spillage.error.license",
+    "translation": "Your license does not support Data Spillage Handling."
   },
   {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Content flagging feature is not enabled on this team."
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Data Spillage Handling feature is not enabled on this team."
   },
   {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "The flagged post must be in pending or assigned status to be kept or removed."
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "The quarantined post must be in pending or assigned status to be kept or removed."
   },
   {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Unknown reason specified for flagging message."
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Unknown reason specified for quarantining message."
   },
   {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Please select a reason for flagging this message."
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Please select a reason for quarantining this message."
   },
   {
-    "id": "api.content_flagging.error.user_not_reviewer",
+    "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "The user is not a content reviewer."
   },
   {
@@ -5527,8 +5527,8 @@
     "translation": "Failed to marshal flagging user's reason"
   },
   {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
+    "id": "app.data_spillage.quarantine_post_confirmation.message",
+    "translation": "The message from @{{.username}} has been quarantined for review. You will be notified once it is reviewed by a Reviewer."
   },
   {
     "id": "app.content_flagging.get_group.error",
@@ -7853,8 +7853,8 @@
     "translation": "Onboarding can only be completed by a System Administrator."
   },
   {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Content Review"
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Data Spillage Bot"
   },
   {
     "id": "app.system.get_by_name.app_error",

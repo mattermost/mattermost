@@ -816,8 +816,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<i className='icon icon-flag-outline'/>}
                         labels={
                             <FormattedMessage
-                                id='post_info.flag'
-                                defaultMessage='Flag message'
+                                id='post_info.quarantine'
+                                defaultMessage='Quarantine for Review'
                             />
                         }
                         onClick={this.handleFlagPostMenuItemClicked}

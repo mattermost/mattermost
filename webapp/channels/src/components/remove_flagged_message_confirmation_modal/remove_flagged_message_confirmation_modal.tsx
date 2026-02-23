@@ -46,7 +46,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         setComment(e.target.value);
 
         if (contentFlaggingConfig?.reviewer_comment_required && e.target.value.trim() === '') {
-            setCommentError(formatMessage({id: 'keep_remove_flag_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
+            setCommentError(formatMessage({id: 'keep_remove_quarantined_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
         } else {
             setCommentError('');
         }
@@ -56,20 +56,20 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         setShowCommentPreview((prev) => !prev);
     }, []);
 
-    const removeActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
-    const keepActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_keep.title', defaultMessage: 'Keep message'});
+    const removeActionLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
+    const keepActionLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_keep.title', defaultMessage: 'Keep message'});
 
     const removeActionBody = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_remove.body',
-        defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
+        id: 'keep_remove_quarantined_content_modal.action_remove.body',
+        defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
     }, {
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
     });
     const keepActionBody = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_keep.body',
-        defaultMessage: 'You are about to keep a flagged message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
+        id: 'keep_remove_quarantined_content_modal.action_keep.body',
+        defaultMessage: 'You are about to keep a quarantined message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
     }, {
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
@@ -77,29 +77,29 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     });
 
     const removeActionBodySubTextReporterNotification = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_remove.subtext.notify_reporter',
-        defaultMessage: 'If you confirm, the message will be removed from the channel and a notification will be sent to the reporter of the flag. This action cannot be reverted.',
+        id: 'keep_remove_quarantined_content_modal.action_remove.subtext.notify_reporter',
+        defaultMessage: 'If you confirm, the message will be removed from the channel and a notification will be sent to the reporter. This action cannot be reverted.',
     });
     const removeActionBodySubTextNoReporterNotification = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_remove.subtext.no_notify_reporter',
+        id: 'keep_remove_quarantined_content_modal.action_remove.subtext.no_notify_reporter',
         defaultMessage: 'If you confirm, the message will be removed from the channel. This action cannot be reverted.',
     });
 
     const keepActionBodySubTextReporterNotification = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_keep.subtext.notify_reporter',
-        defaultMessage: 'If you confirm, the message will be visible to all channel members and a notification will be sent to the reporter of the flag.',
+        id: 'keep_remove_quarantined_content_modal.action_keep.subtext.notify_reporter',
+        defaultMessage: 'If you confirm, the message will be visible to all channel members and a notification will be sent to the reporter.',
     });
     const keepActionBodySubTextNoReporterNotification = formatMessage({
-        id: 'keep_remove_flag_content_modal.action_keep.subtext.no_notify_reporter',
+        id: 'keep_remove_quarantined_content_modal.action_keep.subtext.no_notify_reporter',
         defaultMessage: 'If you confirm, the message will be visible to all channel members.',
     });
 
     const requiredCommentSectionTitle = formatMessage({id: 'remove_flag_post_confirm_modal.required_comment.title', defaultMessage: 'Comment (required)'});
     const optionalCommentSectionTitle = formatMessage({id: 'remove_flag_post_confirm_modal.optional_comment.title', defaultMessage: 'Comment (optional)'});
 
-    const commentPlaceholder = formatMessage({id: 'keep_remove_flag_content_modal.comment.placeholder', defaultMessage: 'Add your comment here'});
-    const removeMessageButtonText = formatMessage({id: 'keep_remove_flag_content_modal.action_remove.button_text', defaultMessage: 'Remove message'});
-    const keepMessageButtonText = formatMessage({id: 'keep_remove_flag_content_modal.action_keep.button_text', defaultMessage: 'Keep message'});
+    const commentPlaceholder = formatMessage({id: 'keep_remove_quarantined_content_modal.comment.placeholder', defaultMessage: 'Add your comment here'});
+    const removeMessageButtonText = formatMessage({id: 'keep_remove_quarantined_content_modal.action_remove.button_text', defaultMessage: 'Remove message'});
+    const keepMessageButtonText = formatMessage({id: 'keep_remove_quarantined_content_modal.action_keep.button_text', defaultMessage: 'Keep message'});
 
     let label;
     let subtext;
@@ -135,7 +135,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         let hasErrors = false;
 
         if (contentFlaggingConfig?.reviewer_comment_required && comment.trim() === '') {
-            setCommentError(formatMessage({id: 'keep_remove_flag_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
+            setCommentError(formatMessage({id: 'keep_remove_quarantined_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
             hasErrors = true;
         } else {
             setCommentError('');
