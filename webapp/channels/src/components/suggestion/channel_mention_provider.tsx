@@ -14,10 +14,8 @@ import store from 'stores/redux_store';
 
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
-import {hasObfuscatedSlug} from 'utils/channel_mention_utils';
 import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
-import {cleanUpUrlable} from 'utils/url';
 
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
@@ -107,10 +105,7 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
 });
 ChannelMentionSuggestion.displayName = 'ChannelMentionSuggestion';
 
-function getChannelMentionTerm(channel: Channel, useSecureURLs = false): string {
-    if (useSecureURLs && hasObfuscatedSlug(channel)) {
-        return '~' + cleanUpUrlable(channel.display_name);
-    }
+function getChannelMentionTerm(channel: Channel): string {
     return '~' + channel?.name;
 }
 
