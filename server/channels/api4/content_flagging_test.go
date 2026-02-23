@@ -138,7 +138,7 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 
 		requireContentFlaggingEnabled(c)
 		require.NotNil(t, c.Err)
-		require.Equal(t, "api.content_flagging.error.license", c.Err.Id)
+		require.Equal(t, "api.data_spillage.error.license", c.Err.Id)
 		require.Equal(t, http.StatusNotImplemented, c.Err.StatusCode)
 	})
 
@@ -158,7 +158,7 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 
 		requireContentFlaggingEnabled(c)
 		require.NotNil(t, c.Err)
-		require.Equal(t, "api.content_flagging.error.disabled", c.Err.Id)
+		require.Equal(t, "api.data_spillage.error.disabled", c.Err.Id)
 		require.Equal(t, http.StatusNotImplemented, c.Err.StatusCode)
 	})
 

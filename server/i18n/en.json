@@ -5679,14 +5679,6 @@
     "translation": "Cannot fetch flagged post as the post is not flagged."
   },
   {
-    "id": "app.data_spillage.notification.author_quarantined",
-    "translation": "Your post having ID `{{.PostId}}` in the channel `{{.ChannelName}}` has been quarantined for review."
-  },
-  {
-    "id": "app.data_spillage.notification.reviewer_quarantine",
-    "translation": "@{{.ReportingUser}} quarantined a message for review.\n\nReason: {{.Reason}}\nChannel: ~{{.ChannelName}}\nTeam: {{.TeamName}}\nPost Author: @{{.PostAuthor}}\n\nOpen on a web browser or the Desktop app to view the full report and take action."
-  },
-  {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
     "translation": "Failed to marshal reviewer comment"
   },
