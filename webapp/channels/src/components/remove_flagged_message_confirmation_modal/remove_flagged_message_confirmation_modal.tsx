@@ -61,7 +61,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
     const removeActionBody = formatMessage({
         id: 'keep_remove_quarantined_content_modal.action_remove.body',
-        defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
+        defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posted in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
     }, {
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
@@ -69,7 +69,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     });
     const keepActionBody = formatMessage({
         id: 'keep_remove_quarantined_content_modal.action_keep.body',
-        defaultMessage: 'You are about to keep a quarantined message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
+        defaultMessage: 'You are about to keep a quarantined message authored by {flaggedPostAuthor} posted in the {flaggedPostChannel} channel and quarantined for review by {reportingUser}.',
     }, {
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
