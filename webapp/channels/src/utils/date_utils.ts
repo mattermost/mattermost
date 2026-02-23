@@ -125,11 +125,11 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
             case 'm':
                 return now.add(value, 'month').startOf('day');
             case 'H':
-                return now.add(value, 'hour').seconds(0).milliseconds(0);
+                return now.add(value, 'hour');
             case 'M':
-                return now.add(value, 'minute').seconds(0).milliseconds(0);
+                return now.add(value, 'minute');
             case 'S':
-                return now.add(value, 'second').milliseconds(0);
+                return now.add(value, 'second');
             default:
                 return null;
             }
