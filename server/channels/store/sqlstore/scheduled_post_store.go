@@ -26,14 +26,14 @@ func newScheduledPostStore(sqlStore *SqlStore) *SqlScheduledPostStore {
 	}
 }
 
-func (s *SqlScheduledPostStore) normalizePrefix(prefix string) string {
+func normalizePrefix(prefix string) string {
 	if prefix != "" && !strings.HasSuffix(prefix, ".") {
 		return prefix + "."
 	}
 	return prefix
 }
 
-func (s *SqlScheduledPostStore) baseColumns(prefix string) []string {
+func baseColumns(prefix string) []string {
 	return []string{
 		prefix + "Id",
 		prefix + "CreateAt",
@@ -52,14 +52,14 @@ func (s *SqlScheduledPostStore) baseColumns(prefix string) []string {
 }
 
 func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
-	prefix = s.normalizePrefix(prefix)
-	columns := s.baseColumns(prefix)
+	prefix = normalizePrefix(prefix)
+	columns := baseColumns(prefix)
 	return append(columns, prefix+"Type")
 }
 
 func (s *SqlScheduledPostStore) columnsForRead(prefix string) []string {
-	prefix = s.normalizePrefix(prefix)
-	columns := s.baseColumns(prefix)
+	prefix = normalizePrefix(prefix)
+	columns := baseColumns(prefix)
 	return append(columns, "COALESCE("+prefix+"Type, '') AS Type")
 }
 
