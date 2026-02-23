@@ -1302,7 +1302,13 @@ func TestValidateRelativePattern(t *testing.T) {
 		{"uppercase W rejected", "+1W", false},
 		{"no number", "+d", false},
 		{"empty", "", false},
-		{"too long", "+9999d", false},
+		{"too long days", "+9999d", false},
+		{"too long hours", "+9999H", false},
+		{"too long minutes", "+9999M", false},
+		{"too long seconds", "+9999S", false},
+		{"no number hours", "+H", false},
+		{"no number minutes", "+M", false},
+		{"no number seconds", "+S", false},
 		{"no sign", "1d", false},
 	}
 
@@ -1430,7 +1436,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			Optional:     false,
 		}
 		err := element.IsValid()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid datetime format")
 	})
 
