@@ -10032,10 +10032,6 @@
     "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Role uživatele nejsou v souladu se stavem hosta."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
   },

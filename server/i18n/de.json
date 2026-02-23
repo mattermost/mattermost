@@ -4612,11 +4612,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10028,10 +10028,6 @@
     "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Die Eigenschaftsgruppe Benutzerdefinierte Profilattribute kann nicht registriert werden"
   },
@@ -11850,5 +11846,49 @@
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
     "translation": "Die Zahl der Worker muss zwischen 1 und 32 liegen."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Löschen-nach-Lesen-Beiträge sind in direkten Nachrichten mit Bots oder KI-Agenten nicht erlaubt."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Bei der Validierung des Kanals für Löschen-Nach-Lesen Nachrichten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Wenn du dir selbst eine Nachricht sendest, sind Löschen-Nach-Lesen Nachrichten nicht erlaubt."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Bei der Validierung des Benutzers für Löschen-nach-Lesen Nachrichten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Teams eine Team Gast Rolle. Anzahl der Team-Gäste: {{.TeamGuestCount}}, Teams insgesamt: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Der Benutzer hat die Rolle eines Team Gastes, ist aber kein System Gast."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} Einstellung muss auf true gesetzt werden, wenn {{.EnableCJKAnalyzers}} auf true gesetzt ist"
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Dieser Endpunkt ist veraltet und deaktiviert. Bitte aktualisiere deine mobile App."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Die Einstellungen von {{.Service}} können nicht abgerufen werden"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Der Benutzer hat die Rolle eines Gastes im Kanal, ist aber kein Gast im System."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Kanälen eine Gastrolle. Anzahl der Gäste in den Kanälen: {{.ChannelGuestCount}}, Kanäle insgesamt: {{.TotalChannels}}."
   }
 ]

@@ -9560,10 +9560,6 @@
     "translation": "Não foi possível criar um diretório para imagens de emoji personalizadas"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "As funções do usuário não são consistentes com o status de convidado."
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Não foi possível abrir o arquivo CA para {{.Backend}}"
   },

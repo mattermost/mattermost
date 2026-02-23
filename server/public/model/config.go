@@ -204,6 +204,8 @@ const (
 	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
+	AutoTranslationDefaultWorkers = 6
+
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
@@ -2836,7 +2838,7 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 
 	if s.Workers == nil {
-		s.Workers = NewPointer(4)
+		s.Workers = NewPointer(AutoTranslationDefaultWorkers)
 	}
 
 	if s.TimeoutMs == nil {
