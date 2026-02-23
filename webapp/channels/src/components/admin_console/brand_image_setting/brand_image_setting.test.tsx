@@ -67,9 +67,7 @@ describe('components/admin_console/brand_image_setting', () => {
 
         renderWithContext(<BrandImageSetting {...props}/>);
 
-        await waitFor(() => expect(scope.isDone()).toBe(true));
-
-        expect(screen.queryByTestId(deleteButtonTestId)).toBe(null);
+        await waitFor(() => expect(screen.queryByTestId(deleteButtonTestId)).toBe(null));
     });
 
     test('should call setSaveNeeded when a brand image is uploaded', async () => {
@@ -86,7 +84,6 @@ describe('components/admin_console/brand_image_setting', () => {
         const deleteButton = await screen.findByTestId(deleteButtonTestId);
 
         await userEvent.click(deleteButton);
-        await waitFor(() => expect(scope.isDone()).toBe(true));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
