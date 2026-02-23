@@ -62,42 +62,42 @@ const BrandImageSetting = ({
 
     const [errorFromState, setErrorFromState] = useState('');
 
+    const handleSave = useCallback(async () => {
+        setErrorFromState('');
+
+        let error;
+        if (shouldDeleteBrandImage) {
+            await deleteBrandImage(
+                () => {
+                    setShouldDeleteBrandImage(false);
+                    setBrandImageExists(false);
+                    setBrandImage(undefined);
+                },
+                (err: Error) => {
+                    error = err;
+                    setErrorFromState(err.message);
+                },
+            );
+        } else if (brandImage) {
+            await uploadBrandImage(
+                brandImage,
+                () => {
+                    setBrandImageExists(true);
+                    setBrandImage(undefined);
+                    setBrandImageTimestamp(Date.now());
+                },
+                (err: Error) => {
+                    error = err;
+                    setErrorFromState(err.message);
+                },
+            );
+        }
+        return {error};
+    }, [brandImage, shouldDeleteBrandImage]);
+
     useEffect(() => {
-        const handleSave = async () => {
-            setErrorFromState('');
-
-            let error;
-            if (shouldDeleteBrandImage) {
-                await deleteBrandImage(
-                    () => {
-                        setShouldDeleteBrandImage(false);
-                        setBrandImageExists(false);
-                        setBrandImage(undefined);
-                    },
-                    (err: Error) => {
-                        error = err;
-                        setErrorFromState(err.message);
-                    },
-                );
-            } else if (brandImage) {
-                await uploadBrandImage(
-                    brandImage,
-                    () => {
-                        setBrandImageExists(true);
-                        setBrandImage(undefined);
-                        setBrandImageTimestamp(Date.now());
-                    },
-                    (err: Error) => {
-                        error = err;
-                        setErrorFromState(err.message);
-                    },
-                );
-            }
-            return {error};
-        };
-
         fetch(
-            Client4.getBrandImageUrl(String(brandImageTimestamp)),
+            Client4.getBrandImageUrl(String(Date.now())),
         ).then((resp) => {
             if (resp.status === HTTP_STATUS_OK) {
                 setBrandImageExists(true);
@@ -108,17 +108,15 @@ const BrandImageSetting = ({
             console.error(`unable to retrieve brand image: ${err}`); //eslint-disable-line no-console
             setBrandImageExists(false);
         });
+    }, []);
 
+    useEffect(() => {
         registerSaveAction(handleSave);
 
         return () => {
             unRegisterSaveAction(handleSave);
         };
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This 'useEffect' should only run once during mount.
-         **/
-    }, []);
+    }, [handleSave, registerSaveAction, unRegisterSaveAction]);
 
     useDidUpdate(() => {
         if (imageRef.current) {
