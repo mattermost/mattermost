@@ -32,18 +32,6 @@ describe('components/admin_console/brand_image_setting', () => {
         nock.cleanAll();
     });
 
-    /**
-     * The previous test directly called 'handleSave' to test the 'deleteBrandImage' and 'uploadBrandImage' functions.
-     *
-     * This is only possible with a class component and Enzyme, but RTL promotes testing components the way
-     * a user would interact with them, hence the updated tests.
-     *
-     * 'deleteBrandImage' and 'uploadBrandImage' are only accessible in the 'handleSave' method which can't be
-     * invoked via any user interactions.
-     *
-     * Delete this comment after PR review.
-     */
-
     test('should register and unregister save handler when mounted and unmounted respectively', () => {
         const {unmount} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
