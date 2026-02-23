@@ -14,7 +14,7 @@ type PropertyService struct {
 	groupStore store.PropertyGroupStore
 	fieldStore store.PropertyFieldStore
 	valueStore store.PropertyValueStore
-	groupCache sync.Map // name -> group ID
+	groupCache sync.Map // name -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {

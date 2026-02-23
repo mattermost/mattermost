@@ -21,7 +21,6 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
 
-
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
 	userID := model.NewId()
@@ -374,7 +373,6 @@ func TestGetPropertyFieldsReadAccess(t *testing.T) {
 	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
 
-
 	pluginID := "plugin-1"
 	userID := model.NewId()
 
@@ -476,7 +474,6 @@ func TestSearchPropertyFieldsReadAccess(t *testing.T) {
 	// Register the CPA group
 	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-
 
 	pluginID := "plugin-1"
 	userID := model.NewId()
@@ -583,7 +580,6 @@ func TestGetPropertyFieldByNameReadAccess(t *testing.T) {
 	// Register the CPA group
 	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-
 
 	pluginID := "plugin-1"
 	userID := model.NewId()
@@ -1457,7 +1453,6 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
 
-
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
 	userID1 := model.NewId()
@@ -1844,7 +1839,6 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
 
-
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
 	userID := model.NewId()
@@ -1929,7 +1923,6 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 	// Register the CPA group
 	group, rerr := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, rerr)
-
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"
@@ -2075,7 +2068,6 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 	// Register the CPA group
 	group, err := pas.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(t, err)
-
 
 	pluginID1 := "plugin-1"
 	pluginID2 := "plugin-2"

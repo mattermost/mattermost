@@ -232,7 +232,7 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(post *model.Post, con
 func (a *App) ContentFlaggingGroupId() string {
 	group, err := a.Srv().propertyAccessService.Group(model.ContentFlaggingGroupName)
 	if err != nil {
-		panic("cannot retrieve content flagging property group ID")
+		panic(fmt.Sprintf("cannot retrieve content flagging property group ID: %s", err))
 	}
 
 	return group.ID

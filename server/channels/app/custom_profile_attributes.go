@@ -6,6 +6,7 @@ package app
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -22,7 +23,7 @@ const (
 func (a *App) CpaGroupID() string {
 	group, err := a.Srv().propertyAccessService.Group(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
-		panic("cannot retrieve custom profile attributes property group ID")
+		panic(fmt.Sprintf("cannot retrieve custom profile attributes property group ID: %s", err))
 	}
 
 	return group.ID

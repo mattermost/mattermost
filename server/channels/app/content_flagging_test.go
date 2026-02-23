@@ -38,8 +38,7 @@ func setBaseConfig(th *TestHelper) *model.AppError {
 
 func searchPropertyValue(t *testing.T, th *TestHelper, postId, fieldName string) []*model.PropertyValue {
 	t.Helper()
-	groupId, appErr := th.App.ContentFlaggingGroupId()
-	require.Nil(t, appErr)
+	groupId := th.App.ContentFlaggingGroupId()
 
 	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 	require.Nil(t, appErr)
@@ -2672,14 +2671,13 @@ func TestKeepFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to removed
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId := th.App.ContentFlaggingGroupId()
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		_, err := th.Server.propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2696,14 +2694,13 @@ func TestKeepFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to retained
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId := th.App.ContentFlaggingGroupId()
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		_, err := th.Server.propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
