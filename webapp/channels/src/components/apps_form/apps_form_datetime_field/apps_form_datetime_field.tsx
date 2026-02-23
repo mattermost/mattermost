@@ -12,6 +12,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString} from 'utils/date_utils';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
@@ -95,6 +96,9 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         return stringToMoment(field.max_date, timezone) ?? undefined;
     }, [field.max_date, timezone]);
 
+    const now = getCurrentMomentForTimezone(timezone);
+    const allowPastDates = !minDateTime || minDateTime.isBefore(now, 'minute');
+
     return (
         <div className='apps-form-datetime-input'>
             {showTimezoneIndicator && (
@@ -108,7 +112,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 timezone={timezone}
                 relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
-                allowPastDates={!minDateTime}
+                allowPastDates={allowPastDates}
                 allowManualTimeEntry={allowManualTimeEntry}
                 setIsInteracting={setIsInteracting}
                 minDateTime={minDateTime}
