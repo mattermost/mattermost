@@ -400,12 +400,13 @@ func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError
 		return nil, appErr
 	}
 
-	// Display name migration to Data Spillage bot
 	if bot.DisplayName != desiredDisplayName {
 		newName := desiredDisplayName
-		bot, appErr = a.PatchBot(rctx, bot.UserId, &model.BotPatch{DisplayName: &newName})
-		if appErr != nil {
-			rctx.Logger().Warn("Failed to update Data Spillage bot display name", mlog.Err(appErr))
+		patchedBot, patchErr := a.PatchBot(rctx, bot.UserId, &model.BotPatch{DisplayName: &newName})
+		if patchErr != nil {
+			rctx.Logger().Warn("Failed to update Data Spillage bot display name", mlog.Err(patchErr))
+		} else {
+			bot = patchedBot
 		}
 	}
 
