@@ -8,4 +8,18 @@ export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {
+    createUserWithAttributes,
+    enableABAC,
+    disableABAC,
+    navigateToABACPage,
+    createBasicPolicy,
+    createAdvancedPolicy,
+    editPolicy,
+    deletePolicy,
+    runSyncJob,
+    verifyUserInChannel,
+    verifyUserNotInChannel,
+    updateUserAttributes,
+} from './abac_helpers';
 export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
