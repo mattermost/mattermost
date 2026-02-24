@@ -32,19 +32,31 @@ packages=(
     @mattermost/types
 )
 
-# Update any explicit dependencies between packages so that, for example, mattermost-redux@12.13.14 will depend on
-# @mattermost/client@12.13.14
+packages_json=$(printf '%s\n' "${packages[@]}" | jq -R . | jq -s .)
+workspaces_json=$(printf '%s\n' "${workspaces[@]}" | jq -R . | jq -s .)
+
+# In each package's package.json, update the version of that package and any of the other workspace packages to match
 for workspace in "${workspaces[@]}"; do
-    for package in "${packages[@]}"; do
-        escaped_name="${package//\//\\/}"
-        sed -i "" "s/\"${escaped_name}\": \"[0-9]*\.[0-9]*\.[0-9]*\",/\"${escaped_name}\": \"${version}\",/g" "${workspace}/package.json"
-    done
+    pkg_json="${workspace}/package.json"
+    jq --arg version "$version" --argjson packages "$packages_json" '
+        .version = $version |
+        reduce $packages[] as $pkg (.;
+
+            reduce ["dependencies", "devDependencies", "peerDependencies"][] as $section (.;
+                if .[$section][$pkg] then .[$section][$pkg] = $version else . end
+            )
+        )
+    ' "$pkg_json" > "${pkg_json}.tmp" && mv "${pkg_json}.tmp" "$pkg_json"
 done
 
-# Update the versions of the packages in their package.jsons and apply the dependency updates made above to the
-# package-lock.json
-workspace_args=""
-for workspace in "${workspaces[@]}"; do
-    workspace_args="${workspace_args} -w ${workspace}"
-done
-npm version "${version}" --no-git-tag-version ${workspace_args}
+# Then go through the package-lock.json and make those same changes
+jq --arg version "$version" --argjson packages "$packages_json" --argjson workspaces "$workspaces_json" '
+    reduce $workspaces[] as $ws (.;
+        .packages[$ws].version = $version |
+        reduce $packages[] as $pkg (.;
+            reduce ["dependencies", "devDependencies", "peerDependencies"][] as $section (.;
+                if .packages[$ws][$section][$pkg] then .packages[$ws][$section][$pkg] = $version else . end
+            )
+        )
+    )
+' package-lock.json > package-lock.json.tmp && mv package-lock.json.tmp package-lock.json
