@@ -27,7 +27,7 @@
     "show-report": "npm run build && npx playwright show-report results/reporter",
     "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces",
     "gen:tests": "npm run test:manifest:sync && npm run test:ai:impact && npm run test:ai:generate:mcp && npm run test:ai:heal && npm run test:manifest:sync",
-    "test:ai:generate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp-only --pipeline-scenarios 3 --pipeline-headless",
+    "test:ai:generate:mcp": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-scenarios 3 --pipeline-headless",
     "gap": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js gap --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
     "test:ai:impact": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --since origin/master --allow-fallback",
     "test:ai:generate": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --pipeline --pipeline-scenarios 3 --pipeline-headless",
