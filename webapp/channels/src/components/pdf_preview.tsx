@@ -54,7 +54,7 @@ const PDFPreview = memo(({
         numPages: number;
     }>({
         pdf: null,
-        pages: [],
+        pages: {},
         pagesLoaded: {},
         numPages: 0,
     });
@@ -97,7 +97,7 @@ const PDFPreview = memo(({
                 }).promise;
                 onDocumentLoad(pdf);
             } catch (err) {
-                onDocumentLoadError(err);
+                onDocumentLoadError(String(err));
             }
         };
 
