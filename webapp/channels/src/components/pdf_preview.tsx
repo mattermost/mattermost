@@ -199,6 +199,8 @@ const PDFPreview = memo(({
         }
 
         return () => {
+            handleScroll.cancel();
+
             if (parentNode.current) {
                 parentNode.current.removeEventListener('scroll', handleScroll);
             }
