@@ -13,6 +13,8 @@ services:
       POSTGRES_DB: ${MM_DB_NAME:-mattermost}
     volumes:
       - mattermost-db:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432" # Chỉ localhost VPS, truy cập qua SSH tunnel
     networks:
       - mattermost-net
     healthcheck:
