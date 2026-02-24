@@ -16,6 +16,8 @@ import {cleanUpUrlable} from 'utils/url';
 
 import DisplayNameStep from './display_name_step';
 import TeamUrlStep from './team_url_step';
+import { useSelector } from "react-redux";
+import { getConfig } from "mattermost-redux/selectors/entities/admin";
 
 type CreateTeamState = {
     team?: Partial<Team>;
@@ -35,17 +37,39 @@ type Props = {
     };
 };
 
-export default function CreateTeamForm(props: Props) {
-    const {step, state: parentState, updateParent, actions, history} = props;
-
+export default function CreateTeamForm({step, state: parentState, updateParent, actions, history}: Props) {
     const teamURLInput = useRef<HTMLInputElement>(null);
+    const config = useSelector(getConfig);
 
-    const [teamDisplayName, setTeamDisplayName] = useState(parentState.team?.display_name || '');
-    const [teamURL, setTeamURL] = useState(parentState.team?.name);
+    const [teamDisplayName, setTeamDisplayName] = useState<string>(parentState.team?.display_name || '');
+    const [teamURL, setTeamURL] = useState<string>(parentState.team?.name || '');
     const [nameError, setNameError] = useState<string | JSX.Element>('');
     const [isLoading, setIsLoading] = useState(false);
 
     const isValidTeamName = teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
+
+    const doCreateTeam = useCallback(async () => {
+        const {createTeam} = actions;
+
+        setIsLoading(true);
+        const teamSignup = JSON.parse(JSON.stringify(parentState));
+        teamSignup.team.type = 'O';
+        teamSignup.team.display_name = teamDisplayName;
+        teamSignup.team.name = teamURL;
+
+        const createTeamData = await createTeam(teamSignup.team);
+        const data = createTeamData.data;
+        const error = createTeamData.error;
+
+        if (data) {
+            history.push(
+                '/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL,
+            );
+        } else if (error) {
+            setNameError(error.message);
+            setIsLoading(false);
+        }
+    }, [actions, history, parentState, teamDisplayName, teamURL]);
 
     const submitDisplayName = useCallback((e: React.MouseEvent) => {
         if (!isValidTeamName) {
@@ -59,9 +83,15 @@ export default function CreateTeamForm(props: Props) {
         newState.wizard = 'team_url';
         newState.team!.display_name = displayName;
         newState.team!.name = cleanUpUrlable(displayName);
-        setTeamURL(newState.team!.name);
+        setTeamURL(newState.team!.name.trim());
+
+        if (config.PrivacySettings?.UseSecureURLs) {
+            doCreateTeam();
+            return;
+        }
+
         updateParent(newState);
-    }, [isValidTeamName, teamDisplayName, parentState, updateParent]);
+    }, [isValidTeamName, teamDisplayName, parentState, config.PrivacySettings?.UseSecureURLs, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setTeamDisplayName(e.target.value);
@@ -74,103 +104,112 @@ export default function CreateTeamForm(props: Props) {
         updateParent(newState);
     }, [parentState, updateParent]);
 
-    const submitTeamUrl = useCallback(async (e: React.MouseEvent<Button, MouseEvent>) => {
-        e.preventDefault();
+    const teamNameValidations = useCallback(
+        async (name: string): Promise<boolean> => {
+            const {checkIfTeamExists} = actions;
 
-        const name = teamURL!.trim();
-        const cleanedName = cleanUpUrlable(name);
-        const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
-        const {checkIfTeamExists, createTeam} = actions;
+            const cleanedName = cleanUpUrlable(name);
+            const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
 
-        if (!name) {
-            setNameError(
-                <FormattedMessage
-                    id='create_team.team_url.required'
-                    defaultMessage='This field is required'
-                />,
-            );
-            teamURLInput.current?.focus();
-            return;
-        }
-
-        if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            setNameError(
-                <FormattedMessage
-                    id='create_team.team_url.charLength'
-                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
-                    values={{
-                        min: Constants.MIN_TEAMNAME_LENGTH,
-                        max: Constants.MAX_TEAMNAME_LENGTH,
-                    }}
-                />,
-            );
-            teamURLInput.current?.focus();
-            return;
-        }
-
-        if (cleanedName !== name || !urlRegex.test(name)) {
-            setNameError(
-                <FormattedMessage
-                    id='create_team.team_url.regex'
-                    defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
-                />,
-            );
-            teamURLInput.current?.focus();
-            return;
-        }
-
-        for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
-            if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
+            if (!name) {
                 setNameError(
                     <FormattedMessage
-                        id='create_team.team_url.taken'
-                        defaultMessage='This URL <link>starts with a reserved word</link> or is unavailable. Please try another.'
+                        id='create_team.team_url.required'
+                        defaultMessage='This field is required'
+                    />,
+                );
+                teamURLInput.current?.focus();
+                return false;
+            }
+
+            if (
+                cleanedName.length < Constants.MIN_TEAMNAME_LENGTH ||
+                cleanedName.length > Constants.MAX_TEAMNAME_LENGTH
+            ) {
+                setNameError(
+                    <FormattedMessage
+                        id='create_team.team_url.charLength'
+                        defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
                         values={{
-                            link: (msg: React.ReactNode) => (
-                                <ExternalLink
-                                    href='https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url'
-                                    location='team_url'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
+                            min: Constants.MIN_TEAMNAME_LENGTH,
+                            max: Constants.MAX_TEAMNAME_LENGTH,
                         }}
                     />,
                 );
-                return;
+                teamURLInput.current?.focus();
+                return false;
             }
-        }
 
-        setIsLoading(true);
-        const teamSignup = JSON.parse(JSON.stringify(parentState));
-        teamSignup.team.type = 'O';
-        teamSignup.team.name = name;
+            if (cleanedName !== name || !urlRegex.test(name)) {
+                setNameError(
+                    <FormattedMessage
+                        id='create_team.team_url.regex'
+                        defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
+                    />,
+                );
+                teamURLInput.current?.focus();
+                return false;
+            }
 
-        const checkIfTeamExistsData = await checkIfTeamExists(name);
-        const exists = checkIfTeamExistsData.data;
+            for (
+                let index = 0;
+                index < Constants.RESERVED_TEAM_NAMES.length;
+                index++
+            ) {
+                if (
+                    cleanedName.indexOf(
+                        Constants.RESERVED_TEAM_NAMES[index],
+                    ) === 0
+                ) {
+                    setNameError(
+                        <FormattedMessage
+                            id='create_team.team_url.taken'
+                            defaultMessage='This URL <link>starts with a reserved word</link> or is unavailable. Please try another.'
+                            values={{
+                                link: (msg: React.ReactNode) => (
+                                    <ExternalLink
+                                        href='https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url'
+                                        location='team_url'
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />,
+                    );
+                    return false;
+                }
+            }
 
-        if (exists) {
-            setNameError(
-                <FormattedMessage
-                    id='create_team.team_url.unavailable'
-                    defaultMessage='This URL is taken or unavailable. Please try another.'
-                />,
-            );
-            setIsLoading(false);
+            const checkIfTeamExistsData = await checkIfTeamExists(name);
+            const exists = checkIfTeamExistsData.data;
+
+            if (exists) {
+                setNameError(
+                    <FormattedMessage
+                        id='create_team.team_url.unavailable'
+                        defaultMessage='This URL is taken or unavailable. Please try another.'
+                    />,
+                );
+                setIsLoading(false);
+                return false;
+            }
+
+            return true;
+        },
+        [actions],
+    );
+
+    const submitTeamUrl = useCallback(async (e: React.MouseEvent<Button, MouseEvent>) => {
+        e.preventDefault();
+
+        const teamNameValid = await teamNameValidations(teamURL);
+        if (!teamNameValid) {
             return;
         }
 
-        const createTeamData = await createTeam(teamSignup.team);
-        const data = createTeamData.data;
-        const error = createTeamData.error;
-
-        if (data) {
-            history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
-        } else if (error) {
-            setNameError(error.message);
-            setIsLoading(false);
-        }
-    }, [teamURL, actions, parentState, history]);
+        await doCreateTeam();
+    }, [teamURL, teamNameValidations, doCreateTeam]);
 
     const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -178,7 +217,7 @@ export default function CreateTeamForm(props: Props) {
     }, []);
 
     const handleTeamURLInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setTeamURL(e.target.value);
+        setTeamURL(e.target.value.trim());
     }, []);
 
     if (step === 'team_url') {
