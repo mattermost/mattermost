@@ -13,19 +13,23 @@ FROM golang:1.24-alpine AS server-builder
 RUN apk add --no-cache git make gcc musl-dev
 
 WORKDIR /src
-# Copy go.mod/go.sum trước (tận dụng Docker layer cache)
+
+# Copy toàn bộ server/public/ (là local module, cần đầy đủ source)
+COPY server/public/ ./server/public/
+
+# Copy go.mod/go.sum của server chính
 COPY server/go.mod server/go.sum ./server/
-COPY server/public/go.mod server/public/go.sum ./server/public/
 
 WORKDIR /src/server
-# Thêm replace directive cho local public module
+# Replace: dùng local public module thay vì remote
 RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
 RUN go mod download
 
-# Copy source code
+# Copy phần còn lại của server source
 WORKDIR /src
 COPY server/ ./server/
 
+# Build binary
 WORKDIR /src/server
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
     -o /mattermost/bin/mattermost ./cmd/mattermost
@@ -33,7 +37,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
 # ── Stage 2: Build React/TS webapp ───────────────────────────
 FROM node:20-alpine AS webapp-builder
 
-# Dependencies cho native npm packages
+# Dependencies cho native npm packages (mozjpeg, gifsicle, optipng, pngquant)
 RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm
 
 WORKDIR /src
@@ -81,7 +85,7 @@ VOLUME ["/mattermost/data", "/mattermost/logs", "/mattermost/config", \
 USER mattermost
 EXPOSE 8065 8067 8074 8075
 
-HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=90s \
     CMD curl -sf http://localhost:8065/api/v4/system/ping | grep -q '"status":"OK"' || exit 1
 
 ENTRYPOINT ["/mattermost/bin/mattermost"]
