@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -19,9 +20,10 @@ export type Props = {
     onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent<Button, MouseEvent>) => void;
     onBack: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    buttonText: ReactNode;
 };
 
-export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput, onTeamURLChange, onFocus, onSubmit, onBack}: Props) {
+export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput, onTeamURLChange, onFocus, onSubmit, onBack, buttonText}: Props) {
     let nameErrorLabel = null;
     let nameDivClass = 'form-group';
     if (nameError) {
@@ -38,22 +40,6 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
     }
 
     const title = `${getSiteURL()}/`;
-
-    let finishMessage = (
-        <FormattedMessage
-            id='create_team.team_url.finish'
-            defaultMessage='Finish'
-        />
-    );
-
-    if (isLoading) {
-        finishMessage = (
-            <FormattedMessage
-                id='create_team.team_url.creatingTeam'
-                defaultMessage='Creating team...'
-            />
-        );
-    }
 
     return (
         <div>
@@ -134,7 +120,7 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                         disabled={isLoading}
                         onClick={(e: React.MouseEvent<Button, MouseEvent>) => onSubmit(e)}
                     >
-                        {finishMessage}
+                        {buttonText}
                     </Button>
                 </div>
                 <div className='mt-8'>
