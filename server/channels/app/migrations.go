@@ -325,88 +325,44 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 	return nil
 }
 
-func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(CustomGroupAdminRoleCreationMigrationKey); err == nil {
+	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
 		return nil
 	} else if !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
-			return fmt.Errorf("failed to create new role %s: %w", model.SystemCustomGroupAdminRoleId, err)
+	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
+		if _, err := s.Store().Role().Save(roles[roleId]); err != nil {
+			return fmt.Errorf("failed to create new role %s: %w", roleId, err)
 		}
 	}
 
 	system := model.System{
-		Name:  CustomGroupAdminRoleCreationMigrationKey,
+		Name:  migrationKey,
 		Value: "true",
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		return fmt.Errorf("failed to mark custom group admin role creation migration as completed: %w", err)
+		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
 	return nil
+}
+
+func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(CustomGroupAdminRoleCreationMigrationKey, model.SystemCustomGroupAdminRoleId)
 }
 
 func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
-	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(SharedChannelManagerRoleCreationMigrationKey); err == nil {
-		return nil
-	} else if !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query migration: %w", err)
-	}
-
-	roles := model.MakeDefaultRoles()
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SharedChannelManagerRoleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[model.SharedChannelManagerRoleId]); err != nil {
-			return fmt.Errorf("failed to create new role %s: %w", model.SharedChannelManagerRoleId, err)
-		}
-	}
-
-	system := model.System{
-		Name:  SharedChannelManagerRoleCreationMigrationKey,
-		Value: "true",
-	}
-
-	if err := s.Store().System().Save(&system); err != nil {
-		return fmt.Errorf("failed to mark shared channel manager role creation migration as completed: %w", err)
-	}
-
-	return nil
+	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
 }
 
 func (s *Server) doSecureConnectionManagerRoleCreationMigration() error {
-	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(SecureConnectionManagerRoleCreationMigrationKey); err == nil {
-		return nil
-	} else if !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query migration: %w", err)
-	}
-
-	roles := model.MakeDefaultRoles()
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SecureConnectionManagerRoleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[model.SecureConnectionManagerRoleId]); err != nil {
-			return fmt.Errorf("failed to create new role %s: %w", model.SecureConnectionManagerRoleId, err)
-		}
-	}
-
-	system := model.System{
-		Name:  SecureConnectionManagerRoleCreationMigrationKey,
-		Value: "true",
-	}
-
-	if err := s.Store().System().Save(&system); err != nil {
-		return fmt.Errorf("failed to mark secure connection manager role creation migration as completed: %w", err)
-	}
-
-	return nil
+	return s.doSingleRoleCreationMigration(SecureConnectionManagerRoleCreationMigrationKey, model.SecureConnectionManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {

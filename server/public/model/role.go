@@ -1188,7 +1188,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SharedChannelManagerRoleId] = &Role{
-		Name:          "shared_channel_manager",
+		Name:          SharedChannelManagerRoleId,
 		DisplayName:   "authentication.roles.shared_channel_manager.name",
 		Description:   "authentication.roles.shared_channel_manager.description",
 		Permissions:   SharedChannelManagerDefaultPermissions,
@@ -1197,7 +1197,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SecureConnectionManagerRoleId] = &Role{
-		Name:          "secure_connection_manager",
+		Name:          SecureConnectionManagerRoleId,
 		DisplayName:   "authentication.roles.secure_connection_manager.name",
 		Description:   "authentication.roles.secure_connection_manager.description",
 		Permissions:   SecureConnectionManagerDefaultPermissions,
