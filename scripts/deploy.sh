@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================
-# Deploy Script - Chạy trên VPS bởi GitHub Actions
-# Không chạy trực tiếp tay trừ khi hiểu rõ tác động
+# Deploy Script - Chạy trên VPS (thủ công hoặc bởi GitHub Actions)
+# Cách dùng: cd /opt/mattermost && bash scripts/deploy.sh
 # =============================================================
 
 set -euo pipefail
@@ -16,35 +16,35 @@ log_error()   { echo -e "${RED}[$(date '+%H:%M:%S')] ERR  ${NC} $1"; exit 1; }
 
 DEPLOY_PATH="${DEPLOY_PATH:-/opt/mattermost}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
+BRANCH="${DEPLOY_BRANCH:-develop}"
 RELEASES_DIR="$DEPLOY_PATH/releases"
 ENV_FILE="$DEPLOY_PATH/.env"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-# ── Kiểm tra điều kiện ───────────────────────────────────────
-[ -f "$ENV_FILE" ] || log_error "Không tìm thấy $ENV_FILE. Hãy tạo file .env trên VPS!"
-
-# ── Lưu version hiện tại để rollback ────────────────────────
-log_info "Lưu trạng thái hiện tại..."
-mkdir -p "$RELEASES_DIR"
-
-# Lưu image ID hiện tại
-CURRENT_IMAGE=$(docker inspect --format='{{.Config.Image}}' mattermost-app 2>/dev/null || echo "none")
-echo "$CURRENT_IMAGE" > "$RELEASES_DIR/last_image.txt"
-echo "$TIMESTAMP" > "$RELEASES_DIR/last_deploy.txt"
-log_info "Phiên bản hiện tại: $CURRENT_IMAGE"
-
-# ── Pull image mới nhất ───────────────────────────────────────
-log_info "Pull Mattermost image mới nhất..."
-MM_VERSION=$(grep 'MM_VERSION=' "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-MM_VERSION="${MM_VERSION:-latest}"
-docker pull "mattermost/mattermost-team-edition:${MM_VERSION}" || log_error "Không thể pull image!"
-log_success "Pull image hoàn tất: mattermost-team-edition:${MM_VERSION}"
-
-# ── Deploy ───────────────────────────────────────────────────
-log_info "Đang deploy với docker compose..."
 cd "$DEPLOY_PATH"
 
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --pull always
+# ── Kiểm tra điều kiện ───────────────────────────────────────
+[ -f "$ENV_FILE" ] || log_error "Không tìm thấy $ENV_FILE. Hãy tạo file .env trên VPS!"
+[ -f "$COMPOSE_FILE" ] || log_error "Không tìm thấy $COMPOSE_FILE!"
+
+# ── Lưu trạng thái hiện tại để rollback ─────────────────────
+log_info "Lưu trạng thái hiện tại..."
+mkdir -p "$RELEASES_DIR"
+CURRENT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+echo "$CURRENT_COMMIT" > "$RELEASES_DIR/last_commit.txt"
+echo "$TIMESTAMP" > "$RELEASES_DIR/last_deploy.txt"
+log_info "Commit hiện tại: $CURRENT_COMMIT"
+
+# ── Pull code mới nhất ───────────────────────────────────────
+log_info "Pull code từ origin/$BRANCH..."
+git fetch origin "$BRANCH" || log_error "Không thể fetch từ origin!"
+git reset --hard "origin/$BRANCH"
+NEW_COMMIT=$(git rev-parse --short HEAD)
+log_success "Code đã cập nhật: $CURRENT_COMMIT → $NEW_COMMIT"
+
+# ── Build & Deploy ───────────────────────────────────────────
+log_info "Build và deploy với docker compose..."
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build
 
 log_success "Deploy containers đã khởi động"
 
@@ -53,14 +53,18 @@ log_info "Kiểm tra trạng thái containers..."
 sleep 5
 docker compose -f "$COMPOSE_FILE" ps
 
-# ── Cleanup images cũ (giữ lại 3 images) ────────────────────
+# ── Cleanup images cũ ────────────────────────────────────────
 log_info "Dọn dẹp images cũ..."
 docker image prune -f --filter "until=72h" || true
 log_success "Cleanup hoàn tất"
 
 # ── Ghi log deploy ───────────────────────────────────────────
 cat >> "$RELEASES_DIR/deploy_history.log" << EOF
-[$TIMESTAMP] Deploy thành công | Image: mattermost-team-edition:${MM_VERSION} | Prev: $CURRENT_IMAGE
+[$TIMESTAMP] Deploy thành công | $CURRENT_COMMIT → $NEW_COMMIT | Branch: $BRANCH
 EOF
 
 log_success "Deploy hoàn tất! ✅"
+echo ""
+echo "  Truy cập: http://$(hostname -I | awk '{print $1}'):8065"
+echo "  Rollback: bash scripts/rollback.sh"
+echo ""

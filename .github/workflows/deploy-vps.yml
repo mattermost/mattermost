@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - master
+      - develop
   workflow_dispatch:
     inputs:
       force_deploy:
@@ -17,7 +17,6 @@ concurrency:
 
 env:
   DEPLOY_PATH: /opt/mattermost
-  COMPOSE_FILE: docker-compose.prod.yml
 
 jobs:
   deploy:
@@ -28,9 +27,6 @@ jobs:
       url: http://${{ secrets.VPS_HOST }}:8065
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -38,28 +34,14 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Copy files to VPS
-        run: |
-          scp -i ~/.ssh/deploy_key \
-            -P ${{ secrets.VPS_SSH_PORT }} \
-            -o StrictHostKeyChecking=no \
-            docker-compose.prod.yml \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_PATH }}/
-          scp -i ~/.ssh/deploy_key \
-            -P ${{ secrets.VPS_SSH_PORT }} \
-            -o StrictHostKeyChecking=no \
-            scripts/deploy.sh scripts/rollback.sh \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_PATH }}/scripts/
-
-      - name: Deploy
+      - name: Deploy via SSH
         run: |
           ssh -i ~/.ssh/deploy_key \
             -p ${{ secrets.VPS_SSH_PORT }} \
             -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "export DEPLOY_PATH='${{ env.DEPLOY_PATH }}' && \
-             export COMPOSE_FILE='${{ env.COMPOSE_FILE }}' && \
-             export MM_VERSION='latest' && \
+             export DEPLOY_BRANCH='develop' && \
              bash ${{ env.DEPLOY_PATH }}/scripts/deploy.sh"
 
       - name: Cleanup SSH key
@@ -77,4 +59,4 @@ jobs:
           fi
           curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"username\":\"GitHub Actions\",\"icon_emoji\":\"$ICON\",\"text\":\"$MSG | Branch: \`${{ github.ref_name }}\` | By: @${{ github.actor }} | http://${{ secrets.VPS_HOST }}:8065\"}"
+            -d "{\"username\":\"GitHub Actions\",\"icon_emoji\":\"$ICON\",\"text\":\"$MSG | Branch: \`${{ github.ref_name }}\` | By: @${{ github.actor }} | http://${{ secrets.VPS_HOST }}:8065\"}" || true

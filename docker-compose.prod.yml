@@ -1,5 +1,5 @@
-# Docker Compose - Production
-# Deploy: docker compose -f docker-compose.prod.yml up -d
+# Docker Compose - Production (Build from source)
+# Deploy: docker compose -f docker-compose.prod.yml up -d --build
 # Đọc secrets từ file .env (xem .env.prod.example)
 
 services:
@@ -14,7 +14,7 @@ services:
     volumes:
       - mattermost-db:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432" # Chỉ localhost VPS, truy cập qua SSH tunnel
+      - "127.0.0.1:5432:5432" # Chỉ localhost VPS
     networks:
       - mattermost-net
     healthcheck:
@@ -25,14 +25,16 @@ services:
       start_period: 30s
 
   mattermost:
-    image: mattermost/mattermost-team-edition:${MM_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
     container_name: mattermost-app
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "8065:8065" # Truy cập qua Nginx container trong techzen-net
+      - "8065:8065"
     environment:
       # Database
       MM_SQLSETTINGS_DRIVERNAME: postgres
@@ -48,6 +50,8 @@ services:
       MM_EMAILSETTINGS_REPLYTOADDRESS: "${MM_REPLY_EMAIL:-admin@example.com}"
       MM_EMAILSETTINGS_SMTPUSERNAME: "${MM_SMTP_USER:-}"
       MM_EMAILSETTINGS_SMTPPASSWORD: "${MM_SMTP_PASSWORD:-}"
+      # Encryption (custom)
+      TECHZEN_ENCRYPTION_KEY: "${TECHZEN_ENCRYPTION_KEY:-}"
       # Logging
       MM_LOGSETTINGS_ENABLEFILE: "true"
       MM_LOGSETTINGS_FILELEVEL: "INFO"
@@ -65,13 +69,13 @@ services:
       - mattermost-client-plugins:/mattermost/client/plugins
     networks:
       - mattermost-net
-      - techzen-net # Để common-nginx proxy đến mattermost-app:8065
+      - techzen-net
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf http://localhost:8065/api/v4/system/ping | grep -q 'OK' || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 90s # Build from source cần thời gian khởi động lâu hơn
 
 volumes:
   mattermost-db:
@@ -91,4 +95,4 @@ networks:
   mattermost-net:
     driver: bridge
   techzen-net:
-    external: true # Dùng network có sẵn của Nginx container
+    external: true

@@ -1,0 +1,87 @@
+# ============================================================
+# Multi-stage Dockerfile: Build Mattermost từ source code
+# Stage 1: Build Go server
+# Stage 2: Build React/TS webapp
+# Stage 3: Runtime image nhỏ gọn
+#
+# Build: docker compose -f docker-compose.prod.yml up -d --build
+# ============================================================
+
+# ── Stage 1: Build Go server ─────────────────────────────────
+FROM golang:1.24-alpine AS server-builder
+
+RUN apk add --no-cache git make gcc musl-dev
+
+WORKDIR /src
+# Copy go.mod/go.sum trước (tận dụng Docker layer cache)
+COPY server/go.mod server/go.sum ./server/
+COPY server/public/go.mod server/public/go.sum ./server/public/
+
+WORKDIR /src/server
+# Thêm replace directive cho local public module
+RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
+RUN go mod download
+
+# Copy source code
+WORKDIR /src
+COPY server/ ./server/
+
+WORKDIR /src/server
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
+    -o /mattermost/bin/mattermost ./cmd/mattermost
+
+# ── Stage 2: Build React/TS webapp ───────────────────────────
+FROM node:20-alpine AS webapp-builder
+
+# Dependencies cho native npm packages
+RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm
+
+WORKDIR /src
+# Copy package files trước (cache layer)
+COPY webapp/package.json webapp/package-lock.json ./webapp/
+COPY webapp/channels/package.json ./webapp/channels/
+COPY webapp/platform/types/package.json ./webapp/platform/types/
+COPY webapp/platform/client/package.json ./webapp/platform/client/
+COPY webapp/platform/components/package.json ./webapp/platform/components/
+
+WORKDIR /src/webapp
+RUN npm ci
+
+# Copy source & build
+COPY webapp/ /src/webapp/
+RUN npm run build
+
+# ── Stage 3: Runtime image nhỏ gọn ──────────────────────────
+FROM alpine:3.19 AS runtime
+
+RUN apk add --no-cache ca-certificates curl tzdata mailcap && \
+    addgroup -g 2000 mattermost && \
+    adduser -D -u 2000 -G mattermost -h /mattermost mattermost
+
+WORKDIR /mattermost
+
+# Copy server binary
+COPY --from=server-builder --chown=mattermost:mattermost /mattermost/bin/mattermost ./bin/mattermost
+
+# Copy webapp build output
+COPY --from=webapp-builder --chown=mattermost:mattermost /src/webapp/channels/dist ./client
+
+# Copy i18n & templates từ server source
+COPY --from=server-builder --chown=mattermost:mattermost /src/server/i18n ./i18n
+COPY --from=server-builder --chown=mattermost:mattermost /src/server/templates ./templates
+COPY --from=server-builder --chown=mattermost:mattermost /src/server/fonts ./fonts
+
+# Tạo directories cần thiết
+RUN mkdir -p ./data ./logs ./config ./plugins ./client/plugins && \
+    chown -R mattermost:mattermost .
+
+VOLUME ["/mattermost/data", "/mattermost/logs", "/mattermost/config", \
+    "/mattermost/plugins", "/mattermost/client/plugins"]
+
+USER mattermost
+EXPOSE 8065 8067 8074 8075
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
+    CMD curl -sf http://localhost:8065/api/v4/system/ping | grep -q '"status":"OK"' || exit 1
+
+ENTRYPOINT ["/mattermost/bin/mattermost"]
