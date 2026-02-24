@@ -29,22 +29,17 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
 # ── Stage 2: Build React/TS webapp ───────────────────────────
 FROM node:20-alpine AS webapp-builder
 
-# Dependencies cho native npm packages (mozjpeg, gifsicle, optipng, pngquant)
-RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm
+# Dependencies cho native npm packages
+RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm autoconf
 
 WORKDIR /src
-# Copy package files trước (cache layer)
-COPY webapp/package.json webapp/package-lock.json ./webapp/
-COPY webapp/channels/package.json ./webapp/channels/
-COPY webapp/platform/types/package.json ./webapp/platform/types/
-COPY webapp/platform/client/package.json ./webapp/platform/client/
-COPY webapp/platform/components/package.json ./webapp/platform/components/
+
+# Copy toàn bộ webapp (gồm patches, scripts, tất cả workspace packages)
+COPY webapp/ ./webapp/
 
 WORKDIR /src/webapp
-RUN npm ci
-
-# Copy source & build
-COPY webapp/ /src/webapp/
+RUN npm ci --ignore-scripts || npm install --ignore-scripts
+RUN npm run postinstall || true
 RUN npm run build
 
 # ── Stage 3: Runtime image nhỏ gọn ──────────────────────────
