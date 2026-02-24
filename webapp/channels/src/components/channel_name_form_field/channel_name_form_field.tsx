@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -34,7 +35,6 @@ export type Props = {
 }
 
 import './channel_name_form_field.scss';
-import { getConfig } from "mattermost-redux/selectors/entities/general";
 
 function validateDisplayName(intl: IntlShape, displayNameParam: string) {
     const errors: string[] = [];
