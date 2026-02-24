@@ -92,6 +92,10 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().PrivacySettings.UseSecureURLs {
+		channel.Name = model.NewId()
+	}
+
 	if channel.TeamId == "" {
 		c.SetInvalidParamWithDetails("team_id", i18n.T("api.channel.create_channel.missing_team_id.error"))
 		return
