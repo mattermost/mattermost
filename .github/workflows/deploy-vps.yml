@@ -23,6 +23,7 @@ jobs:
   build-webapp:
     name: Build Webapp
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,6 +34,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: webapp/package-lock.json
+
+      - name: Install native build deps
+        run: sudo apt-get update && sudo apt-get install -y libjpeg-dev libpng-dev zlib1g-dev nasm
 
       - name: Install dependencies
         working-directory: webapp
@@ -57,9 +61,7 @@ jobs:
     name: Deploy to VPS
     needs: build-webapp
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: http://${{ secrets.VPS_HOST }}:8065
+    timeout-minutes: 30
 
     steps:
       - name: Setup SSH
@@ -111,4 +113,4 @@ jobs:
           fi
           curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"username\":\"GitHub Actions\",\"icon_emoji\":\"$ICON\",\"text\":\"$MSG | Branch: \`${{ github.ref_name }}\` | By: @${{ github.actor }} | http://${{ secrets.VPS_HOST }}:8065\"}" || true
+            -d "{\"username\":\"GitHub Actions\",\"icon_emoji\":\"$ICON\",\"text\":\"$MSG | Branch: \`${{ github.ref_name }}\` | By: @${{ github.actor }}\"}" || true
