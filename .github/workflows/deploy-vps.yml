@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
     inputs:
       force_deploy:
