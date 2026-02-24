@@ -4,9 +4,11 @@
 import React, {useCallback, useRef, useState} from 'react';
 import type {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
@@ -16,8 +18,6 @@ import {cleanUpUrlable} from 'utils/url';
 
 import DisplayNameStep from './display_name_step';
 import TeamUrlStep from './team_url_step';
-import { useSelector } from "react-redux";
-import { getConfig } from "mattermost-redux/selectors/entities/admin";
 
 type CreateTeamState = {
     team?: Partial<Team>;
@@ -54,8 +54,8 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         setIsLoading(true);
         const teamSignup = JSON.parse(JSON.stringify(parentState));
         teamSignup.team.type = 'O';
-        teamSignup.team.display_name = teamDisplayName;
-        teamSignup.team.name = teamURL;
+        teamSignup.team.display_name = teamDisplayName.trim();
+        teamSignup.team.name = teamURL.trim();
 
         const createTeamData = await createTeam(teamSignup.team);
         const data = createTeamData.data;
@@ -72,23 +72,23 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     }, [actions, history, parentState, teamDisplayName, teamURL]);
 
     const submitDisplayName = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+
         if (!isValidTeamName) {
             return;
         }
-
-        e.preventDefault();
-        const displayName = teamDisplayName.trim();
-
-        const newState = parentState;
-        newState.wizard = 'team_url';
-        newState.team!.display_name = displayName;
-        newState.team!.name = cleanUpUrlable(displayName);
-        setTeamURL(newState.team!.name.trim());
 
         if (config.PrivacySettings?.UseSecureURLs) {
             doCreateTeam();
             return;
         }
+
+        const displayName = teamDisplayName.trim();
+        const newState = parentState;
+        newState.wizard = 'team_url';
+        newState.team!.display_name = displayName;
+        newState.team!.name = cleanUpUrlable(displayName);
+        setTeamURL(newState.team!.name.trim());
 
         updateParent(newState);
     }, [isValidTeamName, teamDisplayName, parentState, config.PrivacySettings?.UseSecureURLs, updateParent, doCreateTeam]);
