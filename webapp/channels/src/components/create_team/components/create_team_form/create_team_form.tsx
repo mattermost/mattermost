@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import type {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
@@ -78,7 +78,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             return;
         }
 
-        if (config.PrivacySettings?.UseSecureURLs) {
+        if (config.UseSecureURLs === 'true') {
             doCreateTeam();
             return;
         }
@@ -91,7 +91,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         setTeamURL(newState.team!.name.trim());
 
         updateParent(newState);
-    }, [isValidTeamName, teamDisplayName, parentState, config.PrivacySettings?.UseSecureURLs, updateParent, doCreateTeam]);
+    }, [isValidTeamName, config.UseSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setTeamDisplayName(e.target.value);
@@ -220,6 +220,42 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         setTeamURL(e.target.value.trim());
     }, []);
 
+    const buttonText = useMemo(() => {
+        const finishMessage = (
+            <FormattedMessage
+                id='create_team.team_url.finish'
+                defaultMessage='Finish'
+            />
+        );
+
+        const loadingMessage = (
+            <FormattedMessage
+                id='create_team.team_url.creatingTeam'
+                defaultMessage='Creating team...'
+            />
+        );
+
+        const nextMessage = (
+            <>
+                <FormattedMessage
+                    id='create_team.display_name.next'
+                    defaultMessage='Next'
+                />
+                <i className='icon icon-chevron-right'/>
+            </>
+        );
+
+        if (config.UseSecureURLs === 'true') {
+            return isLoading ? loadingMessage : finishMessage;
+        }
+
+        if (step === 'team_url') {
+            return isLoading ? loadingMessage : finishMessage;
+        }
+
+        return nextMessage;
+    }, [config.UseSecureURLs, isLoading, step]);
+
     if (step === 'team_url') {
         return (
             <TeamUrlStep
@@ -231,6 +267,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
                 onFocus={handleFocus}
                 onSubmit={submitTeamUrl}
                 onBack={submitBack}
+                buttonText={buttonText}
             />
         );
     }
@@ -241,6 +278,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             isValidTeamName={isValidTeamName}
             onDisplayNameChange={handleDisplayNameChange}
             onSubmit={submitDisplayName}
+            buttonText={buttonText}
         />
     );
 }

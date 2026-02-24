@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,9 +15,10 @@ export type Props = {
     isValidTeamName: boolean;
     onDisplayNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent) => void;
+    buttonText: ReactNode;
 };
 
-export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit}: Props) {
+export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText}: Props) {
     return (
         <div>
             <form>
@@ -63,11 +65,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                     onClick={onSubmit}
                     disabled={!isValidTeamName}
                 >
-                    <FormattedMessage
-                        id='create_team.display_name.next'
-                        defaultMessage='Next'
-                    />
-                    <i className='icon icon-chevron-right'/>
+                    {buttonText}
                 </button>
             </form>
         </div>
