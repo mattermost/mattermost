@@ -32,13 +32,16 @@ FROM node:20-alpine AS webapp-builder
 # Dependencies cho native npm packages
 RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm autoconf
 
+# Tăng Node.js memory limit cho webpack production build
+ENV NODE_OPTIONS="--max-old-space-size=3072"
+
 WORKDIR /src
 
 # Copy toàn bộ webapp (gồm patches, scripts, tất cả workspace packages)
 COPY webapp/ ./webapp/
 
 WORKDIR /src/webapp
-RUN npm ci --ignore-scripts || npm install --ignore-scripts
+RUN npm ci --ignore-scripts
 RUN npm run postinstall || true
 RUN npm run build
 
