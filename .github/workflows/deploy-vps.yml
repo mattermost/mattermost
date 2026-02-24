@@ -72,8 +72,12 @@ jobs:
             -P ${{ secrets.VPS_SSH_PORT || '22' }} \
             -o StrictHostKeyChecking=no \
             docker-compose.prod.yml \
-            scripts/deploy.sh \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_PATH }}/
+          scp -i ~/.ssh/deploy_key \
+            -P ${{ secrets.VPS_SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no \
+            scripts/deploy.sh scripts/rollback.sh \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_PATH }}/scripts/
           echo "✅ Files đã copy lên VPS"
 
       - name: Execute deploy on VPS
@@ -86,8 +90,7 @@ jobs:
             "export MM_VERSION='latest' && \
              export DEPLOY_PATH='${{ env.DEPLOY_PATH }}' && \
              export COMPOSE_FILE='${{ env.COMPOSE_FILE }}' && \
-             export COMMIT_SHA='${GITHUB_SHA}' && \
-             bash ${{ env.DEPLOY_PATH }}/deploy.sh"
+             bash ${{ env.DEPLOY_PATH }}/scripts/deploy.sh"
 
       - name: Health check sau deploy
         id: health
