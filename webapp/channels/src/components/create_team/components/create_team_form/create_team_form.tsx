@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -36,83 +36,70 @@ type Props = {
     };
 };
 
-type State = {
-    teamDisplayName: string;
-    teamURL?: string;
-    nameError: string | JSX.Element;
-    isLoading: boolean;
-};
+export default function CreateTeamForm(props: Props) {
+    const {step, state: parentState, updateParent, actions, history} = props;
 
-export default class CreateTeamForm extends React.PureComponent<Props, State> {
-    teamURLInput: React.RefObject<HTMLInputElement>;
+    const teamURLInput = useRef<HTMLInputElement>(null);
 
-    constructor(props: Props) {
-        super(props);
-        this.teamURLInput = React.createRef();
-        this.state = {
-            teamDisplayName: props.state.team?.display_name || '',
-            teamURL: props.state.team?.name,
-            nameError: '',
-            isLoading: false,
-        };
-    }
+    const [teamDisplayName, setTeamDisplayName] = useState(parentState.team?.display_name || '');
+    const [teamURL, setTeamURL] = useState(parentState.team?.name);
+    const [nameError, setNameError] = useState<string | JSX.Element>('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Display Name step methods
+    // Display Name step
 
-    isValidTeamName = (): boolean => {
-        return this.state.teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && this.state.teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
-    };
+    const isValidTeamName = teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
 
-    submitDisplayName = (e: React.MouseEvent): void => {
-        if (!this.isValidTeamName()) {
+    const submitDisplayName = useCallback((e: React.MouseEvent) => {
+        if (!isValidTeamName) {
             return;
         }
 
         e.preventDefault();
-        const displayName = this.state.teamDisplayName.trim();
+        const displayName = teamDisplayName.trim();
 
-        const newState = this.props.state;
+        const newState = parentState;
         newState.wizard = 'team_url';
         newState.team!.display_name = displayName;
         newState.team!.name = cleanUpUrlable(displayName);
-        this.setState({teamURL: newState.team!.name});
-        this.props.updateParent(newState);
-    };
+        setTeamURL(newState.team!.name);
+        updateParent(newState);
+    }, [isValidTeamName, teamDisplayName, parentState, updateParent]);
 
-    handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        this.setState({teamDisplayName: e.target.value});
-    };
+    const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setTeamDisplayName(e.target.value);
+    }, []);
 
-    // Team URL step methods
+    // Team URL step
 
-    submitBack = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    const submitBack = useCallback((e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
-        const newState = this.props.state;
+        const newState = parentState;
         newState.wizard = 'display_name';
-        this.props.updateParent(newState);
-    };
+        updateParent(newState);
+    }, [parentState, updateParent]);
 
-    submitTeamUrl = async (e: React.MouseEvent<Button, MouseEvent>) => {
+    const submitTeamUrl = useCallback(async (e: React.MouseEvent<Button, MouseEvent>) => {
         e.preventDefault();
 
-        const name = this.state.teamURL!.trim();
+        const name = teamURL!.trim();
         const cleanedName = URL.cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
-        const {actions: {checkIfTeamExists, createTeam}} = this.props;
+        const {checkIfTeamExists, createTeam} = actions;
 
         if (!name) {
-            this.setState({nameError: (
+            setNameError(
                 <FormattedMessage
                     id='create_team.team_url.required'
                     defaultMessage='This field is required'
-                />),
-            });
-            this.teamURLInput.current?.focus();
+                />,
+            );
+            teamURLInput.current?.focus();
             return;
         }
 
         if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: (
+            setNameError(
                 <FormattedMessage
                     id='create_team.team_url.charLength'
                     defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
@@ -120,49 +107,47 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
                         min: Constants.MIN_TEAMNAME_LENGTH,
                         max: Constants.MAX_TEAMNAME_LENGTH,
                     }}
-                />),
-            });
-            this.teamURLInput.current?.focus();
+                />,
+            );
+            teamURLInput.current?.focus();
             return;
         }
 
         if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: (
+            setNameError(
                 <FormattedMessage
                     id='create_team.team_url.regex'
                     defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
-                />),
-            });
-            this.teamURLInput.current?.focus();
+                />,
+            );
+            teamURLInput.current?.focus();
             return;
         }
 
         for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                this.setState({
-                    nameError: (
-                        <FormattedMessage
-                            id='create_team.team_url.taken'
-                            defaultMessage='This URL <link>starts with a reserved word</link> or is unavailable. Please try another.'
-                            values={{
-                                link: (msg: React.ReactNode) => (
-                                    <ExternalLink
-                                        href='https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url'
-                                        location='team_url'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
-                    ),
-                });
+                setNameError(
+                    <FormattedMessage
+                        id='create_team.team_url.taken'
+                        defaultMessage='This URL <link>starts with a reserved word</link> or is unavailable. Please try another.'
+                        values={{
+                            link: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    href='https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url'
+                                    location='team_url'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />,
+                );
                 return;
             }
         }
 
-        this.setState({isLoading: true});
-        const teamSignup = JSON.parse(JSON.stringify(this.props.state));
+        setIsLoading(true);
+        const teamSignup = JSON.parse(JSON.stringify(parentState));
         teamSignup.team.type = 'O';
         teamSignup.team.name = name;
 
@@ -170,13 +155,13 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
         const exists = checkIfTeamExistsData.data;
 
         if (exists) {
-            this.setState({nameError: (
+            setNameError(
                 <FormattedMessage
                     id='create_team.team_url.unavailable'
                     defaultMessage='This URL is taken or unavailable. Please try another.'
-                />),
-            });
-            this.setState({isLoading: false});
+                />,
+            );
+            setIsLoading(false);
             return;
         }
 
@@ -185,91 +170,33 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
         const error = createTeamData.error;
 
         if (data) {
-            this.props.history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
+            history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
         } else if (error) {
-            this.setState({nameError: error.message});
-            this.setState({isLoading: false});
+            setNameError(error.message);
+            setIsLoading(false);
         }
-    };
+    }, [teamURL, actions, parentState, history]);
 
-    handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
         e.preventDefault();
         e.currentTarget.select();
-    };
+    }, []);
 
-    handleTeamURLInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({teamURL: e.target.value});
-    };
+    const handleTeamURLInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setTeamURL(e.target.value);
+    }, []);
 
-    renderDisplayNameStep() {
-        return (
-            <div>
-                <form>
-                    <img
-                        alt={'signup logo'}
-                        className='signup-team-logo'
-                        src={logoImage}
-                    />
-                    <label htmlFor='teamNameInput'>
-                        <FormattedMessage
-                            id='create_team.display_name.teamName'
-                            tagName='strong'
-                            defaultMessage='Team Name'
-                        />
-                    </label>
-                    <div className='form-group'>
-                        <div className='row'>
-                            <div className='col-sm-9'>
-                                <Input
-                                    id='teamNameInput'
-                                    name='teamNameInput'
-                                    type='text'
-                                    value={this.state.teamDisplayName}
-                                    autoFocus={true}
-                                    onChange={this.handleDisplayNameChange}
-                                    required={true}
-                                    maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                                    minLength={Constants.MIN_TEAMNAME_LENGTH}
-                                    spellCheck='false'
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <FormattedMessage
-                            id='create_team.display_name.nameHelp'
-                            defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
-                        />
-                    </div>
-                    <button
-                        id='teamNameNextButton'
-                        type='submit'
-                        className='btn btn-primary mt-8'
-                        onClick={this.submitDisplayName}
-                        disabled={!this.isValidTeamName()}
-                    >
-                        <FormattedMessage
-                            id='create_team.display_name.next'
-                            defaultMessage='Next'
-                        />
-                        <i className='icon icon-chevron-right'/>
-                    </button>
-                </form>
-            </div>
-        );
-    }
-
-    renderTeamUrlStep() {
-        let nameError = null;
+    if (step === 'team_url') {
+        let nameErrorLabel = null;
         let nameDivClass = 'form-group';
-        if (this.state.nameError) {
-            nameError = (
+        if (nameError) {
+            nameErrorLabel = (
                 <label
                     role='alert'
                     className='control-label'
                     id='teamURLInputError'
                 >
-                    {this.state.nameError}
+                    {nameError}
                 </label>
             );
             nameDivClass += ' has-error';
@@ -284,7 +211,7 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
             />
         );
 
-        if (this.state.isLoading) {
+        if (isLoading) {
             finishMessage = (
                 <FormattedMessage
                     id='create_team.team_url.creatingTeam'
@@ -322,21 +249,21 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
                                     <input
                                         id='teamURLInput'
                                         type='text'
-                                        ref={this.teamURLInput}
+                                        ref={teamURLInput}
                                         className='form-control'
                                         placeholder=''
                                         maxLength={128}
-                                        value={this.state.teamURL}
+                                        value={teamURL}
                                         autoFocus={true}
-                                        onFocus={this.handleFocus}
-                                        onChange={this.handleTeamURLInputChange}
+                                        onFocus={handleFocus}
+                                        onChange={handleTeamURLInputChange}
                                         spellCheck='false'
                                         aria-describedby='teamURLInputError'
                                     />
                                 </div>
                             </div>
                         </div>
-                        {nameError}
+                        {nameErrorLabel}
                     </div>
                     <p>
                         <FormattedMessage
@@ -369,8 +296,8 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
                             id='teamURLFinishButton'
                             type='submit'
                             bsStyle='primary'
-                            disabled={this.state.isLoading}
-                            onClick={(e: React.MouseEvent<Button, MouseEvent>) => this.submitTeamUrl(e)}
+                            disabled={isLoading}
+                            onClick={(e: React.MouseEvent<Button, MouseEvent>) => submitTeamUrl(e)}
                         >
                             {finishMessage}
                         </Button>
@@ -378,7 +305,7 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
                     <div className='mt-8'>
                         <a
                             href='#'
-                            onClick={this.submitBack}
+                            onClick={submitBack}
                         >
                             <FormattedMessage
                                 id='create_team.team_url.back'
@@ -391,11 +318,59 @@ export default class CreateTeamForm extends React.PureComponent<Props, State> {
         );
     }
 
-    render() {
-        if (this.props.step === 'team_url') {
-            return this.renderTeamUrlStep();
-        }
-
-        return this.renderDisplayNameStep();
-    }
+    return (
+        <div>
+            <form>
+                <img
+                    alt={'signup logo'}
+                    className='signup-team-logo'
+                    src={logoImage}
+                />
+                <label htmlFor='teamNameInput'>
+                    <FormattedMessage
+                        id='create_team.display_name.teamName'
+                        tagName='strong'
+                        defaultMessage='Team Name'
+                    />
+                </label>
+                <div className='form-group'>
+                    <div className='row'>
+                        <div className='col-sm-9'>
+                            <Input
+                                id='teamNameInput'
+                                name='teamNameInput'
+                                type='text'
+                                value={teamDisplayName}
+                                autoFocus={true}
+                                onChange={handleDisplayNameChange}
+                                required={true}
+                                maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                                minLength={Constants.MIN_TEAMNAME_LENGTH}
+                                spellCheck='false'
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <FormattedMessage
+                        id='create_team.display_name.nameHelp'
+                        defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
+                    />
+                </div>
+                <button
+                    id='teamNameNextButton'
+                    type='submit'
+                    className='btn btn-primary mt-8'
+                    onClick={submitDisplayName}
+                    disabled={!isValidTeamName}
+                >
+                    <FormattedMessage
+                        id='create_team.display_name.next'
+                        defaultMessage='Next'
+                    />
+                    <i className='icon icon-chevron-right'/>
+                </button>
+            </form>
+        </div>
+    );
 }
