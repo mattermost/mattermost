@@ -1,0 +1,49 @@
+# Docker build context — chỉ cần server source + pre-built webapp dist
+# Loại bỏ các thư mục không cần thiết để giảm context size
+
+# Git
+.git
+.github
+.gitignore
+
+# Node modules (webapp đã pre-build, không cần npm install)
+webapp/node_modules
+webapp/channels/node_modules
+webapp/platform/*/node_modules
+
+# Webapp source (chỉ cần dist/)
+webapp/channels/src
+webapp/channels/__tests__
+webapp/platform
+webapp/scripts
+webapp/patches
+webapp/package.json
+webapp/package-lock.json
+webapp/.npmrc
+webapp/Makefile
+webapp/*.md
+webapp/*.mk
+
+# Server test files
+server/**/*_test.go
+server/channels/store/storetest
+server/channels/store/searchtest
+
+# Scripts & docs
+scripts
+*.md
+LICENSE*
+NOTICE*
+
+# IDE & OS
+.vscode
+.idea
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Docker files (tránh loop)
+docker-compose*.yml
+Dockerfile*
+.env*

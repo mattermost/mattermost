@@ -1,70 +1,66 @@
-#!/bin/bash
-# =============================================================
-# Deploy Script - Chạy trên VPS (thủ công hoặc bởi GitHub Actions)
-# Cách dùng: cd /opt/mattermost && bash scripts/deploy.sh
-# =============================================================
-
+#!/usr/bin/env bash
+# ============================================================
+# deploy.sh — Deploy Mattermost từ source (Git-based)
+#
+# Flow CI:
+#   1. CI build webapp → SCP webapp-dist.tar.gz lên /tmp/
+#   2. VPS: git pull → giải nén webapp → docker compose build (Go only)
+#
+# Sử dụng:
+#   bash scripts/deploy.sh
+# ============================================================
 set -euo pipefail
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-CYAN='\033[0;36m'; NC='\033[0m'
-
-log_info()    { echo -e "${CYAN}[$(date '+%H:%M:%S')] INFO ${NC} $1"; }
-log_success() { echo -e "${GREEN}[$(date '+%H:%M:%S')] OK   ${NC} $1"; }
-log_warn()    { echo -e "${YELLOW}[$(date '+%H:%M:%S')] WARN ${NC} $1"; }
-log_error()   { echo -e "${RED}[$(date '+%H:%M:%S')] ERR  ${NC} $1"; exit 1; }
-
 DEPLOY_PATH="${DEPLOY_PATH:-/opt/mattermost}"
-COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
-BRANCH="${DEPLOY_BRANCH:-develop}"
-RELEASES_DIR="$DEPLOY_PATH/releases"
-ENV_FILE="$DEPLOY_PATH/.env"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-develop}"
+COMPOSE_FILE="docker-compose.prod.yml"
+WEBAPP_ARTIFACT="/tmp/webapp-dist.tar.gz"
 
-cd "$DEPLOY_PATH"
+log() { echo "[$(date +%H:%M:%S)] $1  $2"; }
 
-# ── Kiểm tra điều kiện ───────────────────────────────────────
-[ -f "$ENV_FILE" ] || log_error "Không tìm thấy $ENV_FILE. Hãy tạo file .env trên VPS!"
-[ -f "$COMPOSE_FILE" ] || log_error "Không tìm thấy $COMPOSE_FILE!"
+cd "$DEPLOY_PATH" || exit 1
 
-# ── Lưu trạng thái hiện tại để rollback ─────────────────────
-log_info "Lưu trạng thái hiện tại..."
-mkdir -p "$RELEASES_DIR"
-CURRENT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-echo "$CURRENT_COMMIT" > "$RELEASES_DIR/last_commit.txt"
-echo "$TIMESTAMP" > "$RELEASES_DIR/last_deploy.txt"
-log_info "Commit hiện tại: $CURRENT_COMMIT"
+# ── 1. Lưu trạng thái hiện tại ──────────────────────────────
+log "INFO" "Lưu trạng thái hiện tại..."
+PREV_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+log "INFO" "Commit hiện tại: $PREV_COMMIT"
 
-# ── Pull code mới nhất ───────────────────────────────────────
-log_info "Pull code từ origin/$BRANCH..."
-git fetch origin "$BRANCH" || log_error "Không thể fetch từ origin!"
-git reset --hard "origin/$BRANCH"
+# ── 2. Pull code mới nhất ───────────────────────────────────
+log "INFO" "Pull code từ origin/$DEPLOY_BRANCH..."
+git fetch origin "$DEPLOY_BRANCH"
+git reset --hard "origin/$DEPLOY_BRANCH"
+
 NEW_COMMIT=$(git rev-parse --short HEAD)
-log_success "Code đã cập nhật: $CURRENT_COMMIT → $NEW_COMMIT"
+log "INFO" "Commit mới: $NEW_COMMIT"
 
-# ── Build & Deploy ───────────────────────────────────────────
-log_info "Build và deploy với docker compose..."
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build
+# ── 3. Giải nén webapp pre-built từ CI ──────────────────────
+WEBAPP_DIST="$DEPLOY_PATH/webapp/channels/dist"
+if [ -f "$WEBAPP_ARTIFACT" ]; then
+    log "INFO" "Giải nén webapp pre-built từ CI..."
+    mkdir -p "$WEBAPP_DIST"
+    tar xzf "$WEBAPP_ARTIFACT" -C "$WEBAPP_DIST"
+    rm -f "$WEBAPP_ARTIFACT"
+    log "INFO" "Webapp giải nén thành công → $WEBAPP_DIST"
+else
+    log "WARN" "Không tìm thấy $WEBAPP_ARTIFACT — dùng webapp có sẵn"
+    if [ ! -d "$WEBAPP_DIST" ]; then
+        log "ERROR" "Không có webapp dist! Cần chạy CI build trước."
+        exit 1
+    fi
+fi
 
-log_success "Deploy containers đã khởi động"
+# ── 4. Build và deploy với Docker Compose ────────────────────
+log "INFO" "Build và deploy với docker compose..."
+docker compose -f "$COMPOSE_FILE" up -d --build --remove-orphans 2>&1
 
-# ── Kiểm tra containers đang chạy ────────────────────────────
-log_info "Kiểm tra trạng thái containers..."
+# ── 5. Kiểm tra container status ────────────────────────────
 sleep 5
+log "INFO" "Kiểm tra container..."
 docker compose -f "$COMPOSE_FILE" ps
 
-# ── Cleanup images cũ ────────────────────────────────────────
-log_info "Dọn dẹp images cũ..."
-docker image prune -f --filter "until=72h" || true
-log_success "Cleanup hoàn tất"
-
-# ── Ghi log deploy ───────────────────────────────────────────
-cat >> "$RELEASES_DIR/deploy_history.log" << EOF
-[$TIMESTAMP] Deploy thành công | $CURRENT_COMMIT → $NEW_COMMIT | Branch: $BRANCH
-EOF
-
-log_success "Deploy hoàn tất! ✅"
-echo ""
-echo "  Truy cập: http://$(hostname -I | awk '{print $1}'):8065"
-echo "  Rollback: bash scripts/rollback.sh"
-echo ""
+# ── 6. Lưu thông tin deploy ─────────────────────────────────
+mkdir -p "$DEPLOY_PATH/releases"
+echo "$PREV_COMMIT" > "$DEPLOY_PATH/releases/last_commit.txt"
+log "INFO" "=== Deploy hoàn tất ==="
+log "INFO" "  Từ: $PREV_COMMIT → $NEW_COMMIT"
+log "INFO" "  Rollback: bash scripts/rollback.sh"

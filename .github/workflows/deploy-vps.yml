@@ -17,10 +17,45 @@ concurrency:
 
 env:
   DEPLOY_PATH: /opt/mattermost
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
+  build-webapp:
+    name: Build Webapp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install dependencies
+        working-directory: webapp
+        run: npm ci --ignore-scripts
+
+      - name: Run postinstall
+        working-directory: webapp
+        run: npm run postinstall || true
+
+      - name: Build webapp
+        working-directory: webapp
+        run: npm run build
+
+      - name: Upload webapp artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-dist
+          path: webapp/channels/dist/
+          retention-days: 1
+
   deploy:
     name: Deploy to VPS
+    needs: build-webapp
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -33,6 +68,23 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Download webapp artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-dist
+          path: webapp-dist/
+
+      - name: Create webapp tarball
+        run: tar czf webapp-dist.tar.gz -C webapp-dist .
+
+      - name: SCP webapp to VPS
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -P ${{ secrets.VPS_SSH_PORT }} \
+            -o StrictHostKeyChecking=no \
+            webapp-dist.tar.gz \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/webapp-dist.tar.gz
 
       - name: Deploy via SSH
         run: |

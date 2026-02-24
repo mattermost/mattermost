@@ -1,10 +1,8 @@
 # ============================================================
-# Multi-stage Dockerfile: Build Mattermost từ source code
-# Stage 1: Build Go server
-# Stage 2: Build React/TS webapp
-# Stage 3: Runtime image nhỏ gọn
+# Dockerfile.prod: Build Mattermost server từ source
+# Webapp được pre-build trên CI (GitHub Actions) và copy vào
 #
-# Build: docker compose -f docker-compose.prod.yml up -d --build
+# Flow: CI build webapp → SCP dist/ → VPS docker build (Go only)
 # ============================================================
 
 # ── Stage 1: Build Go server ─────────────────────────────────
@@ -18,7 +16,7 @@ WORKDIR /src
 COPY server/ ./server/
 
 WORKDIR /src/server
-# Replace: dùng local public module thay vì remote (có đầy đủ model types)
+# Dùng local public module (có đầy đủ model types)
 RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
 RUN go mod download
 
@@ -26,26 +24,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
     -o /mattermost/bin/mattermost ./cmd/mattermost
 
-# ── Stage 2: Build React/TS webapp ───────────────────────────
-FROM node:20-alpine AS webapp-builder
-
-# Dependencies cho native npm packages
-RUN apk add --no-cache python3 make g++ libjpeg-turbo-dev libpng-dev zlib-dev nasm autoconf
-
-# Tăng Node.js memory limit cho webpack production build
-ENV NODE_OPTIONS="--max-old-space-size=3072"
-
-WORKDIR /src
-
-# Copy toàn bộ webapp (gồm patches, scripts, tất cả workspace packages)
-COPY webapp/ ./webapp/
-
-WORKDIR /src/webapp
-RUN npm ci --ignore-scripts
-RUN npm run postinstall || true
-RUN npm run build
-
-# ── Stage 3: Runtime image nhỏ gọn ──────────────────────────
+# ── Stage 2: Runtime image nhỏ gọn ──────────────────────────
 FROM alpine:3.19 AS runtime
 
 RUN apk add --no-cache ca-certificates curl tzdata mailcap && \
@@ -57,8 +36,8 @@ WORKDIR /mattermost
 # Copy server binary
 COPY --from=server-builder --chown=mattermost:mattermost /mattermost/bin/mattermost ./bin/mattermost
 
-# Copy webapp build output
-COPY --from=webapp-builder --chown=mattermost:mattermost /src/webapp/channels/dist ./client
+# Copy pre-built webapp (từ CI build, nằm tại webapp/channels/dist/)
+COPY --chown=mattermost:mattermost webapp/channels/dist ./client
 
 # Copy i18n & templates từ server source
 COPY --from=server-builder --chown=mattermost:mattermost /src/server/i18n ./i18n
@@ -75,7 +54,7 @@ VOLUME ["/mattermost/data", "/mattermost/logs", "/mattermost/config", \
 USER mattermost
 EXPOSE 8065 8067 8074 8075
 
-HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=90s \
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
     CMD curl -sf http://localhost:8065/api/v4/system/ping | grep -q '"status":"OK"' || exit 1
 
 ENTRYPOINT ["/mattermost/bin/mattermost"]
