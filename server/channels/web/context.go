@@ -779,6 +779,42 @@ func (c *Context) RequireRecapId() *Context {
 	return c
 }
 
+func (c *Context) RequirePermissionToManageSecureConnections() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSharedChannels) {
+		c.SetPermissionError(model.PermissionManageSharedChannels)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnectionsOrSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionManageSecureConnections,
+		model.PermissionManageSharedChannels,
+	}) {
+		c.SetPermissionError(model.PermissionManageSharedChannels)
+	}
+	return c
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }
