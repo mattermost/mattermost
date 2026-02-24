@@ -335,8 +335,12 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 	}
 
 	roles := model.MakeDefaultRoles()
+	role := roles[roleId]
+	if role == nil {
+		return fmt.Errorf("unknown role id: %s", roleId)
+	}
 	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[roleId]); err != nil {
+		if _, err := s.Store().Role().Save(role); err != nil {
 			return fmt.Errorf("failed to create new role %s: %w", roleId, err)
 		}
 	}
