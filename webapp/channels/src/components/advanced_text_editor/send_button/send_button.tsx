@@ -77,6 +77,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                         id: 'create_post_button.option.send_now',
                         defaultMessage: 'Send Now',
                     })}
+                    aria-pressed={false}
                     disabled={disabled}
                     onClick={sendMessage}
                 >
