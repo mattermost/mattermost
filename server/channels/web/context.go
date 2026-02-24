@@ -810,7 +810,7 @@ func (c *Context) RequirePermissionToManageSecureConnectionsOrSharedChannels() *
 		model.PermissionManageSecureConnections,
 		model.PermissionManageSharedChannels,
 	}) {
-		c.SetPermissionError(model.PermissionManageSharedChannels)
+		c.SetPermissionError(model.PermissionManageSecureConnections, model.PermissionManageSharedChannels)
 	}
 	return c
 }

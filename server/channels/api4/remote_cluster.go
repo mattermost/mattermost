@@ -530,12 +530,12 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	c.RequirePermissionToManageSecureConnections()
+	c.RequireRemoteId()
 	if c.Err != nil {
 		return
 	}
@@ -669,12 +669,12 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	c.RequirePermissionToManageSecureConnections()
+	c.RequireRemoteId()
 	if c.Err != nil {
 		return
 	}
