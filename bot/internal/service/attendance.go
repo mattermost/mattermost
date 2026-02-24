@@ -155,19 +155,28 @@ func (s *AttendanceService) BreakEnd(ctx context.Context, userID, username strin
 	// Close the last open break
 	last := &record.Breaks[len(record.Breaks)-1]
 	last.End = &now
+	breakDuration := now.Sub(last.Start)
 	record.Status = model.AttendanceStatusWorking
 	if err := s.store.UpdateRecord(ctx, record); err != nil {
 		return "", err
 	}
 
+	displayReason := i18n.T(ctx, "attendance.break_reason."+last.Reason)
+	fallbackData := map[string]any{
+		"Username": username,
+		"Reason":   displayReason,
+		"Duration": formatDuration(ctx, breakDuration),
+	}
 	s.mm.CreatePost(&mattermost.Post{
 		ChannelID: record.ChannelID,
 		RootID:    record.PostID,
-		Message:   "@" + username,
+		Message:   i18n.T(ctx, "attendance.msg.break_end", fallbackData),
 		Props: mattermost.Props{
 			MessageKey: "attendance.msg.break_end",
 			MessageData: map[string]any{
 				"Username": username,
+				"Reason":   last.Reason,
+				"Duration": int(breakDuration.Round(time.Second).Seconds()),
 			},
 		},
 	})
@@ -185,6 +194,9 @@ func (s *AttendanceService) CheckOut(ctx context.Context, userID, username strin
 	if record == nil {
 		return "", fmt.Errorf(i18n.T(ctx, "attendance.msg.not_checked_in", map[string]any{"Username": username}))
 	}
+	if record.Status == model.AttendanceStatusBreak {
+		return "", fmt.Errorf(i18n.T(ctx, "attendance.err.must_end_break", map[string]any{"Username": username}))
+	}
 	if record.CheckOut != nil {
 		return "", fmt.Errorf(i18n.T(ctx, "attendance.msg.already_checked_out", map[string]any{
 			"Username": username, "Time": record.CheckOut.Format(time.TimeOnly),
@@ -197,24 +209,57 @@ func (s *AttendanceService) CheckOut(ctx context.Context, userID, username strin
 		return "", err
 	}
 
-	// Calculate total break time
+	// Calculate total break time and build break details
 	var totalBreak time.Duration
-	for _, b := range record.Breaks {
+	var breakLines []string
+	var breaksData []map[string]any
+	for idx, b := range record.Breaks {
 		end := now
 		if b.End != nil {
 			end = *b.End
 		}
-		totalBreak += end.Sub(b.Start)
+		dur := end.Sub(b.Start)
+		totalBreak += dur
+		displayReason := i18n.T(ctx, "attendance.break_reason."+b.Reason)
+		breakLines = append(breakLines, fmt.Sprintf("%d. %s — %s",
+			idx+1, displayReason, formatDuration(ctx, dur),
+		))
+		breaksData = append(breaksData, map[string]any{
+			"Reason":   b.Reason,
+			"Duration": int(dur.Round(time.Second).Seconds()),
+		})
 	}
 
+	totalTime := now.Sub(*record.CheckIn)
+	actualWork := totalTime - totalBreak
+
+	breakList := ""
+	if len(breakLines) > 0 {
+		breakList = strings.Join(breakLines, "\n") + "\n"
+	}
+
+	// Fallback Message with pre-translated strings
+	fallbackData := map[string]any{
+		"Username":       username,
+		"TotalTime":      formatDuration(ctx, totalTime),
+		"ActualWorkTime": formatDuration(ctx, actualWork),
+		"TotalBreakTime": formatDuration(ctx, totalBreak),
+		"BreakCount":     len(record.Breaks),
+		"BreakList":      breakList,
+	}
 	s.mm.CreatePost(&mattermost.Post{
 		ChannelID: record.ChannelID,
 		RootID:    record.PostID,
-		Message:   "@" + username,
+		Message:   i18n.T(ctx, "attendance.msg.checked_out", fallbackData),
 		Props: mattermost.Props{
 			MessageKey: "attendance.msg.checked_out",
 			MessageData: map[string]any{
-				"Username": username,
+				"Username":       username,
+				"TotalTime":      int(totalTime.Round(time.Second).Seconds()),
+				"ActualWorkTime": int(actualWork.Round(time.Second).Seconds()),
+				"TotalBreakTime": int(totalBreak.Round(time.Second).Seconds()),
+				"BreakCount":     len(record.Breaks),
+				"Breaks":         breaksData,
 			},
 		},
 	})
@@ -521,5 +566,24 @@ func leaveMessageData(username string, leaveType model.LeaveType, dates []string
 		"ExpectedTime": timeStr,
 		"Status":       status,
 	}
+}
+
+func formatDuration(ctx context.Context, d time.Duration) string {
+	d = d.Round(time.Second)
+	h := int(d.Hours())
+	m := int(d.Minutes()) % 60
+	s := int(d.Seconds()) % 60
+
+	var parts []string
+	if h > 0 {
+		parts = append(parts, fmt.Sprintf("%d %s", h, i18n.T(ctx, "duration.h")))
+	}
+	if m > 0 {
+		parts = append(parts, fmt.Sprintf("%d %s", m, i18n.T(ctx, "duration.m")))
+	}
+	if s > 0 || len(parts) == 0 {
+		parts = append(parts, fmt.Sprintf("%d %s", s, i18n.T(ctx, "duration.s")))
+	}
+	return strings.Join(parts, " ")
 }
 

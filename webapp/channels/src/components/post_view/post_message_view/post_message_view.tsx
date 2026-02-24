@@ -116,6 +116,37 @@ class PostMessageView extends React.PureComponent<Props, State> {
                 );
             }
 
+            // Pre-translate break reason keys (e.g. "di_an" → "Đi ăn")
+            if (formattedData.Reason && typeof formattedData.Reason === 'string' &&
+                messageKey.startsWith('attendance.msg.break_')) {
+                formattedData.Reason = this.props.intl.formatMessage(
+                    {id: `attendance.break_reason.${formattedData.Reason}`, defaultMessage: formattedData.Reason},
+                );
+            }
+
+            // Format duration fields from raw seconds to localized strings
+            const durationFields = ['Duration', 'TotalTime', 'ActualWorkTime', 'TotalBreakTime'];
+            for (const field of durationFields) {
+                if (typeof formattedData[field] === 'number') {
+                    formattedData[field] = this.formatDuration(formattedData[field] as number);
+                }
+            }
+
+            // Build BreakList from structured Breaks array
+            if (Array.isArray(formattedData.Breaks)) {
+                const lines = (formattedData.Breaks as Array<{Reason: string; Duration: number}>).map(
+                    (b, idx) => {
+                        const reason = this.props.intl.formatMessage(
+                            {id: `attendance.break_reason.${b.Reason}`, defaultMessage: b.Reason},
+                        );
+                        const dur = this.formatDuration(b.Duration);
+                        return `${idx + 1}. ${reason} — ${dur}`;
+                    },
+                );
+                formattedData.BreakList = lines.length > 0 ? lines.join('\n') + '\n' : '';
+                delete formattedData.Breaks;
+            }
+
             try {
                 let translated = this.props.intl.formatMessage(
                     {id: messageKey, defaultMessage: post.message},
@@ -132,6 +163,26 @@ class PostMessageView extends React.PureComponent<Props, State> {
             }
         }
         return post.message;
+    }
+
+    private formatDuration(totalSeconds: number): string {
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        const parts: string[] = [];
+        if (h > 0) {
+            const unit = this.props.intl.formatMessage({id: 'duration.h', defaultMessage: 'hr'});
+            parts.push(`${h} ${unit}`);
+        }
+        if (m > 0) {
+            const unit = this.props.intl.formatMessage({id: 'duration.m', defaultMessage: 'min'});
+            parts.push(`${m} ${unit}`);
+        }
+        if (s > 0 || parts.length === 0) {
+            const unit = this.props.intl.formatMessage({id: 'duration.s', defaultMessage: 'sec'});
+            parts.push(`${s} ${unit}`);
+        }
+        return parts.join(' ');
     }
 
     checkPostOverflow = () => {

@@ -1,6 +1,6 @@
 # Hướng dẫn sử dụng Attendance Bot
 
-Bot chấm công nội bộ tích hợp với Mattermost, hỗ trợ check-in/out, nghỉ giải lao và xin nghỉ phép.
+Bot chấm công nội bộ tích hợp với Mattermost, hỗ trợ check-in/out, nghỉ giải lao và xin nghỉ phép. Sử dụng 2 slash command riêng biệt: `/diemdanh` cho chấm công và `/xinphep` cho xin nghỉ phép.
 
 ## Mục lục
 
@@ -26,9 +26,9 @@ Bot chấm công nội bộ tích hợp với Mattermost, hỗ trợ check-in/ou
 
 > **Lưu ý**: Bot phải được add vào team trước khi có thể add vào các channels trong team đó.
 
-#### A2. Tạo Slash Command `/attendance`
+#### A2. Tạo Slash Command `/diemdanh`
 
-Slash command cho phép nhân viên gõ `/attendance` để mở menu chấm công.
+Slash command cho phép nhân viên gõ `/diemdanh` để mở menu chấm công.
 
 1. Vào **Main Menu** (☰) → **Integrations**
 2. Chọn **Slash Commands** → **Add Slash Command**
@@ -36,14 +36,35 @@ Slash command cho phép nhân viên gõ `/attendance` để mở menu chấm cô
 
 | Field | Giá trị |
 |-------|---------|
-| **Title** | Attendance |
-| **Description** | Chấm công và xin nghỉ phép |
-| **Command Trigger Word** | `attendance` |
-| **Request URL** | `http://bot-service:3000/api/attendance` |
+| **Title** | Điểm danh |
+| **Description** | Chấm công hàng ngày |
+| **Command Trigger Word** | `diemdanh` |
+| **Request URL** | `http://bot-service:3000/api/diemdanh` |
 | **Request Method** | POST |
 | **Autocomplete** | ✓ Bật |
 | **Autocomplete Hint** | (để trống) |
 | **Autocomplete Description** | Mở menu chấm công |
+
+4. Click **Save**
+
+#### A3. Tạo Slash Command `/xinphep`
+
+Slash command cho phép nhân viên gõ `/xinphep` để mở menu xin nghỉ phép.
+
+1. Vào **Main Menu** (☰) → **Integrations**
+2. Chọn **Slash Commands** → **Add Slash Command**
+3. Điền thông tin:
+
+| Field | Giá trị |
+|-------|---------|
+| **Title** | Xin phép |
+| **Description** | Xin nghỉ phép, đi muộn, về sớm |
+| **Command Trigger Word** | `xinphep` |
+| **Request URL** | `http://bot-service:3000/api/xinphep` |
+| **Request Method** | POST |
+| **Autocomplete** | ✓ Bật |
+| **Autocomplete Hint** | (để trống) |
+| **Autocomplete Description** | Mở menu xin nghỉ phép |
 
 4. Click **Save**
 
@@ -126,117 +147,107 @@ Không cần cấu hình gì thêm!
 
 ## Dành cho Nhân viên - Sử dụng hàng ngày
 
-### Mở menu chấm công
+### `/diemdanh` — Chấm công
 
 Vào channel `#attendance-{team}` của bạn và gõ:
 
 ```
-/attendance
+/diemdanh
 ```
 
-Một menu sẽ hiện ra (chỉ bạn thấy):
+Menu chấm công sẽ hiện ra (chỉ bạn thấy):
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ Attendance                                              │
-│ [Check In] [Break] [End Break] [Check Out]              │
-│                                                         │
-│ Requests                                                │
-│ [Leave Request] [Late Arrival] [Early Departure]        │
-└─────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│ [Đi làm] [Tan ca]                                                 │
+│ [Nghỉ ngơi] [Đi ăn] [Tiểu tiện] [Đại tiện] [Hút thuốc]          │
+│ [Trở lại chỗ ngồi]                                                │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
-### Attendance - Chấm công
+#### Đi làm (Check In)
+1. Gõ `/diemdanh`
+2. Click nút **[Đi làm]**
+3. (Tuỳ chọn) Đính kèm ảnh chụp
+4. Hệ thống ghi nhận giờ vào và thông báo cho cả channel
 
-#### Check In (Bắt đầu làm việc)
-1. Gõ `/attendance`
-2. Click nút **[Check In]**
-3. Hệ thống ghi nhận giờ vào và thông báo cho cả channel:
+#### Nghỉ giải lao
+1. Gõ `/diemdanh`
+2. Click nút lý do nghỉ: **[Nghỉ ngơi]**, **[Đi ăn]**, **[Tiểu tiện]**, **[Đại tiện]**, hoặc **[Hút thuốc]**
+3. Hệ thống ghi nhận ngay, không cần điền thêm gì
+4. Khi quay lại, gõ `/diemdanh` và click **[Trở lại chỗ ngồi]**
+5. Hệ thống ghi nhận kèm thời gian đã nghỉ:
    ```
-   ✓ @username đã check-in lúc 08:30
-   ```
-
-#### Break (Nghỉ giải lao)
-1. Gõ `/attendance`
-2. Click nút **[Break]** để bắt đầu nghỉ
-3. Khi quay lại làm việc, gõ `/attendance` và click **[End Break]**
-
-#### Check Out (Kết thúc ngày làm việc)
-1. Gõ `/attendance`
-2. Click nút **[Check Out]**
-3. Hệ thống ghi nhận giờ ra:
-   ```
-   ✓ @username đã check-out lúc 17:30
+   @username trở lại chỗ ngồi — Đi ăn (25 phút 14 giây)
    ```
 
-### Requests - Yêu cầu
+> **Lưu ý**: Phải click **[Trở lại chỗ ngồi]** trước khi tan ca. Hệ thống sẽ không cho phép tan ca khi đang nghỉ.
 
-#### Leave Request (Xin nghỉ phép)
-1. Gõ `/attendance`
-2. Click nút **[Leave Request]**
+#### Tan ca (Check Out)
+1. Gõ `/diemdanh`
+2. Click nút **[Tan ca]**
+3. Hệ thống ghi nhận giờ ra và hiện tổng kết:
+   ```
+   @username tan ca
+
+   **Tổng thời gian:** 8 giờ 30 phút
+   **Thời gian làm việc thực:** 7 giờ 25 phút
+   **Tổng thời gian nghỉ:** 1 giờ 5 phút
+   **Số lần nghỉ:** 3
+   1. Nghỉ ngơi — 15 phút
+   2. Đi ăn — 45 phút 30 giây
+   3. Tiểu tiện — 4 phút 30 giây
+   ```
+
+---
+
+### `/xinphep` — Xin nghỉ phép
+
+Gõ trong channel `#attendance-{team}`:
+
+```
+/xinphep
+```
+
+Menu xin phép sẽ hiện ra (chỉ bạn thấy):
+
+```
+┌──────────────────────────────────────────┐
+│ [Xin nghỉ phép] [Đi muộn] [Về sớm]      │
+└──────────────────────────────────────────┘
+```
+
+#### Xin nghỉ phép
+1. Gõ `/xinphep`
+2. Click nút **[Xin nghỉ phép]**
 3. Điền form:
-   ```
-   ┌─────────────────────────────────────┐
-   │        Đơn xin nghỉ phép            │
-   │  Loại:     [Nghỉ phép năm ▼]        │
-   │  Từ ngày:  [2026-01-30]             │
-   │  Đến ngày: [2026-01-31]             │
-   │  Lý do:    [________________]       │
-   │                                     │
-   │              [Hủy] [Gửi]            │
-   └─────────────────────────────────────┘
-   ```
+   - **Loại**: Nghỉ phép năm / Nghỉ khẩn cấp / Nghỉ ốm
+   - **Ngày**: Nhập ngày nghỉ (có thể chọn nhiều ngày)
+   - **Lý do**: Nhập lý do
+4. Click **[Gửi]**
+5. Đơn hiển thị trong channel, quản lý nhận thông báo trong channel `#attendance-approval-{team}` với nút duyệt
 
+#### Đi muộn
+1. Gõ `/xinphep`
+2. Click nút **[Đi muộn]**
+3. Điền form:
+   - **Ngày**: Ngày đi muộn
+   - **Giờ đến dự kiến**: VD: 10:00
+   - **Lý do**: Nhập lý do
 4. Click **[Gửi]**
 
-5. Đơn của bạn sẽ hiển thị trong channel (mọi người thấy):
-   ```
-   ┌─────────────────────────────────────┐
-   │ ĐƠN XIN NGHỈ #LR-2026013001         │
-   │ Người gửi: @username                │
-   │ Loại: Nghỉ phép năm                 │
-   │ Ngày: 30/01 → 31/01 (2 ngày)        │
-   │ Lý do: Việc gia đình                │
-   │ Trạng thái: ĐANG CHỜ DUYỆT          │
-   └─────────────────────────────────────┘
-   ```
-
-6. Quản lý sẽ nhận được thông báo trong channel `#attendance-approval-{team}` với nút duyệt
-
-#### Late Arrival (Xin đi muộn)
-1. Gõ `/attendance`
-2. Click nút **[Late Arrival]**
+#### Về sớm
+1. Gõ `/xinphep`
+2. Click nút **[Về sớm]**
 3. Điền form:
-   - Ngày đi muộn
-   - Giờ dự kiến đến
-   - Lý do
-4. Click **[Gửi]**
-
-#### Early Departure (Xin về sớm)
-1. Gõ `/attendance`
-2. Click nút **[Early Departure]**
-3. Điền form:
-   - Ngày về sớm
-   - Giờ dự kiến về
-   - Lý do
+   - **Ngày**: Ngày về sớm
+   - **Giờ về dự kiến**: VD: 15:00
+   - **Lý do**: Nhập lý do
 4. Click **[Gửi]**
 
 ### Theo dõi trạng thái đơn
 
-Khi đơn được duyệt/từ chối, bạn sẽ nhận được:
-- Thông báo trong channel `#attendance-{team}`
-- Tin nhắn riêng (DM) từ bot
-
-**Ví dụ khi được duyệt:**
-```
-Đơn nghỉ phép #LR-2026013001 của bạn đã được DUYỆT bởi @teamlead
-```
-
-**Ví dụ khi bị từ chối:**
-```
-Đơn nghỉ phép #LR-2026013001 của bạn đã bị TỪ CHỐI bởi @teamlead
-Lý do: Trùng lịch dự án quan trọng
-```
+Khi đơn được duyệt/từ chối, trạng thái sẽ được cập nhật trực tiếp trên bài post trong channel.
 
 ---
 
