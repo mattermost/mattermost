@@ -1,0 +1,83 @@
+name: Rollback VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollback_steps:
+        description: 'Rollback bao nhiêu bước? (1 = phiên bản trước, 2 = 2 bước trước...)'
+        required: true
+        default: '1'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+      reason:
+        description: 'Lý do rollback'
+        required: true
+        type: string
+
+env:
+  DEPLOY_PATH: /opt/mattermost
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Thông báo bắt đầu rollback
+        run: |
+          curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "GitHub Actions",
+              "icon_emoji": ":rewind:",
+              "text": "⏪ **Đang Rollback...**\n| | |\n|---|---|\n| **Kích hoạt bởi** | @${{ github.actor }} |\n| **Bước rollback** | ${{ github.event.inputs.rollback_steps }} |\n| **Lý do** | ${{ github.event.inputs.reason }} |"
+            }'
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS_SSH_PORT || '22' }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Thực hiện rollback trên VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -p ${{ secrets.VPS_SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "bash ${{ env.DEPLOY_PATH }}/rollback.sh ${{ github.event.inputs.rollback_steps }}"
+
+      - name: Health check sau rollback
+        run: |
+          sleep 15
+          curl -sf "http://${{ secrets.VPS_HOST }}:8065/api/v4/system/ping" | grep -q '"status":"OK"'
+          echo "✅ Hệ thống hoạt động bình thường sau rollback"
+
+      - name: Thông báo kết quả rollback
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then
+            ICON=":white_check_mark:"
+            MSG="**Rollback thành công!** Hệ thống đã hoạt động trở lại."
+          else
+            ICON=":sos:"
+            MSG="**Rollback thất bại!** Cần can thiệp thủ công ngay!"
+          fi
+          curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"username\": \"GitHub Actions\",
+              \"icon_emoji\": \"$ICON\",
+              \"text\": \"$MSG\nLý do: ${{ github.event.inputs.reason }}\n[Xem chi tiết](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"
+            }"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

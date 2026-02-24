@@ -1,0 +1,163 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy ngay cả khi không có thay đổi'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false  # Không cancel deploy đang chạy, tránh trạng thái dở
+
+env:
+  DEPLOY_PATH: /opt/mattermost
+  COMPOSE_FILE: docker-compose.prod.yml
+  MM_WEBHOOK: ${{ secrets.MM_WEBHOOK_URL }}
+
+jobs:
+  # ──────────────────────────────────────────────
+  # JOB 1: Validate configs
+  # ──────────────────────────────────────────────
+  validate:
+    name: Validate Configs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.prod.yml syntax
+        run: |
+          docker compose -f docker-compose.prod.yml config --quiet \
+            || (echo "❌ docker-compose.prod.yml có lỗi cú pháp!" && exit 1)
+          echo "✅ docker-compose.prod.yml hợp lệ"
+        env:
+          MM_DB_PASSWORD: validate-only
+          MM_SITE_URL: http://localhost:8065
+
+  # ──────────────────────────────────────────────
+  # JOB 2: Deploy lên VPS
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy to VPS
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: http://${{ secrets.VPS_HOST }}:8065
+    outputs:
+      deploy_status: ${{ steps.deploy.outcome }}
+      commit_sha: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS_SSH_PORT || '22' }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "✅ SSH đã sẵn sàng"
+
+      - name: Copy deployment files to VPS
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -P ${{ secrets.VPS_SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no \
+            docker-compose.prod.yml \
+            scripts/deploy.sh \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_PATH }}/
+          echo "✅ Files đã copy lên VPS"
+
+      - name: Execute deploy on VPS
+        id: deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -p ${{ secrets.VPS_SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "export MM_VERSION='latest' && \
+             export DEPLOY_PATH='${{ env.DEPLOY_PATH }}' && \
+             export COMPOSE_FILE='${{ env.COMPOSE_FILE }}' && \
+             export COMMIT_SHA='${GITHUB_SHA}' && \
+             bash ${{ env.DEPLOY_PATH }}/deploy.sh"
+
+      - name: Health check sau deploy
+        id: health
+        run: |
+          echo "⏳ Đợi Mattermost khởi động..."
+          MAX_RETRIES=12
+          RETRY=0
+          until curl -sf "http://${{ secrets.VPS_HOST }}:8065/api/v4/system/ping" | grep -q '"status":"OK"'; do
+            RETRY=$((RETRY + 1))
+            if [ "$RETRY" -ge "$MAX_RETRIES" ]; then
+              echo "❌ Health check thất bại sau $(($RETRY * 10)) giây"
+              exit 1
+            fi
+            echo "  Lần thử $RETRY/$MAX_RETRIES... chờ 10s"
+            sleep 10
+          done
+          echo "✅ Mattermost đang chạy tốt!"
+
+      - name: Rollback nếu health check thất bại
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          echo "⚠️ Đang rollback về phiên bản trước..."
+          ssh -i ~/.ssh/deploy_key \
+            -p ${{ secrets.VPS_SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }} && bash rollback.sh"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+  # ──────────────────────────────────────────────
+  # JOB 3: Thông báo kết quả
+  # ──────────────────────────────────────────────
+  notify:
+    name: Notify Mattermost
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Thông báo thành công
+        if: needs.deploy.result == 'success'
+        run: |
+          curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "GitHub Actions",
+              "icon_emoji": ":rocket:",
+              "text": "### ✅ Deploy Thành Công!\n| | |\n|---|---|\n| **Repo** | ${{ github.repository }} |\n| **Branch** | `${{ github.ref_name }}` |\n| **Commit** | [`'"$(echo ${{ github.sha }} | cut -c1-7)"'`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) |\n| **By** | @${{ github.actor }} |\n| **URL** | http://${{ secrets.VPS_HOST }}:8065 |"
+            }'
+
+      - name: Thông báo thất bại
+        if: needs.deploy.result == 'failure'
+        run: |
+          curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "GitHub Actions",
+              "icon_emoji": ":red_circle:",
+              "text": "### ❌ Deploy Thất Bại!\n| | |\n|---|---|\n| **Repo** | ${{ github.repository }} |\n| **Branch** | `${{ github.ref_name }}` |\n| **Commit** | [`'"$(echo ${{ github.sha }} | cut -c1-7)"'`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) |\n| **By** | @${{ github.actor }} |\n| **Logs** | [Xem chi tiết](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |"
+            }'
+
+      - name: Thông báo rollback
+        if: needs.deploy.result == 'failure'
+        run: |
+          curl -s -X POST "${{ secrets.MM_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "GitHub Actions",
+              "icon_emoji": ":warning:",
+              "text": "⚠️ **Đã tự động rollback** về phiên bản trước. Vui lòng kiểm tra logs tại: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }'

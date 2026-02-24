@@ -1,0 +1,79 @@
+# Docker Compose for Mattermost Local Development
+# Chạy: docker compose -f docker-compose.dev.yml up -d
+# Truy cập: http://localhost:8065
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: mattermost-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mmpassword
+      POSTGRES_DB: mattermost
+    volumes:
+      - mattermost-db:/var/lib/postgresql/data
+    networks:
+      - mattermost-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mattermost:
+    image: mattermost/mattermost-team-edition:latest
+    container_name: mattermost-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8065:8065"
+      - "8443:8443"
+    environment:
+      # Database
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mmpassword@postgres:5432/mattermost?sslmode=disable&connect_timeout=10"
+      # Site URL
+      MM_SERVICESETTINGS_SITEURL: "http://localhost:8065"
+      # Email (dùng inbucket để test local)
+      MM_EMAILSETTINGS_ENABLESMTPAUTH: "false"
+      MM_EMAILSETTINGS_SMTPSERVER: inbucket
+      MM_EMAILSETTINGS_SMTPPORT: "10025"
+      MM_EMAILSETTINGS_FEEDBACKEMAIL: "test@example.com"
+      MM_EMAILSETTINGS_REPLYTOADDRESS: "test@example.com"
+      # Misc
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+    volumes:
+      - mattermost-data:/mattermost/data
+      - mattermost-logs:/mattermost/logs
+      - mattermost-config:/mattermost/config
+      - mattermost-plugins:/mattermost/plugins
+      - mattermost-client-plugins:/mattermost/client/plugins
+    networks:
+      - mattermost-net
+
+  # Email testing - xem email tại http://localhost:9001
+  inbucket:
+    image: inbucket/inbucket:stable
+    container_name: mattermost-mail
+    restart: unless-stopped
+    ports:
+      - "9001:9001"     # Web UI
+      - "10025:10025"   # SMTP
+      - "10110:10110"   # POP3
+    networks:
+      - mattermost-net
+
+volumes:
+  mattermost-db:
+  mattermost-data:
+  mattermost-logs:
+  mattermost-config:
+  mattermost-plugins:
+  mattermost-client-plugins:
+
+networks:
+  mattermost-net:
+    driver: bridge

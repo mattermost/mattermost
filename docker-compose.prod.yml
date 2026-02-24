@@ -1,0 +1,89 @@
+# Docker Compose - Production
+# Deploy: docker compose -f docker-compose.prod.yml up -d
+# Đọc secrets từ file .env (xem .env.prod.example)
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: mattermost-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${MM_DB_USER:-mmuser}
+      POSTGRES_PASSWORD: ${MM_DB_PASSWORD}
+      POSTGRES_DB: ${MM_DB_NAME:-mattermost}
+    volumes:
+      - mattermost-db:/var/lib/postgresql/data
+    networks:
+      - mattermost-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${MM_DB_USER:-mmuser} -d ${MM_DB_NAME:-mattermost}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mattermost:
+    image: mattermost/mattermost-team-edition:${MM_VERSION:-latest}
+    container_name: mattermost-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8065:8065"
+    environment:
+      # Database
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: "postgres://${MM_DB_USER:-mmuser}:${MM_DB_PASSWORD}@postgres:5432/${MM_DB_NAME:-mattermost}?sslmode=disable&connect_timeout=10"
+      # Site
+      MM_SERVICESETTINGS_SITEURL: "${MM_SITE_URL}"
+      MM_SERVICESETTINGS_LISTENADDRESS: ":8065"
+      # Email (SMTP)
+      MM_EMAILSETTINGS_ENABLESMTPAUTH: "${MM_SMTP_AUTH:-false}"
+      MM_EMAILSETTINGS_SMTPSERVER: "${MM_SMTP_SERVER:-localhost}"
+      MM_EMAILSETTINGS_SMTPPORT: "${MM_SMTP_PORT:-25}"
+      MM_EMAILSETTINGS_FEEDBACKEMAIL: "${MM_FEEDBACK_EMAIL:-admin@example.com}"
+      MM_EMAILSETTINGS_REPLYTOADDRESS: "${MM_REPLY_EMAIL:-admin@example.com}"
+      MM_EMAILSETTINGS_SMTPUSERNAME: "${MM_SMTP_USER:-}"
+      MM_EMAILSETTINGS_SMTPPASSWORD: "${MM_SMTP_PASSWORD:-}"
+      # Logging
+      MM_LOGSETTINGS_ENABLEFILE: "true"
+      MM_LOGSETTINGS_FILELEVEL: "INFO"
+      # Performance
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "false"
+      MM_PLUGINSETTINGS_ENABLE: "true"
+      # File storage
+      MM_FILESETTINGS_DRIVERNAME: "local"
+      MM_FILESETTINGS_DIRECTORY: "/mattermost/data/"
+    volumes:
+      - mattermost-data:/mattermost/data
+      - mattermost-logs:/mattermost/logs
+      - mattermost-config:/mattermost/config
+      - mattermost-plugins:/mattermost/plugins
+      - mattermost-client-plugins:/mattermost/client/plugins
+    networks:
+      - mattermost-net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf http://localhost:8065/api/v4/system/ping | grep -q 'OK' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  mattermost-db:
+    driver: local
+  mattermost-data:
+    driver: local
+  mattermost-logs:
+    driver: local
+  mattermost-config:
+    driver: local
+  mattermost-plugins:
+    driver: local
+  mattermost-client-plugins:
+    driver: local
+
+networks:
+  mattermost-net:
+    driver: bridge
