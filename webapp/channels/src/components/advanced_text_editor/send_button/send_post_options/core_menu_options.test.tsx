@@ -7,7 +7,7 @@ import React from 'react';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CoreMenuOptions from './core_menu_options';
 
@@ -48,7 +48,6 @@ describe('CoreMenuOptions Component', () => {
     const handleOnSelect = jest.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
         handleOnSelect.mockReset();
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,
@@ -137,6 +136,8 @@ describe('CoreMenuOptions Component', () => {
         renderComponent();
 
         const tomorrowOption = screen.getByText(/Tomorrow at/);
+
+        // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(tomorrowOption);
 
         const expectedTimestamp = DateTime.now().
@@ -178,5 +179,37 @@ describe('CoreMenuOptions Component', () => {
 
         // Check the trailing element is NOT rendered in the component as this is a bot
         expect(screen.queryByText(/John Doe/)).toBeNull();
+    });
+
+    it('should format teammate time according to user locale', () => {
+        setMockDate(2); // Tuesday
+
+        const stateWithFrenchLocale = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    ...initialState.entities.users,
+                    profiles: {
+                        currentUserId: {
+                            locale: 'fr',
+                        },
+                    },
+                },
+            },
+        };
+
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
+            isDM: true,
+            isSelfDM: false,
+            isBot: false,
+        });
+
+        renderComponent(stateWithFrenchLocale);
+
+        // Verify French format (no AM/PM)
+        const timeTexts = screen.getAllByText(/\d{2}:\d{2}(?!\s*[AP]M)/);
+        expect(timeTexts.length).toBeGreaterThan(0);
     });
 });

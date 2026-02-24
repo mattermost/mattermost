@@ -51,11 +51,6 @@ export type Props = {
     onExited: () => void;
 
     /**
-     * The id of the post the files are attached to
-     */
-    postId?: string;
-
-    /**
      * The post the files are attached to
      * Either postId or post can be passed to FilePreviewModal
      */
@@ -224,12 +219,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     handleImageLoaded = (index: number) => {
         this.setState((prevState) => {
-            return {
+            const newState = {
                 loaded: {
                     ...prevState.loaded,
                     [index]: true,
                 },
             };
+            return newState;
         });
     };
 

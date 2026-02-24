@@ -1,0 +1,150 @@
+---
+name: "E2E Tests/verified"
+
+on:
+  pull_request:
+    types: [labeled]
+
+env:
+  REPORT_WEBHOOK_URL: ${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}
+
+jobs:
+  approve-e2e:
+    if: github.event.label.name == 'E2E Tests/verified'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/check-user-permission
+        id: check-permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LABEL_AUTHOR: ${{ github.event.sender.login }}
+        run: |
+          # Check if user has write permission to the repository
+          PERMISSION=$(gh api repos/${{ github.repository }}/collaborators/${LABEL_AUTHOR}/permission --jq '.permission' 2>/dev/null || echo "none")
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
+            echo "User ${LABEL_AUTHOR} doesn't have write permission to the repository (permission: ${PERMISSION})"
+            exit 1
+          fi
+          echo "User ${LABEL_AUTHOR} has ${PERMISSION} permission to the repository"
+
+      - name: ci/override-failed-statuses
+        id: override
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Only full tests can be overridden (smoke tests must pass)
+          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise")
+          OVERRIDDEN=""
+          WEBHOOK_DATA="[]"
+
+          for CONTEXT_NAME in "${FULL_TEST_CONTEXTS[@]}"; do
+            echo "Checking: $CONTEXT_NAME"
+
+            # Get current status
+            STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \
+              --jq "[.[] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
+
+            if [ -z "$STATUS_JSON" ]; then
+              echo "  No status found, skipping"
+              continue
+            fi
+
+            CURRENT_DESC=$(echo "$STATUS_JSON" | jq -r '.description // ""')
+            CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
+            CURRENT_STATE=$(echo "$STATUS_JSON" | jq -r '.state // ""')
+
+            echo "  Current: $CURRENT_DESC ($CURRENT_STATE)"
+
+            # Only override if status is failure
+            if [ "$CURRENT_STATE" != "failure" ]; then
+              echo "  Not failed, skipping"
+              continue
+            fi
+
+          # Prefix existing description
+          if [ -n "$CURRENT_DESC" ]; then
+            NEW_MSG="(verified) ${CURRENT_DESC}"
+          else
+            NEW_MSG="(verified)"
+          fi
+
+            echo "  New: $NEW_MSG"
+
+            # Update status via GitHub API
+            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+              -f state=success \
+              -f context="$CONTEXT_NAME" \
+              -f description="$NEW_MSG" \
+              -f target_url="$CURRENT_URL"
+
+            echo "  Updated to success"
+            OVERRIDDEN="${OVERRIDDEN}- ${CONTEXT_NAME}\n"
+
+            # Collect data for webhook
+            TEST_TYPE="unknown"
+            if [[ "$CONTEXT_NAME" == *"playwright"* ]]; then
+              TEST_TYPE="playwright"
+            elif [[ "$CONTEXT_NAME" == *"cypress"* ]]; then
+              TEST_TYPE="cypress"
+            fi
+
+            WEBHOOK_DATA=$(echo "$WEBHOOK_DATA" | jq \
+              --arg context "$CONTEXT_NAME" \
+              --arg test_type "$TEST_TYPE" \
+              --arg description "$CURRENT_DESC" \
+              --arg report_url "$CURRENT_URL" \
+              '. + [{context: $context, test_type: $test_type, description: $description, report_url: $report_url}]')
+          done
+
+          echo "overridden<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$OVERRIDDEN" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "webhook_data<<EOF" >> $GITHUB_OUTPUT
+          echo "$WEBHOOK_DATA" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: ci/build-webhook-message
+        if: env.REPORT_WEBHOOK_URL != '' && steps.override.outputs.overridden != ''
+        id: webhook-message
+        env:
+          WEBHOOK_DATA: ${{ steps.override.outputs.webhook_data }}
+        run: |
+          MESSAGE_TEXT=""
+
+          while IFS= read -r item; do
+            [ -z "$item" ] && continue
+            CONTEXT=$(echo "$item" | jq -r '.context')
+            DESCRIPTION=$(echo "$item" | jq -r '.description')
+            REPORT_URL=$(echo "$item" | jq -r '.report_url')
+
+            MESSAGE_TEXT="${MESSAGE_TEXT}- **${CONTEXT}**: ${DESCRIPTION}, [view report](${REPORT_URL})\n"
+          done < <(echo "$WEBHOOK_DATA" | jq -c '.[]')
+
+          {
+            echo "message_text<<EOF"
+            echo -e "$MESSAGE_TEXT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: ci/send-webhook-notification
+        if: env.REPORT_WEBHOOK_URL != '' && steps.override.outputs.overridden != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ env.REPORT_WEBHOOK_URL }}
+          MESSAGE_TEXT: ${{ steps.webhook-message.outputs.message_text }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "username": "E2E Test",
+            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+            "text": "**:white_check_mark: E2E Tests Verified**\n\nBy: \`@${SENDER}\` via \`E2E Tests/verified\` trigger-label\n:open-pull-request: [mattermost-pr-${PR_NUMBER}](${PR_URL}), commit: \`${COMMIT_SHA:0:7}\`\n\n${MESSAGE_TEXT}"
+          }
+          EOF
+          )
+
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"

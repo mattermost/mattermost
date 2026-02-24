@@ -172,12 +172,6 @@ export default class Logs extends React.PureComponent<Props, State> {
                 onSearchChange={this.onSearchChange}
                 search={this.state.search}
                 onFiltersChange={this.onFiltersChange}
-                filters={{
-                    dateFrom: this.state.dateFrom,
-                    dateTo: this.state.dateTo,
-                    logLevels: this.state.logLevels,
-                    serverNames: this.state.serverNames,
-                }}
             />
         );
 

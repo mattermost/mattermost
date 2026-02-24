@@ -32,7 +32,6 @@ describe('UserPropertyRenderer', () => {
                 },
                 profilesInChannel: {},
                 profilesNotInChannel: {},
-                profilesWithoutTeam: new Set(),
                 profilesInTeam: {},
                 profilesNotInTeam: {},
                 statuses: {},

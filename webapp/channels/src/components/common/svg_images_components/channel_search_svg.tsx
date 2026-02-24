@@ -27,18 +27,21 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fillOpacity='0.12'
                     />
                     <path
+                        fill='none'
                         d='M5.50196 18L5.50195 33L94.002 33'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.32'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M3.00201 94L13.502 83.5L13.502 44.5L34.502 44.5'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.32'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M21.502 70.5L21.502 56.5L95.5 56.5'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.32'
@@ -69,6 +72,7 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fill='var(--center-channel-bg)'
                     />
                     <path
+                        fill='none'
                         d='M42.2556 73.2081L29.502 85.8035V18C29.502 17.1716 30.1735 16.5 31.002 16.5H97.002C97.8304 16.5 98.502 17.1716 98.502 18V70.9868C98.502 71.8153 97.8304 72.4868 97.002 72.4868H44.0123C43.3546 72.4868 42.7235 72.746 42.2556 73.2081Z'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
@@ -81,36 +85,42 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fillOpacity='0.32'
                     />
                     <path
+                        fill='none'
                         d='M62.002 31H78.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M39.002 55H72.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M39.002 62H61.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M62.002 37H87.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M39.002 49H56.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M60.002 49H78.002'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
@@ -128,6 +138,7 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         cy='17.8576'
                         r='17.1433'
                         transform='matrix(-1 0 0 1 123.717 0)'
+                        fill='none'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeWidth='1.42861'
@@ -139,6 +150,7 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         cy='17.8576'
                         r='17.1433'
                         transform='matrix(-1 0 0 1 123.717 0)'
+                        fill='none'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeWidth='1.42861'
@@ -146,6 +158,7 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         strokeLinejoin='round'
                     />
                     <path
+                        fill='none'
                         d='M93.002 19C93.002 25.6274 98.3745 31 105.002 31'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
@@ -159,6 +172,7 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         x2='15.1722'
                         y2='-0.714303'
                         transform='matrix(0.707107 0.707107 0.707107 -0.707107 116.769 30.6265)'
+                        fill='none'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeWidth='1.42861'
@@ -166,17 +180,20 @@ export function ChannelSearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         strokeLinejoin='round'
                     />
                     <path
+                        fill='none'
                         d='M127.002 44.5V62H89.502'
                         stroke='var(--center-channel-color)'
                         strokeLinecap='round'
                         strokeLinejoin='round'
                     />
                     <path
+                        fill='none'
                         d='M86.002 62H76.002'
                         stroke='var(--center-channel-color)'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M73.002 62H67.002'
                         stroke='var(--center-channel-color)'
                         strokeLinecap='round'

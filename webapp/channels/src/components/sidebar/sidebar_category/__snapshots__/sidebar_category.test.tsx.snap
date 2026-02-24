@@ -1,449 +1,350 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
-<div
-  className="SidebarChannelGroup a11y__section"
->
-  <Connect(Droppable)
-    direction="vertical"
-    droppableId="category1"
-    getContainerForClone={[Function]}
-    ignoreContainerClipping={false}
-    isCombineEnabled={false}
-    isDropDisabled={false}
-    mode="standard"
-    renderClone={null}
-    type="SIDEBAR_CHANNEL"
-  >
-    <Component />
-  </Connect(Droppable)>
-</div>
-`;
-
-exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
-<div
-  className=""
->
-  <SidebarCategoryHeader
-    displayName="custom_category_1"
-    isCollapsed={false}
-    isCollapsible={true}
-    muted={false}
-    onClick={[Function]}
-  >
-    <Memo(SidebarCategoryMenu)
-      category={
-        Object {
-          "channel_ids": Array [
-            "channel_id",
-          ],
-          "collapsed": false,
-          "display_name": "custom_category_1",
-          "id": "category1",
-          "muted": false,
-          "sorting": "alpha",
-          "team_id": "team1",
-          "type": "custom",
-          "user_id": "",
-        }
-      }
-    />
-  </SidebarCategoryHeader>
+<div>
   <div
-    className="SidebarChannelGroup_content"
+    data-rbd-droppable-context-id="0"
+    data-rbd-droppable-id="sidebar-categories"
   >
-    <ul
-      className="NavGroupContent"
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="0"
+      data-rbd-draggable-id="category1"
     >
-      <Connect(SidebarChannel)
-        channelId="channel_id"
-        channelIndex={0}
-        isAutoSortedCategory={true}
-        isCategoryCollapsed={false}
-        isCategoryDragged={false}
-        isDraggable={true}
-        key="channel_id"
-        setChannelRef={[MockFunction]}
-      />
-    </ul>
+      <div
+        class=""
+        data-rbd-droppable-context-id="0"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-0-hidden-text-0"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="0"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            id="mock-category-menu"
+          />
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          >
+            <li
+              id="mock-sidebar-channel"
+            />
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/sidebar/sidebar_category should match snapshot when collapsed 1`] = `
-<div
-  className="SidebarChannelGroup a11y__section isCollapsed"
->
-  <Connect(Droppable)
-    direction="vertical"
-    droppableId="category1"
-    getContainerForClone={[Function]}
-    ignoreContainerClipping={false}
-    isCombineEnabled={false}
-    isDropDisabled={false}
-    mode="standard"
-    renderClone={null}
-    type="SIDEBAR_CHANNEL"
-  >
-    <Component />
-  </Connect(Droppable)>
-</div>
-`;
-
-exports[`components/sidebar/sidebar_category should match snapshot when collapsed 2`] = `
-<div
-  className=""
->
-  <SidebarCategoryHeader
-    displayName="custom_category_1"
-    isCollapsed={true}
-    isCollapsible={true}
-    muted={false}
-    onClick={[Function]}
-  >
-    <Memo(SidebarCategoryMenu)
-      category={
-        Object {
-          "channel_ids": Array [
-            "channel_id",
-          ],
-          "collapsed": true,
-          "display_name": "custom_category_1",
-          "id": "category1",
-          "muted": false,
-          "sorting": "alpha",
-          "team_id": "team1",
-          "type": "custom",
-          "user_id": "",
-        }
-      }
-    />
-  </SidebarCategoryHeader>
+<div>
   <div
-    className="SidebarChannelGroup_content"
+    data-rbd-droppable-context-id="2"
+    data-rbd-droppable-id="sidebar-categories"
   >
-    <ul
-      className="NavGroupContent"
+    <div
+      class="SidebarChannelGroup a11y__section isCollapsed"
+      data-rbd-draggable-context-id="2"
+      data-rbd-draggable-id="category1"
     >
-      <Connect(SidebarChannel)
-        channelId="channel_id"
-        channelIndex={0}
-        isAutoSortedCategory={true}
-        isCategoryCollapsed={true}
-        isCategoryDragged={false}
-        isDraggable={true}
-        key="channel_id"
-        setChannelRef={[MockFunction]}
-      />
-    </ul>
+      <div
+        class=""
+        data-rbd-droppable-context-id="2"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down icon-rotate-minus-90"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-2-hidden-text-9"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="2"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            id="mock-category-menu"
+          />
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          >
+            <li
+              id="mock-sidebar-channel"
+            />
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/sidebar/sidebar_category should match snapshot when isNewCategory 1`] = `
-<div
-  className="SidebarChannelGroup a11y__section"
->
-  <Connect(Droppable)
-    direction="vertical"
-    droppableId="category1"
-    getContainerForClone={[Function]}
-    ignoreContainerClipping={false}
-    isCombineEnabled={false}
-    isDropDisabled={false}
-    mode="standard"
-    renderClone={null}
-    type="SIDEBAR_CHANNEL"
-  >
-    <Component />
-  </Connect(Droppable)>
-</div>
-`;
-
-exports[`components/sidebar/sidebar_category should match snapshot when isNewCategory 2`] = `
-<div
-  className=""
->
-  <SidebarCategoryHeader
-    displayName="custom_category_1"
-    isCollapsed={false}
-    isCollapsible={true}
-    muted={false}
-    onClick={[Function]}
+<div>
+  <div
+    data-rbd-droppable-context-id="1"
+    data-rbd-droppable-id="sidebar-categories"
   >
     <div
-      className="SidebarCategory_newLabel"
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="1"
+      data-rbd-draggable-id="category1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="new"
-        id="sidebar_left.sidebar_category.newLabel"
-      />
-    </div>
-    <Memo(SidebarCategoryMenu)
-      category={
-        Object {
-          "channel_ids": Array [],
-          "collapsed": false,
-          "display_name": "custom_category_1",
-          "id": "category1",
-          "muted": false,
-          "sorting": "alpha",
-          "team_id": "team1",
-          "type": "custom",
-          "user_id": "",
-        }
-      }
-    />
-  </SidebarCategoryHeader>
-  <div
-    className="SidebarChannelGroup_content"
-  >
-    <ul
-      className="NavGroupContent"
-    >
-      <PublicDraggable
-        draggableId="NEW_CHANNEL_SPACER__category1"
-        index={0}
-        isDragDisabled={true}
-      >
-        <Component />
-      </PublicDraggable>
       <div
-        className="SidebarCategory_newDropBox"
+        class=""
+        data-rbd-droppable-context-id="1"
+        data-rbd-droppable-id="category1"
       >
         <div
-          className="SidebarCategory_newDropBox-content"
-          onTransitionEnd={[Function]}
+          class="SidebarChannelGroupHeader"
         >
-          <i
-            className="icon-hand-right"
-          />
-          <span
-            className="SidebarCategory_newDropBox-label"
+          <button
+            aria-expanded="true"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Drag channels here..."
-              id="sidebar_left.sidebar_category.newDropBoxLabel"
+            <i
+              class="icon icon-chevron-down"
             />
-          </span>
+            <div
+              aria-describedby="rbd-hidden-text-1-hidden-text-4"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="1"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            class="SidebarCategory_newLabel"
+          >
+            new
+          </div>
+          <div
+            id="mock-category-menu"
+          />
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          >
+            <li
+              class="SidebarChannel noFloat newChannelSpacer"
+              data-rbd-draggable-context-id="1"
+              data-rbd-draggable-id="NEW_CHANNEL_SPACER__category1"
+              draggable="false"
+              tabindex="-1"
+            />
+            <div
+              class="SidebarCategory_newDropBox"
+            >
+              <div
+                class="SidebarCategory_newDropBox-content"
+              >
+                <i
+                  class="icon-hand-right"
+                />
+                <span
+                  class="SidebarCategory_newDropBox-label"
+                >
+                  Drag channels here...
+                </span>
+              </div>
+            </div>
+          </ul>
         </div>
       </div>
-    </ul>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 1`] = `
-<div
-  className="SidebarChannelGroup a11y__section"
->
-  <Connect(Droppable)
-    direction="vertical"
-    droppableId="category1"
-    getContainerForClone={[Function]}
-    ignoreContainerClipping={false}
-    isCombineEnabled={false}
-    isDropDisabled={false}
-    mode="standard"
-    renderClone={null}
-    type="SIDEBAR_CHANNEL"
-  >
-    <Component />
-  </Connect(Droppable)>
-  <InviteMembersButton
-    className="followingSibling"
-  />
-</div>
-`;
-
-exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 2`] = `
-<div
-  className=""
->
-  <SidebarCategoryHeader
-    displayName="DIRECT MESSAGES"
-    isCollapsed={false}
-    isCollapsible={true}
-    muted={false}
-    onClick={[Function]}
-  >
-    <Memo(SidebarCategorySortingMenu)
-      category={
-        Object {
-          "channel_ids": Array [
-            "channel_id",
-          ],
-          "collapsed": false,
-          "display_name": "custom_category_1",
-          "id": "category1",
-          "muted": false,
-          "sorting": "recent",
-          "team_id": "team1",
-          "type": "direct_messages",
-          "user_id": "",
-        }
-      }
-      handleOpenDirectMessagesModal={[Function]}
-    />
-    <WithTooltip
-      title={
-        <React.Fragment>
-          Create new direct message
-          <Memo(KeyboardShortcutSequence)
-            hideDescription={true}
-            isInsideTooltip={true}
-            shortcut={
-              Object {
-                "default": Object {
-                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu",
-                },
-                "mac": Object {
-                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu.mac",
-                },
-              }
-            }
-          />
-        </React.Fragment>
-      }
-    >
-      <button
-        aria-label="Create new direct message"
-        className="SidebarChannelGroupHeader_addButton"
-        id="newDirectMessageButton"
-        onClick={[Function]}
-      >
-        <i
-          className="icon-plus"
-        />
-      </button>
-    </WithTooltip>
-  </SidebarCategoryHeader>
+<div>
   <div
-    className="SidebarChannelGroup_content"
+    data-rbd-droppable-context-id="5"
+    data-rbd-droppable-id="sidebar-categories"
   >
-    <ul
-      className="NavGroupContent"
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="5"
+      data-rbd-draggable-id="category1"
     >
-      <Connect(SidebarChannel)
-        channelId="channel_id"
-        channelIndex={0}
-        isAutoSortedCategory={true}
-        isCategoryCollapsed={false}
-        isCategoryDragged={false}
-        isDraggable={true}
-        key="channel_id"
-        setChannelRef={[MockFunction]}
+      <div
+        class=""
+        data-rbd-droppable-context-id="5"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="DIRECT MESSAGES"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-5-hidden-text-19"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="5"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              DIRECT MESSAGES
+            </div>
+          </button>
+          <div
+            id="mock-sorting-menu"
+          />
+          <button
+            aria-label="Write a direct message"
+            class="SidebarChannelGroupHeader_addButton"
+            id="newDirectMessageButton"
+          >
+            <i
+              class="icon-plus"
+            />
+          </button>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          >
+            <li
+              id="mock-sidebar-channel"
+            />
+          </ul>
+        </div>
+      </div>
+      <div
+        id="mock-invite-members-button"
       />
-    </ul>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/sidebar/sidebar_category should match snapshot when the category is DM and there are no DMs to display 1`] = `
-<div
-  className="SidebarChannelGroup a11y__section"
->
-  <Connect(Droppable)
-    direction="vertical"
-    droppableId="category1"
-    getContainerForClone={[Function]}
-    ignoreContainerClipping={false}
-    isCombineEnabled={false}
-    isDropDisabled={false}
-    mode="standard"
-    renderClone={null}
-    type="SIDEBAR_CHANNEL"
-  >
-    <Component />
-  </Connect(Droppable)>
-  <InviteMembersButton
-    className="followingSibling"
-  />
-</div>
-`;
-
-exports[`components/sidebar/sidebar_category should match snapshot when the category is DM and there are no DMs to display 2`] = `
-<div
-  className=""
->
-  <SidebarCategoryHeader
-    displayName="DIRECT MESSAGES"
-    isCollapsed={false}
-    isCollapsible={false}
-    muted={false}
-    onClick={[Function]}
-  >
-    <Memo(SidebarCategorySortingMenu)
-      category={
-        Object {
-          "channel_ids": Array [
-            "channel_id",
-          ],
-          "collapsed": false,
-          "display_name": "custom_category_1",
-          "id": "category1",
-          "muted": false,
-          "sorting": "recent",
-          "team_id": "team1",
-          "type": "direct_messages",
-          "user_id": "",
-        }
-      }
-      handleOpenDirectMessagesModal={[Function]}
-    />
-    <WithTooltip
-      title={
-        <React.Fragment>
-          Create new direct message
-          <Memo(KeyboardShortcutSequence)
-            hideDescription={true}
-            isInsideTooltip={true}
-            shortcut={
-              Object {
-                "default": Object {
-                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu",
-                },
-                "mac": Object {
-                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu.mac",
-                },
-              }
-            }
-          />
-        </React.Fragment>
-      }
-    >
-      <button
-        aria-label="Create new direct message"
-        className="SidebarChannelGroupHeader_addButton"
-        id="newDirectMessageButton"
-        onClick={[Function]}
-      >
-        <i
-          className="icon-plus"
-        />
-      </button>
-    </WithTooltip>
-  </SidebarCategoryHeader>
+<div>
   <div
-    className="SidebarChannelGroup_content"
+    data-rbd-droppable-context-id="3"
+    data-rbd-droppable-id="sidebar-categories"
   >
-    <ul
-      className="NavGroupContent"
-    />
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="3"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="3"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="DIRECT MESSAGES"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down hide-arrow"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-3-hidden-text-13"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="3"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              DIRECT MESSAGES
+            </div>
+          </button>
+          <div
+            id="mock-sorting-menu"
+          />
+          <button
+            aria-label="Write a direct message"
+            class="SidebarChannelGroupHeader_addButton"
+            id="newDirectMessageButton"
+          >
+            <i
+              class="icon-plus"
+            />
+          </button>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+      <div
+        id="mock-invite-members-button"
+      />
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/sidebar/sidebar_category should match snapshot when there are no channels to display 1`] = `
-<PublicDraggable
-  disableInteractiveElementBlocking={true}
-  draggableId="category1"
-  index={0}
->
-  <Component />
-</PublicDraggable>
+<div>
+  <div
+    data-rbd-droppable-context-id="4"
+    data-rbd-droppable-id="sidebar-categories"
+  />
+</div>
 `;

@@ -59,10 +59,6 @@ describe('useAccessControlAttributes', () => {
         </Provider>
     );
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should return initial state', () => {
         const {result} = renderHook(() => useAccessControlAttributes(EntityType.Channel, undefined, undefined), {wrapper});
 

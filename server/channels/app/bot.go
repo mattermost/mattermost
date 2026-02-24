@@ -157,7 +157,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
+		if _, _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -599,7 +599,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 		if appErr != nil {
 			return appErr
 		}

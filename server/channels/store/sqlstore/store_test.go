@@ -763,28 +763,24 @@ func TestVersionString(t *testing.T) {
 
 	versions := []struct {
 		input  int
-		driver string
 		output string
 	}{
 		{
 			input:  100000,
-			driver: model.DatabaseDriverPostgres,
 			output: "10.0",
 		},
 		{
 			input:  90603,
-			driver: model.DatabaseDriverPostgres,
 			output: "9.603",
 		},
 		{
 			input:  120005,
-			driver: model.DatabaseDriverPostgres,
 			output: "12.5",
 		},
 	}
 
 	for _, v := range versions {
-		out := versionString(v.input, v.driver)
+		out := versionString(v.input)
 		assert.Equal(t, v.output, out)
 	}
 }

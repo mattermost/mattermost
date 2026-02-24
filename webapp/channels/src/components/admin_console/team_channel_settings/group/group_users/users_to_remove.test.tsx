@@ -70,17 +70,6 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot searching with filters', () => {
-        const wrapper = shallow(
-            <UsersToRemove
-                {...baseProps}
-                searchTerm={'foo'}
-                filters={{roles: ['system_user']}}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should match snapshot loading', () => {
         const wrapper = shallow(
             <UsersToRemove

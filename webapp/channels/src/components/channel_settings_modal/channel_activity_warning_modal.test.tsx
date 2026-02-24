@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ChannelActivityWarningModal from './channel_activity_warning_modal';
 
@@ -17,17 +15,13 @@ describe('ChannelActivityWarningModal', () => {
         channelName: 'test-channel',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal when isOpen is true', () => {
         renderWithContext(
             <ChannelActivityWarningModal {...defaultProps}/>,
         );
 
         expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
-        expect(screen.getByText(/Everyone who gains access to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Modifying access rules may allow new users/)).toBeInTheDocument();
         expect(screen.getByText(/I acknowledge this change will expose/)).toBeInTheDocument();
     });
 

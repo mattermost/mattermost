@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, render, screen} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import MenuGroup from './menu_group';
 
@@ -29,13 +29,13 @@ describe('components/MenuItem', () => {
         expect(screen.queryByRole('separator')).not.toBeInTheDocument();
     });
 
-    test('should prevent default and stop propagation when divider is clicked', () => {
+    test('should prevent default and stop propagation when divider is clicked', async () => {
         render(<MenuGroup>{'text'}</MenuGroup>);
 
         const separator = screen.getByRole('separator');
 
         // Fire click event on separator
-        fireEvent.click(separator);
+        await userEvent.click(separator);
 
         // Verify the element exists and is clickable
         expect(separator).toBeInTheDocument();

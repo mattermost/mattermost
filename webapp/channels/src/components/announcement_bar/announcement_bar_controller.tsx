@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
@@ -30,7 +30,6 @@ type Props = {
     latestError?: {
         error: any;
     };
-    warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissError: (index: number) => void;
         getCloudSubscription: () => void;
@@ -127,7 +126,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                     config={this.props.config}
                     license={this.props.license}
                     canViewSystemErrors={this.props.canViewSystemErrors}
-                    warnMetricsStatus={this.props.warnMetricsStatus}
                 />
             </>
         );

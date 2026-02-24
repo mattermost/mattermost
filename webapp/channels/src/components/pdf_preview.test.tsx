@@ -6,18 +6,16 @@ import React from 'react';
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
 
-import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-jest.mock('pdfjs-dist', () => ({
-    getDocument: () => Promise.resolve({
-        numPages: 3,
-        getPage: (i: number) => Promise.resolve({
-            pageIndex: i,
-            getContext: (s: string) => Promise.resolve({s}),
-        }),
-    }),
+const mockGetDocument = jest.fn();
+
+jest.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
+    getDocument: (params: unknown) => mockGetDocument(params),
 }));
+
+jest.mock('pdfjs-dist/build/pdf.worker.min.mjs', () => ({}));
 
 describe('component/PDFPreview', () => {
     const requiredProps: Props = {
@@ -27,39 +25,127 @@ describe('component/PDFPreview', () => {
         handleBgClose: jest.fn(),
     };
 
-    /**
-     * All tests fail because 'onDocumentLoadError' is called every time.
-     * Tests on 'master' branch pass because they're testing state and snapshots, not how
-     * the user would use the app. Delete this comment after resolution during review.
-     */
-
-    test('should show loading spinner when loading', () => {
-        const {getByTestId} = renderWithContext(<PDFPreview {...requiredProps}/>);
-
-        const loadingSpinner = getByTestId('loadingSpinner');
-
-        expect(loadingSpinner).toBeInTheDocument();
-        expect(loadingSpinner).toBeVisible();
+    beforeEach(() => {
+        mockGetDocument.mockReset();
+        mockGetDocument.mockReturnValue({
+            promise: Promise.resolve({
+                numPages: 3,
+                getPage: (i: number) => Promise.resolve({
+                    pageIndex: i,
+                    getViewport: () => ({height: 100, width: 100}),
+                    render: () => ({promise: Promise.resolve()}),
+                }),
+            }),
+        });
     });
 
-    test('should show file details on fail', () => {
-        const updatedProps: Props = {...requiredProps, fileUrl: ''};
-
-        const {getByTestId} = renderWithContext(<PDFPreview {...updatedProps}/>);
-
-        const fileDetailsContainer = getByTestId('file-details__container');
-
-        expect(fileDetailsContainer).toBeInTheDocument();
-        expect(fileDetailsContainer).toBeVisible();
-
-        expect(getByTestId('loadingSpinner')).not.toBeInTheDocument();
+    test('should match snapshot, loading', () => {
+        const {container} = render(
+            <PDFPreview {...requiredProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call handleBgClose when clicked', () => {
-        const {getByTestId} = renderWithContext(<PDFPreview {...requiredProps}/>);
+    test('should match snapshot, not successful', async () => {
+        // Mock PDF loading to fail
+        mockGetDocument.mockReturnValue({
+            promise: Promise.reject(new Error('Failed to load PDF')),
+        });
 
-        fireEvent.click(getByTestId('pdf-container'));
+        // Use renderWithContext because FileInfoPreview requires Redux store
+        const {container} = renderWithContext(
+            <PDFPreview {...requiredProps}/>,
+        );
 
-        expect(requiredProps.handleBgClose).toHaveBeenCalledTimes(1);
+        // Wait for loading to complete (and fail)
+        await waitFor(() => {
+            expect(container.querySelector('.view-image__loading')).not.toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should update state with new value from props when prop changes', async () => {
+        const {container, rerender} = render(
+            <PDFPreview {...requiredProps}/>,
+        );
+
+        // Wait for initial PDF to load
+        await waitFor(() => {
+            expect(container.querySelector('.post-code')).toBeInTheDocument();
+        });
+
+        const newFileUrl = 'https://some-new-url';
+
+        // Rerender with new fileUrl - component should show loading state again
+        rerender(
+            <PDFPreview
+                {...requiredProps}
+                fileUrl={newFileUrl}
+            />,
+        );
+
+        // Verify loading state is shown (state was reset due to new fileUrl)
+        expect(container.querySelector('.view-image__loading')).toBeInTheDocument();
+
+        // Wait for new PDF to load
+        await waitFor(() => {
+            expect(container.querySelector('.post-code')).toBeInTheDocument();
+        });
+
+        // Verify getDocument was called with new URL
+        expect(mockGetDocument).toHaveBeenLastCalledWith(
+            expect.objectContaining({url: newFileUrl}),
+        );
+    });
+
+    test('should return correct state when onDocumentLoad is called', async () => {
+        // Test with 0 pages
+        mockGetDocument.mockReturnValueOnce({
+            promise: Promise.resolve({
+                numPages: 0,
+                getPage: jest.fn(),
+            }),
+        });
+
+        const {container, rerender} = render(
+            <PDFPreview {...requiredProps}/>,
+        );
+
+        // Wait for PDF to load with 0 pages
+        await waitFor(() => {
+            expect(container.querySelector('.view-image__loading')).not.toBeInTheDocument();
+        });
+
+        // Should have 0 canvas elements
+        expect(container.querySelectorAll('canvas')).toHaveLength(0);
+
+        // Test with 100 pages
+        mockGetDocument.mockReturnValueOnce({
+            promise: Promise.resolve({
+                numPages: 100,
+                getPage: (i: number) => Promise.resolve({
+                    pageIndex: i,
+                    getViewport: () => ({height: 100, width: 100}),
+                    render: () => ({promise: Promise.resolve()}),
+                }),
+            }),
+        });
+
+        const newFileUrl = 'https://another-url';
+        rerender(
+            <PDFPreview
+                {...requiredProps}
+                fileUrl={newFileUrl}
+            />,
+        );
+
+        // Wait for new PDF to load
+        await waitFor(() => {
+            expect(container.querySelector('.post-code')).toBeInTheDocument();
+        });
+
+        // Should have 100 canvas elements
+        expect(container.querySelectorAll('canvas')).toHaveLength(100);
     });
 });

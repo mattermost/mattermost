@@ -4,7 +4,14 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelsPost, ChannelSettingsModal, SettingsModal, components, InvitePeopleModal} from '@/ui/components';
+import {
+    ChannelsPost,
+    ChannelSettingsModal,
+    SettingsModal,
+    TeamSettingsModal,
+    components,
+    InvitePeopleModal,
+} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -86,6 +93,14 @@ export default class ChannelsPage {
         await this.centerView.toBeVisible();
     }
 
+    /**
+     * `toNotContainText` verifies if the page does not contain the specified text.
+     * @param text Text to be verified not in the page
+     */
+    async toNotContainText(text: string) {
+        await expect(this.page.locator('body')).not.toContainText(text);
+    }
+
     async getLastPost() {
         return this.centerView.getLastPost();
     }
@@ -142,6 +157,14 @@ export default class ChannelsPage {
         const lastPost = await sidebarRight.getLastPost();
 
         return {rootPost, sidebarRight, lastPost};
+    }
+
+    async openTeamSettings(): Promise<TeamSettingsModal> {
+        await this.page.locator('#sidebarTeamMenuButton').click();
+        await this.page.getByText('Team settings').first().click();
+        await this.teamSettingsModal.toBeVisible();
+
+        return this.teamSettingsModal;
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {

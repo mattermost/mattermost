@@ -35,6 +35,7 @@ type MainHelper struct {
 
 	status           int
 	testResourcePath string
+	testLogsPath     string
 	replicas         []string
 	storePool        *sqlstore.TestPool
 }
@@ -89,6 +90,15 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 
 	// Use a fast password hasher during tests to speed up user creation.
 	setupFastTestHasher()
+
+	// Create a logs directory and set MM_LOG_PATH for tests that validate log file paths.
+	// This is done unconditionally so tests don't need to enable full resources just for logging.
+	logsDir, err := os.MkdirTemp("", "testlogs")
+	if err != nil {
+		log.Fatal("Failed to create test logs directory: " + err.Error())
+	}
+	os.Setenv("MM_LOG_PATH", logsDir)
+	mainHelper.testLogsPath = logsDir
 
 	if options != nil {
 		mainHelper.Options = *options
@@ -254,7 +264,6 @@ func (h *MainHelper) setupResources() {
 //
 // Re-generate the files with:
 // pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t roles -t systems
-// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE Systems Roles
 // And keep only the permission related rows in the systems table output.
 func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 	var buf []byte
@@ -290,6 +299,10 @@ func (h *MainHelper) Close() error {
 	}
 	if h.testResourcePath != "" {
 		os.RemoveAll(h.testResourcePath)
+	}
+	if h.testLogsPath != "" {
+		os.RemoveAll(h.testLogsPath)
+		os.Unsetenv("MM_LOG_PATH")
 	}
 
 	if h.storePool != nil {

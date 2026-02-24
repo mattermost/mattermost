@@ -31,7 +31,8 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fields, appErr := c.App.ListCPAFields()
+	callerUserID := c.AppContext.Session().UserId
+	fields, appErr := c.App.ListCPAFields(callerUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -66,7 +67,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	createdField, appErr := c.App.CreateCPAField(pf)
+	callerUserID := c.AppContext.Session().UserId
+	createdField, appErr := c.App.CreateCPAField(callerUserID, pf)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -121,7 +123,8 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	originalField, appErr := c.App.GetCPAField(c.Params.FieldId)
+	callerUserID := c.AppContext.Session().UserId
+	originalField, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -129,7 +132,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(originalField)
 
-	patchedField, appErr := c.App.PatchCPAField(c.Params.FieldId, patch)
+	patchedField, appErr := c.App.PatchCPAField(callerUserID, c.Params.FieldId, patch)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -164,14 +167,15 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	field, appErr := c.App.GetCPAField(c.Params.FieldId)
+	callerUserID := c.AppContext.Session().UserId
+	field, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(field)
 
-	if appErr := c.App.DeleteCPAField(c.Params.FieldId); appErr != nil {
+	if appErr := c.App.DeleteCPAField(callerUserID, c.Params.FieldId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -224,8 +228,9 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// if the user is not an admin, we need to check that there are no
 	// admin-managed fields
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields()
+	session := *c.AppContext.Session()
+	if !c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		fields, appErr := c.App.ListCPAFields(session.UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -242,9 +247,10 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	callerUserID := c.AppContext.Session().UserId
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, rawValue, false)
+		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -271,17 +277,19 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.Params.UserId
+	targetUserID := c.Params.UserId
+	callerUserID := c.AppContext.Session().UserId
+
 	// we check unrestricted sessions to allow local mode requests to go through
 	if !c.AppContext.Session().IsUnrestricted() {
-		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, callerUserID, targetUserID)
 		if err != nil || !canSee {
 			c.SetPermissionError(model.PermissionViewMembers)
 			return
 		}
 	}
 
-	values, appErr := c.App.ListCPAValues(userID)
+	values, appErr := c.App.ListCPAValues(callerUserID, targetUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -298,7 +306,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.patchCPAValuesForUser", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -324,29 +332,35 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// if the user is not an admin, we need to check that there are no
-	// admin-managed fields
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields()
+	// Check for admin-managed fields
+	session := *c.AppContext.Session()
+	isAdmin := c.App.SessionHasPermissionTo(session, model.PermissionManageSystem)
+	if !isAdmin {
+		fields, appErr := c.App.ListCPAFields(session.UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
 
-		// Check if any of the fields being updated are admin-managed
 		for _, field := range fields {
-			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				if field.IsAdminManaged() {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
-					return
-				}
+			if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
+				continue
+			}
+			// Check for admin-managed fields
+			if field.IsAdminManaged() {
+				c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
+					"app.custom_profile_attributes.property_field_is_managed.app_error",
+					nil, "",
+					http.StatusForbidden)
+				return
 			}
 		}
 	}
 
+	callerUserID := c.AppContext.Session().UserId
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, rawValue, false)
+		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return

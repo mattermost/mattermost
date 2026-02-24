@@ -1100,7 +1100,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -2187,7 +2187,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -3261,7 +3261,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -4246,7 +4246,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -5220,7 +5220,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -6233,7 +6233,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -7207,7 +7207,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -8082,7 +8082,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -9067,7 +9067,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Features Flags"
+                  defaultMessage="Feature Flags"
                   id="admin.feature_flags.title"
                 />
               }

@@ -214,7 +214,6 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
             <DataGrid
                 rows={rows}
                 columns={columns}
-                page={page}
                 startCount={startCount}
                 endCount={endCount}
                 loading={false}
