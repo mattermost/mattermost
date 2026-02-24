@@ -6,7 +6,7 @@ import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import 'pdfjs-dist/build/pdf.worker.min.mjs';
 import type {RenderParameters} from 'pdfjs-dist/types/src/display/api';
-import React, {useRef, useState, memo, useEffect} from 'react';
+import React, {useRef, useState, memo, useEffect, useCallback} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -125,7 +125,7 @@ const PDFPreview = memo(({
         }
     }, [fileUrl, prevFileUrl]);
 
-    const loadPage = async (pdf: PDFDocumentProxy, pageIndex: number) => {
+    const loadPage = useCallback(async (pdf: PDFDocumentProxy, pageIndex: number) => {
         if (pdfFromState.pagesLoaded[pageIndex]) {
             return pdfFromState.pages[pageIndex];
         }
@@ -147,7 +147,7 @@ const PDFPreview = memo(({
         });
 
         return page;
-    };
+    }, [pdfFromState.pages, pdfFromState.pagesLoaded]);
 
     const isInViewport = (page: Element) => {
         const bounding = page.getBoundingClientRect();
@@ -160,7 +160,7 @@ const PDFPreview = memo(({
         );
     };
 
-    const renderPDFPage = async (pageIndex: number) => {
+    const renderPDFPage = useCallback(async (pageIndex: number) => {
         const canvas = pdfCanvasRef.current[`pdfCanvasRef-${pageIndex}`].current;
         if (!canvas) {
             // Refs are undefined when testing
@@ -190,7 +190,7 @@ const PDFPreview = memo(({
 
         await page.render(renderContext).promise;
         pdfPagesRendered.current[pageIndex] = true;
-    };
+    }, [loadPage, pdfFromState.pdf, scale]);
 
     useEffect(() => {
         const handleScroll = debounce(() => {
@@ -211,11 +211,7 @@ const PDFPreview = memo(({
                 parentNode.current.removeEventListener('scroll', handleScroll);
             }
         };
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This 'useEffect' should only run once during mount.
-         **/
-    }, []);
+    }, [pdfFromState.numPages, renderPDFPage, status]);
 
     useDidUpdate(() => {
         pdfPagesRendered.current = {};
