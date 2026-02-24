@@ -272,7 +272,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
             field_id: contentFlaggingFields.reporting_reason.id,
-            value: 'Sensitive data',
+            value: 'Classification mismatch',
             create_at: 1756790533487,
             update_at: 1756790533487,
             delete_at: 0,
@@ -375,7 +375,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(statusFieldValue).toHaveTextContent('Pending');
 
         const reasonFieldValue = screen.queryAllByTestId('select-property')[1];
-        expect(reasonFieldValue).toHaveTextContent('Sensitive data');
+        expect(reasonFieldValue).toHaveTextContent('Classification mismatch');
 
         const postPreview = screen.queryByTestId('post-preview-property');
         expect(postPreview).toBeVisible();

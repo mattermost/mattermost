@@ -29,7 +29,7 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
-    await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await reporterUserClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await reviewerUserClient.keepFlaggedPost(post.id, 'Retaining this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(reporterUser);
@@ -64,7 +64,7 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
-    await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await reporterUserClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await reviewerUserClient.removeFlaggedPost(post.id, 'Retaining this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(reporterUser);

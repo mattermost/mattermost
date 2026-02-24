@@ -104,7 +104,7 @@ func setCommonReviewerWithRequiredCommentConfig(th *TestHelper) *model.AppError 
 func flagPostViaAPI(t *testing.T, client *model.Client4, postId string) {
 	t.Helper()
 	flagRequest := &model.FlagContentRequest{
-		Reason:  "Sensitive data",
+		Reason:  "Classification mismatch",
 		Comment: "This is sensitive content",
 	}
 	resp, err := client.FlagPostForContentReview(context.Background(), postId, flagRequest)
@@ -616,7 +616,7 @@ func TestFlagPost(t *testing.T) {
 
 		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive data",
 		}
 
