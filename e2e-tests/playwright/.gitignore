@@ -24,6 +24,10 @@ dist
 !.e2e-ai-agents/plan.json             # Test execution plan (recommendations)
 !.e2e-ai-agents/traceability.json     # Test-to-file mappings (coverage data)
 
+# ALSO TRACK: Documentation for MCP API quality control
+!.e2e-ai-agents/spec-bridge-api.md    # Real Playwright API reference
+!.e2e-ai-agents/MCP-API-GUIDE.md      # Team guide for validating generated tests
+
 # Claude IDE cache (auto-generated, not needed - agents are in e2e-agents repo)
 .claude/
 

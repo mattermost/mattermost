@@ -268,3 +268,4 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         );
     }
 }
+// MCP test demo

@@ -1,7 +1,6 @@
 {
   "path": "../../webapp",
   "testsRoot": ".",
-  "mode": "impact",
   "framework": "playwright",
   "flowCatalogPath": ".e2e-ai-agents/flows.json",
   "testDiscovery": {
@@ -89,9 +88,46 @@
     "outputDir": "specs/functional/ai-assisted",
     "heal": true,
     "mcp": true,
-    "mcpAllowFallback": true,
-    "mcpTimeout": 30000,
-    "parallelGeneration": true,
-    "parallelLimit": 4
+    "mcpAllowFallback": false,
+    "baseUrl": "http://localhost:8065",
+    "browser": "chrome",
+    "headless": true,
+    "project": "chrome",
+    "parallel": true,
+    "parallelLimit": 4,
+    "timeout": 300000
+  },
+  "logging": {
+    "level": "info",
+    "verbose": true,
+    "captureGenerationSteps": true,
+    "reportDir": ".e2e-ai-agents/reports"
+  },
+  "browserProfiles": {
+    "chrome": {
+      "enabled": true,
+      "project": "chrome",
+      "headless": true,
+      "description": "Default: Chrome headless (fast, reliable)"
+    },
+    "firefox": {
+      "enabled": false,
+      "project": "firefox",
+      "headless": true,
+      "description": "Optional: Firefox headless (uncomment to enable)"
+    },
+    "webkit": {
+      "enabled": false,
+      "project": "webkit",
+      "headless": true,
+      "description": "Optional: WebKit/Safari (uncomment to enable)"
+    },
+    "ipad": {
+      "enabled": false,
+      "project": "iPad",
+      "device": "iPad Pro",
+      "headless": false,
+      "description": "Optional: iPad emulation (uncomment to enable)"
+    }
   }
 }

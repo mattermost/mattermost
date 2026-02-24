@@ -196,6 +196,7 @@
       ],
       "tests": [
         "specs/functional/channels/file_attachments/edit_message_with_attachment.spec.ts",
+        "specs/functional/system_console/abac/policy_management/edit_policies.spec.ts",
         "specs/functional/system_console/system_users/user_detail_edit.spec.ts"
       ],
       "audience": [

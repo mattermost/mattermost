@@ -1,10 +1,10 @@
 {
   "mode": "gap",
   "runMetadata": {
-    "runId": "gap-local-mm0zjjxg-c3fc7m",
-    "startedAt": "2026-02-24T19:15:20.355Z",
-    "completedAt": "2026-02-24T19:15:23.160Z",
-    "durationMs": 2804,
+    "runId": "gap-local-mm0zqvun-lkjv0v",
+    "startedAt": "2026-02-24T19:21:02.398Z",
+    "completedAt": "2026-02-24T19:21:03.918Z",
+    "durationMs": 1519,
     "sinceRef": "origin/master",
     "appPath": "/Users/yasserkhan/Documents/mattermost/mattermost/webapp",
     "testsRoot": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright"
@@ -53,10 +53,5 @@
     }
   },
   "testSuggestions": [],
-  "applied": {
-    "patchedFiles": [],
-    "generatedTests": [],
-    "skippedTests": []
-  },
   "suggestedNewTests": []
 }

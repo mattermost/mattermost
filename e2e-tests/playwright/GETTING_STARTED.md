@@ -8,12 +8,22 @@ Auto-generate Playwright tests for your webapp changes in **one command**.
 
 ### Prerequisites
 
-1. **Anthropic API Key** (for Claude):
+1. **Claude Code CLI** (required for UI-aware test generation):
+   ```bash
+   # Install via Homebrew (macOS/Linux)
+   brew install anthropic/tap/claude-code
+
+   # Or check https://github.com/anthropics/claude-code for your platform
+   ```
+
+   This enables Playwright Agents MCP for real UI context during test generation.
+
+2. **Anthropic API Key** (for Claude):
    ```bash
    export ANTHROPIC_API_KEY=sk-ant-your-key-here
    ```
 
-2. **On a feature branch** with webapp changes:
+3. **On a feature branch** with webapp changes:
    ```bash
    git checkout -b feature/my-changes
    # Make changes to webapp/
@@ -26,16 +36,19 @@ Auto-generate Playwright tests for your webapp changes in **one command**.
 ```bash
 cd e2e-tests/playwright
 
-# Generate tests for all affected flows
+# Generate tests for all affected flows (requires Claude Code CLI)
 npm run gen:tests
 ```
 
 **What it does:**
 1. ✅ Analyzes impact of your changes
-2. ✅ Generates test scenarios
-3. ✅ Auto-fixes failing tests (healing)
-4. ✅ Commits tests to your branch
-5. ✅ Shows summary report
+2. ✅ **Explores real UI with Playwright Agents MCP** (context-aware generation)
+3. ✅ Generates test scenarios based on actual UI state
+4. ✅ Auto-fixes failing tests (healing)
+5. ✅ Updates test→flow mappings
+6. ✅ Shows summary report
+
+**Generation Mode**: 🤖 **Playwright Agents + UI Exploration** (MCP-only - requires Claude Code CLI)
 
 **Time**: 5-10 minutes depending on flow complexity
 
@@ -74,6 +87,43 @@ npm run playwright-ui -- ai-assisted
 ---
 
 ## Troubleshooting
+
+### ❌ "Claude Code CLI not installed"
+```bash
+# Install it first
+brew install anthropic/tap/claude-code
+
+# Or visit: https://github.com/anthropics/claude-code
+# Then verify npm sees the update
+npm cache clean --force
+npm install
+```
+
+If after installation you still see MCP errors, check that Claude Code CLI is in your PATH:
+```bash
+which claude-code
+claude-code --version
+```
+
+### ❌ "MCP-Only Mode Error: Claude Code CLI / Playwright Agents MCP is not available"
+The system requires Claude Code CLI for UI-aware test generation. Two options:
+
+**Option 1: Install Claude Code CLI (Recommended)**
+```bash
+brew install anthropic/tap/claude-code
+```
+
+**Option 2: Use fallback generation (non-MCP)**
+```bash
+# Remove --pipeline-mcp-only from your command
+npm run test:ai:generate  # Uses non-MCP generation
+
+# Or manually run with fallback allowed
+node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate \
+  --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json \
+  --pipeline --pipeline-mcp --pipeline-mcp-allow-fallback \
+  --pipeline-scenarios 3 --pipeline-headless
+```
 
 ### ❌ "API key not found"
 ```bash
@@ -191,6 +241,20 @@ Edit `.e2e-ai-agents.config.json` to customize:
 
 ## FAQ
 
+**Q: Why do I need Claude Code CLI?**
+
+A: Claude Code CLI provides the Playwright Agents MCP server, which allows the test generation system to:
+- 🕵️ Explore the real UI to understand components
+- 🎯 Discover selectors and interactions dynamically
+- ✅ Validate tests against actual page state
+- 🔄 Heal failing tests using real browser context
+
+Without it, generation falls back to code analysis only (much less accurate).
+
+**Q: Can I use the system without Claude Code CLI?**
+
+A: Yes, but with reduced accuracy. You can use `npm run test:ai:generate` (without `--pipeline-mcp-only`) to fall back to non-MCP generation. For the team launch, we recommend installing Claude Code CLI for best results.
+
 **Q: Will this replace manual E2E testing?**
 
 A: No. AI-generated tests cover critical user flows. Manual exploratory testing is still essential for UX, edge cases, and unexpected interactions.
@@ -232,5 +296,19 @@ Questions? See `AI_TESTING_GUIDE.md` for detailed documentation.
 
 ---
 
-**Last updated**: February 23, 2026
-**System**: e2e-agents v0.3.4
+## 🎯 Team Launch Note
+
+**Test Generation Mode**: 🤖 **Playwright Agents + UI Exploration (MCP-only)**
+
+This means:
+- ✅ Tests are generated with real UI context (not guesses)
+- ✅ Claude Code CLI is required: `brew install anthropic/tap/claude-code`
+- ✅ Generation is context-aware and significantly more accurate
+- ⚠️  MCP unavailable = no test generation (fails loud, doesn't silently degrade)
+
+This is intentional - we want quality UI-aware tests, not guessed ones.
+
+---
+
+**Last updated**: February 24, 2026
+**System**: e2e-agents v0.3.4 (MCP-only mode enabled)
