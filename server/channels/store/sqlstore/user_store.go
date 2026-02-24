@@ -1075,6 +1075,7 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 		Column("s.LastActivityAt").
 		Join("TeamMembers tm ON (tm.UserId = Users.Id AND tm.TeamId = ?)", teamId).
 		Join("Status s ON (s.UserId = Users.Id)").
+		Where("Users.DeleteAt = 0").
 		OrderBy("s.LastActivityAt DESC").
 		OrderBy("Users.Username ASC").
 		Offset(uint64(offset)).Limit(uint64(limit))

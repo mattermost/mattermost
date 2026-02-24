@@ -2673,7 +2673,17 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 	u3.IsBot = true
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
+	require.NoError(t, nErr)
+
 	millis := model.GetMillis()
+	u4.LastActivityAt = millis + 1
 	u3.LastActivityAt = millis
 	u2.LastActivityAt = millis - 1
 	u1.LastActivityAt = millis - 1
@@ -2681,6 +2691,11 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
 	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: u4.LastActivityAt, ActiveChannel: ""}))
+
+	u4.DeleteAt = model.GetMillis()
+	_, err = ss.User().Update(rctx, u4, true)
+	require.NoError(t, err)
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamID, 0, 100, nil)
@@ -2706,6 +2721,18 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
 		}, users)
+	})
+
+	t.Run("deactivated users are excluded", func(t *testing.T) {
+		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamID, 0, 100, nil)
+		require.NoError(t, err)
+
+		ids := []string{}
+		for _, user := range users {
+			ids = append(ids, user.Id)
+		}
+
+		assert.NotContains(t, ids, u4.Id)
 	})
 }
 

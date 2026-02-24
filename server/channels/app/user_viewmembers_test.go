@@ -539,6 +539,20 @@ func TestRestrictedViewMembers(t *testing.T) {
 				}
 			})
 		}
+
+		t.Run("deactivated users are excluded", func(t *testing.T) {
+			deactivatedUser, appErr := th.App.UpdateActive(th.Context, user2, false)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, reactivatedErr := th.App.UpdateActive(th.Context, deactivatedUser, true)
+				require.Nil(t, reactivatedErr)
+			})
+
+			results, appErr := th.App.GetRecentlyActiveUsersForTeamPage(th.Context, team1.Id, 0, 1, false, nil)
+			require.Nil(t, appErr)
+			require.Len(t, results, 1)
+			assert.NotEqual(t, user2.Id, results[0].Id)
+		})
 	})
 
 	t.Run("GetUsers", func(t *testing.T) {
