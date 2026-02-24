@@ -25,10 +25,12 @@ workspaces=(
     channels
     platform/client
     platform/mattermost-redux
+    platform/shared
     platform/types
 )
 packages=(
     @mattermost/client
+    @mattermost/shared
     @mattermost/types
 )
 
