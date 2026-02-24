@@ -83,6 +83,10 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
+	if *c.App.Config().PrivacySettings.UseSecureURLs {
+		team.Name = model.NewId()
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
