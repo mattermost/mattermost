@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useRef, useState} from 'react';
-import {Button} from 'react-bootstrap';
+import type {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
@@ -10,13 +10,12 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
-import Input from 'components/widgets/inputs/input/input';
-import WithTooltip from 'components/with_tooltip';
 
-import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
-import * as URL from 'utils/url';
 import {cleanUpUrlable} from 'utils/url';
+
+import DisplayNameStep from './display_name_step';
+import TeamUrlStep from './team_url_step';
 
 type CreateTeamState = {
     team?: Partial<Team>;
@@ -46,8 +45,6 @@ export default function CreateTeamForm(props: Props) {
     const [nameError, setNameError] = useState<string | JSX.Element>('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Display Name step
-
     const isValidTeamName = teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
 
     const submitDisplayName = useCallback((e: React.MouseEvent) => {
@@ -70,8 +67,6 @@ export default function CreateTeamForm(props: Props) {
         setTeamDisplayName(e.target.value);
     }, []);
 
-    // Team URL step
-
     const submitBack = useCallback((e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
         const newState = parentState;
@@ -83,7 +78,7 @@ export default function CreateTeamForm(props: Props) {
         e.preventDefault();
 
         const name = teamURL!.trim();
-        const cleanedName = URL.cleanUpUrlable(name);
+        const cleanedName = cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
         const {checkIfTeamExists, createTeam} = actions;
 
@@ -187,190 +182,26 @@ export default function CreateTeamForm(props: Props) {
     }, []);
 
     if (step === 'team_url') {
-        let nameErrorLabel = null;
-        let nameDivClass = 'form-group';
-        if (nameError) {
-            nameErrorLabel = (
-                <label
-                    role='alert'
-                    className='control-label'
-                    id='teamURLInputError'
-                >
-                    {nameError}
-                </label>
-            );
-            nameDivClass += ' has-error';
-        }
-
-        const title = `${URL.getSiteURL()}/`;
-
-        let finishMessage = (
-            <FormattedMessage
-                id='create_team.team_url.finish'
-                defaultMessage='Finish'
-            />
-        );
-
-        if (isLoading) {
-            finishMessage = (
-                <FormattedMessage
-                    id='create_team.team_url.creatingTeam'
-                    defaultMessage='Creating team...'
-                />
-            );
-        }
-
         return (
-            <div>
-                <form>
-                    <img
-                        alt={'signup team logo'}
-                        className='signup-team-logo'
-                        src={logoImage}
-                    />
-                    <label htmlFor='teamURLInput'>
-                        <FormattedMessage
-                            id='create_team.team_url.teamUrl'
-                            tagName='strong'
-                            defaultMessage='Team URL'
-                        />
-                    </label>
-                    <div className={nameDivClass}>
-                        <div className='row'>
-                            <div className='col-sm-11'>
-                                <div className='input-group input-group--limit'>
-                                    <WithTooltip
-                                        title={title}
-                                    >
-                                        <span className='input-group-addon'>
-                                            {title}
-                                        </span>
-                                    </WithTooltip>
-                                    <input
-                                        id='teamURLInput'
-                                        type='text'
-                                        ref={teamURLInput}
-                                        className='form-control'
-                                        placeholder=''
-                                        maxLength={128}
-                                        value={teamURL}
-                                        autoFocus={true}
-                                        onFocus={handleFocus}
-                                        onChange={handleTeamURLInputChange}
-                                        spellCheck='false'
-                                        aria-describedby='teamURLInputError'
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        {nameErrorLabel}
-                    </div>
-                    <p>
-                        <FormattedMessage
-                            id='create_team.team_url.webAddress'
-                            defaultMessage='Choose the web address of your new team:'
-                        />
-                    </p>
-                    <ul className='color--light'>
-                        <li>
-                            <FormattedMessage
-                                id='create_team.team_url.hint1'
-                                defaultMessage='Short and memorable is best'
-                            />
-                        </li>
-                        <li>
-                            <FormattedMessage
-                                id='create_team.team_url.hint2'
-                                defaultMessage='Use lowercase letters, numbers and dashes'
-                            />
-                        </li>
-                        <li>
-                            <FormattedMessage
-                                id='create_team.team_url.hint3'
-                                defaultMessage="Must start with a letter and can't end in a dash"
-                            />
-                        </li>
-                    </ul>
-                    <div className='mt-8'>
-                        <Button
-                            id='teamURLFinishButton'
-                            type='submit'
-                            bsStyle='primary'
-                            disabled={isLoading}
-                            onClick={(e: React.MouseEvent<Button, MouseEvent>) => submitTeamUrl(e)}
-                        >
-                            {finishMessage}
-                        </Button>
-                    </div>
-                    <div className='mt-8'>
-                        <a
-                            href='#'
-                            onClick={submitBack}
-                        >
-                            <FormattedMessage
-                                id='create_team.team_url.back'
-                                defaultMessage='Back to previous step'
-                            />
-                        </a>
-                    </div>
-                </form>
-            </div>
+            <TeamUrlStep
+                teamURL={teamURL}
+                nameError={nameError}
+                isLoading={isLoading}
+                teamURLInput={teamURLInput}
+                onTeamURLChange={handleTeamURLInputChange}
+                onFocus={handleFocus}
+                onSubmit={submitTeamUrl}
+                onBack={submitBack}
+            />
         );
     }
 
     return (
-        <div>
-            <form>
-                <img
-                    alt={'signup logo'}
-                    className='signup-team-logo'
-                    src={logoImage}
-                />
-                <label htmlFor='teamNameInput'>
-                    <FormattedMessage
-                        id='create_team.display_name.teamName'
-                        tagName='strong'
-                        defaultMessage='Team Name'
-                    />
-                </label>
-                <div className='form-group'>
-                    <div className='row'>
-                        <div className='col-sm-9'>
-                            <Input
-                                id='teamNameInput'
-                                name='teamNameInput'
-                                type='text'
-                                value={teamDisplayName}
-                                autoFocus={true}
-                                onChange={handleDisplayNameChange}
-                                required={true}
-                                maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                                minLength={Constants.MIN_TEAMNAME_LENGTH}
-                                spellCheck='false'
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <FormattedMessage
-                        id='create_team.display_name.nameHelp'
-                        defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
-                    />
-                </div>
-                <button
-                    id='teamNameNextButton'
-                    type='submit'
-                    className='btn btn-primary mt-8'
-                    onClick={submitDisplayName}
-                    disabled={!isValidTeamName}
-                >
-                    <FormattedMessage
-                        id='create_team.display_name.next'
-                        defaultMessage='Next'
-                    />
-                    <i className='icon icon-chevron-right'/>
-                </button>
-            </form>
-        </div>
+        <DisplayNameStep
+            teamDisplayName={teamDisplayName}
+            isValidTeamName={isValidTeamName}
+            onDisplayNameChange={handleDisplayNameChange}
+            onSubmit={submitDisplayName}
+        />
     );
 }
