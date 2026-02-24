@@ -18,6 +18,7 @@ jobs:
   # Job 1: Build and push image
   build:
     runs-on: ubuntu-latest
+    environment: production
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
 
