@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/encryption"
 	sq "github.com/mattermost/squirrel"
 )
 
@@ -51,6 +52,11 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	if err := app.IsValid(); err != nil {
 		return nil, err
 	}
+
+	// Encrypt ClientSecret before persisting
+	origSecret := app.ClientSecret
+	app.ClientSecret = encryption.Encrypt(app.ClientSecret)
+	defer func() { app.ClientSecret = origSecret }()
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthApps
 		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID,
@@ -116,6 +122,9 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	if app.Id == "" {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
+
+	// Decrypt ClientSecret
+	app.ClientSecret = encryption.Decrypt(app.ClientSecret)
 
 	return &app, nil
 }
@@ -183,6 +192,16 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.Acc
 		return nil, err
 	}
 
+	// Encrypt tokens before persisting
+	origToken := accessData.Token
+	origRefresh := accessData.RefreshToken
+	accessData.Token = encryption.Encrypt(accessData.Token)
+	accessData.RefreshToken = encryption.Encrypt(accessData.RefreshToken)
+	defer func() {
+		accessData.Token = origToken
+		accessData.RefreshToken = origRefresh
+	}()
+
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthAccessData
 		(ClientId, UserId, Token, RefreshToken, RedirectUri, ExpiresAt, Scope, Audience)
 		VALUES
@@ -200,6 +219,9 @@ func (as SqlOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get OAuthAccessData with token=%s", token)
 	}
+	// Decrypt tokens
+	accessData.Token = encryption.Decrypt(accessData.Token)
+	accessData.RefreshToken = encryption.Decrypt(accessData.RefreshToken)
 	return &accessData, nil
 }
 
@@ -246,6 +268,16 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 		return nil, err
 	}
 
+	// Encrypt tokens before persisting
+	origToken := accessData.Token
+	origRefresh := accessData.RefreshToken
+	accessData.Token = encryption.Encrypt(accessData.Token)
+	accessData.RefreshToken = encryption.Encrypt(accessData.RefreshToken)
+	defer func() {
+		accessData.Token = origToken
+		accessData.RefreshToken = origRefresh
+	}()
+
 	if _, err := as.GetMaster().NamedExec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt, RefreshToken = :RefreshToken, Audience = :Audience WHERE ClientId = :ClientId AND UserID = :UserId", accessData); err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthAccessData with userId=%s and clientId=%s", accessData.UserId, accessData.ClientId)
 	}
@@ -271,6 +303,11 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData,
 	if err := authData.IsValid(); err != nil {
 		return nil, err
 	}
+
+	// Encrypt auth code before persisting
+	origCode := authData.Code
+	authData.Code = encryption.Encrypt(authData.Code)
+	defer func() { authData.Code = origCode }()
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthAuthData
 		(ClientId, UserId, Code, ExpiresIn, CreateAt, RedirectUri, State, Scope, CodeChallenge, CodeChallengeMethod, Resource)

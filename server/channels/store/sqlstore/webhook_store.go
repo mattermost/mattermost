@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/encryption"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -232,6 +233,11 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 		return nil, err
 	}
 
+	// Encrypt token before persisting
+	origToken := webhook.Token
+	webhook.Token = encryption.Encrypt(webhook.Token)
+	defer func() { webhook.Token = origToken }()
+
 	if _, err := s.GetMaster().NamedExec(`INSERT INTO OutgoingWebhooks
 			(Id, Token, CreateAt, UpdateAt, DeleteAt, CreatorId, ChannelId, TeamId, TriggerWords, TriggerWhen,
 			CallbackURLs, DisplayName, Description, ContentType, Username, IconURL)
@@ -260,6 +266,9 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) 
 
 		return nil, errors.Wrapf(err, "failed to get OutgoingWebhook with id=%s", id)
 	}
+
+	// Decrypt token
+	webhook.Token = encryption.Decrypt(webhook.Token)
 
 	return &webhook, nil
 }
@@ -374,6 +383,11 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) erro
 
 func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	hook.UpdateAt = model.GetMillis()
+
+	// Encrypt token before persisting
+	origToken := hook.Token
+	hook.Token = encryption.Encrypt(hook.Token)
+	defer func() { hook.Token = origToken }()
 
 	_, err := s.GetMaster().NamedExec(`UPDATE OutgoingWebhooks SET
 			CreateAt = :CreateAt, UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, Token = :Token, CreatorId = :CreatorId,
