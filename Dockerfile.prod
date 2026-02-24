@@ -14,23 +14,15 @@ RUN apk add --no-cache git make gcc musl-dev
 
 WORKDIR /src
 
-# Copy toàn bộ server/public/ (là local module, cần đầy đủ source)
-COPY server/public/ ./server/public/
-
-# Copy go.mod/go.sum của server chính
-COPY server/go.mod server/go.sum ./server/
+# Copy toàn bộ server source (bao gồm public/ module)
+COPY server/ ./server/
 
 WORKDIR /src/server
-# Replace: dùng local public module thay vì remote
+# Replace: dùng local public module thay vì remote (có đầy đủ model types)
 RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
 RUN go mod download
 
-# Copy phần còn lại của server source
-WORKDIR /src
-COPY server/ ./server/
-
 # Build binary
-WORKDIR /src/server
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
     -o /mattermost/bin/mattermost ./cmd/mattermost
 
