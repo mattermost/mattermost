@@ -134,6 +134,7 @@ type MetricsInterface interface {
 	ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string)
 	ObserveDesktopCpuUsage(platform, version, process string, usage float64)
 	ObserveDesktopMemoryUsage(platform, version, process string, usage float64)
+	ObservePluginWebappPerf(platform, agent, pluginID, pluginMetricLabel string, elapsed float64)
 
 	ObserveAccessControlSearchQueryDuration(value float64)
 	ObserveAccessControlExpressionCompileDuration(value float64)

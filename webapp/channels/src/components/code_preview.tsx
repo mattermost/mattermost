@@ -35,6 +35,31 @@ const CodePreview = ({
     });
 
     const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('loading');
+    const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
+
+    useEffect(() => {
+        if (fileUrl !== prevFileUrl) {
+            const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+
+            if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+                setCodeInfo((prevCodeInfo) => {
+                    return {...prevCodeInfo, code: '', lang: ''};
+                });
+
+                setStatus('fail');
+            } else {
+                setCodeInfo((prevCodeInfo) => {
+                    return {...prevCodeInfo, code: '', lang: usedLanguage};
+                });
+
+                setStatus('loading');
+            }
+
+            setPrevFileUrl(fileUrl);
+        }
+    }, [fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
+
+    const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
     useEffect(() => {
         const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
@@ -42,46 +67,54 @@ const CodePreview = ({
         if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
             setCodeInfo({code: '', lang: '', highlighted: ''});
             setStatus('fail');
-            return;
         }
 
-        setCodeInfo({code: '', lang: usedLanguage, highlighted: ''});
-        setStatus('loading');
+        const handleReceivedCode = async (data: string | Node) => {
+            let code = data as string;
+            const dataAsNode = data as Node;
 
-        const fetchCode = async () => {
+            if (dataAsNode.nodeName === '#document') {
+                code = new XMLSerializer().serializeToString(dataAsNode);
+            }
+
+            getContent?.(code);
+
+            setCodeInfo({
+                ...codeInfo,
+                code,
+                highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
+            });
+
+            setStatus('success');
+        };
+
+        const handleReceivedError = () => {
+            setStatus('fail');
+        };
+
+        const getCode = async () => {
+            if (shouldNotGetCode) {
+                return;
+            }
             try {
-                const response = await fetch(fileUrl);
-                let code = await response.text();
-
-                if (response.headers.get('content-type')?.includes('xml')) {
-                    try {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(code, 'text/xml');
-                        if (xmlDoc.nodeName === '#document') {
-                            code = new XMLSerializer().serializeToString(xmlDoc);
-                        }
-                    } catch {
-                        // If XML parsing fails, use the text as-is
-                    }
+                const data = await fetch(fileUrl);
+                if (!data.ok) {
+                    // Handle HTTP error responses (including 403 Forbidden from plugin rejection)
+                    handleReceivedError();
+                    return;
                 }
-
-                getContent?.(code);
-
-                const highlighted = await SyntaxHighlighting.highlight(usedLanguage, code);
-
-                setCodeInfo({
-                    code,
-                    lang: usedLanguage,
-                    highlighted,
-                });
-                setStatus('success');
+                const text = await data.text();
+                handleReceivedCode(text);
             } catch (e) {
-                setStatus('fail');
+                handleReceivedError();
             }
         };
 
-        fetchCode();
-    }, [fileUrl, fileInfo.extension, fileInfo.size, getContent]);
+        // Only fetch if status is loading and we have a language
+        if (status === 'loading' && codeInfo.lang && !shouldNotGetCode) {
+            getCode();
+        }
+    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode, status]);
 
     if (status === 'loading') {
         return (

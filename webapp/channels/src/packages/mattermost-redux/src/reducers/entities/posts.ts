@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -434,20 +433,27 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 
     case PostTypes.POST_TRANSLATION_UPDATED: {
-        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        const data: {
+            object_id: string;
+            language: string;
+            state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+            translation?: string;
+            src_lang?: string;
+        } = action.data;
         if (!state[data.object_id]) {
             return state;
         }
 
-        const translations = state[data.object_id].metadata?.translations || {};
+        const existingTranslations = state[data.object_id].metadata?.translations || {};
         const newTranslations = {
-            ...translations,
+            ...existingTranslations,
             [data.language]: {
-                lang: data.language,
                 object: data.translation ? JSON.parse(data.translation) : undefined,
                 state: data.state,
                 source_lang: data.src_lang,
-            }};
+            },
+        };
+
         return {
             ...state,
             [data.object_id]: {
@@ -481,9 +487,19 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         currentState[post.id] = {...currentState[post.id], ...post.metadata};
     }
 
-    // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
-        post.is_following = currentState[post.id].is_following;
+    // Posts that don't have CRT fields specified should maintain existing state.
+    // This happens when posts are returned via GetPostsByIds (e.g. translation
+    // supplement) which doesn't JOIN the Threads/ThreadMemberships tables.
+    if (post.update_at > 0 && currentState[post.id]) {
+        if (post.is_following == null) {
+            post.is_following = currentState[post.id].is_following;
+        }
+        if (post.participants == null && currentState[post.id].participants) {
+            post.participants = currentState[post.id].participants;
+        }
+        if (!post.last_reply_at && currentState[post.id].last_reply_at) {
+            post.last_reply_at = currentState[post.id].last_reply_at;
+        }
     }
 
     if (post.delete_at > 0) {
