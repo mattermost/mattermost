@@ -67,10 +67,7 @@ const FileInfoPreview = ({
     }
 
     return (
-        <div
-            className='file-details__container'
-            data-testid='file-details__container'
-        >
+        <div className='file-details__container'>
             {preview}
             <div className='file-details'>
                 <div className='file-details__name'>{fileInfo.name}</div>

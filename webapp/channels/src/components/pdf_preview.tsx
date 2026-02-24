@@ -10,8 +10,6 @@ import React, {useRef, useState, memo, useEffect} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
-
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -238,14 +236,6 @@ const PDFPreview = memo(({
 
         prevStatus.current = status;
     }, [status]);
-
-    // This function existed in the class component but wasn't used anywhere. Seek confirmation to delete during review.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const downloadFile = (e: React.FormEvent) => {
-        const fileDownloadUrl = fileInfo.link || getFileDownloadUrl(fileInfo.id);
-        e.preventDefault();
-        window.location.href = fileDownloadUrl;
-    };
 
     if (status === 'loading') {
         return (
