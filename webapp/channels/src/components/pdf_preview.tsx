@@ -61,11 +61,18 @@ const PDFPreview = memo(({
 
     const [status, setStatus] = useState<Status>('loading');
 
-    const [prevFileUrl, setPrevFileUrl] = useState('');
-
     const prevStatus = useRef<Status>('loading');
 
     useEffect(() => {
+        setPdfFromState({
+            pdf: null,
+            pages: {},
+            pagesLoaded: {},
+            numPages: 0,
+        });
+
+        setStatus('loading');
+
         const onDocumentLoad = (pdf: PDFDocumentProxy) => {
             setPdfFromState((prev) => {
                 return {
@@ -109,21 +116,6 @@ const PDFPreview = memo(({
          */
         pdfPagesRendered.current = {};
     }, [fileUrl]);
-
-    useEffect(() => {
-        if (fileUrl !== prevFileUrl) {
-            setPdfFromState({
-                pdf: null,
-                pages: {},
-                pagesLoaded: {},
-                numPages: 0,
-            });
-
-            setStatus('loading');
-
-            setPrevFileUrl(fileUrl);
-        }
-    }, [fileUrl, prevFileUrl]);
 
     const loadPage = useCallback(async (pdf: PDFDocumentProxy, pageIndex: number) => {
         if (pdfFromState.pagesLoaded[pageIndex]) {
