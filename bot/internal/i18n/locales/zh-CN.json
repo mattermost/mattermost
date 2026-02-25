@@ -45,6 +45,7 @@
   "attendance.helptext.dates": "请输入日期，以逗号分隔",
   "attendance.err.open_form": "无法打开表单，请重试。",
   "attendance.err.missing_id": "缺少申请 ID",
+  "attendance.err.mobile_blocked": "无法在手机上打卡，请使用电脑。",
 
   "attendance.msg.checked_in": "@{{.Username}} 已签到",
   "attendance.msg.already_checked_in": "@{{.Username}} 今天已于 {{.Time}} 签到",

@@ -45,6 +45,7 @@
   "attendance.helptext.dates": "Enter dates separated by commas",
   "attendance.err.open_form": "Failed to open form. Please try again.",
   "attendance.err.missing_id": "Missing request ID",
+  "attendance.err.mobile_blocked": "Attendance is not available on mobile devices. Please use a computer.",
 
   "attendance.msg.checked_in": "@{{.Username}} checked in",
   "attendance.msg.already_checked_in": "@{{.Username}} already checked in today at {{.Time}}",

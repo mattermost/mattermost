@@ -14,6 +14,7 @@ type Config struct {
 	MattermostURL       string
 	AttendanceBotToken  string
 	BudgetBotToken      string
+	BlockMobile         bool
 }
 
 func Load() *Config {
@@ -26,6 +27,7 @@ func Load() *Config {
 		MattermostURL:      strings.TrimRight(getEnv("MATTERMOST_URL", "http://localhost:8065"), "/"),
 		AttendanceBotToken: getEnv("ATTENDANCE_BOT_TOKEN", ""),
 		BudgetBotToken:     getEnv("BUDGET_BOT_TOKEN", ""),
+		BlockMobile:        getEnv("ATTENDANCE_BLOCK_MOBILE", "true") == "true",
 	}
 }
 

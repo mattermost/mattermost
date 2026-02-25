@@ -14,13 +14,34 @@ import (
 )
 
 type AttendanceHandler struct {
-	svc    *service.AttendanceService
-	mm     *mattermost.Client
-	botURL string
+	svc         *service.AttendanceService
+	mm          *mattermost.Client
+	botURL      string
+	blockMobile bool
 }
 
-func NewAttendanceHandler(svc *service.AttendanceService, mm *mattermost.Client, botURL string) *AttendanceHandler {
-	return &AttendanceHandler{svc: svc, mm: mm, botURL: botURL}
+func NewAttendanceHandler(svc *service.AttendanceService, mm *mattermost.Client, botURL string, blockMobile bool) *AttendanceHandler {
+	return &AttendanceHandler{svc: svc, mm: mm, botURL: botURL, blockMobile: blockMobile}
+}
+
+// isMobileRequest checks the X-Mattermost-Is-Mobile header injected by the Mattermost server.
+func (h *AttendanceHandler) isMobileRequest(r *http.Request) bool {
+	return h.blockMobile && r.Header.Get("X-Mattermost-Is-Mobile") == "true"
+}
+
+func (h *AttendanceHandler) denyMobileSlash(ctx context.Context, w http.ResponseWriter) {
+	writeJSON(w, SlashResponse{
+		ResponseType: "ephemeral",
+		Text:         i18n.T(ctx, "attendance.err.mobile_blocked"),
+	})
+}
+
+func (h *AttendanceHandler) denyMobileAction(ctx context.Context, w http.ResponseWriter) {
+	writeJSON(w, ActionResponse{EphemeralText: i18n.T(ctx, "attendance.err.mobile_blocked")})
+}
+
+func (h *AttendanceHandler) denyMobileDialog(ctx context.Context, w http.ResponseWriter) {
+	writeJSON(w, map[string]string{"error": i18n.T(ctx, "attendance.err.mobile_blocked")})
 }
 
 // SlashCommand is the Mattermost slash command request.
@@ -100,6 +121,11 @@ func (h *AttendanceHandler) HandleDiemDanh(w http.ResponseWriter, r *http.Reques
 	}
 
 	ctx := h.localeCtx(r.Context(), r.FormValue("user_id"))
+
+	if h.isMobileRequest(r) {
+		h.denyMobileSlash(ctx, w)
+		return
+	}
 
 	channelName := r.FormValue("channel_name")
 	if !strings.HasPrefix(channelName, "attendance") {
@@ -204,6 +230,11 @@ func (h *AttendanceHandler) HandleCheckIn(w http.ResponseWriter, r *http.Request
 
 	ctx := h.localeCtx(r.Context(), req.UserID)
 
+	if h.isMobileRequest(r) {
+		h.denyMobileAction(ctx, w)
+		return
+	}
+
 	err := h.mm.OpenDialog(&mattermost.DialogRequest{
 		TriggerID: req.TriggerID,
 		URL:       h.botURL + "/api/attendance/checkin-submit",
@@ -244,6 +275,12 @@ func (h *AttendanceHandler) HandleCheckInSubmit(w http.ResponseWriter, r *http.R
 
 	username := sub.UserName
 	ctx := h.localeCtx(r.Context(), sub.UserID)
+
+	if h.isMobileRequest(r) {
+		h.denyMobileDialog(ctx, w)
+		return
+	}
+
 	if username == "" {
 		user, err := h.mm.GetUser(sub.UserID)
 		if err == nil {
@@ -275,6 +312,11 @@ func (h *AttendanceHandler) HandleBreakStart(w http.ResponseWriter, r *http.Requ
 
 	ctx := h.localeCtx(r.Context(), req.UserID)
 
+	if h.isMobileRequest(r) {
+		h.denyMobileAction(ctx, w)
+		return
+	}
+
 	reasonKey, _ := req.Context["reason"].(string)
 
 	msg, err := h.svc.BreakStart(ctx, req.UserID, req.UserName, reasonKey)
@@ -294,6 +336,12 @@ func (h *AttendanceHandler) HandleBreakEnd(w http.ResponseWriter, r *http.Reques
 	}
 
 	ctx := h.localeCtx(r.Context(), req.UserID)
+
+	if h.isMobileRequest(r) {
+		h.denyMobileAction(ctx, w)
+		return
+	}
+
 	msg, err := h.svc.BreakEnd(ctx, req.UserID, req.UserName)
 	if err != nil {
 		writeJSON(w, ActionResponse{EphemeralText: err.Error()})
@@ -311,6 +359,12 @@ func (h *AttendanceHandler) HandleCheckOut(w http.ResponseWriter, r *http.Reques
 	}
 
 	ctx := h.localeCtx(r.Context(), req.UserID)
+
+	if h.isMobileRequest(r) {
+		h.denyMobileAction(ctx, w)
+		return
+	}
+
 	msg, err := h.svc.CheckOut(ctx, req.UserID, req.UserName)
 	if err != nil {
 		writeJSON(w, ActionResponse{EphemeralText: err.Error()})

@@ -45,6 +45,7 @@
   "attendance.helptext.dates": "Nhập các ngày cách nhau bởi dấu phẩy",
   "attendance.err.open_form": "Không thể mở biểu mẫu. Vui lòng thử lại.",
   "attendance.err.missing_id": "Thiếu mã yêu cầu",
+  "attendance.err.mobile_blocked": "Không thể chấm công trên điện thoại. Vui lòng sử dụng máy tính.",
 
   "attendance.msg.checked_in": "@{{.Username}} đã vào ca",
   "attendance.msg.already_checked_in": "@{{.Username}} đã vào ca hôm nay lúc {{.Time}}",

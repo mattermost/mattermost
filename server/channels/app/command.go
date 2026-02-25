@@ -554,6 +554,10 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
+	if isMobile := rctx.Session().Props[model.UserAuthServiceIsMobile]; isMobile != "" {
+		req.Header.Set("X-Mattermost-Is-Mobile", isMobile)
+	}
+
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {

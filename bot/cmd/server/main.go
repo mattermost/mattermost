@@ -52,7 +52,7 @@ func main() {
 
 	// Routes
 	mux := http.NewServeMux()
-	handler.NewAttendanceHandler(attendanceSvc, attendanceMM, botURL).RegisterRoutes(mux)
+	handler.NewAttendanceHandler(attendanceSvc, attendanceMM, botURL, cfg.BlockMobile).RegisterRoutes(mux)
 	handler.NewBudgetHandler(budgetSvc, budgetMM, botURL).RegisterRoutes(mux)
 
 	// Health checks

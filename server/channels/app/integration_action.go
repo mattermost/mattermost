@@ -330,6 +330,10 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
+	if isMobile := rctx.Session().Props[model.UserAuthServiceIsMobile]; isMobile != "" {
+		req.Header.Set("X-Mattermost-Is-Mobile", isMobile)
+	}
+
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
