@@ -15,6 +15,12 @@ This is the Mattermost monorepo. The webapp lives under `webapp/`.
 
 ### Running tests
 
+#### Go server tests
+- Run from `/workspace/server` with `PATH=/usr/local/go/bin:$PATH`.
+- Example (small package): `go test ./public/model/... -count=1 -short -timeout 120s`
+- The `-short` flag skips long-running integration tests that need a database.
+
+#### Webapp tests
 - To run tests for a specific workspace, use `npm run test --workspace <name>` from `webapp/`.
   - Example: `npm run test --workspace platform/client`
 - Do **not** use `npx jest --testPathPatterns="platform/client"` from the root — it picks up both compiled `lib/` tests and uncompiled `src/` TypeScript tests without the correct transform config, causing failures.
