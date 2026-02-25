@@ -8593,6 +8593,10 @@
     "translation": "Translation task cannot be null."
   },
   {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Translation task cannot be added because the worker has been stopped."
+  },
+  {
     "id": "ent.autotranslation.create_translation_failed",
     "translation": "Failed to create translation."
   },
