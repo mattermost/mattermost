@@ -18,7 +18,8 @@ COPY server/ ./server/
 WORKDIR /src/server
 # Dùng local public module (có đầy đủ model types)
 RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
-RUN go mod tidy
+# Thêm go.sum entry cho webpush-go (dependency mới) mà không fetch private enterprise modules
+RUN GONOSUMDB=* GOFLAGS=-mod=mod go get github.com/SherClockHolmes/webpush-go@v1.3.0
 RUN go mod download
 
 # Build binary
