@@ -40,11 +40,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: webapp
-        run: npm ci --ignore-scripts
-
-      - name: Run postinstall
-        working-directory: webapp
-        run: npm run postinstall || true
+        run: npm ci
 
       - name: Build webapp
         working-directory: webapp
