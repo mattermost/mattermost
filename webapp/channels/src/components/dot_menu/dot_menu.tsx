@@ -29,6 +29,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -110,17 +111,17 @@ type Props = {
         /**
          * Function flag the post
          */
-        flagPost: (postId: string) => void;
+        flagPost: (postId: string) => Promise<ActionResult>;
 
         /**
          * Function to unflag the post
          */
-        unflagPost: (postId: string) => void;
+        unflagPost: (postId: string) => Promise<ActionResult>;
 
         /**
          * Function to set the editing post
          */
-        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => Promise<void>;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => Promise<ActionResult>;
 
         /**
          * Function to pin the post
@@ -150,7 +151,7 @@ type Props = {
         /**
          * Function to set the thread as followed/unfollowed
          */
-        setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+        setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => Promise<ActionResult>;
 
         /**
          * Function to burn a BoR post now
