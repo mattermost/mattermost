@@ -16,9 +16,10 @@ export type Props = {
     onDisplayNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent) => void;
     buttonText: ReactNode;
+    isLoading?: boolean;
 };
 
-export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText}: Props) {
+export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText, isLoading}: Props) {
     return (
         <div>
             <form>
@@ -63,7 +64,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                     type='submit'
                     className='btn btn-primary mt-8'
                     onClick={onSubmit}
-                    disabled={!isValidTeamName}
+                    disabled={!isValidTeamName || isLoading}
                 >
                     {buttonText}
                 </button>
