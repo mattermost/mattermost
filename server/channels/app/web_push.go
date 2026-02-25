@@ -13,17 +13,18 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // WebPushSubscription represents a browser push subscription stored in DB.
 type WebPushSubscription struct {
-	Id        string `json:"id"`
-	UserId    string `json:"user_id"`
-	Endpoint  string `json:"endpoint"`
-	Auth      string `json:"auth"`
-	P256DH    string `json:"p256dh"`
-	UserAgent string `json:"user_agent"`
-	CreatedAt int64  `json:"created_at"`
+	Id        string `db:"Id"`
+	UserId    string `db:"UserId"`
+	Endpoint  string `db:"Endpoint"`
+	Auth      string `db:"Auth"`
+	P256DH    string `db:"P256DH"`
+	UserAgent string `db:"UserAgent"`
+	CreatedAt int64  `db:"CreatedAt"`
 }
 
 // WebPushSubscriptionInput is the payload from the browser's pushManager.subscribe()
@@ -45,8 +46,18 @@ type WebPushPayload struct {
 	Channel string `json:"channel"`
 }
 
+func getSqlStore(a *App) (*sqlstore.SqlStore, bool) {
+	ss, ok := a.Srv().Store().(*sqlstore.SqlStore)
+	return ss, ok
+}
+
 // SaveWebPushSubscription stores a browser subscription for a user.
 func (a *App) SaveWebPushSubscription(rctx request.CTX, userID string, input *WebPushSubscriptionInput) *model.AppError {
+	ss, ok := getSqlStore(a)
+	if !ok {
+		return model.NewAppError("SaveWebPushSubscription", "app.web_push.store.app_error", nil, "could not get SqlStore", http.StatusInternalServerError)
+	}
+
 	sub := &WebPushSubscription{
 		Id:        model.NewId(),
 		UserId:    userID,
@@ -57,16 +68,12 @@ func (a *App) SaveWebPushSubscription(rctx request.CTX, userID string, input *We
 		CreatedAt: model.GetMillis(),
 	}
 
-	_, err := a.Srv().Store().GetMaster().Exec(
+	_, err := ss.GetMaster().NamedExec(
 		`INSERT INTO WebPushSubscriptions (Id, UserId, Endpoint, Auth, P256DH, UserAgent, CreatedAt)
 		 VALUES (:Id, :UserId, :Endpoint, :Auth, :P256DH, :UserAgent, :CreatedAt)
 		 ON CONFLICT (UserId, Endpoint) DO UPDATE
 		 SET Auth = EXCLUDED.Auth, P256DH = EXCLUDED.P256DH, UserAgent = EXCLUDED.UserAgent, CreatedAt = EXCLUDED.CreatedAt`,
-		map[string]interface{}{
-			"Id": sub.Id, "UserId": sub.UserId, "Endpoint": sub.Endpoint,
-			"Auth": sub.Auth, "P256DH": sub.P256DH, "UserAgent": sub.UserAgent,
-			"CreatedAt": sub.CreatedAt,
-		},
+		sub,
 	)
 	if err != nil {
 		return model.NewAppError("SaveWebPushSubscription", "app.web_push.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -76,9 +83,14 @@ func (a *App) SaveWebPushSubscription(rctx request.CTX, userID string, input *We
 
 // DeleteWebPushSubscription removes a browser subscription for a user.
 func (a *App) DeleteWebPushSubscription(rctx request.CTX, userID string, endpoint string) *model.AppError {
-	_, err := a.Srv().Store().GetMaster().Exec(
-		`DELETE FROM WebPushSubscriptions WHERE UserId = :UserId AND Endpoint = :Endpoint`,
-		map[string]interface{}{"UserId": userID, "Endpoint": endpoint},
+	ss, ok := getSqlStore(a)
+	if !ok {
+		return model.NewAppError("DeleteWebPushSubscription", "app.web_push.store.app_error", nil, "could not get SqlStore", http.StatusInternalServerError)
+	}
+
+	_, err := ss.GetMaster().Exec(
+		`DELETE FROM WebPushSubscriptions WHERE UserId = $1 AND Endpoint = $2`,
+		userID, endpoint,
 	)
 	if err != nil {
 		return model.NewAppError("DeleteWebPushSubscription", "app.web_push.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -88,12 +100,17 @@ func (a *App) DeleteWebPushSubscription(rctx request.CTX, userID string, endpoin
 
 // getWebPushSubscriptionsForUser fetches all browser subscriptions for a user.
 func (a *App) getWebPushSubscriptionsForUser(userID string) ([]*WebPushSubscription, *model.AppError) {
+	ss, ok := getSqlStore(a)
+	if !ok {
+		return nil, model.NewAppError("getWebPushSubscriptionsForUser", "app.web_push.store.app_error", nil, "could not get SqlStore", http.StatusInternalServerError)
+	}
+
 	var subs []*WebPushSubscription
-	_, err := a.Srv().Store().GetReplica().Select(
+	err := ss.GetReplica().Select(
 		&subs,
 		`SELECT Id, UserId, Endpoint, Auth, P256DH, UserAgent, CreatedAt
-		 FROM WebPushSubscriptions WHERE UserId = :UserId`,
-		map[string]interface{}{"UserId": userID},
+		 FROM WebPushSubscriptions WHERE UserId = $1`,
+		userID,
 	)
 	if err != nil {
 		return nil, model.NewAppError("getWebPushSubscriptionsForUser", "app.web_push.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -132,7 +149,7 @@ func (a *App) sendWebPushToSubscriptions(rctx request.CTX, msg *model.PushNotifi
 		payload.Title = msg.SenderName
 	}
 	if msg.ChannelName != "" {
-		payload.URL = "/" + msg.TeamName + "/channels/" + msg.ChannelName
+		payload.URL = "/channels/" + msg.ChannelName
 	}
 
 	payloadBytes, err := json.Marshal(payload)
@@ -146,7 +163,7 @@ func (a *App) sendWebPushToSubscriptions(rctx request.CTX, msg *model.PushNotifi
 			Endpoint: sub.Endpoint,
 			Keys: webpush.Keys{
 				Auth:   sub.Auth,
-				P256DH: sub.P256DH,
+				P256dh: sub.P256DH,
 			},
 		}
 
@@ -157,9 +174,13 @@ func (a *App) sendWebPushToSubscriptions(rctx request.CTX, msg *model.PushNotifi
 			TTL:             30,
 		})
 		if err != nil {
+			epLen := len(sub.Endpoint)
+			if epLen > 40 {
+				epLen = 40
+			}
 			rctx.Logger().Warn("[WebPush] Failed to send notification",
 				mlog.String("user_id", userID),
-				mlog.String("endpoint", sub.Endpoint[:min(len(sub.Endpoint), 40)]),
+				mlog.String("endpoint", sub.Endpoint[:epLen]),
 				mlog.Err(err),
 			)
 			continue
@@ -180,11 +201,4 @@ func (a *App) sendWebPushToSubscriptions(rctx request.CTX, msg *model.PushNotifi
 			mlog.Int("status", resp.StatusCode),
 		)
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
