@@ -9896,10 +9896,6 @@
     "translation": "Не удалось восстановить вложения файлов в сообщении."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Роли пользователей не соответствуют статусу гостя."
-  },
-  {
     "id": "app.role.delete.app_error",
     "translation": "Невозможно удалить роль."
   },

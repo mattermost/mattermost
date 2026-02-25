@@ -35,8 +35,7 @@ test('MM-T5521-7 Should be able to filter users with team filter', async ({pw}) 
     const filterPopover = await systemConsolePage.users.openFilterPopover();
 
     // # Enter the team name of the first user and select it
-    await filterPopover.searchInTeamMenu(team1.display_name);
-    await filterPopover.teamMenuInput.press('Enter');
+    await filterPopover.filterByTeam(team1.display_name);
 
     // # Save the filter and close the popover
     await filterPopover.save();
@@ -79,11 +78,7 @@ test('MM-T5521-8 Should be able to filter users with role filter', async ({pw}) 
     const filterPopover = await systemConsolePage.users.openFilterPopover();
 
     // # Open the role filter in the popover and select Guest
-    await filterPopover.openRoleMenu();
-    // Wait for dropdown options and click on Guest
-    const guestOption = systemConsolePage.page.getByText('Guest', {exact: true});
-    await guestOption.waitFor();
-    await guestOption.click();
+    await filterPopover.filterByRole('Guest');
 
     // # Save the filter and close the popover
     await filterPopover.save();
@@ -132,11 +127,7 @@ test('MM-T5521-9 Should be able to filter users with status filter', async ({pw}
     const filterPopover = await systemConsolePage.users.openFilterPopover();
 
     // # Open the status filter in the popover and select Deactivated users
-    await filterPopover.openStatusMenu();
-    // Wait for dropdown options and click on Deactivated users
-    const deactivatedOption = systemConsolePage.page.getByText('Deactivated users', {exact: true});
-    await deactivatedOption.waitFor();
-    await deactivatedOption.click();
+    await filterPopover.filterByStatus('Deactivated users');
 
     // # Save the filter and close the popover
     await filterPopover.save();

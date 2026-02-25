@@ -93,6 +93,9 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: EnableAIRecaps - Remove this when GA is released
 	EnableAIRecaps bool
+
+	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
+	CJKSearch bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -136,6 +139,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIPluginBridge = false
 
 	f.EnableAIRecaps = false
+
+	f.CJKSearch = false
 }
 
 // ToMap returns the feature flags as a map[string]string

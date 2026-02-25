@@ -50,6 +50,9 @@ export class ColumnToggleMenu {
     }
 }
 
+type RoleFilter = 'Any' | 'System Admin' | 'Member' | 'Guest';
+type StatusFilter = 'Any' | 'Activated users' | 'Deactivated users';
+
 /**
  * Filter popover that appears when clicking the Filters button
  */
@@ -93,6 +96,22 @@ export class FilterPopover {
     }
 
     /**
+     * Select a team from the dropdown. For "All teams" and "No teams", opens the
+     * dropdown directly. For specific team names, searches first then selects.
+     */
+    async filterByTeam(team: 'All teams' | 'No teams' | (string & {})) {
+        if (team === 'All teams' || team === 'No teams') {
+            await expect(this.teamMenuInput).toBeVisible();
+            await this.teamMenuInput.click();
+        } else {
+            await this.searchInTeamMenu(team);
+        }
+        const option = this.container.getByRole('option', {name: team});
+        await option.waitFor();
+        await option.click();
+    }
+
+    /**
      * Open the role filter menu
      */
     async openRoleMenu() {
@@ -101,11 +120,31 @@ export class FilterPopover {
     }
 
     /**
+     * Open the role filter menu and select a role option
+     */
+    async filterByRole(role: RoleFilter) {
+        await this.openRoleMenu();
+        const option = this.container.getByRole('option', {name: role});
+        await option.waitFor();
+        await option.click();
+    }
+
+    /**
      * Open the status filter menu
      */
     async openStatusMenu() {
         await expect(this.statusMenuButton).toBeVisible();
         await this.statusMenuButton.click();
+    }
+
+    /**
+     * Open the status filter menu and select a status option
+     */
+    async filterByStatus(status: StatusFilter) {
+        await this.openStatusMenu();
+        const option = this.container.getByRole('option', {name: status});
+        await option.waitFor();
+        await option.click();
     }
 
     /**
