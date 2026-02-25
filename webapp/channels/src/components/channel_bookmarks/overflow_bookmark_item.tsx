@@ -4,7 +4,7 @@
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import classNames from 'classnames';
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import React, {useCallback, useContext, useRef} from 'react';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
@@ -40,19 +40,10 @@ function OverflowBookmarkItem({
         menuContext.close?.();
     }, [menuContext]);
 
-    // Sentinel ref to find the <li> rendered by Menu.Item for DnD registration
-    const sentinelRef = useRef<HTMLSpanElement>(null);
-    const liRef = useRef<HTMLLIElement | null>(null);
+    const liRef = useRef<HTMLLIElement>(null);
 
     const labelRef = useRef<HTMLSpanElement>(null);
     const isLabelOverflowing = useTextOverflow(labelRef);
-
-    // Resolve the parent <li> from the sentinel after mount
-    useEffect(() => {
-        if (sentinelRef.current) {
-            liRef.current = sentinelRef.current.closest('li');
-        }
-    }, []);
 
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
         id,
@@ -73,6 +64,7 @@ function OverflowBookmarkItem({
 
     return (
         <Menu.Item
+            ref={liRef}
             id={`overflow-bookmark-${id}`}
             className={itemClassName}
             data-bookmark-id={id}
@@ -100,11 +92,6 @@ function OverflowBookmarkItem({
             )}
             {...otherProps}
         >
-            {/* Sentinel for finding the parent <li> + drop indicator */}
-            <span
-                ref={sentinelRef}
-                style={{position: 'absolute', width: 0, height: 0, overflow: 'hidden'}}
-            />
             {closestEdge && (
                 <DropIndicator
                     edge={closestEdge}
