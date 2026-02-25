@@ -34,7 +34,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8065:8065"
+      - "127.0.0.1:8065:8065" # Chỉ localhost, Nginx proxy vào
     environment:
       # Database
       MM_SQLSETTINGS_DRIVERNAME: postgres
@@ -84,6 +84,29 @@ services:
       timeout: 10s
       retries: 5
       start_period: 90s # Build from source cần thời gian khởi động lâu hơn
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mattermost-nginx
+    restart: unless-stopped
+    depends_on:
+      mattermost:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro # Cert copy thủ công lên VPS
+    networks:
+      - mattermost-net
+      - techzen-net
+    healthcheck:
+      test: [ "CMD-SHELL", "nginx -t 2>&1 | grep -q 'ok' || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   mattermost-db:

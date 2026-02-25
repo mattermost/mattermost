@@ -1,94 +1,480 @@
 // ============================================================
-// Techzen Chat — Brand Theme Override
-// Primary Blue: #137FEC | Accent Red: #E63434
-// Sidebar Dark Navy: #0D1117 | Header: #090D13
+// Techzen Chat — Light Theme Override
+// Matching design: white sidebar, blue bubble messages
+// Primary Blue: #137FEC | Sidebar BG: #FFFFFF
 // ============================================================
 
-// ── Sidebar active item: đỏ border + xanh highlight ──────────
-.SidebarChannel--active,
-.SidebarChannelLinkLabel--active {
-    .SidebarChannel__badge .Badge {
-        background-color: #e63434;
-    }
+// ── Override CSS Variables → Light Theme ─────────────────────
+// Mattermost dùng CSS variables cho theme colors.
+// Override ở đây để sidebar trắng thay vì blue mặc định.
+:root {
+    // Sidebar colors → White
+    --sidebar-bg: #ffffff;
+    --sidebar-bg-rgb: 255, 255, 255;
+    --sidebar-header-bg: #f8f9fa;
+    --sidebar-header-bg-rgb: 248, 249, 250;
+    --sidebar-header-text-color: #1a1d1f;
+    --sidebar-header-text-color-rgb: 26, 29, 31;
+    --sidebar-text: #374151;
+    --sidebar-text-rgb: 55, 65, 81;
+    --sidebar-text-active-color: #137fec;
+    --sidebar-text-active-color-rgb: 19, 127, 236;
+    --sidebar-text-active-border: #137fec;
+    --sidebar-text-active-border-rgb: 19, 127, 236;
+    --sidebar-text-hover-bg: #f3f4f6;
+    --sidebar-text-hover-bg-rgb: 243, 244, 246;
+    --sidebar-unread-text: #111827;
+    --sidebar-unread-text-rgb: 17, 24, 39;
+    --sidebar-team-background: #e8eaed;
+    --sidebar-teambar-bg: #137fec;
+    --sidebar-teambar-bg-rgb: 19, 127, 236;
+
+    // Button colors
+    --button-bg: #137fec;
+    --button-bg-rgb: 19, 127, 236;
+    --button-color: #ffffff;
+
+    // Links
+    --link-color: #137fec;
+    --link-color-rgb: 19, 127, 236;
+
+    // Global header → white background
+    --global-header-background: #ffffff;
+    --global-header-text: #1a1d1f;
 }
 
-// Active channel highlight row — gradient xanh nhẹ
-.SidebarChannelGroupHeader a.active,
-.SidebarChannelLinkLabel__wrapper--active {
-    background: linear-gradient(90deg, rgba(19, 127, 236, 0.18) 0%, transparent 100%);
+// ── Google Fonts ────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+// ── Global font ─────────────────────────────────────────────
+body,
+.app__body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
-// ── Team Sidebar (leftmost icon column) ───────────────────────
+// ── Team Sidebar (leftmost icon strip) ──────────────────────
 .TeamSidebar {
-    background-color: #060a0f;
-    border-right: 1px solid #1a2030;
-}
+    background-color: #137fec;
+    border-right: none;
 
-.TeamButton.active .TeamButton__content {
-    border-color: #e63434;
-    box-shadow: 0 0 0 2px rgba(230, 52, 52, 0.35);
-}
+    .TeamButton__icon {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+    }
 
-// ── Global Header ─────────────────────────────────────────────
-.ChannelHeader {
-    border-bottom: 2px solid #137fec;
-}
-
-.ChannelHeader__title {
-    color: #1a1a2e;
-    font-weight: 700;
-}
-
-// ── Mention badge (unread count bubble) ───────────────────────
-.Badge,
-.badge {
-    &[data-count] {
-        background-color: #e63434;
+    .TeamButton.active .TeamButton__content {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
     }
 }
 
-// Badge tổng quát trong sidebar
-.SidebarChannelGroupHeader .SidebarChannelGroupHeader__addLink,
-.SidebarChannelLink .SidebarChannelLink__icon {
-    color: #137fec;
+// ── Left Sidebar ─────────────────────────────────────────────
+#SidebarContainer,
+.SidebarContainer {
+    background-color: #ffffff !important;
+    border-right: 1px solid #E8EAED;
+}
+
+// Sidebar header (workspace name area)
+.SidebarHeader,
+.sidebar-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #E8EAED;
+
+    .header__info .team__name {
+        color: #1a1d1f;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .header__info .user__name {
+        color: #6b7280;
+        font-size: 12px;
+    }
+}
+
+// Sidebar background cho tất cả sections
+.SidebarNavContainer,
+.SidebarChannelGroupHeader {
+    background-color: #ffffff;
+}
+
+// Category header labels (PUBLIC CHANNELS, DIRECT MESSAGES)
+.SidebarChannelGroupHeader_groupButton {
+    color: #9ca3af !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+}
+
+// Channel links
+.SidebarLink {
+    height: 34px;
+    border-radius: 6px;
+    margin: 0 8px 2px 8px;
+    color: #374151 !important;
+    font-size: 14px;
+
+    &:hover {
+        background-color: #F3F4F6 !important;
+        color: #111827 !important;
+    }
+}
+
+// Active channel - highlight xanh nhạt với border trái
+.SidebarLink.active,
+a.SidebarLink--active,
+.SidebarChannel--active .SidebarLink {
+    background-color: #EBF5FB !important;
+    color: #137fec !important;
+    font-weight: 600;
+    border-left: 3px solid #137fec;
+    border-radius: 0 6px 6px 0;
+    margin-left: 5px;
+
+    .SidebarChannelLinkLabel {
+        color: #137fec !important;
+        font-weight: 600;
+    }
+
+    &:hover {
+        background-color: #dbeafe !important;
+    }
+}
+
+// Unread channel
+.SidebarLink .SidebarChannelLinkLabel.unread {
+    color: #111827 !important;
+    font-weight: 600;
+}
+
+// Badge (unread count)
+.Badge,
+.badge,
+.SidebarChannelLink__unreadMentions {
+    background-color: #e63434 !important;
+    color: #ffffff !important;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+}
+
+// Direct Message avatars in sidebar
+.SidebarChannelLink .Avatar {
+    border-radius: 50%;
+}
+
+// Add (+) icons
+.SidebarChannelGroupHeader__addLink {
+    color: #9ca3af;
+
+    &:hover {
+        color: #137fec;
+        background: #F3F4F6;
+        border-radius: 4px;
+    }
+}
+
+// Invite Members button (bottom của sidebar)
+.SidebarChannelNavigator_inviteUsersSticky {
+    background-color: #ffffff;
+    border-top: 1px solid #E8EAED;
+    padding: 12px 16px;
+
+    button {
+        background-color: #137fec !important;
+        border: none !important;
+        border-radius: 6px !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        height: 36px;
+
+        &:hover {
+            background-color: #0d6fd4 !important;
+        }
+
+        i {
+            color: #ffffff;
+        }
+    }
+}
+
+// ── Global App Header (top bar) ───────────────────────────────
+.MultiTeamSidebar+div .HeaderBar,
+.app__body .header-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #E8EAED;
+}
+
+// Search bar
+.search-bar__container .search-bar,
+.SearchBar .search-bar {
+    background-color: #F3F4F6 !important;
+    border: 1px solid #E8EAED !important;
+    border-radius: 20px !important;
+    color: #374151 !important;
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+// ── Channel Header ────────────────────────────────────────────
+.ChannelHeader {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #E8EAED !important;
+
+    .ChannelHeader__title {
+        color: #111827;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .header-description {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    i.icon-star,
+    i.icon-star-outline {
+        color: #9ca3af;
+    }
+}
+
+// ── Post / Message area ───────────────────────────────────────
+
+// Date separator
+.date-separator {
+    .separator__text {
+        background-color: #ffffff;
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid #E8EAED;
+        border-radius: 10px;
+        padding: 2px 12px;
+    }
+
+    .separator__hr {
+        border-color: #E8EAED;
+    }
+}
+
+// Tin nhắn của người khác — light card
+.post:not(.current--user) {
+    .post__content {
+        background: transparent;
+    }
+
+    .post-message__text,
+    .post__body .post-message__text-container {
+        background-color: #F3F4F6;
+        border-radius: 0 12px 12px 12px;
+        padding: 10px 14px;
+        color: #1a1d1f;
+        font-size: 14px;
+        line-height: 1.5;
+        display: inline-block;
+        max-width: 80%;
+    }
+}
+
+// Tin nhắn CỦA MÌNH — blue bubble bên phải
+.post.current--user {
+    .post__content {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+
+    .post-message__text,
+    .post__body .post-message__text-container {
+        background-color: #137fec;
+        border-radius: 12px 0 12px 12px;
+        padding: 10px 14px;
+        color: #ffffff !important;
+        font-size: 14px;
+        line-height: 1.5;
+        display: inline-block;
+        max-width: 80%;
+        margin-left: auto;
+    }
+
+    // Links trong tin nhắn xanh
+    a,
+    .markdown__link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        text-decoration: underline;
+    }
+
+    // Timestamp bên phải
+    .post__header {
+        flex-direction: row-reverse;
+
+        .post__time {
+            margin-right: 8px;
+        }
+
+        .post__header-col:not(.post__header-col--info) {
+            display: none;
+        }
+    }
+
+    // Avatar bên phải
+    .post__img {
+        margin-left: 12px;
+        margin-right: 0;
+        order: 2;
+    }
+
+    .post__body {
+        text-align: right;
+        order: 1;
+    }
+}
+
+// Username & timestamp chung
+.post__header .post__header-col {
+    .post__username {
+        color: #1a1d1f;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .post__time {
+        color: #9ca3af;
+        font-size: 12px;
+    }
+}
+
+// File attachment preview
+.file-preview__container,
+.post-attachment {
+    background-color: #F3F4F6;
+    border: 1px solid #E8EAED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+}
+
+// Reaction emoji
+.post-reaction {
+    background-color: #F3F4F6;
+    border: 1px solid #E8EAED;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 13px;
+
+    &:hover {
+        background-color: #dbeafe;
+        border-color: #137fec;
+    }
+
+    &.post-reaction--current-user {
+        background-color: #dbeafe;
+        border-color: #137fec;
+    }
+}
+
+// New message separator
+.new-separator .separator__hr {
+    border-color: #137fec;
+}
+
+.new-separator .separator__text {
+    background-color: #137fec;
+    color: #ffffff;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+// ── Message Input ─────────────────────────────────────────────
+.AdvancedTextEditor,
+.post-create {
+    background-color: #ffffff;
+    border-top: 1px solid #E8EAED;
+}
+
+.custom-textarea,
+.textbox-wrapper textarea,
+.RHS_root .post-create {
+    background-color: #ffffff !important;
+    border: 1px solid #E8EAED !important;
+    border-radius: 8px !important;
+    color: #1a1d1f !important;
+    font-size: 14px !important;
+
+    &:focus {
+        border-color: #137fec !important;
+        box-shadow: 0 0 0 2px rgba(19, 127, 236, 0.15) !important;
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+// Toolbar formatting (B, I, S, link...)
+.AdvancedTextEditor__formatbar,
+.textEditorBar {
+    border-bottom: 1px solid #E8EAED;
+    background: #f9fafb;
+    border-radius: 8px 8px 0 0;
+    padding: 4px 8px;
+
+    button {
+        color: #6b7280;
+        border-radius: 4px;
+
+        &:hover {
+            background: #E8EAED;
+            color: #137fec;
+        }
+    }
+}
+
+// Send button
+.SendMessageButton,
+.send-button {
+    background-color: #137fec !important;
+    border-radius: 6px;
+
+    &:hover {
+        background-color: #0d6fd4 !important;
+    }
+
+    i {
+        color: #ffffff;
+    }
+}
+
+// Bottom toolbar icons (file, emoji, @)
+.AdvancedTextEditor__controls button {
+    color: #9ca3af;
+
+    &:hover {
+        color: #137fec;
+        background: #F3F4F6;
+        border-radius: 4px;
+    }
 }
 
 // ── Buttons primary ───────────────────────────────────────────
 .btn-primary,
 .btn.btn-primary {
     background-color: #137fec;
-    border-color: #0d5fa8;
+    border-color: #0d6fd4;
     color: #ffffff;
+    border-radius: 6px;
+    font-weight: 600;
 
     &:hover,
     &:focus {
-        background-color: #0d5fa8;
-        border-color: #0a4a85;
+        background-color: #0d6fd4;
+        border-color: #0a5ab8;
         color: #ffffff;
     }
-
-    &:active {
-        background-color: #0a3f72;
-    }
-}
-
-// ── Message input send button ─────────────────────────────────
-.SendMessageButton {
-    background-color: #137fec;
-
-    &:hover {
-        background-color: #0d5fa8;
-    }
-}
-
-// ── New message separator ─────────────────────────────────────
-.new-separator .separator__hr {
-    border-color: #e63434;
-}
-
-.new-separator .separator__text {
-    background-color: #e63434;
-    color: #ffffff;
 }
 
 // ── Links ─────────────────────────────────────────────────────
@@ -97,33 +483,17 @@
     color: #137fec;
 
     &:hover {
-        color: #0d5fa8;
+        color: #0d6fd4;
     }
 }
 
-// ── Online status dot ─────────────────────────────────────────
+// ── Status indicators ─────────────────────────────────────────
 .online--indicator span {
-    background-color: #3db887;
+    background-color: #22c55e;
 }
 
-// ── Direct message DND indicator ─────────────────────────────
 .dnd--indicator span {
     background-color: #e63434;
-}
-
-// ── Thread/Channel unread bold text ───────────────────────────
-.SidebarChannelLinkLabel.unread {
-    color: #ffffff;
-    font-weight: 600;
-}
-
-// ── Search bar ────────────────────────────────────────────────
-.search-bar__container {
-    .search-bar {
-        border-color: #253047;
-        background-color: #161b22;
-        color: #c9d1d9;
-    }
 }
 
 // ── Input focus ring ─────────────────────────────────────────
@@ -131,27 +501,55 @@
 textarea:focus,
 input:focus {
     border-color: #137fec;
-    box-shadow: 0 0 0 2px rgba(19, 127, 236, 0.25);
+    box-shadow: 0 0 0 2px rgba(19, 127, 236, 0.15);
     outline: none;
 }
 
-// ── Modal header ─────────────────────────────────────────────
+// ── Modal ────────────────────────────────────────────────────
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
 .modal-header {
-    background: linear-gradient(135deg, #090d13 0%, #0d1117 100%);
-    color: #ffffff;
-    border-bottom: 2px solid #137fec;
+    background: #ffffff;
+    color: #1a1d1f;
+    border-bottom: 1px solid #E8EAED;
+    border-radius: 10px 10px 0 0;
 
     .modal-title {
-        color: #ffffff;
+        color: #1a1d1f;
+        font-weight: 700;
+        font-size: 18px;
     }
 
     .close {
-        color: #c9d1d9;
+        color: #6b7280;
         opacity: 0.8;
 
         &:hover {
-            color: #ffffff;
+            color: #1a1d1f;
             opacity: 1;
         }
+    }
+}
+
+// ── Scrollbar ─────────────────────────────────────────────────
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+
+    &:hover {
+        background: #9ca3af;
     }
 }

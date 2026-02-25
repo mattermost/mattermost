@@ -89,9 +89,16 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
             -p ${{ secrets.VPS_SSH_PORT }} \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "grep -q 'TECHZEN_ENCRYPTION_KEY' ${{ env.DEPLOY_PATH }}/.env 2>/dev/null \
-             || echo 'TECHZEN_ENCRYPTION_KEY=${{ secrets.TECHZEN_ENCRYPTION_KEY }}' >> ${{ env.DEPLOY_PATH }}/.env"
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            ENV_FILE="${{ env.DEPLOY_PATH }}/.env"
+            KEY_VALUE="TECHZEN_ENCRYPTION_KEY=${{ secrets.TECHZEN_ENCRYPTION_KEY }}"
+            # Luôn update hoặc thêm mới (tránh bug key rỗng không được update)
+            if grep -q '^TECHZEN_ENCRYPTION_KEY=' "$ENV_FILE" 2>/dev/null; then
+              sed -i "s|^TECHZEN_ENCRYPTION_KEY=.*|$KEY_VALUE|" "$ENV_FILE"
+            else
+              echo "$KEY_VALUE" >> "$ENV_FILE"
+            fi
+          ENDSSH
 
       - name: Deploy via SSH
         run: |
