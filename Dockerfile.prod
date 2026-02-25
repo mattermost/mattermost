@@ -18,6 +18,7 @@ COPY server/ ./server/
 WORKDIR /src/server
 # Dùng local public module (có đầy đủ model types)
 RUN go mod edit -replace github.com/mattermost/mattermost/server/public=./public
+RUN go mod tidy
 RUN go mod download
 
 # Build binary
