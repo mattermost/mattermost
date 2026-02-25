@@ -120,7 +120,7 @@ type Props = {
         /**
          * Function to set the editing post
          */
-        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => void;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => Promise<void>;
 
         /**
          * Function to pin the post
@@ -359,9 +359,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(forwardPostModalData);
     };
 
-    handleEditMenuItemActivated = (): void => {
+    handleEditMenuItemActivated = async (): Promise<void> => {
         this.props.handleDropdownOpened?.(false);
-        this.props.actions.setEditingPost(
+        await this.props.actions.setEditingPost(
             this.props.post.id,
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
@@ -391,7 +391,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
+    handleMenuKeydown = async (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
         event.preventDefault();
 
         if (!forceCloseMenu) {
@@ -412,7 +412,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
             if (this.state.canEdit) {
                 forceCloseMenu();
-                this.handleEditMenuItemActivated();
+                await this.handleEditMenuItemActivated();
             }
             break;
 

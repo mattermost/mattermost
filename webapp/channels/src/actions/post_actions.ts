@@ -384,13 +384,13 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
                 let combinedChannels = allChannelsList;
                 if (unresolvedSlugs.size > 0 && teamId) {
                     const fetchPromises: Array<Promise<ServerChannel | null>> = [];
-                    unresolvedSlugs.forEach((slug) =>
+                    for (const slug of unresolvedSlugs) {
                         fetchPromises.push(
                             Client4.getChannelByName(teamId, slug).catch(
                                 () => null,
                             ),
-                        ),
-                    );
+                        );
+                    }
                     const fetchedChannels = await Promise.all(fetchPromises);
                     const validFetched = fetchedChannels.filter(
                         (ch): ch is ServerChannel => ch !== null,
