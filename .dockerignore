@@ -27,10 +27,7 @@ webapp/*.mk
 # Explicit: KEEP webapp/channels/dist (pre-built từ CI)
 !webapp/channels/dist
 
-# Server test files
-server/**/*_test.go
-server/channels/store/storetest
-server/channels/store/searchtest
+
 
 # Scripts & docs
 scripts/
