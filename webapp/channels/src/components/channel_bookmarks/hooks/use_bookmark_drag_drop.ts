@@ -4,6 +4,7 @@
 import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {draggable, dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
+import {preventUnhandled} from '@atlaskit/pragmatic-drag-and-drop/prevent-unhandled';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {useEffect, useState} from 'react';
@@ -41,7 +42,17 @@ export function useBookmarkDragDrop({
             return undefined;
         }
 
-        return combine(
+        // Set effectAllowed to 'move' on the native DataTransfer during
+        // dragstart. This constrains the browser to only show cursor:default
+        // (move) instead of cursor:copy over non-drop-target areas.
+        const handleDragStart = (e: DragEvent) => {
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        };
+        el.addEventListener('dragstart', handleDragStart);
+
+        const cleanup = combine(
             draggable({
                 element: el,
                 getInitialData: () => ({type: 'bookmark', bookmarkId: id, container}),
@@ -53,8 +64,14 @@ export function useBookmarkDragDrop({
                         },
                     });
                 },
-                onDragStart: () => setIsDragSelf(true),
-                onDrop: () => setIsDragSelf(false),
+                onDragStart: () => {
+                    setIsDragSelf(true);
+                    preventUnhandled.start();
+                },
+                onDrop: () => {
+                    setIsDragSelf(false);
+                    preventUnhandled.stop();
+                },
             }),
             dropTargetForElements({
                 element: el,
@@ -70,6 +87,11 @@ export function useBookmarkDragDrop({
                 onDrop: () => setClosestEdge(null),
             }),
         );
+
+        return () => {
+            el.removeEventListener('dragstart', handleDragStart);
+            cleanup();
+        };
     }, [id, container, allowedEdges, displayName, canReorder, getElement]);
 
     return {isDragSelf, closestEdge};
