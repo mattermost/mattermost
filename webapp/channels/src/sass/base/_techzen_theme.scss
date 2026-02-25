@@ -1,0 +1,157 @@
+// ============================================================
+// Techzen Chat — Brand Theme Override
+// Primary Blue: #137FEC | Accent Red: #E63434
+// Sidebar Dark Navy: #0D1117 | Header: #090D13
+// ============================================================
+
+// ── Sidebar active item: đỏ border + xanh highlight ──────────
+.SidebarChannel--active,
+.SidebarChannelLinkLabel--active {
+    .SidebarChannel__badge .Badge {
+        background-color: #e63434;
+    }
+}
+
+// Active channel highlight row — gradient xanh nhẹ
+.SidebarChannelGroupHeader a.active,
+.SidebarChannelLinkLabel__wrapper--active {
+    background: linear-gradient(90deg, rgba(19, 127, 236, 0.18) 0%, transparent 100%);
+}
+
+// ── Team Sidebar (leftmost icon column) ───────────────────────
+.TeamSidebar {
+    background-color: #060a0f;
+    border-right: 1px solid #1a2030;
+}
+
+.TeamButton.active .TeamButton__content {
+    border-color: #e63434;
+    box-shadow: 0 0 0 2px rgba(230, 52, 52, 0.35);
+}
+
+// ── Global Header ─────────────────────────────────────────────
+.ChannelHeader {
+    border-bottom: 2px solid #137fec;
+}
+
+.ChannelHeader__title {
+    color: #1a1a2e;
+    font-weight: 700;
+}
+
+// ── Mention badge (unread count bubble) ───────────────────────
+.Badge,
+.badge {
+    &[data-count] {
+        background-color: #e63434;
+    }
+}
+
+// Badge tổng quát trong sidebar
+.SidebarChannelGroupHeader .SidebarChannelGroupHeader__addLink,
+.SidebarChannelLink .SidebarChannelLink__icon {
+    color: #137fec;
+}
+
+// ── Buttons primary ───────────────────────────────────────────
+.btn-primary,
+.btn.btn-primary {
+    background-color: #137fec;
+    border-color: #0d5fa8;
+    color: #ffffff;
+
+    &:hover,
+    &:focus {
+        background-color: #0d5fa8;
+        border-color: #0a4a85;
+        color: #ffffff;
+    }
+
+    &:active {
+        background-color: #0a3f72;
+    }
+}
+
+// ── Message input send button ─────────────────────────────────
+.SendMessageButton {
+    background-color: #137fec;
+
+    &:hover {
+        background-color: #0d5fa8;
+    }
+}
+
+// ── New message separator ─────────────────────────────────────
+.new-separator .separator__hr {
+    border-color: #e63434;
+}
+
+.new-separator .separator__text {
+    background-color: #e63434;
+    color: #ffffff;
+}
+
+// ── Links ─────────────────────────────────────────────────────
+.post__body a,
+.markdown__link {
+    color: #137fec;
+
+    &:hover {
+        color: #0d5fa8;
+    }
+}
+
+// ── Online status dot ─────────────────────────────────────────
+.online--indicator span {
+    background-color: #3db887;
+}
+
+// ── Direct message DND indicator ─────────────────────────────
+.dnd--indicator span {
+    background-color: #e63434;
+}
+
+// ── Thread/Channel unread bold text ───────────────────────────
+.SidebarChannelLinkLabel.unread {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+// ── Search bar ────────────────────────────────────────────────
+.search-bar__container {
+    .search-bar {
+        border-color: #253047;
+        background-color: #161b22;
+        color: #c9d1d9;
+    }
+}
+
+// ── Input focus ring ─────────────────────────────────────────
+.form-control:focus,
+textarea:focus,
+input:focus {
+    border-color: #137fec;
+    box-shadow: 0 0 0 2px rgba(19, 127, 236, 0.25);
+    outline: none;
+}
+
+// ── Modal header ─────────────────────────────────────────────
+.modal-header {
+    background: linear-gradient(135deg, #090d13 0%, #0d1117 100%);
+    color: #ffffff;
+    border-bottom: 2px solid #137fec;
+
+    .modal-title {
+        color: #ffffff;
+    }
+
+    .close {
+        color: #c9d1d9;
+        opacity: 0.8;
+
+        &:hover {
+            color: #ffffff;
+            opacity: 1;
+        }
+    }
+}
