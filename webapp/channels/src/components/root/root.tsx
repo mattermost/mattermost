@@ -2,47 +2,47 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy} from 'react';
-import {Route, Switch, Redirect} from 'react-router-dom';
-import type {RouteComponentProps} from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Route, Switch, Redirect } from 'react-router-dom';
+import type { RouteComponentProps } from 'react-router-dom';
 
-import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
-import {setUrl} from 'mattermost-redux/actions/general';
-import {Client4} from 'mattermost-redux/client';
+import { setSystemEmojis } from 'mattermost-redux/actions/emojis';
+import { setUrl } from 'mattermost-redux/actions/general';
+import { Client4 } from 'mattermost-redux/client';
 
-import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
+import { temporarilySetPageLoadContext } from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
-import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
+import { makeAsyncComponent, makeAsyncPluggableComponent } from 'components/async_load';
 import GlobalHeader from 'components/global_header/global_header';
-import {HFRoute} from 'components/header_footer_route/header_footer_route';
-import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import { HFRoute } from 'components/header_footer_route/header_footer_route';
+import { HFTRoute, LoggedInHFTRoute } from 'components/header_footer_template_route';
 import InitialLoadingScreen from 'components/initial_loading_screen';
 import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
-import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
-import {Animations} from 'components/preparing_workspace/steps';
+import { LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX } from 'components/preparing_workspace/launching_workspace';
+import { Animations } from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
-import {WithUserTheme} from 'components/theme_provider';
+import { WithUserTheme } from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
-import {initializePlugins} from 'plugins';
+import { initializePlugins } from 'plugins';
 import 'utils/a11y_controller_instance';
-import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
-import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import { expirationScheduler } from 'utils/burn_on_read_expiration_scheduler';
+import { PageLoadContext, SCHEDULED_POST_URL_SUFFIX } from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {EmojiIndicesByAlias} from 'utils/emoji';
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {getSiteURL} from 'utils/url';
-import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
-import {isTextDroppableEvent} from 'utils/utils';
+import { EmojiIndicesByAlias } from 'utils/emoji';
+import { TEAM_NAME_PATH_PATTERN } from 'utils/path';
+import { getSiteURL } from 'utils/url';
+import { isAndroidWeb, isChromebook, isDesktopApp, isIosWeb } from 'utils/user_agent';
+import { isTextDroppableEvent } from 'utils/utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from './index';
 
 import 'plugins/export';
 
@@ -77,6 +77,7 @@ const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_ba
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
+const WebPushPrompt = makeAsyncComponent('WebPushPrompt', lazy(() => import('components/web_push_prompt/web_push_prompt')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -109,7 +110,7 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.actions.initializeProducts(),
             initializePlugins(),
         ]).then(() => {
-            this.setState({shouldMountAppRoutes: true});
+            this.setState({ shouldMountAppRoutes: true });
         });
 
         this.props.actions.migrateRecentEmojis();
@@ -221,14 +222,14 @@ export default class Root extends React.PureComponent<Props, State> {
         }, {} as Record<string, string>);
 
         if (Object.keys(campaign).length > 0) {
-            this.props.history.replace({search: qs.toString()});
+            this.props.history.replace({ search: qs.toString() });
             return campaign;
         }
         return null;
     }
 
     initiateMeRequests = async () => {
-        const {isLoaded, isMeRequested} = await this.props.actions.loadConfigAndMe();
+        const { isLoaded, isMeRequested } = await this.props.actions.loadConfigAndMe();
 
         if (isLoaded) {
             const isUserAtRootRoute = this.props.location.pathname === '/';
@@ -303,14 +304,14 @@ export default class Root extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.state.shouldMountAppRoutes) {
-            return <div/>;
+            return <div />;
         }
 
         return (
             <RootProvider>
-                <MobileViewWatcher/>
-                <LuxonController/>
-                <PerformanceReporterController/>
+                <MobileViewWatcher />
+                <LuxonController />
+                <PerformanceReporterController />
                 <Switch>
                     <Route
                         path={'/error'}
@@ -374,7 +375,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
-                            <RootRedirect/>
+                            <RootRedirect />
                         </Switch>
                     </Route>
                     <LoggedInHFTRoute
@@ -419,13 +420,13 @@ export default class Root extends React.PureComponent<Props, State> {
                             />
                         )}
 
-                        <WindowSizeObserver/>
-                        <ModalController/>
-                        <AnnouncementBarController/>
-                        <SystemNotice/>
-                        <GlobalHeader/>
-                        <CloudEffects/>
-                        <TeamSidebar/>
+                        <WindowSizeObserver />
+                        <ModalController />
+                        <AnnouncementBarController />
+                        <SystemNotice />
+                        <GlobalHeader />
+                        <CloudEffects />
+                        <TeamSidebar />
                         <div className='main-wrapper'>
                             <Switch>
                                 {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
@@ -438,7 +439,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                                     pluggableName={'Product'}
                                                     subComponentName={'publicComponent'}
                                                     pluggableId={product.id}
-                                                    css={{gridArea: 'center'}}
+                                                    css={{ gridArea: 'center' }}
                                                     {...props}
                                                 />
                                             );
@@ -456,12 +457,12 @@ export default class Root extends React.PureComponent<Props, State> {
                                                     subComponentName={'mainComponent'}
                                                     pluggableId={product.id}
                                                     webSocketClient={webSocketClient}
-                                                    css={product.wrapped ? undefined : {gridArea: 'center'}}
+                                                    css={product.wrapped ? undefined : { gridArea: 'center' }}
                                                 />
                                             );
                                             if (product.wrapped) {
                                                 pluggable = (
-                                                    <div className={classNames(['product-wrapper', {wide: !product.showTeamSidebar}])}>
+                                                    <div className={classNames(['product-wrapper', { wide: !product.showTeamSidebar }])}>
                                                         {pluggable}
                                                     </div>
                                                 );
@@ -482,7 +483,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                             <Pluggable
                                                 pluggableName={'CustomRouteComponent'}
                                                 pluggableId={plugin.id}
-                                                css={{gridArea: 'center'}}
+                                                css={{ gridArea: 'center' }}
                                             />
                                         )}
                                     />
@@ -491,13 +492,14 @@ export default class Root extends React.PureComponent<Props, State> {
                                     path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                     component={TeamController}
                                 />
-                                <RootRedirect/>
+                                <RootRedirect />
                             </Switch>
-                            <SidebarRight/>
+                            <SidebarRight />
                         </div>
-                        <Pluggable pluggableName='Global'/>
-                        <AppBar/>
-                        <Readout/>
+                        <Pluggable pluggableName='Global' />
+                        <AppBar />
+                        <Readout />
+                        <WebPushPrompt />
                     </WithUserTheme>
                 </Switch>
             </RootProvider>

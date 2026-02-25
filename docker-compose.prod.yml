@@ -65,6 +65,10 @@ services:
       MM_THEMESETTINGS_ENABLETHEMESELECTION: "true"
       MM_THEMESETTINGS_DEFAULTTHEME: "techzen"
       MM_THEMESETTINGS_ALLOWCUSTOMTHEMES: "true"
+      # Techzen Web Push (VAPID)
+      MM_PUSH_WEB_VAPID_PUBLIC_KEY: "${VAPID_PUBLIC_KEY:-}"
+      MM_PUSH_WEB_VAPID_PRIVATE_KEY: "${VAPID_PRIVATE_KEY:-}"
+      MM_PUSH_WEB_VAPID_SUBJECT: "${VAPID_SUBJECT:-mailto:admin@techzen.vn}"
     volumes:
       - mattermost-data:/mattermost/data
       - mattermost-logs:/mattermost/logs

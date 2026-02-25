@@ -87,6 +87,9 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 		return appErr
 	}
 
+	// Techzen: Also send Web Push (VAPID) to browser subscriptions, non-blocking
+	go a.sendWebPushToSubscriptions(rctx, msg, user.Id)
+
 	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
 }
 
