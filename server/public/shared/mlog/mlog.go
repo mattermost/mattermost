@@ -5,6 +5,7 @@
 package mlog
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -547,29 +548,31 @@ func jsonRawToField(key string, raw json.RawMessage) Field {
 	if len(raw) == 0 {
 		return String(key, "")
 	}
-	switch raw[0] {
-	case '"':
-		var s string
-		if err := json.Unmarshal(raw, &s); err == nil {
-			return String(key, s)
-		}
-	case 't', 'f':
-		var b bool
-		if err := json.Unmarshal(raw, &b); err == nil {
-			return Bool(key, b)
-		}
-	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
-		var i int64
-		if err := json.Unmarshal(raw, &i); err == nil {
+
+	var v any
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(&v); err != nil {
+		return String(key, string(raw))
+	}
+
+	switch val := v.(type) {
+	case string:
+		return String(key, val)
+	case bool:
+		return Bool(key, val)
+	case json.Number:
+		if i, err := val.Int64(); err == nil {
 			return Int(key, i)
 		}
-		var f float64
-		if err := json.Unmarshal(raw, &f); err == nil {
+		if f, err := val.Float64(); err == nil {
 			return Float(key, f)
 		}
+		return String(key, val.String())
+	default:
+		// Objects, arrays, null: use the raw JSON string representation.
+		return String(key, string(raw))
 	}
-	// Objects, arrays, null: use the raw JSON string representation.
-	return String(key, string(raw))
 }
 
 // ErrConfigurationLock is returned when one of a logger's configuration APIs is called
