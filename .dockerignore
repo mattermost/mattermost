@@ -6,7 +6,7 @@
 .github
 .gitignore
 
-# Node modules (webapp đã pre-build, không cần npm install)
+# Node modules
 webapp/node_modules
 webapp/channels/node_modules
 webapp/platform/*/node_modules
@@ -24,13 +24,16 @@ webapp/Makefile
 webapp/*.md
 webapp/*.mk
 
+# Explicit: KEEP webapp/channels/dist (pre-built từ CI)
+!webapp/channels/dist
+
 # Server test files
 server/**/*_test.go
 server/channels/store/storetest
 server/channels/store/searchtest
 
 # Scripts & docs
-scripts
+scripts/
 *.md
 LICENSE*
 NOTICE*
