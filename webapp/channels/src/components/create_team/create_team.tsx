@@ -48,6 +48,7 @@ export type Props = {
     isFreeTrial: boolean;
     usageDeltas: CloudUsage;
     intl: IntlShape;
+    useSecureURLs?: boolean;
 };
 
 type State = {
@@ -147,17 +148,21 @@ export class CreateTeam extends React.PureComponent<Props & RouteComponentProps,
                                             />
                                         )}
                                     />
-                                    <Route
-                                        path={`${this.props.match.url}/team_url`}
-                                        render={(props) => (
-                                            <CreateTeamForm
-                                                step='team_url'
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
+
+                                    {
+                                        !this.props.useSecureURLs &&
+                                        <Route
+                                            path={`${this.props.match.url}/team_url`}
+                                            render={(props) => (
+                                                <CreateTeamForm
+                                                    step='team_url'
+                                                    state={this.state}
+                                                    updateParent={this.updateParent}
+                                                    {...props}
+                                                />
+                                            )}
+                                        />
+                                    }
                                     <Redirect to={`${match.url}/display_name`}/>
                                 </Switch>
                             )}

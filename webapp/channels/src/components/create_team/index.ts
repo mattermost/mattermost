@@ -30,6 +30,8 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = isCloudLicense(license);
     const isFreeTrial = subscription?.is_free_trial === 'true';
 
+    const useSecureURLs = config.UseSecureURLs === 'true';
+
     return {
         currentChannel,
         currentTeam,
@@ -37,6 +39,7 @@ function mapStateToProps(state: GlobalState) {
         siteName,
         isCloud,
         isFreeTrial,
+        useSecureURLs,
     };
 }
 
