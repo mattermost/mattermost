@@ -474,11 +474,13 @@ func (lw *logWriter) Write(p []byte) (int, error) {
 	if len(s) > 0 && s[0] == '{' {
 		if fields, msg, level, ok := parseJSONLogRecord([]byte(s)); ok {
 			switch strings.ToLower(level) {
+			case "trace", "trce":
+				lw.logger.Trace(msg, fields...)
 			case "debug", "dbug":
 				lw.logger.Debug(msg, fields...)
 			case "warn", "warning":
 				lw.logger.Warn(msg, fields...)
-			case "error", "err":
+			case "error", "err", "panic", "dpanic", "fatal", "critical":
 				lw.logger.Error(msg, fields...)
 			default:
 				lw.logger.Info(msg, fields...)
@@ -502,7 +504,10 @@ func parseJSONLogRecord(data []byte) (fields []Field, msg string, level string, 
 	// Extract the message from common field names.
 	for _, key := range []string{"msg", "message"} {
 		if v, exists := raw[key]; exists {
-			_ = json.Unmarshal(v, &msg)
+			if err := json.Unmarshal(v, &msg); err != nil {
+				// Non-string message: use the raw JSON representation.
+				msg = string(v)
+			}
 			break
 		}
 	}
@@ -510,7 +515,10 @@ func parseJSONLogRecord(data []byte) (fields []Field, msg string, level string, 
 	// Extract the level from common field names.
 	for _, key := range []string{"level", "lvl", "severity"} {
 		if v, exists := raw[key]; exists {
-			_ = json.Unmarshal(v, &level)
+			if err := json.Unmarshal(v, &level); err != nil {
+				// Non-string level: use the raw JSON representation.
+				level = string(v)
+			}
 			break
 		}
 	}

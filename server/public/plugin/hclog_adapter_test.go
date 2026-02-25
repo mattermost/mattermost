@@ -53,7 +53,7 @@ func TestHclogArgsToFields(t *testing.T) {
 func TestHclogAdapterUsesStructuredFields(t *testing.T) {
 	logger, err := mlog.NewLogger()
 	require.NoError(t, err)
-	defer logger.Shutdown()
+	defer func() { _ = logger.Shutdown() }()
 
 	adapter := &hclogAdapter{
 		wrappedLogger: logger,

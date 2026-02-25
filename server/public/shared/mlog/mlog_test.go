@@ -5,7 +5,6 @@ package mlog
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,8 +94,6 @@ func TestParseJSONLogRecord(t *testing.T) {
 }
 
 func TestLogWriterJSONExplosion(t *testing.T) {
-	// Capture log output by writing to a buffer-backed target.
-	var buf strings.Builder
 	logger, err := NewLogger()
 	require.NoError(t, err)
 	err = logger.ConfigureTargets(map[string]TargetCfg{
@@ -109,7 +106,7 @@ func TestLogWriterJSONExplosion(t *testing.T) {
 		},
 	}, nil)
 	require.NoError(t, err)
-	defer logger.Shutdown()
+	defer func() { _ = logger.Shutdown() }()
 
 	writer := logger.StdLogWriter()
 
@@ -117,7 +114,6 @@ func TestLogWriterJSONExplosion(t *testing.T) {
 		n, err := writer.Write([]byte("hello world"))
 		assert.NoError(t, err)
 		assert.Equal(t, 11, n)
-		_ = buf.String()
 	})
 
 	t.Run("JSON is accepted without error", func(t *testing.T) {
