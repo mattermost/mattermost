@@ -470,8 +470,98 @@ type logWriter struct {
 }
 
 func (lw *logWriter) Write(p []byte) (int, error) {
-	lw.logger.Info(string(p))
+	s := strings.TrimSpace(string(p))
+	if len(s) > 0 && s[0] == '{' {
+		if fields, msg, level, ok := parseJSONLogRecord([]byte(s)); ok {
+			switch strings.ToLower(level) {
+			case "debug", "dbug":
+				lw.logger.Debug(msg, fields...)
+			case "warn", "warning":
+				lw.logger.Warn(msg, fields...)
+			case "error", "err":
+				lw.logger.Error(msg, fields...)
+			default:
+				lw.logger.Info(msg, fields...)
+			}
+			return len(p), nil
+		}
+	}
+	lw.logger.Info(s)
 	return len(p), nil
+}
+
+// parseJSONLogRecord attempts to parse a JSON log record and extract its fields.
+// It returns the mlog fields, the log message, the log level, and whether parsing succeeded.
+// Standard log metadata fields (level, timestamp, caller) are consumed and not returned as fields.
+func parseJSONLogRecord(data []byte) (fields []Field, msg string, level string, ok bool) {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, "", "", false
+	}
+
+	// Extract the message from common field names.
+	for _, key := range []string{"msg", "message"} {
+		if v, exists := raw[key]; exists {
+			_ = json.Unmarshal(v, &msg)
+			break
+		}
+	}
+
+	// Extract the level from common field names.
+	for _, key := range []string{"level", "lvl", "severity"} {
+		if v, exists := raw[key]; exists {
+			_ = json.Unmarshal(v, &level)
+			break
+		}
+	}
+
+	// These are standard metadata fields we consume rather than forward as fields.
+	skipKeys := map[string]bool{
+		"level": true, "lvl": true, "severity": true,
+		"ts": true, "time": true, "timestamp": true, "t": true,
+		"msg": true, "message": true,
+		"caller": true, "file": true, "line": true,
+	}
+
+	fields = make([]Field, 0, len(raw))
+	for k, v := range raw {
+		if skipKeys[k] {
+			continue
+		}
+		fields = append(fields, jsonRawToField(k, v))
+	}
+
+	return fields, msg, level, true
+}
+
+// jsonRawToField converts a JSON raw message to the most appropriate mlog Field type.
+func jsonRawToField(key string, raw json.RawMessage) Field {
+	if len(raw) == 0 {
+		return String(key, "")
+	}
+	switch raw[0] {
+	case '"':
+		var s string
+		if err := json.Unmarshal(raw, &s); err == nil {
+			return String(key, s)
+		}
+	case 't', 'f':
+		var b bool
+		if err := json.Unmarshal(raw, &b); err == nil {
+			return Bool(key, b)
+		}
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
+		var i int64
+		if err := json.Unmarshal(raw, &i); err == nil {
+			return Int(key, i)
+		}
+		var f float64
+		if err := json.Unmarshal(raw, &f); err == nil {
+			return Float(key, f)
+		}
+	}
+	// Objects, arrays, null: use the raw JSON string representation.
+	return String(key, string(raw))
 }
 
 // ErrConfigurationLock is returned when one of a logger's configuration APIs is called

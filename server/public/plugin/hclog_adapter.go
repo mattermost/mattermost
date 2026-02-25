@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/go-hclog"
 
@@ -38,48 +37,41 @@ func (h *hclogAdapter) Log(level hclog.Level, msg string, args ...any) {
 }
 
 func (h *hclogAdapter) Trace(msg string, args ...any) {
-	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if extras != "" {
-		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
-	} else {
-		h.wrappedLogger.Debug(msg)
-	}
+	h.wrappedLogger.Debug(msg, hclogArgsToFields(h.extrasKey, args)...)
 }
 
 func (h *hclogAdapter) Debug(msg string, args ...any) {
-	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if extras != "" {
-		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
-	} else {
-		h.wrappedLogger.Debug(msg)
-	}
+	h.wrappedLogger.Debug(msg, hclogArgsToFields(h.extrasKey, args)...)
 }
 
 func (h *hclogAdapter) Info(msg string, args ...any) {
-	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if extras != "" {
-		h.wrappedLogger.Info(msg, mlog.String(h.extrasKey, extras))
-	} else {
-		h.wrappedLogger.Info(msg)
-	}
+	h.wrappedLogger.Info(msg, hclogArgsToFields(h.extrasKey, args)...)
 }
 
 func (h *hclogAdapter) Warn(msg string, args ...any) {
-	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if extras != "" {
-		h.wrappedLogger.Warn(msg, mlog.String(h.extrasKey, extras))
-	} else {
-		h.wrappedLogger.Warn(msg)
-	}
+	h.wrappedLogger.Warn(msg, hclogArgsToFields(h.extrasKey, args)...)
 }
 
 func (h *hclogAdapter) Error(msg string, args ...any) {
-	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if extras != "" {
-		h.wrappedLogger.Error(msg, mlog.String(h.extrasKey, extras))
-	} else {
-		h.wrappedLogger.Error(msg)
+	h.wrappedLogger.Error(msg, hclogArgsToFields(h.extrasKey, args)...)
+}
+
+// hclogArgsToFields converts hclog's alternating key-value args into mlog fields.
+// The hclog interface passes structured data as [key1, val1, key2, val2, ...].
+// Any leftover argument (odd count) is stored under extrasKey to avoid data loss.
+func hclogArgsToFields(extrasKey string, args []any) []mlog.Field {
+	if len(args) == 0 {
+		return nil
 	}
+	fields := make([]mlog.Field, 0, len(args)/2+1)
+	for i := 0; i+1 < len(args); i += 2 {
+		key := fmt.Sprintf("%v", args[i])
+		fields = append(fields, mlog.Any(key, args[i+1]))
+	}
+	if len(args)%2 != 0 {
+		fields = append(fields, mlog.Any(extrasKey, args[len(args)-1]))
+	}
+	return fields
 }
 
 func (h *hclogAdapter) IsTrace() bool {
