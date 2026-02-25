@@ -121,10 +121,9 @@
 
 // Drag preview ghost chip
 .bookmarkDragPreview {
-    display: inline-flex;
+    display: inline-block;
     overflow: hidden;
     max-width: 25rem;
-    align-items: center;
     padding: 4px 12px;
     border-radius: 12px;
     background: var(--center-channel-bg);
