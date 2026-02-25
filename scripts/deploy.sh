@@ -56,7 +56,7 @@ log "INFO" "Kiểm tra webapp dist..."
 if [ -d "$WEBAPP_DIST" ]; then
     FILE_COUNT=$(find "$WEBAPP_DIST" -type f | wc -l)
     log "INFO" "Webapp dist: $FILE_COUNT files"
-    ls -la "$WEBAPP_DIST/" | head -10
+    ls -la "$WEBAPP_DIST/" | head -10 || true
 else
     log "ERROR" "Webapp dist directory không tồn tại sau extraction!"
     exit 1
