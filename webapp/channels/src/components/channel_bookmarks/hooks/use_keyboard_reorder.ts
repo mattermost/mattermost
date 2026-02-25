@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {announce} from '@atlaskit/pragmatic-drag-and-drop-live-region';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
+
+import {useReadout} from 'hooks/useReadout';
 
 interface KeyboardReorderState {
     isReordering: boolean;
@@ -29,7 +30,6 @@ interface UseKeyboardReorderOptions {
 
 export interface KeyboardReorderItemProps {
     tabIndex: number;
-    'aria-roledescription': string;
     onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
@@ -48,6 +48,7 @@ export function useKeyboardReorder({
     canReorder,
 }: UseKeyboardReorderOptions): UseKeyboardReorderResult {
     const {formatMessage} = useIntl();
+    const readAloud = useReadout();
     const [state, setState] = useState<KeyboardReorderState>(INITIAL_STATE);
 
     // Use refs for values accessed in callbacks to avoid stale closures
@@ -70,7 +71,7 @@ export function useKeyboardReorder({
         if (state.isReordering && state.itemId) {
             // Find the item container, then focus the link/span inside it
             const container = document.querySelector(
-                `[data-testid="bookmark-item-${state.itemId}"], [data-testid="overflow-bookmark-item-${state.itemId}"]`,
+                `[data-bookmark-id="${state.itemId}"]`,
             );
             const focusable = container?.querySelector('a[tabindex], span[tabindex]') as HTMLElement;
             focusable?.focus();
@@ -86,7 +87,7 @@ export function useKeyboardReorder({
         setState({isReordering: true, itemId: id, originalIndex: index});
 
         const name = getName(id);
-        announce(
+        readAloud(
             formatMessage(
                 {
                     id: 'channel_bookmarks.reorder.start',
@@ -95,17 +96,17 @@ export function useKeyboardReorder({
                 {name},
             ),
         );
-    }, [getName, formatMessage]);
+    }, [getName, formatMessage, readAloud]);
 
     const confirmReorder = useCallback(() => {
         setState(INITIAL_STATE);
-        announce(
+        readAloud(
             formatMessage({
                 id: 'channel_bookmarks.reorder.confirmed',
                 defaultMessage: 'Reorder confirmed.',
             }),
         );
-    }, [formatMessage]);
+    }, [formatMessage, readAloud]);
 
     const cancelReorder = useCallback(() => {
         const {itemId, originalIndex} = state;
@@ -117,13 +118,13 @@ export function useKeyboardReorder({
         }
 
         setState(INITIAL_STATE);
-        announce(
+        readAloud(
             formatMessage({
                 id: 'channel_bookmarks.reorder.cancelled',
                 defaultMessage: 'Reorder cancelled.',
             }),
         );
-    }, [state, onReorder, formatMessage]);
+    }, [state, onReorder, formatMessage, readAloud]);
 
     const moveItem = useCallback((direction: -1 | 1) => {
         if (!state.isReordering || !state.itemId) {
@@ -162,7 +163,7 @@ export function useKeyboardReorder({
         const name = getName(state.itemId);
         onReorder(state.itemId, currentIndex, newIndex);
 
-        announce(
+        readAloud(
             formatMessage(
                 {
                     id: 'channel_bookmarks.reorder.moved',
@@ -171,15 +172,11 @@ export function useKeyboardReorder({
                 {name, position: newIndex + 1, total: currentOrder.length},
             ),
         );
-    }, [state, onReorder, getName, onOverflowOpenChange, formatMessage]);
+    }, [state, onReorder, getName, onOverflowOpenChange, formatMessage, readAloud]);
 
     const getItemProps = useCallback((id: string): KeyboardReorderItemProps => {
         return {
             tabIndex: 0,
-            'aria-roledescription': formatMessage({
-                id: 'channel_bookmarks.sortable',
-                defaultMessage: 'sortable',
-            }),
             onKeyDown: (e: React.KeyboardEvent) => {
                 if (!canReorder) {
                     return;
@@ -233,7 +230,7 @@ export function useKeyboardReorder({
                 }
             },
         };
-    }, [canReorder, state, startReorder, confirmReorder, cancelReorder, moveItem, formatMessage]);
+    }, [canReorder, state, startReorder, confirmReorder, cancelReorder, moveItem]);
 
     return {reorderState: state, getItemProps};
 }

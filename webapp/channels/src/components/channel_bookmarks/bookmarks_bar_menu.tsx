@@ -162,8 +162,8 @@ function BookmarksBarMenu({
             $hasOverflow={hasOverflow}
         >
             <Menu.Container
-                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                transformOrigin={{vertical: 'top', horizontal: 'left'}}
                 menuButton={{
                     id: 'channelBookmarksBarMenuButton',
                     class: buttonClass,

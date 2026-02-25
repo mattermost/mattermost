@@ -1,20 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
-import {draggable, dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import BookmarkItemContent from './bookmark_item_content';
-import {createBookmarkDragPreview} from './drag_preview';
-import type {KeyboardReorderItemProps} from './hooks';
+import {useBookmarkDragDrop, type KeyboardReorderItemProps} from './hooks';
 
 interface BookmarksBarItemProps {
     id: string;
@@ -27,56 +22,26 @@ interface BookmarksBarItemProps {
 
 function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReorderProps, isKeyboardReordering}: BookmarksBarItemProps) {
     const ref = useRef<HTMLDivElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el || disabled) {
-            return undefined;
-        }
-
-        return combine(
-            draggable({
-                element: el,
-                getInitialData: () => ({type: 'bookmark', bookmarkId: id, container: 'bar'}),
-                onGenerateDragPreview: ({nativeSetDragImage}) => {
-                    setCustomNativeDragPreview({
-                        nativeSetDragImage,
-                        render: ({container}) => {
-                            container.appendChild(createBookmarkDragPreview(bookmark.display_name));
-                        },
-                    });
-                },
-                onDragStart: () => setIsDragging(true),
-                onDrop: () => setIsDragging(false),
-            }),
-            dropTargetForElements({
-                element: el,
-                getData: ({input, element}) =>
-                    attachClosestEdge(
-                        {type: 'bookmark', bookmarkId: id, container: 'bar'},
-                        {input, element, allowedEdges: ['left', 'right']},
-                    ),
-                canDrop: ({source}) =>
-                    source.data.type === 'bookmark' && source.data.bookmarkId !== id,
-                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
-                onDragLeave: () => setClosestEdge(null),
-                onDrop: () => setClosestEdge(null),
-            }),
-        );
-    }, [id, disabled, bookmark]);
+    const {isDragSelf, closestEdge} = useBookmarkDragDrop({
+        id,
+        container: 'bar',
+        allowedEdges: ['left', 'right'] as Edge[],
+        displayName: bookmark.display_name,
+        canReorder: !disabled,
+        getElement: () => ref.current,
+    });
 
     // Prevent Space from bubbling to message input
-    const disableInteractions = isDragging || isDraggingGlobal;
+    const disableInteractions = isDragSelf || isDraggingGlobal;
 
     return (
         <BarItemWrapper
             ref={ref}
+            data-bookmark-id={id}
             data-testid={`bookmark-item-${id}`}
         >
             <BarChip
-                $isDragging={isDragging}
+                $isDragging={isDragSelf}
                 $isKeyboardReordering={isKeyboardReordering}
             >
                 <BookmarkItemContent

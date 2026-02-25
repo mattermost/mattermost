@@ -119,13 +119,42 @@
     }
 }
 
+// Drag preview ghost chip
+.bookmarkDragPreview {
+    display: inline-flex;
+    overflow: hidden;
+    max-width: 25rem;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--center-channel-color);
+    font-family: "Open Sans", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 // Overflow bookmark items — clamp labels so dot menu stays visible.
 // MUI's styled() injects flex: 1 0 auto on .label-elements which prevents
 // shrinking. We need !important to override the generated class styles.
 .overflowBookmarkItem.MuiMenuItem-root {
+    position: relative;
     min-height: 36px;
     padding-top: 2px;
     padding-bottom: 2px;
+
+    &.is-dragging-self {
+        opacity: 0.4;
+    }
+
+    &.is-keyboard-reordering {
+        outline: 2px solid rgb(var(--button-bg-rgb));
+        outline-offset: -2px;
+    }
 
     > .label-elements {
         overflow: hidden;
@@ -136,6 +165,7 @@
             display: block;
             overflow: hidden;
             max-width: 100%;
+            line-height: 20px;
             text-overflow: ellipsis;
             white-space: nowrap;
         }

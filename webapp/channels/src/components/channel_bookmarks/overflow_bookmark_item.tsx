@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
-import {draggable, dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import classNames from 'classnames';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
@@ -17,8 +14,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import {useBookmarkLink} from './bookmark_item_content';
-import {createBookmarkDragPreview} from './drag_preview';
-import {useTextOverflow} from './hooks';
+import {useBookmarkDragDrop, useTextOverflow} from './hooks';
 
 import './channel_bookmarks.scss';
 
@@ -47,14 +43,9 @@ function OverflowBookmarkItem({
     // Sentinel ref to find the <li> rendered by Menu.Item for DnD registration
     const sentinelRef = useRef<HTMLSpanElement>(null);
     const liRef = useRef<HTMLLIElement | null>(null);
-    const [isDragSelf, setIsDragSelf] = useState(false);
-    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
     const labelRef = useRef<HTMLSpanElement>(null);
     const isLabelOverflowing = useTextOverflow(labelRef);
-
-    const linksDisabled = isDragging || isDragSelf;
-    const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
     // Resolve the parent <li> from the sentinel after mount
     useEffect(() => {
@@ -63,65 +54,28 @@ function OverflowBookmarkItem({
         }
     }, []);
 
-    // Register DnD on the <li>
-    useEffect(() => {
-        const el = liRef.current;
-        if (!el || !canReorder) {
-            return undefined;
-        }
+    const {isDragSelf, closestEdge} = useBookmarkDragDrop({
+        id,
+        container: 'overflow',
+        allowedEdges: ['top', 'bottom'] as Edge[],
+        displayName: bookmark.display_name,
+        canReorder,
+        getElement: () => liRef.current,
+    });
 
-        return combine(
-            draggable({
-                element: el,
-                getInitialData: () => ({type: 'bookmark', bookmarkId: id, container: 'overflow'}),
-                onGenerateDragPreview: ({nativeSetDragImage}) => {
-                    setCustomNativeDragPreview({
-                        nativeSetDragImage,
-                        render: ({container}) => {
-                            container.appendChild(createBookmarkDragPreview(bookmark.display_name));
-                        },
-                    });
-                },
-                onDragStart: () => setIsDragSelf(true),
-                onDrop: () => setIsDragSelf(false),
-            }),
-            dropTargetForElements({
-                element: el,
-                getData: ({input, element}) =>
-                    attachClosestEdge(
-                        {type: 'bookmark', bookmarkId: id, container: 'overflow'},
-                        {input, element, allowedEdges: ['top', 'bottom']},
-                    ),
-                canDrop: ({source}) =>
-                    source.data.type === 'bookmark' && source.data.bookmarkId !== id,
-                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
-                onDragLeave: () => setClosestEdge(null),
-                onDrop: () => setClosestEdge(null),
-            }),
-        );
-    }, [id, canReorder, bookmark.display_name]);
+    const linksDisabled = isDragging || isDragSelf;
+    const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
-    // Apply dynamic styles to the <li>
-    useEffect(() => {
-        const el = liRef.current;
-        if (!el) {
-            return;
-        }
-        el.style.position = 'relative';
-        el.style.opacity = isDragSelf ? '0.4' : '';
-        if (isKeyboardReordering) {
-            el.style.outline = '2px solid rgb(var(--button-bg-rgb))';
-            el.style.outlineOffset = '-2px';
-        } else {
-            el.style.outline = '';
-            el.style.outlineOffset = '';
-        }
-    }, [isDragSelf, isKeyboardReordering]);
+    const itemClassName = classNames('overflowBookmarkItem', {
+        'is-dragging-self': isDragSelf,
+        'is-keyboard-reordering': isKeyboardReordering,
+    });
 
     return (
         <Menu.Item
             id={`overflow-bookmark-${id}`}
-            className='overflowBookmarkItem'
+            className={itemClassName}
+            data-bookmark-id={id}
             data-testid={`overflow-bookmark-item-${id}`}
             onClick={openBookmark}
             leadingElement={icon}

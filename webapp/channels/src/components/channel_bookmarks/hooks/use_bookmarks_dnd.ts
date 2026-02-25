@@ -49,8 +49,8 @@ export function useBookmarksDnd({
     overflowItems,
     onReorder,
 }: UseBookmarksDndOptions): UseBookmarksDndResult {
-    const [isDragging, setIsDragging] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const isDragging = Boolean(activeId);
     const [autoOpenOverflow, setAutoOpenOverflow] = useState(false);
 
     // Use refs for order arrays so the monitor callback always sees current values
@@ -78,7 +78,6 @@ export function useBookmarksDnd({
             canMonitor: ({source}) => source.data.type === 'bookmark',
 
             onDragStart: ({source}) => {
-                setIsDragging(true);
                 setActiveId(source.data.bookmarkId as string);
 
                 // If dragging from overflow, keep the menu force-open so MUI's
@@ -89,7 +88,6 @@ export function useBookmarksDnd({
             },
 
             onDrop: ({source, location}) => {
-                setIsDragging(false);
                 setActiveId(null);
 
                 // Don't reset autoOpenOverflow here — let the menu stay open
@@ -113,7 +111,7 @@ export function useBookmarksDnd({
 
                 if (target.data.type === 'overflow-trigger') {
                     // Dropped on the overflow trigger zone — append to end
-                    newIndex = currentOrder.length - 1;
+                    newIndex = Math.max(0, currentOrder.length - 1);
                 } else if (target.data.type === 'bookmark') {
                     const targetId = target.data.bookmarkId as string;
                     const edge = extractClosestEdge(target.data);
@@ -143,8 +141,8 @@ export function useBookmarksDnd({
             },
         });
 
-    // Empty deps — refs handle freshness
-    }, []);
+    // Refs handle freshness; setAutoOpenOverflow is a stable setState
+    }, [setAutoOpenOverflow]);
 
     return {
         isDragging,

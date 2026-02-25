@@ -118,10 +118,10 @@ export const useBookmarkLink = (
     let isFile = false;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
-        href = disableLinks ? undefined : bookmark.link_url;
+        href = disableLinks ? '#' : bookmark.link_url;
         onClick = onNavigate ? handleLinkClick : undefined;
     } else if (bookmark.type === 'file' && bookmark.file_id) {
-        href = disableLinks ? undefined : getFileDownloadUrl(bookmark.file_id);
+        href = disableLinks ? '#' : getFileDownloadUrl(bookmark.file_id);
         onClick = handleOpenFile;
         isFile = true;
     }
@@ -143,35 +143,30 @@ interface BookmarkItemContentProps {
     disableInteractions: boolean;
     keyboardReorderProps?: {
         tabIndex: number;
-        'aria-roledescription': string;
         onKeyDown: (e: React.KeyboardEvent) => void;
     };
 }
 
 const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProps}: BookmarkItemContentProps) => {
     const {href, onClick, linkRef, isFile, icon, displayName, open} = useBookmarkLink(bookmark, disableInteractions);
-    const hasLink = bookmark.type === 'link' || bookmark.type === 'file';
     const labelRef = useRef<HTMLSpanElement>(null);
     const isLabelOverflowing = useTextOverflow(labelRef);
 
     const chip = (
         <Chip $disableInteractions={disableInteractions}>
-            {hasLink && (
-                <DynamicLink
-                    href={href}
-                    onClick={onClick}
-                    ref={linkRef}
-                    isFile={isFile}
-                    draggable={false}
-                    role='link'
-                    tabIndex={keyboardReorderProps?.tabIndex}
-                    aria-roledescription={keyboardReorderProps?.['aria-roledescription']}
-                    onKeyDown={keyboardReorderProps?.onKeyDown}
-                >
-                    {icon}
-                    <Label ref={labelRef}>{displayName}</Label>
-                </DynamicLink>
-            )}
+            <DynamicLink
+                href={href}
+                onClick={onClick}
+                ref={linkRef}
+                isFile={isFile}
+                draggable={false}
+                role='link'
+                tabIndex={keyboardReorderProps?.tabIndex}
+                onKeyDown={keyboardReorderProps?.onKeyDown}
+            >
+                {icon}
+                <Label ref={labelRef}>{displayName}</Label>
+            </DynamicLink>
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
