@@ -10028,10 +10028,6 @@
     "translation": "Не вдалось створити каталог для власних зображень емодзі"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Ролі користувачів не відповідають статусу гостя."
-  },
-  {
     "id": "api.filter_config_error",
     "translation": "Не вдалося відфільтрувати конфігурацію."
   },
