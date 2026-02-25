@@ -440,4 +440,35 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
 	})
+
+	s.Run("Offline flag routes to offline mode", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("offline", false, "")
+		cmd.Flags().String("directory", "/nonexistent", "")
+		cmd.Flags().StringP("output-file", "o", "", "")
+		cmd.Flags().Bool("no-obfuscate", false, "")
+		_ = cmd.ParseFlags([]string{"--offline"})
+
+		err := systemSupportPacketWrapperF(cmd, []string{})
+		s.Require().Error(err)
+		// Offline path produces a directory validation error, not a client error
+		s.Require().Contains(err.Error(), "does not appear to be a Mattermost installation")
+	})
+
+	s.Run("Without offline flag routes to online mode", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("offline", false, "")
+		cmd.Flags().String("directory", "/opt/mattermost", "")
+		cmd.Flags().StringP("output-file", "o", "", "")
+		cmd.Flags().Bool("no-obfuscate", false, "")
+
+		err := systemSupportPacketWrapperF(cmd, []string{})
+		s.Require().Error(err)
+		// Online path tries to create an API client and fails
+		s.Require().Contains(err.Error(), "failed to create client")
+	})
 }

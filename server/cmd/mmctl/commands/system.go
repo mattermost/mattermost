@@ -278,8 +278,12 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 
-	tempDirForErrorMsg := tempDir
+	archiveFailed := false
 	defer func() {
+		if archiveFailed {
+			// Preserve temp directory so user can manually recover collected files
+			return
+		}
 		if err := os.RemoveAll(tempDir); err != nil {
 			printer.PrintError(fmt.Sprintf("Warning: Failed to cleanup temporary directory: %s", tempDir))
 		}
@@ -288,13 +292,13 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 	printer.Print("Collecting diagnostics from filesystem...")
 
 	// Collect Mattermost files
-	configPath := filepath.Join(mmDir, "config", "config.json")
 	filesCollected, err := collectMattermostFiles(mmDir, tempDir, obfuscate)
 	if err != nil {
 		return fmt.Errorf("config obfuscation failed - cannot safely archive: %w", err)
 	}
 
 	// Collect system diagnostics
+	configPath := filepath.Join(mmDir, "config", "config.json")
 	diagCount, _ := collectSystemDiagnostics(tempDir, configPath)
 	filesCollected += diagCount
 
@@ -311,7 +315,8 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 
 	// Create archive
 	if err := createTarGzArchive(tempDir, outputPath); err != nil {
-		printer.PrintError(fmt.Sprintf("Archive creation failed. Collected files are in: %s", tempDirForErrorMsg))
+		archiveFailed = true
+		printer.PrintError(fmt.Sprintf("Archive creation failed. Collected files are in: %s", tempDir))
 		printer.PrintError("You can manually tar/zip this directory.")
 		return fmt.Errorf("failed to create archive: %w", err)
 	}

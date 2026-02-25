@@ -7,10 +7,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -391,58 +389,6 @@ func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
 		count, err := collectMattermostFiles(mmDir, tempDir, true)
 		s.Require().NoError(err)
 		s.Require().GreaterOrEqual(count, 0)
-	})
-}
-
-func (s *PacketPullTestSuite) TestPacketPullCmd() {
-	s.Run("Directory validation failure", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().String("directory", "/nonexistent", "")
-		cmd.Flags().String("target", s.T().TempDir(), "")
-		cmd.Flags().String("name", "test", "")
-		cmd.Flags().Bool("no-obfuscate", false, "")
-
-		err := packetPullCmdF(cmd, []string{})
-		s.Require().Error(err)
-		s.Contains(err.Error(), "does not appear to be a Mattermost installation")
-	})
-
-	s.Run("Happy path integration", func() {
-		// Setup test Mattermost directory
-		mmDir := s.T().TempDir()
-		configDir := filepath.Join(mmDir, "config")
-		logsDir := filepath.Join(mmDir, "logs")
-		err := os.MkdirAll(configDir, 0700)
-		s.Require().NoError(err)
-		err = os.MkdirAll(logsDir, 0700)
-		s.Require().NoError(err)
-
-		// Create minimal config.json
-		configContent := `{"ServiceSettings": {"ListenAddress": ":8065"}}`
-		err = os.WriteFile(filepath.Join(configDir, "config.json"), []byte(configContent), 0600)
-		s.Require().NoError(err)
-
-		// Create a log file
-		err = os.WriteFile(filepath.Join(logsDir, "test.log"), []byte("test log"), 0600)
-		s.Require().NoError(err)
-
-		targetDir := s.T().TempDir()
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("directory", mmDir, "")
-		cmd.Flags().String("target", targetDir, "")
-		cmd.Flags().String("name", "test-packet", "")
-		cmd.Flags().Bool("no-obfuscate", false, "")
-
-		err = packetPullCmdF(cmd, []string{})
-		s.Require().NoError(err)
-
-		// Verify archive was created
-		files, err := os.ReadDir(targetDir)
-		s.Require().NoError(err)
-		s.Require().Len(files, 1)
-		s.True(strings.HasPrefix(files[0].Name(), "test-packet_"))
-		s.True(strings.HasSuffix(files[0].Name(), ".tar.gz"))
 	})
 }
 

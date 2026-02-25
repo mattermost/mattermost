@@ -8,115 +8,79 @@ import (
 	"strings"
 )
 
-// obfuscateConfigJSON obfuscates sensitive fields in a Mattermost config.json file
-// Returns the obfuscated JSON bytes, count of fields obfuscated, and any error
+// sensitiveKeywords are substrings matched case-insensitively against JSON field names
+// to identify values that should be redacted.
+var sensitiveKeywords = []string{
+	"password", "secret", "key", "token", "privatekey", "apikey",
+	"cert", "credential", "dsn", "datasource", "connectionstring", "bearer",
+	"oauth", "signature", "salt",
+}
+
+// obfuscateConfigJSON obfuscates sensitive fields in a Mattermost config.json file.
+// It walks the parsed JSON tree and redacts sensitive string values in-place,
+// then re-marshals. Returns the obfuscated JSON bytes, count of fields obfuscated, and any error.
 func obfuscateConfigJSON(jsonBytes []byte) ([]byte, int, error) {
-	// Parse to validate it's valid JSON and collect sensitive values
 	var config map[string]interface{}
 	if err := json.Unmarshal(jsonBytes, &config); err != nil {
 		return nil, 0, err
 	}
 
-	// Collect all sensitive field paths and their values
-	sensitiveValues := make(map[string]bool)
 	count := 0
-	collectSensitiveValues(config, &count, sensitiveValues)
+	redactSensitiveFields(config, &count)
 
-	// Now do string-based replacement on the original JSON to preserve order and formatting
-	result := string(jsonBytes)
-
-	// For each unique sensitive value, replace it with REDACTED
-	// We need to be careful to only replace actual string values, not keys
-	for value := range sensitiveValues {
-		if value == "" {
-			continue
-		}
-		// Escape the value for JSON (handle quotes, backslashes, etc.)
-		escapedValue := escapeJSONString(value)
-		// Replace "originalValue" with "***REDACTED***"
-		// Using exact match to avoid partial replacements
-		result = strings.ReplaceAll(result, `"`+escapedValue+`"`, `"***REDACTED***"`)
-	}
-
-	// Validate the result is still valid JSON
-	var validation interface{}
-	if err := json.Unmarshal([]byte(result), &validation); err != nil {
+	result, err := json.MarshalIndent(config, "", "    ")
+	if err != nil {
 		return nil, 0, err
 	}
 
-	return []byte(result), count, nil
+	return result, count, nil
 }
 
-// collectSensitiveValues walks the config and collects values that should be obfuscated
-func collectSensitiveValues(data map[string]interface{}, count *int, values map[string]bool) {
-	sensitiveKeywords := []string{
-		"password", "secret", "key", "token", "privatekey", "apikey",
-		"cert", "credential", "dsn", "datasource", "connectionstring", "bearer",
-		"oauth", "signature", "salt",
-	}
-
-	for key, value := range data {
-		normalizedKey := strings.ToLower(key)
-
-		isSensitive := false
-		for _, keyword := range sensitiveKeywords {
-			if strings.Contains(normalizedKey, keyword) {
-				isSensitive = true
-				break
-			}
+// isSensitiveKey returns true if the key contains a sensitive keyword (case-insensitive).
+func isSensitiveKey(key string) bool {
+	normalizedKey := strings.ToLower(key)
+	for _, keyword := range sensitiveKeywords {
+		if strings.Contains(normalizedKey, keyword) {
+			return true
 		}
+	}
+	return false
+}
 
-		if isSensitive {
+// redactSensitiveFields walks a JSON object and replaces sensitive string values with "***REDACTED***".
+func redactSensitiveFields(data map[string]interface{}, count *int) {
+	for key, value := range data {
+		if isSensitiveKey(key) {
 			switch v := value.(type) {
 			case string:
 				if v != "" {
-					values[v] = true
+					data[key] = "***REDACTED***"
 					*count++
 				}
 			case map[string]interface{}:
-				collectSensitiveValues(v, count, values)
+				redactSensitiveFields(v, count)
 			case []interface{}:
-				collectSensitiveArray(v, count, values)
+				redactSensitiveArray(v, count)
 			}
 		} else {
 			switch v := value.(type) {
 			case map[string]interface{}:
-				collectSensitiveValues(v, count, values)
+				redactSensitiveFields(v, count)
 			case []interface{}:
-				collectSensitiveArray(v, count, values)
+				redactSensitiveArray(v, count)
 			}
 		}
 	}
 }
 
-// collectSensitiveArray walks an array and collects sensitive values
-func collectSensitiveArray(data []interface{}, count *int, values map[string]bool) {
+// redactSensitiveArray walks a JSON array and redacts sensitive fields in any nested objects.
+func redactSensitiveArray(data []interface{}, count *int) {
 	for _, item := range data {
 		switch v := item.(type) {
 		case map[string]interface{}:
-			collectSensitiveValues(v, count, values)
+			redactSensitiveFields(v, count)
 		case []interface{}:
-			collectSensitiveArray(v, count, values)
+			redactSensitiveArray(v, count)
 		}
 	}
-}
-
-// escapeJSONString escapes a string value as it would appear in JSON
-// This handles quotes, backslashes, and other special characters
-func escapeJSONString(s string) string {
-	// Use json.Marshal to get the proper escaping, then strip the surrounding quotes
-	encoded, _ := json.Marshal(s)
-	if len(encoded) >= 2 {
-		return string(encoded[1 : len(encoded)-1])
-	}
-	return s
-}
-
-// Legacy functions kept for compatibility but not used
-func obfuscateMap(data map[string]interface{}, count *int) {
-	// This is no longer used but kept to avoid breaking imports
-}
-
-func obfuscateArray(data []interface{}, count *int) {
-	// This is no longer used but kept to avoid breaking imports
 }

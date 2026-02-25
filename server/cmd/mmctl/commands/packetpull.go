@@ -6,7 +6,6 @@ package commands
 import (
 	"archive/tar"
 	"compress/gzip"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,114 +13,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/spf13/cobra"
 )
-
-var PacketPullCmd = &cobra.Command{
-	Use:   "packet-pull",
-	Short: "Collect Mattermost diagnostics for offline support troubleshooting",
-	Long: `Collect Mattermost configuration, logs, and system diagnostics entirely via filesystem
-reads and shell command execution (no API dependency). Creates a timestamped .tar.gz archive.
-
-This command is useful when the Mattermost server is offline or unreachable. It collects:
-- config.json (obfuscated by default)
-- All log files (unmodified)
-- System diagnostics: /etc/os-release, /proc/meminfo
-- System command output: systemctl status, journalctl, top, netstat/ss, df
-
-Example:
-  mmctl packet-pull
-  mmctl packet-pull --directory /opt/mattermost --target /tmp --name diagnostics
-  mmctl packet-pull --no-obfuscate`,
-	RunE: packetPullCmdF,
-}
-
-func init() {
-	PacketPullCmd.Flags().String("directory", "/opt/mattermost", "Path to Mattermost installation directory")
-	PacketPullCmd.Flags().String("target", ".", "Path to output directory for the archive")
-	PacketPullCmd.Flags().String("name", "support-packet", "Base name for the output archive file")
-	PacketPullCmd.Flags().Bool("no-obfuscate", false, "Disable obfuscation of sensitive config data")
-	RootCmd.AddCommand(PacketPullCmd)
-}
-
-func packetPullCmdF(cmd *cobra.Command, args []string) error {
-	// Parse flags
-	mmDir, _ := cmd.Flags().GetString("directory")
-	targetDir, _ := cmd.Flags().GetString("target")
-	name, _ := cmd.Flags().GetString("name")
-	noObfuscate, _ := cmd.Flags().GetBool("no-obfuscate")
-	obfuscate := !noObfuscate
-
-	// Validate Mattermost directory structure
-	if err := validateMattermostDirectory(mmDir); err != nil {
-		return err
-	}
-
-	// Generate timestamp
-	timestamp := time.Now().UTC().Format("20060102-150405")
-	baseFilename := fmt.Sprintf("%s_%s.tar.gz", name, timestamp)
-	outputPath := filepath.Join(targetDir, baseFilename)
-
-	// Check for filename collision and append random suffix if needed
-	if _, err := os.Stat(outputPath); err == nil {
-		suffix := make([]byte, 2)
-		rand.Read(suffix)
-		baseFilename = fmt.Sprintf("%s_%s_%x.tar.gz", name, timestamp, suffix)
-		outputPath = filepath.Join(targetDir, baseFilename)
-	}
-
-	// Create temp directory
-	tempDir, err := os.MkdirTemp("", "mmctl-packet-pull-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temporary directory: %w", err)
-	}
-
-	// Setup cleanup handler
-	tempDirForErrorMsg := tempDir
-	defer func() {
-		if err := os.RemoveAll(tempDir); err != nil {
-			printer.PrintError(fmt.Sprintf("Warning: Failed to cleanup temporary directory: %s", tempDir))
-		}
-	}()
-
-	// Collect Mattermost files
-	configPath := filepath.Join(mmDir, "config", "config.json")
-	filesCollected, err := collectMattermostFiles(mmDir, tempDir, obfuscate)
-	if err != nil {
-		return fmt.Errorf("config obfuscation failed - cannot safely archive: %w", err)
-	}
-
-	// Collect system diagnostics
-	diagCount, _ := collectSystemDiagnostics(tempDir, configPath)
-	filesCollected += diagCount
-
-	// Validate we collected something
-	if filesCollected == 0 {
-		return fmt.Errorf("collection failed completely - no files were collected")
-	}
-
-	// Log obfuscation summary if enabled
-	if obfuscate {
-		printer.Print(fmt.Sprintf("Collection complete. Obfuscation applied to config.json."))
-	} else {
-		printer.Print("Collection complete. No obfuscation applied (--no-obfuscate flag used).")
-	}
-
-	// Create archive
-	if err := createTarGzArchive(tempDir, outputPath); err != nil {
-		// Preserve temp directory on archive failure
-		printer.PrintError(fmt.Sprintf("Archive creation failed. Collected files are in: %s", tempDirForErrorMsg))
-		printer.PrintError("You can manually tar/zip this directory.")
-		return fmt.Errorf("failed to create archive: %w", err)
-	}
-
-	// Success
-	printer.PrintT("Support packet created successfully: {{.Path}}", map[string]string{"Path": outputPath})
-	return nil
-}
 
 // validateMattermostDirectory checks if the directory looks like a Mattermost installation
 func validateMattermostDirectory(mmDir string) error {
@@ -214,28 +108,6 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 		}
 	}
 
-	// Collect system files
-	systemFiles := []struct {
-		source string
-		dest   string
-		name   string
-	}{
-		{"/etc/os-release", "os-release", "OS release info"},
-		{"/proc/meminfo", "meminfo", "Memory info"},
-	}
-
-	for _, file := range systemFiles {
-		content, err := os.ReadFile(file.source)
-		if err != nil {
-			// Silently skip if not readable
-			continue
-		}
-		destPath := filepath.Join(tempDir, file.dest)
-		if err := os.WriteFile(destPath, content, 0600); err == nil {
-			count++
-		}
-	}
-
 	return count, nil
 }
 
@@ -287,21 +159,44 @@ func extractPortFromConfig(configPath string) string {
 		return "8065"
 	}
 
-	// Handle IPv4 or IPv6 with port: 0.0.0.0:8065 or ::1:8065
-	lastColon := strings.LastIndex(addr, ":")
-	if lastColon != -1 && lastColon < len(addr)-1 {
-		port := addr[lastColon+1:]
-		if port != "" && port[0] >= '0' && port[0] <= '9' {
-			return port
+	// Handle IPv4 with port: 0.0.0.0:8065
+	// Multiple colons without brackets means bare IPv6 (no port) — use default
+	if strings.Count(addr, ":") == 1 {
+		lastColon := strings.LastIndex(addr, ":")
+		if lastColon < len(addr)-1 {
+			port := addr[lastColon+1:]
+			if port != "" && port[0] >= '0' && port[0] <= '9' {
+				return port
+			}
 		}
 	}
 
 	return "8065"
 }
 
-// collectSystemDiagnostics executes system commands and captures output
+// collectSystemDiagnostics collects system files and executes system commands to capture output
 func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 	count := 0
+
+	// Collect system files
+	systemFiles := []struct {
+		source string
+		dest   string
+	}{
+		{"/etc/os-release", "os-release"},
+		{"/proc/meminfo", "meminfo"},
+	}
+
+	for _, file := range systemFiles {
+		content, err := os.ReadFile(file.source)
+		if err != nil {
+			continue // Silently skip if not readable
+		}
+		destPath := filepath.Join(tempDir, file.dest)
+		if err := os.WriteFile(destPath, content, 0600); err == nil {
+			count++
+		}
+	}
 
 	// Extract port from config
 	port := extractPortFromConfig(configPath)
@@ -312,7 +207,7 @@ func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 		desc string
 	}{
 		{[]string{"systemctl", "status", "mattermost.service", "--no-pager", "-l"}, "systemctl.txt", "systemctl status"},
-		{[]string{"journalctl", "-xe", "--no-pager"}, "journalctl.txt", "journalctl"},
+		{[]string{"journalctl", "-u", "mattermost.service", "-n", "1000", "--no-pager"}, "journalctl.txt", "journalctl"},
 		{[]string{"top", "-b", "-n", "1"}, "top.txt", "top snapshot"},
 		{[]string{"df", "-a", "-h"}, "diskspace.txt", "disk usage"},
 	}
