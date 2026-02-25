@@ -396,9 +396,14 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
                         (ch): ch is ServerChannel => ch !== null,
                     );
 
-                    for (const ch of validFetched) {
-                        dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: ch});
-                    }
+                    dispatch(
+                        batchActions(
+                            validFetched.map((ch) => ({
+                                type: ChannelTypes.RECEIVED_CHANNEL,
+                                data: ch,
+                            })),
+                        ),
+                    );
                     combinedChannels = [...allChannelsList, ...validFetched];
                 }
 
