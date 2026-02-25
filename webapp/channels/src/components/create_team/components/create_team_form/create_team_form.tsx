@@ -52,12 +52,14 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         const {createTeam} = actions;
 
         setIsLoading(true);
-        const teamSignup = JSON.parse(JSON.stringify(parentState));
-        teamSignup.team.type = 'O';
-        teamSignup.team.display_name = teamDisplayName.trim();
-        teamSignup.team.name = teamURL.trim();
+        const teamDraft = {
+            ...(parentState.team ?? {}),
+            type: 'O',
+            display_name: teamDisplayName.trim(),
+            name: teamURL.trim(),
+        } as Team;
 
-        const createTeamData = await createTeam(teamSignup.team);
+        const createTeamData = await createTeam(teamDraft);
         const data = createTeamData.data;
         const error = createTeamData.error;
 
@@ -83,7 +85,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             return;
         }
 
-        const displayName = teamDisplayName.trim();
+        const displayName = teamDisplayName;
         const newState = parentState;
         newState.wizard = 'team_url';
         newState.team!.display_name = displayName;
@@ -94,7 +96,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     }, [isValidTeamName, config.UseSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setTeamDisplayName(e.target.value);
+        setTeamDisplayName(e.target.value.trim());
     }, []);
 
     const submitBack = useCallback((e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -279,6 +281,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             onDisplayNameChange={handleDisplayNameChange}
             onSubmit={submitDisplayName}
             buttonText={buttonText}
+            isLoading={isLoading}
         />
     );
 }
