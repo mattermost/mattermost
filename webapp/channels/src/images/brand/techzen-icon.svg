@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+  <!-- Techzen Square Logo: Icon (top) + TECHZEN text (bottom) -->
+
+  <!-- Planet/Globe Icon Group - centered -->
+  <g transform="translate(100, 90)">
+    <!-- Outer red orbit ellipse (top arc) -->
+    <ellipse cx="0" cy="0" rx="80" ry="33" fill="none" stroke="#c62828" stroke-width="10" stroke-linecap="round"
+      transform="rotate(-25)"
+      stroke-dasharray="330 120"/>
+
+    <!-- Globe circle - white fill with red border -->
+    <circle cx="0" cy="0" r="60" fill="white" stroke="#c62828" stroke-width="9"/>
+
+    <!-- Red horizontal stripes inside globe -->
+    <rect x="-30" y="-25" width="46" height="10" rx="5" fill="#c62828" transform="rotate(-15)"/>
+    <rect x="-33" y="-8" width="52" height="10" rx="5" fill="#c62828" transform="rotate(-15)"/>
+    <rect x="-30" y="9" width="46" height="10" rx="5" fill="#c62828" transform="rotate(-15)"/>
+
+    <!-- Navy blue swoosh at bottom-right -->
+    <path d="M 38 38 Q 65 58 48 78 Q 35 88 10 82" fill="none" stroke="#1a237e" stroke-width="13" stroke-linecap="round"/>
+    <polygon points="5,72 12,88 22,78" fill="#1a237e"/>
+  </g>
+
+  <!-- "TECHZEN" text - centered below icon -->
+  <text x="100" y="200"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="30"
+    font-weight="900"
+    fill="#1a237e"
+    text-anchor="middle"
+    letter-spacing="2">TECHZEN</text>
+</svg>

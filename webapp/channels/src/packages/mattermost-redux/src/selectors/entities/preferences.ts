@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CollapsedThreads} from '@mattermost/types/config';
-import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
-import type {GlobalState} from '@mattermost/types/store';
+import { CollapsedThreads } from '@mattermost/types/config';
+import type { PreferencesType, PreferenceType } from '@mattermost/types/preferences';
+import type { GlobalState } from '@mattermost/types/store';
 
-import {General, Preferences} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {createIdsSelector, createShallowSelector} from 'mattermost-redux/utils/helpers';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
+import { General, Preferences } from 'mattermost-redux/constants';
+import { createSelector } from 'mattermost-redux/selectors/create_selector';
+import { getConfig, getFeatureFlagValue, getLicense } from 'mattermost-redux/selectors/entities/general';
+import { createIdsSelector, createShallowSelector } from 'mattermost-redux/utils/helpers';
+import { getPreferenceKey } from 'mattermost-redux/utils/preference_utils';
+import { setThemeDefaults } from 'mattermost-redux/utils/theme_utils';
 
 export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
     return state.entities.preferences.myPreferences;
@@ -133,11 +133,11 @@ const getThemePreference = createSelector(
     },
 );
 
-export type ThemeKey = 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx';
+export type ThemeKey = 'techzen' | 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx';
 
 export type LegacyThemeType = 'Mattermost' | 'Organization' | 'Mattermost Dark' | 'Windows Dark';
 
-export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx';
+export type ThemeType = 'Techzen' | 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx';
 
 export type Theme = {
     [key: string]: string | undefined;

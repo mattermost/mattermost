@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
+import type { Theme, ThemeKey } from 'mattermost-redux/selectors/entities/preferences';
 
 const Preferences = {
     APP_BAR: 'app_bar',
@@ -84,6 +84,34 @@ const Preferences = {
 
     CATEGORY_THEME: 'theme',
     THEMES: {
+        techzen: {
+            type: 'Techzen',
+            sidebarBg: '#1a2332',
+            sidebarText: '#ffffff',
+            sidebarUnreadText: '#ffffff',
+            sidebarTextHoverBg: '#253047',
+            sidebarTextActiveBorder: '#137fec',
+            sidebarTextActiveColor: '#ffffff',
+            sidebarHeaderBg: '#111927',
+            sidebarHeaderTextColor: '#ffffff',
+            sidebarTeamBarBg: '#0d1520',
+            onlineIndicator: '#3db887',
+            awayIndicator: '#ffbc1f',
+            dndIndicator: '#c62828',
+            mentionBg: '#c62828',
+            mentionBj: '#c62828',
+            mentionColor: '#ffffff',
+            centerChannelBg: '#ffffff',
+            centerChannelColor: '#3f4350',
+            newMessageSeparator: '#137fec',
+            linkColor: '#137fec',
+            buttonBg: '#137fec',
+            buttonColor: '#ffffff',
+            errorTextColor: '#c62828',
+            mentionHighlightBg: '#ffd0d0',
+            mentionHighlightLink: '#7a0000',
+            codeTheme: 'github',
+        },
         denim: {
             type: 'Denim',
             sidebarBg: '#1e325c',

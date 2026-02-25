@@ -2410,7 +2410,7 @@ func (s *ThemeSettings) SetDefaults() {
 	}
 
 	if s.DefaultTheme == nil {
-		s.DefaultTheme = NewPointer(TeamSettingsDefaultTeamText)
+		s.DefaultTheme = NewPointer("techzen")
 	}
 
 	if s.AllowCustomThemes == nil {

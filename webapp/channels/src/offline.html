@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Techzen Chat - Đang kết nối lại</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: #1a2332;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Techzen Globe Icon (inline SVG representation) */
+    .globe-icon {
+      width: 56px;
+      height: 56px;
+    }
+
+    .brand-name {
+      font-size: clamp(22px, 6vw, 32px);
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffffff;
+    }
+
+    .offline-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: clamp(20px, 5vw, 40px) clamp(16px, 6vw, 48px);
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .offline-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .offline-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .offline-body {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .retry-btn {
+      background: #137fec;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .retry-btn:hover {
+      background: #0d5fa8;
+    }
+
+    .retry-btn:active {
+      transform: scale(0.97);
+    }
+
+    .divider {
+      width: 40px;
+      height: 3px;
+      background: #c62828;
+      border-radius: 2px;
+      margin: 20px auto 0;
+    }
+
+    /* Connecting animation */
+    .dots {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 4px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #137fec;
+      animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+
+      30% {
+        transform: translateY(-6px);
+        opacity: 1;
+      }
+    }
+
+    /* Mobile fixes for very small screens (≤ 380px) */
+    @media (max-width: 380px) {
+      .logo-container {
+        gap: 10px;
+      }
+
+      .globe-icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      .offline-icon {
+        font-size: 36px;
+      }
+
+      .offline-title {
+        font-size: 18px;
+      }
+
+      .offline-body {
+        font-size: 13px;
+      }
+
+      .retry-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+
+    /* Touch targets: ensure buttons have min 44px touch area */
+    @media (pointer: coarse) {
+      .retry-btn {
+        min-height: 44px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="logo-container">
+    <svg class="globe-icon" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <!-- Orbit ring -->
+      <ellipse cx="28" cy="28" rx="26" ry="11" fill="none" stroke="#c62828" stroke-width="4" stroke-linecap="round"
+        transform="rotate(-25, 28, 28)" stroke-dasharray="108 36" />
+      <!-- Globe -->
+      <circle cx="28" cy="28" r="19" fill="white" stroke="#c62828" stroke-width="3" />
+      <!-- Stripes -->
+      <rect x="17" y="21" width="15" height="3" rx="1.5" fill="#c62828" transform="rotate(-15, 24.5, 22.5)" />
+      <rect x="16" y="26" width="17" height="3" rx="1.5" fill="#c62828" transform="rotate(-15, 24.5, 27.5)" />
+      <rect x="17" y="31" width="15" height="3" rx="1.5" fill="#c62828" transform="rotate(-15, 24.5, 32.5)" />
+      <!-- Navy swoosh -->
+      <path d="M 38 33 Q 48 40 39 48 Q 33 52 27 50" fill="none" stroke="#1a237e" stroke-width="4.5"
+        stroke-linecap="round" />
+      <polygon points="25.5,46 28.5,52 32,47.5" fill="#1a237e" />
+    </svg>
+    <span class="brand-name">TECHZEN</span>
+  </div>
+
+  <div class="offline-card">
+    <span class="offline-icon">📡</span>
+    <h1 class="offline-title">Mất kết nối</h1>
+    <p class="offline-body">
+      Không thể kết nối đến Techzen Chat.<br>
+      Vui lòng kiểm tra kết nối mạng của bạn.
+    </p>
+    <button class="retry-btn" onclick="window.location.reload()">
+      Thử lại
+      <span class="dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </span>
+    </button>
+    <div class="divider"></div>
+  </div>
+
+  <script>
+    // Auto retry when back online
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+
+</html>

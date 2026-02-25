@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Preferences} from 'mattermost-redux/constants';
-import type {LegacyThemeType, Theme, ThemeKey, ThemeType} from 'mattermost-redux/selectors/entities/preferences';
+import { Preferences } from 'mattermost-redux/constants';
+import type { LegacyThemeType, Theme, ThemeKey, ThemeType } from 'mattermost-redux/selectors/entities/preferences';
 
 export function makeStyleFromTheme(getStyleFromTheme: (a: any) => any): (a: any) => any {
     let lastTheme: any;
@@ -19,7 +19,7 @@ export function makeStyleFromTheme(getStyleFromTheme: (a: any) => any): (a: any)
 
 const rgbPattern = /^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/;
 
-export function getComponents(inColor: string): {red: number; green: number; blue: number; alpha: number} {
+export function getComponents(inColor: string): { red: number; green: number; blue: number; alpha: number } {
     let color = inColor;
 
     // RGB color
@@ -121,6 +121,7 @@ type ThemeTypeMap = Record<ThemeType | LegacyThemeType, ThemeKey>;
 // object mapping theme types to their respective keys for retrieving the source themes directly
 // - supports mapping old themes to new themes
 const themeTypeMap: ThemeTypeMap = {
+    Techzen: 'techzen',
     Mattermost: 'denim',
     Organization: 'sapphire',
     'Mattermost Dark': 'indigo',
@@ -134,9 +135,9 @@ const themeTypeMap: ThemeTypeMap = {
 
 // setThemeDefaults will set defaults on the theme for any unset properties.
 export function setThemeDefaults(theme: Partial<Theme>): Theme {
-    const defaultTheme = Preferences.THEMES.denim;
+    const defaultTheme = Preferences.THEMES.techzen;
 
-    const processedTheme = {...theme};
+    const processedTheme = { ...theme };
 
     // If this is a system theme, return the source theme object matching the theme preference type
     if (theme.type && theme.type !== 'custom' && Object.keys(themeTypeMap).includes(theme.type)) {

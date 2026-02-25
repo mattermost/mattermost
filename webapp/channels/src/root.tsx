@@ -20,7 +20,23 @@ __webpack_public_path__ = window.publicPath;
 // basename accordingly.
 window.basename = window.publicPath.substr(0, window.publicPath.length - '/static/'.length);
 
+// Register Techzen Chat Service Worker (PWA - production only, skip localhost)
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+if ('serviceWorker' in navigator && !isLocalhost) {
+    window.addEventListener('load', () => {
+        const swPath = (window.basename || '') + '/sw.js';
+        navigator.serviceWorker.register(swPath, { scope: (window.basename || '') + '/' }).then((registration) => {
+            // Check for updates every hour
+            setInterval(() => registration.update(), 60 * 60 * 1000);
+        }).catch((err) => {
+            // SW registration failure is non-fatal
+            console.warn('[PWA] Service worker registration failed:', err); // eslint-disable-line no-console
+        });
+    });
+}
+
+
 import('./entry');
 
 // This empty export forces this to be treated as a module by the TS compiler
-export {};
+export { };

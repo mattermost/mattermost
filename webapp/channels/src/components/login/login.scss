@@ -194,13 +194,13 @@
         .login-body-custom-branding-markdown {
             flex: 1;
 
-            ul + p,
-            ol + p {
+            ul+p,
+            ol+p {
                 margin-top: 0.6em;
             }
 
-            p + ul,
-            p + ol {
+            p+ul,
+            p+ol {
                 margin-top: 0.6em;
             }
 
@@ -224,6 +224,7 @@
 
 @media screen and (min-width: 1680px) {
     .login-body .login-body-content {
+
         .login-body-message,
         .login-body-card {
             width: 610px;
@@ -310,7 +311,7 @@
                             font-size: 32px;
                             line-height: 40px;
 
-                            &:has(+ .login-body-custom-branding-markdown){
+                            &:has(+ .login-body-custom-branding-markdown) {
                                 margin-bottom: 12px;
                             }
                         }
@@ -333,7 +334,8 @@
         margin: auto 0;
 
         .login-body-content {
-            min-width: 375px;
+            min-width: 0;
+            width: 100%;
 
             .login-body-card {
                 width: 100%;

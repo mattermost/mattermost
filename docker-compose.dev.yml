@@ -16,7 +16,7 @@ services:
     networks:
       - mattermost-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+      test: [ "CMD-SHELL", "pg_isready -U mmuser -d mattermost" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,6 +45,10 @@ services:
       MM_EMAILSETTINGS_REPLYTOADDRESS: "test@example.com"
       # Misc
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      # Techzen Theme
+      MM_THEMESETTINGS_ENABLETHEMESELECTION: "true"
+      MM_THEMESETTINGS_DEFAULTTHEME: "techzen"
+      MM_THEMESETTINGS_ALLOWCUSTOMTHEMES: "true"
     volumes:
       - mattermost-data:/mattermost/data
       - mattermost-logs:/mattermost/logs
@@ -60,9 +64,9 @@ services:
     container_name: mattermost-mail
     restart: unless-stopped
     ports:
-      - "9001:9001"     # Web UI
-      - "10025:10025"   # SMTP
-      - "10110:10110"   # POP3
+      - "9001:9001" # Web UI
+      - "10025:10025" # SMTP
+      - "10110:10110" # POP3
     networks:
       - mattermost-net
 
@@ -73,6 +77,7 @@ volumes:
   mattermost-config:
   mattermost-plugins:
   mattermost-client-plugins:
+
 
 networks:
   mattermost-net:

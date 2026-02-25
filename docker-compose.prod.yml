@@ -61,6 +61,10 @@ services:
       # File storage
       MM_FILESETTINGS_DRIVERNAME: "local"
       MM_FILESETTINGS_DIRECTORY: "/mattermost/data/"
+      # Techzen Theme
+      MM_THEMESETTINGS_ENABLETHEMESELECTION: "true"
+      MM_THEMESETTINGS_DEFAULTTHEME: "techzen"
+      MM_THEMESETTINGS_ALLOWCUSTOMTHEMES: "true"
     volumes:
       - mattermost-data:/mattermost/data
       - mattermost-logs:/mattermost/logs

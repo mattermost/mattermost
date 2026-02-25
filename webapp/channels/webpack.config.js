@@ -12,7 +12,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
-const {ModuleFederationPlugin} = require('webpack').container;
+const { ModuleFederationPlugin } = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 const packageJson = require('./package.json');
@@ -172,47 +172,61 @@ var config = {
         }),
         new CopyWebpackPlugin({
             patterns: [
-                {from: 'src/images/emoji', to: 'emoji'},
-                {from: 'src/images/img_trans.gif', to: 'images'},
-                {from: 'src/images/logo-email.png', to: 'images'},
-                {from: 'src/images/favicon', to: 'images/favicon'},
-                {from: 'src/images/appIcons.png', to: 'images'},
-                {from: 'src/images/logo-email.png', to: 'images'},
-                {from: 'src/images/browser-icons', to: 'images/browser-icons'},
-                {from: 'src/images/cloud', to: 'images'},
-                {from: 'src/images/welcome_illustration_new.png', to: 'images'},
-                {from: 'src/images/logo_email_blue.png', to: 'images'},
-                {from: 'src/images/logo_email_dark.png', to: 'images'},
-                {from: 'src/images/logo_email_gray.png', to: 'images'},
-                {from: 'src/images/forgot_password_illustration.png', to: 'images'},
-                {from: 'src/images/invite_illustration.png', to: 'images'},
-                {from: 'src/images/channel_icon.png', to: 'images'},
-                {from: 'src/images/c_avatar.png', to: 'images'},
-                {from: 'src/images/c_download.png', to: 'images'},
-                {from: 'src/images/c_socket.png', to: 'images'},
-                {from: 'src/images/admin-onboarding-background.jpg', to: 'images'},
-                {from: 'src/images/cloud-laptop.png', to: 'images'},
-                {from: 'src/images/cloud-laptop-error.png', to: 'images'},
-                {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
-                {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
-                {from: 'src/images/payment_processing.png', to: 'images'},
-                {from: 'src/images/purchase_alert.png', to: 'images'},
-                {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
+                { from: 'src/images/emoji', to: 'emoji' },
+                { from: 'src/images/img_trans.gif', to: 'images' },
+                { from: 'src/images/logo-email.png', to: 'images' },
+                { from: 'src/images/favicon', to: 'images/favicon' },
+                { from: 'src/images/appIcons.png', to: 'images' },
+                { from: 'src/images/logo-email.png', to: 'images' },
+                { from: 'src/images/browser-icons', to: 'images/browser-icons' },
+                { from: 'src/images/cloud', to: 'images' },
+                { from: 'src/images/welcome_illustration_new.png', to: 'images' },
+                { from: 'src/images/logo_email_blue.png', to: 'images' },
+                { from: 'src/images/logo_email_dark.png', to: 'images' },
+                { from: 'src/images/logo_email_gray.png', to: 'images' },
+                { from: 'src/images/forgot_password_illustration.png', to: 'images' },
+                { from: 'src/images/invite_illustration.png', to: 'images' },
+                { from: 'src/images/channel_icon.png', to: 'images' },
+                { from: 'src/images/c_avatar.png', to: 'images' },
+                { from: 'src/images/c_download.png', to: 'images' },
+                { from: 'src/images/c_socket.png', to: 'images' },
+                { from: 'src/images/admin-onboarding-background.jpg', to: 'images' },
+                { from: 'src/images/cloud-laptop.png', to: 'images' },
+                { from: 'src/images/cloud-laptop-error.png', to: 'images' },
+                { from: 'src/images/cloud-laptop-warning.png', to: 'images' },
+                { from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images' },
+                { from: 'src/images/payment_processing.png', to: 'images' },
+                { from: 'src/images/purchase_alert.png', to: 'images' },
+                { from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps' },
             ],
         }),
 
-        // Generate manifest.json, honouring any configured publicPath. This also handles injecting
-        // <link rel="apple-touch-icon" ... /> and <meta name="apple-*" ... /> tags into root.html.
+        // Copy PWA files to root (not /static/) so browser can find them
+        new CopyWebpackPlugin({
+            patterns: [
+                // Service worker must be at root scope
+                { from: 'src/sw.js', to: '../sw.js' },
+                // Offline fallback page
+                { from: 'src/offline.html', to: '../offline.html' },
+            ],
+        }),
+
+        // Generate manifest.json — Techzen Chat PWA
         new WebpackPwaManifest({
-            name: 'Mattermost',
-            short_name: 'Mattermost',
+            name: 'Techzen Chat',
+            short_name: 'Techzen',
             start_url: '..',
-            description: 'Mattermost is an open source, self-hosted Slack-alternative',
-            background_color: '#ffffff',
+            description: 'Techzen Chat — Nền tảng giao tiếp nội bộ bảo mật cho đội nhóm Techzen',
+            background_color: '#1a2332',
+            theme_color: '#137fec',
+            display: 'standalone',
+            display_override: ['window-controls-overlay', 'standalone', 'browser'],
+            orientation: 'any',
+            categories: ['productivity', 'communication', 'utilities'],
+            lang: 'vi',
             inject: true,
             ios: true,
             fingerprints: false,
-            orientation: 'any',
             filename: 'manifest.json',
             icons: [{
                 src: path.resolve('src/images/favicon/android-chrome-192x192.png'),
@@ -352,10 +366,10 @@ async function initializeModuleFederation() {
             remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
         }
 
-        return {remotes};
+        return { remotes };
     }
 
-    const {remotes} = await getRemoteContainers();
+    const { remotes } = await getRemoteContainers();
 
     const moduleFederationPluginOptions = {
         name: 'mattermost_webapp',
