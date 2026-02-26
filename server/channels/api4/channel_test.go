@@ -210,9 +210,9 @@ func TestCreateChannel(t *testing.T) {
 
 		originalName := GenerateTestChannelName()
 		ch := &model.Channel{DisplayName: "Secure URL Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
-		createdChannel, resp, err := th.SystemAdminClient.CreateChannel(context.Background(), ch)
+		createdChannel, response, err := th.SystemAdminClient.CreateChannel(context.Background(), ch)
 		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
+		CheckCreatedStatus(t, response)
 
 		require.NotEqual(t, originalName, createdChannel.Name, "channel name should be overridden by server")
 		require.True(t, model.IsValidId(createdChannel.Name))
