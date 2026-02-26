@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`ImageGallery matches snapshot 1`] = `
 <div>
@@ -67,86 +67,12 @@ exports[`ImageGallery matches snapshot 1`] = `
               class="file__image"
             >
               <div
-                class="image-header image-header--expanded"
-              >
-                <button
-                  aria-label="Toggle Embed Visibility"
-                  class="style--none single-image-view__toggle"
-                  data-expanded="true"
-                >
-                  <svg
-                    fill="currentColor"
-                    height="16"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7,10L12,15L17,10H7Z"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div
-                class="image-container"
-                data-expanded="true"
-                style="min-width: 50px; min-height: 50px;"
+                class="image-header"
               >
                 <div
-                  class="image-loaded"
+                  class="image-name"
                 >
-                  <div
-                    class="image-loading__container  single-image-view__image"
-                    style="width: 100px; height: 100px; min-width: 50px; min-height: 50px;"
-                  >
-                    <div
-                      style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
-                    >
-                      <div
-                        class="file__image-loading"
-                      >
-                        <span
-                          class="LoadingSpinner"
-                          data-testid="loadingSpinner"
-                          id="loadingSpinner"
-                        >
-                          <span
-                            class="fa fa-spinner fa-fw fa-pulse spinner"
-                            title="Loading Icon"
-                          />
-                        </span>
-                        <span
-                          class="loader-percent"
-                        />
-                      </div>
-                    </div>
-                    <svg
-                      style="max-height: 100px; max-width: 100px; vertical-align: middle;"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    />
-                  </div>
-                  <div
-                    class="file-preview__button"
-                    style="display: none;"
-                  >
-                    <div
-                      class="small-image__container"
-                      style="min-width: 50px; min-height: 50px;"
-                    >
-                      <figure
-                        class="image-loaded-container"
-                      >
-                        <img
-                          aria-label="file thumbnail image1.png"
-                          class=" single-image-view__image small-image--inside-container"
-                          src="/api/v4/files/img1/preview"
-                          tabindex="0"
-                        />
-                      </figure>
-                    </div>
-                  </div>
+                  image1.png
                 </div>
               </div>
             </div>
@@ -166,86 +92,12 @@ exports[`ImageGallery matches snapshot 1`] = `
               class="file__image"
             >
               <div
-                class="image-header image-header--expanded"
-              >
-                <button
-                  aria-label="Toggle Embed Visibility"
-                  class="style--none single-image-view__toggle"
-                  data-expanded="true"
-                >
-                  <svg
-                    fill="currentColor"
-                    height="16"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7,10L12,15L17,10H7Z"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div
-                class="image-container"
-                data-expanded="true"
-                style="min-width: 50px; min-height: 50px;"
+                class="image-header"
               >
                 <div
-                  class="image-loaded"
+                  class="image-name"
                 >
-                  <div
-                    class="image-loading__container  single-image-view__image"
-                    style="width: 300px; height: 200px; min-width: 50px; min-height: 50px;"
-                  >
-                    <div
-                      style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
-                    >
-                      <div
-                        class="file__image-loading"
-                      >
-                        <span
-                          class="LoadingSpinner"
-                          data-testid="loadingSpinner"
-                          id="loadingSpinner"
-                        >
-                          <span
-                            class="fa fa-spinner fa-fw fa-pulse spinner"
-                            title="Loading Icon"
-                          />
-                        </span>
-                        <span
-                          class="loader-percent"
-                        />
-                      </div>
-                    </div>
-                    <svg
-                      style="max-height: 200px; max-width: 300px; vertical-align: middle;"
-                      viewBox="0 0 300 200"
-                      xmlns="http://www.w3.org/2000/svg"
-                    />
-                  </div>
-                  <div
-                    class="file-preview__button"
-                    style="display: none;"
-                  >
-                    <div
-                      class="small-image__container"
-                      style="min-width: 50px; min-height: 50px;"
-                    >
-                      <figure
-                        class="image-loaded-container"
-                      >
-                        <img
-                          aria-label="file thumbnail image2.jpg"
-                          class=" single-image-view__image small-image--inside-container"
-                          src="/api/v4/files/img2/preview"
-                          tabindex="0"
-                        />
-                      </figure>
-                    </div>
-                  </div>
+                  image2.jpg
                 </div>
               </div>
             </div>

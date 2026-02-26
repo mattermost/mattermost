@@ -5,7 +5,10 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -16,7 +19,10 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Loading Image Preview
@@ -34,7 +40,10 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -45,7 +54,10 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Loading Image Preview
@@ -63,7 +75,10 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -74,7 +89,10 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Loading Image Preview
@@ -92,7 +110,10 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -103,7 +124,10 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Preview
@@ -121,7 +145,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -132,7 +159,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Image Preview
@@ -150,7 +180,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -161,7 +194,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Image Preview
@@ -179,7 +215,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -190,7 +229,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Code Preview
@@ -208,7 +250,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -219,7 +264,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Audio Video Preview
@@ -237,7 +285,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -248,7 +299,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Audio Video Preview
@@ -266,7 +320,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -277,7 +334,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Image Preview
@@ -295,7 +355,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -306,7 +369,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Image Preview
@@ -324,7 +390,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
   <div>
     <div>
       <div
-        class="modal-image__wrapper"
+        aria-label="Close preview"
+        class="modal-image__wrapper initial-load"
+        role="button"
+        tabindex="0"
       >
         <div
           class="file-preview-modal__main-ctr"
@@ -335,7 +404,10 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
             </div>
           </div>
           <div
+            aria-label="Close preview"
             class="file-preview-modal__content"
+            role="button"
+            tabindex="0"
           >
             <div>
               Code Preview
