@@ -92,8 +92,25 @@ func (o *View) Auditable() map[string]any {
 	}
 }
 
+func (p *ViewBoardProps) Clone() *ViewBoardProps {
+	if p == nil {
+		return nil
+	}
+	clone := &ViewBoardProps{}
+	if p.LinkedProperties != nil {
+		clone.LinkedProperties = make([]string, len(p.LinkedProperties))
+		copy(clone.LinkedProperties, p.LinkedProperties)
+	}
+	if p.Subviews != nil {
+		clone.Subviews = make([]Subview, len(p.Subviews))
+		copy(clone.Subviews, p.Subviews)
+	}
+	return clone
+}
+
 func (o *View) Clone() *View {
 	v := *o
+	v.Props = o.Props.Clone()
 	return &v
 }
 
@@ -140,6 +157,11 @@ func (o *View) IsValid() *AppError {
 		}
 		if len(o.Props.LinkedProperties) == 0 {
 			return NewAppError("View.IsValid", "model.view.is_valid.props.linked_properties.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		for _, linkedProperty := range o.Props.LinkedProperties {
+			if !IsValidId(linkedProperty) {
+				return NewAppError("View.IsValid", "model.view.is_valid.props.linked_properties.invalid_id.app_error", nil, "id="+o.Id+" invalid_linked_property="+linkedProperty, http.StatusBadRequest)
+			}
 		}
 		for _, subview := range o.Props.Subviews {
 			if err := subview.IsValid(); err != nil {
@@ -193,6 +215,6 @@ func (o *View) Patch(patch *ViewPatch) {
 		o.SortOrder = *patch.SortOrder
 	}
 	if patch.Props != nil {
-		o.Props = patch.Props
+		o.Props = patch.Props.Clone()
 	}
 }

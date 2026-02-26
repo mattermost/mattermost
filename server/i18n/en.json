@@ -11701,6 +11701,10 @@
     "translation": "Board view must have at least one linked property."
   },
   {
+    "id": "model.view.is_valid.props.linked_properties.invalid_id.app_error",
+    "translation": "Board view contains an invalid linked property ID."
+  },
+  {
     "id": "model.view.is_valid.props.subviews.app_error",
     "translation": "Board view must have at least one subview."
   },

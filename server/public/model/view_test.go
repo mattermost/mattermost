@@ -252,6 +252,30 @@ func TestViewIsValidWithSubviews(t *testing.T) {
 			false,
 		},
 		{
+			"board rejects invalid linked property id",
+			func() *View {
+				v := validView()
+				v.Props = &ViewBoardProps{
+					LinkedProperties: []string{"invalid-id"},
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+				}
+				return v
+			}(),
+			false,
+		},
+		{
+			"board rejects empty linked property id",
+			func() *View {
+				v := validView()
+				v.Props = &ViewBoardProps{
+					LinkedProperties: []string{NewId(), ""},
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+				}
+				return v
+			}(),
+			false,
+		},
+		{
 			"view with invalid subview id",
 			func() *View {
 				v := validView()
@@ -355,6 +379,83 @@ func TestViewPreUpdate(t *testing.T) {
 	assert.Greater(t, v.UpdateAt, originalUpdateAt)
 }
 
+func TestViewBoardPropsClone(t *testing.T) {
+	t.Run("nil receiver returns nil", func(t *testing.T) {
+		var p *ViewBoardProps
+		assert.Nil(t, p.Clone())
+	})
+
+	t.Run("nil slices stay nil", func(t *testing.T) {
+		p := &ViewBoardProps{}
+		clone := p.Clone()
+		require.NotNil(t, clone)
+		assert.Nil(t, clone.LinkedProperties)
+		assert.Nil(t, clone.Subviews)
+	})
+
+	t.Run("populated slices are independent copies", func(t *testing.T) {
+		p := &ViewBoardProps{
+			LinkedProperties: []string{"a", "b"},
+			Subviews: []Subview{
+				{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban},
+			},
+		}
+		clone := p.Clone()
+		require.NotNil(t, clone)
+		assert.Equal(t, p.LinkedProperties, clone.LinkedProperties)
+		assert.Equal(t, p.Subviews, clone.Subviews)
+
+		clone.LinkedProperties[0] = "mutated"
+		assert.Equal(t, "a", p.LinkedProperties[0], "original LinkedProperties must not be affected")
+
+		clone.Subviews[0].Title = "mutated"
+		assert.Equal(t, "Kanban", p.Subviews[0].Title, "original Subviews must not be affected")
+	})
+
+	t.Run("appending to clone does not affect original", func(t *testing.T) {
+		p := &ViewBoardProps{
+			LinkedProperties: []string{"a"},
+			Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+		}
+		clone := p.Clone()
+		clone.LinkedProperties = append(clone.LinkedProperties, "b")
+		clone.Subviews = append(clone.Subviews, Subview{Id: NewId(), Title: "Extra", Type: SubviewTypeKanban})
+		assert.Len(t, p.LinkedProperties, 1)
+		assert.Len(t, p.Subviews, 1)
+	})
+}
+
+func TestViewClone(t *testing.T) {
+	t.Run("nil props clones without panicking", func(t *testing.T) {
+		v := validView()
+		v.Props = nil
+		clone := v.Clone()
+		require.NotNil(t, clone)
+		assert.Nil(t, clone.Props)
+	})
+
+	t.Run("scalar fields are equal", func(t *testing.T) {
+		v := validView()
+		clone := v.Clone()
+		assert.Equal(t, v.Id, clone.Id)
+		assert.Equal(t, v.ChannelId, clone.ChannelId)
+		assert.Equal(t, v.Title, clone.Title)
+	})
+
+	t.Run("props are deeply copied", func(t *testing.T) {
+		v := validView()
+		clone := v.Clone()
+		require.NotNil(t, clone.Props)
+		assert.NotSame(t, v.Props, clone.Props)
+
+		clone.Props.LinkedProperties[0] = "mutated"
+		assert.NotEqual(t, "mutated", v.Props.LinkedProperties[0], "original LinkedProperties must not be affected")
+
+		clone.Props.Subviews[0].Title = "mutated"
+		assert.NotEqual(t, "mutated", v.Props.Subviews[0].Title, "original Subviews must not be affected")
+	})
+}
+
 func TestViewPatch(t *testing.T) {
 	testCases := []struct {
 		Description string
@@ -390,11 +491,23 @@ func TestViewPatch(t *testing.T) {
 			},
 		},
 		{
-			"patches props",
+			"patches props linked properties",
 			&ViewPatch{Props: &ViewBoardProps{LinkedProperties: []string{"prop1"}}},
 			func(t *testing.T, v *View) {
 				require.NotNil(t, v.Props)
 				assert.Equal(t, []string{"prop1"}, v.Props.LinkedProperties)
+			},
+		},
+		{
+			"patches props subview title",
+			&ViewPatch{Props: &ViewBoardProps{
+				LinkedProperties: []string{"prop1"},
+				Subviews:         []Subview{{Id: NewId(), Title: "Updated Kanban", Type: SubviewTypeKanban}},
+			}},
+			func(t *testing.T, v *View) {
+				require.NotNil(t, v.Props)
+				require.Len(t, v.Props.Subviews, 1)
+				assert.Equal(t, "Updated Kanban", v.Props.Subviews[0].Title)
 			},
 		},
 		{
@@ -417,4 +530,22 @@ func TestViewPatch(t *testing.T) {
 			tc.Check(t, v)
 		})
 	}
+
+	t.Run("patched props are independent from patch source", func(t *testing.T) {
+		patchProps := &ViewBoardProps{
+			LinkedProperties: []string{"prop1"},
+			Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+		}
+		v := validView()
+		v.Patch(&ViewPatch{Props: patchProps})
+		require.NotNil(t, v.Props)
+		assert.NotSame(t, patchProps, v.Props)
+		assert.EqualValues(t, patchProps, v.Props)
+
+		patchProps.LinkedProperties[0] = "mutated"
+		assert.Equal(t, "prop1", v.Props.LinkedProperties[0], "view Props must not be affected by patch mutation")
+
+		patchProps.Subviews[0].Title = "mutated"
+		assert.Equal(t, "Kanban", v.Props.Subviews[0].Title, "view Props Subviews must not be affected by patch mutation")
+	})
 }
