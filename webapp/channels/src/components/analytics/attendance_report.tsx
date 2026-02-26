@@ -41,6 +41,7 @@ type AttendanceEntry = {
     check_in: number;
     checkin_image_id?: string;
     check_out?: number;
+    checkout_image_id?: string;
     status: string;
     total_breaks: number;
     break_rest: number;
@@ -397,6 +398,7 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({user, filterMode, sele
                                 <span className='attendance-day-card__label'><FormattedMessage {...messages.checkOut} /></span>
                                 <span className='attendance-day-card__value'>{singleEntry.check_out ? fmtTime(singleEntry.check_out) : '—'}</span>
                             </div>
+                            {singleEntry.checkout_image_id && <CheckInImage fileId={singleEntry.checkout_image_id}/>}
                             <div className='attendance-day-card__row'>
                                 <span className='attendance-day-card__label'><FormattedMessage {...messages.status} /></span>
                                 <span className='attendance-day-card__value'>{statusBadge(singleEntry.status)}</span>
@@ -438,6 +440,12 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({user, filterMode, sele
                                         <span className='attendance-day-card__label'><FormattedMessage {...messages.checkOut} /></span>
                                         <span className='attendance-day-card__value'>{entry.check_out ? fmtTime(entry.check_out) : '—'}</span>
                                     </div>
+                                    {entry.checkout_image_id && (
+                                        <CheckInImage
+                                            fileId={entry.checkout_image_id}
+                                            size={80}
+                                        />
+                                    )}
                                     <div className='attendance-day-card__row'>
                                         <span className='attendance-day-card__label'><FormattedMessage {...messages.status} /></span>
                                         <span className='attendance-day-card__value'>{statusBadge(entry.status)}</span>

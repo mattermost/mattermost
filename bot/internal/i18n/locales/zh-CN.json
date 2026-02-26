@@ -20,6 +20,8 @@
   "attendance.break_reason.hut_thuoc": "吸烟",
   "attendance.dialog.checkin_title": "签到",
   "attendance.dialog.checkin_submit": "签到",
+  "attendance.dialog.checkout_title": "签退",
+  "attendance.dialog.checkout_submit": "签退",
   "attendance.field.photo": "照片",
   "attendance.helptext.photo": "附上签到照片（可选）",
   "attendance.dialog.leave_title": "请假申请",

@@ -350,7 +350,7 @@ func (h *AttendanceHandler) HandleBreakEnd(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, ActionResponse{EphemeralText: msg})
 }
 
-// HandleCheckOut handles the check-out button.
+// HandleCheckOut opens the check-out dialog with optional photo upload.
 func (h *AttendanceHandler) HandleCheckOut(w http.ResponseWriter, r *http.Request) {
 	var req ActionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -365,12 +365,69 @@ func (h *AttendanceHandler) HandleCheckOut(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	msg, err := h.svc.CheckOut(ctx, req.UserID, req.UserName)
+	err := h.mm.OpenDialog(&mattermost.DialogRequest{
+		TriggerID: req.TriggerID,
+		URL:       h.botURL + "/api/attendance/checkout-submit",
+		Dialog: mattermost.Dialog{
+			Title:       i18n.T(ctx, "attendance.dialog.checkout_title"),
+			SubmitLabel: i18n.T(ctx, "attendance.dialog.checkout_submit"),
+			Elements: []mattermost.DialogElement{
+				{
+					DisplayName: i18n.T(ctx, "attendance.field.photo"),
+					Name:        "photo",
+					Type:        "file",
+					Optional:    true,
+					HelpText:    i18n.T(ctx, "attendance.helptext.photo"),
+					Accept:      "image/*",
+				},
+			},
+		},
+	})
 	if err != nil {
-		writeJSON(w, ActionResponse{EphemeralText: err.Error()})
+		log.Printf("ERROR open check-out dialog: %v", err)
+		writeJSON(w, ActionResponse{EphemeralText: i18n.T(ctx, "attendance.err.open_form")})
 		return
 	}
-	writeJSON(w, ActionResponse{EphemeralText: msg})
+	writeJSON(w, ActionResponse{})
+}
+
+// HandleCheckOutSubmit processes the check-out dialog submission.
+func (h *AttendanceHandler) HandleCheckOutSubmit(w http.ResponseWriter, r *http.Request) {
+	var sub DialogSubmission
+	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if sub.Cancelled {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	username := sub.UserName
+	ctx := h.localeCtx(r.Context(), sub.UserID)
+
+	if h.isMobileRequest(r) {
+		h.denyMobileDialog(ctx, w)
+		return
+	}
+
+	if username == "" {
+		user, err := h.mm.GetUser(sub.UserID)
+		if err == nil {
+			username = user.Username
+		}
+	}
+
+	fileID := sub.Submission["photo"]
+
+	_, err := h.svc.CheckOut(ctx, sub.UserID, username, fileID)
+	if err != nil {
+		log.Printf("ERROR check-out: %v", err)
+		writeJSON(w, map[string]string{"error": err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // HandleLeaveForm opens the leave request dialog.
@@ -789,6 +846,7 @@ func (h *AttendanceHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/attendance/break-start", h.HandleBreakStart)
 	mux.HandleFunc("POST /api/attendance/break-end", h.HandleBreakEnd)
 	mux.HandleFunc("POST /api/attendance/checkout", h.HandleCheckOut)
+	mux.HandleFunc("POST /api/attendance/checkout-submit", h.HandleCheckOutSubmit)
 	mux.HandleFunc("POST /api/attendance/leave-form", h.HandleLeaveForm)
 	mux.HandleFunc("POST /api/attendance/leave", h.HandleLeaveSubmit)
 	mux.HandleFunc("POST /api/attendance/late-form", h.HandleLateArrivalForm)

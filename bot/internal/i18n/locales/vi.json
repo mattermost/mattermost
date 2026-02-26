@@ -20,6 +20,8 @@
   "attendance.break_reason.hut_thuoc": "Hút thuốc",
   "attendance.dialog.checkin_title": "Đi làm",
   "attendance.dialog.checkin_submit": "Đi làm",
+  "attendance.dialog.checkout_title": "Tan làm",
+  "attendance.dialog.checkout_submit": "Tan làm",
   "attendance.field.photo": "Ảnh",
   "attendance.helptext.photo": "Đính kèm ảnh vào ca (tùy chọn)",
   "attendance.dialog.leave_title": "Yêu cầu nghỉ phép",

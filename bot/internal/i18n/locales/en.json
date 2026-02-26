@@ -20,6 +20,8 @@
   "attendance.break_reason.hut_thuoc": "Smoke",
   "attendance.dialog.checkin_title": "Check In",
   "attendance.dialog.checkin_submit": "Check In",
+  "attendance.dialog.checkout_title": "Check Out",
+  "attendance.dialog.checkout_submit": "Check Out",
   "attendance.field.photo": "Photo",
   "attendance.helptext.photo": "Attach a photo to your check-in (optional)",
   "attendance.dialog.leave_title": "Leave Request",

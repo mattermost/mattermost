@@ -183,7 +183,7 @@ func (s *AttendanceService) BreakEnd(ctx context.Context, userID, username strin
 	return fmt.Sprintf("%s ended break at %s", username, now.Format(time.TimeOnly)), nil
 }
 
-func (s *AttendanceService) CheckOut(ctx context.Context, userID, username string) (string, error) {
+func (s *AttendanceService) CheckOut(ctx context.Context, userID, username, fileID string) (string, error) {
 	now := time.Now()
 	date := now.Format(time.DateOnly)
 
@@ -205,6 +205,9 @@ func (s *AttendanceService) CheckOut(ctx context.Context, userID, username strin
 
 	record.CheckOut = &now
 	record.Status = model.AttendanceStatusCompleted
+	if fileID != "" {
+		record.CheckOutImageID = fileID
+	}
 	if err := s.store.UpdateRecord(ctx, record); err != nil {
 		return "", err
 	}
@@ -254,12 +257,13 @@ func (s *AttendanceService) CheckOut(ctx context.Context, userID, username strin
 		Props: mattermost.Props{
 			MessageKey: "attendance.msg.checked_out",
 			MessageData: map[string]any{
-				"Username":       username,
-				"TotalTime":      int(totalTime.Round(time.Second).Seconds()),
-				"ActualWorkTime": int(actualWork.Round(time.Second).Seconds()),
-				"TotalBreakTime": int(totalBreak.Round(time.Second).Seconds()),
-				"BreakCount":     len(record.Breaks),
-				"Breaks":         breaksData,
+				"Username":        username,
+				"TotalTime":       int(totalTime.Round(time.Second).Seconds()),
+				"ActualWorkTime":  int(actualWork.Round(time.Second).Seconds()),
+				"TotalBreakTime":  int(totalBreak.Round(time.Second).Seconds()),
+				"BreakCount":      len(record.Breaks),
+				"Breaks":          breaksData,
+				"FileID":          fileID,
 			},
 		},
 	})
@@ -546,6 +550,7 @@ type AttendanceEntry struct {
 	CheckIn          int64      `json:"check_in,omitempty"`
 	CheckInImageID   string     `json:"checkin_image_id,omitempty"`
 	CheckOut         int64      `json:"check_out,omitempty"`
+	CheckOutImageID  string     `json:"checkout_image_id,omitempty"`
 	Status           string     `json:"status"`
 	TotalBreaks    int        `json:"total_breaks"`
 	BreakRest      int        `json:"break_rest"`
@@ -609,6 +614,7 @@ func (s *AttendanceService) GetReport(ctx context.Context, from, to, userID, tea
 		}
 		if rec.CheckOut != nil {
 			entry.CheckOut = rec.CheckOut.Unix()
+			entry.CheckOutImageID = rec.CheckOutImageID
 		}
 
 		for _, b := range rec.Breaks {

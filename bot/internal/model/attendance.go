@@ -35,9 +35,10 @@ type AttendanceRecord struct {
 	PostID         string           `bson:"post_id" json:"post_id"` // checkin post ID for threading
 	Date           string           `bson:"date" json:"date"`       // YYYY-MM-DD
 	CheckIn        *time.Time       `bson:"check_in,omitempty" json:"check_in"`
-	CheckInImageID string           `bson:"checkin_image_id,omitempty" json:"checkin_image_id,omitempty"`
-	Breaks         []BreakRecord    `bson:"breaks" json:"breaks"`
-	CheckOut       *time.Time       `bson:"check_out,omitempty" json:"check_out"`
+	CheckInImageID  string           `bson:"checkin_image_id,omitempty" json:"checkin_image_id,omitempty"`
+	Breaks          []BreakRecord    `bson:"breaks" json:"breaks"`
+	CheckOut        *time.Time       `bson:"check_out,omitempty" json:"check_out"`
+	CheckOutImageID string           `bson:"checkout_image_id,omitempty" json:"checkout_image_id,omitempty"`
 	Status         AttendanceStatus `bson:"status" json:"status"`
 	CreatedAt      time.Time        `bson:"created_at" json:"created_at"`
 	UpdatedAt      time.Time        `bson:"updated_at" json:"updated_at"`
