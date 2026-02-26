@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -67,9 +68,10 @@ func TestAppGetView(t *testing.T) {
 		assert.Equal(t, saved.Id, got.Id)
 	})
 
-	t.Run("returns error for non-existent view", func(t *testing.T) {
+	t.Run("returns 404 for non-existent view", func(t *testing.T) {
 		_, appErr := th.App.GetView(th.Context, model.NewId())
 		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }
 

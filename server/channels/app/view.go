@@ -7,9 +7,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"errors"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *model.AppError) {
@@ -26,7 +29,13 @@ func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *mode
 func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppError) {
 	view, err := a.Srv().Store().View().Get(viewID)
 	if err != nil {
-		return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return view, nil
