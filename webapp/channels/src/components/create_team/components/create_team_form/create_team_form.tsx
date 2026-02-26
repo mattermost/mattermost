@@ -110,13 +110,13 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         newState.wizard = 'team_url';
         newState.team!.display_name = displayName;
         newState.team!.name = cleanUpUrlable(displayName);
-        setTeamURL(newState.team!.name.trim());
+        setTeamURL(newState.team!.name);
 
         updateParent(newState);
     }, [isValidTeamName, config.UseSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setTeamDisplayName(e.target.value.trim());
+        setTeamDisplayName(e.target.value);
     }, []);
 
     const submitBack = useCallback((e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -225,7 +225,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     const submitTeamUrl = useCallback(async (e: React.MouseEvent<Button, MouseEvent>) => {
         e.preventDefault();
 
-        const teamNameValid = await teamNameValidations(teamURL);
+        const teamNameValid = await teamNameValidations(teamURL.trim());
         if (!teamNameValid) {
             stopLoading();
             return;
@@ -240,7 +240,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     }, []);
 
     const handleTeamURLInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setTeamURL(e.target.value.trim());
+        setTeamURL(e.target.value);
     }, []);
 
     const buttonText = useMemo(() => {
