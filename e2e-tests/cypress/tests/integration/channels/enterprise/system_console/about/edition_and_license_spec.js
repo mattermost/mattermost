@@ -7,12 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @not_cloud @system_console @license_removal
 
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
-
 import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
 
 describe('System console', () => {

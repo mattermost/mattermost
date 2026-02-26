@@ -21,6 +21,10 @@ export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
 
+export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
+    return merge<AdminConfig>(getOnPremServerConfig(), overrides);
+}
+
 type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
@@ -82,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.11 server
+// Based on v11.4 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -106,6 +110,8 @@ const defaultServerConfig: AdminConfig = {
         MaximumLoginAttempts: 10,
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
+        EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -170,7 +176,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        StrictCSRFEnforcement: true,
+        ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
@@ -183,10 +189,15 @@ const defaultServerConfig: AdminConfig = {
         PersistentNotificationIntervalMinutes: 5,
         PersistentNotificationMaxCount: 6,
         PersistentNotificationMaxRecipients: 5,
+        EnableBurnOnRead: true,
+        BurnOnReadDurationSeconds: 600,
+        BurnOnReadMaximumTimeToLiveSeconds: 604800,
+        BurnOnReadSchedulerFrequencySeconds: 600,
         EnableAPIChannelDeletion: false,
         EnableLocalMode: false,
         LocalModeSocketLocation: '/var/tmp/mattermost_local.socket',
         EnableAWSMetering: false,
+        AWSMeteringTimeoutSeconds: 30,
         SplitKey: '',
         FeatureFlagSyncIntervalSeconds: 30,
         DebugSplit: false,
@@ -240,10 +251,10 @@ const defaultServerConfig: AdminConfig = {
             'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
-        MaxIdleConns: 20,
+        MaxIdleConns: 50,
         ConnMaxLifetimeMilliseconds: 3600000,
         ConnMaxIdleTimeMilliseconds: 300000,
-        MaxOpenConns: 300,
+        MaxOpenConns: 100,
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
@@ -263,7 +274,6 @@ const defaultServerConfig: AdminConfig = {
         FileLocation: '',
         EnableWebhookDebugging: true,
         EnableDiagnostics: true,
-        VerboseDiagnostics: false,
         EnableSentry: true,
         AdvancedLoggingJSON: {},
         MaxFieldSize: 2048,
@@ -353,7 +363,7 @@ const defaultServerConfig: AdminConfig = {
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
         PushNotificationServerType: 'custom',
-        PushNotificationServerLocation: 'us',
+        PushNotificationServerLocation: 'global',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -557,6 +567,13 @@ const defaultServerConfig: AdminConfig = {
         MobileJailbreakProtection: false,
         MobileEnableSecureFilePreview: false,
         MobileAllowPdfLinkNavigation: false,
+        EnableIntuneMAM: false,
+    },
+    IntuneSettings: {
+        Enable: false,
+        TenantId: '',
+        ClientId: '',
+        AuthService: '',
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -588,6 +605,7 @@ const defaultServerConfig: AdminConfig = {
         ClientSideUserIds: [],
     },
     ExperimentalSettings: {
+        ClientSideCertEnable: false,
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
         EnableSharedChannels: false,
@@ -610,6 +628,7 @@ const defaultServerConfig: AdminConfig = {
         Password: 'changeme',
         EnableIndexing: false,
         EnableSearching: false,
+        EnableCJKAnalyzers: false,
         EnableAutocomplete: false,
         Sniff: true,
         PostIndexReplicas: 1,
@@ -712,6 +731,7 @@ const defaultServerConfig: AdminConfig = {
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
+        EnableGuestMagicLink: false,
     },
     ImageProxySettings: {
         Enable: false,
@@ -753,7 +773,14 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        ContentFlagging: false,
+        ContentFlagging: true,
+        InteractiveDialogAppsForm: true,
+        EnableMattermostEntry: true,
+        MobileSSOCodeExchange: true,
+        AutoTranslation: false,
+        BurnOnRead: true,
+        EnableAIPluginBridge: false,
+        EnableAIRecaps: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -783,18 +810,10 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: false,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
-        ReviewerSettings: {
-            CommonReviewers: true,
-            CommonReviewerIds: [],
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
-            TeamAdminsAsReviewers: true,
-        },
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -815,5 +834,27 @@ const defaultServerConfig: AdminConfig = {
             ReviewerCommentRequired: true,
             HideFlaggedContent: true,
         },
+        ReviewerSettings: {
+            CommonReviewers: true,
+            CommonReviewerIds: [],
+            TeamReviewersSetting: {},
+            SystemAdminsAsReviewers: false,
+            TeamAdminsAsReviewers: true,
+        },
+    },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        Agents: {
+            LLMServiceID: '',
+        },
+        RestrictDMAndGM: false,
     },
 };

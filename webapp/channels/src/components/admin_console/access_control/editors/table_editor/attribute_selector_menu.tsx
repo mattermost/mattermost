@@ -136,7 +136,9 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
-                const allowed = isSynced || enableUserManagedAttributes;
+                const isAdminManaged = option.attrs?.managed === 'admin';
+                const isProtected = option.attrs?.protected;
+                const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
 
                 const menuItem = (
                     <Menu.Item

@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
@@ -22,7 +23,7 @@ describe('Channel Bookmarks', () => {
 
     let testTeam: Team;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     let user1: UserProfile;
     let admin: UserProfile;
     let publicChannel: Channel;

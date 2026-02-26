@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,17 +12,18 @@ import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import Avatar from 'components/widgets/users/avatar';
 
-import {Constants} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
+import {getPostTranslation} from 'utils/post_utils';
+
+import PreviewPostAvatar from './avatar/avatar';
 
 import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
 
@@ -39,65 +40,25 @@ export type Props = OwnProps & {
     compactDisplay: boolean;
     isPostPriorityEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+    disableActions?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
+    isChannelAutotranslated: boolean;
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled} = props;
-
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, isChannelAutotranslated} = props;
+    const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
             props.actions.toggleEmbedVisibility(previewPost.id);
         }
     };
 
-    const getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
-        const {enablePostIconOverride, hasImageProxy, previewPost} = props;
-        const postProps = previewPost?.props;
-        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
-        const useUserIcon = ensureString(postProps?.use_user_icon);
-
-        if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
-            if (postIconOverrideURL && postIconOverrideURL !== '') {
-                return PostUtils.getImageSrc(postIconOverrideURL, hasImageProxy);
-            }
-            return Constants.DEFAULT_WEBHOOK_LOGO;
-        }
-
-        return defaultURL;
-    };
-
     if (!previewPost) {
         return null;
-    }
-
-    const isBot = Boolean(user && user.is_bot);
-    const isSystemMessage = PostUtils.isSystemMessage(previewPost);
-    const fromWebhook = PostUtils.isFromWebhook(previewPost);
-    const fromAutoResponder = PostUtils.fromAutoResponder(previewPost);
-    const profileSrc = Utils.imageURLForUser(user?.id ?? '');
-    const src = getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
-
-    let avatar = (
-        <Avatar
-            size={'sm'}
-            url={src}
-            className={'avatar-post-preview'}
-        />
-    );
-    if (isSystemMessage && !fromWebhook && !isBot) {
-        avatar = (<MattermostLogo className='icon'/>);
-    } else if (user?.id) {
-        avatar = (
-            <Avatar
-                username={user.username}
-                size={'sm'}
-                url={src}
-                className={'avatar-post-preview'}
-            />
-        );
     }
 
     let fileAttachmentPreview = null;
@@ -109,6 +70,9 @@ const PostMessagePreview = (props: Props) => {
                 compactDisplay={compactDisplay}
                 isInPermalink={true}
                 handleFileDropdownOpened={handleFileDropdownOpened}
+                usePostAsSource={props.usePostAsSource}
+                overrideGenerateFileDownloadUrl={overrideGenerateFileDownloadUrl}
+                disableActions={disableActions}
             />
         );
     }
@@ -155,6 +119,8 @@ const PostMessagePreview = (props: Props) => {
 
     const overwriteName = ensureString(previewPost.props?.override_username);
 
+    const translation = getPostTranslation(previewPost, locale);
+
     return (
         <PostAttachmentContainer
             className='permalink'
@@ -166,7 +132,15 @@ const PostMessagePreview = (props: Props) => {
                     <div className='col col__name'>
                         <div className='post__img'>
                             <span className='profile-icon'>
-                                {avatar}
+                                {
+                                    user &&
+                                    <PreviewPostAvatar
+                                        post={previewPost}
+                                        user={user}
+                                        enablePostIconOverride={props.enablePostIconOverride}
+                                        hasImageProxy={props.hasImageProxy}
+                                    />
+                                }
                             </span>
                         </div>
                     </div>
@@ -195,12 +169,28 @@ const PostMessagePreview = (props: Props) => {
                                 <PriorityLabel priority={previewPost.metadata.priority.priority}/>
                             </span>
                         )}
+                        {PostUtils.hasAiGeneratedMetadata(previewPost) && (
+                            <AiGeneratedIndicator
+                                userId={previewPost.props.ai_generated_by as string}
+                                username={previewPost.props.ai_generated_by_username as string}
+                                postAuthorId={previewPost.user_id}
+                            />
+                        )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={previewPost.id}
+                                translationState={translation?.state}
+                                postType={previewPost.type}
+                            />
+                        )}
                     </div>
                 </div>
                 <PostMessageView
                     post={previewPost}
                     overflowType='ellipsis'
                     maxHeight={105}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}

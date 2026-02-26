@@ -29,7 +29,7 @@ type SharedChannelServiceIFace interface {
 	CheckCanInviteToSharedChannel(channelId string) error
 	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
 	IsRemoteClusterDirectlyConnected(remoteId string) bool
-	TransformMentionsOnReceiveForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
+	TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {

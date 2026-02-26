@@ -55,9 +55,9 @@ func (_m *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJ
 	return r0
 }
 
-// ScheduleJob provides a mock function with given fields: c, cfg, pendingJobs, lastSuccessfulJob
-func (_m *Scheduler) ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	ret := _m.Called(c, cfg, pendingJobs, lastSuccessfulJob)
+// ScheduleJob provides a mock function with given fields: rctx, cfg, pendingJobs, lastSuccessfulJob
+func (_m *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+	ret := _m.Called(rctx, cfg, pendingJobs, lastSuccessfulJob)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ScheduleJob")
@@ -66,10 +66,10 @@ func (_m *Scheduler) ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs b
 	var r0 *model.Job
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, bool, *model.Job) (*model.Job, *model.AppError)); ok {
-		return rf(c, cfg, pendingJobs, lastSuccessfulJob)
+		return rf(rctx, cfg, pendingJobs, lastSuccessfulJob)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, bool, *model.Job) *model.Job); ok {
-		r0 = rf(c, cfg, pendingJobs, lastSuccessfulJob)
+		r0 = rf(rctx, cfg, pendingJobs, lastSuccessfulJob)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
@@ -77,7 +77,7 @@ func (_m *Scheduler) ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs b
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Config, bool, *model.Job) *model.AppError); ok {
-		r1 = rf(c, cfg, pendingJobs, lastSuccessfulJob)
+		r1 = rf(rctx, cfg, pendingJobs, lastSuccessfulJob)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

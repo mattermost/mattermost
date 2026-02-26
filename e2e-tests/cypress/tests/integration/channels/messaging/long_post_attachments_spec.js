@@ -64,9 +64,9 @@ describe('Messaging', () => {
         // * Verify the header with the count of the file exists
         cy.uiGetHeaderFilePreviewModal().contains('1 of 4');
 
-        for (var index = 2; index <= 4; index++) {
-            // # click on right arrow to preview next attached image
-            cy.get('#previewArrowRight').should('be.visible').click();
+            for (let index = 2; index <= 4; index++) {
+                // # click on right arrow to preview next attached image
+                cy.get('#previewArrowRight').should('be.visible').click();
 
             // * Verify the header counter
             cy.uiGetHeaderFilePreviewModal().contains(`${index} of 4`);

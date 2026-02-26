@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,15 +57,15 @@ func TestAccessPolicyVersionV0_1(t *testing.T) {
 	})
 
 	t.Run("parent policy with too long name", func(t *testing.T) {
-		longName := ""
+		var longName strings.Builder
 		for i := 0; i <= MaxPolicyNameLength; i++ {
-			longName += "a"
+			longName.WriteString("a")
 		}
 
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypeParent,
-			Name:     longName,
+			Name:     longName.String(),
 			Revision: 1,
 			Version:  AccessControlPolicyVersionV0_1,
 			Rules:    []AccessControlPolicyRule{{Actions: []string{"read"}, Expression: "user.role == 'admin'"}},

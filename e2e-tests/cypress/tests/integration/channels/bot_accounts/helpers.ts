@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Team} from '@mattermost/types/teams';
+
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 

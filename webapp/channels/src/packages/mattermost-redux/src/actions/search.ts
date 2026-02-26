@@ -73,6 +73,18 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             type: SearchTypes.SEARCH_POSTS_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'posts',
+                },
+            });
+        }
+
         let posts;
 
         try {
@@ -107,6 +119,18 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
                 type: SearchTypes.SEARCH_POSTS_SUCCESS,
             },
         ], 'SEARCH_POST_BATCH'));
+
+        // Dispatch truncation info separately to avoid typing conflicts
+        const firstInaccessiblePostTime = posts.first_inaccessible_post_time || 0;
+        if (firstInaccessiblePostTime > 0) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime,
+                    searchType: 'posts',
+                },
+            });
+        }
 
         return {data: posts};
     };
@@ -144,6 +168,17 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
             type: SearchTypes.SEARCH_FILES_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'files',
+                },
+            });
+        }
 
         let files: FileSearchResults;
         try {

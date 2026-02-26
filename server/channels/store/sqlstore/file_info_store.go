@@ -417,7 +417,6 @@ func (fs SqlFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, channe
 
 	count, err := sqlResult.RowsAffected()
 	if err != nil {
-		// RowsAffected should never fail with the MySQL or Postgres drivers
 		return errors.Wrap(err, "unable to retrieve rows affected")
 	} else if count == 0 {
 		// Could not attach the file to the post
@@ -494,12 +493,7 @@ func (fs SqlFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) erro
 }
 
 func (fs SqlFileInfoStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
-	var query string
-	if fs.DriverName() == "postgres" {
-		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?))"
-	} else {
-		query = "DELETE from FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?"
-	}
+	query := "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?))"
 
 	sqlResult, err := fs.GetMaster().Exec(query, endTime, model.BookmarkFileOwner, limit)
 	if err != nil {
@@ -548,6 +542,7 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
 			sq.NotEq{"FileInfo.PostId": ""},
 		}).
+		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM TemporaryPosts WHERE TemporaryPosts.PostId = FileInfo.PostId)")).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
@@ -624,14 +619,14 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
-		for _, c := range fs.specialSearchChars() {
+		for _, c := range specialSearchChars {
 			terms = strings.Replace(terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
-		} else if fs.DriverName() == model.DatabaseDriverPostgres {
+		} else {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -682,17 +677,9 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 }
 
 func (fs SqlFileInfoStore) CountAll() (int64, error) {
-	var query sq.SelectBuilder
-	if fs.DriverName() == model.DatabaseDriverPostgres {
-		query = fs.getQueryBuilder().
-			Select("num").
-			From("file_stats")
-	} else {
-		query = fs.getQueryBuilder().
-			Select("COUNT(*)").
-			From("FileInfo").
-			Where("DeleteAt = 0")
-	}
+	query := fs.getQueryBuilder().
+		Select("num").
+		From("file_stats")
 
 	var count int64
 	err := fs.GetReplica().GetBuilder(&count, query)
@@ -732,7 +719,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 
 func (fs SqlFileInfoStore) GetStorageUsage(_, includeDeleted bool) (int64, error) {
 	var query sq.SelectBuilder
-	if fs.DriverName() == model.DatabaseDriverPostgres && !includeDeleted {
+	if !includeDeleted {
 		query = fs.getQueryBuilder().
 			Select("usage").
 			From("file_stats")
@@ -740,10 +727,6 @@ func (fs SqlFileInfoStore) GetStorageUsage(_, includeDeleted bool) (int64, error
 		query = fs.getQueryBuilder().
 			Select("COALESCE(SUM(Size), 0)").
 			From("FileInfo")
-
-		if !includeDeleted {
-			query = query.Where("DeleteAt = 0")
-		}
 	}
 
 	var size int64
@@ -811,15 +794,13 @@ func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, 
 }
 
 func (fs SqlFileInfoStore) RefreshFileStats() error {
-	if fs.DriverName() == model.DatabaseDriverPostgres {
-		// CONCURRENTLY is not used deliberately because as per Postgres docs,
-		// not using CONCURRENTLY takes less resources and completes faster
-		// at the expense of locking the mat view. Since viewing admin console
-		// is not a very frequent activity, we accept the tradeoff to let the
-		// refresh happen as fast as possible.
-		if _, err := fs.GetMaster().Exec("REFRESH MATERIALIZED VIEW file_stats"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view file_stats")
-		}
+	// CONCURRENTLY is not used deliberately because as per Postgres docs,
+	// not using CONCURRENTLY takes less resources and completes faster
+	// at the expense of locking the mat view. Since viewing admin console
+	// is not a very frequent activity, we accept the tradeoff to let the
+	// refresh happen as fast as possible.
+	if _, err := fs.GetMaster().Exec("REFRESH MATERIALIZED VIEW file_stats"); err != nil {
+		return errors.Wrap(err, "error refreshing materialized view file_stats")
 	}
 
 	return nil

@@ -4,24 +4,31 @@
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
 import React, {useMemo} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
 import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
+import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
+
+import {getPluginDisplayName} from 'selectors/plugins';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
+import type {GlobalState} from 'types/store';
+
 import {DangerText} from './controls';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
 
 type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
+    autoFocus?: boolean;
 }
 
 type Option = {label: string; id: string; value: string};
@@ -30,8 +37,11 @@ type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;
 const UserPropertyValues = ({
     field,
     updateField,
+    autoFocus,
 }: Props) => {
     const {formatMessage} = useIntl();
+    const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, field.attrs?.source_plugin_id));
+    const isOrphaned = useIsFieldOrphaned(field);
 
     const [query, setQuery] = React.useState('');
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
@@ -140,13 +150,39 @@ const UserPropertyValues = ({
         );
     }
 
-    if (field.type !== 'multiselect' && field.type !== 'select') {
+    if (field.attrs?.protected) {
+        return (
+            <>
+                <span className='user-property-field-values'>
+                    <PowerPlugOutlineIcon size={18}/>
+                    {isOrphaned ? (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.plugin_removed'
+                            defaultMessage='Plugin removed: {pluginId}'
+                            values={{pluginId: pluginDisplayName}}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.managed_by_plugin'
+                            defaultMessage='Managed by plugin: {pluginId}'
+                            values={{pluginId: pluginDisplayName}}
+                        />
+                    )}
+                </span>
+            </>
+        );
+    }
+
+    if (!supportsOptions(field)) {
         return (
             <span className='user-property-field-values'>
                 {'-'}
             </span>
         );
     }
+
+    const isProtected = Boolean(field.attrs?.protected);
+    const isDisabled = field.delete_at !== 0 || isProtected;
 
     return (
         <>
@@ -156,7 +192,7 @@ const UserPropertyValues = ({
                 isClearable={true}
                 isMulti={true}
                 menuIsOpen={false}
-                isDisabled={field.delete_at !== 0}
+                isDisabled={isDisabled}
                 onChange={(newValues) => {
                     setFieldOptions(newValues.map(({id, value}) => ({id, name: value})));
                 }}
@@ -167,6 +203,7 @@ const UserPropertyValues = ({
                 value={field.attrs.options?.map((option) => ({label: option.name, value: option.name, id: option.id}))}
                 menuPortalTarget={document.body}
                 styles={styles}
+                autoFocus={autoFocus}
             />
             {!isQueryValid && (
                 <FormattedMessage

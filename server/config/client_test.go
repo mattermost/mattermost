@@ -338,6 +338,237 @@ func TestGetClientConfig(t *testing.T) {
 				"AllowDownloadLogs":  "true",
 			},
 		},
+		{
+			"access control settings enabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(true),
+					EnableUserManagedAttributes:       model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "true",
+				"EnableUserManagedAttributes":       "true",
+			},
+		},
+		{
+			"access control settings disabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(false),
+					EnableUserManagedAttributes:       model.NewPointer(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
+		{
+			"access control settings default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
+		{
+			"burn on read enabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableBurnOnRead:          model.NewPointer(true),
+					BurnOnReadDurationSeconds: model.NewPointer(1800), // 30 minutes in seconds
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "true",
+				"BurnOnReadDurationSeconds": "1800",
+			},
+		},
+		{
+			"burn on read disabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableBurnOnRead:          model.NewPointer(false),
+					BurnOnReadDurationSeconds: model.NewPointer(600), // 10 minutes in seconds
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "false",
+				"BurnOnReadDurationSeconds": "600",
+			},
+		},
+		{
+			"burn on read default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "true",
+				"BurnOnReadDurationSeconds": "600", // 10 minutes in seconds
+			},
+		},
+		{
+			"Intune MAM enabled with Enterprise Advanced license and Office365 AuthService",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "true",
+				"IntuneScope":      "api://87654321-4321-4321-4321-210987654321/login.mattermost",
+			},
+		},
+		{
+			"Intune MAM disabled when not enabled",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(false),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM disabled when TenantId is missing",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer(""),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM disabled when ClientId is missing",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer(""),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM not exposed with lower license tier",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{},
+		},
+		{
+			"Intune MAM not exposed without license",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			nil,
+			map[string]string{},
+		},
+		{
+			"Intune MAM enabled with Enterprise Advanced license and SAML AuthService",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(model.UserAuthServiceSaml),
+				},
+				SamlSettings: model.SamlSettings{
+					Enable: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled":  "true",
+				"IntuneScope":       "api://87654321-4321-4321-4321-210987654321/login.mattermost",
+				"IntuneAuthService": "saml",
+			},
+		},
+		{
+			"Intune MAM disabled when AuthService is missing",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:      model.NewPointer(true),
+					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					AuthService: model.NewPointer(""),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

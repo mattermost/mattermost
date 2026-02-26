@@ -275,6 +275,26 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Update public channel names, headers and purposes.',
         },
     }),
+    manage_public_channel_auto_translation: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_public_channel_auto_translation.name',
+            defaultMessage: 'Manage Channel Auto Translation',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_public_channel_auto_translation.description',
+            defaultMessage: 'Enable or disable auto translations for public channels.',
+        },
+    }),
+    manage_private_channel_auto_translation: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_private_channel_auto_translation.name',
+            defaultMessage: 'Manage Channel Auto Translation',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_private_channel_auto_translation.description',
+            defaultMessage: 'Enable or disable auto translations for private channels.',
+        },
+    }),
     manage_roles: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_roles.name',
@@ -288,11 +308,31 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_slash_commands: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_slash_commands.name',
-            defaultMessage: 'Manage Slash Commands',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_slash_commands.description',
-            defaultMessage: 'Create, edit and delete custom slash commands.',
+            defaultMessage: 'Create, edit and delete slash commands owned by other users.',
+        },
+    }),
+    manage_own_slash_commands: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_slash_commands.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_slash_commands.description',
+            defaultMessage: 'Create, edit and delete your own slash commands.',
+        },
+    }),
+    manage_others_slash_commands: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_slash_commands.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_slash_commands.description',
+            defaultMessage: 'Create, edit and delete slash commands owned by other users.',
         },
     }),
     manage_system: defineMessages({
@@ -328,21 +368,71 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_incoming_webhooks: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_incoming_webhooks.name',
-            defaultMessage: 'Manage Incoming Webhooks',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_incoming_webhooks.description',
-            defaultMessage: 'Create, edit, and delete incoming webhooks.',
+            defaultMessage: 'Create, edit, and delete incoming webhooks owned by other users.',
+        },
+    }),
+    manage_own_incoming_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_incoming_webhooks.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_incoming_webhooks.description',
+            defaultMessage: 'Create, edit, and delete your own incoming webhooks.',
+        },
+    }),
+    manage_others_incoming_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_incoming_webhooks.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_incoming_webhooks.description',
+            defaultMessage: 'Create, edit, and delete incoming webhooks owned by other users.',
+        },
+    }),
+    bypass_incoming_webhook_channel_lock: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.bypass_incoming_webhook_channel_lock.name',
+            defaultMessage: 'Bypass Channel Lock',
+        },
+        description: {
+            id: 'admin.permissions.permission.bypass_incoming_webhook_channel_lock.description',
+            defaultMessage: 'Allow incoming webhooks to post to any channel without requiring a locked default channel.',
         },
     }),
     manage_outgoing_webhooks: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_outgoing_webhooks.name',
-            defaultMessage: 'Manage Outgoing Webhooks',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_outgoing_webhooks.description',
-            defaultMessage: 'Create, edit, and delete outgoing webhooks.',
+            defaultMessage: 'Create, edit, and delete outgoing webhooks owned by other users.',
+        },
+    }),
+    manage_own_outgoing_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_outgoing_webhooks.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_outgoing_webhooks.description',
+            defaultMessage: 'Create, edit, and delete your own outgoing webhooks.',
+        },
+    }),
+    manage_others_outgoing_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_outgoing_webhooks.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_outgoing_webhooks.description',
+            defaultMessage: 'Create, edit, and delete outgoing webhooks owned by other users.',
         },
     }),
     permanent_delete_user: defineMessages({

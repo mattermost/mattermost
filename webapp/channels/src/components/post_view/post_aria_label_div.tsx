@@ -9,16 +9,18 @@ import {usePostAriaLabel} from 'utils/post_utils';
 
 export type Props = React.HTMLProps<HTMLDivElement> & {
     post: Post;
-}
+    autotranslated: boolean;
+};
 
 const PostAriaLabelDiv = React.forwardRef((props: Props, ref: React.Ref<HTMLDivElement>) => {
     const {
         children,
         post,
+        autotranslated,
         ...otherProps
     } = props;
 
-    const ariaLabel = usePostAriaLabel(post);
+    const ariaLabel = usePostAriaLabel(post, autotranslated);
 
     return (
         <div

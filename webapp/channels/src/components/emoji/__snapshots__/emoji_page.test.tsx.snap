@@ -1,43 +1,35 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`EmojiPage should render without crashing 1`] = `
-<div
-  className="backstage-content emoji-list"
->
+<div>
   <div
-    className="backstage-header"
+    class="backstage-content emoji-list"
   >
-    <h1>
-      <MemoizedFormattedMessage
-        defaultMessage="Custom Emoji"
-        id="emoji_list.header"
-      />
-    </h1>
-    <Memo(AnyTeamPermissionGate)
-      permissions={
-        Array [
-          "create_emojis",
-        ]
-      }
+    <div
+      class="backstage-header"
     >
-      <Link
-        className="add-link"
-        to="/team/emoji/add"
+      <h1>
+        Custom Emoji
+      </h1>
+      <div
+        data-testid="permission-gate"
       >
-        <button
-          className="btn btn-primary"
-          type="button"
+        <a
+          class="add-link"
+          href="/team/emoji/add"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Add Custom Emoji"
-            id="emoji_list.add"
-          />
-        </button>
-      </Link>
-    </Memo(AnyTeamPermissionGate)>
+          <button
+            class="btn btn-primary"
+            type="button"
+          >
+            Add Custom Emoji
+          </button>
+        </a>
+      </div>
+    </div>
+    <div
+      data-testid="emoji-list"
+    />
   </div>
-  <Connect(EmojiList)
-    scrollToTop={[MockFunction]}
-  />
 </div>
 `;

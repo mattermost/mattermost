@@ -85,13 +85,13 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
         // * Check if emoji reaction is shown in the last message in center
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#post_${lastPostId}`).findByLabelText('remove reaction smile').should('exist');
+            cy.get(`#post_${lastPostId}`).findByLabelText('You reacted with :smile:. Click to remove.').should('exist');
         });
 
         // * Check if no emoji reaction is shown from last comment both in RHS and center
         cy.get('@prevLastPostId').then((lastPostId) => {
-            cy.get(`#rhsPost_${lastPostId}`).findByLabelText('remove reaction smile').should('not.exist');
-            cy.get(`#post_${lastPostId}`).findByLabelText('remove reaction smile').should('not.exist');
+            cy.get(`#rhsPost_${lastPostId}`).findByLabelText('You reacted with :smile:. Click to remove.').should('not.exist');
+            cy.get(`#post_${lastPostId}`).findByLabelText('You reacted with :smile:. Click to remove.').should('not.exist');
         });
 
         cy.uiCloseRHS();
@@ -143,7 +143,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         // * Check if no emoji reaction is shown in the last comment at RHS
         cy.get('@postInRHS').within(() => {
             cy.findByLabelText('reactions').should('not.exist');
-            cy.findByLabelText('remove reaction smile').should('not.exist');
+            cy.findByLabelText('You reacted with :smile:. Click to remove.').should('not.exist');
         });
 
         cy.uiCloseRHS();
@@ -234,7 +234,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         cy.getLastPostId().then((lastPostId) => {
             cy.get(`#${lastPostId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('not.exist');
-                cy.findByLabelText('remove reaction smile').should('not.exist');
+                cy.findByLabelText('You reacted with :smile:. Click to remove.').should('not.exist');
             });
         });
     });

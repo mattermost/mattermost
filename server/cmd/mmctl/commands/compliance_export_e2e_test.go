@@ -359,13 +359,15 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		importFilePath := filepath.Join(server.GetPackagePath(), "test.zip")
 		f, err := os.Create(importFilePath)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		_, err = f.WriteString("test data")
-		s.Require().Nil(err)
-		_ = f.Close()
+		s.Require().NoError(err)
+		err = f.Close()
+		s.Require().NoError(err)
 
 		defer func() {
-			_ = os.Remove(importFilePath)
+			err = os.Remove(importFilePath)
+			s.Require().NoError(err)
 		}()
 
 		cmd := &cobra.Command{}
@@ -384,36 +386,40 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 		defer os.Remove(downloadPath)
 
 		serverDataDir, err := filepath.Abs(*s.th.App.Config().FileSettings.Directory)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 
 		exportDir := "job_test_export"
 		// Create a compliance export with two zip files
 		exportFilePath := filepath.Join(serverDataDir, exportDir)
 		err = os.Mkdir(exportFilePath, 0755)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		defer func() {
-			_ = os.RemoveAll(exportFilePath)
+			err = os.RemoveAll(exportFilePath)
+			s.Require().NoError(err)
 		}()
 
 		// Create first zip file
 		zipPath1 := exportFilePath + "/export1.zip"
 		f1, err := os.Create(zipPath1)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		_, err = f1.WriteString("test data 1")
-		s.Require().Nil(err)
-		_ = f1.Close()
+		s.Require().NoError(err)
+		err = f1.Close()
+		s.Require().NoError(err)
 
 		// Create second zip file
 		zipPath2 := exportFilePath + "/export2.zip"
 		f2, err := os.Create(zipPath2)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		_, err = f2.WriteString("test data 2")
-		s.Require().Nil(err)
-		_ = f2.Close()
+		s.Require().NoError(err)
+		err = f2.Close()
+		s.Require().NoError(err)
 
-		defer func() {
-			_ = os.RemoveAll(exportFilePath)
-		}()
+		s.T().Cleanup(func() {
+			err = os.RemoveAll(exportFilePath)
+			s.Require().NoError(err)
+		})
 
 		now := model.GetMillis()
 		// Create a job
@@ -444,7 +450,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		// Verify the file was downloaded
 		_, err = os.Stat(downloadPath)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		defer os.Remove(downloadPath)
 
 		// Verify the file is a zip with a directory with two zip files
@@ -486,39 +492,44 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 		printer.Clean()
 
 		serverDataDir, err := filepath.Abs(*s.th.App.Config().FileSettings.Directory)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 
 		exportDir := "job_test_export"
 		expectedDownloadPath := exportDir + ".zip"
 		// Create a compliance export with two zip files
 		exportFilePath := filepath.Join(serverDataDir, exportDir)
 		err = os.Mkdir(exportFilePath, 0755)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		defer func() {
-			_ = os.RemoveAll(exportFilePath)
+			err = os.RemoveAll(exportFilePath)
+			s.Require().NoError(err)
 
 			// also remove the downloaded file
-			defer os.Remove(expectedDownloadPath)
+			err = os.Remove(expectedDownloadPath)
+			s.Require().NoError(err)
 		}()
 
 		// Create first zip file
 		zipPath1 := exportFilePath + "/export1.zip"
 		f1, err := os.Create(zipPath1)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		_, err = f1.WriteString("test data 1")
-		s.Require().Nil(err)
-		_ = f1.Close()
+		s.Require().NoError(err)
+		err = f1.Close()
+		s.Require().NoError(err)
 
 		// Create second zip file
 		zipPath2 := exportFilePath + "/export2.zip"
 		f2, err := os.Create(zipPath2)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		_, err = f2.WriteString("test data 2")
-		s.Require().Nil(err)
-		_ = f2.Close()
+		s.Require().NoError(err)
+		err = f2.Close()
+		s.Require().NoError(err)
 
 		defer func() {
-			_ = os.RemoveAll(exportFilePath)
+			err = os.RemoveAll(exportFilePath)
+			s.Require().NoError(err)
 		}()
 
 		now := model.GetMillis()
@@ -550,7 +561,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		// Verify the file was downloaded
 		_, err = os.Stat(expectedDownloadPath)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 
 		// Verify the file is a zip with a directory with two zip files
 		zipReader, err := zip.OpenReader(expectedDownloadPath)

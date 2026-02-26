@@ -238,6 +238,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 // downloadFile handles the common logic for downloading files in export and compliance-export commands
 func downloadFile(path string, downloadFn func(*os.File) (string, error), retries int, fileType string) (string, error) {
 	var outFile *os.File
+	var createdFile bool
 	info, err := os.Stat(path)
 	switch {
 	case err != nil && !os.IsNotExist(err):
@@ -248,9 +249,15 @@ func downloadFile(path string, downloadFn func(*os.File) (string, error), retrie
 		return "", fmt.Errorf("%s file already exists", fileType)
 	case err != nil:
 		// file does not exist, we create it
-		outFile, err = os.Create(path)
+		outFile, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+		createdFile = true
 	default:
-		// no error, file exists, we open it
+		// no error, file exists, we double check the permissions and then open it
+		permErr := os.Chmod(path, 0600)
+		if permErr != nil {
+			return "", fmt.Errorf("failed to change permissions on output file: %w", permErr)
+		}
+
 		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
 	}
 
@@ -264,6 +271,13 @@ func downloadFile(path string, downloadFn func(*os.File) (string, error), retrie
 		suggestedFilename, err = downloadFn(outFile)
 		if err != nil {
 			if i >= retries {
+				// Cleanup the file we created earlier
+				if createdFile {
+					rmErr := os.Remove(path)
+					if rmErr != nil {
+						printer.PrintError(fmt.Sprintf("Failed to cleanup tempory file: %s", rmErr))
+					}
+				}
 				return "", fmt.Errorf("failed to download %s after %d retries: %w", fileType, retries, err)
 			}
 			printer.PrintWarning(fmt.Sprintf("Download attempt %d/%d failed. Retrying...", i+1, retries+1))

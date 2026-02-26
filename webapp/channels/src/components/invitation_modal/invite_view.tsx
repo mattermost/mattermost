@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -13,15 +12,11 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useCopyText from 'components/common/hooks/useCopyText';
-import {getAnalyticsCategory} from 'components/onboarding_tasks';
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
 import {Constants} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-import {getTrackFlowRole, getRoleForTrackFlow, getSourceForTrackFlow} from 'utils/utils';
 
 import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
 import type {CustomMessageProps, InviteChannels} from './add_to_channels';
@@ -30,13 +25,14 @@ import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
 
-export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false): InviteState => {
+export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false, canInviteGuestsWithMagicLink = false): InviteState => {
     return deepFreeze({
         inviteType: inviteAsGuest ? InviteType.GUEST : InviteType.MEMBER,
         customMessage: defaultCustomMessage,
         inviteChannels: defaultInviteChannels,
         usersEmails: [],
         usersEmailsSearch: initialSearchValue,
+        canInviteGuestsWithMagicLink,
     });
 };
 
@@ -46,6 +42,7 @@ export type InviteState = {
     inviteChannels: InviteChannels;
     usersEmails: Array<UserProfile | string>;
     usersEmailsSearch: string;
+    canInviteGuestsWithMagicLink: boolean;
 };
 
 export type Props = InviteState & {
@@ -73,12 +70,11 @@ export type Props = InviteState & {
     townSquareDisplayName: string;
     channelToInvite?: Channel;
     onPaste?: (e: ClipboardEvent) => void;
+    useGuestMagicLink: boolean;
+    toggleGuestMagicLink: () => void;
 }
 
 export default function InviteView(props: Props) {
-    const trackFlowRole = useSelector(getTrackFlowRole);
-    const roleForTrackFlow = useSelector(getRoleForTrackFlow);
-
     useEffect(() => {
         if (!props.currentTeam.invite_id) {
             props.regenerateTeamInviteId(props.currentTeam.id);
@@ -88,11 +84,10 @@ export default function InviteView(props: Props) {
     const {formatMessage} = useIntl();
 
     const inviteURL = useMemo(() => {
-        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}&md=link&sbr=${trackFlowRole}`;
-    }, [props.currentTeam.invite_id, trackFlowRole]);
+        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}`;
+    }, [props.currentTeam.invite_id]);
 
     const copyText = useCopyText({
-        trackCallback: () => trackEvent(getAnalyticsCategory(props.isAdmin), 'click_copy_invite_link', {...roleForTrackFlow, ...getSourceForTrackFlow()}),
         text: inviteURL,
     });
 
@@ -258,6 +253,22 @@ export default function InviteView(props: Props) {
                         channelToInvite={props.channelToInvite}
                         inviteType={props.inviteType}
                     />
+                )}
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
+                    <div className='InviteView__guestMagicLinkSection'>
+                        <label className='InviteView__guestMagicLinkCheckbox'>
+                            <input
+                                type='checkbox'
+                                checked={props.useGuestMagicLink}
+                                onChange={props.toggleGuestMagicLink}
+                                data-testid='InviteView__guestMagicLinkCheckbox'
+                            />
+                            <FormattedMessage
+                                id='invite_modal.guest_magic_link'
+                                defaultMessage='Allow invited guests to log in with a magic link (without password)'
+                            />
+                        </label>
+                    </div>
                 )}
                 <OverageUsersBannerNotice/>
             </Modal.Body>

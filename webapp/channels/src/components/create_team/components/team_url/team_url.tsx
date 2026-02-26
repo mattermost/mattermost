@@ -9,8 +9,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ExternalLink from 'components/external_link';
 import WithTooltip from 'components/with_tooltip';
 
@@ -69,13 +67,8 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         };
     }
 
-    public componentDidMount() {
-        trackEvent('signup', 'signup_team_02_url');
-    }
-
     public submitBack = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_back');
         const newState = this.props.state;
         newState.wizard = 'display_name';
         this.props.updateParent(newState);
@@ -83,7 +76,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
 
     public submitNext = async (e: React.MouseEvent<Button, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_finish');
 
         const name = this.state.teamURL!.trim();
         const cleanedName = URL.cleanUpUrlable(name);
@@ -176,7 +168,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
 
         if (data) {
             this.props.history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
-            trackEvent('signup', 'signup_team_03_complete');
         } else if (error) {
             this.setState({nameError: error.message});
             this.setState({isLoading: false});

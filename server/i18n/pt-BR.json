@@ -792,10 +792,6 @@
     "translation": "Não foi possível encontrar o canal especificado Por favor use o [identificador de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar os canais."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Não foi possível silenciar o canal {{.Channel}} porque você não é um membro."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Você não irá receber notificações de {{.Channel}} até que o mudo do canal seja desativado."
   },
@@ -922,10 +918,6 @@
   {
     "id": "api.command_shrug.name",
     "translation": "shrug"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
   },
   {
     "id": "api.context.404.app_error",
@@ -1190,10 +1182,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: client_id inválido."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Faltando client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2078,14 +2066,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "O login de bot é proibido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentou entrar usando o recurso experimental ClientSideCert sem fornecer um certificado válido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentativa de usar o recurso experimental ClientSideCertEnable sem uma licença corporativa válida."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8372,16 +8352,8 @@
     "translation": "Portal indisponível para registro auto-hospedado."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "O Servidor CWS não está disponível."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "O Servidor CWS falhou ao assinar o newsletter."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
@@ -9586,10 +9558,6 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Não foi possível criar um diretório para imagens de emoji personalizadas"
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "As funções do usuário não são consistentes com o status de convidado."
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",

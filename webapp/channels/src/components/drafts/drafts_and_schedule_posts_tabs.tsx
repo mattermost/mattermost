@@ -51,7 +51,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
     const getScheduledPostsByTeam = useMemo(() => makeGetScheduledPostsByTeam(), []);
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
-    const handleSwitchTabs = useCallback((key) => {
+    const handleSwitchTabs = useCallback((key: string) => {
         if (key === TAB_KEYS.DRAFTS) {
             history.push(`/${currentTeamName}/drafts`);
         } else if (key === TAB_KEYS.SCHEDULED_POSTS) {
@@ -108,6 +108,8 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
             activeKey={activeTab}
             mountOnEnter={true}
             unmountOnExit={true}
+
+            // @ts-expect-error The types that we have for React Bootstrap are for a newer version than we use
             onSelect={handleSwitchTabs}
         >
             <Tab

@@ -12,7 +12,6 @@
 import {getRandomId} from '../../../../../utils';
 
 import {checkboxesTitleToIdMap} from './constants';
-
 import {
     deleteOrEditTeamScheme,
     demoteToChannelOrTeamMember,

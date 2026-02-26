@@ -22,7 +22,6 @@ type Props = {
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
-    filters: LogFilter;
 };
 
 type State = {
@@ -272,7 +271,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         const placeholderEmpty: JSX.Element = (
             <FormattedMessage
                 id='admin.channel_settings.channel_list.no_logs_found'
-                defaultMessage='No logs found'
+                defaultMessage='No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).'
             />
         );
 
@@ -366,7 +365,6 @@ export default class LogList extends React.PureComponent<Props, State> {
                     term={search}
                     placeholderEmpty={placeholderEmpty}
                     rowsContainerStyles={rowsContainerStyles}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     filterProps={filterProps}

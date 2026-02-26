@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitAccessControlPolicy() {
@@ -19,9 +20,11 @@ func (api *API) InitAccessControlPolicy() {
 	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
 
@@ -56,20 +59,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
 		if !hasManageSystemPermission {
-			// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-			if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-				c.SetPermissionError(model.PermissionManageSystem)
-				return
-			}
-			// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 			// For non-system admins, check channel-specific permission
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
 				return
 			}
 
-			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -114,18 +110,14 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	policyID := c.Params.PolicyId
 
+	// Extract optional channelId from query parameters for context
+	channelID := r.URL.Query().Get("channelId")
+
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
-		// For non-system admins, validate policy access permission
-		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
+		// For non-system admins, validate policy access permission (read-only access for GET requests)
+		if appErr := c.App.ValidateAccessControlPolicyPermissionWithChannelContext(c.AppContext, c.AppContext.Session().UserId, policyID, true, channelID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
@@ -162,13 +154,6 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 		// For non-system admins, validate policy access permission
 		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -189,24 +174,36 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	// for now, we only support the expression check
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}{}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
-	// Check if user has system admin permission OR any channel admin permission
-	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	// Get channelId from request body (required for channel-specific permission check)
+	channelId := checkExpressionRequest.ChannelId
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// SECURE: Check specific channel permission
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
 	}
-	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
 	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
 	if appErr != nil {
@@ -232,26 +229,50 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user has system admin permission OR any channel admin permission
-	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	// Get channelId from request body (required for channel-specific permission check)
+	channelId := checkExpressionRequest.ChannelId
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 
-	users, count, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, model.SubjectSearchOptions{
+		// SECURE: Check specific channel permission
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	}
+
+	var users []*model.User
+	var count int64
+	var appErr *model.AppError
+
+	searchOpts := model.SubjectSearchOptions{
 		Term:  checkExpressionRequest.Term,
 		Limit: checkExpressionRequest.Limit,
 		Cursor: model.SubjectCursor{
 			TargetID: checkExpressionRequest.After,
 		},
-	})
+	}
+
+	if hasSystemPermission {
+		// SYSTEM ADMIN: Can see ALL users (no restrictions)
+		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	} else {
+		// CHANNEL ADMIN: Only see users matching expressions with attributes they possess
+		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	}
+
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -269,6 +290,60 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
+	}
+
+	if jsonErr := json.NewDecoder(r.Body).Decode(&request); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	// Get channelId from request body (required for channel-specific permission check)
+	channelId := request.ChannelId
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
+		return
+	}
+
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// SECURE: Check specific channel permission
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	}
+
+	// Direct validation against requester
+	matches, appErr := c.App.ValidateExpressionAgainstRequester(c.AppContext, request.Expression, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	response := struct {
+		RequesterMatches bool `json:"requester_matches"`
+	}{
+		RequesterMatches: matches,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -308,18 +383,35 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// updateActiveStatus updates the active status of a single access control policy.
+//
+// Deprecated: This endpoint is deprecated and will be removed in a future release.
+// Use PUT /api/v4/access_control/policies/activate instead, which supports batch updates.
 func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
 	}
 
+	// CSRF barrier: only allow header-based auth (reject cookie sessions)
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+	if token == "" || tokenLocation == app.TokenLocationCookie {
+		c.Err = model.NewAppError("updateActiveStatus", "api.context.session_cookie_not_allowed.app_error", nil,
+			"This endpoint requires header-based authentication", http.StatusUnauthorized)
+		return
+	}
+
 	policyID := c.Params.PolicyId
+
+	// Check if user has system admin permission OR channel-specific permission for this policy
+	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasManageSystemPermission {
+		// For non-system admins, validate policy access permission
+		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -337,13 +429,67 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
-	appErr := c.App.UpdateAccessControlPolicyActive(c.AppContext, policyID, activeBool)
+	// Wrap single update in slice to use the batch update method
+	updates := []model.AccessControlPolicyActiveUpdate{
+		{ID: policyID, Active: activeBool},
+	}
+	_, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
+
+	// Return success response
+	response := map[string]any{
+		"status": "OK",
+	}
+
+	// Set deprecation header to inform clients
+	w.Header().Set("Deprecation", "true")
+	w.Header().Set("Link", "</api/v4/access_control/policies/activate>; rel=\"successor-version\"")
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	var list model.AccessControlPolicyActiveUpdateRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetActiveStatus, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &list)
+
+	// Check if user has system admin permission OR policy-specific permission
+	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasManageSystemPermission {
+		for _, entry := range list.Entries {
+			// Validate policy access permission - this fetches the policy first to verify it exists
+			// and is a channel-type policy before checking channel permissions
+			if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, entry.ID); appErr != nil {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
+		}
+	}
+
+	policies, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, list.Entries)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	auditRec.Success()
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(policies); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -519,18 +665,29 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 }
 
 func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Check if user has system admin permission OR any channel admin permission
-	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	// Get channelId from query parameters (required for channel-specific permission check)
+	channelId := r.URL.Query().Get("channelId")
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// SECURE: Check specific channel permission
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
 	}
-	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
 	after := r.URL.Query().Get("after")
 	if after != "" && !model.IsValidId(after) {
@@ -551,7 +708,11 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ac, appErr := c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit)
+	var ac []*model.PropertyField
+	var appErr *model.AppError
+
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit, c.AppContext.Session().UserId)
+
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -569,25 +730,37 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Check if user has system admin permission OR any channel admin permission
-	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 	var cel struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cel); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
+	}
+
+	// Get channelId from request body (required for channel-specific permission check)
+	channelId := cel.ChannelId
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
+		return
+	}
+
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// SECURE: Check specific channel permission
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
 	}
 	visualAST, appErr := c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
 	if appErr != nil {

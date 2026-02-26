@@ -433,8 +433,6 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
 
 	userID := model.NewId()
 	channelID := model.NewId()
@@ -650,7 +648,6 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 func TestGetPushNotificationMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -1032,29 +1029,28 @@ func TestGetPushNotificationMessage(t *testing.T) {
 
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
-	sender := th.CreateUser()
-	receiver := th.CreateUser()
-	th.LinkUserToTeam(sender, team)
-	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel1)
-	th.AddUserToChannel(receiver, channel1)
+	team := th.CreateTeam(t)
+	sender := th.CreateUser(t)
+	receiver := th.CreateUser(t)
+	th.LinkUserToTeam(t, sender, team)
+	th.LinkUserToTeam(t, receiver, team)
+	channel1 := th.CreateChannel(t, team)
+	th.AddUserToChannel(t, sender, channel1)
+	th.AddUserToChannel(t, receiver, channel1)
 
-	channel2 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel2)
-	th.AddUserToChannel(receiver, channel2)
+	channel2 := th.CreateChannel(t, team)
+	th.AddUserToChannel(t, sender, channel2)
+	th.AddUserToChannel(t, receiver, channel2)
 
 	// Create three mention posts and two non-mention posts
-	th.CreateMessagePost(channel1, "@channel Hello")
-	th.CreateMessagePost(channel1, "@all Hello")
-	th.CreateMessagePost(channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
-	th.CreateMessagePost(channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
-	th.CreatePost(channel1)
-	post := th.CreatePost(channel1)
+	th.CreateMessagePost(t, channel1, "@channel Hello")
+	th.CreateMessagePost(t, channel1, "@all Hello")
+	th.CreateMessagePost(t, channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
+	th.CreateMessagePost(t, channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
+	th.CreatePost(t, channel1)
+	post := th.CreatePost(t, channel1)
 
 	for name, tc := range map[string]struct {
 		explicitMention    bool
@@ -1089,8 +1085,8 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 
 func TestSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
 		DeviceId:  "test",
@@ -1110,8 +1106,8 @@ func TestSendPushNotifications(t *testing.T) {
 
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	t.Run("should return true if forced", func(t *testing.T) {
 		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
 		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
@@ -1139,6 +1135,50 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot even with force notification", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return true for regular user even when post author is a bot", func(t *testing.T) {
+		botId := model.NewId()
+		regularUser := &model.User{Id: model.NewId(), Email: "user@test.com", IsBot: false, NotifyProps: make(map[string]string)}
+		regularUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: botId, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: regularUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, regularUser, channelNotifyProps, true, status, post, false)
+		assert.True(t, result)
 	})
 }
 
@@ -1246,7 +1286,6 @@ func (h *testPushNotificationHandler) notificationAcks() []*model.PushNotificati
 func TestClearPushNotificationSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1277,6 +1316,10 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1323,7 +1366,6 @@ func TestClearPushNotificationSync(t *testing.T) {
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1355,6 +1397,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
+
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
 	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
@@ -1383,7 +1429,6 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 func TestSendTestPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1411,7 +1456,6 @@ func TestSendTestPushNotification(t *testing.T) {
 func TestSendAckToPushProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1428,6 +1472,10 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
@@ -1459,8 +1507,7 @@ func TestAllPushNotifications(t *testing.T) {
 		t.Skip("skipping all push notifications test in short mode")
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create 10 users, each having 2 sessions.
 	type userSession struct {
@@ -1469,7 +1516,7 @@ func TestAllPushNotifications(t *testing.T) {
 	}
 	var testData []userSession
 	for range 10 {
-		u := th.CreateUser()
+		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
@@ -1485,7 +1532,7 @@ func TestAllPushNotifications(t *testing.T) {
 		require.Nil(t, err)
 		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
-		th.AddUserToChannel(u, th.BasicChannel)
+		th.AddUserToChannel(t, u, th.BasicChannel)
 		testData = append(testData, userSession{
 			user:    u,
 			session: sess,
@@ -1515,7 +1562,7 @@ func TestAllPushNotifications(t *testing.T) {
 			go func(user model.User) {
 				defer wg.Done()
 				notification := &PostNotification{
-					Post:    th.CreatePost(th.BasicChannel),
+					Post:    th.CreatePost(t, th.BasicChannel),
 					Channel: th.BasicChannel,
 					ProfileMap: map[string]*model.User{
 						user.Id: &user,
@@ -1567,7 +1614,6 @@ func TestAllPushNotifications(t *testing.T) {
 func TestPushNotificationRace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
@@ -1624,7 +1670,6 @@ func TestPushNotificationRace(t *testing.T) {
 func TestPushNotificationAttachment(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	originalMessage := "hello world"
 	post := &model.Post{
@@ -1655,7 +1700,6 @@ func TestPushNotificationAttachment(t *testing.T) {
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{
 		t:        b,
@@ -1676,6 +1720,10 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockPreferenceStore := mocks.PreferenceStore{}

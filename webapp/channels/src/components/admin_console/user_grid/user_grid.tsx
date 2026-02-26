@@ -292,7 +292,6 @@ export default class UserGrid extends React.PureComponent<Props, State> {
                 columns={columns}
                 rows={rows}
                 loading={this.state.loading || this.props.loading}
-                page={this.state.page}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}
                 startCount={startCount}

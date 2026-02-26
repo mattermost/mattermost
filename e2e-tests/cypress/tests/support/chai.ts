@@ -3,7 +3,7 @@
 
 chai.use((chai: Chai.ChaiStatic) => {
     function assertIsFoo({exactStyles = true} = {}) {
-        // eslint-disable-next-line no-underscore-dangle
+
         const obj = this._obj as JQuery<HTMLElement>;
 
         this.assert(
@@ -30,7 +30,7 @@ chai.use((chai: Chai.ChaiStatic) => {
 
         return this;
     }
-    /* eslint-enable no-underscore-dangle */
+
 
     chai.Assertion.addMethod('a11yVisible', assertIsFoo);
 });

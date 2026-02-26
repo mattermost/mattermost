@@ -28,7 +28,6 @@ import {
 import {makeAsyncComponent} from 'components/async_load';
 
 import {Constants} from 'utils/constants';
-import {getRoleForTrackFlow} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -80,6 +79,9 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
 
     const canAddUsers = haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM);
 
+    const guestMagicLinkEnabled = config.EnableGuestMagicLink === 'true';
+    const canInviteGuestsWithMagicLink = canInviteGuests && guestMagicLinkEnabled;
+
     return {
         invitableChannels,
         currentTeam,
@@ -90,7 +92,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
         isAdmin: isAdmin(getCurrentUser(state).roles),
         currentChannel,
         townSquareDisplayName,
-        roleForTrackFlow: getRoleForTrackFlow(state),
+        canInviteGuestsWithMagicLink,
     };
 }
 

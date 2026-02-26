@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
-
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ContentFlaggingAdditionalSettingsSection from './additional_settings';
 
 describe('ContentFlaggingAdditionalSettingsSection', () => {
-    const defaultProps: SystemConsoleCustomSettingsComponentProps = {
+    const defaultProps = {
         id: 'ContentFlaggingAdditionalSettings',
         onChange: jest.fn(),
         value: {
@@ -22,11 +19,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             ReviewerCommentRequired: true,
             HideFlaggedContent: false,
         } as ContentFlaggingAdditionalSettings,
-    } as unknown as SystemConsoleCustomSettingsComponentProps;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    };
 
     test('should render with initial values', () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
@@ -62,10 +55,10 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         expect(screen.getByTestId('hideFlaggedPosts_true')).not.toBeChecked();
     });
 
-    test('should call onChange when reporter comment requirement changes', () => {
+    test('should call onChange when reporter comment requirement changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        fireEvent.click(screen.getByTestId('requireReporterComment_true'));
+        await userEvent.click(screen.getByTestId('requireReporterComment_true'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -73,10 +66,10 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         });
     });
 
-    test('should call onChange when reviewer comment requirement changes', () => {
+    test('should call onChange when reviewer comment requirement changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        fireEvent.click(screen.getByTestId('requireReviewerComment_false'));
+        await userEvent.click(screen.getByTestId('requireReviewerComment_false'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -84,10 +77,10 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         });
     });
 
-    test('should call onChange when hide flagged content setting changes', () => {
+    test('should call onChange when hide flagged content setting changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        fireEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
+        await userEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -155,18 +148,18 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         expect(selectInput).toHaveAttribute('id', 'contentFlaggingReasons');
     });
 
-    test('should maintain state consistency across multiple changes', () => {
+    test('should maintain state consistency across multiple changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Change reporter comment requirement
-        fireEvent.click(screen.getByTestId('requireReporterComment_true'));
+        await userEvent.click(screen.getByTestId('requireReporterComment_true'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,
         });
 
         // Change hide flagged content
-        fireEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
+        await userEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,

@@ -105,7 +105,7 @@ export function isMobileApp(): boolean {
     return isMobile() && !isIosWeb() && !isAndroidWeb();
 }
 
-// Returns true if and only if the user is using Mattermost from either the mobile app or the web browser on a mobile device.
+// Returns true if and only if the user is using Mattermost from the web browser on a mobile device.
 export function isMobile(): boolean {
     return isIos() || isAndroid();
 }
@@ -169,4 +169,18 @@ export function getDesktopVersion(): string {
     const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm;
     const match = regex.exec(window.navigator.appVersion)?.[1] || '';
     return match;
+}
+
+export function isTeamsMobile(): boolean {
+    return userAgent().indexOf('TeamsMobile-Android') !== -1 ||
+           userAgent().indexOf('TeamsMobile-iOS') !== -1 ||
+           (isMobile() && userAgent().indexOf('Teams/') !== -1);
+}
+
+export function isOutlookMobile(): boolean {
+    return userAgent().indexOf('PKeyAuth/1.0') !== -1;
+}
+
+export function isM365Mobile(): boolean {
+    return isTeamsMobile() || isOutlookMobile();
 }

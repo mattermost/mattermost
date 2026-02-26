@@ -84,8 +84,6 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 }
 
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
-//
-// Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	assetsList, err := assets.ReadDir(filepath.Join("migrations", ds.driverName))
 	if err != nil {
@@ -132,18 +130,9 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	return engine.ApplyAll()
 }
 
-// parseDSN splits up a connection string into a driver name and data source name.
+// parseDSN parses a PostgreSQL connection string and validates the scheme.
 //
-// For example:
-//
-//	mysql://mmuser:mostest@localhost:5432/mattermost_test
-//
-// returns
-//
-//	driverName = mysql
-//	dataSourceName = mmuser:mostest@localhost:5432/mattermost_test
-//
-// By contrast, a Postgres DSN is returned unmodified.
+// Accepts postgres:// or postgresql:// schemes and returns the DSN unmodified.
 func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
@@ -340,9 +329,22 @@ func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
 
-// removes configurations from database if they are older than threshold.
-func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
-	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
+// removes configurations from database if they are older than threshold,
+// keeping the active configuration and the last 5 most recent ones.
+func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
+	query := `
+		DELETE FROM Configurations
+		WHERE CreateAt < :timestamp
+			AND (Active IS NULL OR Active = false)
+			AND ID NOT IN (
+				SELECT ID
+				FROM Configurations
+				ORDER BY CreateAt DESC
+				LIMIT 5
+			)
+	`
+
+	if _, err := ds.db.NamedExec(query, map[string]any{"timestamp": thresholdCreateAt}); err != nil {
 		return errors.Wrap(err, "unable to clean Configurations table")
 	}
 

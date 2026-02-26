@@ -13,6 +13,8 @@ import EmojiMap from 'utils/emoji_map';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
+// Mock AppsFormContainer to avoid dynamic import complexity in tests
+
 jest.mock('components/apps_form/apps_form_container', () => {
     return {
         __esModule: true,
@@ -51,18 +53,19 @@ const MockAppsFormContainer = require('components/apps_form/apps_form_container'
 
 describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     const baseProps = {
-        url: 'http://example.com',
+        url: 'https://example.com',
         callbackId: 'abc123',
         title: 'Test Dialog',
         introductionText: 'Test introduction',
-        iconUrl: 'http://example.com/icon.png',
+        iconUrl: 'https://example.com/icon.png',
         submitLabel: 'Submit',
         state: 'test-state',
         notifyOnCancel: true,
         emojiMap: new EmojiMap(new Map()),
         onExited: jest.fn(),
         actions: {
-            submitInteractiveDialog: jest.fn(),
+            submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+            lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
         },
         elements: [] as DialogElement[],
     };
@@ -93,7 +96,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             expect(getByTestId('form-title')).toHaveTextContent('Test Dialog');
             expect(getByTestId('form-header')).toHaveTextContent('Test introduction');
-            expect(getByTestId('form-icon')).toHaveTextContent('http://example.com/icon.png');
+            expect(getByTestId('form-icon')).toHaveTextContent('https://example.com/icon.png');
         });
 
         test('should convert text element correctly', async () => {
@@ -703,6 +706,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const minimalProps = {
                 actions: {
                     submitInteractiveDialog: jest.fn(),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
@@ -770,6 +774,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [textElement],
                 actions: {
                     submitInteractiveDialog: mockSubmitSuccess,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -806,6 +811,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 actions: {
                     submitInteractiveDialog: mockSubmitWithErrors,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -842,6 +848,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 actions: {
                     submitInteractiveDialog: mockSubmitWithNetworkError,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -872,6 +879,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 ...baseProps,
                 actions: {
                     submitInteractiveDialog: mockSubmitThrows,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -908,6 +916,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 notifyOnCancel: true,
                 actions: {
                     submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -943,6 +952,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 notifyOnCancel: false,
                 actions: {
                     submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -973,6 +983,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 notifyOnCancel: true,
                 actions: {
                     submitInteractiveDialog: mockSubmitThrows,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -1075,6 +1086,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements,
                 actions: {
                     submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -1142,6 +1154,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements,
                 actions: {
                     submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
@@ -1216,6 +1229,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
 
@@ -1274,15 +1288,58 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     ]),
                 }),
             );
+        });
 
-            // Test required field validation
-            await submitAdapter({
+        test('should handle missing required values during conversion', async () => {
+            const requiredElement: DialogElement = {
+                name: 'required-field',
+                type: 'text',
+                display_name: 'Required Field',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                help_text: '',
+                placeholder: '',
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [requiredElement],
+                conversionOptions: {
+                    enhanced: true,
+                },
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test with null value for required field - should not crash
+            const result = await submitAdapter({
                 values: {
                     'text-field': 'valid',
                     'required-field': null, // Missing required field
                 },
             });
 
+            // Should complete successfully (null values are simply skipped)
+            expect(result.data?.type).toBe('ok');
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
                 'Form submission validation errors',
@@ -1299,66 +1356,19 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('No-op Handlers', () => {
-        test('should provide no-op handlers for unsupported legacy features', async () => {
-            const props = {
-                ...baseProps,
-                conversionOptions: {
-                    enhanced: true,
-                },
-            };
-
+    describe('Dynamic Import Loading', () => {
+        test('should handle lazy loading with React Suspense', async () => {
+            // With React.lazy, the component should load asynchronously
+            // but the test environment with mocking should handle it synchronously
             const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
+                <InteractiveDialogAdapter {...baseProps}/>,
             );
 
+            // Should render the component successfully with mocked AppsFormContainer
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
-
-            // Get all handlers
-            const mockCall = MockAppsFormContainer.mock.calls[0][0];
-            const {
-                doAppLookup,
-                doAppFetchForm,
-                postEphemeralCallResponseForContext,
-            } = mockCall.actions;
-
-            // Test lookup handler returns empty items
-            const lookupResult = await doAppLookup();
-            expect(lookupResult.data).toEqual({
-                type: 'ok',
-                data: {items: []},
-            });
-
-            // Test refresh handler returns ok
-            const refreshResult = await doAppFetchForm();
-            expect(refreshResult.data).toEqual({
-                type: 'ok',
-            });
-
-            // Test ephemeral handler is a no-op function
-            expect(() => {
-                postEphemeralCallResponseForContext();
-            }).not.toThrow();
-            expect(typeof postEphemeralCallResponseForContext).toBe('function');
-
-            // Should log warnings about unsupported features
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Unexpected lookup call in Interactive Dialog adapter - this should not happen',
-                '',
-            );
-
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
-                '',
-            );
         });
-    });
-
-    describe('Dynamic Import Loading', () => {
     });
 
     describe('Advanced Validation Scenarios', () => {
@@ -1480,42 +1490,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             // Should render successfully with fallback behavior
             expect(getByTestId('field-type-invalid_range')).toHaveTextContent(AppFieldTypes.TEXT);
-        });
-
-        test('should detect conflicting select configurations', async () => {
-            const conflictingSelectElement: DialogElement = {
-                name: 'conflicting_select',
-                type: 'select',
-                display_name: 'Conflicting Select',
-                options: [{text: 'Option1', value: 'opt1'}],
-                data_source: 'users', // Conflict: both options and data_source
-                subtype: '',
-                default: '',
-                placeholder: '',
-                help_text: '',
-                optional: false,
-                min_length: 0,
-                max_length: 0,
-            };
-
-            const props = {
-                ...baseProps,
-                elements: [conflictingSelectElement],
-
-                // Default mode (enhanced: false)
-            };
-
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                expect(getByTestId('apps-form-container')).toBeInTheDocument();
-                expect(getByTestId('field-conflicting_select')).toBeInTheDocument();
-            });
-
-            // Should render successfully with data_source taking precedence
-            expect(getByTestId('field-type-conflicting_select')).toHaveTextContent('user');
         });
     });
 
@@ -1840,6 +1814,471 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(valueText).toContain('Option 1');
             expect(valueText).toContain('Option 3');
             expect(valueText).not.toContain('invalid_option');
+        });
+    });
+
+    describe('Dynamic Select Integration', () => {
+        test('should render dynamic select with correct props', async () => {
+            const dynamicDataSourceElement: DialogElement = {
+                name: 'dynamic-data-source-field',
+                type: 'select',
+                display_name: 'Dynamic Data Source Field',
+                help_text: 'Choose an option',
+                placeholder: 'Type to search...',
+                default: 'preset_value',
+                optional: true,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: 'dynamic',
+                data_source_url: 'https://example.com/api/options',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [dynamicDataSourceElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-type-dynamic-data-source-field')).toHaveTextContent(AppFieldTypes.DYNAMIC_SELECT);
+                const expectedValue = JSON.stringify({label: 'preset_value', value: 'preset_value'});
+                expect(getByTestId('field-value-dynamic-data-source-field')).toHaveTextContent(expectedValue);
+                expect(getByTestId('field-required-dynamic-data-source-field')).toHaveTextContent('optional');
+            });
+        });
+
+        test('should handle lookup calls for dynamic select', async () => {
+            const mockLookupResponse = {
+                data: {
+                    items: [
+                        {text: 'Option 1', value: 'value1'},
+                        {text: 'Option 2', value: 'value2'},
+                        {text: 'Option 3', value: 'value3'},
+                    ],
+                },
+            };
+
+            const mockLookupDialog = jest.fn().mockResolvedValue(mockLookupResponse);
+
+            const dynamicSelectElement: DialogElement = {
+                name: 'dynamic-lookup-field',
+                type: 'select',
+                data_source: 'dynamic',
+                display_name: 'Dynamic Lookup Field',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [dynamicSelectElement],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: mockLookupDialog,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler from the MockAppsFormContainer
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            // Test the lookup call
+            const result = await lookupHandler({
+                selected_field: 'dynamic-lookup-field',
+                query: 'test query',
+                values: {'dynamic-lookup-field': 'test'},
+            });
+
+            expect(mockLookupDialog).toHaveBeenCalledWith({
+                url: baseProps.url,
+                callback_id: baseProps.callbackId,
+                state: baseProps.state,
+                submission: {
+                    query: 'test query',
+                    selected_field: 'dynamic-lookup-field',
+                    'dynamic-lookup-field': 'test',
+                },
+                user_id: '',
+                channel_id: '',
+                team_id: '',
+                cancelled: false,
+            });
+
+            expect(result.data).toEqual({
+                type: 'ok',
+                data: {
+                    items: [
+                        {label: 'Option 1', value: 'value1'},
+                        {label: 'Option 2', value: 'value2'},
+                        {label: 'Option 3', value: 'value3'},
+                    ],
+                },
+            });
+        });
+
+        test('should handle lookup calls with data_source_url priority', async () => {
+            const mockLookupResponse = {
+                data: {
+                    items: [
+                        {text: 'Plugin Option 1', value: 'plugin_value1'},
+                    ],
+                },
+            };
+
+            const mockLookupDialog = jest.fn().mockResolvedValue(mockLookupResponse);
+
+            const dynamicDataSourceElement: DialogElement = {
+                name: 'dynamic-data-source-lookup',
+                type: 'select',
+                display_name: 'Dynamic Data Source Lookup',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: 'dynamic',
+                data_source_url: '/plugins/myplugin/lookup',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [dynamicDataSourceElement],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: mockLookupDialog,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            // Test lookup with data_source_url priority
+            const result = await lookupHandler({
+                selected_field: 'dynamic-data-source-lookup',
+                query: 'plugin test',
+                values: {},
+            });
+
+            expect(mockLookupDialog).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    url: '/plugins/myplugin/lookup', // Should use data_source_url, not dialog URL
+                    submission: expect.objectContaining({
+                        query: 'plugin test',
+                        selected_field: 'dynamic-data-source-lookup',
+                    }),
+                }),
+            );
+
+            expect(result.data.data.items).toEqual([
+                {label: 'Plugin Option 1', value: 'plugin_value1'},
+            ]);
+        });
+
+        test('should handle lookup call errors gracefully', async () => {
+            const mockLookupError = jest.fn().mockResolvedValue({
+                error: {message: 'Lookup failed'},
+            });
+
+            const props = {
+                ...baseProps,
+                elements: [{
+                    name: 'dynamic-error-field',
+                    type: 'select',
+                    data_source: 'dynamic',
+                    display_name: 'Dynamic Error Field',
+                    help_text: '',
+                    placeholder: '',
+                    default: '',
+                    optional: false,
+                    max_length: 0,
+                    min_length: 0,
+                    subtype: '',
+                    options: [],
+                }],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: mockLookupError,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            // Test error handling
+            const result = await lookupHandler({
+                selected_field: 'dynamic-error-field',
+                query: 'error test',
+                values: {},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.text).toBe('Lookup failed');
+        });
+
+        test('should handle lookup call exceptions', async () => {
+            const mockLookupException = jest.fn().mockRejectedValue(new Error('Network error'));
+
+            const props = {
+                ...baseProps,
+                elements: [{
+                    name: 'dynamic-exception-field',
+                    type: 'select',
+                    data_source: 'dynamic',
+                    display_name: 'Dynamic Exception Field',
+                    help_text: '',
+                    placeholder: '',
+                    default: '',
+                    optional: false,
+                    max_length: 0,
+                    min_length: 0,
+                    subtype: '',
+                    options: [],
+                }],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: mockLookupException,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            // Test exception handling
+            const result = await lookupHandler({
+                selected_field: 'dynamic-exception-field',
+                query: 'exception test',
+                values: {},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.text).toBe('Network error');
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Lookup request failed',
+                expect.any(Error),
+            );
+        });
+
+        test('should validate lookup URLs for security', async () => {
+            const propsWithInsecureUrl = {
+                ...baseProps,
+                url: 'http://insecure.com/lookup', // HTTP instead of HTTPS
+                elements: [{
+                    name: 'secure-field',
+                    type: 'select',
+                    data_source: 'dynamic',
+                    display_name: 'Secure Field',
+                    help_text: '',
+                    placeholder: '',
+                    default: '',
+                    optional: false,
+                    max_length: 0,
+                    min_length: 0,
+                    subtype: '',
+                    options: [],
+                }],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn(),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...propsWithInsecureUrl}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            // Test with invalid URL (HTTP instead of HTTPS)
+            const result = await lookupHandler({
+                selected_field: 'secure-field',
+                query: 'security test',
+                values: {},
+            });
+
+            expect(result.error).toBeDefined();
+            expect(result.error.text).toBe('Invalid lookup URL: must be HTTPS URL or /plugins/ path');
+        });
+
+        test('should handle dynamic select value conversion in submissions', async () => {
+            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+
+            const dynamicSelectElement: DialogElement = {
+                name: 'dynamic-submit-field',
+                type: 'select',
+                data_source: 'dynamic',
+                display_name: 'Dynamic Submit Field',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [dynamicSelectElement],
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn(),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test submission with dynamic select value (AppSelectOption format)
+            await submitAdapter({
+                values: {
+                    'dynamic-submit-field': {
+                        label: 'Selected Option',
+                        value: 'selected_value',
+                    },
+                },
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'dynamic-submit-field': 'selected_value', // Should extract value from AppSelectOption
+                    },
+                }),
+            );
+
+            // Test submission with string value (fallback case)
+            await submitAdapter({
+                values: {
+                    'dynamic-submit-field': 'direct_string_value',
+                },
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'dynamic-submit-field': 'direct_string_value',
+                    },
+                }),
+            );
+        });
+
+        test('should handle empty lookup responses gracefully', async () => {
+            const mockLookupEmpty = jest.fn().mockResolvedValue({
+                data: {items: []},
+            });
+
+            const dynamicSelectElement: DialogElement = {
+                name: 'test-field',
+                type: 'select',
+                data_source: 'dynamic',
+                display_name: 'Test Field',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [dynamicSelectElement],
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: mockLookupEmpty,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            const result = await lookupHandler({
+                selected_field: 'test-field',
+                query: 'no results',
+                values: {},
+            });
+
+            expect(result.data).toEqual({
+                type: 'ok',
+                data: {items: []},
+            });
         });
     });
 });

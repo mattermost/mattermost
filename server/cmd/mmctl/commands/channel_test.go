@@ -192,7 +192,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -246,7 +246,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -271,7 +271,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -298,7 +298,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -333,7 +333,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -368,7 +368,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0], "").
+			GetChannel(context.TODO(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -443,7 +443,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -475,13 +475,13 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1, "").
+			GetChannel(context.TODO(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2, "").
+			GetChannel(context.TODO(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
@@ -558,7 +558,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -581,7 +581,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -607,7 +607,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1702,7 +1702,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1734,13 +1734,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1, "").
+			GetChannel(context.TODO(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2, "").
+			GetChannel(context.TODO(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
@@ -1816,7 +1816,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1839,7 +1839,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1863,7 +1863,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1975,7 +1975,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2000,7 +2000,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2078,7 +2078,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2245,7 +2245,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2512,7 +2512,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -2543,7 +2543,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{}, nil).
 			Times(1)
 
@@ -2838,7 +2838,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2927,7 +2927,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelNameDoesNotExist, "").
+			GetChannel(context.TODO(), channelNameDoesNotExist).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

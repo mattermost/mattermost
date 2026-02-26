@@ -96,7 +96,7 @@ const Search = ({
         updateSearchType,
     },
     crossTeamSearchEnabled,
-    hideMobileSearchBarInRHS,
+    hideMobileSearchBarInRHS = false,
     isChannelFiles,
     isFlaggedPosts,
     isMentionSearch,
@@ -105,16 +105,16 @@ const Search = ({
     isRhsExpanded,
     isSearchingTerm,
     searchTeam,
-    searchTerms,
+    searchTerms = '',
     searchType,
     searchVisible,
-    channelDisplayName,
+    channelDisplayName = '',
     children,
     currentChannel,
     enableFindShortcut,
     getFocus,
     hideSearchBar,
-    isSideBarRight,
+    isSideBarRight = false,
     isSideBarRightOpen,
 }: Props): JSX.Element => {
     const intl = useIntl();
@@ -392,7 +392,7 @@ const Search = ({
             filterFilesSearchByExt(['py', 'go', 'java', 'kt', 'c', 'cpp', 'h', 'html', 'js', 'ts', 'cs', 'vb', 'php', 'pl', 'r', 'rb', 'sql', 'swift', 'json']);
             break;
         case 'images':
-            filterFilesSearchByExt(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'psd', 'xcf']);
+            filterFilesSearchByExt(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'xcf']);
             break;
         case 'audio':
             filterFilesSearchByExt(['ogg', 'mp3', 'wav', 'flac']);
@@ -566,15 +566,5 @@ const Search = ({
         </div>
     );
 };
-
-const defaultProps: Partial<Props> = {
-    searchTerms: '',
-    channelDisplayName: '',
-    isSideBarRight: false,
-    hideMobileSearchBarInRHS: false,
-    getFocus: () => {},
-};
-
-Search.defaultProps = defaultProps;
 
 export default React.memo(Search);

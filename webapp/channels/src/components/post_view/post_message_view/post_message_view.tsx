@@ -18,10 +18,17 @@ import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import {PostTypes} from 'utils/constants';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
+
+// These posts types must not be rendered with the collapsible "Show More" container.
+const FULL_HEIGHT_POST_TYPES = new Set([
+    PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
+]);
 
 type Props = {
     post: Post; /* The post to render the message for */
@@ -29,8 +36,6 @@ type Props = {
     options?: TextFormattingOptions; /* Options specific to text formatting */
     compactDisplay?: boolean; /* Set to render post body compactly */
     isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
-    isRHSOpen?: boolean; /* Whether or not the RHS is visible */
-    isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
     pluginPostTypes?: {
         [postType: string]: PostPluginComponent;
@@ -40,6 +45,8 @@ type Props = {
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
     sharedChannelsPluginsEnabled?: boolean;
+    isChannelAutotranslated: boolean;
+    userLanguage: string;
 }
 
 type State = {
@@ -144,19 +151,20 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             message = message.concat(visibleMessage);
         }
 
+        // Use translation if channel is autotranslated and translation is available
+        const translation = getPostTranslation(post, this.props.userLanguage);
+        if (this.props.isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
+            message = getPostTranslatedMessage(message, translation);
+        }
+
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;
 
         // Check if channel is shared
         const channel = getChannel(store.getState(), post.channel_id);
         const isSharedChannel = channel?.shared || false;
 
-        return (
-            <ShowMore
-                checkOverflow={this.state.checkOverflow}
-                text={message}
-                overflowType={overflowType}
-                maxHeight={maxHeight}
-            >
+        const body = (
+            <>
                 <div
                     id={id}
                     className='post-message__text'
@@ -170,6 +178,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         post={post}
                         channelId={post.channel_id}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
+                        isRHS={isRHS}
                     />
                 </div>
                 {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
@@ -179,6 +188,21 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         onHeightChange={this.handleHeightReceived}
                     />
                 )}
+            </>
+        );
+
+        if (FULL_HEIGHT_POST_TYPES.has(postType)) {
+            return body;
+        }
+
+        return (
+            <ShowMore
+                checkOverflow={this.state.checkOverflow}
+                text={message}
+                overflowType={overflowType}
+                maxHeight={maxHeight}
+            >
+                {body}
             </ShowMore>
         );
     }

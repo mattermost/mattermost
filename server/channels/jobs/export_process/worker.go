@@ -18,7 +18,7 @@ import (
 type AppIface interface {
 	configservice.ConfigService
 	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
-	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
+	BulkExport(rctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
 

@@ -65,11 +65,11 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	if cnd.DisplayDate != nil {
 		y, m, d := time.Now().UTC().Date()
 		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
-		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
+		rctx, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&trunc) {
+		if !rctx.Check(&trunc) {
 			return false, nil
 		}
 	}
@@ -210,9 +210,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
+func (a *App) GetProductNotices(rctx request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*rctx.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
 	if !*a.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {

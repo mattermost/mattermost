@@ -1,80 +1,110 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SingleImageView permalink preview should render with permalink styling if in permalink 1`] = `
-<div
-  className="file-view--single image-permalink"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single image-permalink"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-permalink image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded image-permalink"
-        style={Object {}}
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "jpg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "file_info_id",
-              "mime_type": "mime_type",
-              "name": "name",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container image-permalink"
+      >
+        <div
+          class="image-loaded"
+        >
+          <div
+            class="image-permalink"
+          >
+            <div
+              class="image-loading__container image-permalink"
+              style="max-width: 350px;"
+            >
+              <div
+                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              >
+                <div
+                  class="file__image-loading"
+                >
+                  <span
+                    class="LoadingSpinner"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      class="fa fa-spinner fa-fw fa-pulse spinner"
+                      title="Loading Icon"
+                    />
+                  </span>
+                  <span
+                    class="loader-percent"
+                  />
+                </div>
+              </div>
+              <svg
+                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
+                viewBox="0 0 350 200"
+                xmlns="http://www.w3.org/2000/svg"
+              />
+            </div>
+            <div
+              class="file-preview__button"
+              style="display: none;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name"
+                  class="image-permalink"
+                  src="/api/v4/files/file_info_id/preview"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -82,80 +112,110 @@ exports[`components/SingleImageView permalink preview should render with permali
 `;
 
 exports[`components/SingleImageView should match snapshot 1`] = `
-<div
-  className="file-view--single"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded"
-        style={Object {}}
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "jpg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "file_info_id",
-              "mime_type": "mime_type",
-              "name": "name",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container"
+      >
+        <div
+          class="image-loaded"
+        >
+          <div
+            class=""
+          >
+            <div
+              class="image-loading__container "
+              style="max-width: 350px;"
+            >
+              <div
+                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              >
+                <div
+                  class="file__image-loading"
+                >
+                  <span
+                    class="LoadingSpinner"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      class="fa fa-spinner fa-fw fa-pulse spinner"
+                      title="Loading Icon"
+                    />
+                  </span>
+                  <span
+                    class="loader-percent"
+                  />
+                </div>
+              </div>
+              <svg
+                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
+                viewBox="0 0 350 200"
+                xmlns="http://www.w3.org/2000/svg"
+              />
+            </div>
+            <div
+              class="file-preview__button"
+              style="display: none;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name"
+                  class=""
+                  src="/api/v4/files/file_info_id/preview"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -163,80 +223,79 @@ exports[`components/SingleImageView should match snapshot 1`] = `
 `;
 
 exports[`components/SingleImageView should match snapshot 2`] = `
-<div
-  className="file-view--single"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded image-fade-in"
-        style={Object {}}
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "jpg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "file_info_id",
-              "mime_type": "mime_type",
-              "name": "name",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container"
+      >
+        <div
+          class="image-loaded image-fade-in"
+        >
+          <div
+            class=""
+          >
+            <div
+              class="file-preview__button"
+              style="display: inline-block;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name"
+                  class=""
+                  src="/api/v4/files/file_info_id/preview"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -244,84 +303,112 @@ exports[`components/SingleImageView should match snapshot 2`] = `
 `;
 
 exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
-<div
-  className="file-view--single"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded svg"
-        style={
-          Object {
-            "width": "100%",
-          }
-        }
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "svg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "svg_file_info_id",
-              "mime_type": "mime_type",
-              "name": "name_svg",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/svg_file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/svg_file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container"
+      >
+        <div
+          class="image-loaded svg"
+          style="width: 100%;"
+        >
+          <div
+            class=""
+          >
+            <div
+              class="image-loading__container "
+              style="max-width: 350px;"
+            >
+              <div
+                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              >
+                <div
+                  class="file__image-loading"
+                >
+                  <span
+                    class="LoadingSpinner"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      class="fa fa-spinner fa-fw fa-pulse spinner"
+                      title="Loading Icon"
+                    />
+                  </span>
+                  <span
+                    class="loader-percent"
+                  />
+                </div>
+              </div>
+              <svg
+                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
+                viewBox="0 0 350 200"
+                xmlns="http://www.w3.org/2000/svg"
+              />
+            </div>
+            <div
+              class="file-preview__button"
+              style="display: none;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name_svg"
+                  class=""
+                  src="/api/v4/files/svg_file_info_id/preview"
+                  style="width: 350px; height: auto;"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/svg_file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -329,84 +416,81 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
 `;
 
 exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
-<div
-  className="file-view--single"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded image-fade-in svg"
-        style={
-          Object {
-            "width": "100%",
-          }
-        }
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "svg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "svg_file_info_id",
-              "mime_type": "mime_type",
-              "name": "name_svg",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/svg_file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/svg_file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container"
+      >
+        <div
+          class="image-loaded image-fade-in svg"
+          style="width: 100%;"
+        >
+          <div
+            class=""
+          >
+            <div
+              class="file-preview__button"
+              style="display: inline-block;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name_svg"
+                  class=""
+                  src="/api/v4/files/svg_file_info_id/preview"
+                  style="width: 350px; height: auto;"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/svg_file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -414,80 +498,79 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
 `;
 
 exports[`components/SingleImageView should set loaded state on callback of onImageLoaded on SizeAwareImage component 1`] = `
-<div
-  className="file-view--single"
->
+<div>
   <div
-    className="file__image"
+    class="file-view--single"
   >
     <div
-      className="image-header image-header--expanded"
-    >
-      <button
-        aria-label="Toggle Embed Visibility"
-        className="style--none single-image-view__toggle"
-        data-expanded={true}
-        key="toggle"
-        onClick={[Function]}
-      >
-        <MenuDownIcon
-          color="currentColor"
-          size={16}
-        />
-      </button>
-    </div>
-    <div
-      className="image-container image-container--small"
-      data-expanded={true}
-      style={
-        Object {
-          "minHeight": 50,
-          "minWidth": 50,
-        }
-      }
+      class="file__image"
     >
       <div
-        className="image-loaded image-fade-in"
-        style={Object {}}
+        class="image-header image-header--expanded"
       >
-        <injectIntl(SizeAwareImage)
-          className=" single-image-view__image"
-          dimensions={
-            Object {
-              "height": 200,
-              "width": 350,
-            }
-          }
-          enablePublicLink={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "client_id",
-              "create_at": 1,
-              "delete_at": 1,
-              "extension": "jpg",
-              "has_preview_image": true,
-              "height": 200,
-              "id": "file_info_id",
-              "mime_type": "mime_type",
-              "name": "name",
-              "size": 1,
-              "update_at": 1,
-              "user_id": "user_id",
-              "width": 350,
-            }
-          }
-          fileURL="/api/v4/files/file_info_id"
-          getFilePublicLink={[Function]}
-          handleSmallImageContainer={true}
-          minContainerSize={50}
-          onClick={[Function]}
-          onImageLoaded={[Function]}
-          showLoader={true}
-          smallImageThreshold={216}
-          src="/api/v4/files/file_info_id/preview"
-        />
+        <button
+          aria-label="Toggle Embed Visibility"
+          class="style--none single-image-view__toggle"
+          data-expanded="true"
+        >
+          <span
+            class="icon icon-menu-down"
+          />
+        </button>
+      </div>
+      <div
+        class="image-container"
+      >
+        <div
+          class="image-loaded image-fade-in"
+        >
+          <div
+            class=""
+          >
+            <div
+              class="file-preview__button"
+              style="display: inline-block;"
+            >
+              <figure
+                class="image-loaded-container"
+              >
+                <img
+                  aria-label="file thumbnail name"
+                  class=""
+                  src="/api/v4/files/file_info_id/preview"
+                  tabindex="0"
+                />
+                <span
+                  class="image-preview-utility-buttons-container"
+                >
+                  <a
+                    aria-label="Download"
+                    class="style--none size-aware-image__download"
+                    download=""
+                    href="/api/v4/files/file_info_id"
+                    rel="noopener noreferrer"
+                    role="button"
+                    target="_blank"
+                  >
+                    <svg
+                      class="style--none"
+                      fill="currentColor"
+                      height="20"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                      />
+                    </svg>
+                  </a>
+                </span>
+              </figure>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

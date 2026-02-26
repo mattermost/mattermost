@@ -82,6 +82,9 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 		publicKey = testPublicKey
 	}
 	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return "", fmt.Errorf("failed to decode public key PEM block for environment %q", model.GetServiceEnvironment())
+	}
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {

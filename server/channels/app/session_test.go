@@ -21,7 +21,6 @@ import (
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	session := &model.Session{
 		UserId: model.NewId(),
@@ -100,13 +99,12 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
@@ -130,7 +128,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 
 	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)
@@ -161,7 +159,6 @@ const (
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
@@ -251,7 +248,6 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
@@ -343,7 +339,6 @@ func TestGetCloudSession(t *testing.T) {
 	th := Setup(t)
 	defer func() {
 		os.Unsetenv("MM_CLOUD_API_KEY")
-		th.TearDown()
 	}()
 
 	t.Run("Matching environment variable and token should return non-nil session", func(t *testing.T) {
@@ -409,8 +404,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 
 func TestSessionsLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	var sessions []*model.Session
@@ -457,8 +451,7 @@ func TestSessionsLimit(t *testing.T) {
 
 func TestSetExtraSessionProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()

@@ -109,6 +109,15 @@ func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowle
 	return nil
 }
 
+func (s *SqlPostAcknowledgementStore) DeleteAllForPost(postID string) error {
+	query := s.getQueryBuilder().
+		Delete("PostAcknowledgements").
+		Where(sq.Eq{"PostId": postID})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	return err
+}
+
 func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
 	var acknowledgements []*model.PostAcknowledgement
 

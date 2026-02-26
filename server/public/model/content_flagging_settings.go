@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 )
@@ -44,6 +45,11 @@ func (cfs *ContentFlaggingNotificationSettings) SetDefaults() {
 
 	if _, exists := cfs.EventTargetMapping[EventFlagged]; !exists {
 		cfs.EventTargetMapping[EventFlagged] = []NotificationTarget{TargetReviewers}
+	} else {
+		// Ensure TargetReviewers is always included for EventFlagged
+		if !slices.Contains(cfs.EventTargetMapping[EventFlagged], TargetReviewers) {
+			cfs.EventTargetMapping[EventFlagged] = append(cfs.EventTargetMapping[EventFlagged], TargetReviewers)
+		}
 	}
 
 	if _, exists := cfs.EventTargetMapping[EventAssigned]; !exists {
@@ -71,7 +77,7 @@ func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
 
 		for _, target := range targets {
 			if target != TargetReviewers && target != TargetAuthor && target != TargetReporter {
-				return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_target", nil, "", http.StatusBadRequest)
+				return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_target", nil, fmt.Sprintf("target: %s", target), http.StatusBadRequest)
 			}
 		}
 	}
@@ -91,13 +97,11 @@ func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
 
 type TeamReviewerSetting struct {
 	Enabled     *bool
-	ReviewerIds *[]string
+	ReviewerIds []string
 }
 
 type ReviewerSettings struct {
 	CommonReviewers         *bool
-	CommonReviewerIds       *[]string
-	TeamReviewersSetting    *map[string]TeamReviewerSetting
 	SystemAdminsAsReviewers *bool
 	TeamAdminsAsReviewers   *bool
 }
@@ -107,14 +111,6 @@ func (rs *ReviewerSettings) SetDefaults() {
 		rs.CommonReviewers = NewPointer(true)
 	}
 
-	if rs.CommonReviewerIds == nil {
-		rs.CommonReviewerIds = &[]string{}
-	}
-
-	if rs.TeamReviewersSetting == nil {
-		rs.TeamReviewersSetting = &map[string]TeamReviewerSetting{}
-	}
-
 	if rs.SystemAdminsAsReviewers == nil {
 		rs.SystemAdminsAsReviewers = NewPointer(false)
 	}
@@ -122,28 +118,6 @@ func (rs *ReviewerSettings) SetDefaults() {
 	if rs.TeamAdminsAsReviewers == nil {
 		rs.TeamAdminsAsReviewers = NewPointer(true)
 	}
-}
-
-func (rs *ReviewerSettings) IsValid() *AppError {
-	additionalReviewersEnabled := *rs.SystemAdminsAsReviewers || *rs.TeamAdminsAsReviewers
-
-	// If common reviewers are enabled, there must be at least one specified reviewer, or additional viewers be specified
-	if *rs.CommonReviewers && (rs.CommonReviewerIds == nil || len(*rs.CommonReviewerIds) == 0) && !additionalReviewersEnabled {
-		return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// if Additional Reviewers are specified, no extra validation is needed in team specific settings as
-	// settings team reviewers keeping team feature disabled is valid, as well as
-	// enabling team feature and not specified reviews is fine as well (since Additional Reviewers are set)
-	if !additionalReviewersEnabled {
-		for _, setting := range *rs.TeamReviewersSetting {
-			if *setting.Enabled && (setting.ReviewerIds == nil || len(*setting.ReviewerIds) == 0) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
-	}
-
-	return nil
 }
 
 type AdditionalContentFlaggingSettings struct {
@@ -179,14 +153,13 @@ func (acfs *AdditionalContentFlaggingSettings) IsValid() *AppError {
 	return nil
 }
 
-type ContentFlaggingSettings struct {
+type ContentFlaggingSettingsBase struct {
 	EnableContentFlagging *bool
-	ReviewerSettings      *ReviewerSettings
 	NotificationSettings  *ContentFlaggingNotificationSettings
 	AdditionalSettings    *AdditionalContentFlaggingSettings
 }
 
-func (cfs *ContentFlaggingSettings) SetDefaults() {
+func (cfs *ContentFlaggingSettingsBase) SetDefaults() {
 	if cfs.EnableContentFlagging == nil {
 		cfs.EnableContentFlagging = NewPointer(false)
 	}
@@ -197,25 +170,16 @@ func (cfs *ContentFlaggingSettings) SetDefaults() {
 		}
 	}
 
-	if cfs.ReviewerSettings == nil {
-		cfs.ReviewerSettings = &ReviewerSettings{}
-	}
-
 	if cfs.AdditionalSettings == nil {
 		cfs.AdditionalSettings = &AdditionalContentFlaggingSettings{}
 	}
 
 	cfs.NotificationSettings.SetDefaults()
-	cfs.ReviewerSettings.SetDefaults()
 	cfs.AdditionalSettings.SetDefaults()
 }
 
-func (cfs *ContentFlaggingSettings) IsValid() *AppError {
+func (cfs *ContentFlaggingSettingsBase) IsValid() *AppError {
 	if err := cfs.NotificationSettings.IsValid(); err != nil {
-		return err
-	}
-
-	if err := cfs.ReviewerSettings.IsValid(); err != nil {
 		return err
 	}
 
@@ -226,7 +190,44 @@ func (cfs *ContentFlaggingSettings) IsValid() *AppError {
 	return nil
 }
 
+type ContentFlaggingSettings struct {
+	ContentFlaggingSettingsBase
+	ReviewerSettings *ReviewerSettings
+}
+
+func (cfs *ContentFlaggingSettings) SetDefaults() {
+	cfs.ContentFlaggingSettingsBase.SetDefaults()
+
+	if cfs.ReviewerSettings == nil {
+		cfs.ReviewerSettings = &ReviewerSettings{}
+	}
+
+	cfs.ReviewerSettings.SetDefaults()
+}
+
+func (cfs *ContentFlaggingSettings) IsValid() *AppError {
+	return cfs.ContentFlaggingSettingsBase.IsValid()
+}
+
 type ContentFlaggingReportingConfig struct {
-	Reasons                 *[]string `json:"reasons"`
-	ReporterCommentRequired *bool     `json:"reporter_comment_required"`
+	Reasons                   *[]string `json:"reasons"`
+	ReporterCommentRequired   *bool     `json:"reporter_comment_required"`
+	ReviewerCommentRequired   *bool     `json:"reviewer_comment_required"`
+	NotifyReporterOnDismissal *bool     `json:"notify_reporter_on_dismissal,omitempty"`
+	NotifyReporterOnRemoval   *bool     `json:"notify_reporter_on_removal,omitempty"`
+}
+
+type ReviewerIDsSettings struct {
+	CommonReviewerIds    []string
+	TeamReviewersSetting map[string]*TeamReviewerSetting
+}
+
+func (rs *ReviewerIDsSettings) SetDefaults() {
+	if rs.CommonReviewerIds == nil {
+		rs.CommonReviewerIds = []string{}
+	}
+
+	if rs.TeamReviewersSetting == nil {
+		rs.TeamReviewersSetting = map[string]*TeamReviewerSetting{}
+	}
 }

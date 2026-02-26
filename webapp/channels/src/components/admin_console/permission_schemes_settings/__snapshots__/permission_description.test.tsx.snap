@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_description should allow select with link 1`] = `
 <Provider
@@ -69,7 +69,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
             <span>
               Inherited from 
               <a
-                key=".$.1"
+                key="1/.1"
               >
                 All Members
               </a>
@@ -87,6 +87,9 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -95,22 +98,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }

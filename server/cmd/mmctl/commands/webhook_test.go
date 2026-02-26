@@ -265,7 +265,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -309,7 +309,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 

@@ -260,7 +260,7 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	users, appErr := c.App.GetUsersByIds(c.AppContext, userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return

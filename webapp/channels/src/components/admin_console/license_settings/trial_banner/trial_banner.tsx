@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,7 +11,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -31,7 +29,7 @@ interface TrialBannerProps {
     handleUpgrade: () => Promise<void>;
     upgradeError: string | null;
     restartError: string | null;
-    openTrialForm?: (telemetryProps?: TelemetryProps) => void;
+    openTrialForm?: () => void;
 
     handleRestart: () => Promise<void>;
 
@@ -47,7 +45,7 @@ export const EmbargoedEntityTrialError = () => {
             id='admin.license.trial-request.embargoed'
             defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
             values={{
-                link: (text: string) => (
+                link: (text) => (
                     <ExternalLink
                         location='trial_banner'
                         href={LicenseLinks.EMBARGOED_COUNTRIES}
@@ -109,13 +107,13 @@ const TrialBanner = ({
         case TrialLoadStatus.Failed:
             return formatMessage({id: 'start_trial.modal.failed', defaultMessage: 'Failed'});
         case TrialLoadStatus.Embargoed:
-            return formatMessage<ReactNode>(
+            return formatMessage(
                 {
                     id: 'admin.license.trial-request.embargoed',
                     defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',
                 },
                 {
-                    link: (text: string) => (
+                    link: (text) => (
                         <ExternalLink
                             location='trial_banner'
                             href={LicenseLinks.EMBARGOED_COUNTRIES}
@@ -132,7 +130,7 @@ const TrialBanner = ({
 
     const handleRequestLicense = () => {
         if (openTrialForm) {
-            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
+            openTrialForm();
         }
     };
 
@@ -343,7 +341,7 @@ const TrialBanner = ({
                 <p className='upgrade-legal-terms'>
                     <FormattedMessage
                         id='admin.license.upgrade-and-trial-request.accept-terms-initial-part'
-                        defaultMessage='By selecting <strong>Upgrade Server And Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails. '
+                        defaultMessage='By selecting <strong>Upgrade Server And Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails. '
                         values={{
                             strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             linkEvaluation: (msg: React.ReactNode) => (

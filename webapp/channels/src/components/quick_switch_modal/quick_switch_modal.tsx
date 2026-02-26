@@ -177,7 +177,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                     id='quickSwitchModal.help_no_team'
                     defaultMessage='Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.'
                     values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             );
@@ -230,7 +230,6 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         providers={providers}
                         completeOnTab={false}
                         spellCheck='false'
-                        delayInputUpdate={true}
                         openWhenEmpty={true}
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}

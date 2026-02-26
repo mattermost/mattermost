@@ -1,139 +1,179 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, on files selected 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <MessagesOrFilesSelector
-    crossTeamSearchEnabled={false}
-    filesCounter="10"
-    isFileAttachmentsEnabled={true}
-    messagesCounter="5"
-    onChange={[MockFunction]}
-    onFilter={[MockFunction]}
-    onTeamChange={[MockFunction]}
-    selected="files"
-    selectedFilter="code"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="true"
+        class="active tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="0"
+      >
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, on messages selected 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <MessagesOrFilesSelector
-    crossTeamSearchEnabled={false}
-    filesCounter="10"
-    isFileAttachmentsEnabled={true}
-    messagesCounter="5"
-    onChange={[MockFunction]}
-    onFilter={[MockFunction]}
-    onTeamChange={[MockFunction]}
-    selected="messages"
-    selectedFilter="code"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="true"
+        class="active tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="0"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="false"
+        class="tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, without files tab 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <MessagesOrFilesSelector
-    crossTeamSearchEnabled={false}
-    filesCounter="10"
-    isFileAttachmentsEnabled={false}
-    messagesCounter="5"
-    onChange={[MockFunction]}
-    onFilter={[MockFunction]}
-    onTeamChange={[MockFunction]}
-    selected="files"
-    selectedFilter="code"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;

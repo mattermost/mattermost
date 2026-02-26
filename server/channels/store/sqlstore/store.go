@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"path"
@@ -49,7 +48,7 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	minimumRequiredPostgresVersion = 130000
+	minimumRequiredPostgresVersion = 140000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -111,6 +110,11 @@ type SqlStoreStores struct {
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
+	autotranslation            store.AutoTranslationStore
+	ContentFlagging            store.ContentFlaggingStore
+	recap                      store.RecapStore
+	readReceipt                store.ReadReceiptStore
+	temporaryPost              store.TemporaryPostStore
 }
 
 type SqlStore struct {
@@ -129,7 +133,6 @@ type SqlStore struct {
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
-	context           context.Context
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	logger            mlog.LoggerIFace
@@ -139,6 +142,7 @@ type SqlStore struct {
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
 	disableMorphLogging       bool
+	featureFlagsFn            func() *model.FeatureFlags
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -156,6 +160,25 @@ func DisableMorphLogging() Option {
 		s.disableMorphLogging = true
 		return nil
 	}
+}
+
+// WithFeatureFlags provides a callback that returns the current feature flags.
+// This allows the store layer to read feature flags without depending on the full config.
+func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
+	return func(s *SqlStore) error {
+		s.featureFlagsFn = fn
+		return nil
+	}
+}
+
+// getFeatureFlags returns the current feature flags, or defaults if no function was configured.
+func (ss *SqlStore) getFeatureFlags() *model.FeatureFlags {
+	if ss.featureFlagsFn != nil {
+		return ss.featureFlagsFn()
+	}
+	ff := &model.FeatureFlags{}
+	ff.SetDefaults()
+	return ff
 }
 
 func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
@@ -261,18 +284,15 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
+	store.stores.autotranslation = newSqlAutoTranslationStore(store)
+	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.recap = newSqlRecapStore(store)
+	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
+	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store, nil
-}
-
-func (ss *SqlStore) SetContext(context context.Context) {
-	ss.context = context
-}
-
-func (ss *SqlStore) Context() context.Context {
-	return ss.context
 }
 
 func (ss *SqlStore) Logger() mlog.LoggerIFace {
@@ -345,42 +365,23 @@ func (ss *SqlStore) DriverName() string {
 }
 
 // specialSearchChars have special meaning and can be treated as spaces
-func (ss *SqlStore) specialSearchChars() []string {
-	chars := []string{
-		"<",
-		">",
-		"+",
-		"-",
-		"(",
-		")",
-		"~",
-		":",
-	}
-
-	// Postgres can handle "@" without any errors
-	// Also helps postgres in enabling search for EmailAddresses
-	if ss.DriverName() != model.DatabaseDriverPostgres {
-		chars = append(chars, "@")
-	}
-
-	return chars
+var specialSearchChars = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	":",
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
-// when using Postgres
 func (ss *SqlStore) computeBinaryParam() (bool, error) {
-	if ss.DriverName() != model.DatabaseDriverPostgres {
-		return false, nil
-	}
-
 	return DSNHasBinaryParam(*ss.settings.DataSource)
 }
 
 func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
-	if ss.DriverName() != model.DatabaseDriverPostgres {
-		return "", nil
-	}
-
 	var defaultTextSearchConfig string
 	err := ss.GetMaster().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
 	return defaultTextSearchConfig, err
@@ -395,14 +396,10 @@ func (ss *SqlStore) IsBinaryParamEnabled() bool {
 // that can be parsed by callers.
 func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	var sqlVersion string
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		if numerical {
-			sqlVersion = `SHOW server_version_num`
-		} else {
-			sqlVersion = `SHOW server_version`
-		}
+	if numerical {
+		sqlVersion = `SHOW server_version_num`
 	} else {
-		return "", errors.New("Not supported driver")
+		sqlVersion = `SHOW server_version`
 	}
 
 	var version string
@@ -884,6 +881,22 @@ func (ss *SqlStore) Attributes() store.AttributesStore {
 	return ss.stores.Attributes
 }
 
+func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
+	return ss.stores.autotranslation
+}
+
+func (ss *SqlStore) Recap() store.RecapStore {
+	return ss.stores.recap
+}
+
+func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
+	return ss.stores.readReceipt
+}
+
+func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
+	return ss.stores.temporaryPost
+}
+
 func (ss *SqlStore) DropAllTables() {
 	ss.masterX.Exec(`DO
 		$func$
@@ -936,19 +949,6 @@ func (ss *SqlStore) hasLicense() bool {
 	return hasLicense
 }
 
-func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
-	columns := strings.Split(columnNames, ", ")
-	concatenatedColumnNames := ""
-	for i, c := range columns {
-		concatenatedColumnNames += c
-		if i < len(columns)-1 {
-			concatenatedColumnNames += " || ' ' || "
-		}
-	}
-
-	return concatenatedColumnNames
-}
-
 // IsDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
 // tables in the database.
 func IsDuplicate(err error) bool {
@@ -965,15 +965,12 @@ func IsDuplicate(err error) bool {
 // ensureMinimumDBVersion gets the DB version and ensures it is
 // above the required minimum version requirements.
 func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
-	switch *ss.settings.DriverName {
-	case model.DatabaseDriverPostgres:
-		intVer, err2 := strconv.Atoi(ver)
-		if err2 != nil {
-			return false, fmt.Errorf("cannot parse DB version: %v", err2)
-		}
-		if intVer < minimumRequiredPostgresVersion {
-			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredPostgresVersion, *ss.settings.DriverName))
-		}
+	intVer, err := strconv.Atoi(ver)
+	if err != nil {
+		return false, fmt.Errorf("cannot parse DB version: %v", err)
+	}
+	if intVer < minimumRequiredPostgresVersion {
+		return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer), versionString(minimumRequiredPostgresVersion))
 	}
 	return true, nil
 }
@@ -982,7 +979,7 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-func versionString(v int, driver string) string {
+func versionString(v int) string {
 	minor := v % 10000
 	major := v / 10000
 	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
@@ -1064,4 +1061,8 @@ func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, e
 
 func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 	return ss.stores.scheduledPost
+}
+
+func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
+	return ss.stores.ContentFlagging
 }

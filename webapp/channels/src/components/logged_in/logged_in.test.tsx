@@ -14,7 +14,7 @@ import type {Props} from 'components/logged_in/logged_in';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
-jest.mock('actions/websocket_actions.jsx', () => ({
+jest.mock('actions/websocket_actions', () => ({
     initialize: jest.fn(),
     close: jest.fn(),
 }));
@@ -174,7 +174,7 @@ describe('components/logged_in/LoggedIn', () => {
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
-        expect(BrowserStore.signalLogin).toBeCalledTimes(1);
+        expect(BrowserStore.signalLogin).toHaveBeenCalledTimes(1);
     });
 
     it('should set state to unfocused if it starts in the background', () => {
@@ -190,7 +190,7 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+        expect(obj.emitBrowserFocus).toHaveBeenCalledTimes(1);
     });
 
     it('should not make viewChannel call on unload', () => {

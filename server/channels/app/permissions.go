@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const permissionsExportBatchSize = 100
@@ -74,7 +74,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	return nil
 }
 
-func (a *App) ExportPermissions(w io.Writer) error {
+func (a *App) ExportPermissions(rctx request.CTX, w io.Writer) error {
 	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
@@ -94,7 +94,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				if roleName == "" {
 					continue
 				}
-				role, err := a.GetRoleByName(context.Background(), roleName)
+				role, err := a.GetRoleByName(rctx, roleName)
 				if err != nil {
 					return err
 				}

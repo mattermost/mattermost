@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelDetails should match snapshot 1`] = `
 <div
@@ -68,8 +68,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -82,7 +81,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -123,6 +121,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -253,8 +261,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -267,7 +274,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -308,6 +314,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -457,8 +473,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -471,7 +486,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -512,6 +526,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -594,8 +618,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -608,7 +631,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -649,6 +671,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -750,8 +782,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -764,7 +795,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -805,6 +835,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={false}
@@ -887,8 +927,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -901,7 +940,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -942,6 +980,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={false}

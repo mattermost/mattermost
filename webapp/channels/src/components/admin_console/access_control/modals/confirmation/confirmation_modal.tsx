@@ -4,8 +4,9 @@
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
+
 import './confirmation_modal.scss';
-import GenericModal from '@mattermost/components/src/generic_modal/generic_modal';
 
 type Props = {
     active: boolean;

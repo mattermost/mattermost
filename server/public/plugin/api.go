@@ -860,6 +860,14 @@ type API interface {
 	// Minimum server version: 5.6
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
+	// SendToastMessage sends a toast notification to a specific user or user session.
+	// The userID parameter specifies the user to send the toast to.
+	// If connectionID is set, the toast will only be sent to that specific connection.
+	//
+	// @tag Frontend
+	// Minimum server version: 11.5
+	SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError
+
 	// Plugin Section
 
 	// GetPlugins will return a list of plugin manifests for currently active plugins.
@@ -1448,8 +1456,20 @@ type API interface {
 	// SearchPropertyFields searches for property fields with filtering options.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.10
-	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// Minimum server version: 11.0
+	SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+
+	// CountPropertyFields counts property fields for a group.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+
+	// CountPropertyFieldsForTarget counts property fields for a specific target.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 
 	// CreatePropertyValue creates a new property value.
 	//
@@ -1490,8 +1510,8 @@ type API interface {
 	// SearchPropertyValues searches for property values with filtering options.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.10
-	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	// Minimum server version: 11.0
+	SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 
 	// RegisterPropertyGroup registers a new property group.
 	//

@@ -33,6 +33,7 @@
       summary: Get content flagging status for a team
       description: |
         Returns the content flagging status for a specific team, indicating whether content flagging is enabled on the specified team or not.
+        An enterprise advanced license is required.
       tags:
         - Content Flagging
       parameters:
@@ -57,6 +58,323 @@
           description: Forbidden - User does not have permission to access this team.
         '404':
           description: The specified team was not found or the feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/flag:
+    post:
+      summary: Flag a post
+      description: |
+        Flags a post with a reason and a comment. The user must have access to the channel to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to be flagged
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: The reason for flagging the post. This must be one of the configured reasons available for selection.
+                comment:
+                  type: string
+                  description: Comment from the user flagging the post.
+      responses:
+        "200":
+          description: Post flagged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '400':
+          description: Bad request - Invalid input data or missing required fields.
+        '403':
+          description: Forbidden - User does not have permission to flag this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/fields:
+    get:
+      summary: Get content flagging property fields
+      description: |
+        Returns the list of property fields that can be associated with content flagging reports. These fields are used for storing metadata about a post's flag.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      responses:
+        '200':
+          description: Custom fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: A map of property field names to their definitions
+                additionalProperties:
+                  $ref: "#/components/schemas/PropertyField"
+        '404':
+          description: Feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/field_values:
+    get:
+      summary: Get content flagging property field values for a post
+      description: |
+        Returns the property field values associated with content flagging reports for a specific post. These values provide additional context about the flags on the post.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to retrieve property field values for
+      responses:
+        '200':
+          description: Property field values retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+                description: An array of property field values associated with the post
+        '403':
+          description: Forbidden - User does not have permission to access this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}:
+    get:
+        summary: Get a flagged post with all its content.
+        description: |
+            Returns the flagged post with all its data, even if it is soft-deleted. This endpoint is only accessible by content reviewers. A content reviewer can only fetch flagged posts from this API if the post is indeed flagged and they are a content reviewer of the post's team.
+            An enterprise advanced license is required.
+        tags:
+            - Content Flagging
+        parameters:
+            - in: path
+              name: post_id
+              required: true
+              schema:
+                  type: string
+              description: The ID of the post to retrieve
+        responses:
+            '200':
+              description: The flagged post is fetched correctly
+              content:
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/Post"
+            '403':
+              description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
+            '404':
+              description: Post not found or feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '501':
+              description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/remove:
+    put:
+        summary: Remove a flagged post
+        description: |
+            Permanently removes a flagged post and all its associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
+            The user must be a content reviewer of the team to which the post belongs to.
+            An enterprise advanced license is required.
+        tags:
+            - Content Flagging
+        parameters:
+            - in: path
+              name: post_id
+              required: true
+              schema:
+                  type: string
+              description: The ID of the post to be removed
+        responses:
+            '200':
+              description: Post removed successfully
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/StatusOK"
+            '403':
+              description: Forbidden - User does not have permission to remove this post.
+            '404':
+              description: Post not found or feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '501':
+              description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/keep:
+    put:
+      summary: Keep a flagged post
+      description: |
+        Marks a flagged post as reviewed and keeps it in the system without any changes. This action is typically performed by content reviewers after they have reviewed the flagged content and determined that it does not violate any guidelines.
+        The user must be a content reviewer of the team to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to be kept
+      responses:
+        '200':
+          description: Post marked to be kept successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '403':
+          description: Forbidden - User does not have permission to keep this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/config:
+    get:
+      summary: Get the system content flagging configuration
+      description: |
+        Returns the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+        Only system admins can access this endpoint.
+      tags:
+        - Content Flagging
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        '404':
+          description: Feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '403':
+          description: User does not have permission to manage system configuration.
+    put:
+        summary: Update the system content flagging configuration
+        description: |
+            Updates the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+            Only system admins can access this endpoint.
+        tags:
+            - Content Flagging
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        responses:
+            '200':
+              description: Configuration updated successfully
+            '400':
+              description: Bad request - Invalid input data or missing required fields.
+            '404':
+              description: Feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '403':
+              description: User does not have permission to manage system configuration.
+  /api/v4/content_flagging/team/{team_id}/reviewers/search:
+    get:
+      summary: Search content reviewers in a team
+      description: |
+        Searches for content reviewers of a specific team based on a provided term. Only a content reviewer can access this endpoint.
+
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: team_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the team to search for content reviewers for
+        - in: query
+          name: term
+          required: true
+          schema:
+            type: string
+          description: The search term to filter content reviewers by
+      responses:
+        '200':
+          description: Content reviewers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+                description: An array of user objects representing the content reviewers that match the search criteria
+        '403':
+          description: Forbidden - User does not have permission to access this team.
+        '404':
+          description: The specified team was not found or the feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/assign/{content_reviewer_id}:
+    post:
+      summary: Assign a content reviewer to a flagged post
+      description: |
+        Assigns a content reviewer to a specific flagged post for review. The user must be a content reviewer of the team to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to assign a content reviewer to
+        - in: path
+          name: content_reviewer_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the user to be assigned as the content reviewer for the post
+      responses:
+        '200':
+          description: Content reviewer assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '400':
+          description: Bad request - Invalid input data or missing required fields.
+        '403':
+          description: Forbidden - User does not have permission to assign a reviewer to this post.
+        '404':
+          description: Post or user not found, or feature is disabled via the feature flag.
         '500':
           description: Internal server error.
         '501':

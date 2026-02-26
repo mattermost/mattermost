@@ -102,6 +102,11 @@ export type Props = WrappedComponentProps & {
     * Custom minimum size for the container (defaults to 48px)
     */
     minContainerSize?: number;
+
+    /**
+    * Indicates whether the file has been rejected and should not show preview
+    */
+    isFileRejected?: boolean;
 }
 
 type State = {
@@ -231,6 +236,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             showLoader,
             onClick,
             minContainerSize,
+            isFileRejected,
             ...restProps
         } = allOtherProps;
         /* eslint-enable @typescript-eslint/no-unused-vars */
@@ -330,7 +336,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const height = (dimensions?.height ?? 0) * ratio;
             const width = (dimensions?.width ?? 0) * ratio;
 
-            const miniPreview = getFileMiniPreviewUrl(fileInfo);
+            // Don't show mini preview (blurred thumbnail) if the file is rejected
+            const miniPreview = this.props.isFileRejected ? null : getFileMiniPreviewUrl(fileInfo);
 
             if (miniPreview) {
                 fallback = (

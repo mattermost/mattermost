@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -25,12 +24,11 @@ func (tw testWriter) Write(p []byte) (int, error) {
 func TestExportPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	var scheme *model.Scheme
 	var roles []*model.Role
 	withMigrationMarkedComplete(t, th, func() {
-		scheme, roles = th.CreateScheme()
+		scheme, roles = th.CreateScheme(t)
 	})
 
 	results := [][]byte{}
@@ -42,10 +40,8 @@ func TestExportPermissions(t *testing.T) {
 		},
 	}
 
-	err := th.App.ExportPermissions(tw)
-	if err != nil {
-		t.Error(err)
-	}
+	err := th.App.ExportPermissions(th.Context, tw)
+	require.NoError(t, err)
 
 	if len(results) == 0 {
 		t.Error("Expected export to have returned something.")
@@ -93,9 +89,8 @@ func TestExportPermissions(t *testing.T) {
 func TestMigration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	role, err := th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	role, err := th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)
@@ -105,7 +100,7 @@ func TestMigration(t *testing.T) {
 	appErr := th.App.ResetPermissionsSystem()
 	require.Nil(t, appErr)
 
-	role, err = th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	role, err = th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)

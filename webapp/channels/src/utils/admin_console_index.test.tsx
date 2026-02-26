@@ -30,6 +30,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'authentication/saml',
             'environment/session_lengths',
             'authentication/email',
+            'environment/mobile_security',
             'experimental/features',
         ]);
         expect(idx.search('nginx')).toEqual([

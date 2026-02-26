@@ -1,83 +1,75 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/analytics/table_chart.tsx should match snapshot, loaded with data 1`] = `
-<div
-  className="col-sm-6"
->
+<div>
   <div
-    className="total-count recent-active-users"
+    class="col-sm-6"
   >
     <div
-      className="title"
+      class="total-count recent-active-users"
     >
-      Test
-    </div>
-    <div
-      className="content"
-    >
-      <table>
-        <tbody>
-          <tr
-            key="table-entry-test1"
-          >
-            <td>
-              <WithTooltip
-                title="test-tip1"
-              >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <table>
+          <tbody>
+            <tr>
+              <td>
                 <span>
                   test1
                 </span>
-              </WithTooltip>
-            </td>
-            <td>
-              <p>
-                test-value1
-              </p>
-            </td>
-          </tr>
-          <tr
-            key="table-entry-test2"
-          >
-            <td>
-              <WithTooltip
-                title="test-tip2"
-              >
+              </td>
+              <td>
+                <p>
+                  test-value1
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
                 <span>
                   test2
                 </span>
-              </WithTooltip>
-            </td>
-            <td>
-              <p>
-                test-value2
-              </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td>
+                <p>
+                  test-value2
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/analytics/table_chart.tsx should match snapshot, loaded without data 1`] = `
-<div
-  className="col-sm-6"
->
+<div>
   <div
-    className="total-count recent-active-users"
+    class="col-sm-6"
   >
     <div
-      className="title"
+      class="total-count recent-active-users"
     >
-      Test
-    </div>
-    <div
-      className="content"
-    >
-      <table>
-        <tbody />
-      </table>
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <table>
+          <tbody />
+        </table>
+      </div>
     </div>
   </div>
 </div>

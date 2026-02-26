@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
+
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import CustomStatusSuggestion from './custom_status_suggestion';
 
@@ -20,11 +21,11 @@ describe('components/custom_status/custom_status_emoji', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot with duration', () => {
@@ -35,29 +36,41 @@ describe('components/custom_status/custom_status_emoji', () => {
                 duration: CustomStatusDuration.TODAY,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <CustomStatusSuggestion {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    it('should call handleSuggestionClick when click occurs on div', () => {
-        const wrapper = shallow(
+    it('should call handleSuggestionClick when click occurs on div', async () => {
+        // Suppress the DOM nesting warning (button inside button) which is a component issue
+        const originalError = console.error;
+        console.error = jest.fn();
+
+        const {container} = renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
-        wrapper.find('.statusSuggestion__row').simulate('click');
-        expect(baseProps.handleSuggestionClick).toBeCalledTimes(1);
+        await userEvent.click(container.querySelector('.statusSuggestion__row')!);
+        expect(baseProps.handleSuggestionClick).toHaveBeenCalledTimes(1);
+
+        console.error = originalError;
     });
 
-    it('should render clearButton when hover occurs on div', () => {
-        const wrapper = shallow(
+    it('should render clearButton when hover occurs on div', async () => {
+        // Suppress the DOM nesting warning (button inside button) which is a component issue
+        const originalError = console.error;
+        console.error = jest.fn();
+
+        const {container} = renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
-        expect(wrapper.find('.suggestion-clear').exists()).toBeFalsy();
-        wrapper.find('.statusSuggestion__row').simulate('mouseEnter');
-        expect(wrapper.find('.suggestion-clear').exists()).toBeTruthy();
+        expect(container.querySelector('.suggestion-clear')).not.toBeInTheDocument();
+        await userEvent.hover(container.querySelector('.statusSuggestion__row')!);
+        expect(container.querySelector('.suggestion-clear')).toBeInTheDocument();
+
+        console.error = originalError;
     });
 });

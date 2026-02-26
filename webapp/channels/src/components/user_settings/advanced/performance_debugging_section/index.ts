@@ -12,8 +12,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import type {OwnProps} from './performance_debugging_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+}
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreferences = props.adminMode && props.userId ? getUserPreferences(state, props.userId) : undefined;
@@ -21,10 +25,8 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     return {
         userId: props.adminMode ? props.userId : getCurrentUserId(state),
         disableClientPlugins: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS, undefined, userPreferences),
-        disableTelemetry: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY, undefined, userPreferences),
         disableTypingMessages: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES, undefined, userPreferences),
         performanceDebuggingEnabled: isPerformanceDebuggingEnabled(state),
-
     };
 }
 

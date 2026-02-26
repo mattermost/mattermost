@@ -40,4 +40,6 @@ export const AppFieldTypes: { [name: string]: AppFieldType } = {
     CHANNEL: 'channel',
     MARKDOWN: 'markdown',
     RADIO: 'radio',
+    DATE: 'date',
+    DATETIME: 'datetime',
 };

@@ -88,6 +88,14 @@ const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
                 />
             );
             break;
+        case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
+            errorTitle = (
+                <FormattedMessage
+                    id='error.magic_link_already_logged_in.title'
+                    defaultMessage='Cannot log you in with a Magic Link'
+                />
+            );
+            break;
         case ErrorPageTypes.PAGE_NOT_FOUND:
         default:
             errorTitle = (

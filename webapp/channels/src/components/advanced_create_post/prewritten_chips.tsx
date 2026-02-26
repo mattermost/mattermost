@@ -9,8 +9,6 @@ import styled from 'styled-components';
 import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import Chip from 'components/common/chip/chip';
 
 import Constants from 'utils/constants';
@@ -18,7 +16,7 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    prefillMessage: (msg: string, shouldFocus: boolean) => void;
+    prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
 }
@@ -134,6 +132,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                 event: 'prefilled_message_selected_dm_hey',
                 message: defineMessage({
                     id: 'create_post.prewritten.tip.dm_hey_message',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- username provided when message is formatted
                     defaultMessage: ':wave: Hey @{username}',
                 }),
                 display: defineMessage({
@@ -160,7 +159,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
 
     return (
         <ChipContainer>
-            {chips.map(({event, message, display, leadingIcon}) => {
+            {chips.map(({message, display, leadingIcon}) => {
                 const values = {username: channelTeammateUsername};
                 const messageToPrefill = message.id ? formatMessage(
                     message,
@@ -180,10 +179,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                         additionalMarkup={additionalMarkup}
                         values={values}
                         onClick={() => {
-                            if (event) {
-                                trackEvent('ui', event);
-                            }
-                            prefillMessage(messageToPrefill, true);
+                            prefillMessage(messageToPrefill);
                         }}
                         otherOption={!message.id}
                         leadingIcon={leadingIcon}

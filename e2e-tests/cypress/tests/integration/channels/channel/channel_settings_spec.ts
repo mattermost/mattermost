@@ -11,6 +11,7 @@
 // Group: @channels @channel @channel_settings
 
 import {Team} from '@mattermost/types/teams';
+
 import {
     beMuted,
     beUnmuted,

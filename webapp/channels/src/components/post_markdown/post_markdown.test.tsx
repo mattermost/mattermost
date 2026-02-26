@@ -1,17 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {act} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
 import type {Post, PostType} from '@mattermost/types/posts';
 
+import {Client4} from 'mattermost-redux/client';
 import {Posts} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {PostTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
+
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+jest.mock('mattermost-redux/client');
+
+jest.mock('components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal', () => {
+    return jest.fn(() => <div data-testid='keep-remove-flagged-message-confirmation-modal'>{'KeepRemoveFlaggedMessageConfirmationModal Mock'}</div>);
+});
+
+const mockedClient4 = jest.mocked(Client4);
 
 describe('components/PostMarkdown', () => {
     const baseProps: ComponentProps<typeof PostMarkdown> = {
@@ -83,21 +97,37 @@ describe('components/PostMarkdown', () => {
     });
 
     test('should render properly with a post', () => {
+        const post = TestHelper.getPostMock({
+            props: {
+                channel_mentions: {
+                    test: {
+                        display_name: 'Test',
+                        team_name: 'test',
+                    },
+                },
+            },
+        });
+
         const props = {
             ...baseProps,
             message: 'See ~test',
-            post: TestHelper.getPostMock({
-                props: {
-                    channel_mentions: {
-                        test: {
-                            display_name: 'Test',
-                            team_name: 'test',
-                        },
-                    },
-                },
-            }),
+            post,
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+
+        const stateWithPost = {
+            ...state,
+            entities: {
+                ...state.entities,
+                posts: {
+                    posts: {
+                        [post.id]: post,
+                    },
+                    postsInThread: {},
+                },
+            },
+        };
+
+        renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
 
         const link = screen.getByRole('link');
 
@@ -168,26 +198,41 @@ describe('components/PostMarkdown', () => {
     });
 
     test('should render header change properly', () => {
-        const props = {
-            ...baseProps,
-            post: TestHelper.getPostMock({
-                id: 'post_id',
-                type: Posts.POST_TYPES.HEADER_CHANGE as PostType,
-                props: {
-                    username: 'user',
-                    old_header: 'see ~test',
-                    new_header: 'now ~test',
-                    channel_mentions: {
-                        test: {
-                            display_name: 'Test',
-                            team_name: 'test',
-                        },
+        const post = TestHelper.getPostMock({
+            id: 'post_id',
+            type: Posts.POST_TYPES.HEADER_CHANGE as PostType,
+            props: {
+                username: 'user',
+                old_header: 'see ~test',
+                new_header: 'now ~test',
+                channel_mentions: {
+                    test: {
+                        display_name: 'Test',
+                        team_name: 'test',
                     },
                 },
-            }),
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            post,
         };
 
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        const stateWithPost = {
+            ...state,
+            entities: {
+                ...state.entities,
+                posts: {
+                    posts: {
+                        [post.id]: post,
+                    },
+                    postsInThread: {},
+                },
+            },
+        };
+
+        renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
         expect(screen.getByText('@user')).toBeInTheDocument();
         expect(screen.getByText('updated the channel header')).toBeInTheDocument();
         expect(screen.getByText('From:')).toBeInTheDocument();
@@ -282,5 +327,33 @@ describe('components/PostMarkdown', () => {
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
         expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
+    });
+
+    test('should render data spillage card', async () => {
+        const reportedPost = TestHelper.getPostMock({
+            id: 'reported_post_id',
+            message: 'This is the reported post',
+            user_id: 'user_id_1',
+            channel_id: 'channel_id_1',
+        });
+
+        const dataSpillageReportPost = TestHelper.getPostMock({
+            type: PostTypes.CUSTOM_DATA_SPILLAGE_REPORT as PostType,
+            props: {
+                reported_post_id: reportedPost.id,
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            message: 'See ~test',
+            post: dataSpillageReportPost,
+        };
+
+        mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        await act(async () => {});
+
+        expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();
     });
 });

@@ -6,62 +6,15 @@ package templates
 import (
 	"bytes"
 	"html/template"
-	"os"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHTMLTemplateWatcher(t *testing.T) {
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	require.NoError(t, os.Mkdir(filepath.Join(dir, "templates"), 0700))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}foo{{ end }}`), 0600))
-
-	prevDir, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(prevDir)
-	os.Chdir(dir)
-
-	watcher, errChan, err := NewWithWatcher("templates")
-	require.NoError(t, err)
-	require.NotNil(t, watcher)
-	select {
-	case msg := <-errChan:
-		err = msg
-	default:
-		err = nil
-	}
-	require.NoError(t, err)
-	defer watcher.Close()
-
-	text, err := watcher.RenderToString("foo", Data{})
-	require.NoError(t, err)
-	assert.Equal(t, "foo", text)
-
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
-
-	require.Eventually(t, func() bool {
-		text, err := watcher.RenderToString("foo", Data{})
-		return text == "bar" && err == nil
-	}, time.Millisecond*1000, time.Millisecond*50)
-}
-
-func TestNewWithWatcher_BadDirectory(t *testing.T) {
-	watcher, errChan, err := NewWithWatcher("notarealdirectory")
-	require.Error(t, err)
-	assert.Nil(t, watcher)
-	assert.Nil(t, errChan)
-}
-
 func TestNew_BadDirectory(t *testing.T) {
-	watcher, err := New("notarealdirectory")
-	assert.Nil(t, watcher)
+	container, err := New("notarealdirectory")
+	assert.Nil(t, container)
 	assert.Error(t, err)
 }
 

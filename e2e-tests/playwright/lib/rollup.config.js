@@ -9,7 +9,7 @@ export default {
     output: [
         {
             dir: 'dist',
-            format: 'cjs', // CommonJS for Playwright
+            format: 'esm',
             sourcemap: true,
             preserveModules: true, // Keep file structure
             preserveModulesRoot: 'src',

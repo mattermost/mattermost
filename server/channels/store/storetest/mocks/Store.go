@@ -5,8 +5,6 @@
 package mocks
 
 import (
-	context "context"
-
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 
@@ -78,6 +76,26 @@ func (_m *Store) Audit() store.AuditStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.AuditStore)
+		}
+	}
+
+	return r0
+}
+
+// AutoTranslation provides a mock function with no fields
+func (_m *Store) AutoTranslation() store.AutoTranslationStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AutoTranslation")
+	}
+
+	var r0 store.AutoTranslationStore
+	if rf, ok := ret.Get(0).(func() store.AutoTranslationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.AutoTranslationStore)
 		}
 	}
 
@@ -269,20 +287,20 @@ func (_m *Store) Compliance() store.ComplianceStore {
 	return r0
 }
 
-// Context provides a mock function with no fields
-func (_m *Store) Context() context.Context {
+// ContentFlagging provides a mock function with no fields
+func (_m *Store) ContentFlagging() store.ContentFlaggingStore {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Context")
+		panic("no return value specified for ContentFlagging")
 	}
 
-	var r0 context.Context
-	if rf, ok := ret.Get(0).(func() context.Context); ok {
+	var r0 store.ContentFlaggingStore
+	if rf, ok := ret.Get(0).(func() store.ContentFlaggingStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(context.Context)
+			r0 = ret.Get(0).(store.ContentFlaggingStore)
 		}
 	}
 
@@ -948,6 +966,46 @@ func (_m *Store) Reaction() store.ReactionStore {
 	return r0
 }
 
+// ReadReceipt provides a mock function with no fields
+func (_m *Store) ReadReceipt() store.ReadReceiptStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadReceipt")
+	}
+
+	var r0 store.ReadReceiptStore
+	if rf, ok := ret.Get(0).(func() store.ReadReceiptStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ReadReceiptStore)
+		}
+	}
+
+	return r0
+}
+
+// Recap provides a mock function with no fields
+func (_m *Store) Recap() store.RecapStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Recap")
+	}
+
+	var r0 store.RecapStore
+	if rf, ok := ret.Get(0).(func() store.RecapStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RecapStore)
+		}
+	}
+
+	return r0
+}
+
 // RecycleDBConnections provides a mock function with given fields: d
 func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
@@ -1109,11 +1167,6 @@ func (_m *Store) Session() store.SessionStore {
 	return r0
 }
 
-// SetContext provides a mock function with given fields: _a0
-func (_m *Store) SetContext(_a0 context.Context) {
-	_m.Called(_a0)
-}
-
 // SharedChannel provides a mock function with no fields
 func (_m *Store) SharedChannel() store.SharedChannelStore {
 	ret := _m.Called()
@@ -1188,6 +1241,26 @@ func (_m *Store) Team() store.TeamStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.TeamStore)
+		}
+	}
+
+	return r0
+}
+
+// TemporaryPost provides a mock function with no fields
+func (_m *Store) TemporaryPost() store.TemporaryPostStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TemporaryPost")
+	}
+
+	var r0 store.TemporaryPostStore
+	if rf, ok := ret.Get(0).(func() store.TemporaryPostStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TemporaryPostStore)
 		}
 	}
 

@@ -5,12 +5,13 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -117,6 +118,8 @@ const DotMenu = ({
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
+    const isProtected = Boolean(field.attrs?.protected);
+
     const handleDuplicate = () => {
         const name = formatMessage({
             id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
@@ -137,6 +140,18 @@ const DotMenu = ({
 
     const handleVisibilityChange = (visibility: FieldVisibility) => {
         updateField({...field, attrs: {...field.attrs, visibility}});
+    };
+
+    const handleEditableByUsersToggle = () => {
+        const newAttrs = {...field.attrs};
+
+        if (field.attrs.managed === 'admin') {
+            Reflect.deleteProperty(newAttrs, 'managed');
+        } else {
+            newAttrs.managed = 'admin';
+        }
+
+        updateField({...field, attrs: newAttrs});
     };
 
     let selectedVisibilityLabel;
@@ -171,11 +186,11 @@ const DotMenu = ({
                 class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
                 children: (
                     <>
-                        <DotsHorizontalIcon size={18}/>
+                        {isProtected ? <LockOutlineIcon size={18}/> : <DotsHorizontalIcon size={18}/>}
                     </>
                 ),
                 dataTestId: `${menuId}-${field.id}`,
-                disabled: field.delete_at !== 0,
+                disabled: field.delete_at !== 0 || isProtected,
             }}
             menu={{
                 id: `${menuId}-menu`,
@@ -259,6 +274,29 @@ const DotMenu = ({
                     )}
                 />
             </Menu.SubMenu>
+            <Menu.Item
+                id={`${menuId}_editable-by-users`}
+                role='menuitemcheckbox'
+                aria-checked={field.attrs.managed !== 'admin'}
+                onClick={handleEditableByUsersToggle}
+                leadingElement={<PencilOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                        defaultMessage='Editable by users'
+                    />
+                )}
+                trailingElements={(
+                    <Toggle
+                        size='btn-sm'
+                        disabled={false}
+                        onToggle={handleEditableByUsersToggle}
+                        toggled={field.attrs.managed !== 'admin'}
+                        toggleClassName='btn-toggle-primary'
+                        tabIndex={-1}
+                    />
+                )}
+            />
             {field.create_at !== 0 && ([
                 <Menu.Item
                     key={`${menuId}_link_ad-ldap`}

@@ -5,7 +5,16 @@
     }
 
     &__location--center {
-        margin-top: calc(50vh - 240px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        margin-top: 0;
+        padding-bottom: 24px;
+
+        .modal-content {
+            flex: 1 1 auto;
+        }
     }
 
     &__location--bottom {
@@ -126,7 +135,8 @@
                 display: flex;
                 box-sizing: border-box;
                 flex: 1;
-                padding: 14px 32px;
+                margin: 0 32px;
+                padding: 14px 16px;
                 border: 1px solid rgba(var(--dnd-indicator-rgb), 0.16);
                 margin-bottom: 24px;
                 background: rgba(var(--dnd-indicator-rgb), 0.08);

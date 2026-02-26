@@ -86,7 +86,6 @@ function SaveChangesPanel({
                 <div className='SaveChangesPanel__btn-ctr'>
                     <button
                         id='panelCloseButton'
-                        data-testid='panelCloseButton'
                         type='button'
                         className='btn btn-icon btn-sm'
                         onClick={handleClose}

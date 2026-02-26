@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test(
     'displays intro to channel view for regular user',
-    {tag: ['@visual', '@channel_page']},
+    {tag: ['@visual', '@channel_page', '@snapshots']},
     async ({pw, browserName, viewport}, testInfo) => {
         // # Create and sign in a new user
         const {user} = await pw.initSetup();

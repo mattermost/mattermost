@@ -5,11 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
-
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 jest.mock('react-router-dom', () => {
     const original = jest.requireActual('react-router-dom');
@@ -19,14 +15,6 @@ jest.mock('react-router-dom', () => {
         useHistory: jest.fn().mockReturnValue({
             push: jest.fn(),
         }),
-    };
-});
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
     };
 });
 
@@ -59,6 +47,5 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () =>
 
         expect(mockHistory.push).toHaveBeenCalledWith(props.route);
         expect(mockOnClick).toHaveBeenCalled();
-        expect(trackEvent).toHaveBeenCalledWith(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'benefits_modal_section_opened_thing');
     });
 });

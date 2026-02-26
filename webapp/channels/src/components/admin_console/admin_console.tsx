@@ -22,8 +22,6 @@ import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
-import {applyTheme, resetTheme} from 'utils/utils';
-
 import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
@@ -96,12 +94,10 @@ const AdminConsole = (props: Props) => {
         props.actions.selectTeam('');
         document.body.classList.add('console__body');
         document.getElementById('root')?.classList.add('console__root');
-        resetTheme();
 
         return () => {
             document.body.classList.remove('console__body');
             document.getElementById('root')?.classList.remove('console__root');
-            applyTheme(props.currentTheme);
 
             // Reset the admin console users management table properties
             props.actions.setAdminConsoleUsersManagementTableProperties();

@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T5139 posts message with standard priority and verifies no priority labels appear',
-    {tag: '@message_priority'},
+    {tag: ['@smoke', '@message_priority']},
     async ({pw}) => {
         // # Setup test environment
         const {user} = await pw.initSetup();
@@ -25,7 +25,7 @@ test(
 
         // * Verify priority dialog appears with standard option selected
         await channelsPage.messagePriority.verifyPriorityDialog();
-        await channelsPage.messagePriority.verifyStandardOptionSelected();
+        await channelsPage.messagePriority.verifyStandardPrioritySelected();
 
         // # Close priority menu
         await channelsPage.messagePriority.closePriorityMenu();

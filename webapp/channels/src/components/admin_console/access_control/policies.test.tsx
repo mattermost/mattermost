@@ -3,13 +3,14 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {Column} from 'components/admin_console/data_grid/data_grid';
+
+import {act} from 'tests/react_testing_utils';
 
 import PolicyList from './policies';
 
@@ -90,7 +91,6 @@ describe('components/admin_console/access_control/PolicyList', () => {
         wrapper.update();
 
         expect(mockSearchPolicies).not.toHaveBeenCalled();
-        expect(wrapper.find('DataGrid').prop('page')).toBe(0);
     });
 
     test('should get columns correctly', () => {

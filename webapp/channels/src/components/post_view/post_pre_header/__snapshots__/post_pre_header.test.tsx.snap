@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PostPreHeader should not render anything if both skipFlagged and skipPinned are true 1`] = `""`;
 

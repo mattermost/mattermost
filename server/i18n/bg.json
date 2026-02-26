@@ -4670,14 +4670,6 @@
     "translation": "Профилите за гости са забранени"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Опит за използване на експерименталната функция ClientSideCertEnable без валиден корпоративен лиценз."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Опитахте да влезете с помощта на експерименталната функция ClientSideCert, без да предоставите валиден сертификат."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Влизането на бот е забранено."
   },
@@ -4844,10 +4836,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Непавилен grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Липсващ client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -5241,10 +5229,6 @@
     "translation": "Неуспешно обединяване на зададената конфигурация."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новия формат за клиентската конфигурация все още не се поддържа. Моля, посочете format = old в низа на заявката."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "свий рамене"
   },
@@ -5375,10 +5359,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Няма да получавате известия за канала {{.Channel}}, докато е заглушен."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не може да заглушите канала {{.Channel}} защото не сте член."
   },
   {
     "id": "api.command_mute.no_channel.error",

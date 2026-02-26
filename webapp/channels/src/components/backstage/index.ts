@@ -38,7 +38,15 @@ function mapStateToProps(state: GlobalState) {
         }
     }
 
-    const canManageTeamIntegrations = (haveITeamPermission(state, team?.id, Permissions.MANAGE_SLASH_COMMANDS) || haveITeamPermission(state, team?.id, Permissions.MANAGE_OAUTH) || haveITeamPermission(state, team?.id, Permissions.MANAGE_INCOMING_WEBHOOKS) || haveITeamPermission(state, team?.id, Permissions.MANAGE_OUTGOING_WEBHOOKS));
+    const canManageTeamIntegrations = (
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_SLASH_COMMANDS) ||
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_SLASH_COMMANDS) ||
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_INCOMING_WEBHOOKS) ||
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS) ||
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_OUTGOING_WEBHOOKS) ||
+        haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS) ||
+        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH})
+    );
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;
 

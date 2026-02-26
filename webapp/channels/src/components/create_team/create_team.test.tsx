@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {CreateTeam} from './create_team';
 
@@ -29,11 +29,11 @@ describe('component/create_team', () => {
     } as any;
 
     test('should match snapshot default', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <CreateTeam {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should show title and message when cloud and team limit reached', () => {
@@ -48,22 +48,11 @@ describe('component/create_team', () => {
             },
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <CreateTeam {...props}/>,
         );
 
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='create_team.createTeamRestricted.title'
-                tagName='strong'
-                defaultMessage='Professional feature'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='create_team.createTeamRestricted.message'
-                defaultMessage='Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.'
-            />,
-        )).toEqual(true);
+        expect(screen.getByText('Professional feature')).toBeInTheDocument();
+        expect(screen.getByText('Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.')).toBeInTheDocument();
     });
 });

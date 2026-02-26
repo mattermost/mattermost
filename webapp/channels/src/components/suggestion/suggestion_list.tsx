@@ -147,21 +147,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         };
     }
 
-    renderDivider(type: string) {
-        const id = type ? 'suggestion.' + type : 'suggestion.default';
-        return (
-            <li
-                key={type + '-divider'}
-                className='suggestion-list__divider'
-                role='separator'
-            >
-                <h2>
-                    <FormattedMessage id={id}/>
-                </h2>
-            </li>
-        );
-    }
-
     renderNoResults() {
         return (
             <ul
@@ -174,7 +159,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     defaultMessage='No items match <b>{value}</b>'
                     values={{
                         value: this.props.pretext || '""',
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             </ul>

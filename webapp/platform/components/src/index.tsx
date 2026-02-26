@@ -15,6 +15,7 @@ export {TourTipBackdrop} from './tour_tip/tour_tip_backdrop';
 export {PulsatingDot} from './pulsating_dot';
 
 // hooks
-export {useMeasurePunchouts} from './common/hooks/useMeasurePunchouts';
 export {useElementAvailable} from './common/hooks/useElementAvailable';
+export {useFocusTrap} from './hooks/useFocusTrap';
 export {useFollowElementDimensions} from './common/hooks/useFollowElementDimensions';
+export {useMeasurePunchouts} from './common/hooks/useMeasurePunchouts';

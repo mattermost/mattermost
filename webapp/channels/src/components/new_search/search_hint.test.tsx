@@ -18,7 +18,6 @@ describe('components/new_search/SearchHint', () => {
         searchTeam: 'teamId',
         hasSelectedOption: false,
         isDate: false,
-        showFilterHaveBeenReset: false,
     };
 
     test('should have the right hint options on search messages empty string', () => {
@@ -83,11 +82,5 @@ describe('components/new_search/SearchHint', () => {
         renderWithContext(<SearchHint {...baseProps}/>);
         screen.getByText('From:').click();
         expect(baseProps.onSelectFilter).toHaveBeenCalledWith('From:');
-    });
-
-    test('Shows the filter reset message when instructed', () => {
-        const props = {...baseProps, showFilterHaveBeenReset: true};
-        renderWithContext(<SearchHint {...props}/>);
-        expect(screen.getByText('Your filters were reset because you chose a different team')).toBeInTheDocument();
     });
 });

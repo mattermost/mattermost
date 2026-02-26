@@ -28,8 +28,11 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
+	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
+	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
+	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
 
 type webConnActivityMessage struct {
@@ -213,6 +216,14 @@ func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 	ps.Store.Channel().InvalidatePinnedPostCount(channelID)
 	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
+}
+
+func (ps *PlatformService) InvalidateCacheForReadReceipts(postID string) {
+	ps.Store.ReadReceipt().InvalidateReadReceiptForPostsCache(postID)
+}
+
+func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
+	ps.Store.TemporaryPost().InvalidateTemporaryPost(id)
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
@@ -572,7 +583,7 @@ func (h *Hub) Start() {
 				}
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConnReg.conn.IsAuthenticated() && webConnReg.conn.reuseCount == 0 {
+				if webConnReg.conn.IsBasicAuthenticated() && webConnReg.conn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by

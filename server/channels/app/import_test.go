@@ -69,7 +69,6 @@ func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, exp
 func TestImportImportLine(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Try import line with an invalid type.
 	line := imports.LineImportData{
@@ -118,7 +117,6 @@ func TestImportImportLine(t *testing.T) {
 func TestStopOnError(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
@@ -149,7 +147,6 @@ func TestStopOnError(t *testing.T) {
 func TestImportBulkImport(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -607,7 +604,6 @@ func TestProcessAttachments(t *testing.T) {
 
 func BenchmarkBulkImport(b *testing.B) {
 	th := Setup(b)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -638,7 +634,6 @@ func BenchmarkBulkImport(b *testing.B) {
 func TestImportBulkImportWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -680,7 +675,6 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	importDir := filepath.Join(th.tempWorkspace, "data", "import")
 	err := os.MkdirAll(importDir, os.ModePerm)

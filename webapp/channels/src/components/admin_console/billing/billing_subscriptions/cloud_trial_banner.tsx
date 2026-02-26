@@ -70,7 +70,7 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
             title={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.upgradeTitle'
-                    defaultMessage='Upgrade to one of our paid plans to keep your workspace '
+                    defaultMessage='Upgrade to one of our paid plans to keep your workspace'
                 />
             )}
             message={(
@@ -88,7 +88,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 <UpgradeLink
                     buttonText={formatMessage({id: 'admin.subscription.cloudTrialCard.upgrade', defaultMessage: 'Upgrade'})}
                     styleButton={true}
-                    telemetryInfo='billing_subscriptions_cloud_trial_banner'
                 />
             )}
             actionButtonRight={(

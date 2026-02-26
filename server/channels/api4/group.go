@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (api *API) InitGroup() {
@@ -304,14 +303,6 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(group)
 	auditRec.AddEventObjectType("group")
-
-	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
-		telemetry.TrackGroupsFeature,
-		"modify_group__edit_details",
-		map[string]any{
-			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
-			telemetry.TrackPropertyGroup: group.Id,
-		})
 
 	b, err := json.Marshal(group)
 	if err != nil {
@@ -706,7 +697,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			permission = model.PermissionManagePublicChannelMembers
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission); !ok {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	}
@@ -876,17 +867,19 @@ func getGroupsByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getGroupsByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	} else if len(groupNames) == 0 {
-		c.SetInvalidParam("group_names")
+		if _, err = w.Write([]byte("[]")); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	filterAllowReference := !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
+	opts := model.GroupSearchOpts{
+		FilterAllowReference: filterAllowReference,
 	}
 
-	groups, appErr := c.App.GetGroupsByNames(groupNames, restrictions)
+	groups, appErr := c.App.GetGroupsByNames(groupNames, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -979,7 +972,7 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 	} else {
 		permission = model.PermissionReadPublicChannelGroups
 	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission); !ok {
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
@@ -1145,7 +1138,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission); !ok {
 			c.SetPermissionError(permission)
 			return
 		}
@@ -1164,7 +1157,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission); !ok {
 			c.SetPermissionError(permission)
 			return
 		}
@@ -1413,13 +1406,6 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
-		telemetry.TrackGroupsFeature,
-		"modify_group__add_members",
-		map[string]any{
-			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
-			telemetry.TrackPropertyGroup: group.Id,
-		})
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1488,13 +1474,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
-		telemetry.TrackGroupsFeature,
-		"modify_group__remove_members",
-		map[string]any{
-			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
-			telemetry.TrackPropertyGroup: group.Id,
-		})
 }
 
 // hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.

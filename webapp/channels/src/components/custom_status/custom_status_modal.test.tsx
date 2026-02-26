@@ -2,21 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {Props as AutoSizerProps} from 'react-virtualized-auto-sizer';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
 import CustomStatusModal from './custom_status_modal';
 
-jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100, scaledHeight: 100, scaledWidth: 100}));
 jest.mock('images/img_trans.gif', () => 'img_trans.gif');
 
 describe('CustomStatusModal', () => {
@@ -35,49 +33,39 @@ describe('CustomStatusModal', () => {
         },
     };
 
-    // The emoji picker renders emoji categories without passing a defaultMessage, and we don't pass translation strings
-    // into the provider by default, so we need to pass something for this string to silence errors from FormatJS.
-    const renderOptions = {
-        intlMessages: {
-            'emoji_picker.smileys-emotion': 'Smileys & Emotions',
-        },
-    };
-
-    test('should render suggested statuses until the user starts typing', () => {
+    test('should render suggested statuses until the user starts typing', async () => {
         renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
             initialState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
         expect(screen.getByText('Out for lunch')).toBeInTheDocument();
         expect(screen.getByLabelText(':hamburger:')).toBeInTheDocument();
 
-        userEvent.type(screen.getByPlaceholderText('Set a status'), 'Test status, please ignore');
+        await userEvent.type(screen.getByPlaceholderText('Set a status'), 'Test status, please ignore');
 
         expect(screen.queryByText('SUGGESTIONS')).not.toBeInTheDocument();
         expect(screen.queryByText('Out for lunch')).not.toBeInTheDocument();
         expect(screen.queryByLabelText(':hamburger:')).not.toBeInTheDocument();
     });
 
-    test('should render suggested statuses until the user selects an emoji', () => {
+    test('should render suggested statuses until the user selects an emoji', async () => {
         renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
             initialState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
         expect(screen.getByLabelText(':hamburger:')).toBeInTheDocument();
         expect(screen.getByText('Out for lunch')).toBeInTheDocument();
 
-        userEvent.click(screen.getByLabelText('select an emoji'));
-        act(() => userEvent.click(screen.getByLabelText('grinning emoji')));
+        await userEvent.click(screen.getByLabelText('select an emoji'));
+        await userEvent.click(screen.getByLabelText('grinning emoji'));
 
         expect(screen.queryByText('SUGGESTIONS')).not.toBeInTheDocument();
         expect(screen.queryByText('Out for lunch')).not.toBeInTheDocument();
@@ -106,7 +94,6 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -144,7 +131,6 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();

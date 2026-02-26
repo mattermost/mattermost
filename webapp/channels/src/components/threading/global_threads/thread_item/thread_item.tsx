@@ -17,24 +17,22 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import Markdown from 'components/markdown';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
-import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
-import {CrtTutorialSteps, Preferences} from 'utils/constants';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -50,18 +48,19 @@ import './thread_item.scss';
 export type OwnProps = {
     isSelected: boolean;
     threadId: UserThread['id'];
-    style?: any;
+    style?: React.CSSProperties;
     isFirstThreadInList: boolean;
 };
 
 type Props = {
-    channel: Channel;
-    currentRelativeTeamUrl: string;
-    displayName: string;
-    post: Post;
-    postsInThread: Post[];
-    thread: UserThread;
-    isPostPriorityEnabled: boolean;
+    channel?: Channel;
+    currentRelativeTeamUrl?: string;
+    displayName?: string;
+    post?: Post;
+    postsInThread?: Post[];
+    thread?: UserThread | null;
+    isPostPriorityEnabled?: boolean;
+    isChannelAutotranslated?: boolean;
 };
 
 const markdownPreviewOptions = {
@@ -82,16 +81,14 @@ function ThreadItem({
     threadId,
     isFirstThreadInList,
     isPostPriorityEnabled,
+    isChannelAutotranslated,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId} = useThreadRouting();
-    const {formatMessage} = useIntl();
-    const isMobileView = useSelector(getIsMobileView);
+    const {formatMessage, locale} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
-    const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
-    const postAuthor = ensureString(post.props?.override_username) || displayName;
+    const postAuthor = ensureString(post?.props?.override_username) || displayName;
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
@@ -116,15 +113,15 @@ function ThreadItem({
 
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
-            if (id === post.user_id) {
+            if (id === post?.user_id) {
                 return [];
             }
             return id;
         }).reverse();
-        return [post.user_id, ...ids];
-    }, [thread?.participants]);
+        return [post?.user_id ?? '', ...ids];
+    }, [post?.user_id, thread?.participants]);
 
-    let unreadTimestamp = post.edit_at || post.create_at;
+    let unreadTimestamp = post?.edit_at || post?.create_at;
 
     const selectHandler = useCallback((e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
         // If the event is a keyboard event, check if the key is 'Enter' or ' '.
@@ -137,7 +134,7 @@ function ThreadItem({
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
-            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
+            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt ?? 0));
             if (hasUnreads) {
                 dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
             } else {
@@ -147,12 +144,13 @@ function ThreadItem({
             select(threadId);
         }
     }, [
+        thread,
+        unreadTimestamp,
+        dispatch,
+        threadId,
         currentUserId,
         currentTeamId,
-        threadId,
-        thread,
-        updateThreadRead,
-        unreadTimestamp,
+        select,
     ]);
 
     const imageProps = useMemo(() => ({
@@ -163,9 +161,9 @@ function ThreadItem({
     const goToInChannelHandler = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         goToInChannel(threadId);
-    }, [threadId]);
+    }, [goToInChannel, threadId]);
 
-    const handleFormattedTextClick = useCallback((e) => {
+    const handleFormattedTextClick = useCallback((e: React.UIEvent) => {
         // If the event is a keyboard event, check if the key is 'Enter' or ' '.
         if ('key' in e) {
             if (e.key !== 'Enter' && e.key !== ' ') {
@@ -189,9 +187,15 @@ function ThreadItem({
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp
-    if (postsInThread.length > 1) {
+    if (postsInThread && postsInThread.length > 1) {
         const p = postsInThread[0];
         unreadTimestamp = p.edit_at || p.create_at;
+    }
+
+    const translation = getPostTranslation(post, locale);
+    let message = post.message;
+    if (isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
+        message = getPostTranslatedMessage(message, translation);
     }
 
     return (
@@ -243,6 +247,13 @@ function ThreadItem({
                                 />
                             )
                         )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={post.id}
+                                translationState={translation?.state}
+                                postType={post.type}
+                            />
+                        )}
                     </div>
                     <Timestamp
                         {...THREADING_TIME}
@@ -255,7 +266,7 @@ function ThreadItem({
                         threadId={threadId}
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
-                        unreadTimestamp={unreadTimestamp}
+                        unreadTimestamp={unreadTimestamp ?? 0}
                     >
                         <WithTooltip
                             title={(
@@ -287,9 +298,9 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    {post.message ? (
+                    {message ? (
                         <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : message}
                             options={markdownPreviewOptions}
                             imagesMetadata={post?.metadata && post?.metadata?.images}
                             mentionKeys={mentionsKeys}
@@ -324,7 +335,6 @@ function ThreadItem({
                         </>
                     )}
                 </div>
-                {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
                 <span
                     className='sr-only'
                     id={`ThreadItem__timestamp_${threadId}`}

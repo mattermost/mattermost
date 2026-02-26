@@ -39,7 +39,6 @@ func setupMetricsMock() *mocks.MetricsInterface {
 func TestSubmitMetrics(t *testing.T) {
 	t.Run("unauthenticated user should not submit metrics", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		_, err := th.Client.Logout(th.Context.Context())
 		require.NoError(t, err)
@@ -54,10 +53,8 @@ func TestSubmitMetrics(t *testing.T) {
 	// an error code.
 	t.Run("metrics not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		resp, err := th.Client.SubmitClientMetrics(th.Context.Context(), nil)
-
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -75,7 +72,6 @@ func TestSubmitMetrics(t *testing.T) {
 		})
 
 		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
-		defer th.TearDown()
 
 		// enable metrics and add the license
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -108,7 +104,6 @@ func TestSubmitMetrics(t *testing.T) {
 		})
 
 		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
-		defer th.TearDown()
 
 		// enable metrics and add the license
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -141,7 +136,6 @@ func TestSubmitMetrics(t *testing.T) {
 		})
 
 		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
-		defer th.TearDown()
 
 		// enable metrics and add the license
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -180,7 +174,6 @@ func TestSubmitMetrics(t *testing.T) {
 		})
 
 		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
-		defer th.TearDown()
 
 		// enable metrics and add the license
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -215,7 +208,6 @@ func TestSubmitMetrics(t *testing.T) {
 		})
 
 		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
-		defer th.TearDown()
 
 		// enable metrics and add the license
 		th.App.Srv().SetLicense(model.NewTestLicense())

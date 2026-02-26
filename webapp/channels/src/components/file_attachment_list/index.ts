@@ -10,9 +10,11 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     makeGetFilesForEditHistory,
     makeGetFilesForPost,
+    isFileRejected,
 } from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -36,6 +38,8 @@ export type OwnProps = {
     isEditHistory?: boolean;
     disableDownload?: boolean;
     disableActions?: boolean;
+    usePostAsSource?: boolean;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 }
 
 function makeMapStateToProps() {
@@ -46,22 +50,31 @@ function makeMapStateToProps() {
         const postId = ownProps.post ? ownProps.post.id : '';
         const config = getConfig(state);
 
-        var fileInfos: FileInfo[];
+        let fileInfos: FileInfo[];
 
-        if (ownProps.isEditHistory) {
+        if (ownProps.usePostAsSource) {
+            fileInfos = ownProps.post.metadata?.files || [];
+        } else if (ownProps.isEditHistory) {
             fileInfos = getFilesForEditHistory(state, ownProps.post);
+        } else if (ownProps.post.type === PostTypes.BURN_ON_READ && ownProps.post.metadata?.files) {
+            // For burn-on-read posts, file metadata is sent directly in the reveal response
+            // and not stored as separate entities in Redux state, so we use metadata.files
+            fileInfos = ownProps.post.metadata.files;
         } else {
             fileInfos = selectFilesForPost(state, postId);
         }
 
         let fileCount = 0;
-        if (ownProps.post.metadata && ownProps.post.metadata.files) {
-            fileCount = (ownProps.post.metadata.files || []).length;
+        if (ownProps.post.metadata?.files) {
+            fileCount = ownProps.post.metadata.files.length;
         } else if (ownProps.post.file_ids) {
             fileCount = ownProps.post.file_ids.length;
         } else if (ownProps.post.filenames) {
             fileCount = ownProps.post.filenames.length;
         }
+
+        // Check if the first file is rejected (for single file view logic)
+        const firstFileRejected = fileInfos.length > 0 ? isFileRejected(state, fileInfos[0].id) : false;
 
         return {
             enableSVGs: config.EnableSVGs === 'true',
@@ -70,6 +83,7 @@ function makeMapStateToProps() {
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
             locale: getCurrentLocale(state),
+            firstFileRejected,
         };
     };
 }

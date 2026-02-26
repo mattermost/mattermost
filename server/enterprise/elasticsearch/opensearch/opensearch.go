@@ -45,8 +45,9 @@ type OpensearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     *Bulk
+	syncBulkProcessor *Bulk
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -130,14 +131,48 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		os.bulkProcessor = NewBulk(os.Platform.Config().ElasticsearchSettings,
-			os.Platform.Log(),
-			os.client)
+	esSettings := os.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		os.bulkProcessor = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			os.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			os.Platform.Log())
+	}
+	os.syncBulkProcessor = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		os.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		os.Platform.Log())
+
+	opts := []func(*types.IndexTemplateMapping){}
+	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
+	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
+		if slices.Contains(os.plugins, "analysis-nori") {
+			opts = append(opts, common.WithNoriAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-kuromoji") {
+			opts = append(opts, common.WithKuromojiAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-smartcn") {
+			opts = append(opts, common.WithSmartCNAnalyzer())
+		}
+
+		if len(opts) == 0 {
+			os.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings.")
+		}
 	}
 
 	// Set up posts index template.
-	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
+	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config(), opts...))
 	if err != nil {
 		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -297,6 +332,30 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 	return postIndexes, nil
 }
 
+func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
+	variants := []string{fieldName}
+
+	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
+		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
+		!model.ContainsCJK(query) {
+		return variants
+	}
+
+	if slices.Contains(os.plugins, "analysis-nori") {
+		variants = append(variants, fieldName+".nori")
+	}
+
+	if slices.Contains(os.plugins, "analysis-kuromoji") {
+		variants = append(variants, fieldName+".kuromoji")
+	}
+
+	if slices.Contains(os.plugins, "analysis-smartcn") {
+		variants = append(variants, fieldName+".smartcn")
+	}
+
+	return variants
+}
+
 func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
@@ -448,13 +507,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 					{
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"message"},
+							Fields:          os.getFieldVariants("message", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"attachments"},
+							Fields:          os.getFieldVariants("attachments", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
@@ -494,13 +553,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						{
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"message"},
+								Fields:          os.getFieldVariants("message", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"attachments"},
+								Fields:          os.getFieldVariants("attachments", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
@@ -555,6 +614,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		},
 	)
 
+	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{
 		HighlightQuery: &types.Query{
 			Bool: fullHighlightsQuery,
@@ -826,6 +886,49 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 	metrics := os.Platform.Metrics()
 	if metrics != nil {
 		metrics.IncrementChannelIndexCounter()
+	}
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if atomic.LoadInt32(&os.ready) == 0 {
+		return model.NewAppError("Opensearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	indexName := *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
+	metrics := os.Platform.Metrics()
+
+	for _, channel := range channels {
+		userIDs, err := getUserIDsForChannel(channel)
+		if err != nil {
+			return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+
+		err = os.syncBulkProcessor.IndexOp(&types.IndexOperation{
+			Index_: model.NewPointer(indexName),
+			Id_:    model.NewPointer(searchChannel.Id),
+		}, searchChannel)
+		if err != nil {
+			return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if metrics != nil {
+			metrics.IncrementChannelIndexCounter()
+		}
+	}
+
+	if err := os.syncBulkProcessor.Flush(); err != nil {
+		return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

@@ -248,6 +248,8 @@ describe('Teams Suite', () => {
         // Save and close
         cy.uiSaveAndClose();
 
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team settings');
 

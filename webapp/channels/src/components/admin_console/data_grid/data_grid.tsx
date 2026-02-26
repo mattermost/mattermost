@@ -46,7 +46,6 @@ type Props = {
 
     minimumColumnWidth?: number;
 
-    page: number;
     startCount: number;
     endCount: number;
     total?: number;
@@ -65,6 +64,7 @@ type Props = {
     };
 
     className?: string;
+    disabled?: boolean;
 };
 
 type State = {
@@ -207,6 +207,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                     term={this.props.term}
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}
+                    disabled={this.props.disabled}
                 />
             );
         }

@@ -135,7 +135,7 @@ export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }
 
-// getSearchTeam returns the team ID that the search is currently scoped to, or the current team if no team was specified.
+// getSearchTeam returns the team ID that the search is currently scoped to, or current team if no team was specified.
 export function getSearchTeam(state: GlobalState): string {
     return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
 }

@@ -4,32 +4,38 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -42,13 +48,13 @@ func TestCreateOAuthApp(t *testing.T) {
 	assert.Equal(t, oapp.IsTrusted, rapp.IsTrusted, "trusted did no match")
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, resp, err = client.CreateOAuthApp(context.Background(), oapp)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	rapp, resp, err = client.CreateOAuthApp(context.Background(), oapp)
 	require.NoError(t, err)
@@ -83,20 +89,19 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
@@ -136,16 +141,16 @@ func TestUpdateOAuthApp(t *testing.T) {
 	assert.Equal(t, oapp.Homepage, updatedApp.Homepage, "Homepage should have updated")
 	assert.Equal(t, oapp.IsTrusted, updatedApp.IsTrusted, "IsTrusted should have updated")
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	updatedApp.CreatorId = th.BasicUser2.Id
 	_, resp, err := client.UpdateOAuthApp(context.Background(), oapp)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, resp, err = client.UpdateOAuthApp(context.Background(), oapp)
 	require.Error(t, err)
@@ -174,8 +179,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
-	th.LoginBasic()
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.LoginBasic(t)
 
 	userOapp := &model.OAuthApp{
 		Name:         "useroapp",
@@ -208,19 +213,18 @@ func TestUpdateOAuthApp(t *testing.T) {
 func TestGetOAuthApps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -257,7 +261,7 @@ func TestGetOAuthApps(t *testing.T) {
 	require.True(t, len(apps) == 1 || apps[0].Id == rapp2.Id, "wrong apps returned")
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, resp, err := client.GetOAuthApps(context.Background(), 0, 1000)
 	require.Error(t, err)
@@ -279,19 +283,18 @@ func TestGetOAuthApps(t *testing.T) {
 func TestGetOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -321,7 +324,7 @@ func TestGetOAuthApp(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, resp, err = client.GetOAuthApp(context.Background(), rapp2.Id)
 	require.Error(t, err)
@@ -351,19 +354,18 @@ func TestGetOAuthApp(t *testing.T) {
 func TestGetOAuthAppInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -392,7 +394,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, _, err = client.GetOAuthAppInfo(context.Background(), rapp2.Id)
 	require.NoError(t, err)
@@ -421,19 +423,18 @@ func TestGetOAuthAppInfo(t *testing.T) {
 func TestDeleteOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -466,7 +467,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	resp, err = client.DeleteOAuthApp(context.Background(), rapp.Id)
 	require.Error(t, err)
@@ -495,19 +496,18 @@ func TestDeleteOAuthApp(t *testing.T) {
 func TestRegenerateOAuthAppSecret(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -542,7 +542,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	_, resp, err = client.RegenerateOAuthAppSecret(context.Background(), rapp.Id)
 	require.Error(t, err)
@@ -570,8 +570,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	adminClient := th.SystemAdminClient
 
@@ -629,11 +628,375 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 
 func TestNilAuthorizeOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	_, _, err := client.AuthorizeOAuthApp(context.Background(), nil)
 	require.Error(t, err)
 	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+}
+
+func TestRegisterOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Configure server for DCR
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("Valid DCR request", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+
+		response, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+	})
+
+	t.Run("Missing redirect URIs", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			ClientName: model.NewPointer("Test Client"),
+		}
+
+		_, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Works without authentication", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
+		// Log out to demonstrate DCR works without session
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client No Auth"),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+	})
+
+	t.Run("Works with client_uri", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client with URI"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+		assert.Equal(t, request.ClientName, response.ClientName)
+		assert.Equal(t, request.ClientURI, response.ClientURI)
+	})
+}
+
+func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	adminClient := th.SystemAdminClient
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
+	defer func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
+			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
+		})
+	}()
+
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	request := &model.ClientRegistrationRequest{
+		RedirectURIs: []string{"https://example.com/callback"},
+		ClientName:   model.NewPointer("Test Client"),
+	}
+
+	// Test with OAuth disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(false)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
+
+	// Test with DCR disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+	})
+
+	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
+
+	// Test with nil config values (should be disabled by default)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = nil
+		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
+	})
+
+	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+}
+
+func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("allowlist empty registration succeeds", func(t *testing.T) {
+		cfg := th.App.Config()
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{}
+		th.App.UpdateConfig(func(c *model.Config) { *c = *cfg })
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+		assert.NotEmpty(t, response.ClientID)
+	})
+
+	t.Run("wildcard allowed URI succeeds", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/*", "https://*.test.com/**"}
+		})
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+
+		time.Sleep(time.Second) // avoid rate limit
+		request2 := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://app.test.com/deep/path/cb"},
+			ClientName:   model.NewPointer("Test Client 2"),
+		}
+		response2, resp2, err2 := client.RegisterOAuthClient(context.Background(), request2)
+		require.NoError(t, err2)
+		CheckCreatedStatus(t, resp2)
+		require.NotNil(t, response2)
+	})
+
+	t.Run("disallowed URI returns 400 invalid_redirect_uri", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://allowed.com/**"}
+		})
+
+		body, _ := json.Marshal(&model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://disallowed.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		})
+		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		if client.AuthToken != "" {
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+client.AuthToken)
+		}
+		httpResp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		var dcrErr model.DCRError
+		jsonErr := json.NewDecoder(httpResp.Body).Decode(&dcrErr)
+		require.NoError(t, jsonErr)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+		assert.NotEmpty(t, dcrErr.ErrorDescription)
+	})
+
+	t.Run("multi redirect partial mismatch rejects request", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://allowed.com/**"}
+		})
+
+		time.Sleep(time.Second)
+		body, _ := json.Marshal(&model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://allowed.com/cb1", "https://disallowed.com/cb2"},
+			ClientName:   model.NewPointer("Test Client"),
+		})
+		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		if client.AuthToken != "" {
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+client.AuthToken)
+		}
+		httpResp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		var dcrErr model.DCRError
+		jsonErr := json.NewDecoder(httpResp.Body).Decode(&dcrErr)
+		require.NoError(t, jsonErr)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+		assert.NotEmpty(t, dcrErr.ErrorDescription)
+	})
+}
+
+func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
+	// Test successful public client DCR registration
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	// DCR request for public client
+	request := &model.ClientRegistrationRequest{
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientName:              model.NewPointer("Test Public Client"),
+		ClientURI:               model.NewPointer("https://example.com"),
+	}
+
+	// Register public client
+	response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.NotNil(t, response)
+
+	// Verify response properties for public client
+	assert.NotEmpty(t, response.ClientID)
+	assert.Nil(t, response.ClientSecret) // No client secret for public clients
+	assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+	assert.Equal(t, model.ClientAuthMethodNone, response.TokenEndpointAuthMethod)
+	assert.Equal(t, *request.ClientName, *response.ClientName)
+	assert.Equal(t, *request.ClientURI, *response.ClientURI)
+	assert.Equal(t, "user", response.Scope)
+}
+
+func TestRegisterOAuthClientAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "dcr_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptions(t, options)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("Successful DCR registration is audited", func(t *testing.T) {
+		clientName := "Test Audit Client"
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer(clientName),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+
+		// Flush audit logs
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		// Read and verify audit log
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		entry := FindAuditEntry(string(data), "registerOAuthClient", "")
+		require.NotNil(t, entry, "should find a registerOAuthClient audit entry")
+		assert.Equal(t, "success", entry.Status)
+		// Verify client details are in the raw entry
+		assert.Contains(t, fmt.Sprintf("%v", entry.Raw), clientName)
+		assert.Contains(t, fmt.Sprintf("%v", entry.Raw), response.ClientID)
+	})
+
+	t.Run("Failed DCR registration is audited", func(t *testing.T) {
+		// Truncate log file for this test
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+
+		// Invalid request (missing redirect URIs)
+		request := &model.ClientRegistrationRequest{
+			ClientName: model.NewPointer("Invalid Client"),
+		}
+
+		_, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Flush audit logs
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		// Read and verify audit log
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		entry := FindAuditEntry(string(data), "registerOAuthClient", "")
+		require.NotNil(t, entry, "should find a registerOAuthClient audit entry")
+		assert.Equal(t, "fail", entry.Status)
+	})
 }

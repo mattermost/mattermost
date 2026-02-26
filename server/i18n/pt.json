@@ -169,7 +169,7 @@
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Falha ao redefinir o campo de AuthData para E-mail."
+    "translation": "Não foi possível redefinir o campo de AuthData para E-mail."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Não é possível sair de um canal de mensagem direta."
+    "translation": "Não consigo sair de um canal de mensagem direta."
   },
   {
     "id": "api.channel.leave.left",
@@ -562,5 +562,253 @@
   {
     "id": "api.command_remote.name",
     "translation": "ligação segura"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Nodo de Serviços SSO do Provedor de Identidade em falta no XML."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Ocorreu um erro ao criar os metadados do Provedor de Serviços."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 não está configurado ou suportado neste servidor."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "É necessário o servidor de SMTP"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "O servidor de SMTP, porta, nome de utilizador foi alterado. Por favor, reinsira a palavra-passse de SMTP para testar a ligação."
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testar Definições de E-mail"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Nenhum ficheiro sob a 'imagem' no pedido."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Não é possível enviar a imagem. O armazenamento de imagens não está configurado."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Não é possível enviar o ficheiro. O ficheiro é muito grande."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "A criação por robô foi desativada."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Por favor, adicione-me às equipas e canais nos quais deseja que eu interaja. Para fazer isto, utilize o navegador ou Mattermost Desktop App."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v adicionou-o ao canal como convidado por %v."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v adicionou-o ao canal por %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Erro ao adicionar o(s) membro(s) ao canal."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "A associação ao canal foi negada para os seguintes utilizadores por causa das restrições de grupo: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Não foi possível adicionar o utilizador ao canal."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Não foi possível analisar o formulário de várias partes."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Não foi possível adicionar o utilizador ao canal porque eles foram removidos da equipa."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "O utilizador não tem os atributos necessários para aderir ao canal."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Não é possível adicionar o utilizador a este tipo de canal."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "A sua licença não suporta os marcadores de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "A criação do marcador de canal falhou."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "O utilizador não tem permissão para criar um marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Não foi possível criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Não foi possível criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Não foi possível eliminar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Não foi possível eliminar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Não foi possível eliminar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Não foi possível eliminar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Não foi possível atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Não foi possível atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Não foi possível atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Não foi possível atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Não foi possível atualizar a ordenação do marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Não foi possível atualizar a ordenação do marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Não foi possível atualizar a ordenação do marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Não foi possível atualizar a ordenação do marcador de canal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Este canal foi convertido para um 'Canal Público' e pode ser acedido por qualquer membro da equipa."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Este canal foi convertido para um 'Canal Privado'."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "A sua licença não suporta grupos"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Deve utilizar o serviço de API createDirectChannel para a criação do canal de mensagem direta."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal direto com um utilizador remoto"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Não pode ser criado um canal direto entre estes utilizadores porque eles não partilham uma equipa em comum."
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Não é possível criar mais do que {{.MaxChannelsPerTeam}} canais para a equipa atual."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "display_name está em falta no corpo do pedido"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "team_id está em falta no corpo do pedido"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Fora do Tópico"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Praça Pública"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Id. do utilizador inválida para a criação direta do canal."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Os canais de mensagens de grupo devem conter pelo menos 3 e não mais de 8 utilizadores."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Um dos utilizadores indicados não existe."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal de grupo com utilizadores remotos"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v arquivou o canal."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Não é possível eliminar o canal predefinido {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "O canal foi arquivado ou eliminado."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Não é possível eliminar os canais de mensagens de grupo ou direto"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "A sua licença não suporta a moderação de canal"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "O utilizador não está autorizado para converter a mensagem de grupo para canal privado"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} criou este canal a partir de uma mensagem de grupo com {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Não é possível atualizar um canal de mensagem direta restrito."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Não foi possível publicar a mensagem de atualização da privacidade do canal."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Não foi possível publicar a mensagem de atualização displayname"
   }
 ]

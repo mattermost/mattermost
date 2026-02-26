@@ -10,21 +10,15 @@ import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/cha
 import {debounce} from 'mattermost-redux/actions/helpers';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import GlobeIcon from 'components/widgets/icons/globe_icon';
-import LockIcon from 'components/widgets/icons/lock_icon';
 
 import {getHistory} from 'utils/browser_history';
-import {isArchivedChannel} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
+import {getChannelIconComponent} from 'utils/channel_utils';
 
 import './channel_list.scss';
 
@@ -192,20 +186,13 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            let iconToDisplay = <GlobeIcon className='channel-icon'/>;
-
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
-                iconToDisplay = <LockIcon className='channel-icon'/>;
-            }
-
-            if (isArchivedChannel(channel)) {
-                iconToDisplay = (
-                    <ArchiveIcon
-                        className='channel-icon'
-                        data-testid={`${channel.name}-archive-icon`}
-                    />
-                );
-            }
+            const ChannelIconComponent = getChannelIconComponent(channel);
+            const iconToDisplay = (
+                <ChannelIconComponent
+                    className='channel-icon'
+                    data-testid={`${channel.name}-archive-icon`}
+                />
+            );
 
             const sharedChannelIcon = channel.shared ? (
                 <SharedChannelIndicator
@@ -274,40 +261,19 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         const {team_ids: teamIds} = filterOptions.teams.values;
         if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length || accessControlPolicyEnforced.value) {
             filters.public = publicChannels.value as boolean;
-            if (filters.public) {
-                trackEvent('admin_channels_page', 'public_filter_applied_to_channel_list');
-            }
 
             filters.private = privateChannels.value as boolean;
-            if (filters.private) {
-                trackEvent('admin_channels_page', 'private_filter_applied_to_channel_list');
-            }
 
             filters.deleted = deleted.value as boolean;
-            if (filters.deleted) {
-                trackEvent('admin_channels_page', 'archived_filter_applied_to_channel_list');
-            }
 
             filters.access_control_policy_enforced = accessControlPolicyEnforced.value as boolean;
-            if (filters.access_control_policy_enforced) {
-                trackEvent('admin_channels_page', 'attributed_based_filter_applied_to_channel_list');
-            }
 
             if (!(groupConstrained.value && excludeGroupConstrained.value)) {
                 filters.group_constrained = groupConstrained.value as boolean;
-                if (filters.group_constrained) {
-                    trackEvent('admin_channels_page', 'group_sync_filter_applied_to_channel_list');
-                }
                 filters.exclude_group_constrained = excludeGroupConstrained.value as boolean;
-                if (filters.exclude_group_constrained) {
-                    trackEvent('admin_channels_page', 'manual_invites_filter_applied_to_channel_list');
-                }
             }
 
             filters.team_ids = teamIds.value as string[];
-            if (filters.team_ids.length > 0) {
-                trackEvent('admin_channels_page', 'team_id_filter_applied_to_channel_list');
-            }
         }
         this.loadPage(0, this.state.term, filters);
     };
@@ -434,7 +400,6 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

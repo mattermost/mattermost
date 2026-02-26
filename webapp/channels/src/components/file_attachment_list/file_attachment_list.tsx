@@ -64,7 +64,9 @@ export default function FileAttachmentList(props: Props) {
         );
     }
 
-    if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
+    // For single image files, use SingleImageView UNLESS the file is rejected
+    // If rejected, we want to show the file attachment card instead
+    if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived && !props.firstFileRejected) {
         const fileType = getFileType(fileInfos[0].extension);
 
         if (fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs)) {
@@ -104,6 +106,7 @@ export default function FileAttachmentList(props: Props) {
                     disableActions={props.disableActions}
                     disableThumbnail={isDeleted}
                     disablePreview={isDeleted}
+                    overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
                 />,
             );
         }

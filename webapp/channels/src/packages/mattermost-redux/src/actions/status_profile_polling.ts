@@ -87,6 +87,92 @@ export function cleanUpStatusAndProfileFetchingPoll(): ThunkActionFunc<void> {
     };
 }
 
+interface UserIdsAndMentions {
+    userIdsForProfilePoll: Array<UserProfile['id']>;
+    userIdsForStatusPoll: Array<UserProfile['id']>;
+    mentionedUsernamesAndGroups: string[];
+}
+
+export function extractUserIdsAndMentionsFromPosts(posts: Post[]): ActionFunc<UserIdsAndMentions> {
+    return (dispatch, getState) => {
+        if (posts.length === 0) {
+            return {data: {
+                userIdsForProfilePoll: [],
+                userIdsForStatusPoll: [],
+                mentionedUsernamesAndGroups: [],
+            }};
+        }
+
+        const userIdsForProfilePoll = new Set<UserProfile['id']>();
+        const userIdsForStatusPoll = new Set<UserProfile['id']>();
+        const mentionedUsernamesAndGroupsInPosts = new Set<string>();
+
+        const state = getState();
+        const currentUser = getCurrentUser(state);
+        const currentUserId = getCurrentUserId(state);
+        const isUserStatusesConfigEnabled = getIsUserStatusesConfigEnabled(state);
+        const users = getUsers(state);
+        const userStatuses = getUserStatuses(state);
+
+        posts.forEach((post) => {
+            if (post.metadata) {
+                // Add users listed in permalink previews
+                if (post.metadata.embeds) {
+                    post.metadata.embeds.forEach((embed: PostEmbed) => {
+                        if (embed.type === 'permalink' && embed.data) {
+                            const permalinkPostPreviewMetaData = embed.data as PostPreviewMetadata;
+
+                            if (permalinkPostPreviewMetaData.post?.user_id && !users[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId) {
+                                userIdsForProfilePoll.add(permalinkPostPreviewMetaData.post.user_id);
+                            }
+                            if (permalinkPostPreviewMetaData.post?.user_id && !userStatuses[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
+                                userIdsForStatusPoll.add(permalinkPostPreviewMetaData.post.user_id);
+                            }
+                        }
+                    });
+                }
+
+                // Add users listed in the Post Acknowledgement feature
+                if (post.metadata.acknowledgements) {
+                    post.metadata.acknowledgements.forEach((ack: PostAcknowledgement) => {
+                        if (ack.acknowledged_at > 0 && ack.user_id && !users[ack.user_id] && ack.user_id !== currentUserId) {
+                            userIdsForProfilePoll.add(ack.user_id);
+                        }
+                    });
+                }
+            }
+
+            // This is sufficient to check if the profile is already fetched
+            // as we receive the websocket events for the profiles changes
+            if (!users[post.user_id] && post.user_id !== currentUserId) {
+                userIdsForProfilePoll.add(post.user_id);
+            }
+
+            // This is sufficient to check if the status is already fetched
+            // as we do the polling for statuses for current channel's channel members every 1 minute in channel_controller
+            if (!userStatuses[post.user_id] && post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
+                userIdsForStatusPoll.add(post.user_id);
+            }
+
+            // We need to check for all @mentions in the post, they can be either users or groups
+            const mentioned = getNeededAtMentionedUsernamesAndGroups(state, [post]);
+            if (mentioned.size > 0) {
+                mentioned.forEach((atMention) => {
+                    if (atMention !== currentUser.username) {
+                        mentionedUsernamesAndGroupsInPosts.add(atMention);
+                    }
+                });
+            }
+        });
+
+        return {data: {
+            userIdsForProfilePoll: Array.from(userIdsForProfilePoll),
+            userIdsForStatusPoll: Array.from(userIdsForStatusPoll),
+            mentionedUsernamesAndGroups: Array.from(mentionedUsernamesAndGroupsInPosts),
+        }};
+    };
+}
+
 /**
  * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
  * This action however doesn't refetch the profiles and statuses except for groups if they are already fetched once
@@ -110,68 +196,23 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
             return {data: false};
         }
 
-        const mentionedUsernamesAndGroupsInPosts = new Set<string>();
-
         const state = getState();
-        const currentUser = getCurrentUser(state);
-        const currentUserId = getCurrentUserId(state);
-        const isUserStatusesConfigEnabled = getIsUserStatusesConfigEnabled(state);
-        const users = getUsers(state);
-        const userStatuses = getUserStatuses(state);
+        const {data: result} = dispatch(extractUserIdsAndMentionsFromPosts(posts));
 
-        posts.forEach((post) => {
-            if (post.metadata) {
-                // Add users listed in permalink previews
-                if (post.metadata.embeds) {
-                    post.metadata.embeds.forEach((embed: PostEmbed) => {
-                        if (embed.type === 'permalink' && embed.data) {
-                            const permalinkPostPreviewMetaData = embed.data as PostPreviewMetadata;
+        if (!result) {
+            return {data: false};
+        }
 
-                            if (permalinkPostPreviewMetaData.post?.user_id && !users[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId) {
-                                dispatch(addUserIdsForProfileFetchingPoll([permalinkPostPreviewMetaData.post.user_id]));
-                            }
-                            if (permalinkPostPreviewMetaData.post?.user_id && !userStatuses[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                                dispatch(addUserIdsForStatusFetchingPoll([permalinkPostPreviewMetaData.post.user_id]));
-                            }
-                        }
-                    });
-                }
+        if (result.userIdsForProfilePoll.length > 0) {
+            dispatch(addUserIdsForProfileFetchingPoll(result.userIdsForProfilePoll));
+        }
 
-                // Add users listed in the Post Acknowledgement feature
-                if (post.metadata.acknowledgements) {
-                    post.metadata.acknowledgements.forEach((ack: PostAcknowledgement) => {
-                        if (ack.acknowledged_at > 0 && ack.user_id && !users[ack.user_id] && ack.user_id !== currentUserId) {
-                            dispatch(addUserIdsForProfileFetchingPoll([ack.user_id]));
-                        }
-                    });
-                }
-            }
+        if (result.userIdsForStatusPoll.length > 0) {
+            dispatch(addUserIdsForStatusFetchingPoll(result.userIdsForStatusPoll));
+        }
 
-            // This is sufficient to check if the profile is already fetched
-            // as we receive the websocket events for the profiles changes
-            if (!users[post.user_id] && post.user_id !== currentUserId) {
-                dispatch(addUserIdsForProfileFetchingPoll([post.user_id]));
-            }
-
-            // This is sufficient to check if the status is already fetched
-            // as we do the polling for statuses for current channel's channel members every 1 minute in channel_controller
-            if (!userStatuses[post.user_id] && post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                dispatch(addUserIdsForStatusFetchingPoll([post.user_id]));
-            }
-
-            // We need to check for all @mentions in the post, they can be either users or groups
-            const mentioned = getNeededAtMentionedUsernamesAndGroups(state, [post]);
-            if (mentioned.size > 0) {
-                mentioned.forEach((atMention) => {
-                    if (atMention !== currentUser.username) {
-                        mentionedUsernamesAndGroupsInPosts.add(atMention);
-                    }
-                });
-            }
-        });
-
-        if (mentionedUsernamesAndGroupsInPosts.size > 0) {
-            dispatch(getUsersFromMentionedUsernamesAndGroups(Array.from(mentionedUsernamesAndGroupsInPosts), getLicense(state).IsLicensed === 'true'));
+        if (result.mentionedUsernamesAndGroups.length > 0) {
+            dispatch(getUsersFromMentionedUsernamesAndGroups(result.mentionedUsernamesAndGroups, getLicense(state).IsLicensed === 'true'));
         }
 
         return {data: true};
@@ -197,7 +238,7 @@ export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: stri
         // Removing usernames from the list will leave only the group names
         const mentionedGroups = usernamesAndGroups.filter((name) => !mentionedUsernames.includes(name));
 
-        if (isLicensed) {
+        if (isLicensed && mentionedGroups.length > 0) {
             await dispatch(getGroupsByNames(mentionedGroups));
         }
 

@@ -15,7 +15,7 @@ let previousEmoji = 'grinning';
 function verifyArrowKeysEmojiNavigation(arrowKey, count) {
     for (let index = 0; index < count; index++) {
         cy.get('body').type(arrowKey);
-        // eslint-disable-next-line no-loop-func
+
         cy.get('.emoji-picker__preview-name').invoke('text').then((selectedEmoji) => {
             expect(selectedEmoji).not.equal(previousEmoji);
             previousEmoji = selectedEmoji;
@@ -50,7 +50,7 @@ describe('Verify Accessibility Support in Popovers', () => {
                 {ariaLabel: 'People & Body', header: 'People & Body'},
                 {ariaLabel: 'Animals & Nature', header: 'Animals & Nature'},
                 {ariaLabel: 'Food & Drink', header: 'Food & Drink'},
-                {ariaLabel: 'Travel Places', header: 'Travel Places'},
+                {ariaLabel: 'Travel & Places', header: 'Travel & Places'},
                 {ariaLabel: 'Activities', header: 'Activities'},
                 {ariaLabel: 'Objects', header: 'Objects'},
                 {ariaLabel: 'Symbols', header: 'Symbols'},

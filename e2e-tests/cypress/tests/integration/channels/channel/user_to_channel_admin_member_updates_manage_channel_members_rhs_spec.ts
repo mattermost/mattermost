@@ -10,6 +10,7 @@
 // Group: @channels @channel
 
 import {UserProfile} from '@mattermost/types/users';
+
 import {getAdminAccount} from '../../../support/env';
 
 const demoteToChannelMember = (user, channelId, admin) => {
