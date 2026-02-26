@@ -198,8 +198,10 @@ func testUpdateView(t *testing.T, ss store.Store) {
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
 
+		propA := model.NewId()
+		propB := model.NewId()
 		fetched.Props = &model.ViewBoardProps{
-			LinkedProperties: []string{"prop-a", "prop-b"},
+			LinkedProperties: []string{propA, propB},
 			Subviews:         []model.Subview{{Title: "Kanban", Type: model.SubviewTypeKanban}},
 		}
 		_, err = ss.View().Update(fetched)
@@ -207,7 +209,7 @@ func testUpdateView(t *testing.T, ss store.Store) {
 
 		refetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
-		assert.Equal(t, []string{"prop-a", "prop-b"}, refetched.Props.LinkedProperties)
+		assert.Equal(t, []string{propA, propB}, refetched.Props.LinkedProperties)
 	})
 
 	t.Run("returns not found for unknown ID", func(t *testing.T) {

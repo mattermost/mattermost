@@ -5,9 +5,8 @@ package app
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"errors"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -59,6 +58,10 @@ func (a *App) UpdateView(rctx request.CTX, viewID string, patch *model.ViewPatch
 	view.Patch(patch)
 	updated, err := a.Srv().Store().View().Update(view)
 	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("UpdateView", "app.view.update.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		return nil, model.NewAppError("UpdateView", "app.view.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -74,6 +77,10 @@ func (a *App) DeleteView(rctx request.CTX, viewID string) *model.AppError {
 	}
 
 	if err := a.Srv().Store().View().Delete(viewID, model.GetMillis()); err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError("DeleteView", "app.view.delete.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		return model.NewAppError("DeleteView", "app.view.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
