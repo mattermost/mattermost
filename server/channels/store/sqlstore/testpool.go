@@ -36,7 +36,9 @@ func NewTestPool(logger mlog.LoggerIFace, driverName string, poolSize int) (*Tes
 	for range poolSize {
 		eg.Go(func() error {
 			settings := storetest.MakeSqlSettings(driverName)
-			sqlStore, err := New(*settings, logger, nil)
+			sqlStore, err := New(*settings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
+				return &model.FeatureFlags{CJKSearch: true}
+			}))
 			if err != nil {
 				return err
 			}
