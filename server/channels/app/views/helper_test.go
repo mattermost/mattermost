@@ -48,5 +48,9 @@ func makeView() *model.View {
 		Type:      model.ViewTypeBoard,
 		CreatorId: model.NewId(),
 		Title:     "Test View",
+		Props: &model.ViewBoardProps{
+			LinkedProperties: []string{model.NewId()},
+			Subviews:         []model.Subview{{Title: "Kanban", Type: model.SubviewTypeKanban}},
+		},
 	}
 }
