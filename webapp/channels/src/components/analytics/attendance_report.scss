@@ -1,0 +1,348 @@
+.TeamList_nameColumn {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+
+    .TeamList_nameText {
+        overflow: hidden;
+        padding-right: 10px;
+        opacity: 0.9;
+        color: var(--center-channel-color);
+    }
+
+    .TeamList__lowerOpacity {
+        opacity: 1;
+    }
+}
+
+.system-users__filter {
+    flex-grow: 0;
+    margin-right: 12px;
+
+    .Input_container {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .attendanceDateInput {
+        .Input_fieldset {
+            width: auto;
+        }
+
+        input {
+            width: 140px;
+        }
+    }
+}
+
+.attendance-date-filter {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+
+    &__trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        height: 40px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        white-space: nowrap;
+
+        i {
+            font-size: 15px;
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+        }
+
+        &:hover {
+            border-color: var(--button-bg);
+            background: rgba(var(--button-bg-rgb), 0.04);
+        }
+    }
+
+    &__dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        min-width: 240px;
+    }
+
+    &__segment {
+        display: flex;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__seg-btn {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 7px 12px;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        position: relative;
+
+        i {
+            font-size: 14px;
+        }
+
+        &:not(:last-child) {
+            border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.06);
+            color: var(--button-bg);
+        }
+
+        &.active {
+            color: var(--button-bg);
+            font-weight: 600;
+            background: rgba(var(--button-bg-rgb), 0.08);
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 10%;
+                width: 80%;
+                height: 2px;
+                border-radius: 2px 2px 0 0;
+                background: var(--button-bg);
+            }
+        }
+    }
+
+    &__calendar {
+        padding: 10px;
+
+        .attendance-day-picker {
+            --rdp-accent-color: var(--button-bg);
+            --rdp-background-color: rgba(var(--button-bg-rgb), 0.1);
+            --rdp-cell-size: 34px;
+
+            margin: 0;
+
+            .rdp-caption_label {
+                color: var(--center-channel-color);
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .rdp-head_cell {
+                color: rgba(var(--center-channel-color-rgb), 0.5);
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .rdp-day {
+                color: var(--center-channel-color);
+                font-weight: 500;
+                font-size: 13px;
+                border-radius: 6px;
+            }
+
+            .rdp-day_selected {
+                background: var(--button-bg) !important;
+                color: var(--button-color) !important;
+                font-weight: 700;
+                border-radius: 6px;
+            }
+
+            .rdp-day_today:not(.rdp-day_selected) {
+                border: 1.5px solid var(--button-bg);
+                font-weight: 700;
+                color: var(--button-bg);
+                border-radius: 6px;
+            }
+
+            .rdp-nav_button {
+                border-radius: 6px;
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
+        }
+
+        .attendance-month-picker {
+            width: 220px;
+
+            &__caption {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                padding: 0 2px;
+            }
+
+            &__year {
+                font-weight: 700;
+                font-size: 15px;
+                color: var(--center-channel-color);
+            }
+
+            &__nav {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 26px;
+                height: 26px;
+                border: none;
+                border-radius: 6px;
+                background: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.6);
+                cursor: pointer;
+                font-size: 14px;
+                transition: background 0.15s, color 0.15s;
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                    color: var(--center-channel-color);
+                }
+            }
+
+            &__grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
+
+            &__cell {
+                padding: 9px 4px;
+                border: 1.5px solid transparent;
+                border-radius: 6px;
+                background: transparent;
+                color: var(--center-channel-color);
+                font-size: 12px;
+                font-weight: 500;
+                cursor: pointer;
+                text-align: center;
+                transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+                &:hover {
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    border-color: rgba(var(--button-bg-rgb), 0.2);
+                    color: var(--button-bg);
+                }
+
+                &.selected {
+                    background: var(--button-bg);
+                    border-color: var(--button-bg);
+                    color: var(--button-color);
+                    font-weight: 700;
+                }
+            }
+        }
+    }
+}
+
+.admin-console__filters-rows {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.attendance-day-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 20px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 6px;
+    background: var(--center-channel-bg);
+    width: 100%;
+
+    &--empty {
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        background: rgba(var(--center-channel-color-rgb), 0.03);
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__label {
+        width: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        flex-shrink: 0;
+    }
+
+    &__value {
+        font-size: 14px;
+        color: var(--center-channel-color);
+        font-weight: 500;
+    }
+
+    &__breaks {
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__date {
+        font-size: 13px;
+        font-weight: 700;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        letter-spacing: 0.02em;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-bottom: 2px;
+        text-align: left;
+    }
+}
+
+.attendance-month-day-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .attendance-day-card {
+        max-width: none;
+        width: 100%;
+
+        &--empty {
+            padding: 12px 20px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+        }
+    }
+}

@@ -33,6 +33,7 @@ import ContentFlaggingSettings from 'components/admin_console/content_flagging/c
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
+import AttendanceReport from 'components/analytics/attendance_report';
 import SystemAnalytics from 'components/analytics/system_analytics';
 import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
 import TeamAnalytics from 'components/analytics/team_analytics';
@@ -366,6 +367,16 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.TEAM_STATISTICS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.TEAM_STATISTICS)),
+            },
+            attendance_report: {
+                url: 'reporting/attendance_report',
+                title: defineMessage({id: 'admin.sidebar.attendanceReport', defaultMessage: 'Attendance Report'}),
+                schema: {
+                    id: 'AttendanceReport',
+                    component: AttendanceReport,
+                },
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
             },
             server_logs: {
                 url: 'reporting/server_logs',

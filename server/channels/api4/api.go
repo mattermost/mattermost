@@ -25,8 +25,9 @@ type Routes struct {
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
 
-	Bots *mux.Router // 'api/v4/bots'
-	Bot  *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
+	Bots       *mux.Router // 'api/v4/bots'
+	Bot        *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
+	BotService *mux.Router // 'api/v4/bot-service'
 
 	Teams              *mux.Router // 'api/v4/teams'
 	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
@@ -189,6 +190,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.APIRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.BotService = api.BaseRoutes.APIRoot.PathPrefix("/bot-service").Subrouter()
 
 	api.BaseRoutes.Teams = api.BaseRoutes.APIRoot.PathPrefix("/teams").Subrouter()
 	api.BaseRoutes.TeamsForUser = api.BaseRoutes.User.PathPrefix("/teams").Subrouter()
@@ -319,6 +321,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.InitUser()
 	api.InitBot()
+	api.InitBotProxy()
 	api.InitTeam()
 	api.InitChannel()
 	api.InitPost()
@@ -401,6 +404,7 @@ func InitLocal(srv *app.Server) *API {
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.APIRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.BotService = api.BaseRoutes.APIRoot.PathPrefix("/bot-service").Subrouter()
 
 	api.BaseRoutes.Teams = api.BaseRoutes.APIRoot.PathPrefix("/teams").Subrouter()
 	api.BaseRoutes.Team = api.BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()

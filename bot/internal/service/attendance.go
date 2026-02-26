@@ -510,6 +510,254 @@ func (s *AttendanceService) RejectLeave(ctx context.Context, requestID, rejecter
 	return nil
 }
 
+// AttendanceReport is the top-level response for the report API.
+type AttendanceReport struct {
+	From  string       `json:"from"`
+	To    string       `json:"to"`
+	Users []UserReport `json:"users"`
+}
+
+// UserReport contains per-user attendance statistics.
+type UserReport struct {
+	UserID          string            `json:"user_id"`
+	Username        string            `json:"username"`
+	DaysWorked      int               `json:"days_worked"`
+	DaysLeave       int               `json:"days_leave"`
+	LateArrivals    int               `json:"late_arrivals"`
+	EarlyDepartures int               `json:"early_departures"`
+	BreakRest       int               `json:"break_rest"`
+	BreakEat        int               `json:"break_eat"`
+	BreakRestroomS  int               `json:"break_restroom_s"`
+	BreakRestroomL  int               `json:"break_restroom_l"`
+	BreakSmoke      int               `json:"break_smoke"`
+	Attendance      []AttendanceEntry `json:"attendance"`
+	LeaveRequests   []LeaveEntry      `json:"leave_requests"`
+}
+
+// BreakLog is a single break record with start/end times.
+type BreakLog struct {
+	Reason string `json:"reason"`
+	Start int64  `json:"start"`
+	End   int64  `json:"end,omitempty"`
+}
+
+type AttendanceEntry struct {
+	Date             string     `json:"date"`
+	CheckIn          int64      `json:"check_in,omitempty"`
+	CheckInImageID   string     `json:"checkin_image_id,omitempty"`
+	CheckOut         int64      `json:"check_out,omitempty"`
+	Status           string     `json:"status"`
+	TotalBreaks    int        `json:"total_breaks"`
+	BreakRest      int        `json:"break_rest"`
+	BreakEat       int        `json:"break_eat"`
+	BreakRestroomS int        `json:"break_restroom_s"`
+	BreakRestroomL int        `json:"break_restroom_l"`
+	BreakSmoke     int        `json:"break_smoke"`
+	Breaks         []BreakLog `json:"breaks,omitempty"`
+}
+
+type LeaveEntry struct {
+	Type         string   `json:"type"`
+	Dates        []string `json:"dates"`
+	Reason       string   `json:"reason"`
+	ExpectedTime string   `json:"expected_time,omitempty"`
+	Status       string   `json:"status"`
+}
+
+// GetReport returns attendance statistics for a date range, optionally filtered by user and/or team.
+func (s *AttendanceService) GetReport(ctx context.Context, from, to, userID, teamID string) (*AttendanceReport, error) {
+	if _, err := time.Parse(time.DateOnly, from); err != nil {
+		return nil, fmt.Errorf("invalid 'from' date, use YYYY-MM-DD: %w", err)
+	}
+	if _, err := time.Parse(time.DateOnly, to); err != nil {
+		return nil, fmt.Errorf("invalid 'to' date, use YYYY-MM-DD: %w", err)
+	}
+	if from > to {
+		return nil, fmt.Errorf("'from' must be before or equal to 'to'")
+	}
+
+	attendanceRecs, err := s.store.GetAttendanceByDateRange(ctx, from, to, userID, teamID)
+	if err != nil {
+		return nil, fmt.Errorf("get attendance: %w", err)
+	}
+
+	leaveReqs, err := s.store.GetLeaveRequestsByDateRange(ctx, from, to, userID, teamID)
+	if err != nil {
+		return nil, fmt.Errorf("get leave requests: %w", err)
+	}
+
+	// Group by user
+	userMap := make(map[string]*UserReport)
+	getUser := func(uid, uname string) *UserReport {
+		u, ok := userMap[uid]
+		if !ok {
+			u = &UserReport{UserID: uid, Username: uname}
+			userMap[uid] = u
+		}
+		return u
+	}
+
+	for _, rec := range attendanceRecs {
+		u := getUser(rec.UserID, rec.Username)
+		entry := AttendanceEntry{
+			Date:   rec.Date,
+			Status: string(rec.Status),
+		}
+		if rec.CheckIn != nil {
+			entry.CheckIn = rec.CheckIn.Unix()
+			entry.CheckInImageID = rec.CheckInImageID
+		}
+		if rec.CheckOut != nil {
+			entry.CheckOut = rec.CheckOut.Unix()
+		}
+
+		for _, b := range rec.Breaks {
+			entry.TotalBreaks++
+			log := BreakLog{
+				Reason: b.Reason,
+				Start:  b.Start.Unix(),
+			}
+			if b.End != nil {
+				log.End = b.End.Unix()
+			}
+			entry.Breaks = append(entry.Breaks, log)
+			switch b.Reason {
+			case "nghi_ngoi":
+				u.BreakRest++
+				entry.BreakRest++
+			case "di_an":
+				u.BreakEat++
+				entry.BreakEat++
+			case "tieu_tien":
+				u.BreakRestroomS++
+				entry.BreakRestroomS++
+			case "dai_tien":
+				u.BreakRestroomL++
+				entry.BreakRestroomL++
+			case "hut_thuoc":
+				u.BreakSmoke++
+				entry.BreakSmoke++
+			}
+		}
+		u.Attendance = append(u.Attendance, entry)
+		u.DaysWorked++
+	}
+
+	for _, req := range leaveReqs {
+		u := getUser(req.UserID, req.Username)
+		entry := LeaveEntry{
+			Type:         string(req.Type),
+			Dates:        req.Dates,
+			Reason:       req.Reason,
+			ExpectedTime: req.ExpectedTime,
+			Status:       string(req.Status),
+		}
+		u.LeaveRequests = append(u.LeaveRequests, entry)
+
+		// Count only approved or pending
+		if req.Status == model.LeaveStatusRejected {
+			continue
+		}
+		switch req.Type {
+		case model.LeaveTypeLateArrival:
+			u.LateArrivals++
+		case model.LeaveTypeEarlyDeparture:
+			u.EarlyDepartures++
+		default:
+			// Count leave days that fall within the range
+			for _, d := range req.Dates {
+				if d >= from && d <= to {
+					u.DaysLeave++
+				}
+			}
+		}
+	}
+
+	// Collect into sorted slice
+	users := make([]UserReport, 0, len(userMap))
+	for _, u := range userMap {
+		users = append(users, *u)
+	}
+
+	return &AttendanceReport{From: from, To: to, Users: users}, nil
+}
+
+// AttendanceStats contains aggregate counts for a date range.
+type AttendanceStats struct {
+	From                  string `json:"from"`
+	To                    string `json:"to"`
+	TotalCheckedIn        int    `json:"total_checked_in"`
+	TotalWorking          int    `json:"total_working"`
+	TotalOnBreak          int    `json:"total_on_break"`
+	TotalCheckedOut       int    `json:"total_checked_out"`
+	TotalOnLeave          int    `json:"total_on_leave"`
+	TotalLateArrival      int    `json:"total_late_arrivals"`
+	TotalEarlyDepart      int    `json:"total_early_departures"`
+	PendingRequests       int    `json:"pending_requests"`
+}
+
+// GetAttendanceStats returns aggregate attendance counts for a date range.
+func (s *AttendanceService) GetStats(ctx context.Context, from, to string) (*AttendanceStats, error) {
+	if _, err := time.Parse(time.DateOnly, from); err != nil {
+		return nil, fmt.Errorf("invalid 'from' date, use YYYY-MM-DD: %w", err)
+	}
+	if _, err := time.Parse(time.DateOnly, to); err != nil {
+		return nil, fmt.Errorf("invalid 'to' date, use YYYY-MM-DD: %w", err)
+	}
+	if from > to {
+		return nil, fmt.Errorf("'from' must be before or equal to 'to'")
+	}
+
+	records, err := s.store.GetAttendanceByDateRange(ctx, from, to, "", "")
+	if err != nil {
+		return nil, fmt.Errorf("get attendance: %w", err)
+	}
+
+	leaves, err := s.store.GetLeaveRequestsByDateRange(ctx, from, to, "", "")
+	if err != nil {
+		return nil, fmt.Errorf("get leave requests: %w", err)
+	}
+
+	stats := &AttendanceStats{From: from, To: to}
+
+	for _, rec := range records {
+		stats.TotalCheckedIn++
+		switch rec.Status {
+		case model.AttendanceStatusWorking:
+			stats.TotalWorking++
+		case model.AttendanceStatusBreak:
+			stats.TotalOnBreak++
+		case model.AttendanceStatusCompleted:
+			stats.TotalCheckedOut++
+		}
+
+	}
+
+	for _, req := range leaves {
+		if req.Status == model.LeaveStatusRejected {
+			continue
+		}
+		if req.Status == model.LeaveStatusPending {
+			stats.PendingRequests++
+		}
+		switch req.Type {
+		case model.LeaveTypeLateArrival:
+			stats.TotalLateArrival++
+		case model.LeaveTypeEarlyDeparture:
+			stats.TotalEarlyDepart++
+		default:
+			// Count only leave days within the range
+			for _, d := range req.Dates {
+				if d >= from && d <= to {
+					stats.TotalOnLeave++
+				}
+			}
+		}
+	}
+
+	return stats, nil
+}
+
 func validateDateList(ctx context.Context, dates []string) error {
 	if len(dates) == 0 {
 		return fmt.Errorf(i18n.T(ctx, "attendance.err.date_required"))

@@ -433,6 +433,8 @@ tags:
     description: Timeline
   - name: PlaybookAutofollows
     description: Playbook Autofollows
+  - name: bot-service
+    description: Endpoints proxied to the bot microservice (attendance, etc).
 servers:
   - url: "{your-mattermost-url}"
     variables:
@@ -25497,6 +25499,100 @@ paths:
           $ref: '#/components/responses/404'
         "500":
           $ref: '#/components/responses/500'
+  /api/v4/bot-service/attendance/report:
+    get:
+      tags:
+        - bot-service
+      summary: Get attendance report
+      description: >
+        Returns attendance statistics for a date range, optionally filtered by user.
+
+        Proxied to the bot microservice.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetAttendanceReport
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Start date (YYYY-MM-DD).
+          schema:
+            type: string
+          example: "2026-01-01"
+        - name: to
+          in: query
+          required: true
+          description: End date (YYYY-MM-DD).
+          schema:
+            type: string
+          example: "2026-01-31"
+        - name: user_id
+          in: query
+          required: false
+          description: Filter by a specific user ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attendance report retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceReport"
+        "400":
+          description: Invalid request (e.g. bad date format).
+        "401":
+          $ref: "#/components/responses/401"
+        "501":
+          description: Bot service URL not configured.
+        "502":
+          description: Bot service unreachable.
+  /api/v4/bot-service/attendance/stats:
+    get:
+      tags:
+        - bot-service
+      summary: Get attendance statistics
+      description: >
+        Returns aggregate attendance statistics for a date range.
+
+        Proxied to the bot microservice.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetAttendanceStats
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Start date (YYYY-MM-DD).
+          schema:
+            type: string
+          example: "2026-02-01"
+        - name: to
+          in: query
+          required: true
+          description: End date (YYYY-MM-DD).
+          schema:
+            type: string
+          example: "2026-02-10"
+      responses:
+        "200":
+          description: Attendance statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceStats"
+        "400":
+          description: Invalid date format.
+        "401":
+          $ref: "#/components/responses/401"
+        "501":
+          description: Bot service URL not configured.
+        "502":
+          description: Bot service unreachable.
 components:
   securitySchemes:
     bearerAuth:
@@ -30633,6 +30729,138 @@ components:
           format: json
           description: The JSON-encoded value to set for the property.
           example: '"High Priority Issue"'
+    AttendanceReport:
+      type: object
+      properties:
+        from:
+          type: string
+          description: Start date of the report range.
+          example: "2026-01-01"
+        to:
+          type: string
+          description: End date of the report range.
+          example: "2026-01-31"
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttendanceUserReport"
+    AttendanceUserReport:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: abc123def456
+        username:
+          type: string
+          example: john.doe
+        days_worked:
+          type: integer
+          description: Number of days checked in within the range.
+          example: 20
+        days_leave:
+          type: integer
+          description: Number of approved/pending leave days within the range.
+          example: 3
+        late_arrivals:
+          type: integer
+          description: Number of approved/pending late arrival requests.
+          example: 2
+        early_departures:
+          type: integer
+          description: Number of approved/pending early departure requests.
+          example: 1
+        attendance:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttendanceEntry"
+        leave_requests:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaveEntry"
+    AttendanceEntry:
+      type: object
+      properties:
+        date:
+          type: string
+          example: "2026-01-02"
+        check_in:
+          type: string
+          description: Check-in time (HH:MM).
+          example: "08:30"
+        check_out:
+          type: string
+          description: Check-out time (HH:MM).
+          example: "17:30"
+        status:
+          type: string
+          enum: [working, break, completed]
+          example: completed
+    LeaveEntry:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Leave type label.
+          example: Annual Leave
+        dates:
+          type: array
+          items:
+            type: string
+          example: ["2026-01-10", "2026-01-11"]
+        reason:
+          type: string
+          example: Family vacation
+        expected_time:
+          type: string
+          description: Expected arrival/departure time for late/early requests (HH:MM).
+          example: "10:00"
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: approved
+    AttendanceStats:
+      type: object
+      properties:
+        from:
+          type: string
+          description: Start date of the range.
+          example: "2026-02-01"
+        to:
+          type: string
+          description: End date of the range.
+          example: "2026-02-10"
+        total_checked_in:
+          type: integer
+          description: Total check-in records in the range.
+          example: 150
+        total_working:
+          type: integer
+          description: Currently working (checked in, not on break or checked out).
+          example: 10
+        total_on_break:
+          type: integer
+          description: Currently on break.
+          example: 2
+        total_checked_out:
+          type: integer
+          description: Completed their day (checked out).
+          example: 138
+        total_on_leave:
+          type: integer
+          description: Leave days in the range (approved or pending, excluding late/early).
+          example: 12
+        total_late_arrivals:
+          type: integer
+          description: Late arrival requests in the range (approved or pending).
+          example: 3
+        total_early_departures:
+          type: integer
+          description: Early departure requests in the range (approved or pending).
+          example: 2
+        pending_requests:
+          type: integer
+          description: Total pending leave/late/early requests in the range.
+          example: 4
 externalDocs:
   description: Find out more about Mattermost
   url: https://about.mattermost.com
