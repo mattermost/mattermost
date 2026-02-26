@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -54,5 +55,42 @@ describe('component/create_team', () => {
 
         expect(screen.getByText('Professional feature')).toBeInTheDocument();
         expect(screen.getByText('Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.')).toBeInTheDocument();
+    });
+
+    test('should not render team_url route when useSecureURLs is true', () => {
+        const history = createMemoryHistory({initialEntries: ['/create_team/team_url']});
+        const props = {
+            ...baseProps,
+            match: {url: '/create_team'},
+            useSecureURLs: true,
+        };
+
+        renderWithContext(
+            <CreateTeam {...props}/>,
+            {},
+            {history},
+        );
+
+        // With useSecureURLs=true the team_url route is not registered,
+        // so navigating to it should redirect to display_name
+        expect(history.location.pathname).toBe('/create_team/display_name');
+    });
+
+    test('should render team_url route when useSecureURLs is false', () => {
+        const history = createMemoryHistory({initialEntries: ['/create_team/team_url']});
+        const props = {
+            ...baseProps,
+            match: {url: '/create_team'},
+            useSecureURLs: false,
+        };
+
+        renderWithContext(
+            <CreateTeam {...props}/>,
+            {},
+            {history},
+        );
+
+        // With useSecureURLs=false the team_url route is available
+        expect(history.location.pathname).toBe('/create_team/team_url');
     });
 });
