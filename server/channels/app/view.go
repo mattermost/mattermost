@@ -13,7 +13,7 @@ import (
 )
 
 func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *model.AppError) {
-	saved, err := a.ch.srv.viewService.CreateView(view)
+	saved, err := a.Srv().Store().View().Save(view)
 	if err != nil {
 		return nil, model.NewAppError("CreateView", "app.view.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -24,7 +24,7 @@ func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *mode
 }
 
 func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppError) {
-	view, err := a.ch.srv.viewService.GetView(viewID)
+	view, err := a.Srv().Store().View().Get(viewID)
 	if err != nil {
 		return nil, model.NewAppError("GetView", "app.view.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -33,7 +33,7 @@ func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppE
 }
 
 func (a *App) GetViewsForChannel(rctx request.CTX, channelID string) ([]*model.View, *model.AppError) {
-	result, err := a.ch.srv.viewService.GetViewsForChannel(channelID)
+	result, err := a.Srv().Store().View().GetForChannel(channelID)
 	if err != nil {
 		return nil, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -47,7 +47,8 @@ func (a *App) UpdateView(rctx request.CTX, viewID string, patch *model.ViewPatch
 		return nil, appErr
 	}
 
-	updated, err := a.ch.srv.viewService.UpdateView(view, patch)
+	view.Patch(patch)
+	updated, err := a.Srv().Store().View().Update(view)
 	if err != nil {
 		return nil, model.NewAppError("UpdateView", "app.view.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -63,7 +64,7 @@ func (a *App) DeleteView(rctx request.CTX, viewID string) *model.AppError {
 		return appErr
 	}
 
-	if err := a.ch.srv.viewService.DeleteView(viewID); err != nil {
+	if err := a.Srv().Store().View().Delete(viewID, model.GetMillis()); err != nil {
 		return model.NewAppError("DeleteView", "app.view.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

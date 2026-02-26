@@ -37,7 +37,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost/server/v8/channels/app/views"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
@@ -131,7 +130,6 @@ type Server struct {
 	telemetryService      *telemetry.TelemetryService
 	userService           *users.UserService
 	teamService           *teams.TeamService
-	viewService           *views.ViewService
 	propertyAccessService *PropertyAccessService
 
 	serviceMux           sync.RWMutex
@@ -234,13 +232,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
-
-	s.viewService, err = views.New(views.ServiceConfig{
-		ViewStore: s.Store().View(),
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create views service")
 	}
 
 	propertyService, err := properties.New(properties.ServiceConfig{
