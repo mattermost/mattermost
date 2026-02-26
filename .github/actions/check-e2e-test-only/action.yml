@@ -18,7 +18,7 @@ outputs:
     description: Whether the PR contains only E2E test changes (true/false)
     value: ${{ steps.check.outputs.e2e_test_only }}
   image_tag:
-    description: Docker image tag to use (master for E2E-only, short SHA for mixed)
+    description: Docker image tag to use (base branch ref for E2E-only, short SHA for mixed)
     value: ${{ steps.check.outputs.image_tag }}
 
 runs:
@@ -33,7 +33,8 @@ runs:
         INPUT_HEAD_SHA: ${{ inputs.head_sha }}
         INPUT_PR_NUMBER: ${{ inputs.pr_number }}
       run: |
-        # Resolve SHAs from PR number if not provided
+        # Resolve SHAs and base branch from PR number if not provided
+        BASE_REF=""
         if [ -z "$INPUT_BASE_SHA" ] || [ -z "$INPUT_HEAD_SHA" ]; then
           if [ -z "$INPUT_PR_NUMBER" ]; then
             echo "::error::Either base_sha/head_sha or pr_number must be provided"
@@ -44,13 +45,23 @@ runs:
           PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}")
           INPUT_BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')
           INPUT_HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref')
 
           if [ -z "$INPUT_BASE_SHA" ] || [ "$INPUT_BASE_SHA" = "null" ] || \
              [ -z "$INPUT_HEAD_SHA" ] || [ "$INPUT_HEAD_SHA" = "null" ]; then
             echo "::error::Could not resolve SHAs for PR #${INPUT_PR_NUMBER}"
             exit 1
           fi
+        elif [ -n "$INPUT_PR_NUMBER" ]; then
+          # SHAs provided but we still need the base branch ref
+          BASE_REF=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}" --jq '.base.ref')
         fi
+
+        # Default to master if base ref could not be determined
+        if [ -z "$BASE_REF" ] || [ "$BASE_REF" = "null" ]; then
+          BASE_REF="master"
+        fi
+        echo "PR base branch: ${BASE_REF}"
 
         SHORT_SHA="${INPUT_HEAD_SHA::7}"
 
@@ -85,8 +96,9 @@ runs:
 
         # Set outputs
         echo "e2e_test_only=${E2E_TEST_ONLY}" >> $GITHUB_OUTPUT
-        if [ "$E2E_TEST_ONLY" = "true" ]; then
-          echo "image_tag=master" >> $GITHUB_OUTPUT
+        if [ "$E2E_TEST_ONLY" = "true" ] && \
+           { [ "$BASE_REF" = "master" ] || [[ "$BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; }; then
+          echo "image_tag=${BASE_REF}" >> $GITHUB_OUTPUT
         else
           echo "image_tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
         fi

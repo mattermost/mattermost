@@ -3968,7 +3968,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id. :{{.Id}}"
+    "translation": "Ongeldig Id. :{{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4592,11 +4592,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 17.4+"
+    "translation": "Versie 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4604,11 +4604,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 142+"
+    "translation": "Versie 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 142+"
+    "translation": "Versie 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10040,10 +10040,6 @@
     "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
   },
@@ -10921,7 +10917,7 @@
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Fout bij  de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+    "translation": "Fout bij de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -11621,7 +11617,7 @@
   },
   {
     "id": "app.ai.summarize.parse_failed",
-    "translation": "Fout bij het verwerken van het AI-samenvattingsantwoord"
+    "translation": "Fout bij het verwerken van het AI-samenvattingsantwoord."
   },
   {
     "id": "app.recap.delete.app_error",
@@ -11846,5 +11842,65 @@
   {
     "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
     "translation": "Kon gebruiker niet ophalen tijdens het bijwerken van de automatische vertaalstatus"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Automatische vertaling is niet ingeschakeld voor dit kanaal."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Automatische vertaling is niet beschikbaar."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Authenticatie op basis van cookies is niet toegestaan voor dit eindpunt. Gebruik verificatie op basis van headers."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read berichten zijn niet toegestaan in directe berichten met bots of AI-agenten."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Er is een fout opgetreden tijdens het valideren van het kanaal voor burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read berichten zijn niet toegestaan als je jezelf een bericht stuurt."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Er is een fout opgetreden tijdens het valideren van de gebruiker voor burn-on-read post."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Dit eindpunt is verouderd en uitgeschakeld. Werk je mobiele app bij."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Lukt niet om {{.Service}} instellingen op te halen"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Gebruiker heeft rollen als kanaalgast maar is geen systeemgast."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Gebruiker is een systeemgast maar heeft niet in alle kanalen de rol van kanaalgast. Aantal kanaalgasten: {{.ChannelGuestCount}}, Totaal kanalen: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Gebruiker is een systeemgast, maar heeft niet in alle teams de rol van teamgast. Aantal teamgasten: {{.TeamGuestCount}}, Totaal teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Gebruiker heeft teamgastrollen maar is geen systeemgast."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Workers moet tussen 1 en 32 zijn."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} instelling moet worden ingesteld op actief als {{.EnableCJKAnalyzers}} is ingesteld op actief"
   }
 ]

@@ -10008,10 +10008,6 @@
     "translation": "Не атрымалася стварыць каталог для выяваў нестандартных эмодзі"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Ролі карыстальнікаў не адпавядаюць статусу госця."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Немагчыма зарэгістраваць групу ўласцівасцей \"Атрыбуты карыстальніцкага профілю\""
   },
