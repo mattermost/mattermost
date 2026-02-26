@@ -44,14 +44,34 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     const [teamDisplayName, setTeamDisplayName] = useState<string>(parentState.team?.display_name || '');
     const [teamURL, setTeamURL] = useState<string>(parentState.team?.name || '');
     const [nameError, setNameError] = useState<string | JSX.Element>('');
+
+    const isLoadingGuard = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const isValidTeamName = teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
 
+    const startLoading = useCallback((): boolean => {
+        if (isLoadingGuard.current) {
+            return false;
+        }
+
+        isLoadingGuard.current = true;
+        setIsLoading(true);
+        return true;
+    }, []);
+
+    const stopLoading = useCallback(() => {
+        isLoadingGuard.current = false;
+        setIsLoading(false);
+    }, []);
+
     const doCreateTeam = useCallback(async () => {
         const {createTeam} = actions;
 
-        setIsLoading(true);
+        if (!startLoading()) {
+            return;
+        }
+
         const teamDraft = {
             ...(parentState.team ?? {}),
             type: 'O',
@@ -69,9 +89,9 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             );
         } else if (error) {
             setNameError(error.message);
-            setIsLoading(false);
+            stopLoading();
         }
-    }, [actions, history, parentState, teamDisplayName, teamURL]);
+    }, [actions, history, parentState.team, startLoading, stopLoading, teamDisplayName, teamURL]);
 
     const submitDisplayName = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -193,13 +213,13 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
                         defaultMessage='This URL is taken or unavailable. Please try another.'
                     />,
                 );
-                setIsLoading(false);
+                stopLoading();
                 return false;
             }
 
             return true;
         },
-        [actions],
+        [actions, stopLoading],
     );
 
     const submitTeamUrl = useCallback(async (e: React.MouseEvent<Button, MouseEvent>) => {
@@ -207,11 +227,12 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
 
         const teamNameValid = await teamNameValidations(teamURL);
         if (!teamNameValid) {
+            stopLoading();
             return;
         }
 
         await doCreateTeam();
-    }, [teamURL, teamNameValidations, doCreateTeam]);
+    }, [teamNameValidations, teamURL, doCreateTeam, stopLoading]);
 
     const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -247,11 +268,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             </>
         );
 
-        if (config.UseSecureURLs === 'true') {
-            return isLoading ? loadingMessage : finishMessage;
-        }
-
-        if (step === 'team_url') {
+        if (config.UseSecureURLs === 'true' || step === 'team_url') {
             return isLoading ? loadingMessage : finishMessage;
         }
 
