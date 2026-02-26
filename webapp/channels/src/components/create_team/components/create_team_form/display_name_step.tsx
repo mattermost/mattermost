@@ -17,9 +17,25 @@ export type Props = {
     onSubmit: (e: React.MouseEvent) => void;
     buttonText: ReactNode;
     isLoading?: boolean;
+    nameError: string | JSX.Element;
 };
 
-export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText, isLoading}: Props) {
+export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText, isLoading, nameError}: Props) {
+    let nameErrorLabel = null;
+    let nameDivClass = 'form-group';
+    if (nameError) {
+        nameErrorLabel = (
+            <label
+                role='alert'
+                className='control-label'
+                id='teamURLInputError'
+            >
+                {nameError}
+            </label>
+        );
+        nameDivClass += ' has-error';
+    }
+
     return (
         <div>
             <form>
@@ -35,7 +51,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                         defaultMessage='Team Name'
                     />
                 </label>
-                <div className='form-group'>
+                <div className={nameDivClass}>
                     <div className='row'>
                         <div className='col-sm-9'>
                             <Input
@@ -49,9 +65,11 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                                 maxLength={Constants.MAX_TEAMNAME_LENGTH}
                                 minLength={Constants.MIN_TEAMNAME_LENGTH}
                                 spellCheck='false'
+                                hasError={Boolean(nameError)}
                             />
                         </div>
                     </div>
+                    {nameErrorLabel}
                 </div>
                 <div>
                     <FormattedMessage

@@ -282,6 +282,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             onSubmit={submitDisplayName}
             buttonText={buttonText}
             isLoading={isLoading}
+            nameError={nameError}
         />
     );
 }
