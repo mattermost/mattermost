@@ -103,6 +103,11 @@ func TestCurrentProgressCapsAt100(t *testing.T) {
 			expected: 100,
 		},
 		{
+			name:     "all totals zero returns 100",
+			progress: IndexingProgress{},
+			expected: 100,
+		},
+		{
 			name: "done exceeds total, caps at 100",
 			progress: IndexingProgress{
 				DonePostsCount:     20000000,

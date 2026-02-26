@@ -113,6 +113,9 @@ type IndexingProgress struct {
 func (ip *IndexingProgress) CurrentProgress() int64 {
 	current := ip.DonePostsCount + ip.DoneChannelsCount + ip.DoneUsersCount + ip.DoneFilesCount
 	total := ip.TotalPostsCount + ip.TotalChannelsCount + ip.TotalFilesCount + ip.TotalUsersCount
+	if total == 0 {
+		return 100
+	}
 	progress := current * 100 / total
 	if progress > 100 {
 		return 100
