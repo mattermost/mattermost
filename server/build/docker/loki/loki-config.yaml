@@ -34,5 +34,12 @@ distributor:
       - app
       - container.name
 
+ingester:
+  max_chunk_age: 480h
+
 limits_config:
   allow_structured_metadata: true
+  unordered_writes: true
+  reject_old_samples: false
+  ingestion_rate_mb: 64
+  ingestion_burst_size_mb: 64

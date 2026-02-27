@@ -2,7 +2,7 @@ receivers:
   filelog/mattermost:
     include:
       - /logs/*.log
-    start_at: end
+    start_at: beginning
     operators:
       - type: json_parser
         timestamp:
@@ -15,13 +15,13 @@ receivers:
   filelog/docker:
     include:
       - /var/lib/docker/containers/*/*-json.log
-    start_at: end
+    start_at: beginning
     operators:
       - type: json_parser
         timestamp:
           parse_from: attributes.time
           layout_type: gotime
-          layout: '2006-01-02T15:04:05.000000000Z'
+          layout: '2006-01-02T15:04:05.999999999Z'
       - type: move
         from: attributes.log
         to: body
