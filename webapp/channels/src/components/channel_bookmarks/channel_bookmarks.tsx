@@ -87,10 +87,14 @@ function ChannelBookmarks({channelId}: Props) {
         canReorder,
     });
 
-    // Pause overflow recalculation during keyboard reorder
+    // Pause overflow recalculation during keyboard reorder;
+    // reset autoOpenOverflow when reorder ends
     useEffect(() => {
         pauseRecalc(reorderState.isReordering);
-    }, [reorderState.isReordering, pauseRecalc]);
+        if (!reorderState.isReordering) {
+            setAutoOpenOverflow(false);
+        }
+    }, [reorderState.isReordering, pauseRecalc, setAutoOpenOverflow]);
 
     // --- Render ---
     if (!hasBookmarks) {
@@ -150,8 +154,9 @@ function ChannelBookmarks({channelId}: Props) {
                 canReorder={canReorder}
                 isDragging={isDragging}
                 canAdd={canAdd}
-                forceOpen={showDragOverlay || undefined}
+                forceOpen={showDragOverlay || (reorderState.isReordering ? autoOpenOverflow : undefined)}
                 reorderState={reorderState}
+                getItemProps={canReorder ? getItemProps : undefined}
             />
         </Container>
     );

@@ -4,6 +4,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {useClickOutside} from 'hooks/useClickOutside';
 import {useReadout} from 'hooks/useReadout';
 
 interface KeyboardReorderState {
@@ -69,11 +70,10 @@ export function useKeyboardReorder({
     // Re-focus the active item after order changes
     useEffect(() => {
         if (state.isReordering && state.itemId) {
-            // Find the item container, then focus the link/span inside it
             const container = document.querySelector(
                 `[data-bookmark-id="${state.itemId}"]`,
             );
-            const focusable = container?.querySelector('a[tabindex], span[tabindex]') as HTMLElement;
+            const focusable = (container?.querySelector('a[tabindex], span[tabindex]') as HTMLElement | null) ?? (container as HTMLElement | null);
             focusable?.focus();
         }
     }, [order, state.isReordering, state.itemId]);
@@ -107,6 +107,14 @@ export function useKeyboardReorder({
             }),
         );
     }, [formatMessage, readAloud]);
+
+    // Confirm reorder on click-anywhere (null ref = any mousedown)
+    const clickAnywhereHandler = useCallback(() => {
+        if (state.isReordering) {
+            confirmReorder();
+        }
+    }, [state.isReordering, confirmReorder]);
+    useClickOutside(null, clickAnywhereHandler);
 
     const cancelReorder = useCallback(() => {
         const {itemId, originalIndex} = state;
@@ -153,11 +161,10 @@ export function useKeyboardReorder({
             onOverflowOpenChange?.(true);
         }
 
-        // Moving left/up from first overflow item → close overflow if it will be empty
+        // Moving left/up from first overflow item → close overflow so
+        // MUI's focus trap doesn't steal focus from the bar item
         if (direction === -1 && currentIndex === firstOverflowGlobalIndex) {
-            if (overflow.length <= 1) {
-                onOverflowOpenChange?.(false);
-            }
+            onOverflowOpenChange?.(false);
         }
 
         const name = getName(state.itemId);
@@ -213,18 +220,26 @@ export function useKeyboardReorder({
                     break;
                 case 'ArrowLeft':
                 case 'ArrowUp':
-                    if (state.isReordering) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        moveItem(-1);
+                    if (state.isReordering && state.itemId) {
+                        // Determine container from current position:
+                        // bar items use Left/Right, overflow items use Up/Down
+                        const inOverflow = overflowItemsRef.current.includes(state.itemId);
+                        if ((inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            moveItem(-1);
+                        }
                     }
                     break;
                 case 'ArrowRight':
                 case 'ArrowDown':
-                    if (state.isReordering) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        moveItem(1);
+                    if (state.isReordering && state.itemId) {
+                        const inOverflow = overflowItemsRef.current.includes(state.itemId);
+                        if ((inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            moveItem(1);
+                        }
                     }
                     break;
                 }

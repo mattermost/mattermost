@@ -86,6 +86,13 @@ type MenuProps = {
      * drag-and-drop so the drag can be cancelled without closing the menu.
      */
     disableEscapeKeyDown?: boolean;
+
+    /**
+     * When true, MUI will not restore focus to the previously focused
+     * element when the menu closes. Useful when the caller manages
+     * focus itself (e.g. keyboard reordering).
+     */
+    disableRestoreFocus?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -292,6 +299,7 @@ export function Menu(props: Props) {
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     hideBackdrop={props.menu.hideBackdrop}
+                    disableRestoreFocus={props.menu.disableRestoreFocus}
 
                     // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
                     // Modal root still covers the viewport with position:fixed;inset:0.

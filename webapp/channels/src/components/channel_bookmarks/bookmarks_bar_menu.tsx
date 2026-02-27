@@ -33,6 +33,7 @@ interface BookmarksBarMenuProps {
     forceOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
     reorderState?: {isReordering: boolean; itemId: string | null};
+    getItemProps?: (id: string) => {tabIndex: number; onKeyDown: (e: React.KeyboardEvent) => void};
 }
 
 function BookmarksBarMenu({
@@ -48,6 +49,7 @@ function BookmarksBarMenu({
     forceOpen,
     onOpenChange,
     reorderState,
+    getItemProps,
 }: BookmarksBarMenuProps) {
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
@@ -120,6 +122,7 @@ function BookmarksBarMenu({
                     canReorder={canReorder}
                     isDragging={isDragging}
                     isKeyboardReordering={reorderState?.isReordering && reorderState?.itemId === id}
+                    keyboardReorderProps={canReorder && getItemProps ? getItemProps(id) : undefined}
                 />,
             );
         });
@@ -179,6 +182,7 @@ function BookmarksBarMenu({
                     isMenuOpen: forceOpen,
                     onToggle: handleToggle,
                     hideBackdrop: forceOpen,
+                    disableRestoreFocus: reorderState?.isReordering,
                     width: '280px',
                 }}
             >

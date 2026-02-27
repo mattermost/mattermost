@@ -24,7 +24,10 @@ interface OverflowBookmarkItemProps {
     canReorder: boolean;
     isDragging: boolean;
     isKeyboardReordering?: boolean;
-    [key: string]: unknown;
+    keyboardReorderProps?: {
+        tabIndex: number;
+        onKeyDown: (e: React.KeyboardEvent) => void;
+    };
 }
 
 function OverflowBookmarkItem({
@@ -33,7 +36,7 @@ function OverflowBookmarkItem({
     canReorder,
     isDragging,
     isKeyboardReordering,
-    ...otherProps
+    keyboardReorderProps,
 }: OverflowBookmarkItemProps) {
     const menuContext = useContext(MenuContext);
     const handleNavigate = useCallback(() => {
@@ -70,6 +73,7 @@ function OverflowBookmarkItem({
             data-bookmark-id={id}
             data-testid={`overflow-bookmark-item-${id}`}
             onClick={openBookmark}
+            onKeyDown={keyboardReorderProps?.onKeyDown}
             leadingElement={icon}
             labels={(
                 <WithTooltip
@@ -90,7 +94,6 @@ function OverflowBookmarkItem({
                     onBeforeAction={handleNavigate}
                 />
             )}
-            {...otherProps}
         >
             {closestEdge && (
                 <DropIndicator
