@@ -83,8 +83,8 @@ const BarChip = styled.div<{$isDragging: boolean; $isKeyboardReordering?: boolea
     `}
 
     ${({$isKeyboardReordering}) => $isKeyboardReordering && css`
-        outline: 2px solid rgb(var(--button-bg-rgb));
-        outline-offset: -2px;
+        outline: 3px solid rgb(var(--button-bg-rgb));
+        outline-offset: -3px;
     `}
 `;
 

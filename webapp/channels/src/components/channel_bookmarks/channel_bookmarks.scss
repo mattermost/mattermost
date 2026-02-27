@@ -151,8 +151,8 @@
     }
 
     &.is-keyboard-reordering {
-        outline: 2px solid rgb(var(--button-bg-rgb));
-        outline-offset: -2px;
+        outline: 3px solid rgb(var(--button-bg-rgb));
+        outline-offset: -3px;
     }
 
     > .label-elements {
@@ -178,7 +178,7 @@
     }
 
     &:hover,
-    &:focus-within,
+    &.Mui-focusVisible,
     &:has([aria-expanded="true"]) {
         > .trailing-elements {
             opacity: 1;
