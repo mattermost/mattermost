@@ -4,12 +4,13 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from './size_aware_image';
-
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
+
+import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from './size_aware_image';
+
 import LoadingImagePreview from '../loading_image_preview';
 
 // Constants from the component
