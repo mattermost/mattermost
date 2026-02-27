@@ -3502,3 +3502,113 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		assert.Equal(t, int64(0), count)
 	})
 }
+
+func TestPluginAPICreateTeamSecureURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override team name when UseSecureURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Secure URL Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		assert.True(t, model.IsValidId(createdTeam.Name), "team name should be a valid server-generated ID")
+		assert.Equal(t, "Secure URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should preserve team name when UseSecureURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		originalName := "preserved-team-name"
+		team := &model.Team{
+			DisplayName: "Normal Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+}
+
+func TestPluginAPICreateChannelSecureURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override open channel name when UseSecureURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Secure URL Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "open channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+		assert.Equal(t, "Secure URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should override private channel name when UseSecureURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		originalName := "private-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Secure Private Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "private channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+	})
+
+	t.Run("should preserve channel name when UseSecureURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		originalName := "preserved-channel"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
+	})
+}
