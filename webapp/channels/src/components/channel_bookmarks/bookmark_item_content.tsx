@@ -214,8 +214,8 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
         text-decoration: none;
 
         &:focus-visible {
-            border-radius: 4px;
-            box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
+            border-radius: 12px;
+            box-shadow: 0 0 0 2px var(--link-color) inset;
             outline: none;
         }
     }

@@ -28,6 +28,11 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 |---|---|---|
 | 14 | Left-align overflow menu popup to match plus menu positioning | `bookmarks_bar_menu.tsx` |
 | 15 | Fix overflow item label vertical clipping with `line-height: 20px` | `channel_bookmarks.scss` |
+| — | Fix drag preview text truncation (`inline-block` so `text-overflow: ellipsis` works) | `channel_bookmarks.scss` |
+| — | Drag cursor: `effectAllowed='move'` + `preventUnhandled` for consistent `cursor:default` during drag (native DnD limitation prevents `cursor:grabbing`) | `use_bookmark_drag_drop.ts` |
+| — | Bar item `:focus-visible` indicator matching standard `a11y--focused` style | `bookmark_item_content.tsx` |
+| — | Overflow item `.Mui-focusVisible` for trailing-elements visibility (replaces `:focus-within` to fix dot menu showing on programmatic focus) | `channel_bookmarks.scss` |
+| — | Keyboard-reorder outline thickened to 3px (vs 2px focus indicator) on bar + overflow items | `bookmarks_bar_item.tsx`, `channel_bookmarks.scss` |
 
 ### Extractions / refactors
 | # | Change | Files |
@@ -35,6 +40,19 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | 16 | Extract overflow detection logic into `useBookmarksOverflow` hook | `use_bookmarks_overflow.ts` (new), `channel_bookmarks.tsx` |
 | 17 | Extract shared DnD logic into `useBookmarkDragDrop` hook | `use_bookmark_drag_drop.ts` (new), `bookmarks_bar_item.tsx`, `overflow_bookmark_item.tsx` |
 | 18 | Move drag preview inline styles to CSS class (`.bookmarkDragPreview`) | `drag_preview.ts`, `channel_bookmarks.scss` |
+| — | Add `forwardRef` to `Menu.Item` — eliminates sentinel ref + `.closest('li')` hack | `menu_item.tsx`, `overflow_bookmark_item.tsx` |
+
+### Keyboard accessibility
+| Change | Files |
+|---|---|
+| Wire `getItemProps` (tabIndex + onKeyDown) to overflow items for keyboard reorder support | `bookmarks_bar_menu.tsx`, `overflow_bookmark_item.tsx`, `channel_bookmarks.tsx` |
+| Direction-aware arrow keys: bar items use Left/Right, overflow items use Up/Down — switches on cross-container moves | `use_keyboard_reorder.ts` |
+| Force-open overflow menu on bar→overflow keyboard transition; close on overflow→bar | `channel_bookmarks.tsx`, `use_keyboard_reorder.ts` |
+| Fix `forceOpen` to emit `false` (not `undefined`) so Menu's `isMenuOpen` effect properly closes the menu | `channel_bookmarks.tsx` |
+| Add `disableRestoreFocus` prop to `Menu.tsx`, prevent MUI stealing focus during keyboard reorder | `menu.tsx`, `bookmarks_bar_menu.tsx` |
+| Fix focus fallback for overflow items (fall back to `<li>` element itself when no inner `a[tabindex]` found) | `use_keyboard_reorder.ts` |
+| Confirm reorder placement on click-anywhere via new `useClickOutside` hook | `useClickOutside.ts` (new), `use_keyboard_reorder.ts` |
+| Remove `[key: string]: unknown` index signature from overflow item props in favor of typed `keyboardReorderProps` | `overflow_bookmark_item.tsx` |
 
 ---
 
@@ -43,30 +61,26 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | # | Change | Reason |
 |---|---|---|
 | 7 | `useTextOverflow` callback ref pattern | Caused runtime error — needs investigation |
-| 13 | `:focus-within` → `:has(:focus-visible)` for dot menu visibility | Reverted — approach wasn't right, needs revisiting |
+| 13 | `:focus-within` → `:has(:focus-visible)` for bar item dot menu | Reverted — replaced with `.Mui-focusVisible` approach for overflow items only (see styling fixes above) |
 
 ---
 
 ## Remaining Work
 
 ### Accessibility (PR TODOs)
-- [ ] **Fix cross-container transitions during keyboard reordering** — moving items between bar and overflow via keyboard has edge cases
 - [ ] **Fix overflow bookmark item dotmenu keyboard access** — when item focused, `Right` arrow should open dot menu
-- [ ] **Keyboard reordering in overflow menu** — `Space` to select, `Up`/`Down` to move, `Enter`/`Esc` to confirm/cancel within overflow
-- [ ] **Keyboard reordering: close/confirm on click-away or focus-blur** — currently reorder state persists if user clicks elsewhere
 - [ ] **Fix anchor/links in overflow menu** — semantic anchor UX: proper native `Copy Link Address`, `Open Link in New Tab`, etc. Redesign `useBookmarkLink().openBookmark` to reduce complexity
 
 ### Styling (PR TODOs)
-- [ ] **Refine overflow item focus/hover/menu-open styling** — step 13 (focus-visible) was reverted; needs alternative approach to prevent dot menu showing on programmatic focus from MUI `autoFocusItem`
 - [ ] **Fix plus menu label padding/menu width** — alignment fixed (step 14), but padding and width still need adjustment
-- [ ] **Add ellipsis to drag-ghost overflowing text** — drag preview chip should truncate long names
-- [ ] **`grabbing` cursor instead of `copy` when dragging** — pragmatic-dnd defaults to copy cursor
 
 ### Technical/patterns (PR TODOs)
 - [ ] **`useTextOverflow` callback ref** — step 7 reverted; debug runtime error and re-apply
-- [ ] **Sentinel ref `<li>` detection** — shared DnD hook extracted (step 17), but overflow items still use sentinel ref + `.closest('li')` to find MUI's rendered `<li>`. Explore function ref or alternative
 - [ ] **`BookmarkMeasureItem` replacement** — currently uses hidden components to measure widths. Consider IntersectionObserver or measuring real items
 - [ ] **Menu.tsx `hideBackdrop` → key handler** — hmhealey suggested replacing the `hideBackdrop` prop with a proper key/event handler approach (medium-term)
+
+### Potential enhancements
+- [ ] **Register bookmarks bar as A11yController region** — add `a11y__region` class + `data-a11y-sort-order` (between channel header 8 and search bar 9) so F6/Ctrl+` focus cycling includes the bookmarks bar. Individual bookmarks would be `a11y__section` children.
 
 ### Deferred reviewer comments (design questions)
 - [ ] **Keep overflow open during drag** — hmhealey asked about overflow menu behavior when dragging over it. Needs design input
