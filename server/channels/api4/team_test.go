@@ -155,11 +155,10 @@ func TestCreateTeam(t *testing.T) {
 
 	t.Run("should override team name with server-generated ID when UseSecureURLs is enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
 
 		th.LoginBasic(t)
 
-		originalName := "original_name"
+		originalName := "originalname"
 		team := &model.Team{Name: originalName, DisplayName: "Secure URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
@@ -168,6 +167,14 @@ func TestCreateTeam(t *testing.T) {
 		require.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
 		require.True(t, model.IsValidId(createdTeam.Name))
 		require.Equal(t, "Secure URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+
+		// setting UseSecureURl to false should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
