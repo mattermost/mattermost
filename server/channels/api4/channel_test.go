@@ -206,7 +206,6 @@ func TestCreateChannel(t *testing.T) {
 
 	t.Run("should override channel name with server-generated ID when UseSecureURLs is enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
 
 		originalName := GenerateTestChannelName()
 		ch := &model.Channel{DisplayName: "Secure URL Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
@@ -217,6 +216,15 @@ func TestCreateChannel(t *testing.T) {
 		require.NotEqual(t, originalName, createdChannel.Name, "channel name should be overridden by server")
 		require.True(t, model.IsValidId(createdChannel.Name))
 		require.Equal(t, "Secure URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+
+		// setting UseSecureUrl to false should preserve names
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+
+		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
+		createdChannel, response, err = th.SystemAdminClient.CreateChannel(context.Background(), ch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		require.Equal(t, originalName, createdChannel.Name)
 	})
 
 	t.Run("Guest users", func(t *testing.T) {
