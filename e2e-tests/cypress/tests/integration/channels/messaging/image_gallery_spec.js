@@ -11,7 +11,6 @@
 // Group: @channels @messaging @smoke
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {interceptFileUpload, waitUntilUploadComplete} from '../files_and_attachments/helpers';
 
 describe('Image Gallery', () => {

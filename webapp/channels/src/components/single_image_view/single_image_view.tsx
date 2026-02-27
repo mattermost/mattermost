@@ -31,7 +31,6 @@ export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
     fileInfos?: FileInfo[];
-    isRhsOpen?: boolean;
     enablePublicLink: boolean;
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
