@@ -84,13 +84,12 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         const error = createTeamData.error;
 
         if (data) {
-            history.push(
-                '/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL,
-            );
+            history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
         } else if (error) {
             setNameError(error.message);
-            stopLoading();
         }
+
+        stopLoading();
     }, [actions, history, parentState.team, startLoading, stopLoading, teamDisplayName, teamURL]);
 
     const submitDisplayName = useCallback((e: React.MouseEvent) => {

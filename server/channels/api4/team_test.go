@@ -159,7 +159,7 @@ func TestCreateTeam(t *testing.T) {
 
 		th.LoginBasic(t)
 
-		originalName := GenerateTestUsername()
+		originalName := "original_name"
 		team := &model.Team{Name: originalName, DisplayName: "Secure URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
