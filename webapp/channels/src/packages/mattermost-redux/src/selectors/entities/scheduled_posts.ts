@@ -59,24 +59,28 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
 
-export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
-    const allChannelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList;
-    const eligibleScheduledPosts = allChannelScheduledPosts.filter((scheduledPostId: string) => {
-        const scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
-        return !scheduledPost?.error_code;
-    });
+export const showChannelOrThreadScheduledPostIndicator: (state: GlobalState, channelOrThreadId: string) => ChannelScheduledPostIndicatorData = createSelector(
+    'showChannelOrThreadScheduledPostIndicator',
+    (state: GlobalState, channelOrThreadId: string) => state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList,
+    (state: GlobalState) => state.entities.scheduledPosts.byId,
+    (allChannelScheduledPostIds: string[], byId: ScheduledPostsState['byId']) => {
+        const eligibleScheduledPosts = allChannelScheduledPostIds.filter((scheduledPostId: string) => {
+            const scheduledPost = byId[scheduledPostId];
+            return !scheduledPost?.error_code;
+        });
 
-    const data = {
-        count: eligibleScheduledPosts.length,
-    } as ChannelScheduledPostIndicatorData;
+        const data = {
+            count: eligibleScheduledPosts.length,
+        } as ChannelScheduledPostIndicatorData;
 
-    if (data.count === 1) {
-        const scheduledPostId = eligibleScheduledPosts[0];
-        data.scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
-    }
+        if (data.count === 1) {
+            const scheduledPostId = eligibleScheduledPosts[0];
+            data.scheduledPost = byId[scheduledPostId];
+        }
 
-    return data;
-}
+        return data;
+    },
+);
 
 export const isScheduledPostsEnabled: (a: GlobalState) => boolean = createSelector(
     'isScheduledPostsEnabled',
