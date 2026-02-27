@@ -21,22 +21,29 @@ const defaultState = {
 };
 
 describe('CreateTeamForm - display_name step', () => {
-    const defaultProps = {
-        step: 'display_name' as const,
-        updateParent: jest.fn(),
-        state: {
-            team: {name: 'test-team', display_name: 'test-team'},
-            wizard: 'display_name',
-        },
-        actions: {
-            checkIfTeamExists: jest.fn().mockResolvedValue({data: false}),
-            createTeam: jest.fn().mockResolvedValue({data: {name: 'test-team'}}),
-        },
-        history: {push: jest.fn()},
+    let defaultProps: {
+        step: 'display_name';
+        updateParent: jest.Mock;
+        state: {team: {name: string; display_name: string}; wizard: string};
+        actions: {checkIfTeamExists: jest.Mock; createTeam: jest.Mock};
+        history: {push: jest.Mock};
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
+        defaultProps = {
+            step: 'display_name' as const,
+            updateParent: jest.fn(),
+            state: {
+                team: {name: 'test-team', display_name: 'test-team'},
+                wizard: 'display_name',
+            },
+            actions: {
+                checkIfTeamExists: jest.fn().mockResolvedValue({data: false}),
+                createTeam: jest.fn().mockResolvedValue({data: {name: 'test-team'}}),
+            },
+            history: {push: jest.fn()},
+        };
     });
 
     test('should match snapshot', () => {
@@ -81,6 +88,134 @@ describe('CreateTeamForm - display_name step', () => {
                 display_name: teamDisplayName,
             }),
         }));
+    });
+
+    describe('with UseSecureURLs enabled', () => {
+        const secureURLState = {
+            entities: {
+                general: {
+                    config: {
+                        UseSecureURLs: 'true',
+                    },
+                },
+            },
+        };
+
+        test('should show Finish button instead of Next', () => {
+            renderWithContext(<CreateTeamForm {...defaultProps}/>, secureURLState);
+
+            expect(screen.getByRole('button', {name: /finish/i})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /next/i})).not.toBeInTheDocument();
+        });
+
+        test('should create team directly without going to team_url step', async () => {
+            renderWithContext(<CreateTeamForm {...defaultProps}/>, secureURLState);
+
+            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+
+            await waitFor(() => {
+                expect(defaultProps.actions.createTeam).toHaveBeenCalledTimes(1);
+                expect(defaultProps.actions.createTeam).toHaveBeenCalledWith(expect.objectContaining({
+                    display_name: 'test-team',
+                    type: 'O',
+                }));
+            });
+
+            expect(defaultProps.updateParent).not.toHaveBeenCalled();
+        });
+
+        test('should navigate to team default channel on successful creation', async () => {
+            const actions = {
+                ...defaultProps.actions,
+                createTeam: jest.fn().mockResolvedValue({data: {name: 'my-new-team'}}),
+            };
+
+            renderWithContext(
+                <CreateTeamForm
+                    {...defaultProps}
+                    actions={actions}
+                />,
+                secureURLState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+
+            await waitFor(() => {
+                expect(defaultProps.history.push).toHaveBeenCalledWith('/my-new-team/channels/town-square');
+            });
+        });
+
+        test('should display error when team creation fails', async () => {
+            const actions = {
+                ...defaultProps.actions,
+                createTeam: jest.fn().mockResolvedValue({error: {message: 'Team creation failed'}}),
+            };
+
+            renderWithContext(
+                <CreateTeamForm
+                    {...defaultProps}
+                    actions={actions}
+                />,
+                secureURLState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+
+            await waitFor(() => {
+                expect(screen.getByText('Team creation failed')).toBeInTheDocument();
+            });
+
+            expect(defaultProps.history.push).not.toHaveBeenCalled();
+        });
+
+        test('should show loading state while creating team', async () => {
+            let resolveCreateTeam: (value: {data: {name: string}}) => void;
+            const createTeamPromise = new Promise<{data: {name: string}}>((resolve) => {
+                resolveCreateTeam = resolve;
+            });
+
+            const actions = {
+                ...defaultProps.actions,
+                createTeam: jest.fn().mockReturnValue(createTeamPromise),
+            };
+
+            renderWithContext(
+                <CreateTeamForm
+                    {...defaultProps}
+                    actions={actions}
+                />,
+                secureURLState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+
+            await waitFor(() => {
+                expect(screen.getByText('Creating team...')).toBeInTheDocument();
+            });
+
+            resolveCreateTeam!({data: {name: 'my-new-team'}});
+
+            await waitFor(() => {
+                expect(defaultProps.history.push).toHaveBeenCalled();
+            });
+        });
+
+        test('should not create team when display name is too short', async () => {
+            const props = {
+                ...defaultProps,
+                state: {
+                    team: {name: '', display_name: ''},
+                    wizard: 'display_name',
+                },
+            };
+
+            renderWithContext(<CreateTeamForm {...props}/>, secureURLState);
+
+            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+
+            expect(defaultProps.actions.createTeam).not.toHaveBeenCalled();
+            expect(defaultProps.updateParent).not.toHaveBeenCalled();
+        });
     });
 });
 
