@@ -319,7 +319,7 @@ function SystemUsers(props: Props) {
             },
             {
                 id: ColumnNames.lastLoginAt,
-                accessorKey: 'last_login_at',
+                accessorKey: 'last_login',
                 header: formatMessage({
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',

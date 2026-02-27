@@ -11,6 +11,7 @@ import {
     TeamSettingsModal,
     components,
     InvitePeopleModal,
+    MembersInvitedModal,
 } from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
@@ -32,6 +33,7 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly findChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
+    public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
     readonly settingsModal;
     readonly teamSettingsModal;
@@ -110,6 +112,13 @@ export default class ChannelsPage {
             this.page.getByRole('dialog', {name: `Invite people to ${teamDisplayName}`}),
         );
         return this.invitePeopleModal;
+    }
+
+    async getMembersInvitedModal(teamDisplayName: string) {
+        this.membersInvitedModal = new components.MembersInvitedModal(
+            this.page.getByRole('dialog', {name: `invited to ${teamDisplayName}`}),
+        );
+        return this.membersInvitedModal;
     }
 
     async goto(teamName = '', channelName = '') {
