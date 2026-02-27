@@ -11926,5 +11926,21 @@
   {
     "id": "app.post_prority.get_for_post_with_context.app_error",
     "translation": "Kan geen postprioriteit krijgen voor bericht met context"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Bericht is vereist"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Gebruikers-ID is vereist"
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Vertaaltaken kunnen niet worden toegevoegd omdat de werker is gestopt."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR redirect URI allowlist bevat een ongeldig patroon. Patronen moeten beginnen met http:// of https:// en mogen niet leeg zijn of spaties bevatten."
   }
 ]
