@@ -29,6 +29,7 @@ describe('components/post_edit_history/edited_post_item', () => {
             closeRightHandSide: jest.fn(),
             openModal: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     test('should match snapshot', () => {

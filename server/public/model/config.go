@@ -204,6 +204,8 @@ const (
 	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
+	AutoTranslationDefaultWorkers = 6
+
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
@@ -236,11 +238,12 @@ const (
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
-	PluginSettingsDefaultDirectory         = "./plugins"
-	PluginSettingsDefaultClientDirectory   = "./client/plugins"
-	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultDirectory          = "./plugins"
+	PluginSettingsDefaultClientDirectory    = "./client/plugins"
+	PluginSettingsDefaultEnableMarketplace  = true
+	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
@@ -348,6 +351,7 @@ type ServiceSettings struct {
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -555,6 +559,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDynamicClientRegistration == nil {
 		s.EnableDynamicClientRegistration = NewPointer(false)
+	}
+
+	if s.DCRRedirectURIAllowlist == nil {
+		s.DCRRedirectURIAllowlist = []string{}
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -1396,10 +1404,10 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type IntuneSettings struct {
-	Enable      *bool   `access:"mobile_intune"`
-	TenantId    *string `access:"mobile_intune"` // telemetry: none
-	ClientId    *string `access:"mobile_intune"` // telemetry: none
-	AuthService *string `access:"mobile_intune"` // "office365" or "saml"
+	Enable      *bool   `access:"environment_mobile_security"`
+	TenantId    *string `access:"environment_mobile_security"` // telemetry: none
+	ClientId    *string `access:"environment_mobile_security"` // telemetry: none
+	AuthService *string `access:"environment_mobile_security"` // "office365" or "saml"
 }
 
 func (s *IntuneSettings) SetDefaults() {
@@ -2830,7 +2838,7 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 
 	if s.Workers == nil {
-		s.Workers = NewPointer(4)
+		s.Workers = NewPointer(AutoTranslationDefaultWorkers)
 	}
 
 	if s.TimeoutMs == nil {
@@ -3122,6 +3130,7 @@ type ElasticsearchSettings struct {
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableCJKAnalyzers            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -3181,6 +3190,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearching == nil {
 		s.EnableSearching = NewPointer(false)
+	}
+
+	if s.EnableCJKAnalyzers == nil {
+		s.EnableCJKAnalyzers = NewPointer(false)
 	}
 
 	if s.EnableAutocomplete == nil {
@@ -3894,17 +3907,12 @@ func (s *ExportSettings) SetDefaults() {
 
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
-	EnableChannelScopeAccessControl   *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAttributeBasedAccessControl == nil {
 		s.EnableAttributeBasedAccessControl = NewPointer(false)
-	}
-
-	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(true)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
@@ -4706,6 +4714,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, pattern := range s.DCRRedirectURIAllowlist {
+		trimmed := strings.TrimSpace(pattern)
+		if trimmed == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !IsValidDCRRedirectURIPattern(trimmed) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// we check if file has a valid parent, the server will try to create the socket
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
@@ -4730,6 +4748,13 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", map[string]any{
 			"Searching":      "ElasticsearchSettings.EnableSearching",
 			"EnableIndexing": "ElasticsearchSettings.EnableIndexing",
+		}, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableCJKAnalyzers && !*s.EnableSearching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error", map[string]any{
+			"EnableCJKAnalyzers": "ElasticsearchSettings.EnableCJKAnalyzers",
+			"Searching":          "ElasticsearchSettings.EnableSearching",
 		}, "", http.StatusBadRequest)
 	}
 
@@ -5064,6 +5089,12 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.CacheSettings.RedisPassword != nil {
 		*o.CacheSettings.RedisPassword = FakeSetting
+	}
+
+	if o.AutoTranslationSettings.LibreTranslate != nil &&
+		o.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*o.AutoTranslationSettings.LibreTranslate.APIKey != "" {
+		*o.AutoTranslationSettings.LibreTranslate.APIKey = FakeSetting
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)

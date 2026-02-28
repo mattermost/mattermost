@@ -271,6 +271,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		// when a previously offline remote comes back online force a sync.
 		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
+		scs.ForceMembershipSyncForRemote(rc)
 
 		// Schedule global user sync if feature is enabled
 		scs.scheduleGlobalUserSync(rc)

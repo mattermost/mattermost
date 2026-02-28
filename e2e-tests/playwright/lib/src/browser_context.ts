@@ -14,11 +14,10 @@ import {resolvePlaywrightPath} from './util';
 
 export class TestBrowser {
     readonly browser: Browser;
-    context: BrowserContext | null;
+    private contexts: BrowserContext[] = [];
 
     constructor(browser: Browser) {
         this.browser = browser;
-        this.context = null;
     }
 
     async login(user: UserProfile) {
@@ -40,7 +39,7 @@ export class TestBrowser {
         const threadsPage = new pages.ThreadsPage(page);
         const contentReviewPage = new pages.ContentReviewPage(page);
 
-        this.context = context;
+        this.contexts.push(context);
 
         return {
             context,
@@ -55,9 +54,10 @@ export class TestBrowser {
     }
 
     async close() {
-        if (this.context) {
-            await this.context.close();
+        for (const context of this.contexts) {
+            await context.close();
         }
+        this.contexts = [];
     }
 }
 
