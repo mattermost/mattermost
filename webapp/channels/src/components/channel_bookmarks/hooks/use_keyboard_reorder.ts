@@ -194,54 +194,54 @@ export function useKeyboardReorder({
                     return;
                 }
 
-                switch (e.key) {
-                case ' ':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (state.isReordering) {
-                        confirmReorder();
-                    } else {
-                        startReorder(id);
-                    }
-                    break;
-                case 'Enter':
-                    if (state.isReordering) {
+                // During reorder, block all keys except our handlers to
+                // prevent Tab, type-ahead, Home/End, etc. from moving focus
+                if (state.isReordering) {
+                    switch (e.key) {
+                    case ' ':
+                    case 'Enter':
                         e.preventDefault();
                         e.stopPropagation();
                         confirmReorder();
-                    }
-                    break;
-                case 'Escape':
-                    if (state.isReordering) {
+                        return;
+                    case 'Escape':
                         e.preventDefault();
                         e.stopPropagation();
                         cancelReorder();
-                    }
-                    break;
-                case 'ArrowLeft':
-                case 'ArrowUp':
-                    if (state.isReordering && state.itemId) {
-                        // Determine container from current position:
-                        // bar items use Left/Right, overflow items use Up/Down
-                        const inOverflow = overflowItemsRef.current.includes(state.itemId);
+                        return;
+                    case 'ArrowLeft':
+                    case 'ArrowUp': {
+                        const inOverflow = overflowItemsRef.current.includes(state.itemId!);
                         if ((inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft')) {
                             e.preventDefault();
                             e.stopPropagation();
                             moveItem(-1);
                         }
+                        return;
                     }
-                    break;
-                case 'ArrowRight':
-                case 'ArrowDown':
-                    if (state.isReordering && state.itemId) {
-                        const inOverflow = overflowItemsRef.current.includes(state.itemId);
+                    case 'ArrowRight':
+                    case 'ArrowDown': {
+                        const inOverflow = overflowItemsRef.current.includes(state.itemId!);
                         if ((inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight')) {
                             e.preventDefault();
                             e.stopPropagation();
                             moveItem(1);
                         }
+                        return;
                     }
-                    break;
+                    default:
+                        // Block everything else (Tab, letters, Home, End, etc.)
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                }
+
+                // Not reordering — Space starts reorder
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startReorder(id);
                 }
             },
         };
