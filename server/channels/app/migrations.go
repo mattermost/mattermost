@@ -624,7 +624,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, err := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", err)
 	}
@@ -718,13 +718,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}

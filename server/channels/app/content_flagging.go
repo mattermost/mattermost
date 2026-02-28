@@ -226,7 +226,7 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(rctx request.CTX, pos
 
 	_, appErr := a.CreatePropertyValues(rctx, propertyValues)
 	if appErr != nil {
-		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.set_thread_replies_properties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.set_thread_replies_properties.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return nil

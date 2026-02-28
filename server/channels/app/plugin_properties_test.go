@@ -1101,7 +1101,8 @@ func TestPluginProperties(t *testing.T) {
 		require.NoError(t, activationErrors[1])
 
 		// Verify the field was actually updated
-		updatedFields, appErr := th.App.ListCPAFields("")
+		rctx := th.emptyContextWithCallerID(anonymousCallerId)
+		updatedFields, appErr := th.App.ListCPAFields(rctx)
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool
 		for _, field := range updatedFields {
