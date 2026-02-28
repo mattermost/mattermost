@@ -97,6 +97,16 @@ function getColor(passRate: number): string {
 /**
  * Calculate results from parsed spec files
  */
+/**
+ * Format milliseconds as "Xm Ys"
+ */
+function formatDuration(ms: number): string {
+    const totalSeconds = Math.round(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}m ${seconds}s`;
+}
+
 export function calculateResultsFromSpecs(
     specs: ParsedSpecFile[],
 ): CalculationResult {
@@ -124,6 +134,30 @@ export function calculateResultsFromSpecs(
             }
         }
     }
+
+    // Compute test duration from earliest start to latest end across all specs
+    let earliestStart: number | null = null;
+    let latestEnd: number | null = null;
+    for (const spec of specs) {
+        const { start, end } = spec.result.stats;
+        if (start) {
+            const startMs = new Date(start).getTime();
+            if (earliestStart === null || startMs < earliestStart) {
+                earliestStart = startMs;
+            }
+        }
+        if (end) {
+            const endMs = new Date(end).getTime();
+            if (latestEnd === null || endMs > latestEnd) {
+                latestEnd = endMs;
+            }
+        }
+    }
+    const testDurationMs =
+        earliestStart !== null && latestEnd !== null
+            ? latestEnd - earliestStart
+            : 0;
+    const testDuration = formatDuration(testDurationMs);
 
     const totalSpecs = specs.length;
     const failedSpecs = Array.from(failedSpecsSet).join(",");
@@ -165,11 +199,13 @@ export function calculateResultsFromSpecs(
     const color = getColor(parseFloat(passRate));
 
     // Build commit status message
-    const specSuffix = totalSpecs > 0 ? ` in ${totalSpecs} spec files` : "";
+    const rate = total > 0 ? (passed * 100) / total : 0;
+    const rateStr = rate === 100 ? "100%" : `${rate.toFixed(1)}%`;
+    const specSuffix = totalSpecs > 0 ? `, ${totalSpecs} specs` : "";
     const commitStatusMessage =
-        failed === 0
-            ? `${passed} passed${specSuffix}`
-            : `${failed} failed, ${passed} passed${specSuffix}`;
+        rate === 100
+            ? `${rateStr} passed (${passed})${specSuffix}`
+            : `${rateStr} passed (${passed}/${total}), ${failed} failed${specSuffix}`;
 
     return {
         passed,
@@ -183,6 +219,7 @@ export function calculateResultsFromSpecs(
         total,
         passRate,
         color,
+        testDuration,
     };
 }
 

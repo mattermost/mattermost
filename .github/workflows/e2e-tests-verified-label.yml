@@ -19,13 +19,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           LABEL_AUTHOR: ${{ github.event.sender.login }}
         run: |
-          # Check if user is a member of mattermost org
-          HTTP_STATUS=$(gh api orgs/mattermost/members/${LABEL_AUTHOR} --silent -i 2>/dev/null | head -1 | awk '{print $2}')
-          if [[ "$HTTP_STATUS" != "204" ]]; then
-            echo "User ${LABEL_AUTHOR} is not a member of mattermost org (status: ${HTTP_STATUS})"
+          # Check if user has write permission to the repository
+          PERMISSION=$(gh api repos/${{ github.repository }}/collaborators/${LABEL_AUTHOR}/permission --jq '.permission' 2>/dev/null || echo "none")
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
+            echo "User ${LABEL_AUTHOR} doesn't have write permission to the repository (permission: ${PERMISSION})"
             exit 1
           fi
-          echo "User ${LABEL_AUTHOR} is a member of mattermost org"
+          echo "User ${LABEL_AUTHOR} has ${PERMISSION} permission to the repository"
 
       - name: ci/override-failed-statuses
         id: override
@@ -34,7 +34,7 @@ jobs:
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           # Only full tests can be overridden (smoke tests must pass)
-          FULL_TEST_CONTEXTS=("E2E Tests/playwright-full" "E2E Tests/cypress-full")
+          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise")
           OVERRIDDEN=""
           WEBHOOK_DATA="[]"
 
@@ -62,18 +62,12 @@ jobs:
               continue
             fi
 
-            # Parse and construct new message
-            if [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed,\ ([0-9]+)\ passed ]]; then
-              FAILED="${BASH_REMATCH[1]}"
-              PASSED="${BASH_REMATCH[2]}"
-              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
-            elif [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed\ \([^)]+\),\ ([0-9]+)\ passed ]]; then
-              FAILED="${BASH_REMATCH[1]}"
-              PASSED="${BASH_REMATCH[2]}"
-              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
-            else
-              NEW_MSG="${CURRENT_DESC} (verified)"
-            fi
+          # Prefix existing description
+          if [ -n "$CURRENT_DESC" ]; then
+            NEW_MSG="(verified) ${CURRENT_DESC}"
+          else
+            NEW_MSG="(verified)"
+          fi
 
             echo "  New: $NEW_MSG"
 

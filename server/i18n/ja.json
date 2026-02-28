@@ -8554,10 +8554,6 @@
     "translation": "{{.Backend}} のCAファイルを開くことができませんでした"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWSサーバーは使用できません。"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
   },
@@ -10022,10 +10018,6 @@
     "translation": "カスタム絵文字の画像用のディレクトリを作成できませんでした"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "ユーザーロールがゲストのステータスと一致していません。"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "カスタムプロフィール属性のプロパティグループを登録できません"
   },
@@ -10896,10 +10888,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "投稿がフラグ立てされていないためフラグ立てした投稿を取得できませんでした。"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "フラグ立てした投稿を完全に削除する際、検閲済みの投稿で元の投稿を上書きできませんでした。"
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",

@@ -7,6 +7,7 @@ import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
+import BooleanSetting from 'components/admin_console/boolean_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
 import {
@@ -17,6 +18,7 @@ import {
 import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
+import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n.jsx';
 
@@ -25,8 +27,9 @@ import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
-import './localization.scss';
 import type {SearchableStrings} from '../types';
+
+import './localization.scss';
 
 const locales = I18n.getAllLanguages();
 
@@ -152,6 +155,9 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
+                            <BetaTag
+                                variant='default'
+                            />
                         </h1>
                         <h5 className='localization-section-description'>
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>
@@ -282,6 +288,25 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     setByEnv={props.setByEnv}
                     onChange={handleTimeoutChange}
                     disabled={props.disabled}
+                />
+                <BooleanSetting
+                    id='RestrictDMAndGM'
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMTitle'
+                            defaultMessage='Restrict auto-translation on direct messages and group messages'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMDescription'
+                            defaultMessage='By default, any member of a direct message or group message can enable auto-translation in those channels. If restricted, auto-translation will not be available in direct messages and group messages.'
+                        />
+                    }
+                    value={autoTranslationSettings.RestrictDMAndGM}
+                    onChange={handleChange}
+                    disabled={props.disabled || props.setByEnv}
+                    setByEnv={props.setByEnv}
                 />
             </SectionContent>
             }

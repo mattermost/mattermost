@@ -4581,15 +4581,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версія 128+"
+    "translation": "Версія 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 138+"
+    "translation": "Версія 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 138+"
+    "translation": "Версія 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7612,10 +7612,6 @@
     "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недоступний."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Послуга доступна лише у версії Mattermost Enterprise"
   },
@@ -10030,10 +10026,6 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Не вдалось створити каталог для власних зображень емодзі"
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Ролі користувачів не відповідають статусу гостя."
   },
   {
     "id": "api.filter_config_error",

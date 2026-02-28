@@ -182,16 +182,20 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             isConfirmDisabled={submitting}
         >
             <div className='body'>
-                <div className='section'>
+                <div
+                    className='section'
+                    data-testid='keep-remove-flagged-message-body'
+                >
                     {body}
                     <br/>
                     <br/>
-                    {subtext}
+                    <span data-testid='keep-remove-flagged-message-subtext'>{subtext}</span>
                 </div>
 
                 <div className='section comment_section'>
                     <div
                         className='section_title'
+                        data-testid='keep-remove-flagged-message-comment-title'
                     >
                         {contentFlaggingConfig?.reviewer_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
                     </div>
@@ -212,7 +216,10 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
                     />
                 </div>
                 {requestError &&
-                    <div className='request_error'>
+                    <div
+                        className='request_error'
+                        data-testid='keep-remove-flagged-message-request-error'
+                    >
                         <i className='icon icon-alert-outline'/>
                         <span>{requestError}</span>
                     </div>

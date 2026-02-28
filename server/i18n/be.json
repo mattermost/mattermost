@@ -8544,10 +8544,6 @@
     "translation": "Няправільны email_token"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недаступны."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Паслуга даступная толькі ў выданні Mattermost Enterprise"
   },
@@ -10012,10 +10008,6 @@
     "translation": "Не атрымалася стварыць каталог для выяваў нестандартных эмодзі"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Ролі карыстальнікаў не адпавядаюць статусу госця."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Немагчыма зарэгістраваць групу ўласцівасцей \"Атрыбуты карыстальніцкага профілю\""
   },
@@ -10886,10 +10878,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Нельга атрымаць пазначанае паведамленне, бо яно не пазначана."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Не атрымалася перазапісаць паведамленне ачышчаным паведамленнем пры пастаянным выдаленні пазначанага паведамлення."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
