@@ -26,7 +26,7 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 ### Styling fixes
 | # | Change | Files |
 |---|---|---|
-| 14 | Left-align overflow menu popup to match plus menu positioning | `bookmarks_bar_menu.tsx` |
+| 14 | Right-align overflow menu popup (right-edge anchored to trigger button) | `bookmarks_bar_menu.tsx` |
 | 15 | Fix overflow item label vertical clipping with `line-height: 20px` | `channel_bookmarks.scss` |
 | — | Fix drag preview text truncation (`inline-block` so `text-overflow: ellipsis` works) | `channel_bookmarks.scss` |
 | — | Drag cursor: `effectAllowed='move'` + `preventUnhandled` for consistent `cursor:default` during drag (native DnD limitation prevents `cursor:grabbing`) | `use_bookmark_drag_drop.ts` |
@@ -53,6 +53,9 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | Fix focus fallback for overflow items (fall back to `<li>` element itself when no inner `a[tabindex]` found) | `use_keyboard_reorder.ts` |
 | Confirm reorder placement on click-anywhere via new `useClickOutside` hook | `useClickOutside.ts` (new), `use_keyboard_reorder.ts` |
 | Remove `[key: string]: unknown` index signature from overflow item props in favor of typed `keyboardReorderProps` | `overflow_bookmark_item.tsx` |
+| Anchor overflow dropdown right-edge to right-edge of trigger button | `bookmarks_bar_menu.tsx` |
+| Add `autoFocusItem` option to `Menu.tsx`; overflow menu disables it so no item is auto-focused on open — ArrowDown from Popover container focuses first item, then MUI handles cycling | `menu.tsx`, `bookmarks_bar_menu.tsx` |
+| Block all conflicting keys during keyboard reorder (Tab, Shift+Tab, Home, End, letter keys, etc.) — only reorder controls allowed | `use_keyboard_reorder.ts` |
 
 ---
 
