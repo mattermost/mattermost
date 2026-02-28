@@ -215,7 +215,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
@@ -248,7 +248,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/download-results
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
@@ -312,7 +312,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-retest-results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
@@ -352,7 +352,7 @@ jobs:
       # PATH A: run-failed-tests was skipped (no failures to retest)
       - name: ci/download-results-path-a
         if: needs.run-failed-tests.result == 'skipped'
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
@@ -381,14 +381,14 @@ jobs:
       # PATH B: run-failed-tests ran, need to merge and recalculate
       - name: ci/download-original-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: e2e-tests/cypress/retest-results/
@@ -495,7 +495,7 @@ jobs:
 
       - name: ci/upload-combined-results
         if: inputs.workers > 1
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: |
