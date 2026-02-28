@@ -93,6 +93,13 @@ type MenuProps = {
      * focus itself (e.g. keyboard reordering).
      */
     disableRestoreFocus?: boolean;
+
+    /**
+     * When false, the menu will not auto-focus the first item on open.
+     * Focus stays on the trigger button; ArrowDown moves focus into the list.
+     * Defaults to true (standard MUI behavior).
+     */
+    autoFocusItem?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -333,7 +340,7 @@ export function Menu(props: Props) {
                         style={{
                             width: props.menu.width,
                         }}
-                        autoFocusItem={isMenuOpen}
+                        autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
                     >
                         {props.children}
                     </MuiMenuList>

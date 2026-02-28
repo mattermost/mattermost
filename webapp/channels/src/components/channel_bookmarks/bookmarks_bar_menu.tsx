@@ -57,6 +57,24 @@ function BookmarksBarMenu({
 
     const hasOverflow = overflowItems.length > 0;
 
+    // When autoFocusItem is off, the Popover container gets focus on open.
+    // ArrowDown/Up from the container should focus the first/last menu item.
+    const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            const menu = document.getElementById('channelBookmarksBarMenuDropdown');
+            const focusedIsItem = (e.target as HTMLElement).getAttribute('role') === 'menuitem';
+            if (focusedIsItem) {
+                return; // MUI handles item-to-item cycling
+            }
+            const items = menu?.querySelectorAll('[role="menuitem"]');
+            if (items?.length) {
+                e.preventDefault();
+                const target = e.key === 'ArrowDown' ? items[0] : items[items.length - 1];
+                (target as HTMLElement).focus();
+            }
+        }
+    }, []);
+
     // Register as drop target for overflow auto-open trigger
     useEffect(() => {
         const el = triggerRef.current;
@@ -165,8 +183,8 @@ function BookmarksBarMenu({
             $hasOverflow={hasOverflow}
         >
             <Menu.Container
-                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 menuButton={{
                     id: 'channelBookmarksBarMenuButton',
                     class: buttonClass,
@@ -181,8 +199,10 @@ function BookmarksBarMenu({
                     id: 'channelBookmarksBarMenuDropdown',
                     isMenuOpen: forceOpen,
                     onToggle: handleToggle,
+                    onKeyDown: handleMenuKeyDown,
                     hideBackdrop: forceOpen,
                     disableRestoreFocus: reorderState?.isReordering,
+                    autoFocusItem: false,
                     width: '280px',
                 }}
             >
