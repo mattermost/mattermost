@@ -1042,6 +1042,13 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.KVListWithOptions(page, perPage, options)
+	api.recordTime(startTime, "KVListWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)

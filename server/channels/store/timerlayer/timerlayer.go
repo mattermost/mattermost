@@ -6340,6 +6340,22 @@ func (s *TimerLayerPluginStore) List(pluginID string, page int, perPage int) ([]
 	return result, err
 }
 
+func (s *TimerLayerPluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PluginStore.ListWithOptions(pluginID, options, page, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.ListWithOptions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	start := time.Now()
 

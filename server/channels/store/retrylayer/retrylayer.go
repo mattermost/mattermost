@@ -7904,6 +7904,27 @@ func (s *RetryLayerPluginStore) List(pluginID string, page int, perPage int) ([]
 
 }
 
+func (s *RetryLayerPluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.ListWithOptions(pluginID, options, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 
 	tries := 0

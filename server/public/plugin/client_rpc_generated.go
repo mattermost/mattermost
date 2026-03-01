@@ -5465,6 +5465,37 @@ func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) erro
 	return nil
 }
 
+type Z_KVListWithOptionsArgs struct {
+	A int
+	B int
+	C model.PluginKVListOptions
+}
+
+type Z_KVListWithOptionsReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	_args := &Z_KVListWithOptionsArgs{page, perPage, options}
+	_returns := &Z_KVListWithOptionsReturns{}
+	if err := g.client.Call("Plugin.KVListWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to KVListWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVListWithOptions(args *Z_KVListWithOptionsArgs, returns *Z_KVListWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVListWithOptions(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVListWithOptions called but not implemented."))
+	}
+	return nil
+}
+
 type Z_PublishWebSocketEventArgs struct {
 	A string
 	B map[string]any

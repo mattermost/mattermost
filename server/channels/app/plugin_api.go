@@ -1091,6 +1091,10 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
+func (api *PluginAPI) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	return api.app.ListPluginKeysWithOptions(api.id, options, page, perPage)
+}
+
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)

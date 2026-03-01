@@ -184,6 +184,36 @@ func (_m *PluginStore) List(pluginID string, page int, perPage int) ([]string, e
 	return r0, r1
 }
 
+// ListWithOptions provides a mock function with given fields: pluginID, options, page, perPage
+func (_m *PluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+	ret := _m.Called(pluginID, options, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListWithOptions")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.PluginKVListOptions, int, int) ([]string, error)); ok {
+		return rf(pluginID, options, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.PluginKVListOptions, int, int) []string); ok {
+		r0 = rf(pluginID, options, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.PluginKVListOptions, int, int) error); ok {
+		r1 = rf(pluginID, options, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveOrUpdate provides a mock function with given fields: keyVal
 func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	ret := _m.Called(keyVal)

@@ -973,6 +973,13 @@ type API interface {
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
 
+	// KVListWithOptions lists all keys for a plugin, filtered according to the given options.
+	// Options.Prefix filters keys at the database level for efficiency.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 11.5
+	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
+
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
