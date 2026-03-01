@@ -419,16 +419,17 @@ func TestCreateTarGzArchive(t *testing.T) {
 	})
 
 	t.Run("Cleanup partial archive on error", func(t *testing.T) {
-		// This test is more conceptual since we can't easily force an error mid-archive
-		// Just verify the cleanup logic exists by checking the function
 		sourceDir := t.TempDir()
 		err := os.WriteFile(filepath.Join(sourceDir, "test.txt"), []byte("test"), 0600)
 		require.NoError(t, err)
 
-		// Try to create archive in non-writable location
-		archivePath := "/root/test-should-fail.tar.gz"
+		// Create a read-only directory so file creation fails regardless of user
+		readOnlyDir := t.TempDir()
+		require.NoError(t, os.Chmod(readOnlyDir, 0555))
+		t.Cleanup(func() { os.Chmod(readOnlyDir, 0755) })
+
+		archivePath := filepath.Join(readOnlyDir, "test-should-fail.tar.gz")
 		err = createTarGzArchive(sourceDir, archivePath)
-		// Should fail but not panic
 		require.Error(t, err)
 	})
 }

@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -82,6 +84,10 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 				return nil // Continue on errors
 			}
 			if info.IsDir() {
+				return nil
+			}
+			// Skip symlinks to prevent arbitrary file reads
+			if info.Mode()&os.ModeSymlink != 0 {
 				return nil
 			}
 			if strings.HasSuffix(info.Name(), ".log") {
@@ -239,8 +245,8 @@ func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 		if strings.Contains(cmdInfo.file, "portinfo") && port != "" {
 			lines := strings.Split(string(output), "\n")
 			var filtered []string
-			for _, line := range lines {
-				if strings.Contains(line, port) || strings.Contains(line, "Proto") {
+			for i, line := range lines {
+				if i == 0 || strings.Contains(line, port) {
 					filtered = append(filtered, line)
 				}
 			}
@@ -257,9 +263,12 @@ func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 	return count, nil
 }
 
-// runCommand executes a command and captures output
+// runCommand executes a command with a 30-second timeout and captures output
 func runCommand(cmdName string, args ...string) ([]byte, error) {
-	cmd := exec.Command(cmdName, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, cmdName, args...)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -274,12 +283,12 @@ func createTarGzArchive(sourceDir string, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer outFile.Close()
 
 	// Setup error handling for cleanup on failure
 	var archiveErr error
 	defer func() {
 		if archiveErr != nil {
+			outFile.Close()
 			if err := os.Remove(outputPath); err != nil {
 				printer.PrintError(fmt.Sprintf("Security Warning: Failed to clean up partial archive containing potentially sensitive data: %s. Manual deletion required.", outputPath))
 			}
@@ -288,10 +297,7 @@ func createTarGzArchive(sourceDir string, outputPath string) error {
 
 	// Chain gzip and tar writers
 	gzipWriter := gzip.NewWriter(outFile)
-	defer gzipWriter.Close()
-
 	tarWriter := tar.NewWriter(gzipWriter)
-	defer tarWriter.Close()
 
 	// Walk source directory
 	archiveErr = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
