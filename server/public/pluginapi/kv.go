@@ -3,6 +3,7 @@ package pluginapi
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -253,6 +254,18 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	var appErr *model.AppError
 	if args.prefix != "" {
 		keys, appErr = k.api.KVListWithOptions(page, count, model.PluginKVListOptions{Prefix: args.prefix})
+		if appErr != nil && (appErr.StatusCode == http.StatusNotImplemented ||
+			strings.Contains(strings.ToLower(appErr.DetailedError), "not implemented")) {
+			// Server doesn't support KVListWithOptions; fall back to KVList
+			// with client-side prefix filtering via the checkers pipeline.
+			keys, appErr = k.api.KVList(page, count)
+			prefix := args.prefix
+			args.checkers = append([]func(string) (bool, error){
+				func(key string) (bool, error) {
+					return strings.HasPrefix(key, prefix), nil
+				},
+			}, args.checkers...)
+		}
 	} else {
 		keys, appErr = k.api.KVList(page, count)
 	}

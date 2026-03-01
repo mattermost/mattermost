@@ -25,6 +25,7 @@ import (
 var excludedPluginHooks = []string{
 	"FileWillBeUploaded",
 	"Implemented",
+	"KVListWithOptions",
 	"LoadPluginConfiguration",
 	"InstallPlugin",
 	"LogAuditRec",

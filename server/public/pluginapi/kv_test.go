@@ -666,6 +666,34 @@ func TestListKeys(t *testing.T) {
 		assert.Empty(t, keys)
 		assert.Error(t, err)
 	})
+
+	t.Run("fallback to KVList when KVListWithOptions not implemented", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "key1"}).
+			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
+		api.On("KVList", 0, 100).Return([]string{"key1", "key10", "key2", "other1", "other2"}, nil)
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key1"))
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"key1", "key10"}, keys)
+	})
+
+	t.Run("fallback to KVList fails, error propagates", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "key"}).
+			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
+		api.On("KVList", 0, 100).Return([]string(nil), model.NewAppError("test", "test.error", nil, "", http.StatusInternalServerError))
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key"))
+		assert.Empty(t, keys)
+		assert.Error(t, err)
+	})
 }
 
 func getKeys(count int) []string {
