@@ -641,6 +641,14 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) viewsRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("views")
+}
+
+func (c *Client4) viewRoute(channelId, viewId string) clientRoute {
+	return c.viewsRoute(channelId).Join(viewId)
+}
+
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
 	return newClientRoute("client_perf")
 }
@@ -7679,6 +7687,56 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
+}
+
+// CreateView creates a view for a channel.
+func (c *Client4) CreateView(ctx context.Context, channelId string, view *View) (*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewsRoute(channelId), view)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetView gets a single view by ID.
+func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.viewRoute(channelId, viewId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetViewsForChannel lists all views for a channel.
+func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string) ([]*View, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.viewsRoute(channelId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
+// UpdateView patches a view.
+func (c *Client4) UpdateView(ctx context.Context, channelId, viewId string, patch *ViewPatch) (*View, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.viewRoute(channelId, viewId), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// DeleteView soft-deletes a view.
+func (c *Client4) DeleteView(ctx context.Context, channelId, viewId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.viewRoute(channelId, viewId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {

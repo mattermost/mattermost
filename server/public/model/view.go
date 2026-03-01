@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -19,6 +20,7 @@ const (
 	ViewTitleMaxRunes       = 256
 	ViewDescriptionMaxRunes = 1024
 	ViewIconMaxRunes        = 256
+	SubviewTitleMaxRunes    = 256
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"
@@ -61,8 +63,12 @@ func (s *Subview) IsValid() *AppError {
 		return NewAppError("Subview.IsValid", "model.subview.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if s.Title == "" {
+	if strings.TrimSpace(s.Title) == "" {
 		return NewAppError("Subview.IsValid", "model.subview.is_valid.title.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(s.Title) > SubviewTitleMaxRunes {
+		return NewAppError("Subview.IsValid", "model.subview.is_valid.title_length.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
 	if s.Type != SubviewTypeKanban {
@@ -109,6 +115,9 @@ func (p *ViewBoardProps) Clone() *ViewBoardProps {
 }
 
 func (o *View) Clone() *View {
+	if o == nil {
+		return nil
+	}
 	v := *o
 	v.Props = o.Props.Clone()
 	return &v
@@ -131,7 +140,7 @@ func (o *View) IsValid() *AppError {
 		return NewAppError("View.IsValid", "model.view.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Title == "" || utf8.RuneCountInString(o.Title) > ViewTitleMaxRunes {
+	if strings.TrimSpace(o.Title) == "" || utf8.RuneCountInString(o.Title) > ViewTitleMaxRunes {
 		return NewAppError("View.IsValid", "model.view.is_valid.title.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -202,6 +211,9 @@ func (o *View) PreUpdate() {
 }
 
 func (o *View) Patch(patch *ViewPatch) {
+	if patch == nil {
+		return
+	}
 	if patch.Title != nil {
 		o.Title = *patch.Title
 	}

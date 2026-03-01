@@ -1,0 +1,258 @@
+  /api/v4/channels/{channel_id}/views:
+    get:
+      tags:
+        - views
+      summary: List channel views
+      description: |
+        Get a list of views for a channel.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: ListChannelViews
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel views retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - views
+      summary: Create channel view
+      description: |
+        Create a new view for a channel.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have the `manage_public_channel_properties` or
+        `manage_private_channel_properties` permission depending
+        on the channel type. If the channel is a DM or GM, must
+        be a non-guest member.
+      operationId: CreateChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - type
+                - props
+              properties:
+                title:
+                  type: string
+                  description: The title of the view
+                  maxLength: 256
+                type:
+                  type: string
+                  enum: [board]
+                  description: |
+                    The type of the view.
+                    * `board` - a board view with linked properties and subviews
+                description:
+                  type: string
+                  description: The description of the view
+                  maxLength: 1024
+                icon:
+                  type: string
+                  description: The icon for the view
+                  maxLength: 256
+                sort_order:
+                  type: integer
+                  description: The display order of the view within the channel
+                props:
+                  $ref: "#/components/schemas/ViewBoardProps"
+        description: View object to be created
+        required: true
+      responses:
+        "201":
+          description: Channel view creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/channels/{channel_id}/views/{view_id}:
+    get:
+      tags:
+        - views
+      summary: Get a channel view
+      description: |
+        Get a single view by its ID.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: GetChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel view retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      tags:
+        - views
+      summary: Update a channel view
+      description: |
+        Partially update a channel view by providing only the fields
+        you want to update. Omitted fields will not be updated.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have the `manage_public_channel_properties` or
+        `manage_private_channel_properties` permission depending
+        on the channel type. If the channel is a DM or GM, must
+        be a non-guest member.
+      operationId: UpdateChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewPatch"
+        description: View fields to be updated
+        required: true
+      responses:
+        "200":
+          description: Channel view update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - views
+      summary: Delete a channel view
+      description: |
+        Soft-deletes a channel view. Sets `delete_at` to current timestamp.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have the `manage_public_channel_properties` or
+        `manage_private_channel_properties` permission depending
+        on the channel type. If the channel is a DM or GM, must
+        be a non-guest member.
+      operationId: DeleteChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel view deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

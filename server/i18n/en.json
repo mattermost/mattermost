@@ -4811,6 +4811,42 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Cannot create a view in a deleted channel."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Cannot delete a view in a deleted channel."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Cannot update a view in a deleted channel."
+  },
+  {
+    "id": "api.view.write.dm_gm.forbidden.app_error",
+    "translation": "You do not have permission to manage views in this conversation."
+  },
+  {
+    "id": "api.view.write.forbidden.app_error",
+    "translation": "You do not have permission to manage views in this channel."
+  },
+  {
+    "id": "api.view.write.guest.forbidden.app_error",
+    "translation": "Guests are not allowed to manage views in direct or group messages."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -8461,12 +8497,28 @@
     "translation": "Unable to create the view."
   },
   {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
     "id": "app.view.delete.app_error",
     "translation": "Unable to delete the view."
   },
   {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
     "id": "app.view.get.app_error",
     "translation": "Unable to get the view."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.view.get_for_channel.app_error",
@@ -8475,6 +8527,14 @@
   {
     "id": "app.view.update.app_error",
     "translation": "Unable to update the view."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -11351,6 +11411,10 @@
   {
     "id": "model.subview.is_valid.title.app_error",
     "translation": "Subview title is required."
+  },
+  {
+    "id": "model.subview.is_valid.title_length.app_error",
+    "translation": "Subview title is too long."
   },
   {
     "id": "model.subview.is_valid.type.app_error",
