@@ -383,8 +383,6 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 	s.SetupTestHelper().InitBasic(s.T())
 
-	pluginArg := "tmpPlugin"
-
 	s.Run("Error when appropriate permissions are not available", func() {
 		printer.Clean()
 
@@ -400,7 +398,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 
 		cmd := &cobra.Command{}
 
-		err := pluginListCmdF(s.th.Client, cmd, []string{pluginArg})
+		err := pluginListCmdF(s.th.Client, cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -422,7 +420,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 
 		cmd := &cobra.Command{}
 
-		err := pluginListCmdF(c, cmd, []string{pluginArg})
+		err := pluginListCmdF(c, cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -444,7 +442,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 
 		cmd := &cobra.Command{}
 
-		err := pluginListCmdF(c, cmd, []string{pluginArg})
+		err := pluginListCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 3)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -466,7 +464,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("format", "json", "")
 
-		err := pluginListCmdF(c, cmd, []string{pluginArg})
+		err := pluginListCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
