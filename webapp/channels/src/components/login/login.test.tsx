@@ -112,10 +112,6 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(false);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should match snapshot', () => {
         renderWithContext(
             <Login/>,
@@ -318,10 +314,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'Gitlab Icon GitLab 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should focus username field when there is an error', async () => {
@@ -374,10 +368,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'OpenID Icon OpenID 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should redirect on login', async () => {

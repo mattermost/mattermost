@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import LearnMoreTrialModalStep from 'components/learn_more_trial_modal/learn_more_trial_modal_step';
 
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/learn_more_trial_modal/learn_more_trial_modal_step', () => {
     const props = {
@@ -43,42 +41,37 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal_step', () => 
         },
     };
 
-    const store = mockStore(state);
-
     test('should match snapshot', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <LearnMoreTrialModalStep {...props}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <LearnMoreTrialModalStep {...props}/>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with optional params', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <LearnMoreTrialModalStep
-                    {...props}
-                    bottomLeftMessage='Step bottom message'
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <LearnMoreTrialModalStep
+                {...props}
+                bottomLeftMessage='Step bottom message'
+            />,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when loaded in cloud workspace', () => {
         const cloudProps = {...props, isCloud: true};
-        const wrapper = shallow(
-            <Provider store={store}>
-                <LearnMoreTrialModalStep
-                    {...cloudProps}
-                    bottomLeftMessage='Step bottom message'
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <LearnMoreTrialModalStep
+                {...cloudProps}
+                bottomLeftMessage='Step bottom message'
+            />,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

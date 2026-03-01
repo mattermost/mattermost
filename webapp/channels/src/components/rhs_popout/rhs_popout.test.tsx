@@ -68,7 +68,6 @@ describe('RhsPopout', () => {
     const channel1 = TestHelper.getChannelMock({id: 'channel1', name: 'channel1'});
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockDispatch.mockReturnValue({type: 'MOCK_ACTION'});
         mockUseDispatch.mockReturnValue(mockDispatch);
         mockUseParams.mockReturnValue({team: 'team1', identifier: 'channel1'});

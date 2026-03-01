@@ -844,7 +844,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 1.0.0?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -905,7 +905,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 1.0.0?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -917,7 +917,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       </p>,
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="You currently have 0.0.1 installed."
+          defaultMessage="You currently have {installedVersion} installed."
           id="marketplace_modal.list.update_confirmation.message.current"
           values={
             Object {
@@ -962,7 +962,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 0.0.2?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -974,7 +974,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
       </p>,
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="You currently have 0.0.1 installed."
+          defaultMessage="You currently have {installedVersion} installed."
           id="marketplace_modal.list.update_confirmation.message.current"
           values={
             Object {

@@ -68,7 +68,7 @@ const Limits = (): JSX.Element | null => {
                         name={(
                             <FormattedMessage
                                 id='workspace_limits.file_storage'
-                                defaultMessage='File Storage'
+                                defaultMessage='File storage'
                             />
                         )}
                         status={(
@@ -92,13 +92,13 @@ const Limits = (): JSX.Element | null => {
                         name={
                             <FormattedMessage
                                 id='workspace_limits.message_history'
-                                defaultMessage='Message History'
+                                defaultMessage='Message history'
                             />
                         }
                         status={
                             <FormattedMessage
                                 id='workspace_limits.message_history.usage'
-                                defaultMessage='{actual} of {limit} ({percent}%)'
+                                defaultMessage='{actual} of {limit} messages ({percent}%)'
                                 values={{
                                     actual: `${Math.floor(usage.messages.history / 1000)}K`,
                                     limit: `${Math.floor(cloudLimits.messages.history / 1000)}K`,
@@ -150,7 +150,7 @@ const Limits = (): JSX.Element | null => {
                         >
                             {intl.formatMessage({
                                 id: 'admin.license.trialCard.contactSales',
-                                defaultMessage: 'Contact sales',
+                                defaultMessage: 'Contact Sales',
                             })}
                         </button>
                     </>

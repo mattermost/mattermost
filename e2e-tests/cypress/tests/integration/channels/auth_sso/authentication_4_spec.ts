@@ -149,9 +149,11 @@ describe('Authentication', () => {
 
         cy.get('#input_password-input').type('Test123456!');
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         ['1user', 'te', 'user#1', 'user!1'].forEach((option) => {
             cy.get('#input_name').clear().type(option);
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert the error is what is expected;
             cy.get('.Input___error').scrollIntoView().should('be.visible');
@@ -183,7 +185,9 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        cy.findByText('Create account').click();
 
         // * Make sure account was created successfully and we are on the team joining page
         cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
@@ -245,7 +249,9 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
         cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
@@ -271,7 +277,7 @@ describe('Authentication', () => {
         cy.findByText('Copy invite link').click();
 
         // # Input email, select member
-        cy.findByLabelText('Add or Invite People').type(`test-${getRandomId()}@mattermost.com{downarrow}{downarrow}{enter}`, {force: true});
+        cy.findByLabelText('Invite People').type(`test-${getRandomId()}@mattermost.com{downarrow}{downarrow}{enter}`, {force: true});
 
         // # Click invite members button
         cy.findByRole('button', {name: 'Invite'}).click({force: true});

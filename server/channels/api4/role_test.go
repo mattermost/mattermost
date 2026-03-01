@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"testing"
 
@@ -299,9 +298,8 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
@@ -333,9 +331,8 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserGrid from './user_grid';
@@ -60,57 +60,61 @@ describe('components/admin_console/user_grid/UserGrid', () => {
     };
 
     test('should match snapshot with 2 users', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with 2 users and 1 added included', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
                 includeUsers={{[notSavedUser.id]: notSavedUser}}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with 2 users and 1 removed user', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
                 excludeUsers={{[user1.id]: user1}}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should return pagination props while taking into account added or removed users when getPaginationProps is called', () => {
-        const wrapper = shallow(
+        // Test initial state: 2 users should show "1 - 2 of 2"
+        const {rerender} = renderWithContext(
             <UserGrid {...baseProps}/>,
         );
-        const userGrid = wrapper.instance() as UserGrid;
 
-        let paginationProps = userGrid.getPaginationProps();
-        expect(paginationProps.startCount).toEqual(1);
-        expect(paginationProps.endCount).toEqual(2);
-        expect(paginationProps.total).toEqual(2);
+        expect(screen.getByText('1 - 2 of 2')).toBeInTheDocument();
 
-        wrapper.setProps({includeUsers: {[notSavedUser.id]: notSavedUser}});
+        // Test with 1 included user: should show "1 - 3 of 3"
+        rerender(
+            <UserGrid
+                {...baseProps}
+                includeUsers={{[notSavedUser.id]: notSavedUser}}
+            />,
+        );
 
-        paginationProps = userGrid.getPaginationProps();
-        expect(paginationProps.startCount).toEqual(1);
-        expect(paginationProps.endCount).toEqual(3);
-        expect(paginationProps.total).toEqual(3);
+        expect(screen.getByText('1 - 3 of 3')).toBeInTheDocument();
 
-        wrapper.setProps({includeUsers: {}, excludeUsers: {[user1.id]: user1}});
+        // Test with 1 excluded user: should show "1 - 1 of 1"
+        rerender(
+            <UserGrid
+                {...baseProps}
+                includeUsers={{}}
+                excludeUsers={{[user1.id]: user1}}
+            />,
+        );
 
-        paginationProps = userGrid.getPaginationProps();
-        expect(paginationProps.startCount).toEqual(1);
-        expect(paginationProps.endCount).toEqual(1);
-        expect(paginationProps.total).toEqual(1);
+        expect(screen.getByText('1 - 1 of 1')).toBeInTheDocument();
     });
 });

@@ -13,6 +13,7 @@ import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     makeGetFilesForEditHistory,
     makeGetFilesForPost,
+    isFileRejected,
 } from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -66,12 +67,16 @@ function makeMapStateToProps() {
             fileCount = ownProps.post.filenames.length;
         }
 
+        // Check if the first file is rejected (for single file view logic)
+        const firstFileRejected = fileInfos.length > 0 ? isFileRejected(state, fileInfos[0].id) : false;
+
         return {
             enableSVGs: getConfig(state).EnableSVGs === 'true',
             fileInfos,
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
             locale: getCurrentLocale(state),
+            firstFileRejected,
         };
     };
 }

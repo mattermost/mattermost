@@ -203,7 +203,6 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	valueCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	ids := make([]string, len(values))
@@ -220,13 +219,8 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 			valueJSON = AppendBinaryFlag(valueJSON)
 		}
 
-		if isPostgres {
-			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
-		} else {
-			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?", valueJSON))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?", value.DeleteAt))
-		}
+		valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
+		deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
 	}
 
 	builder := s.getQueryBuilder().

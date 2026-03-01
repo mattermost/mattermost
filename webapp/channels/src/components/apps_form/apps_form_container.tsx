@@ -56,7 +56,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             return {error: makeCallErrorResponse(makeErrorMsg(errMsg))};
         }
         if (!form.submit) {
-            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_submit', defaultMessage: '`submit` is not defined'});
+            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_submit', defaultMessage: '`submit` is not defined.'});
             return {error: makeCallErrorResponse(makeErrorMsg(errMsg))};
         }
         if (!this.props.appContext) {
@@ -170,7 +170,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         const makeErrorMsg = (message: string) => intl.formatMessage(
             {
                 id: 'apps.error.form.refresh',
-                defaultMessage: 'There has been an error fetching the select fields. Contact the app developer. Details: {details}',
+                defaultMessage: 'There has been an error updating the modal. Contact the app developer. Details: {details}',
             },
             {details: message},
         );

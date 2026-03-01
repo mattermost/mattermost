@@ -5361,10 +5361,6 @@
     "translation": "Няма да получавате известия за канала {{.Channel}}, докато е заглушен."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не може да заглушите канала {{.Channel}} защото не сте член."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },

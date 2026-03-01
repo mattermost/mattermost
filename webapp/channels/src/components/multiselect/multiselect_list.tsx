@@ -16,7 +16,6 @@ export type Props<T extends Value> = {
     ariaLabelRenderer: GetOptionValue<T>;
     loading?: boolean;
     onAdd: (value: T) => void;
-    onPageChange?: (newPage: number, currentPage: number) => void;
     onSelect: (value: T | null) => void;
     optionRenderer: (
         option: T,
@@ -27,8 +26,6 @@ export type Props<T extends Value> = {
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
-    page: number;
-    perPage: number;
     customNoOptionsMessage?: React.ReactNode;
 }
 

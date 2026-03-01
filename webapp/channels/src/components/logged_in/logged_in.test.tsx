@@ -14,7 +14,7 @@ import type {Props} from 'components/logged_in/logged_in';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
-jest.mock('actions/websocket_actions.jsx', () => ({
+jest.mock('actions/websocket_actions', () => ({
     initialize: jest.fn(),
     close: jest.fn(),
 }));
