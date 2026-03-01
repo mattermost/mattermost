@@ -38,7 +38,6 @@ func validateMattermostDirectory(mmDir string) error {
 // Returns count of files collected and error (error only on obfuscation failure)
 func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, error) {
 	count := 0
-	obfuscatedCount := 0
 
 	// Collect config.json
 	configPath := filepath.Join(mmDir, "config", "config.json")
@@ -47,16 +46,11 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 		printer.PrintError(fmt.Sprintf("Warning: Could not read config.json: %v", err))
 	} else {
 		if obfuscate {
-			obfuscatedBytes, obfCount, err := obfuscateConfigJSON(configBytes)
+			sanitizedBytes, err := sanitizeConfigJSON(configBytes)
 			if err != nil {
-				return 0, fmt.Errorf("failed to obfuscate config.json: %w", err)
+				return 0, fmt.Errorf("failed to sanitize config.json: %w", err)
 			}
-			obfuscatedCount = obfCount
-			configBytes = obfuscatedBytes
-
-			if obfuscatedCount == 0 {
-				printer.PrintError("Warning: No sensitive fields found in config.json - verify config is complete")
-			}
+			configBytes = sanitizedBytes
 		}
 
 		destPath := filepath.Join(tempDir, "config.json")
@@ -65,9 +59,9 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 		} else {
 			count++
 			if obfuscate {
-				printer.Print(fmt.Sprintf("Collected config.json (obfuscated %d sensitive fields)", obfuscatedCount))
+				printer.Print("Collected config.json (sanitized)")
 			} else {
-				printer.Print("Collected config.json (no obfuscation)")
+				printer.Print("Collected config.json (no sanitization)")
 			}
 		}
 	}
@@ -180,8 +174,9 @@ func extractPortFromConfig(configPath string) string {
 	return "8065"
 }
 
-// collectSystemDiagnostics collects system files and executes system commands to capture output
-func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
+// collectSystemDiagnostics collects system files and executes system commands to capture output.
+// This is best-effort: individual files/commands that fail are silently skipped.
+func collectSystemDiagnostics(tempDir string, configPath string) int {
 	count := 0
 
 	// Collect system files
@@ -212,7 +207,7 @@ func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 		file string
 		desc string
 	}{
-		{[]string{"systemctl", "status", "mattermost.service", "--no-pager", "-l"}, "systemctl.txt", "systemctl status"},
+		{[]string{"systemctl", "status", "mattermost.service", "--no-pager", "-l", "-n", "100"}, "systemctl.txt", "systemctl status"},
 		{[]string{"journalctl", "-u", "mattermost.service", "-n", "1000", "--no-pager"}, "journalctl.txt", "journalctl"},
 		{[]string{"top", "-b", "-n", "1"}, "top.txt", "top snapshot"},
 		{[]string{"df", "-a", "-h"}, "diskspace.txt", "disk usage"},
@@ -260,7 +255,7 @@ func collectSystemDiagnostics(tempDir string, configPath string) (int, error) {
 		}
 	}
 
-	return count, nil
+	return count
 }
 
 // runCommand executes a command with a 30-second timeout and captures output

@@ -11,6 +11,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 type PacketPullTestSuite struct {
@@ -21,159 +24,71 @@ func TestPacketPullTestSuite(t *testing.T) {
 	suite.Run(t, new(PacketPullTestSuite))
 }
 
-func (s *PacketPullTestSuite) TestObfuscateConfigJSON() {
-	s.Run("Obfuscate basic password fields", func() {
-		input := `{
-			"ServiceSettings": {
-				"SiteURL": "https://example.com",
-				"ListenAddress": ":8065"
-			},
-			"SqlSettings": {
-				"DataSource": "postgres://user:pass@localhost/mattermost",
-				"MasterPassword": "secret123"
-			}
-		}`
+func (s *PacketPullTestSuite) TestSanitizeConfigJSON() {
+	s.Run("Sanitizes known sensitive fields", func() {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.SqlSettings.DataSource = model.NewPointer("postgres://user:pass@localhost/mattermost")
+		cfg.EmailSettings.SMTPPassword = model.NewPointer("secret123")
+		cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer("s3secret")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
 
-		result, count, err := obfuscateConfigJSON([]byte(input))
-		s.Require().NoError(err)
-		s.Require().Greater(count, 0)
-
-		var resultMap map[string]interface{}
-		err = json.Unmarshal(result, &resultMap)
+		input, err := json.Marshal(cfg)
 		s.Require().NoError(err)
 
-		// Check that sensitive fields were obfuscated
-		sqlSettings := resultMap["SqlSettings"].(map[string]interface{})
-		s.Equal("***REDACTED***", sqlSettings["DataSource"])
-		s.Equal("***REDACTED***", sqlSettings["MasterPassword"])
+		result, err := sanitizeConfigJSON(input)
+		s.Require().NoError(err)
 
-		// Check that non-sensitive fields were preserved
-		serviceSettings := resultMap["ServiceSettings"].(map[string]interface{})
-		s.Equal("https://example.com", serviceSettings["SiteURL"])
-		s.Equal(":8065", serviceSettings["ListenAddress"])
+		var sanitized model.Config
+		err = json.Unmarshal(result, &sanitized)
+		s.Require().NoError(err)
+
+		// Sensitive fields should be sanitized
+		s.NotEqual("postgres://user:pass@localhost/mattermost", *sanitized.SqlSettings.DataSource)
+		s.Equal(model.FakeSetting, *sanitized.EmailSettings.SMTPPassword)
+		s.Equal(model.FakeSetting, *sanitized.FileSettings.AmazonS3SecretAccessKey)
+
+		// Non-sensitive fields preserved
+		s.Equal("https://example.com", *sanitized.ServiceSettings.SiteURL)
 	})
 
-	s.Run("Case insensitive keyword matching", func() {
-		testCases := []struct {
-			name     string
-			input    string
-			field    string
-			expected string
-		}{
-			{"camelCase", `{"SMTPPassword": "secret"}`, "SMTPPassword", "***REDACTED***"},
-			{"snake_case", `{"smtp_password": "secret"}`, "smtp_password", "***REDACTED***"},
-			{"UPPERCASE", `{"DATABASE_PASSWORD": "secret"}`, "DATABASE_PASSWORD", "***REDACTED***"},
-			{"Mixed", `{"PasswordHash": "secret"}`, "PasswordHash", "***REDACTED***"},
-		}
+	s.Run("Partially redacts data sources", func() {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.SqlSettings.DriverName = model.NewPointer("postgres")
+		cfg.SqlSettings.DataSource = model.NewPointer("postgres://user:pass@dbhost:5432/mattermost")
 
-		for _, tc := range testCases {
-			s.Run(tc.name, func() {
-				result, count, err := obfuscateConfigJSON([]byte(tc.input))
-				s.Require().NoError(err)
-				s.Require().Equal(1, count)
-
-				var resultMap map[string]interface{}
-				err = json.Unmarshal(result, &resultMap)
-				s.Require().NoError(err)
-				s.Equal(tc.expected, resultMap[tc.field])
-			})
-		}
-	})
-
-	s.Run("Nested field obfuscation", func() {
-		input := `{
-			"EmailSettings": {
-				"SMTPServer": "smtp.example.com",
-				"SMTPPassword": "secret123",
-				"Credentials": {
-					"APIKey": "abc123",
-					"SecretToken": "xyz789"
-				}
-			}
-		}`
-
-		result, count, err := obfuscateConfigJSON([]byte(input))
-		s.Require().NoError(err)
-		s.Require().Equal(3, count) // SMTPPassword, APIKey, SecretToken
-
-		var resultMap map[string]interface{}
-		err = json.Unmarshal(result, &resultMap)
+		input, err := json.Marshal(cfg)
 		s.Require().NoError(err)
 
-		emailSettings := resultMap["EmailSettings"].(map[string]interface{})
-		s.Equal("***REDACTED***", emailSettings["SMTPPassword"])
-		s.Equal("smtp.example.com", emailSettings["SMTPServer"])
-
-		credentials := emailSettings["Credentials"].(map[string]interface{})
-		s.Equal("***REDACTED***", credentials["APIKey"])
-		s.Equal("***REDACTED***", credentials["SecretToken"])
-	})
-
-	s.Run("Preserve non-string values", func() {
-		input := `{
-			"Settings": {
-				"MaxPasswordLength": 64,
-				"RequirePassword": true,
-				"EmptyPassword": null,
-				"PasswordPolicy": "complex"
-			}
-		}`
-
-		result, count, err := obfuscateConfigJSON([]byte(input))
-		s.Require().NoError(err)
-		s.Require().Equal(1, count) // Only PasswordPolicy (string)
-
-		var resultMap map[string]interface{}
-		err = json.Unmarshal(result, &resultMap)
+		result, err := sanitizeConfigJSON(input)
 		s.Require().NoError(err)
 
-		settings := resultMap["Settings"].(map[string]interface{})
-		s.Equal(float64(64), settings["MaxPasswordLength"]) // JSON numbers are float64
-		s.Equal(true, settings["RequirePassword"])
-		s.Nil(settings["EmptyPassword"])
-		s.Equal("***REDACTED***", settings["PasswordPolicy"])
-	})
-
-	s.Run("Empty string values not obfuscated", func() {
-		input := `{"Password": ""}`
-
-		result, count, err := obfuscateConfigJSON([]byte(input))
+		var sanitized model.Config
+		err = json.Unmarshal(result, &sanitized)
 		s.Require().NoError(err)
-		s.Require().Equal(0, count) // Empty strings not obfuscated
 
-		var resultMap map[string]interface{}
-		err = json.Unmarshal(result, &resultMap)
-		s.Require().NoError(err)
-		s.Equal("", resultMap["Password"])
+		// Data source should be partially redacted (host preserved, creds replaced)
+		ds := *sanitized.SqlSettings.DataSource
+		s.Contains(ds, "dbhost")
+		s.NotContains(ds, "pass")
 	})
 
 	s.Run("Invalid JSON returns error", func() {
-		input := `{invalid json`
-
-		_, _, err := obfuscateConfigJSON([]byte(input))
+		_, err := sanitizeConfigJSON([]byte(`{invalid json`))
 		s.Require().Error(err)
 	})
 
-	s.Run("Array obfuscation", func() {
-		input := `{
-			"Replicas": [
-				{"DSN": "postgres://replica1", "APIKey": "key1"},
-				{"DSN": "postgres://replica2", "APIKey": "key2"}
-			]
-		}`
+	s.Run("Empty config still works", func() {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
 
-		result, count, err := obfuscateConfigJSON([]byte(input))
-		s.Require().NoError(err)
-		s.Require().Equal(4, count) // 2 DSN + 2 APIKey
-
-		var resultMap map[string]interface{}
-		err = json.Unmarshal(result, &resultMap)
+		input, err := json.Marshal(cfg)
 		s.Require().NoError(err)
 
-		replicas := resultMap["Replicas"].([]interface{})
-		replica1 := replicas[0].(map[string]interface{})
-		s.Equal("***REDACTED***", replica1["DSN"])
-		s.Equal("***REDACTED***", replica1["APIKey"])
+		result, err := sanitizeConfigJSON(input)
+		s.Require().NoError(err)
+		s.NotEmpty(result)
 	})
 }
 
@@ -299,7 +214,8 @@ func (s *PacketPullTestSuite) TestValidateMattermostDirectory() {
 }
 
 func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
-	s.Run("Happy path with obfuscation", func() {
+	s.Run("Happy path with sanitization", func() {
+		printer.Clean()
 		// Setup test Mattermost directory
 		mmDir := s.T().TempDir()
 		configDir := filepath.Join(mmDir, "config")
@@ -309,12 +225,13 @@ func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
 		err = os.MkdirAll(logsDir, 0700)
 		s.Require().NoError(err)
 
-		// Create test config.json
-		configContent := `{
-			"ServiceSettings": {"SiteURL": "https://example.com"},
-			"SqlSettings": {"DataSource": "postgres://user:pass@localhost/db"}
-		}`
-		err = os.WriteFile(filepath.Join(configDir, "config.json"), []byte(configContent), 0600)
+		// Create a real model.Config so sanitization works
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.SqlSettings.DataSource = model.NewPointer("postgres://user:pass@localhost/db")
+		configContent, err := json.Marshal(cfg)
+		s.Require().NoError(err)
+		err = os.WriteFile(filepath.Join(configDir, "config.json"), configContent, 0600)
 		s.Require().NoError(err)
 
 		// Create test log files
@@ -326,15 +243,14 @@ func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
 		// Create temp dir for collection
 		tempDir := s.T().TempDir()
 
-		// Collect files with obfuscation
+		// Collect files with sanitization
 		count, err := collectMattermostFiles(mmDir, tempDir, true)
 		s.Require().NoError(err)
 		s.Require().Greater(count, 0)
 
-		// Verify config.json was obfuscated
+		// Verify config.json was sanitized
 		collectedConfig, err := os.ReadFile(filepath.Join(tempDir, "config.json"))
 		s.Require().NoError(err)
-		s.Contains(string(collectedConfig), "***REDACTED***")
 		s.NotContains(string(collectedConfig), "postgres://user:pass@localhost/db")
 
 		// Verify log files were collected
@@ -347,7 +263,8 @@ func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
 		s.Equal("log content 2", string(log2))
 	})
 
-	s.Run("Without obfuscation", func() {
+	s.Run("Without sanitization", func() {
+		printer.Clean()
 		// Setup test Mattermost directory
 		mmDir := s.T().TempDir()
 		configDir := filepath.Join(mmDir, "config")
@@ -356,26 +273,31 @@ func (s *PacketPullTestSuite) TestCollectMattermostFiles() {
 		err = os.MkdirAll(filepath.Join(mmDir, "logs"), 0700)
 		s.Require().NoError(err)
 
-		// Create test config.json
-		configContent := `{"SqlSettings": {"DataSource": "secret"}}`
-		err = os.WriteFile(filepath.Join(configDir, "config.json"), []byte(configContent), 0600)
+		// Create test config.json with a known sensitive value
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.SqlSettings.DataSource = model.NewPointer("postgres://user:secret@localhost/db")
+		configContent, err := json.Marshal(cfg)
+		s.Require().NoError(err)
+		err = os.WriteFile(filepath.Join(configDir, "config.json"), configContent, 0600)
 		s.Require().NoError(err)
 
 		tempDir := s.T().TempDir()
 
-		// Collect without obfuscation
+		// Collect without sanitization
 		count, err := collectMattermostFiles(mmDir, tempDir, false)
 		s.Require().NoError(err)
 		s.Require().Greater(count, 0)
 
-		// Verify config.json was NOT obfuscated
+		// Verify config.json was NOT sanitized
 		collectedConfig, err := os.ReadFile(filepath.Join(tempDir, "config.json"))
 		s.Require().NoError(err)
 		s.Contains(string(collectedConfig), "secret")
-		s.NotContains(string(collectedConfig), "***REDACTED***")
 	})
 
 	s.Run("Graceful failure on missing files", func() {
+		printer.Clean()
+		defer printer.Clean()
 		// Empty Mattermost directory
 		mmDir := s.T().TempDir()
 		err := os.MkdirAll(filepath.Join(mmDir, "config"), 0700)

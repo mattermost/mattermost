@@ -294,12 +294,12 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 	// Collect Mattermost files
 	filesCollected, err := collectMattermostFiles(mmDir, tempDir, obfuscate)
 	if err != nil {
-		return fmt.Errorf("config obfuscation failed - cannot safely archive: %w", err)
+		return fmt.Errorf("config sanitization failed - cannot safely archive: %w", err)
 	}
 
 	// Collect system diagnostics
 	configPath := filepath.Join(mmDir, "config", "config.json")
-	diagCount, _ := collectSystemDiagnostics(tempDir, configPath)
+	diagCount := collectSystemDiagnostics(tempDir, configPath)
 	filesCollected += diagCount
 
 	// Validate we collected something
@@ -308,9 +308,9 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 	}
 
 	if obfuscate {
-		printer.Print("Collection complete. Obfuscation applied to config.json.")
+		printer.Print("Collection complete. Sensitive config fields sanitized.")
 	} else {
-		printer.Print("Collection complete. No obfuscation applied (--no-obfuscate flag used).")
+		printer.Print("Collection complete. No sanitization applied (--no-obfuscate flag used).")
 	}
 
 	// Create archive
