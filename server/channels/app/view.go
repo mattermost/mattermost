@@ -84,7 +84,9 @@ func (a *App) DeleteView(rctx request.CTX, viewID string) *model.AppError {
 		return model.NewAppError("DeleteView", "app.view.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.publishViewEvent(rctx, model.WebsocketEventViewDeleted, view)
+	message := model.NewWebSocketEvent(model.WebsocketEventViewDeleted, "", view.ChannelId, "", nil, "")
+	message.Add("view_id", viewID)
+	a.Publish(message)
 
 	return nil
 }

@@ -159,7 +159,5 @@ func TestViewWebsocketEvents(t *testing.T) {
 
 	received = <-messages
 	assert.Equal(t, model.WebsocketEventViewDeleted, received.EventType())
-	var deletedView model.View
-	require.NoError(t, json.Unmarshal([]byte(received.GetData()["view"].(string)), &deletedView))
-	assert.Equal(t, saved.Id, deletedView.Id)
+	assert.Equal(t, saved.Id, received.GetData()["view_id"])
 }

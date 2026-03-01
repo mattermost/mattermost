@@ -16,10 +16,19 @@ import (
 
 type SqlViewStore struct {
 	*SqlStore
+	viewSelect sq.SelectBuilder
 }
 
 func newSqlViewStore(sqlStore *SqlStore) store.ViewStore {
-	return &SqlViewStore{sqlStore}
+	s := &SqlViewStore{
+		SqlStore: sqlStore,
+	}
+
+	s.viewSelect = s.getQueryBuilder().
+		Select(viewColumns()...).
+		From("Views")
+
+	return s
 }
 
 // dbView is an intermediate struct used to scan rows from the Views table.
@@ -98,20 +107,16 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 		return nil, err
 	}
 
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("Views").
 		Columns(viewColumns()...).
 		Values(
 			view.Id, view.ChannelId, view.Type, view.CreatorId, view.Title,
 			view.Description, view.Icon, view.SortOrder, propsVal,
 			view.CreateAt, view.UpdateAt, view.DeleteAt,
-		).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "view_save_tosql")
-	}
+		)
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "failed to save view")
 	}
 
@@ -119,18 +124,11 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 }
 
 func (s *SqlViewStore) Get(id string) (*model.View, error) {
-	query, args, err := s.getQueryBuilder().
-		Select(viewColumns()...).
-		From("Views").
-		Where(sq.Eq{"Id": id, "DeleteAt": 0}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "view_get_tosql")
-	}
+	builder := s.viewSelect.Where(sq.Eq{"Id": id, "DeleteAt": 0})
 
 	var row dbView
-	if err = s.GetReplica().Get(&row, query, args...); err != nil {
-		if err == sql.ErrNoRows {
+	if err := s.GetReplica().GetBuilder(&row, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("View", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get view with id=%s", id)
@@ -140,18 +138,12 @@ func (s *SqlViewStore) Get(id string) (*model.View, error) {
 }
 
 func (s *SqlViewStore) GetForChannel(channelID string) ([]*model.View, error) {
-	query, args, err := s.getQueryBuilder().
-		Select(viewColumns()...).
-		From("Views").
+	builder := s.viewSelect.
 		Where(sq.Eq{"ChannelId": channelID, "DeleteAt": 0}).
-		OrderBy("SortOrder ASC", "CreateAt ASC").
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "view_get_for_channel_tosql")
-	}
+		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC")
 
 	var rows []dbView
-	if err = s.GetReplica().Select(&rows, query, args...); err != nil {
+	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
 	}
 
@@ -178,7 +170,7 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 		return nil, err
 	}
 
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("Views").
 		Set("Title", view.Title).
 		Set("Description", view.Description).
@@ -186,13 +178,9 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 		Set("SortOrder", view.SortOrder).
 		Set("Props", propsVal).
 		Set("UpdateAt", view.UpdateAt).
-		Where(sq.Eq{"Id": view.Id, "DeleteAt": 0}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "view_update_tosql")
-	}
+		Where(sq.Eq{"Id": view.Id, "DeleteAt": 0})
 
-	res, err := s.GetMaster().Exec(query, args...)
+	res, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update view with id=%s", view.Id)
 	}
@@ -209,17 +197,13 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 }
 
 func (s *SqlViewStore) Delete(viewID string, deleteAt int64) error {
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("Views").
 		Set("DeleteAt", deleteAt).
 		Set("UpdateAt", deleteAt).
-		Where(sq.Eq{"Id": viewID, "DeleteAt": 0}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "view_delete_tosql")
-	}
+		Where(sq.Eq{"Id": viewID, "DeleteAt": 0})
 
-	res, err := s.GetMaster().Exec(query, args...)
+	res, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete view with id=%s", viewID)
 	}
