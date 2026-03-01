@@ -390,11 +390,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 		})
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.PluginSettings.Enable = enablePlugin
-			})
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
 
 		cmd := &cobra.Command{}
 
@@ -412,11 +410,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = false
 		})
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.PluginSettings.Enable = enablePlugin
-			})
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
 
 		cmd := &cobra.Command{}
 
@@ -434,11 +430,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 		})
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.PluginSettings.Enable = enablePlugin
-			})
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
 
 		cmd := &cobra.Command{}
 
@@ -455,11 +449,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 		})
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.PluginSettings.Enable = enablePlugin
-			})
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("format", "json", "")
