@@ -4,7 +4,6 @@
 package model
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,65 +48,24 @@ var validPSAv2TargetTypes = []string{
 	string(PropertyFieldTargetLevelChannel),
 }
 
-// PropertyFieldPermissions defines access control for operations on a property field
-type PropertyFieldPermissions struct {
-	Field   PermissionLevel `json:"field"`   // Edit or delete the field definition
-	Values  PermissionLevel `json:"values"`  // Create, edit, or delete values on objects
-	Options PermissionLevel `json:"options"` // Add, edit, or delete options (for select/multiselect)
-}
-
-// DefaultPropertyFieldPermissions returns the default permissions for a property field
-func DefaultPropertyFieldPermissions() *PropertyFieldPermissions {
-	return &PropertyFieldPermissions{
-		Field:   PermissionLevelMember,
-		Values:  PermissionLevelMember,
-		Options: PermissionLevelMember,
-	}
-}
-
-// Scan implements sql.Scanner interface for database deserialization
-func (p *PropertyFieldPermissions) Scan(value any) error {
-	if value == nil {
-		return nil
-	}
-
-	b, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("expected []byte, got %T", value)
-	}
-
-	return json.Unmarshal(b, p)
-}
-
-// Value implements driver.Valuer interface for database serialization
-func (p *PropertyFieldPermissions) Value() (driver.Value, error) {
-	if p == nil {
-		return nil, nil
-	}
-
-	j, err := json.Marshal(p)
-	if err != nil {
-		return nil, err
-	}
-	return string(j), nil
-}
-
 type PropertyField struct {
-	ID          string                    `json:"id"`
-	GroupID     string                    `json:"group_id"`
-	Name        string                    `json:"name"`
-	Type        PropertyFieldType         `json:"type"`
-	Attrs       StringInterface           `json:"attrs"`
-	TargetID    string                    `json:"target_id"`
-	TargetType  string                    `json:"target_type"`
-	ObjectType  string                    `json:"object_type"`
-	Protected   bool                      `json:"protected"`
-	Permissions *PropertyFieldPermissions `json:"permissions,omitempty"`
-	CreateAt    int64                     `json:"create_at"`
-	UpdateAt    int64                     `json:"update_at"`
-	DeleteAt    int64                     `json:"delete_at"`
-	CreatedBy   string                    `json:"created_by"`
-	UpdatedBy   string                    `json:"updated_by"`
+	ID                string           `json:"id"`
+	GroupID           string           `json:"group_id"`
+	Name              string           `json:"name"`
+	Type              PropertyFieldType `json:"type"`
+	Attrs             StringInterface  `json:"attrs"`
+	TargetID          string           `json:"target_id"`
+	TargetType        string           `json:"target_type"`
+	ObjectType        string           `json:"object_type"`
+	Protected         bool             `json:"protected"`
+	PermissionField   *PermissionLevel `json:"permission_field,omitempty"`
+	PermissionValues  *PermissionLevel `json:"permission_values,omitempty"`
+	PermissionOptions *PermissionLevel `json:"permission_options,omitempty"`
+	CreateAt          int64            `json:"create_at"`
+	UpdateAt          int64            `json:"update_at"`
+	DeleteAt          int64            `json:"delete_at"`
+	CreatedBy         string           `json:"created_by"`
+	UpdatedBy         string           `json:"updated_by"`
 }
 
 // GetFieldPermission returns the permission level for editing the field definition.
@@ -122,8 +80,10 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"target_id":   pf.TargetID,
 		"target_type": pf.TargetType,
 		"object_type": pf.ObjectType,
-		"protected":   pf.Protected,
-		"permissions": pf.Permissions,
+		"protected":          pf.Protected,
+		"permission_field":   pf.PermissionField,
+		"permission_values":  pf.PermissionValues,
+		"permission_options": pf.PermissionOptions,
 		"create_at":   pf.CreateAt,
 		"update_at":   pf.UpdateAt,
 		"delete_at":   pf.DeleteAt,
@@ -241,17 +201,17 @@ func (pf *PropertyField) IsValid() error {
 
 	// Cross-validation: protected fields must have field permission set to "none"
 	if pf.Protected {
-		if pf.Permissions == nil {
-			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": "protected fields must have explicit permissions with field set to none"}, "id="+pf.ID, http.StatusBadRequest)
+		if pf.PermissionField == nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "protected fields must have explicit permissions with field set to none"}, "id="+pf.ID, http.StatusBadRequest)
 		}
-		if pf.Permissions.Field != PermissionLevelNone {
-			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.field", "Reason": "protected fields must have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
+		if *pf.PermissionField != PermissionLevelNone {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "protected fields must have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
 		}
 	}
 
 	// Cross-validation: non-protected fields cannot have field permission set to "none"
-	if !pf.Protected && pf.Permissions != nil && pf.Permissions.Field == PermissionLevelNone {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
+	if !pf.Protected && pf.PermissionField != nil && *pf.PermissionField == PermissionLevelNone {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	return nil

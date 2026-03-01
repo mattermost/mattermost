@@ -39,11 +39,9 @@ func TestCreatePropertyField(t *testing.T) {
 			Name:      "Protected Field No Bypass",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 
 		created, err := th.App.CreatePropertyField(field, false)
@@ -62,11 +60,9 @@ func TestCreatePropertyField(t *testing.T) {
 			Name:      "Protected Field With Bypass",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 
 		created, err := th.App.CreatePropertyField(field, true)
@@ -98,11 +94,9 @@ func TestCreatePropertyField(t *testing.T) {
 			Name:      "Invalid Protected Field Permissions",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelAdmin, // Should be "none" for protected fields
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelAdmin), // Should be "none" for protected fields
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 
 		created, err := th.App.CreatePropertyField(field, true)
@@ -139,11 +133,9 @@ func TestUpdatePropertyField(t *testing.T) {
 			Name:      "Protected Field to Update",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 		created, err := th.App.CreatePropertyField(field, true)
 		require.NoError(t, err)
@@ -165,11 +157,9 @@ func TestUpdatePropertyField(t *testing.T) {
 			Name:      "Protected Field Bypass Update",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 		created, err := th.App.CreatePropertyField(field, true)
 		require.NoError(t, err)
@@ -240,11 +230,9 @@ func TestUpdatePropertyFields(t *testing.T) {
 			Name:      "Protected in Batch",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 
 		createdNonProtected, err := th.App.CreatePropertyField(nonProtected, false)
@@ -285,11 +273,9 @@ func TestUpdatePropertyFields(t *testing.T) {
 			Name:      "Protected Bypass Batch",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 
 		createdNonProtected, err := th.App.CreatePropertyField(nonProtected, false)
@@ -376,11 +362,9 @@ func TestDeletePropertyField(t *testing.T) {
 			Name:      "Protected Field to Delete",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 		created, err := th.App.CreatePropertyField(field, true)
 		require.NoError(t, err)
@@ -406,11 +390,9 @@ func TestDeletePropertyField(t *testing.T) {
 			Name:      "Protected Field Bypass Delete",
 			Type:      model.PropertyFieldTypeText,
 			Protected: true,
-			Permissions: &model.PropertyFieldPermissions{
-				Field:   model.PermissionLevelNone,
-				Values:  model.PermissionLevelMember,
-				Options: model.PermissionLevelAdmin,
-			},
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
 		created, err := th.App.CreatePropertyField(field, true)
 		require.NoError(t, err)

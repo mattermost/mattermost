@@ -23,7 +23,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "Permissions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		From("PropertyFields")
 
 	return &s
@@ -45,8 +45,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "Permissions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.Permissions, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -213,7 +213,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	targetIDCase := sq.Case("id")
 	targetTypeCase := sq.Case("id")
 	protectedCase := sq.Case("id")
-	permissionsCase := sq.Case("id")
+	permissionFieldCase := sq.Case("id")
+	permissionValuesCase := sq.Case("id")
+	permissionOptionsCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	ids := make([]string, len(fields))
@@ -235,7 +237,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
 		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
 		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
-		permissionsCase = permissionsCase.When(whenID, sq.Expr("?::jsonb", field.Permissions))
+		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
+		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
+		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 	}
@@ -248,7 +252,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("TargetID", targetIDCase).
 		Set("TargetType", targetTypeCase).
 		Set("Protected", protectedCase).
-		Set("Permissions", permissionsCase).
+		Set("PermissionField", permissionFieldCase).
+		Set("PermissionValues", permissionValuesCase).
+		Set("PermissionOptions", permissionOptionsCase).
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdatedBy", updatedByCase).
