@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -395,17 +394,4 @@ func GetMatchesForHit(highlights map[string][]string) ([]string, error) {
 	}
 
 	return matches, nil
-}
-
-func ContainsCJK(s string) bool {
-	for _, r := range s {
-		if unicode.Is(unicode.Han, r) || // Chinese characters (also used in Japanese)
-			unicode.Is(unicode.Hangul, r) || // Korean
-			unicode.Is(unicode.Hiragana, r) || // Japanese
-			unicode.Is(unicode.Katakana, r) { // Japanese
-			return true
-		}
-	}
-
-	return false
 }

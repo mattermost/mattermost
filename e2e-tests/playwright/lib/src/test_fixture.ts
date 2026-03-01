@@ -26,6 +26,7 @@ import {
     createRandomPost,
     createRandomTeam,
     createRandomUser,
+    createUserWithAttributes,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
@@ -202,6 +203,7 @@ export class PlaywrightExtended {
             post: createRandomPost,
             team: createRandomTeam,
             user: createRandomUser,
+            userWithAttributes: createUserWithAttributes,
         };
 
         this.hasSeenLandingPage = async () => {

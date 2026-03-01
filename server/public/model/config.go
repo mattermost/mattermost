@@ -204,6 +204,8 @@ const (
 	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
+	AutoTranslationDefaultWorkers = 6
+
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
@@ -1402,10 +1404,10 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type IntuneSettings struct {
-	Enable      *bool   `access:"mobile_intune"`
-	TenantId    *string `access:"mobile_intune"` // telemetry: none
-	ClientId    *string `access:"mobile_intune"` // telemetry: none
-	AuthService *string `access:"mobile_intune"` // "office365" or "saml"
+	Enable      *bool   `access:"environment_mobile_security"`
+	TenantId    *string `access:"environment_mobile_security"` // telemetry: none
+	ClientId    *string `access:"environment_mobile_security"` // telemetry: none
+	AuthService *string `access:"environment_mobile_security"` // "office365" or "saml"
 }
 
 func (s *IntuneSettings) SetDefaults() {
@@ -2836,7 +2838,7 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 
 	if s.Workers == nil {
-		s.Workers = NewPointer(4)
+		s.Workers = NewPointer(AutoTranslationDefaultWorkers)
 	}
 
 	if s.TimeoutMs == nil {
