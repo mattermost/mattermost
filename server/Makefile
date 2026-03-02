@@ -154,7 +154,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.6.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.1
@@ -252,6 +252,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 	@echo Using pgvector PostgreSQL image
 endif
 
+	mkdir -p logs
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
