@@ -13,9 +13,11 @@ import (
 )
 
 type PropertyFieldType string
+
 // PropertyFieldTargetLevel represents the hierarchy level of a property field.
 // Used both for TargetType field values and for conflict detection results.
 type PropertyFieldTargetLevel string
+
 // PermissionLevel represents the access level for property field operations
 type PermissionLevel string
 
@@ -49,44 +51,44 @@ var validPSAv2TargetTypes = []string{
 }
 
 type PropertyField struct {
-	ID                string           `json:"id"`
-	GroupID           string           `json:"group_id"`
-	Name              string           `json:"name"`
+	ID                string            `json:"id"`
+	GroupID           string            `json:"group_id"`
+	Name              string            `json:"name"`
 	Type              PropertyFieldType `json:"type"`
-	Attrs             StringInterface  `json:"attrs"`
-	TargetID          string           `json:"target_id"`
-	TargetType        string           `json:"target_type"`
-	ObjectType        string           `json:"object_type"`
-	Protected         bool             `json:"protected"`
-	PermissionField   *PermissionLevel `json:"permission_field,omitempty"`
-	PermissionValues  *PermissionLevel `json:"permission_values,omitempty"`
-	PermissionOptions *PermissionLevel `json:"permission_options,omitempty"`
-	CreateAt          int64            `json:"create_at"`
-	UpdateAt          int64            `json:"update_at"`
-	DeleteAt          int64            `json:"delete_at"`
-	CreatedBy         string           `json:"created_by"`
-	UpdatedBy         string           `json:"updated_by"`
+	Attrs             StringInterface   `json:"attrs"`
+	TargetID          string            `json:"target_id"`
+	TargetType        string            `json:"target_type"`
+	ObjectType        string            `json:"object_type"`
+	Protected         bool              `json:"protected"`
+	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
+	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
+	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	CreateAt          int64             `json:"create_at"`
+	UpdateAt          int64             `json:"update_at"`
+	DeleteAt          int64             `json:"delete_at"`
+	CreatedBy         string            `json:"created_by"`
+	UpdatedBy         string            `json:"updated_by"`
 }
 
 func (pf *PropertyField) Auditable() map[string]any {
 	return map[string]any{
-		"id":          pf.ID,
-		"group_id":    pf.GroupID,
-		"name":        pf.Name,
-		"type":        pf.Type,
-		"attrs":       pf.Attrs,
-		"target_id":   pf.TargetID,
-		"target_type": pf.TargetType,
-		"object_type": pf.ObjectType,
+		"id":                 pf.ID,
+		"group_id":           pf.GroupID,
+		"name":               pf.Name,
+		"type":               pf.Type,
+		"attrs":              pf.Attrs,
+		"target_id":          pf.TargetID,
+		"target_type":        pf.TargetType,
+		"object_type":        pf.ObjectType,
 		"protected":          pf.Protected,
 		"permission_field":   pf.PermissionField,
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
-		"create_at":   pf.CreateAt,
-		"update_at":   pf.UpdateAt,
-		"delete_at":   pf.DeleteAt,
-		"created_by":  pf.CreatedBy,
-		"updated_by":  pf.UpdatedBy,
+		"create_at":          pf.CreateAt,
+		"update_at":          pf.UpdateAt,
+		"delete_at":          pf.DeleteAt,
+		"created_by":         pf.CreatedBy,
+		"updated_by":         pf.UpdatedBy,
 	}
 }
 

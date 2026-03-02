@@ -588,14 +588,18 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 }
 
 // hasPropertyFieldScopeAccess checks if the user has access to the property field's scope.
-// For system-level properties (empty TargetType), any authenticated user has access.
+// For system-level properties, any authenticated user has access.
 // For channel-level properties, the user must be a member of the channel.
 func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	switch field.TargetType {
-	case "":
+	case string(model.PropertyFieldTargetLevelSystem):
 		// System-level property: any authenticated user
 		return true
-	case "channel":
+	case string(model.PropertyFieldTargetLevelTeam):
+		// Team-level property: must be team member
+		member, err := a.Srv().Store().Team().GetMember(rctx, field.TargetID, userID)
+		return err == nil && member != nil
+	case string(model.PropertyFieldTargetLevelChannel):
 		// Channel-level property: must be channel member
 		member, err := a.Srv().Store().Channel().GetMember(rctx, field.TargetID, userID)
 		return err == nil && member != nil
