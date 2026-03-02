@@ -199,6 +199,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -384,6 +385,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -473,6 +475,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
