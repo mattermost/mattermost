@@ -53,8 +53,10 @@ const isSmallImage = (fileInfo: FileInfo): boolean => {
  * @returns Number of grid columns to span (2-6)
  */
 const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: number, compactDisplay?: boolean): number => {
-    const {width = 1, height = 1} = fileInfo;
+    const width = Math.max(1, fileInfo.width || 1);
+    const height = Math.max(1, fileInfo.height || 1);
     const aspectRatio = width / height;
+
     const rowHeight = compactDisplay ? GALLERY_CONFIG.COMPACT_ROW_HEIGHT : GALLERY_CONFIG.NORMAL_ROW_HEIGHT;
     const smallThreshold = compactDisplay ? GALLERY_CONFIG.COMPACT_ROW_HEIGHT : GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
 
