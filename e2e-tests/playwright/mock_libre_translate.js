@@ -89,7 +89,12 @@ const server = createServer(async (req, res) => {
         const q = body.q || '';
         const source = body.source || 'auto';
         const target = body.target || 'en';
-        const translatedText = `[${target}] ${q}`;
+
+        // Determine the actual source language for comparison
+        const actualSource = source === 'auto' ? sourceLanguage : source;
+
+        // Only "translate" if source differs from target (matches real LibreTranslate behavior)
+        const translatedText = actualSource !== target ? `${q} [translated to ${target}]` : q;
         const response = {translatedText};
         if (source === 'auto') {
             response.detectedLanguage = {language: sourceLanguage, confidence: 90};

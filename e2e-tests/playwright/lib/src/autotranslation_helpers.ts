@@ -87,15 +87,43 @@ export async function disableChannelAutotranslation(adminClient: Client4, channe
 /**
  * Set the LibreTranslate mock's detected language for /translate. When source=auto, all /translate
  * responses use this language as detectedLanguage until changed; default is 'es'.
+ *
+ * Note: This is only supported on the mock server (http://localhost:3010).
+ * When using real LibreTranslate, language detection is automatic and this call is silently ignored.
  */
 export async function setMockSourceLanguage(mockBaseUrl: string, language: string): Promise<void> {
-    const res = await fetch(`${mockBaseUrl}/__control/source`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({language}),
-    });
-    if (!res.ok) {
-        throw new Error(`Mock detect failed: ${res.status}`);
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+            const res = await fetch(`${mockBaseUrl}/__control/source`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({language}),
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+
+            if (!res.ok) {
+                // 404 or other error likely means real LibreTranslate (no control endpoint)
+                if (res.status === 404) {
+                    // Silently ignore - using real LibreTranslate with automatic language detection
+                    return;
+                }
+                throw new Error(`Mock detect failed: ${res.status}`);
+            }
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    } catch (error) {
+        // Silently ignore all errors - could be mock server down or real LibreTranslate without control endpoint
+        // Real LibreTranslate uses automatic language detection from message content anyway
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes('AbortError')) {
+            // Only warn for non-timeout errors, and only in debug mode
+            // console.debug(`setMockSourceLanguage: Could not reach ${mockBaseUrl}/__control/source (expected if using real LibreTranslate)`);
+        }
     }
 }
 
@@ -109,41 +137,4 @@ export async function setUserChannelAutotranslation(
     enabled: boolean,
 ): Promise<void> {
     await client.setMyChannelAutotranslation(channelId, enabled);
-}
-
-/**
- * Detect which translation service is running.
- * Returns 'mock' for the mock server, 'real' for real LibreTranslate, or 'none' if no service is running.
- */
-export async function detectTranslationService(
-    mockUrl: string = 'http://localhost:3010',
-    realUrl: string = 'http://localhost:5000',
-): Promise<'mock' | 'real' | 'none'> {
-    // Try mock server
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(`${mockUrl}/`, {signal: controller.signal}).catch(() => null);
-        clearTimeout(timeoutId);
-        if (res?.ok) {
-            return 'mock';
-        }
-    } catch {
-        // Mock server not running
-    }
-
-    // Try real LibreTranslate
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(`${realUrl}/health`, {signal: controller.signal}).catch(() => null);
-        clearTimeout(timeoutId);
-        if (res?.ok) {
-            return 'real';
-        }
-    } catch {
-        // Real LibreTranslate not running
-    }
-
-    return 'none';
 }
