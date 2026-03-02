@@ -1601,17 +1601,16 @@ func checkNoError(t *testing.T, err *model.AppError) {
 	require.Nil(t, err, "Unexpected Error: %v", err)
 }
 
-func TestIsValidGuestRoles(t *testing.T) {
+func TestValidateGuestRoles(t *testing.T) {
 	testCases := []struct {
-		name     string
-		input    UserImportData
-		expected bool
+		name        string
+		input       UserImportData
+		expectError bool
 	}{
 		{
 			name: "Valid case: User is a guest in all places",
 			input: UserImportData{
-				Username: model.NewPointer("guest1"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
 				Teams: &[]UserTeamImportData{
 					{
 						Roles: model.NewPointer(model.TeamGuestRoleId),
@@ -1621,13 +1620,12 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: true,
+			expectError: false,
 		},
 		{
 			name: "Invalid case: User is a guest in a team but not in another team",
 			input: UserImportData{
-				Username: model.NewPointer("mixeduser1"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
 				Teams: &[]UserTeamImportData{
 					{
 						Roles: model.NewPointer(model.TeamGuestRoleId),
@@ -1643,13 +1641,12 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
 			name: "Invalid case: User is a guest in a team but not in another team and has no channel membership",
 			input: UserImportData{
-				Username: model.NewPointer("mixeduser2"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
 				Teams: &[]UserTeamImportData{
 					{
 						Roles: model.NewPointer(model.TeamGuestRoleId),
@@ -1663,21 +1660,27 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
-			name: "Invalid case: User is system guest but not guest in team and channel",
+			name: "Valid case: User is system guest with no teams",
 			input: UserImportData{
-				Username: model.NewPointer("systemguestonly"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
 			},
-			expected: false,
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with empty teams array",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{},
+			},
+			expectError: false,
 		},
 		{
 			name: "Invalid case: User has mixed roles",
 			input: UserImportData{
-				Username: model.NewPointer("mixeduser3"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
 				Teams: &[]UserTeamImportData{
 					{
 						Roles: model.NewPointer(model.TeamUserRoleId),
@@ -1687,20 +1690,42 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
-			name: "Valid case: User does not have any role defined in any place",
+			name: "Valid case: User is system guest with team guest role but no channels",
 			input: UserImportData{
-				Username: model.NewPointer("noroleuser"),
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles:    model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
 			},
-			expected: true,
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with team guest role and nil channels",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:        "Valid case: User does not have any role defined in any place",
+			input:       UserImportData{},
+			expectError: false,
 		},
 		{
 			name: "Valid case: User is not a guest in any place",
 			input: UserImportData{
-				Username: model.NewPointer("normaluser"),
-				Roles:    model.NewPointer(model.SystemUserRoleId),
+				Roles: model.NewPointer(model.SystemUserRoleId),
 				Teams: &[]UserTeamImportData{
 					{
 						Roles: model.NewPointer(model.TeamAdminRoleId),
@@ -1710,81 +1735,18 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: true,
-		},
-		{
-			name: "Valid case: User with team but nil channels array",
-			input: UserImportData{
-				Username: model.NewPointer("nilchannelsuser"),
-				Roles:    model.NewPointer(model.SystemUserRoleId),
-				Teams: &[]UserTeamImportData{
-					{
-						Roles:    model.NewPointer(model.TeamUserRoleId),
-						Channels: nil,
-					},
-				},
-			},
-			expected: true,
-		},
-		{
-			name: "Invalid case: User is guest in channels but not in system or team",
-			input: UserImportData{
-				Username: model.NewPointer("testuser3"),
-				Roles:    model.NewPointer(model.SystemUserRoleId),
-				Teams: &[]UserTeamImportData{
-					{
-						Roles: model.NewPointer(model.TeamUserRoleId),
-						Channels: &[]UserChannelImportData{
-							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		{
-			name: "Invalid case: User is system guest and team guest but has no channels",
-			input: UserImportData{
-				Username: model.NewPointer("testuser4"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
-				Teams: &[]UserTeamImportData{
-					{
-						Roles:    model.NewPointer(model.TeamGuestRoleId),
-						Channels: &[]UserChannelImportData{},
-					},
-				},
-			},
-			expected: false,
-		},
-		{
-			name: "Valid case: User is guest in all places with multiple teams and channels",
-			input: UserImportData{
-				Username: model.NewPointer("testuser5"),
-				Roles:    model.NewPointer(model.SystemGuestRoleId),
-				Teams: &[]UserTeamImportData{
-					{
-						Roles: model.NewPointer(model.TeamGuestRoleId),
-						Channels: &[]UserChannelImportData{
-							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
-							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
-						},
-					},
-					{
-						Roles: model.NewPointer(model.TeamGuestRoleId),
-						Channels: &[]UserChannelImportData{
-							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
-						},
-					},
-				},
-			},
-			expected: true,
+			expectError: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isValidGuestRoles(tc.input)
-			assert.Equal(t, tc.expected, result, tc.name)
+			err := validateGuestRoles(tc.input)
+			if tc.expectError {
+				assert.NotNil(t, err, tc.name)
+			} else {
+				assert.Nil(t, err, tc.name)
+			}
 		})
 	}
 }

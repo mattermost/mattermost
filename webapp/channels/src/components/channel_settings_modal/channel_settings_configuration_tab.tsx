@@ -9,7 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
-import {getChannelAutotranslation} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
 
 import ColorInput from 'components/color_input';
 import type {TextboxElement} from 'components/textbox';
@@ -65,7 +65,7 @@ function ChannelSettingsConfigurationTab({
 
     const initialBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
 
-    const initialIsChannelAutotranslated = useSelector((state: GlobalState) => getChannelAutotranslation(state, channel.id));
+    const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
 
     const [formError, setFormError] = useState('');

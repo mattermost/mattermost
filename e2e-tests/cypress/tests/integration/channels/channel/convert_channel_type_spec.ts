@@ -162,6 +162,9 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
         // Verify settings were saved
         verifySettingsSaved();
+
+        // Verify the modal completely closed to avoid flakiness
+        cy.get('#confirmModal').should('not.exist');
     };
 
     // Function kept for potential future use but not used in current tests
