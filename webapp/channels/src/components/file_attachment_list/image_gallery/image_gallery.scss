@@ -149,11 +149,20 @@
 }
 
 // Right sidebar: square layout constrained to compact max height (144px)
+// 3 columns below 400px, 2 columns below 300px
 .sidebar--right .image-gallery {
     @container (max-width: 400px) {
         .image-gallery__body {
             --item-max-height: 144px;
             --item-max-width: 144px;
+        }
+        .image-gallery__content {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @container (max-width: 300px) {
+        .image-gallery__content {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 }
