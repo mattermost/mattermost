@@ -110,13 +110,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         this.fetchPluginStats();
     }
 
-    public componentDidUpdate(prevProps: Props) {
-        if (prevProps.config?.EnableGuestAccounts !== this.props.config?.EnableGuestAccounts) {
-            AdminActions.getStandardAnalytics();
-            AdminActions.refreshServerLimits();
-        }
-    }
-
     private loadLineChartData = async () => {
         await Promise.allSettled([
             AdminActions.getPostsPerDayAnalytics(),

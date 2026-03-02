@@ -57,8 +57,10 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 		if err != nil {
 			return nil, model.NewAppError("GetServerLimits", "app.limits.get_app_limits.single_channel_guest_count.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		// Single-channel guests are free and excluded from the primary seat count.
 		limits.ActiveUserCount = activeUserCount - singleChannelGuestCount
 		limits.SingleChannelGuestCount = singleChannelGuestCount
+		// Guests are allowed up to a 1:1 ratio with licensed seats.
 		if license != nil && license.Features != nil && license.Features.Users != nil {
 			limits.SingleChannelGuestLimit = int64(*license.Features.Users)
 		}
@@ -75,9 +77,6 @@ func (a *App) shouldTrackSingleChannelGuests() bool {
 		return false
 	}
 	if license.IsMattermostEntry() {
-		return false
-	}
-	if license.Features == nil || license.Features.GuestAccounts == nil || !*license.Features.GuestAccounts {
 		return false
 	}
 	cfg := a.Config()

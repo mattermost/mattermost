@@ -5,12 +5,11 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
-import {getServerLimits as getServerLimitsAction} from 'mattermost-redux/actions/limits';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 
@@ -81,16 +80,11 @@ const EnterpriseEditionLeftPanel = ({
         fetchUnSanitizedLicense();
     }, [license]);
 
-    const dispatch = useDispatch();
     const serverLimits = useSelector(getServerLimits);
     const config = useSelector(getConfig);
     const guestAccountsEnabled = config?.EnableGuestAccounts === 'true';
     const singleChannelGuestCount = guestAccountsEnabled ? (serverLimits?.singleChannelGuestCount ?? 0) : 0;
     const singleChannelGuestLimit = guestAccountsEnabled ? (serverLimits?.singleChannelGuestLimit ?? 0) : 0;
-
-    useEffect(() => {
-        dispatch(getServerLimitsAction());
-    }, [dispatch, guestAccountsEnabled]);
 
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));

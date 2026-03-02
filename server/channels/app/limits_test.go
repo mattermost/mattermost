@@ -693,7 +693,7 @@ func TestShouldTrackSingleChannelGuests(t *testing.T) {
 		require.False(t, th.App.shouldTrackSingleChannelGuests())
 	})
 
-	t.Run("returns false when license GuestAccounts feature is disabled", func(t *testing.T) {
+	t.Run("returns true when license GuestAccounts feature is disabled but config is enabled", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
@@ -702,7 +702,7 @@ func TestShouldTrackSingleChannelGuests(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
-		require.False(t, th.App.shouldTrackSingleChannelGuests())
+		require.True(t, th.App.shouldTrackSingleChannelGuests())
 	})
 
 	t.Run("returns false when config GuestAccountsSettings.Enable is false", func(t *testing.T) {
