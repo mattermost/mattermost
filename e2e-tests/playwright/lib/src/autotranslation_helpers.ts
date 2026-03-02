@@ -110,3 +110,40 @@ export async function setUserChannelAutotranslation(
 ): Promise<void> {
     await client.setMyChannelAutotranslation(channelId, enabled);
 }
+
+/**
+ * Detect which translation service is running.
+ * Returns 'mock' for the mock server, 'real' for real LibreTranslate, or 'none' if no service is running.
+ */
+export async function detectTranslationService(
+    mockUrl: string = 'http://localhost:3010',
+    realUrl: string = 'http://localhost:5000',
+): Promise<'mock' | 'real' | 'none'> {
+    // Try mock server
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`${mockUrl}/`, {signal: controller.signal}).catch(() => null);
+        clearTimeout(timeoutId);
+        if (res?.ok) {
+            return 'mock';
+        }
+    } catch {
+        // Mock server not running
+    }
+
+    // Try real LibreTranslate
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`${realUrl}/health`, {signal: controller.signal}).catch(() => null);
+        clearTimeout(timeoutId);
+        if (res?.ok) {
+            return 'real';
+        }
+    } catch {
+        // Real LibreTranslate not running
+    }
+
+    return 'none';
+}

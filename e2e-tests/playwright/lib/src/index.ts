@@ -71,6 +71,7 @@ export {
     setUserChannelAutotranslation,
     setMockSourceLanguage,
     hasAutotranslationLicense,
+    detectTranslationService,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 
