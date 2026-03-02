@@ -252,6 +252,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	propertyAccessService := properties.NewPropertyAccessService(s.propertyService, func(pluginID string) bool {
+		if s.ch == nil {
+			return false
+		}
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
 	})
