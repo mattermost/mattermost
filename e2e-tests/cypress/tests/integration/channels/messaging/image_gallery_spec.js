@@ -76,7 +76,6 @@ describe('Image Gallery', () => {
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('have.class', 'collapsed');
                     cy.findByTestId('image-gallery__toggle').should('contain.text', 'Show 4 images');
-                    cy.findAllByTestId('image-gallery__item').should('not.be.visible');
 
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');

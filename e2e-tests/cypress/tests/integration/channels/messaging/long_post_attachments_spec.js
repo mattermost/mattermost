@@ -55,7 +55,8 @@ describe('Messaging', () => {
         postAttachments();
 
         // * Verify the attached items can be cycled through
-        // Click on the first ImageGallery item in the last post to open the modal (scope to avoid hitting wrong post)
+        // Click on the first ImageGallery item in the last post to open the modal (scope to avoid hitting wrong post).
+        // Expand gallery if collapsed, then click first item—all in same within scope to avoid flakiness.
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').within(() => {
@@ -65,8 +66,8 @@ describe('Messaging', () => {
                         }
                     });
                     cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
+                    cy.get('.image-gallery__item').first().should('be.visible').click();
                 });
-                cy.get('.image-gallery__item').first().click();
             });
         });
 
