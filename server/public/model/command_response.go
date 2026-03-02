@@ -61,10 +61,11 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 
 	o.Attachments = StringifyMessageAttachmentFieldValue(o.Attachments)
 
-	if o.ExtraResponses != nil {
-		for _, resp := range o.ExtraResponses {
-			resp.Attachments = StringifyMessageAttachmentFieldValue(resp.Attachments)
+	for _, resp := range o.ExtraResponses {
+		if resp == nil {
+			continue
 		}
+		resp.Attachments = StringifyMessageAttachmentFieldValue(resp.Attachments)
 	}
 
 	return &o, nil

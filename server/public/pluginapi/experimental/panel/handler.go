@@ -53,7 +53,12 @@ func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	idString := id.(string)
+	idString, ok := id.(string)
+	if !ok {
+		common.MessageAttachmentError(w, errors.New("setting id is not a string"))
+		return
+	}
+
 	err := sh.panel.Set(mattermostUserID, idString, value)
 	if err != nil {
 		common.MessageAttachmentError(w, errors.Wrap(err, "cannot save setting"))

@@ -11,7 +11,7 @@ import (
 type Poster interface {
 	DMer
 
-	// DMWithAttachments posts a Direct Message that contains Slack attachments.
+	// DMWithAttachments posts a Direct Message that contains Message Attachments.
 	// Often used to include post actions.
 	DMWithAttachments(mattermostUserID string, attachments ...*model.MessageAttachment) (string, error)
 

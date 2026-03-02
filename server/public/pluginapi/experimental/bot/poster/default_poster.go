@@ -31,7 +31,7 @@ func (p *defaultPoster) DM(mattermostUserID, format string, args ...any) (string
 	return post.Id, nil
 }
 
-// DMWithAttachments posts a Direct Message that contains Slack attachments.
+// DMWithAttachments posts a Direct Message that contains Message Attachments.
 // Often used to include post actions.
 func (p *defaultPoster) DMWithAttachments(mattermostUserID string, attachments ...*model.MessageAttachment) (string, error) {
 	post := model.Post{}

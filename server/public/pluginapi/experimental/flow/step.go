@@ -147,7 +147,7 @@ func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool,
 
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	if !ok || len(attachments) != 1 {
-		return nil, false, errors.New("expected 1 slack attachment")
+		return nil, false, errors.New("expected 1 message attachment")
 	}
 	var actions []*model.PostAction
 	if done {
