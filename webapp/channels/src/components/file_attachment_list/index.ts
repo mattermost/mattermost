@@ -22,10 +22,6 @@ import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isEmbedVisible} from 'selectors/posts';
 
-import FilePreviewModal from 'components/file_preview_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
 
 import FileAttachmentList from './file_attachment_list';
@@ -94,16 +90,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             openModal,
             getFilePublicLink,
         }, dispatch),
-        handleImageClick: (index: number, fileInfos: FileInfo[]) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
-                dialogType: FilePreviewModal,
-                dialogProps: {
-                    fileInfos,
-                    startIndex: index,
-                },
-            }));
-        },
     };
 }
 
