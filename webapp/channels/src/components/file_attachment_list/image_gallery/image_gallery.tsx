@@ -110,7 +110,7 @@ const ImageGallery = (props: Props) => {
     const [ariaLiveMessage, setAriaLiveMessage] = useState('');
     const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
     const [isKeyboardNavigation, setIsKeyboardNavigation] = useState<boolean>(false);
-    const imageCountId = 'image-gallery-count';
+    const imageCountId = `image-gallery-count-${postId}`;
     const galleryBodyId = `image-gallery-body-${postId}`;
     const galleryDescriptionId = `image-gallery-description-${postId}`;
 

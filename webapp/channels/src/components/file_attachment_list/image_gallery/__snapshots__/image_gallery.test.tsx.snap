@@ -11,7 +11,7 @@ exports[`ImageGallery matches snapshot 1`] = `
     >
       <button
         aria-controls="image-gallery-body-post1"
-        aria-describedby="image-gallery-count image-gallery-description-post1"
+        aria-describedby="image-gallery-count-post1 image-gallery-description-post1"
         aria-expanded="true"
         class="image-gallery__toggle"
         data-testid="image-gallery__toggle"
@@ -29,7 +29,7 @@ exports[`ImageGallery matches snapshot 1`] = `
           />
         </svg>
         <span
-          id="image-gallery-count"
+          id="image-gallery-count-post1"
         >
           2 images
         </span>
