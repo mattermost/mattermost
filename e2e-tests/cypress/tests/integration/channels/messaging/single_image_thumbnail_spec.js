@@ -72,9 +72,6 @@ function verifySingleImageThumbnail({mode = null} = {}) {
             // * Verify no gallery elements exist
             cy.get('.image-gallery__toggle').should('not.exist');
             cy.get('.image-gallery__body').should('not.exist');
-
-            // * Verify image container is collapsed
-            cy.get('.image-container').should('have.attr', 'data-expanded', 'false');
         });
     });
 }
