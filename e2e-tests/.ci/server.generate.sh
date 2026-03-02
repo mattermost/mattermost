@@ -232,7 +232,7 @@ $(if mme2e_is_token_in_list "libretranslate" "$ENABLED_DOCKER_SERVICES"; then
       LT_DISABLE_WEB_UI: "true"
       LT_DETECT_LANG: "true"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      test: [ "CMD", "sh", "-c", "exec 3<>/dev/tcp/localhost/5000 && echo 'HTTP/1.1 200 OK' >&3" ]
       interval: 10s
       timeout: 15s
       retries: 12'
