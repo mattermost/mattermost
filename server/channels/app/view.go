@@ -47,17 +47,21 @@ func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppE
 	return view, nil
 }
 
-func (a *App) GetViewsForChannel(rctx request.CTX, channelID string) ([]*model.View, *model.AppError) {
-	result, err := a.Srv().Store().View().GetForChannel(channelID)
+func (a *App) GetViewsForChannel(rctx request.CTX, channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, *model.AppError) {
+	result, cursor, err := a.Srv().Store().View().GetForChannel(channelID, opts)
 	if err != nil {
-		return nil, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var invErr *store.ErrInvalidInput
+		if errors.As(err, &invErr) {
+			return nil, model.ViewQueryCursor{}, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.ViewQueryCursor{}, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if result == nil {
 		result = []*model.View{}
 	}
 
-	return result, nil
+	return result, cursor, nil
 }
 
 func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPatch) (*model.View, *model.AppError) {

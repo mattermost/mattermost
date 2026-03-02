@@ -97,7 +97,7 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	views, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId)
+	views, _, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, model.ViewQueryOpts{})
 	if appErr != nil {
 		c.Err = appErr
 		return
