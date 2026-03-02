@@ -170,12 +170,13 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
+        const idx = this.props.fileInfos ? this.props.fileInfos.findIndex((f) => f.id === this.props.fileInfo.id) : -1;
         this.props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
                 fileInfos: this.props.fileInfos || [this.props.fileInfo],
-                startIndex: this.props.fileInfos ? this.props.fileInfos.findIndex((f) => f.id === this.props.fileInfo.id) : 0,
+                startIndex: idx === -1 ? 0 : idx,
                 onExited: () => {},
                 postId: this.props.postId,
             },
