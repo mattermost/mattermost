@@ -457,7 +457,7 @@ const ImageGallery = (props: Props) => {
                     collapsed: isCollapsed,
                 })}
                 data-testid='image-gallery__body'
-                role='application'
+                role='region'
                 aria-label={formatMessage(
                     {id: 'image_gallery.list_label', defaultMessage: 'Image gallery with {count} images'},
                     {count: fileInfos.length},
