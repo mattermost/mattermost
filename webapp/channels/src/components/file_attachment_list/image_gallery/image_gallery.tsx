@@ -125,12 +125,17 @@ const ImageGallery = (props: Props) => {
     const rafIdRef = useRef<number>();
     const lastProcessedWidthRef = useRef<number | null>(null);
     const debouncedResizeRef = useRef<(() => void) | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
     useEffect(() => {
         const THROTTLE_DELAY = 16; // ~60fps
 
         const handleResize = () => {
             if (galleryRef.current && isMountedRef.current) {
+                if (rafIdRef.current != null) {
+                    cancelAnimationFrame(rafIdRef.current);
+                }
+
                 // Use requestAnimationFrame to ensure measurement happens after layout
                 rafIdRef.current = requestAnimationFrame(() => {
                     if (galleryRef.current && isMountedRef.current) {
@@ -145,6 +150,10 @@ const ImageGallery = (props: Props) => {
             // Prevent infinite loops by checking if we've already processed this width
             if (lastProcessedWidthRef.current === width) {
                 return;
+            }
+
+            if (rafIdRef.current != null) {
+                cancelAnimationFrame(rafIdRef.current);
             }
 
             // Use requestAnimationFrame to break out of ResizeObserver callback timing
@@ -221,6 +230,9 @@ const ImageGallery = (props: Props) => {
             }
             if (rafIdRef.current) {
                 cancelAnimationFrame(rafIdRef.current);
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
             }
 
             // Disconnect ResizeObserver to prevent memory leaks
@@ -338,17 +350,20 @@ const ImageGallery = (props: Props) => {
             setAriaLiveMessage(announcement);
 
             // Focus management
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
             if (newCollapsed) {
                 // When collapsing, return focus to toggle button
                 setFocusedItemIndex(-1);
-                setTimeout(() => {
+                focusTimeoutRef.current = setTimeout(() => {
                     if (isMountedRef.current && toggleButtonRef.current) {
                         toggleButtonRef.current.focus();
                     }
                 }, 100);
             } else {
                 // When expanding, focus first image after a short delay (programmatic focus)
-                setTimeout(() => {
+                focusTimeoutRef.current = setTimeout(() => {
                     if (isMountedRef.current && fileInfos.length > 0) {
                         focusImageItem(0, false); // false = not from keyboard
                     }
