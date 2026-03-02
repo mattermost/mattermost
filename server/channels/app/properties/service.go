@@ -16,19 +16,19 @@ import (
 type CallerIDExtractor func(rctx request.CTX) string
 
 type PropertyService struct {
-	groupStore          store.PropertyGroupStore
-	fieldStore          store.PropertyFieldStore
-	valueStore          store.PropertyValueStore
-	propertyAccess      *PropertyAccessService
-	callerIDExtractor   CallerIDExtractor
-	cpaGroupID          string
+	groupStore        store.PropertyGroupStore
+	fieldStore        store.PropertyFieldStore
+	valueStore        store.PropertyValueStore
+	propertyAccess    *PropertyAccessService
+	callerIDExtractor CallerIDExtractor
+	cpaGroupID        string
 }
 
 type ServiceConfig struct {
-	PropertyGroupStore  store.PropertyGroupStore
-	PropertyFieldStore  store.PropertyFieldStore
-	PropertyValueStore  store.PropertyValueStore
-	CallerIDExtractor   CallerIDExtractor
+	PropertyGroupStore store.PropertyGroupStore
+	PropertyFieldStore store.PropertyFieldStore
+	PropertyValueStore store.PropertyValueStore
+	CallerIDExtractor  CallerIDExtractor
 }
 
 func New(c ServiceConfig) (*PropertyService, error) {

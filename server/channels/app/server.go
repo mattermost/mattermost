@@ -125,12 +125,12 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
-	platform              *platform.PlatformService
-	platformOptions       []platform.Option
-	telemetryService      *telemetry.TelemetryService
-	userService           *users.UserService
-	teamService           *teams.TeamService
-	propertyService       *properties.PropertyService
+	platform         *platform.PlatformService
+	platformOptions  []platform.Option
+	telemetryService *telemetry.TelemetryService
+	userService      *users.UserService
+	teamService      *teams.TeamService
+	propertyService  *properties.PropertyService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace

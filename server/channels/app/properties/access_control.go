@@ -31,9 +31,6 @@ const (
 	propertyAccessPaginationPageSize = 100
 	// propertyAccessMaxPaginationIterations is the maximum number of pagination iterations before returning an error
 	propertyAccessMaxPaginationIterations = 10
-	// anonymousCallerId can be used for calls to the service that aren't tied to a specific entity
-	// These calls will not be able to access any data that has access control restrictions.
-	anonymousCallerId = ""
 )
 
 // PluginChecker is a function type that checks if a plugin is installed.
