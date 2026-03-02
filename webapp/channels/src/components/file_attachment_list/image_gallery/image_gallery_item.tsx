@@ -23,6 +23,7 @@ type Props = {
     isFocused?: boolean;
     onFocus?: () => void;
     onMouseDown?: () => void;
+    onClick?: () => void;
     compactDisplay?: boolean;
 };
 
@@ -37,13 +38,14 @@ const ImageGalleryItem = ({
     isFocused,
     onFocus,
     onMouseDown,
+    onClick,
     compactDisplay,
 }: Props) => {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-
-            // The SingleImageView will handle the click behavior
+            e.stopPropagation(); // Prevent bubbling to avoid focus moving to post input
+            onClick?.();
         }
     };
 

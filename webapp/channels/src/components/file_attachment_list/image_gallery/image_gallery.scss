@@ -97,7 +97,6 @@
         --item-child-small-img-object-fit: contain;
 
         display: grid;
-        overflow: hidden;
         grid-template-rows: 1fr;
         transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing) !important;
         

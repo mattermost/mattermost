@@ -60,12 +60,32 @@ describe('ImageGalleryItem', () => {
         expect(onFocus).toHaveBeenCalled();
     });
 
-    test('should handle keyboard navigation', () => {
-        render(<ImageGalleryItem {...defaultProps}/>);
+    test('should handle Enter key to activate', () => {
+        const onActivate = jest.fn();
+        render(
+            <ImageGalleryItem
+                {...defaultProps}
+                onClick={onActivate}
+            />,
+        );
 
         fireEvent.keyDown(screen.getByTestId('image-gallery__item'), {key: 'Enter'});
 
-        // No assertion needed since SingleImageView handles the click behavior
+        expect(onActivate).toHaveBeenCalledTimes(1);
+    });
+
+    test('should handle Space key to activate', () => {
+        const onActivate = jest.fn();
+        render(
+            <ImageGalleryItem
+                {...defaultProps}
+                onClick={onActivate}
+            />,
+        );
+
+        fireEvent.keyDown(screen.getByTestId('image-gallery__item'), {key: ' '});
+
+        expect(onActivate).toHaveBeenCalledTimes(1);
     });
 
     test('should apply focused class when isFocused is true', () => {

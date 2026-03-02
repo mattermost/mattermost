@@ -399,6 +399,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     onImageLoaded={this.handleImageLoaded}
                                     hideUtilities={this.props.disableActions}
                                     isFileRejected={effectivelyRejected}
+                                    focusOnContainer={!this.props.isGallery}
                                 />
                             </div>
                         )}

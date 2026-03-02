@@ -46,7 +46,8 @@
                 left: 4px;
 
                 button.single-image-view__toggle {
-                    display: none;
+                    // Use opacity instead of display:none so the toggle stays in tab order for keyboard users
+                    opacity: 0;
                     width: 24px;
                     height: 24px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -54,23 +55,30 @@
                     background-color: var(--center-channel-bg);
                     box-shadow: variables.$elevation-1;
                     line-height: 20px;
+                    transition: opacity 0.15s ease;
 
                     &:hover {
                         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
                         box-shadow: variables.$elevation-2;
                     }
+
+                    &:focus-visible {
+                        opacity: 1;
+                        outline: 2px solid var(--button-bg);
+                        outline-offset: 2px;
+                    }
                 }
             }
         }
 
+        // Show toggle on hover (opacity) for mouse users
         &:hover .image-header--expanded button.single-image-view__toggle {
-            display: flex;
+            opacity: 1;
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .image-container {
             display: block;
-            overflow: hidden;
             height: 100%;
             margin: 5px 0;
             opacity: 1;
@@ -149,6 +157,12 @@
                     margin: 5px 0 0;
                 }
 
+                // When figure is focusable (single image view), it receives focus instead of img
+                &:focus-visible {
+                    outline: 2px solid var(--button-bg);
+                    outline-offset: 2px;
+                }
+
                 img {
                     width: auto;
                     max-width: 100%;
@@ -161,6 +175,12 @@
                         height: auto;
                         max-height: 100%;
                         object-fit: cover;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid var(--button-bg);
+                        outline-offset: 2px;
+                        border-radius: 4px;
                     }
                 }
             }

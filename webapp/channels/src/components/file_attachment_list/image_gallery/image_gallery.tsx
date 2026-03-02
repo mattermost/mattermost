@@ -85,6 +85,7 @@ type Props = PropsFromRedux & {
     isEmbedVisible?: boolean;
     postId: string;
     compactDisplay?: boolean;
+    onImageClick?: (index: number) => void;
 };
 
 const ImageGallery = (props: Props) => {
@@ -94,6 +95,7 @@ const ImageGallery = (props: Props) => {
         isEmbedVisible = true,
         postId,
         compactDisplay,
+        onImageClick,
     } = props;
 
     // Use the allFilesForPost from props (either passed explicitly or from Redux)
@@ -280,6 +282,18 @@ const ImageGallery = (props: Props) => {
         let newIndex = currentIndex;
 
         switch (event.key) {
+        case 'Enter':
+        case ' ':
+            // Open preview modal - only when body has focus (skip if event came from focused gallery item)
+            if (event.target === event.currentTarget) {
+                event.preventDefault();
+                event.stopPropagation();
+                const indexToOpen = currentIndex >= 0 ? currentIndex : 0;
+                if (fileInfos.length > 0) {
+                    onImageClick?.(indexToOpen);
+                }
+            }
+            return;
         case 'ArrowRight':
         case 'ArrowDown':
             event.preventDefault();
@@ -303,7 +317,7 @@ const ImageGallery = (props: Props) => {
         }
 
         focusImageItem(newIndex, true);
-    }, [isCollapsed, focusedItemIndex, fileInfos.length, focusImageItem]);
+    }, [isCollapsed, focusedItemIndex, fileInfos.length, focusImageItem, onImageClick]);
 
     const toggleGallery = useCallback(() => {
         const newCollapsed = !isCollapsed;
@@ -432,7 +446,7 @@ const ImageGallery = (props: Props) => {
                     {count: fileInfos.length},
                 )}
                 onKeyDown={handleKeyNavigation}
-                tabIndex={isCollapsed ? -1 : 0}
+                tabIndex={-1}
             >
                 <div
                     className='image-gallery__content'
@@ -459,6 +473,7 @@ const ImageGallery = (props: Props) => {
                                 isFocused={focusedItemIndex === idx && isKeyboardNavigation}
                                 onFocus={() => setFocusedItemIndex(idx)}
                                 onMouseDown={() => setIsKeyboardNavigation(false)}
+                                onClick={() => onImageClick?.(idx)}
                                 compactDisplay={compactDisplay}
                             />
                         );

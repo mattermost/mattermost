@@ -78,13 +78,16 @@ exports[`components/SingleImageView permalink preview should render with permali
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>
@@ -174,13 +177,16 @@ exports[`components/SingleImageView should match snapshot 1`] = `
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>
@@ -239,13 +245,16 @@ exports[`components/SingleImageView should match snapshot 2`] = `
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>
@@ -364,14 +373,17 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name_svg"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name_svg"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/svg_file_info_id/preview"
                   style="width: 100%; height: auto;"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>
@@ -431,14 +443,17 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name_svg"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name_svg"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/svg_file_info_id/preview"
                   style="width: 100%; height: auto;"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>
@@ -525,13 +540,16 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
               style="min-width: 50px; min-height: 50px;"
             >
               <figure
+                aria-label="file thumbnail name"
                 class="image-loaded-container"
+                role="button"
+                tabindex="0"
               >
                 <img
-                  aria-label="file thumbnail name"
+                  aria-hidden="true"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
-                  tabindex="0"
+                  tabindex="-1"
                 />
               </figure>
             </div>

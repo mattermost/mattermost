@@ -78,6 +78,7 @@ const mockFileInfos = [
 const defaultProps = {
     fileInfos: mockFileInfos,
     onToggleCollapse: jest.fn(),
+    onImageClick: jest.fn(),
     isEmbedVisible: true,
     postId: 'post1',
     allFilesForPost: mockFileInfos,

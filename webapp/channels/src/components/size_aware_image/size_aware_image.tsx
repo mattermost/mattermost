@@ -104,9 +104,15 @@ export type Props = WrappedComponentProps & {
     minContainerSize?: number;
 
     /**
-    * Indicates whether the file has been rejected and should not show preview
-    */
+     * Indicates whether the file has been rejected and should not show preview
+     */
     isFileRejected?: boolean;
+
+    /**
+     * When true, the figure container receives focus (tabIndex, onClick, onKeyDown) instead of the img.
+     * Used for single image view so the expand/collapse toggle can be reached before the image.
+     */
+    focusOnContainer?: boolean;
 }
 
 type State = {
@@ -193,8 +199,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         this.props.onClick?.(e, this.props.src);
     };
 
-    onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
-        if (e.key === 'Enter') {
+    onKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (e.key === ' ') {
+                e.stopPropagation(); // Prevent Space from scrolling or triggering other handlers
+            }
             this.props.onClick?.(e, this.props.src);
         }
     };
@@ -219,6 +229,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             intl,
             handleSmallImageContainer,
             className,
+            focusOnContainer,
             ...allOtherProps
         } = this.props;
 
@@ -259,10 +270,11 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const image = (
             <img
                 {...restProps}
-                aria-label={ariaLabelImage}
-                tabIndex={0}
-                onClick={this.handleImageClick}
-                onKeyDown={this.onEnterKeyDown}
+                aria-label={focusOnContainer ? undefined : ariaLabelImage}
+                aria-hidden={focusOnContainer ? true : undefined}
+                tabIndex={focusOnContainer ? -1 : 0}
+                onClick={focusOnContainer ? undefined : this.handleImageClick}
+                onKeyDown={focusOnContainer ? undefined : this.onKeyDown}
                 className={className + (handleSmallImageContainer && this.state.isSmallImage ? ' small-image--inside-container' : '')}
                 src={src}
                 onError={this.handleError}
@@ -272,6 +284,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 }}
             />
         );
+
+        const figureProps = focusOnContainer ? {
+            tabIndex: 0,
+            role: 'button' as const,
+            'aria-label': ariaLabelImage,
+            onClick: (e: MouseEvent<HTMLElement>) => this.props.onClick?.(e as MouseEvent<HTMLImageElement>, src),
+            onKeyDown: this.onKeyDown as (e: KeyboardEvent<HTMLElement>) => void,
+        } : {};
 
         if (handleSmallImageContainer && this.state.isSmallImage) {
             const minSize = this.getContainerSize();
@@ -284,7 +304,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         minHeight: minSize,
                     }}
                 >
-                    <figure className={classNames('image-loaded-container')}>
+                    <figure
+                        className={classNames('image-loaded-container')}
+                        {...figureProps}
+                    >
                         {image}
                     </figure>
                 </div>
@@ -293,7 +316,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         // For regular/large images, just return the figure with the image
         return (
-            <figure className={classNames('image-loaded-container')}>
+            <figure
+                className={classNames('image-loaded-container')}
+                {...figureProps}
+            >
                 {image}
             </figure>
         );

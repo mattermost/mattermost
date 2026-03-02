@@ -61,6 +61,7 @@ export default function FileAttachmentList(props: Props) {
                 isEmbedVisible={isEmbedVisible}
                 postId={post.id}
                 compactDisplay={compactDisplay}
+                onImageClick={handleImageClick}
             />
         );
     }
