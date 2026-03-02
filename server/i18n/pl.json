@@ -4573,11 +4573,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 17.4+"
+    "translation": "Wersja 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10032,10 +10032,6 @@
     "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Role użytkowników nie są zgodne ze statusem gościa."
-  },
-  {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
     "translation": "Nie można utworzyć pola atrybutu profilu niestandardowego"
   },
@@ -11854,5 +11850,49 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "Nieprawidłowy typ tłumaczenia. Musi to być \"string\" lub \"object\"."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Posty Burn-on-read nie są dozwolone w bezpośrednich wiadomościach z botami lub agentami AI."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Wystąpił błąd podczas sprawdzania poprawności kanału dla postu burn-on-read."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Spalanie postów po przeczytaniu nie jest dozwolone podczas wysyłania wiadomości."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Wystąpił błąd podczas walidacji użytkownika dla postu burn-on-read."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Ten punkt końcowy jest przestarzały i wyłączony. Zaktualizuj swoją aplikację mobilną."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Nie udało się uzyskać ustawień {{.Service}}"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "Użytkownik ma rolę gościa kanału, ale nie jest gościem systemu."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "Użytkownik jest gościem systemu, ale nie ma roli gościa kanału we wszystkich kanałach. Liczba gości w kanałach: {{.ChannelGuestCount}}, Kanały ogółem: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Użytkownik jest gościem systemu, ale nie ma ról gościa zespołu we wszystkich zespołach. Liczba gości w zespole: {{.TeamGuestCount}}, Łączna liczba zespołów: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "Użytkownik ma role gościa zespołu, ale nie jest gościem systemu."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} ustawienie musi mieć wartość true, gdy {{.EnableCJKAnalyzers}} ma wartość true"
   }
 ]

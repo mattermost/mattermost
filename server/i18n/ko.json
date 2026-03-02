@@ -9074,10 +9074,6 @@
     "translation": "필수 팔로워 속성이 누락되었습니다: 사용자."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "사용자 역할이 게스트 상태와 일치하지 않습니다."
-  },
-  {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
     "translation": "사용자 프로필 이미지 경로가 잘못되었습니다: \"{{.Path}}\""
   },
