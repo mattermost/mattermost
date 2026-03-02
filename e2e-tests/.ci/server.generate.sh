@@ -336,6 +336,10 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     volumes:
       - "../../:/mattermost"'
   fi)
+
+networks:
+  mm-test:
+    driver: bridge
 EOL
 
   mme2e_log "docker-compose file generated."
