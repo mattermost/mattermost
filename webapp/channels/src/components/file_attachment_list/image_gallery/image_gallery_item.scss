@@ -7,6 +7,7 @@
     position: var(--item-position, relative);
     display: flex;
     width: 100%;
+    max-width: var(--item-max-width, none);
     height: var(--item-height, 100%);
     max-height: var(--item-max-height, 216px);
     padding-top: var(--item-padding-top, 0);

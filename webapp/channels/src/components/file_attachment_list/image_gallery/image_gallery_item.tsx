@@ -23,6 +23,7 @@ type Props = {
     isFocused?: boolean;
     onFocus?: () => void;
     onMouseDown?: () => void;
+    compactDisplay?: boolean;
 };
 
 const ImageGalleryItem = ({
@@ -36,6 +37,7 @@ const ImageGalleryItem = ({
     isFocused,
     onFocus,
     onMouseDown,
+    compactDisplay,
 }: Props) => {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -74,7 +76,7 @@ const ImageGalleryItem = ({
                 fileInfos={allFilesForPost}
                 postId={postId}
                 isEmbedVisible={true}
-                compactDisplay={false}
+                compactDisplay={compactDisplay}
                 isInPermalink={false}
                 disableActions={false}
                 smallImageThreshold={GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD}

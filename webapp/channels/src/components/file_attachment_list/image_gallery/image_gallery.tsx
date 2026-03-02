@@ -17,6 +17,9 @@ import './image_gallery.scss';
 // Gallery configuration constants
 export const GALLERY_CONFIG = {
     SMALL_IMAGE_THRESHOLD: 216,
+    NORMAL_ROW_HEIGHT: 216,
+    COMPACT_ROW_HEIGHT: 144,
+    COLUMN_WIDTH: 50,
     BREAKPOINTS: {
         MOBILE: 400,
         TABLET: 640,
@@ -27,9 +30,8 @@ export const GALLERY_CONFIG = {
     },
     GRID_SPANS: {
         SMALL: 2,
-        VERTICAL: 3,
-        SQUARE: 4,
-        HORIZONTAL: 6,
+        MIN: 2,
+        MAX: 6,
     },
 } as const;
 
@@ -41,19 +43,23 @@ const isSmallImage = (fileInfo: FileInfo): boolean => {
 };
 
 /**
- * Determines the number of grid columns an image should span based on its dimensions and container width.
+ * Determines the number of grid columns an image should span based on its dimensions, container width, and display mode.
+ * Uses aspect-ratio-aware calculation: ideal width = rowHeight * aspectRatio; span = round(idealWidth / 50), clamped 2-6.
  *
  * @param fileInfo - Image metadata containing width and height
  * @param isSmall - Whether the image is considered small (< threshold)
  * @param containerWidth - Current width of the gallery container
- * @returns Number of grid columns to span (2-7)
+ * @param compactDisplay - Whether compact message display mode is active (shorter row height)
+ * @returns Number of grid columns to span (2-6)
  */
-const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: number): number => {
+const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: number, compactDisplay?: boolean): number => {
     const {width = 1, height = 1} = fileInfo;
     const aspectRatio = width / height;
+    const rowHeight = compactDisplay ? GALLERY_CONFIG.COMPACT_ROW_HEIGHT : GALLERY_CONFIG.NORMAL_ROW_HEIGHT;
+    const smallThreshold = compactDisplay ? GALLERY_CONFIG.COMPACT_ROW_HEIGHT : GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD;
 
-    // If width is less than the small image threshold, span 2 columns
-    if (width < GALLERY_CONFIG.SMALL_IMAGE_THRESHOLD) {
+    // Small images (intrinsic dimensions below threshold): span 2
+    if (width < smallThreshold) {
         return GALLERY_CONFIG.GRID_SPANS.SMALL;
     }
 
@@ -67,19 +73,10 @@ const getColumnSpan = (fileInfo: FileInfo, isSmall: boolean, containerWidth: num
         }
     }
 
-    // Determine span based on aspect ratio
-    // For vertical images: ratio < 1/threshold
-    if (aspectRatio < 1 / GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
-        return GALLERY_CONFIG.GRID_SPANS.VERTICAL;
-    }
-
-    // For horizontal images: ratio > threshold
-    if (aspectRatio > GALLERY_CONFIG.ASPECT_RATIOS.HORIZONTAL_THRESHOLD) {
-        return GALLERY_CONFIG.GRID_SPANS.HORIZONTAL;
-    }
-
-    // For square-ish images
-    return GALLERY_CONFIG.GRID_SPANS.SQUARE;
+    // Aspect-ratio-aware span: ideal width = rowHeight * aspectRatio; span = round(idealWidth / columnWidth)
+    const idealWidth = rowHeight * aspectRatio;
+    const span = Math.round(idealWidth / GALLERY_CONFIG.COLUMN_WIDTH);
+    return Math.max(GALLERY_CONFIG.GRID_SPANS.MIN, Math.min(GALLERY_CONFIG.GRID_SPANS.MAX, span));
 };
 
 type Props = PropsFromRedux & {
@@ -87,6 +84,7 @@ type Props = PropsFromRedux & {
     onToggleCollapse?: (collapsed: boolean) => void;
     isEmbedVisible?: boolean;
     postId: string;
+    compactDisplay?: boolean;
 };
 
 const ImageGallery = (props: Props) => {
@@ -95,6 +93,7 @@ const ImageGallery = (props: Props) => {
         onToggleCollapse,
         isEmbedVisible = true,
         postId,
+        compactDisplay,
     } = props;
 
     // Use the allFilesForPost from props (either passed explicitly or from Redux)
@@ -362,18 +361,18 @@ const ImageGallery = (props: Props) => {
                 itemStyle = {gridColumn: 'unset'};
             } else {
                 // Desktop breakpoint - apply JavaScript calculated spans
-                itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth)}`};
+                itemStyle = {gridColumn: `span ${getColumnSpan(fileInfo, isSmall, containerWidth, compactDisplay)}`};
             }
 
             stylesMap.set(fileInfo.id, {isSmall, itemStyle});
         });
 
         return stylesMap;
-    }, [fileInfos, containerWidth]);
+    }, [fileInfos, containerWidth, compactDisplay]);
 
     return (
         <div
-            className='image-gallery'
+            className={classNames('image-gallery', {'image-gallery--compact': compactDisplay})}
             data-testid='fileAttachmentList'
             ref={galleryRef}
         >
@@ -460,6 +459,7 @@ const ImageGallery = (props: Props) => {
                                 isFocused={focusedItemIndex === idx && isKeyboardNavigation}
                                 onFocus={() => setFocusedItemIndex(idx)}
                                 onMouseDown={() => setIsKeyboardNavigation(false)}
+                                compactDisplay={compactDisplay}
                             />
                         );
                     })}

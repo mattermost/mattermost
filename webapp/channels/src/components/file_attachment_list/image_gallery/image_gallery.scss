@@ -33,8 +33,12 @@
     --gallery-collapse-duration: 300ms;
     --gallery-collapse-easing: cubic-bezier(0.5, 1, 0.5, 1);
 
-    
     margin: 5px 0;
+
+    &--compact {
+        --gallery-item-max-height: 144px;
+    }
+
     container-type: inline-size;
     
     // Prevent scrollbar-induced layout shifts during expansion
@@ -140,6 +144,16 @@
             --item-child-view-top: 0;
             --item-child-view-left: 0;
             --item-child-small-img-object-fit: cover;
+        }
+    }
+}
+
+// Right sidebar: square layout constrained to compact max height (144px)
+.sidebar--right .image-gallery {
+    @container (max-width: 400px) {
+        .image-gallery__body {
+            --item-max-height: 144px;
+            --item-max-width: 144px;
         }
     }
 }

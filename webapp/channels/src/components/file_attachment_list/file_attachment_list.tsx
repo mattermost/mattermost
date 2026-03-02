@@ -60,6 +60,7 @@ export default function FileAttachmentList(props: Props) {
                 fileInfos={sortedFileInfos}
                 isEmbedVisible={isEmbedVisible}
                 postId={post.id}
+                compactDisplay={compactDisplay}
             />
         );
     }
