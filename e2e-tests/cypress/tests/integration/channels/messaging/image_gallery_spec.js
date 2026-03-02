@@ -89,7 +89,9 @@ describe('Image Gallery', () => {
             });
 
             // * Test image preview modal opens when clicking gallery items
-            cy.findAllByTestId('image-gallery__item').first().click();
+            cy.get(`#post_${postId}`).within(() => {
+                cy.findAllByTestId('image-gallery__item').first().click();
+            });
 
             // * Verify modal opens and close it
             cy.uiGetFilePreviewModal();
