@@ -76,6 +76,10 @@ func (ps *PropertyService) deletePropertyValuesForField(groupID, fieldID string)
 // Public routing methods
 
 func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if value == nil {
+		return nil, fmt.Errorf("CreatePropertyValue: value cannot be nil")
+	}
+
 	requiresAC, err := ps.requiresAccessControl(value.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValue: %w", err)
@@ -178,6 +182,10 @@ func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if value == nil {
+		return nil, fmt.Errorf("UpsertPropertyValue: value cannot be nil")
+	}
+
 	requiresAC, err := ps.requiresAccessControl(value.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: %w", err)

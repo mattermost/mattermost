@@ -2245,3 +2245,23 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 		assert.Empty(t, retrieved)
 	})
 }
+
+func TestCreatePropertyValue(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("nil value returns error", func(t *testing.T) {
+		_, err := th.service.CreatePropertyValue(th.Context, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CreatePropertyValue: value cannot be nil")
+	})
+}
+
+func TestUpsertPropertyValue(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("nil value returns error", func(t *testing.T) {
+		_, err := th.service.UpsertPropertyValue(th.Context, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "UpsertPropertyValue: value cannot be nil")
+	})
+}
