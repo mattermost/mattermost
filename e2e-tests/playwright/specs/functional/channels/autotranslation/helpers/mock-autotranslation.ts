@@ -1,0 +1,197 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {Page} from '@playwright/test';
+
+interface MockTranslateRequest {
+    q?: string;
+    text?: string;
+    source?: string;
+    target?: string;
+}
+
+interface MockTranslateResponse {
+    translatedText: string;
+    detectedLanguage: {language: string; confidence: number};
+}
+
+/**
+ * Tracks the source language for mock translation responses
+ * Used to simulate language detection behavior
+ */
+let mockSourceLanguage = 'es';
+
+/**
+ * Set the source language that the mock will detect
+ * Useful for testing language detection and filtering logic
+ */
+export function setMockSourceLanguage(language: string): void {
+    mockSourceLanguage = language;
+}
+
+/**
+ * Get the current mock source language
+ */
+export function getMockSourceLanguage(): string {
+    return mockSourceLanguage;
+}
+
+/**
+ * Reset mock source language to default
+ */
+export function resetMockSourceLanguage(): void {
+    mockSourceLanguage = 'es';
+}
+
+/**
+ * Mock the autotranslation API route using Playwright's route interception
+ * This replaces the need for an external mock server
+ *
+ * @param page - Playwright Page object
+ * @param options - Optional configuration
+ * @param options.sourceLanguage - Initial detected source language (default: 'es')
+ * @param options.supportedLanguages - List of supported target languages (default: ['en', 'es', 'fr', 'de'])
+ */
+export async function mockAutotranslationRoute(
+    page: Page,
+    options?: {
+        sourceLanguage?: string;
+        supportedLanguages?: string[];
+    },
+): Promise<void> {
+    if (options?.sourceLanguage) {
+        mockSourceLanguage = options.sourceLanguage;
+    }
+
+    const supportedLanguages = options?.supportedLanguages || ['en', 'es', 'fr', 'de'];
+
+    // Mock LibreTranslate API endpoint
+    // Handles both /translate and /detect endpoints
+    await page.route('**/api/translate', async (route) => {
+        const request = route.request();
+        const method = request.method();
+
+        if (method === 'POST') {
+            let postData: MockTranslateRequest;
+            try {
+                postData = (await request.postDataJSON()) as MockTranslateRequest;
+            } catch {
+                // If POST data is not JSON, try to parse as form data
+                const postDataBuffer = request.postData();
+                if (!postDataBuffer) {
+                    await route.abort('failed');
+                    return;
+                }
+                postData = {text: postDataBuffer};
+            }
+
+            const textToTranslate = postData.q || postData.text || '';
+            const sourceLanguage = postData.source || mockSourceLanguage;
+            const targetLanguage = postData.target || 'en';
+
+            // Validate target language is supported
+            if (!supportedLanguages.includes(targetLanguage)) {
+                await route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: `Target language '${targetLanguage}' is not supported`,
+                    }),
+                });
+                return;
+            }
+
+            // Mock response: only "translate" if source differs from target
+            let translatedText = textToTranslate;
+            const shouldTranslate = sourceLanguage !== targetLanguage;
+
+            if (shouldTranslate) {
+                // Prepend language code to simulate translation
+                translatedText = `[${targetLanguage}] ${textToTranslate}`;
+            }
+
+            const response: MockTranslateResponse = {
+                translatedText,
+                detectedLanguage: {
+                    language: sourceLanguage,
+                    confidence: 0.95,
+                },
+            };
+
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        } else if (method === 'GET') {
+            // Handle GET requests (e.g., /translate?q=hello&source=es&target=en)
+            const url = new URL(request.url());
+            const textToTranslate = url.searchParams.get('q') || '';
+            const sourceLanguage = url.searchParams.get('source') || mockSourceLanguage;
+            const targetLanguage = url.searchParams.get('target') || 'en';
+
+            if (!supportedLanguages.includes(targetLanguage)) {
+                await route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: `Target language '${targetLanguage}' is not supported`,
+                    }),
+                });
+                return;
+            }
+
+            let translatedText = textToTranslate;
+            const shouldTranslate = sourceLanguage !== targetLanguage;
+
+            if (shouldTranslate) {
+                translatedText = `[${targetLanguage}] ${textToTranslate}`;
+            }
+
+            const response: MockTranslateResponse = {
+                translatedText,
+                detectedLanguage: {
+                    language: sourceLanguage,
+                    confidence: 0.95,
+                },
+            };
+
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        } else {
+            await route.abort('failed');
+        }
+    });
+
+    // Mock language detection endpoint (if used separately)
+    await page.route('**/api/detect', async (route) => {
+        // Language detection is mocked to always return the configured source language
+        // regardless of the input text
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                result: [
+                    {
+                        language: mockSourceLanguage,
+                        confidence: 0.95,
+                    },
+                ],
+                detectedLanguage: {language: mockSourceLanguage, confidence: 0.95},
+            }),
+        });
+    });
+}
+
+/**
+ * Remove all mock routes for autotranslation
+ * Useful for cleaning up between tests or switching to real API
+ */
+export async function unmockAutotranslationRoute(page: Page): Promise<void> {
+    await page.unroute('**/api/translate');
+    await page.unroute('**/api/detect');
+}

@@ -10,7 +10,77 @@ import {
 } from '@mattermost/playwright-lib';
 import {getRandomId} from 'utils/utils';
 
-const MOCK_BASE_URL = process.env.MM_AUTOTRANSLATION_MOCK_URL || 'http://localhost:3010';
+test.beforeEach(async () => {
+    // Verify translation service is running (mock server or real LibreTranslate)
+    // The translation service is called on the server side, so we need the service running
+    const configuredUrl = process.env.LIBRETRANSLATE_URL;
+    const defaultMockUrl = 'http://localhost:3010';
+    const fallbackRealUrl = 'http://localhost:5000';
+
+    let selectedUrl: string | null = null;
+    let lastError: string | null = null;
+
+    // Try configured URL first (if provided)
+    if (configuredUrl) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            // Try /health endpoint first (real LibreTranslate), then fallback to / (mock server)
+            let res = await fetch(`${configuredUrl}/health`, {signal: controller.signal}).catch(() => null);
+            if (!res?.ok) {
+                res = await fetch(`${configuredUrl}/`, {signal: controller.signal});
+            }
+
+            clearTimeout(timeoutId);
+            if (res?.ok) {
+                selectedUrl = configuredUrl;
+            }
+        } catch (error) {
+            lastError = error instanceof Error ? error.message : String(error);
+        }
+    }
+
+    // If no configured URL or it failed, try default mock server
+    if (!selectedUrl) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
+            clearTimeout(timeoutId);
+            if (res?.ok) {
+                selectedUrl = defaultMockUrl;
+            }
+        } catch (error) {
+            lastError = error instanceof Error ? error.message : String(error);
+        }
+    }
+
+    // If mock server not found, try real LibreTranslate
+    if (!selectedUrl) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
+            clearTimeout(timeoutId);
+            if (res?.ok) {
+                selectedUrl = fallbackRealUrl;
+            }
+        } catch (error) {
+            lastError = error instanceof Error ? error.message : String(error);
+        }
+    }
+
+    if (!selectedUrl) {
+        test.skip(
+            true,
+            `Translation service not found. Please start one of the following:\n` +
+            `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
+            `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up\n` +
+            `Error: ${lastError}`,
+        );
+    }
+});
 
 test('permission exists; Channel Administrators have Manage Channel Auto Translation ON', {
     tag: ['@autotranslation', '@permissions'],
@@ -61,7 +131,7 @@ test('user without permission cannot enable autotranslation at channel level', {
     test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
 
     await enableAutotranslationConfig(adminClient, {
-        mockBaseUrl: MOCK_BASE_URL,
+        mockBaseUrl: process.env.LIBRETRANSLATE_URL || 'http://localhost:3010',
         targetLanguages: ['en', 'es'],
     });
 

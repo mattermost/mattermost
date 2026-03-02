@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak libretranslate cypress webhook-interactions playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -65,6 +65,7 @@ services:
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
+      LIBRETRANSLATE_URL: "http://localhost:5000"
     network_mode: host
     ports:
       - "8065:8065"
@@ -214,6 +215,24 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
     healthcheck:
       # We cannot use a simple curl --silent localhost:9990/health | grep -q \"status\":\"UP\" because theres no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks
       test: [ "CMD", "/usr/local/bin/kc-healthcheck.sh" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
+  fi)
+
+$(if mme2e_is_token_in_list "libretranslate" "$ENABLED_DOCKER_SERVICES"; then
+    echo '
+  libretranslate:
+    image: "libretranslate/libretranslate:latest"
+    restart: "no"
+    network_mode: host
+    networks: !reset []
+    environment:
+      LT_LOAD_ONLY: "en,es,fr,de"
+      LT_DISABLE_WEB_UI: "true"
+      LT_DETECT_LANG: "true"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 10s
       timeout: 15s
       retries: 12'

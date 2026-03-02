@@ -1,0 +1,37 @@
+# Docker Compose for running LibreTranslate locally for E2E testing
+# Usage: docker-compose -f e2e-tests/docker-compose.autotranslation.yml up
+
+version: '3.8'
+
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: mattermost-libretranslate
+    ports:
+      - '5000:5000'
+    environment:
+      # Load only essential languages for testing (faster startup, less memory)
+      LT_LOAD_ONLY: 'en,es,fr,de'
+      # Disable web UI in testing (not needed)
+      LT_DISABLE_WEB_UI: 'false'
+      # Language detection
+      LT_DETECT_LANG: 'true'
+      # Enable API debug logging (optional)
+      LT_DEBUG: 'false'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5000/health']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    # Optional: limit memory usage
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+networks:
+  default:
+    name: mattermost-e2e
