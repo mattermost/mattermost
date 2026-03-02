@@ -64,8 +64,6 @@ export type Props = {
     };
 }
 
-const RHS_TRANSITION_DURATION_MS = 300;
-
 type State = {
     isOpened: boolean;
 }
@@ -76,8 +74,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
     private previousActiveElement: HTMLElement | null = null;
-    private rhsTransitionEndTimeout: ReturnType<typeof setTimeout> | null = null;
-    private rhsTransitionEndHandler: (() => void) | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -206,55 +202,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleShortcut);
         document.removeEventListener('mousedown', this.handleClickOutside);
-        this.clearRhsTransitioning();
     }
-
-    scheduleRhsTransitionEnd = () => {
-        this.clearRhsTransitioning();
-
-        const root = document.getElementById('root');
-        if (root) {
-            root.classList.add('rhs-transitioning');
-        }
-
-        const clearTransitioning = () => {
-            this.clearRhsTransitioning();
-        };
-
-        const sidebarRightEl = document.getElementById('sidebar-right');
-        if (sidebarRightEl) {
-            this.rhsTransitionEndHandler = clearTransitioning;
-            sidebarRightEl.addEventListener('transitionend', this.rhsTransitionEndHandler, {once: true});
-        }
-
-        this.rhsTransitionEndTimeout = setTimeout(clearTransitioning, RHS_TRANSITION_DURATION_MS);
-    };
-
-    clearRhsTransitioning = () => {
-        if (this.rhsTransitionEndTimeout) {
-            clearTimeout(this.rhsTransitionEndTimeout);
-            this.rhsTransitionEndTimeout = null;
-        }
-        if (this.rhsTransitionEndHandler) {
-            const sidebarRightEl = document.getElementById('sidebar-right');
-            if (sidebarRightEl) {
-                sidebarRightEl.removeEventListener('transitionend', this.rhsTransitionEndHandler);
-            }
-            this.rhsTransitionEndHandler = null;
-        }
-        const root = document.getElementById('root');
-        if (root) {
-            root.classList.remove('rhs-transitioning');
-        }
-    };
 
     componentDidUpdate(prevProps: Props) {
         this.handleRHSFocus(prevProps);
-
-        // When RHS expand state changes, add rhs-transitioning to root and remove it after transition ends
-        if (prevProps.isExpanded !== this.props.isExpanded) {
-            this.scheduleRhsTransitionEnd();
-        }
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
