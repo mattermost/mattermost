@@ -4,7 +4,7 @@ BEGIN
                             INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace
                         WHERE nsp.nspname = current_schema()
                             AND typ.typname = 'permission_level') THEN
-    CREATE TYPE permission_level AS ENUM ('none', 'admin', 'member');
+    CREATE TYPE permission_level AS ENUM ('none', 'sysadmin', 'member');
   END IF;
 END;
 $$

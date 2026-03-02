@@ -38,9 +38,9 @@ const (
 	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
 	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
 
-	PermissionLevelNone   PermissionLevel = "none"
-	PermissionLevelAdmin  PermissionLevel = "admin"
-	PermissionLevelMember PermissionLevel = "member"
+	PermissionLevelNone     PermissionLevel = "none"
+	PermissionLevelSysadmin PermissionLevel = "sysadmin"
+	PermissionLevelMember   PermissionLevel = "member"
 )
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.

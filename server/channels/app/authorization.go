@@ -579,7 +579,7 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 	switch level {
 	case model.PermissionLevelNone:
 		return false
-	case model.PermissionLevelAdmin:
+	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(userID, model.PermissionManageSystem)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
