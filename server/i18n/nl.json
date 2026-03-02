@@ -11902,5 +11902,45 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
     "translation": "{{.Searching}} instelling moet worden ingesteld op actief als {{.EnableCJKAnalyzers}} is ingesteld op actief"
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Downloaden van bestand geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Downloadvoorbeeld van bestand geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Download voorbeeld van bestanden geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Publiek bestanden downloaden geweigerd door plugin"
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Kan geen postprioriteit krijgen voor bericht met context"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Bericht is vereist"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Gebruikers-ID is vereist"
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Vertaaltaken kunnen niet worden toegevoegd omdat de werker is gestopt."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR redirect URI allowlist bevat een ongeldig patroon. Patronen moeten beginnen met http:// of https:// en mogen niet leeg zijn of spaties bevatten."
   }
 ]
