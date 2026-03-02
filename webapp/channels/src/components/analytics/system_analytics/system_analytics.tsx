@@ -6,7 +6,8 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import {AnalyticsVisualizationType} from '@mattermost/types/admin';
-import type {ClientLicense} from '@mattermost/types/config';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerLimits} from '@mattermost/types/limits';
 
 import {getFormattedFileSize} from 'mattermost-redux/utils/file_utils';
 
@@ -17,7 +18,7 @@ import ActivatedUserCard from 'components/analytics/activated_users_card';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import Constants from 'utils/constants';
+import Constants, {LicenseSkus} from 'utils/constants';
 
 import './analytics.scss';
 
@@ -39,7 +40,9 @@ type Props = {
     isLicensed: boolean;
     stats?: AnalyticsState;
     license: ClientLicense;
+    config?: Partial<ClientConfig>;
     pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
+    serverLimits: ServerLimits;
 }
 
 type State = {
@@ -66,6 +69,7 @@ const messages = defineMessages({
     monthlyActiveUsers: {id: 'analytics.system.monthlyActiveUsers', defaultMessage: 'Monthly Active Users'},
     totalFiles: {id: 'analytics.system.totalFiles', defaultMessage: 'Total Files'},
     totalFilesSize: {id: 'analytics.system.totalFilesSize', defaultMessage: 'Total Files Size'},
+    singleChannelGuests: {id: 'analytics.system.singleChannelGuests', defaultMessage: 'Single-channel Guests'},
 });
 
 export const searchableStrings = [
@@ -87,6 +91,7 @@ export const searchableStrings = [
     messages.monthlyActiveUsers,
     messages.totalFiles,
     messages.totalFilesSize,
+    messages.singleChannelGuests,
 ];
 
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
@@ -97,11 +102,19 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
 
     public async componentDidMount() {
         AdminActions.getStandardAnalytics();
+        AdminActions.refreshServerLimits();
 
         if (this.props.isLicensed) {
             AdminActions.getAdvancedAnalytics();
         }
         this.fetchPluginStats();
+    }
+
+    public componentDidUpdate(prevProps: Props) {
+        if (prevProps.config?.EnableGuestAccounts !== this.props.config?.EnableGuestAccounts) {
+            AdminActions.getStandardAnalytics();
+            AdminActions.refreshServerLimits();
+        }
     }
 
     private loadLineChartData = async () => {
@@ -475,12 +488,31 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             }
         }
 
+        const isEntrySku = this.props.license.SkuShortName === LicenseSkus.Entry;
+        const guestAccountsEnabled = this.props.config?.EnableGuestAccounts === 'true';
+        const shouldShowSingleChannelGuests = isLicensed && !isEntrySku && guestAccountsEnabled;
+
+        const singleChannelGuestsCount = this.getStatValue(stats[StatTypes.SINGLE_CHANNEL_GUESTS]);
+        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? 0;
+        const singleChannelGuestLimitExceeded = singleChannelGuestsCount !== undefined && singleChannelGuestLimit > 0 && singleChannelGuestsCount > singleChannelGuestLimit;
+
+        const singleChannelGuests = shouldShowSingleChannelGuests ? (
+            <StatisticCount
+                id='singleChannelGuests'
+                title={<FormattedMessage {...messages.singleChannelGuests}/>}
+                icon='fa-users'
+                status={singleChannelGuestLimitExceeded ? 'error' : undefined}
+                count={singleChannelGuestsCount}
+            />
+        ) : null;
+
         let systemCards;
         if (isLicensed) {
             systemCards = (
                 <>
                     {userCount}
                     {isCloud ? null : seatsPurchased}
+                    {singleChannelGuests}
                     {teamCount}
                     {channelCount}
                     {skippedIntensiveQueries ? null : postCount}

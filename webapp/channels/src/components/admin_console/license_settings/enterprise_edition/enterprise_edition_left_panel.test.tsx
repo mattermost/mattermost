@@ -67,6 +67,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             cloud: {
                 subscription: undefined,
             },
+            limits: {
+                serverLimits: {
+                    activeUserCount: 0,
+                    maxUsersLimit: 0,
+                    singleChannelGuestCount: 0,
+                    singleChannelGuestLimit: 0,
+                },
+            },
             hostedCustomer: {
                 products: {
                     products: {
@@ -260,6 +268,144 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.queryByText('License details')).not.toBeInTheDocument();
         expect(screen.queryByText('LICENSED SEATS:')).not.toBeInTheDocument();
         expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
+    });
+
+    test('should show single-channel guests row when guest accounts enabled and limit is set', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).toBeInTheDocument();
+        expect(screen.getByText('500')).toBeInTheDocument();
+    });
+
+    test('should not show single-channel guests row when guest accounts disabled', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'false',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.queryByText('SINGLE-CHANNEL GUESTS:')).not.toBeInTheDocument();
+    });
+
+    test('should not show single-channel guests row when limit is zero', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 0,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.queryByText('SINGLE-CHANNEL GUESTS:')).not.toBeInTheDocument();
+    });
+
+    test('should highlight single-channel guests when count exceeds limit', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 1500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).toHaveClass('legend--over-seats-purchased');
+        expect(screen.getByText('1,500')).toHaveClass('value--over-seats-purchased');
+    });
+
+    test('should not highlight single-channel guests when count is within limit', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).not.toHaveClass('legend--over-seats-purchased');
+        expect(screen.getByText('500')).not.toHaveClass('value--over-seats-purchased');
     });
 
     test('should disable upload button for Entry license when license is set by env var', () => {

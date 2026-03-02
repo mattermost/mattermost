@@ -1789,6 +1789,23 @@ func (us SqlUserStore) AnalyticsGetGuestCount() (int64, error) {
 	return count, nil
 }
 
+func (us SqlUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+	var count int64
+	err := us.GetReplica().Get(&count, `SELECT COUNT(*) FROM (
+		SELECT cm.UserId
+		FROM ChannelMembers cm
+		JOIN Users u ON cm.UserId = u.Id
+		JOIN Channels c ON cm.ChannelId = c.Id
+		WHERE u.Roles LIKE ? AND u.DeleteAt = 0 AND c.DeleteAt = 0
+		GROUP BY cm.UserId
+		HAVING COUNT(cm.ChannelId) = 1
+	) AS single_channel_guests`, "%system_guest%")
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to count single-channel guest Users")
+	}
+	return count, nil
+}
+
 func (us SqlUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	var count int64
 	err := us.GetReplica().Get(&count, "SELECT count(*) FROM Users WHERE Roles LIKE ? and DeleteAt = 0", "%system_admin%")

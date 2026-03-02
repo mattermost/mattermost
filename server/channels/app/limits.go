@@ -51,10 +51,43 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 	if appErr != nil {
 		return nil, model.NewAppError("GetServerLimits", "app.limits.get_app_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
-	limits.ActiveUserCount = activeUserCount
+
+	if a.shouldTrackSingleChannelGuests() {
+		singleChannelGuestCount, err := a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
+		if err != nil {
+			return nil, model.NewAppError("GetServerLimits", "app.limits.get_app_limits.single_channel_guest_count.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		limits.ActiveUserCount = activeUserCount - singleChannelGuestCount
+		limits.SingleChannelGuestCount = singleChannelGuestCount
+		if license != nil && license.Features != nil && license.Features.Users != nil {
+			limits.SingleChannelGuestLimit = int64(*license.Features.Users)
+		}
+	} else {
+		limits.ActiveUserCount = activeUserCount
+	}
 
 	return limits, nil
 }
+
+func (a *App) shouldTrackSingleChannelGuests() bool {
+	license := a.License()
+	if license == nil {
+		return false
+	}
+	if license.IsMattermostEntry() {
+		return false
+	}
+	if license.Features == nil || license.Features.GuestAccounts == nil || !*license.Features.GuestAccounts {
+		return false
+	}
+	cfg := a.Config()
+	if cfg == nil || cfg.GuestAccountsSettings.Enable == nil {
+		return false
+	}
+
+	return *cfg.GuestAccountsSettings.Enable
+}
+
 func (a *App) GetPostHistoryLimit() int64 {
 	license := a.License()
 	if license == nil || license.Limits == nil || license.Limits.PostHistory == 0 {
