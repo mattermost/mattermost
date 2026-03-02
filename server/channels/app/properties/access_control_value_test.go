@@ -1076,7 +1076,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		assert.Empty(t, results)
 	})
 
-	t.Run("creates values across multiple groups", func(t *testing.T) {
+	t.Run("rejects values across multiple groups", func(t *testing.T) {
 		// Register a second group
 		group2, err := th.service.RegisterPropertyGroup("test-group-create-values-2")
 		require.NoError(t, err)
@@ -1112,7 +1112,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		value2, jsonErr := json.Marshal("data from group 2")
 		require.NoError(t, jsonErr)
 
-		// Create values for fields from different groups in a single call
+		// Creating values for fields from different groups in a single call should fail
 		values := []*model.PropertyValue{
 			{
 				GroupID:    cpaGroupID,
@@ -1131,20 +1131,12 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		}
 
 		created, err := th.service.CreatePropertyValues(rctx2, values)
-		require.NoError(t, err)
-		assert.Len(t, created, 2)
-
-		// Verify both values were created
-		retrieved1, err := th.service.GetPropertyValue(rctx2, cpaGroupID, created[0].ID)
-		require.NoError(t, err)
-		require.NotNil(t, retrieved1)
-
-		retrieved2, err := th.service.GetPropertyValue(rctx2, group2.ID, created[1].ID)
-		require.NoError(t, err)
-		require.NotNil(t, retrieved2)
+		require.Error(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "mixed group IDs in batch")
 	})
 
-	t.Run("enforces access control across multiple groups atomically", func(t *testing.T) {
+	t.Run("rejects mixed groups before checking access control", func(t *testing.T) {
 		// Register a third group
 		group3, err := th.service.RegisterPropertyGroup("test-group-create-values-3")
 		require.NoError(t, err)
@@ -1182,7 +1174,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		protectedValue, jsonErr := json.Marshal("secret data")
 		require.NoError(t, jsonErr)
 
-		// Try to create values from different groups with one protected field
+		// Mixed-group batch is rejected before access control is even checked
 		values := []*model.PropertyValue{
 			{
 				GroupID:    cpaGroupID,
@@ -1200,26 +1192,10 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			},
 		}
 
-		// Plugin 2 should fail atomically
 		created, err := th.service.CreatePropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "protected")
-
-		// Verify no values were created in either group
-		results1, err := th.service.SearchPropertyValues(rctx1, cpaGroupID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Empty(t, results1)
-
-		results3, err := th.service.SearchPropertyValues(rctx1, group3.ID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Empty(t, results3)
+		assert.Contains(t, err.Error(), "mixed group IDs in batch")
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
@@ -1270,7 +1246,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		assert.Len(t, createdValues, 2)
 	})
 
-	t.Run("mixed CPA and non-CPA groups enforce access control atomically only on CPA group", func(t *testing.T) {
+	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
 		// Register a non-CPA group
 		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-mixed")
 		require.NoError(t, err)
@@ -1298,7 +1274,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		nonCpaField, err = th.service.CreatePropertyField(rctx1, nonCpaField)
 		require.NoError(t, err)
 
-		// Try to bulk create values for BOTH groups with pluginID2
+		// Try to bulk create values for BOTH groups — rejected by group-consistency check
 		targetID := model.NewId()
 		values := []*model.PropertyValue{
 			{
@@ -1317,46 +1293,10 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			},
 		}
 
-		// Should fail atomically - pluginID2 cannot create value on CPA group protected field
 		created, err := th.service.CreatePropertyValues(rctx2, values)
 		require.Error(t, err)
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "protected")
-
-		// Verify NO values were created in either group (atomic failure)
-		results, err := th.service.SearchPropertyValues(rctx1, cpaGroupID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Empty(t, results)
-
-		resultsNonCpa, err := th.service.SearchPropertyValues(rctx1, nonCpaGroup.ID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Empty(t, resultsNonCpa)
-
-		// Now try with the source plugin (pluginID1) using the same values - should succeed
-		created2, err := th.service.CreatePropertyValues(rctx1, values)
-		require.NoError(t, err)
-		assert.Len(t, created2, 2)
-
-		// Verify both values were created
-		resultsCpa2, err := th.service.SearchPropertyValues(rctx1, cpaGroupID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Len(t, resultsCpa2, 1)
-
-		resultsNonCpa2, err := th.service.SearchPropertyValues(rctx1, nonCpaGroup.ID, model.PropertyValueSearchOpts{
-			TargetIDs: []string{targetID},
-			PerPage:   100,
-		})
-		require.NoError(t, err)
-		assert.Len(t, resultsNonCpa2, 1)
+		assert.Contains(t, err.Error(), "mixed group IDs in batch")
 	})
 }
 
