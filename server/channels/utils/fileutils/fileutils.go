@@ -144,8 +144,12 @@ func CheckDirectoryConflict(dir1, dir2 string) (bool, error) {
 		return false, fmt.Errorf("failed to evaluate symlinks for %q: %w", dir2, err)
 	}
 
-	absDir1 += string(filepath.Separator)
-	absDir2 += string(filepath.Separator)
+	if !strings.HasSuffix(absDir1, string(filepath.Separator)) {
+		absDir1 += string(filepath.Separator)
+	}
+	if !strings.HasSuffix(absDir2, string(filepath.Separator)) {
+		absDir2 += string(filepath.Separator)
+	}
 
 	return strings.HasPrefix(absDir1, absDir2) || strings.HasPrefix(absDir2, absDir1), nil
 }

@@ -274,4 +274,34 @@ func TestCheckDirectoryConflict(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, conflict)
 	})
+
+	t.Run("root directory", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "dir")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// Root directory Both directories non-existent but separate - no error, no conflict
+		conflict, err := CheckDirectoryConflict("/", tmpDir)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("overlap but not path prefix", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "dir")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		subDir1 := filepath.Join(tmpDir, "prefix")
+		subDir2 := filepath.Join(tmpDir, "prefix-but-different-folder")
+
+		err = os.Mkdir(subDir1, 0700)
+		require.NoError(t, err)
+		err = os.Mkdir(subDir2, 0700)
+		require.NoError(t, err)
+
+		// Root directory Both directories non-existent but separate - no error, no conflict
+		conflict, err := CheckDirectoryConflict(subDir1, subDir2)
+		require.NoError(t, err)
+		assert.False(t, conflict)
+	})
 }
