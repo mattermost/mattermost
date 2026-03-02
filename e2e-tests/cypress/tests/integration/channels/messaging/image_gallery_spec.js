@@ -45,7 +45,7 @@ describe('Image Gallery', () => {
 
         // # Upload multiple images
         images.forEach((image) => {
-            cy.get('#fileUploadInput').attachFile(image.filename);
+            cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(image.filename);
             waitUntilUploadComplete();
         });
 
@@ -109,7 +109,7 @@ describe('Image Gallery', () => {
                 cy.fixture(file.filePath, 'binary').
                     then(Cypress.Blob.binaryStringToBlob).
                     then((fileContent) => {
-                        cy.get('#fileUploadInput').attachFile({
+                        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile({
                             fileContent,
                             fileName: file.fileName,
                             mimeType: 'application/pdf',
@@ -117,7 +117,7 @@ describe('Image Gallery', () => {
                         });
                     });
             } else {
-                cy.get('#fileUploadInput').attachFile(file.filename);
+                cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(file.filename);
             }
             waitUntilUploadComplete();
         });
