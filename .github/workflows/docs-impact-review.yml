@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout PR code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Checkout documentation repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: mattermost/docs
           ref: master
