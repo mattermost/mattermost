@@ -9,9 +9,9 @@ import {
     setUserChannelAutotranslation,
     expect,
     test,
+    setMockSourceLanguage,
 } from '@mattermost/playwright-lib';
 import {getRandomId} from 'utils/utils';
-import {setMockSourceLanguage} from '@mattermost/playwright-lib';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
 
@@ -885,10 +885,6 @@ test(
             await expect(showTranslationDialog.getByText('ORIGINAL')).toBeVisible();
             await expect(showTranslationDialog.getByText('AUTO-TRANSLATED')).toBeVisible();
         } else {
-            // Translation button not present - this indicates the message wasn't translated
-            // Log the actual message text content for debugging
-            const messageText = await modalPost.textContent();
-            console.log('Message content without translation indicator:', messageText);
             // The message should still appear but without translation
             await expect(modalPost).toContainText('Este es un texto');
         }
@@ -983,8 +979,6 @@ test(
             // Translation happened - menu item should be visible
             await expect(showTranslationItem).toBeVisible({timeout: 15000});
         } else {
-            // Translation might not have happened - message should still be visible without menu item
-            console.log('Show translation menu item not found - message may not have been translated');
             // Verify the post is still there
             await expect(messagePost).toContainText('Este mensaje es para probar');
         }
