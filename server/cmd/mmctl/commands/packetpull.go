@@ -35,7 +35,7 @@ func validateMattermostDirectory(mmDir string) error {
 }
 
 // collectMattermostFiles collects config and log files
-// Returns count of files collected and error (error only on obfuscation failure)
+// Returns count of files collected and error (error only on sanitization failure)
 func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, error) {
 	count := 0
 
@@ -90,9 +90,17 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 					printer.PrintError(fmt.Sprintf("Warning: Could not read log file %s: %v", info.Name(), err))
 					return nil
 				}
-				destPath := filepath.Join(logsDest, info.Name())
+				relPath, err := filepath.Rel(logsDir, path)
+				if err != nil {
+					relPath = info.Name()
+				}
+				destPath := filepath.Join(logsDest, relPath)
+				if err := os.MkdirAll(filepath.Dir(destPath), 0700); err != nil {
+					printer.PrintError(fmt.Sprintf("Warning: Could not create directory for log file %s: %v", relPath, err))
+					return nil
+				}
 				if err := os.WriteFile(destPath, content, 0600); err != nil {
-					printer.PrintError(fmt.Sprintf("Warning: Could not write log file %s: %v", info.Name(), err))
+					printer.PrintError(fmt.Sprintf("Warning: Could not write log file %s: %v", relPath, err))
 					return nil
 				}
 				logCount++
@@ -274,7 +282,7 @@ func runCommand(cmdName string, args ...string) ([]byte, error) {
 // createTarGzArchive creates a .tar.gz archive from a source directory
 func createTarGzArchive(sourceDir string, outputPath string) error {
 	// Create output file
-	outFile, err := os.Create(outputPath)
+	outFile, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
@@ -307,12 +315,6 @@ func createTarGzArchive(sourceDir string, outputPath string) error {
 
 		// Skip directories
 		if info.IsDir() {
-			return nil
-		}
-
-		// Skip files > 100MB
-		if info.Size() > 100*1024*1024 {
-			printer.PrintError(fmt.Sprintf("Warning: Skipping large file (>100MB): %s", info.Name()))
 			return nil
 		}
 

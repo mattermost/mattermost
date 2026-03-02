@@ -448,7 +448,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		cmd.Flags().Bool("offline", false, "")
 		cmd.Flags().String("directory", "/nonexistent", "")
 		cmd.Flags().StringP("output-file", "o", "", "")
-		cmd.Flags().Bool("no-obfuscate", false, "")
+		cmd.Flags().Bool("no-sanitize", false, "")
 		_ = cmd.ParseFlags([]string{"--offline"})
 
 		err := systemSupportPacketWrapperF(cmd, []string{})
@@ -464,7 +464,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		cmd.Flags().Bool("offline", false, "")
 		cmd.Flags().String("directory", "/opt/mattermost", "")
 		cmd.Flags().StringP("output-file", "o", "", "")
-		cmd.Flags().Bool("no-obfuscate", false, "")
+		cmd.Flags().Bool("no-sanitize", false, "")
 
 		err := systemSupportPacketWrapperF(cmd, []string{})
 		s.Require().Error(err)

@@ -96,7 +96,7 @@ func init() {
 	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
 	SystemSupportPacketCmd.Flags().Bool("offline", false, "Collect diagnostics from filesystem without connecting to server")
 	SystemSupportPacketCmd.Flags().String("directory", "/opt/mattermost", "Path to Mattermost installation directory (offline mode only)")
-	SystemSupportPacketCmd.Flags().Bool("no-obfuscate", false, "Disable obfuscation of sensitive config data (offline mode only)")
+	SystemSupportPacketCmd.Flags().Bool("no-sanitize", false, "Disable sanitization of sensitive config data (offline mode only)")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -212,14 +212,18 @@ func systemSupportPacketWrapperF(cmd *cobra.Command, args []string) error {
 	return withClient(systemSupportPacketCmdF)(cmd, args)
 }
 
+// getOutputPath returns the user-specified output file, or falls back to the provided default.
+func getOutputPath(cmd *cobra.Command, defaultName string) string {
+	outputFile, _ := cmd.Flags().GetString("output-file")
+	if outputFile != "" {
+		return outputFile
+	}
+	return defaultName
+}
+
 // systemSupportPacketCmdF handles API-based support packet generation (existing behavior)
 func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
-
-	filename, err := cmd.Flags().GetString("output-file")
-	if err != nil {
-		return err
-	}
 
 	printer.Print("Downloading Support Packet")
 
@@ -228,9 +232,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
 
-	if filename == "" {
-		filename = rFilename
-	}
+	filename := getOutputPath(cmd, rFilename)
 
 	file, err := os.Create(filename)
 	if err != nil {
@@ -252,9 +254,8 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 
 	// Parse flags
 	mmDir, _ := cmd.Flags().GetString("directory")
-	outputFile, _ := cmd.Flags().GetString("output-file")
-	noObfuscate, _ := cmd.Flags().GetBool("no-obfuscate")
-	obfuscate := !noObfuscate
+	noSanitize, _ := cmd.Flags().GetBool("no-sanitize")
+	sanitize := !noSanitize
 
 	// Validate Mattermost directory
 	if err := validateMattermostDirectory(mmDir); err != nil {
@@ -262,15 +263,9 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Generate output path
-	var outputPath string
-	if outputFile != "" {
-		// User specified output file
-		outputPath = outputFile
-	} else {
-		// Generate default filename: support-packet_YYYYMMDD-HHMMSS.tar.gz
-		timestamp := time.Now().UTC().Format("20060102-150405")
-		outputPath = filepath.Join(".", fmt.Sprintf("support-packet_%s.tar.gz", timestamp))
-	}
+	timestamp := time.Now().UTC().Format("20060102-150405")
+	defaultName := filepath.Join(".", fmt.Sprintf("support-packet_%s.tar.gz", timestamp))
+	outputPath := getOutputPath(cmd, defaultName)
 
 	// Create temp directory for collection
 	tempDir, err := os.MkdirTemp("", "mmctl-supportpacket-*")
@@ -292,7 +287,7 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 	printer.Print("Collecting diagnostics from filesystem...")
 
 	// Collect Mattermost files
-	filesCollected, err := collectMattermostFiles(mmDir, tempDir, obfuscate)
+	filesCollected, err := collectMattermostFiles(mmDir, tempDir, sanitize)
 	if err != nil {
 		return fmt.Errorf("config sanitization failed - cannot safely archive: %w", err)
 	}
@@ -307,10 +302,10 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("collection failed completely - no files were collected")
 	}
 
-	if obfuscate {
+	if sanitize {
 		printer.Print("Collection complete. Sensitive config fields sanitized.")
 	} else {
-		printer.Print("Collection complete. No sanitization applied (--no-obfuscate flag used).")
+		printer.Print("Collection complete. No sanitization applied (--no-sanitize flag used).")
 	}
 
 	// Create archive
