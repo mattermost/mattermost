@@ -489,6 +489,27 @@ describe('useRewrite', () => {
                 );
             });
         });
+
+        it('should not trigger rewrite on Enter key during IME composition', () => {
+            const {result, rerender} = renderHookWithProps();
+            render(result.current.additionalControl);
+            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props.setPrompt('Custom prompt');
+
+            rerender();
+            render(result.current.additionalControl);
+            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            const mockEvent = {
+                key: 'Enter',
+                nativeEvent: {isComposing: true},
+                stopPropagation: jest.fn(),
+            } as unknown as React.KeyboardEvent<HTMLInputElement>;
+
+            props.onCustomPromptKeyDown(mockEvent);
+
+            expect(mockEvent.stopPropagation).not.toHaveBeenCalled();
+            expect(Client4.getAIRewrittenMessage).not.toHaveBeenCalled();
+        });
     });
 
     describe('handleMenuAction', () => {
