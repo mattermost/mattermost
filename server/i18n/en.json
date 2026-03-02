@@ -5663,10 +5663,6 @@
     "translation": "Cannot register Custom Profile Attributes property group"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "Unable to delete Custom Profile Attribute Values for user"
   },
