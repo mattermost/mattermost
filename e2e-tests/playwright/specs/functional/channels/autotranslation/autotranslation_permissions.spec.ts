@@ -75,86 +75,107 @@ test.beforeEach(async () => {
         test.skip(
             true,
             `Translation service not found. Please start one of the following:\n` +
-            `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
-            `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up\n` +
-            `Error: ${lastError}`,
+                `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
+                `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up\n` +
+                `Error: ${lastError}`,
         );
     }
 });
 
-test('permission exists; Channel Administrators have Manage Channel Auto Translation ON', {
-    tag: ['@autotranslation', '@permissions'],
-}, async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
+test(
+    'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
+    {
+        tag: ['@autotranslation', '@permissions'],
+    },
+    async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
 
-    const license = await adminClient.getClientLicenseOld();
-    test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            !hasAutotranslationLicense(license.SkuShortName),
+            'Skipping test - server does not have Entry or Advanced license',
+        );
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
 
-    await gotoSystemSchemePage(systemConsolePage);
+        await gotoSystemSchemePage(systemConsolePage);
 
-    const scheme = systemConsolePage.permissionsSystemScheme;
-    await scheme.toBeVisible();
+        const scheme = systemConsolePage.permissionsSystemScheme;
+        await scheme.toBeVisible();
 
-    await scheme.expectManageChannelAutoTranslationChecked(scheme.channelAdministratorsSection);
-});
+        await scheme.expectManageChannelAutoTranslationChecked(scheme.channelAdministratorsSection);
+    },
+);
 
-test('System Administrators have Manage Channel Auto Translation ON', {
-    tag: ['@autotranslation', '@permissions'],
-}, async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
+test(
+    'System Administrators have Manage Channel Auto Translation ON',
+    {
+        tag: ['@autotranslation', '@permissions'],
+    },
+    async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
 
-    const license = await adminClient.getClientLicenseOld();
-    test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            !hasAutotranslationLicense(license.SkuShortName),
+            'Skipping test - server does not have Entry or Advanced license',
+        );
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
 
-    await gotoSystemSchemePage(systemConsolePage);
+        await gotoSystemSchemePage(systemConsolePage);
 
-    const scheme = systemConsolePage.permissionsSystemScheme;
-    await scheme.toBeVisible();
+        const scheme = systemConsolePage.permissionsSystemScheme;
+        await scheme.toBeVisible();
 
-    await scheme.expectManageChannelAutoTranslationChecked(scheme.systemAdministratorsSection);
-});
+        await scheme.expectManageChannelAutoTranslationChecked(scheme.systemAdministratorsSection);
+    },
+);
 
-test('user without permission cannot enable autotranslation at channel level', {
-    tag: ['@autotranslation', '@permissions'],
-}, async ({pw}) => {
-    const {adminClient, user, team} = await pw.initSetup();
+test(
+    'user without permission cannot enable autotranslation at channel level',
+    {
+        tag: ['@autotranslation', '@permissions'],
+    },
+    async ({pw}) => {
+        const {adminClient, user, team} = await pw.initSetup();
 
-    const license = await adminClient.getClientLicenseOld();
-    test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            !hasAutotranslationLicense(license.SkuShortName),
+            'Skipping test - server does not have Entry or Advanced license',
+        );
 
-    await enableAutotranslationConfig(adminClient, {
-        mockBaseUrl: process.env.LIBRETRANSLATE_URL || 'http://localhost:3010',
-        targetLanguages: ['en', 'es'],
-    });
+        await enableAutotranslationConfig(adminClient, {
+            mockBaseUrl: process.env.LIBRETRANSLATE_URL || 'http://localhost:3010',
+            targetLanguages: ['en', 'es'],
+        });
 
-    const channelName = `autotranslation-perm-${await getRandomId()}`;
-    const created = await adminClient.createChannel({
-        team_id: team.id,
-        name: channelName,
-        display_name: 'Permission Test Channel',
-        type: 'O',
-    });
-    await adminClient.addToChannel(user.id, created.id);
+        const channelName = `autotranslation-perm-${await getRandomId()}`;
+        const created = await adminClient.createChannel({
+            team_id: team.id,
+            name: channelName,
+            display_name: 'Permission Test Channel',
+            type: 'O',
+        });
+        await adminClient.addToChannel(user.id, created.id);
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channelName);
-    await channelsPage.toBeVisible();
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
 
-    const channelSettingsModal = await channelsPage.openChannelSettings();
-    const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
-    if (configTabVisible) {
-        const configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.container.getByTestId('channelTranslationToggle-button')).not.toBeVisible();
-    }
-});
+        const channelSettingsModal = await channelsPage.openChannelSettings();
+        const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
+        if (configTabVisible) {
+            const configurationTab = await channelSettingsModal.openConfigurationTab();
+            await expect(configurationTab.container.getByTestId('channelTranslationToggle-button')).not.toBeVisible();
+        }
+    },
+);
 
 async function gotoSystemSchemePage(systemConsolePage: SystemConsolePage) {
     await systemConsolePage.sidebar.userManagement.permissions.click();

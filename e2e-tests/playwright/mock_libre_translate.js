@@ -25,7 +25,9 @@ let sourceLanguage = 'es';
 function parseJsonBody(req) {
     return new Promise((resolve, reject) => {
         let body = '';
-        req.on('data', (chunk) => { body += chunk; });
+        req.on('data', (chunk) => {
+            body += chunk;
+        });
         req.on('end', () => {
             try {
                 resolve(body ? JSON.parse(body) : {});
@@ -50,13 +52,7 @@ const server = createServer(async (req, res) => {
     if (method === 'GET' && path === '/') {
         return sendJson(res, 200, {
             message: 'LibreTranslate mock',
-            endpoints: [
-                'GET /',
-                'POST /translate',
-                'POST /detect',
-                'GET /languages',
-                'POST /__control/detect_queue',
-            ],
+            endpoints: ['GET /', 'POST /translate', 'POST /detect', 'GET /languages', 'POST /__control/detect_queue'],
         });
     }
 
@@ -78,9 +74,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (method === 'POST' && path === '/detect') {
-        sendJson(res, 200, [
-            {language: sourceLanguage, confidence: 95},
-        ]);
+        sendJson(res, 200, [{language: sourceLanguage, confidence: 95}]);
         return;
     }
 

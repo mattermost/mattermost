@@ -19,9 +19,15 @@ export default class PermissionsSystemScheme {
         this.container = container;
 
         this.systemSchemeHeader = container.locator('.admin-console__header').getByText('System Scheme', {exact: true});
-        this.channelAdministratorsSection = container.locator('.permissions-block').filter({hasText: 'Channel Administrators'});
-        this.teamAdministratorsSection = container.locator('.permissions-block').filter({hasText: 'Team Administrators'});
-        this.systemAdministratorsSection = container.locator('.permissions-block').filter({hasText: 'System Administrators'});
+        this.channelAdministratorsSection = container
+            .locator('.permissions-block')
+            .filter({hasText: 'Channel Administrators'});
+        this.teamAdministratorsSection = container
+            .locator('.permissions-block')
+            .filter({hasText: 'Team Administrators'});
+        this.systemAdministratorsSection = container
+            .locator('.permissions-block')
+            .filter({hasText: 'System Administrators'});
     }
 
     async toBeVisible() {

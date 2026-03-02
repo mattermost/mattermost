@@ -73,20 +73,14 @@ export async function disableAutotranslationConfig(adminClient: Client4): Promis
 /**
  * Enable autotranslation for a channel (requires permission and feature available).
  */
-export async function enableChannelAutotranslation(
-    adminClient: Client4,
-    channelId: string,
-): Promise<void> {
+export async function enableChannelAutotranslation(adminClient: Client4, channelId: string): Promise<void> {
     await adminClient.patchChannel(channelId, {autotranslation: true} as any);
 }
 
 /**
  * Disable autotranslation for a channel.
  */
-export async function disableChannelAutotranslation(
-    adminClient: Client4,
-    channelId: string,
-): Promise<void> {
+export async function disableChannelAutotranslation(adminClient: Client4, channelId: string): Promise<void> {
     await adminClient.patchChannel(channelId, {autotranslation: false} as any);
 }
 

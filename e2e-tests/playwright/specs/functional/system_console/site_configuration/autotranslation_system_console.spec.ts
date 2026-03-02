@@ -13,111 +13,143 @@
 import {expect, test, hasAutotranslationLicense} from '@mattermost/playwright-lib';
 
 test.describe('System Console - Autotranslation (Localization)', () => {
-    test('without EA license, auto-translation shows feature discovery block', {
-        tag: ['@autotranslation', '@system_console'],
-    }, async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+    test(
+        'without EA license, auto-translation shows feature discovery block',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            hasAutotranslationLicense(license.SkuShortName),
-            'Skipping test - this test requires non-Entry/Advanced license to see feature discovery',
-        );
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - this test requires non-Entry/Advanced license to see feature discovery',
+            );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
 
-        await systemConsolePage.sidebar.siteConfiguration.localization.click();
-        await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
-        await expect(systemConsolePage.localization.featureDiscoveryBlock).toBeVisible();
-        await expect(systemConsolePage.localization.autoTranslationSection).not.toBeVisible();
-    });
+            await expect(systemConsolePage.localization.featureDiscoveryBlock).toBeVisible();
+            await expect(systemConsolePage.localization.autoTranslationSection).not.toBeVisible();
+        },
+    );
 
-    test('with EA license, Auto-translation toggle is visible and off by default', {
-        tag: ['@autotranslation', '@system_console'],
-    }, async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+    test(
+        'with EA license, Auto-translation toggle is visible and off by default',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
 
-        await systemConsolePage.sidebar.siteConfiguration.localization.click();
-        await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
-        await expect(systemConsolePage.localization.autoTranslationSection).toBeVisible();
-        await expect(systemConsolePage.localization.autoTranslationToggle).toBeVisible();
-        await expect(systemConsolePage.localization.container.getByText('Off')).toBeVisible();
-    });
+            await expect(systemConsolePage.localization.autoTranslationSection).toBeVisible();
+            await expect(systemConsolePage.localization.autoTranslationToggle).toBeVisible();
+            await expect(systemConsolePage.localization.container.getByText('Off')).toBeVisible();
+        },
+    );
 
-    test('enabling system toggle expands provider and target language configuration', {
-        tag: ['@autotranslation', '@system_console'],
-    }, async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+    test(
+        'enabling system toggle expands provider and target language configuration',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
 
-        await systemConsolePage.sidebar.siteConfiguration.localization.click();
-        await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
-        await systemConsolePage.localization.turnOnAutoTranslation();
+            await systemConsolePage.localization.turnOnAutoTranslation();
 
-        await expect(systemConsolePage.localization.providerDropdown).toBeVisible();
-        await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
-    });
+            await expect(systemConsolePage.localization.providerDropdown).toBeVisible();
+            await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
+        },
+    );
 
-    test('selecting LibreTranslate shows endpoint and API key fields', {
-        tag: ['@autotranslation', '@system_console'],
-    }, async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+    test(
+        'selecting LibreTranslate shows endpoint and API key fields',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
 
-        await systemConsolePage.sidebar.siteConfiguration.localization.click();
-        await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
-        await systemConsolePage.localization.turnOnAutoTranslation();
+            await systemConsolePage.localization.turnOnAutoTranslation();
 
-        await systemConsolePage.localization.providerDropdown.selectOption('libretranslate');
+            await systemConsolePage.localization.providerDropdown.selectOption('libretranslate');
 
-        await expect(systemConsolePage.localization.libreTranslateUrlInput).toBeVisible();
-        await expect(systemConsolePage.localization.libreTranslateApiKeyInput).toBeVisible();
-        await expect(systemConsolePage.localization.container.getByText(/LibreTranslate docs/i)).toBeVisible();
-    });
+            await expect(systemConsolePage.localization.libreTranslateUrlInput).toBeVisible();
+            await expect(systemConsolePage.localization.libreTranslateApiKeyInput).toBeVisible();
+            await expect(systemConsolePage.localization.container.getByText(/LibreTranslate docs/i)).toBeVisible();
+        },
+    );
 
-    test('admin can select multiple target languages', {
-        tag: ['@autotranslation', '@system_console'],
-    }, async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+    test(
+        'admin can select multiple target languages',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasAutotranslationLicense(license.SkuShortName), 'Skipping test - server does not have Entry or Advanced license');
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
 
-        await systemConsolePage.sidebar.siteConfiguration.localization.click();
-        await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
-        await systemConsolePage.localization.turnOnAutoTranslation();
+            await systemConsolePage.localization.turnOnAutoTranslation();
 
-        await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
-        await expect(systemConsolePage.localization.container.getByText('Languages allowed')).toBeVisible();
-    });
+            await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
+            await expect(systemConsolePage.localization.container.getByText('Languages allowed')).toBeVisible();
+        },
+    );
 });
