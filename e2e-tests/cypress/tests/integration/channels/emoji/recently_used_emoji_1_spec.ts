@@ -48,12 +48,12 @@ describe('Recent Emoji', () => {
         // * Verify emoji picker is opened
         cy.get('#emojiPicker').should('be.visible');
 
-        // # Add first emoji
+        // # Add first emoji (picker inserts unicode for system emojis)
         cy.clickEmojiInEmojiPicker(firstEmoji);
 
-        // # Submit post
+        // # Submit post (textbox contains unicode emoji + space)
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', `:${firstEmoji}: `).type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post

@@ -58,10 +58,7 @@ const useEditorEmojiPicker = (
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
         if (isSystemEmoji(emoji)) {
-            const textbox = document.getElementById(textboxId) as HTMLTextAreaElement | undefined;
-            if (textbox) {
-                focusAndInsertText(textbox, unifiedToUnicode((emoji as SystemEmoji).unified));
-            }
+            insertTextAtCaret(unifiedToUnicode((emoji as SystemEmoji).unified));
         } else {
             const emojiAlias = getEmojiName(emoji);
             if (!emojiAlias) {
