@@ -5671,6 +5671,10 @@
     "translation": "Unable to get Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Unable to get Custom Profile Attribute value"
+  },
+  {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
     "translation": "Custom Profile Attributes field limit reached"
   },

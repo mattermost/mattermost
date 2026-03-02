@@ -240,7 +240,7 @@ func (a *App) GetCPAValue(rctx request.CTX, valueID string) (*model.PropertyValu
 
 	value, appErr := a.GetPropertyValue(rctx, groupID, valueID)
 	if appErr != nil {
-		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.get_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return value, nil
