@@ -1105,7 +1105,7 @@ type ChannelBookmarkStore interface {
 type ViewStore interface {
 	Save(view *model.View) (*model.View, error)
 	Get(id string) (*model.View, error)
-	GetForChannel(channelID string) ([]*model.View, error)
+	GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error)
 	Update(view *model.View) (*model.View, error)
 	Delete(viewID string, deleteAt int64) error
 }

@@ -139,7 +139,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("returns only views for the given channel", func(t *testing.T) {
-		views, err := ss.View().GetForChannel(channelID)
+		views, _, err := ss.View().GetForChannel(channelID, model.ViewQueryOpts{})
 		require.NoError(t, err)
 		assert.Len(t, views, 2)
 		ids := []string{views[0].Id, views[1].Id}
@@ -148,7 +148,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns views ordered by sort_order ascending", func(t *testing.T) {
-		views, err := ss.View().GetForChannel(channelID)
+		views, _, err := ss.View().GetForChannel(channelID, model.ViewQueryOpts{})
 		require.NoError(t, err)
 		assert.Equal(t, saved2.Id, views[0].Id) // SortOrder 0
 		assert.Equal(t, saved1.Id, views[1].Id) // SortOrder 1
@@ -158,16 +158,193 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		err := ss.View().Delete(saved1.Id, model.GetMillis())
 		require.NoError(t, err)
 
-		views, err := ss.View().GetForChannel(channelID)
+		views, _, err := ss.View().GetForChannel(channelID, model.ViewQueryOpts{})
 		require.NoError(t, err)
 		assert.Len(t, views, 1)
 		assert.Equal(t, saved2.Id, views[0].Id)
 	})
 
 	t.Run("returns empty slice for channel with no views", func(t *testing.T) {
-		views, err := ss.View().GetForChannel(model.NewId())
+		views, cursor, err := ss.View().GetForChannel(model.NewId(), model.ViewQueryOpts{})
 		require.NoError(t, err)
 		assert.Empty(t, views)
+		assert.True(t, cursor.IsEmpty())
+	})
+
+	t.Run("paginates with cursor", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		var saved []*model.View
+		for i := 0; i < 3; i++ {
+			v := makeView(ch, creator)
+			v.Title = "Paginate Board"
+			v.SortOrder = i
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			saved = append(saved, s)
+		}
+
+		page1, cursor1, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 2})
+		require.NoError(t, err)
+		assert.Len(t, page1, 2)
+		assert.False(t, cursor1.IsEmpty())
+
+		page2, cursor2, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{
+			PerPage: 2,
+			Cursor:  cursor1,
+		})
+		require.NoError(t, err)
+		require.Len(t, page2, 1)
+		assert.Equal(t, saved[2].Id, page2[0].Id)
+		assert.False(t, cursor2.IsEmpty(), "cursor should point to last returned element")
+	})
+
+	t.Run("includes deleted when IncludeDeleted=true", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		v := makeView(ch, creator)
+		v.Title = "IncDel Board"
+		saved, err := ss.View().Save(v)
+		require.NoError(t, err)
+
+		err = ss.View().Delete(saved.Id, model.GetMillis())
+		require.NoError(t, err)
+
+		views, _, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{IncludeDeleted: true})
+		require.NoError(t, err)
+		assert.Len(t, views, 1)
+		assert.Equal(t, saved.Id, views[0].Id)
+	})
+
+	t.Run("respects SortOrder in cursor", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		orders := []int{0, 5, 10}
+		var created []*model.View
+		for _, so := range orders {
+			v := makeView(ch, creator)
+			v.Title = "SortCursor Board"
+			v.SortOrder = so
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			created = append(created, s)
+		}
+
+		page1, cursor1, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 2})
+		require.NoError(t, err)
+		require.Len(t, page1, 2)
+		assert.Equal(t, created[0].Id, page1[0].Id)
+		assert.Equal(t, created[1].Id, page1[1].Id)
+
+		page2, _, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{
+			PerPage: 2,
+			Cursor:  cursor1,
+		})
+		require.NoError(t, err)
+		assert.Len(t, page2, 1)
+		assert.Equal(t, created[2].Id, page2[0].Id)
+	})
+
+	t.Run("cursor with SortOrder=0", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		for i := 0; i < 2; i++ {
+			v := makeView(ch, creator)
+			v.Title = "SO0 Board"
+			v.SortOrder = 0
+			_, err := ss.View().Save(v)
+			require.NoError(t, err)
+		}
+
+		page1, cursor1, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 1})
+		require.NoError(t, err)
+		require.Len(t, page1, 1)
+
+		page2, _, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{
+			PerPage: 1,
+			Cursor:  cursor1,
+		})
+		require.NoError(t, err)
+		assert.Len(t, page2, 1)
+		assert.NotEqual(t, page1[0].Id, page2[0].Id)
+	})
+
+	t.Run("tiebreak on identical SortOrder and CreateAt", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		now := model.GetMillis()
+		for i := 0; i < 2; i++ {
+			v := makeView(ch, creator)
+			v.Title = "Tiebreak Board"
+			v.SortOrder = 1
+			v.CreateAt = now
+			_, err := ss.View().Save(v)
+			require.NoError(t, err)
+		}
+
+		page1, cursor1, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 1})
+		require.NoError(t, err)
+		require.Len(t, page1, 1)
+
+		page2, _, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{
+			PerPage: 1,
+			Cursor:  cursor1,
+		})
+		require.NoError(t, err)
+		require.Len(t, page2, 1)
+		assert.NotEqual(t, page1[0].Id, page2[0].Id)
+	})
+
+	t.Run("defaults PerPage to 20 when 0", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		for i := 0; i < model.ViewQueryDefaultPerPage+1; i++ {
+			v := makeView(ch, creator)
+			v.Title = "Default PerPage Board"
+			v.SortOrder = i
+			_, err := ss.View().Save(v)
+			require.NoError(t, err)
+		}
+
+		views, cursor, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 0})
+		require.NoError(t, err)
+		assert.Len(t, views, model.ViewQueryDefaultPerPage)
+		assert.False(t, cursor.IsEmpty(), "cursor should point to last returned element")
+	})
+
+	t.Run("rejects empty channelID", func(t *testing.T) {
+		_, _, err := ss.View().GetForChannel("", model.ViewQueryOpts{})
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &invErr)
+	})
+
+	t.Run("clamps PerPage above max to max", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		for i := 0; i < model.ViewQueryMaxPerPage+1; i++ {
+			v := makeView(ch, creator)
+			v.Title = "Clamp Board"
+			v.SortOrder = i
+			_, err := ss.View().Save(v)
+			require.NoError(t, err)
+		}
+
+		views, _, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{PerPage: 9999})
+		require.NoError(t, err)
+		assert.Len(t, views, model.ViewQueryMaxPerPage)
+	})
+
+	t.Run("rejects invalid cursor", func(t *testing.T) {
+		_, _, err := ss.View().GetForChannel(model.NewId(), model.ViewQueryOpts{
+			Cursor: model.ViewQueryCursor{
+				ViewID:   "not-a-valid-id",
+				CreateAt: 1,
+			},
+		})
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &invErr)
 	})
 }
 

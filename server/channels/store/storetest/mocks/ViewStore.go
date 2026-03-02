@@ -62,34 +62,41 @@ func (_m *ViewStore) Get(id string) (*model.View, error) {
 	return r0, r1
 }
 
-// GetForChannel provides a mock function with given fields: channelID
-func (_m *ViewStore) GetForChannel(channelID string) ([]*model.View, error) {
-	ret := _m.Called(channelID)
+// GetForChannel provides a mock function with given fields: channelID, opts
+func (_m *ViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error) {
+	ret := _m.Called(channelID, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForChannel")
 	}
 
 	var r0 []*model.View
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.View, error)); ok {
-		return rf(channelID)
+	var r1 model.ViewQueryCursor
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error)); ok {
+		return rf(channelID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.View); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) []*model.View); ok {
+		r0 = rf(channelID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.View)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
+	if rf, ok := ret.Get(1).(func(string, model.ViewQueryOpts) model.ViewQueryCursor); ok {
+		r1 = rf(channelID, opts)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(model.ViewQueryCursor)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(string, model.ViewQueryOpts) error); ok {
+		r2 = rf(channelID, opts)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Save provides a mock function with given fields: view
