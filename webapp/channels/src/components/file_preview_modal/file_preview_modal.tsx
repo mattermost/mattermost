@@ -471,9 +471,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             closing: this.state.isClosing,
                         })}
                         onClick={this.handleModalClose}
-                        role='button'
-                        tabIndex={0}
-                        aria-label='Close preview'
                     >
                         <div
                             className='file-preview-modal__main-ctr'
@@ -514,9 +511,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     },
                                 )}
                                 onClick={this.handleBgClose}
-                                role='button'
-                                tabIndex={0}
-                                aria-label='Close preview'
                             >
                                 {content}
                             </div>
