@@ -213,6 +213,10 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(rctx request.CTX, pos
 		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.get_thread_replies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if len(replies) == 0 {
+		return nil
+	}
+
 	propertyValues := make([]*model.PropertyValue, 0, len(replies))
 	for _, reply := range replies {
 		propertyValues = append(propertyValues, &model.PropertyValue{
