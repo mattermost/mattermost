@@ -131,7 +131,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 			}
 		}
 
-		attachmentsArray, ok := attachments.([]*model.SlackAttachment)
+		attachmentsArray, ok := attachments.([]*model.MessageAttachment)
 		if ok {
 			for _, attachment := range attachmentsArray {
 				if attachment != nil {

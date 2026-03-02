@@ -13,7 +13,7 @@ type Poster interface {
 
 	// DMWithAttachments posts a Direct Message that contains Slack attachments.
 	// Often used to include post actions.
-	DMWithAttachments(mattermostUserID string, attachments ...*model.SlackAttachment) (string, error)
+	DMWithAttachments(mattermostUserID string, attachments ...*model.MessageAttachment) (string, error)
 
 	// Ephemeral sends an ephemeral message to a user
 	Ephemeral(mattermostUserID, channelID, format string, args ...any)

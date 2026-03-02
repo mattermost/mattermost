@@ -28,7 +28,7 @@ type PostContextKey string
 const (
 	PostSystemMessagePrefix       = "system_"
 	PostTypeDefault               = ""
-	PostTypeSlackAttachment       = "slack_attachment"
+	PostTypeMessageAttachment       = "slack_attachment"
 	PostTypeSystemGeneric         = "system_generic"
 	PostTypeJoinLeave             = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
 	PostTypeJoinChannel           = "system_join_channel"
@@ -512,7 +512,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMoveChannel,
 		PostTypeAddToTeam,
 		PostTypeRemoveFromTeam,
-		PostTypeSlackAttachment,
+		PostTypeMessageAttachment,
 		PostTypeHeaderChange,
 		PostTypePurposeChange,
 		PostTypeDisplaynameChange,
@@ -949,15 +949,15 @@ func findAtChannelMention(message string) (mention string, found bool) {
 	return
 }
 
-func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+func (o *Post) Attachments() []*MessageAttachment {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		return attachments
 	}
-	var ret []*SlackAttachment
+	var ret []*MessageAttachment
 	if attachments, ok := o.GetProp(PostPropsAttachments).([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
-				var decoded SlackAttachment
+				var decoded MessageAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
 					// Ignoring nil actions
 					i := 0

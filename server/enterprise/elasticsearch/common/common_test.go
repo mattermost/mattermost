@@ -71,7 +71,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 	assert.Empty(t, espost1.Hashtags)
 	assert.Equal(t, "text 1", espost1.Attachments)
 
-	// Create one with attachments in model.SlackAttachment form.
+	// Create one with attachments in model.MessageAttachment form.
 
 	post2 := model.PostForIndexing{
 		TeamId:         model.NewId(),
@@ -85,7 +85,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 			Type:      "slack_attachment",
 			Hashtags:  "#buh #boh",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				"attachments": []*model.MessageAttachment{
 					{
 						Text: "text 2",
 					},

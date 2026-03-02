@@ -208,7 +208,7 @@ func decodableError(err error) error {
 
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
-	gob.Register([]*model.SlackAttachment{})
+	gob.Register([]*model.MessageAttachment{})
 	gob.Register([]any{})
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})

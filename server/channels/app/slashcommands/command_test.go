@@ -244,7 +244,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -270,7 +270,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Trigger = "code"
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},

@@ -53,7 +53,7 @@ type IncomingWebhookRequest struct {
 	IconURL     string             `json:"icon_url"`
 	ChannelName string             `json:"channel"`
 	Props       StringInterface    `json:"props"`
-	Attachments []*SlackAttachment `json:"attachments"`
+	Attachments []*MessageAttachment `json:"attachments"`
 	Type        string             `json:"type"`
 	IconEmoji   string             `json:"icon_emoji"`
 	Priority    *PostPriority      `json:"priority"`
@@ -202,7 +202,7 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 		}
 	}
 
-	o.Attachments = StringifySlackFieldValue(o.Attachments)
+	o.Attachments = StringifyMessageAttachmentFieldValue(o.Attachments)
 
 	return o, nil
 }

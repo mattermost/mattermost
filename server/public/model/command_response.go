@@ -27,7 +27,7 @@ type CommandResponse struct {
 	GotoLocation     string             `json:"goto_location"`
 	TriggerId        string             `json:"trigger_id"`
 	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
-	Attachments      []*SlackAttachment `json:"attachments"`
+	Attachments      []*MessageAttachment `json:"attachments"`
 	ExtraResponses   []*CommandResponse `json:"extra_responses"`
 }
 
@@ -59,11 +59,11 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 		return nil, utils.HumanizeJSONError(err, b)
 	}
 
-	o.Attachments = StringifySlackFieldValue(o.Attachments)
+	o.Attachments = StringifyMessageAttachmentFieldValue(o.Attachments)
 
 	if o.ExtraResponses != nil {
 		for _, resp := range o.ExtraResponses {
-			resp.Attachments = StringifySlackFieldValue(resp.Attachments)
+			resp.Attachments = StringifyMessageAttachmentFieldValue(resp.Attachments)
 		}
 	}
 

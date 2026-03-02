@@ -78,10 +78,10 @@ func (a *App) ProcessSlackText(rctx request.CTX, text string) string {
 
 // Expand announcements in incoming webhooks from Slack. Those announcements
 // can be found in the text attribute, or in the pretext, text, title and value
-// attributes of the attachment structure. The Slack attachment structure is
+// attributes of the attachment structure. The message attachment structure is
 // documented here: https://api.slack.com/docs/attachments
-func (a *App) ProcessSlackAttachments(rctx request.CTX, attachments []*model.SlackAttachment) []*model.SlackAttachment {
-	var nonNilAttachments = model.StringifySlackFieldValue(attachments)
+func (a *App) ProcessMessageAttachments(rctx request.CTX, attachments []*model.MessageAttachment) []*model.MessageAttachment {
+	var nonNilAttachments = model.StringifyMessageAttachmentFieldValue(attachments)
 	for _, attachment := range attachments {
 		attachment.Pretext = a.ProcessSlackText(rctx, attachment.Pretext)
 		attachment.Text = a.ProcessSlackText(rctx, attachment.Text)

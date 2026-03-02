@@ -71,7 +71,7 @@ type OutgoingWebhookResponse struct {
 	Username     string             `json:"username"`
 	IconURL      string             `json:"icon_url"`
 	Props        StringInterface    `json:"props"`
-	Attachments  []*SlackAttachment `json:"attachments"`
+	Attachments  []*MessageAttachment `json:"attachments"`
 	Type         string             `json:"type"`
 	ResponseType string             `json:"response_type"`
 	Priority     *PostPriority      `json:"priority"`

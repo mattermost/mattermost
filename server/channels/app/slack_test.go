@@ -39,12 +39,12 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
 
-	attachments := []*model.SlackAttachment{
+	attachments := []*model.MessageAttachment{
 		{
 			Pretext: "<!channel> pretext <!here>",
 			Text:    "<!channel> text <!here>",
 			Title:   "<!channel> title <!here>",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "foo",
 					Value: "<!channel> bar <!here>",
@@ -56,7 +56,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			Pretext: "<@" + userID + "> pretext",
 			Text:    "<@" + userID + "> text",
 			Title:   "<@" + userID + "> title",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "foo",
 					Value: "<@" + userID + "> bar",
@@ -65,7 +65,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			},
 		},
 	}
-	attachments = th.App.ProcessSlackAttachments(th.Context, attachments)
+	attachments = th.App.ProcessMessageAttachments(th.Context, attachments)
 	if len(attachments) != 2 || len(attachments[0].Fields) != 1 || len(attachments[1].Fields) != 1 {
 		t.Fail()
 	}

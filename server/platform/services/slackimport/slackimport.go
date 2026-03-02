@@ -70,7 +70,7 @@ type slackPost struct {
 	Upload      bool                     `json:"upload"`
 	File        *slackFile               `json:"file"`
 	Files       []*slackFile             `json:"files"`
-	Attachments []*model.SlackAttachment `json:"attachments"`
+	Attachments []*model.MessageAttachment `json:"attachments"`
 }
 
 var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
@@ -416,7 +416,7 @@ func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel 
 				ChannelId: channel.Id,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
 				Message:   sPost.Text,
-				Type:      model.PostTypeSlackAttachment,
+				Type:      model.PostTypeMessageAttachment,
 			}
 
 			postId := si.oldImportIncomingWebhookPost(rctx, post, props)
@@ -847,8 +847,8 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(rctx request.CTX, post *mo
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == model.PostPropsAttachments {
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			} else if key != model.PostPropsFromWebhook {
 				post.AddProp(key, val)
