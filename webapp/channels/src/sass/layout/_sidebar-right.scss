@@ -12,6 +12,10 @@
     }
 
     width: var(--overrideRhsWidth, 400px);
+
+    #root.rhs-transitioning & {
+        will-change: width;
+    }
 }
 
 .sidebar--right {
@@ -79,6 +83,7 @@
         height: 100%;
         flex: 1 1 auto;
         flex-direction: column;
+        contain: layout;
         background: var(--center-channel-bg);
 
         .info-card {
@@ -294,6 +299,10 @@
     height: 100%;
     border-left: var(--border-default);
     box-shadow: var(--elevation-2);
+
+    #root.rhs-transitioning & {
+        will-change: width;
+    }
 
     &.expanded {
         position: absolute;

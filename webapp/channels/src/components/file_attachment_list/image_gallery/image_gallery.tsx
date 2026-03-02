@@ -121,9 +121,23 @@ const ImageGallery = (props: Props) => {
     const rafIdRef = useRef<number>();
     const lastProcessedWidthRef = useRef<number | null>(null);
     const debouncedResizeRef = useRef<(() => void) | null>(null);
+    const pendingWidthRef = useRef<number | null>(null);
+    const applyPendingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+    const isRhsTransitioning = () => document.getElementById('root')?.classList.contains('rhs-transitioning') ?? false;
 
     useEffect(() => {
         const THROTTLE_DELAY = 16; // ~60fps
+        const RHS_TRANSITION_END_MS = 350;
+
+        const applyPendingWidth = () => {
+            if (pendingWidthRef.current !== null && isMountedRef.current) {
+                const width = pendingWidthRef.current;
+                pendingWidthRef.current = null;
+                lastProcessedWidthRef.current = width;
+                setContainerWidth(width);
+            }
+        };
 
         const handleResize = () => {
             if (galleryRef.current && isMountedRef.current) {
@@ -138,6 +152,18 @@ const ImageGallery = (props: Props) => {
         };
 
         const updateWidth = (width: number) => {
+            // During RHS expand/collapse transition, defer layout updates until transition ends
+            if (isRhsTransitioning()) {
+                pendingWidthRef.current = width;
+                if (!applyPendingTimeoutRef.current) {
+                    applyPendingTimeoutRef.current = setTimeout(() => {
+                        applyPendingTimeoutRef.current = undefined;
+                        applyPendingWidth();
+                    }, RHS_TRANSITION_END_MS);
+                }
+                return;
+            }
+
             // Prevent infinite loops by checking if we've already processed this width
             if (lastProcessedWidthRef.current === width) {
                 return;
@@ -214,6 +240,10 @@ const ImageGallery = (props: Props) => {
             // Clean up all timers and animations
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
+            }
+            if (applyPendingTimeoutRef.current) {
+                clearTimeout(applyPendingTimeoutRef.current);
+                applyPendingTimeoutRef.current = undefined;
             }
             if (rafIdRef.current) {
                 cancelAnimationFrame(rafIdRef.current);

@@ -71,6 +71,7 @@ function ResizableRhs({
     };
 
     // If max-width is applied immediately when expanded is collapsed, the transition will not work correctly.
+    // Apply resize-disabled when expanding as well to prevent min/max constraints from causing mid-transition layout jumps.
     useEffect(() => {
         const containerRefElement = containerRef.current;
 
@@ -78,14 +79,15 @@ function ResizableRhs({
             return;
         }
 
+        const wasExpanded = previousRhsExpanded;
         setPreviousRhsExpanded(isRhsExpanded);
 
-        if (previousRhsExpanded && !isRhsExpanded) {
+        if ((wasExpanded && !isRhsExpanded) || (!wasExpanded && isRhsExpanded)) {
             containerRefElement.classList.add('resize-disabled');
 
             setTimeout(() => {
                 containerRefElement.classList.remove('resize-disabled');
-            }, 1000);
+            }, 300);
         }
     }, [isRhsExpanded]);
 
