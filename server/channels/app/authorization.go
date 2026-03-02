@@ -598,11 +598,29 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 	case string(model.PropertyFieldTargetLevelTeam):
 		// Team-level property: must be team member
 		member, err := a.Srv().Store().Team().GetMember(rctx, field.TargetID, userID)
-		return err == nil && member != nil
+		if err != nil {
+			rctx.Logger().Warn("Failed to get team member for property field scope check",
+				mlog.String("team_id", field.TargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
 	case string(model.PropertyFieldTargetLevelChannel):
 		// Channel-level property: must be channel member
 		member, err := a.Srv().Store().Channel().GetMember(rctx, field.TargetID, userID)
-		return err == nil && member != nil
+		if err != nil {
+			rctx.Logger().Warn("Failed to get channel member for property field scope check",
+				mlog.String("channel_id", field.TargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
 	}
 	return false
 }
