@@ -17,18 +17,18 @@ const (
 )
 
 type CommandResponse struct {
-	ResponseType     string             `json:"response_type"`
-	Text             string             `json:"text"`
-	Username         string             `json:"username"`
-	ChannelId        string             `json:"channel_id"`
-	IconURL          string             `json:"icon_url"`
-	Type             string             `json:"type"`
-	Props            StringInterface    `json:"props"`
-	GotoLocation     string             `json:"goto_location"`
-	TriggerId        string             `json:"trigger_id"`
-	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	ResponseType     string               `json:"response_type"`
+	Text             string               `json:"text"`
+	Username         string               `json:"username"`
+	ChannelId        string               `json:"channel_id"`
+	IconURL          string               `json:"icon_url"`
+	Type             string               `json:"type"`
+	Props            StringInterface      `json:"props"`
+	GotoLocation     string               `json:"goto_location"`
+	TriggerId        string               `json:"trigger_id"`
+	SkipSlackParsing bool                 `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
 	Attachments      []*MessageAttachment `json:"attachments"`
-	ExtraResponses   []*CommandResponse `json:"extra_responses"`
+	ExtraResponses   []*CommandResponse   `json:"extra_responses"`
 }
 
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {

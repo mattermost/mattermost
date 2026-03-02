@@ -18,23 +18,23 @@ var (
 )
 
 type MessageAttachment struct {
-	Id         int64                   `json:"id"`
-	Fallback   string                  `json:"fallback"`
-	Color      string                  `json:"color"`
-	Pretext    string                  `json:"pretext"`
-	AuthorName string                  `json:"author_name"`
-	AuthorLink string                  `json:"author_link"`
-	AuthorIcon string                  `json:"author_icon"`
-	Title      string                  `json:"title"`
-	TitleLink  string                  `json:"title_link"`
-	Text       string                  `json:"text"`
+	Id         int64                     `json:"id"`
+	Fallback   string                    `json:"fallback"`
+	Color      string                    `json:"color"`
+	Pretext    string                    `json:"pretext"`
+	AuthorName string                    `json:"author_name"`
+	AuthorLink string                    `json:"author_link"`
+	AuthorIcon string                    `json:"author_icon"`
+	Title      string                    `json:"title"`
+	TitleLink  string                    `json:"title_link"`
+	Text       string                    `json:"text"`
 	Fields     []*MessageAttachmentField `json:"fields"`
-	ImageURL   string                  `json:"image_url"`
-	ThumbURL   string                  `json:"thumb_url"`
-	Footer     string                  `json:"footer"`
-	FooterIcon string                  `json:"footer_icon"`
-	Timestamp  any                     `json:"ts"` // This is either a string or an int64
-	Actions    []*PostAction           `json:"actions,omitempty"`
+	ImageURL   string                    `json:"image_url"`
+	ThumbURL   string                    `json:"thumb_url"`
+	Footer     string                    `json:"footer"`
+	FooterIcon string                    `json:"footer_icon"`
+	Timestamp  any                       `json:"ts"` // This is either a string or an int64
+	Actions    []*PostAction             `json:"actions,omitempty"`
 }
 
 func (s *MessageAttachment) IsValid() error {

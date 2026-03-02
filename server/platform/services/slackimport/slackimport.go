@@ -58,18 +58,18 @@ type slackFile struct {
 }
 
 type slackPost struct {
-	User        string                   `json:"user"`
-	BotId       string                   `json:"bot_id"`
-	BotUsername string                   `json:"username"`
-	Text        string                   `json:"text"`
-	TimeStamp   string                   `json:"ts"`
-	ThreadTS    string                   `json:"thread_ts"`
-	Type        string                   `json:"type"`
-	SubType     string                   `json:"subtype"`
-	Comment     *slackComment            `json:"comment"`
-	Upload      bool                     `json:"upload"`
-	File        *slackFile               `json:"file"`
-	Files       []*slackFile             `json:"files"`
+	User        string                     `json:"user"`
+	BotId       string                     `json:"bot_id"`
+	BotUsername string                     `json:"username"`
+	Text        string                     `json:"text"`
+	TimeStamp   string                     `json:"ts"`
+	ThreadTS    string                     `json:"thread_ts"`
+	Type        string                     `json:"type"`
+	SubType     string                     `json:"subtype"`
+	Comment     *slackComment              `json:"comment"`
+	Upload      bool                       `json:"upload"`
+	File        *slackFile                 `json:"file"`
+	Files       []*slackFile               `json:"files"`
 	Attachments []*model.MessageAttachment `json:"attachments"`
 }
 

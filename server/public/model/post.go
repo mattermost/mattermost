@@ -28,7 +28,7 @@ type PostContextKey string
 const (
 	PostSystemMessagePrefix       = "system_"
 	PostTypeDefault               = ""
-	PostTypeMessageAttachment       = "slack_attachment"
+	PostTypeMessageAttachment     = "slack_attachment"
 	PostTypeSystemGeneric         = "system_generic"
 	PostTypeJoinLeave             = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
 	PostTypeJoinChannel           = "system_join_channel"

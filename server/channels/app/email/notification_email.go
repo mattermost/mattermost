@@ -20,7 +20,6 @@ import (
 type FieldRow struct {
 	Cells []*model.MessageAttachmentField
 }
-
 type EmailMessageAttachment struct {
 	model.MessageAttachment
 
@@ -67,8 +66,8 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 	for _, messageAttachment := range post.Attachments() {
 		emailMessageAttachment := &EmailMessageAttachment{
 			MessageAttachment: *messageAttachment,
-			Pretext:         prepareTextForEmail(messageAttachment.Pretext, siteURL),
-			Text:            prepareTextForEmail(messageAttachment.Text, siteURL),
+			Pretext:           prepareTextForEmail(messageAttachment.Pretext, siteURL),
+			Text:              prepareTextForEmail(messageAttachment.Text, siteURL),
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)

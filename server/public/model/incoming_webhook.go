@@ -48,15 +48,15 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 }
 
 type IncomingWebhookRequest struct {
-	Text        string             `json:"text"`
-	Username    string             `json:"username"`
-	IconURL     string             `json:"icon_url"`
-	ChannelName string             `json:"channel"`
-	Props       StringInterface    `json:"props"`
+	Text        string               `json:"text"`
+	Username    string               `json:"username"`
+	IconURL     string               `json:"icon_url"`
+	ChannelName string               `json:"channel"`
+	Props       StringInterface      `json:"props"`
 	Attachments []*MessageAttachment `json:"attachments"`
-	Type        string             `json:"type"`
-	IconEmoji   string             `json:"icon_emoji"`
-	Priority    *PostPriority      `json:"priority"`
+	Type        string               `json:"type"`
+	IconEmoji   string               `json:"icon_emoji"`
+	Priority    *PostPriority        `json:"priority"`
 }
 
 type IncomingWebhooksWithCount struct {
