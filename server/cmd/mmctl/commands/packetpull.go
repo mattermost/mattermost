@@ -85,11 +85,6 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 				return nil
 			}
 			if strings.HasSuffix(info.Name(), ".log") {
-				content, err := os.ReadFile(path)
-				if err != nil {
-					printer.PrintError(fmt.Sprintf("Warning: Could not read log file %s: %v", info.Name(), err))
-					return nil
-				}
 				relPath, err := filepath.Rel(logsDir, path)
 				if err != nil {
 					relPath = info.Name()
@@ -99,8 +94,8 @@ func collectMattermostFiles(mmDir string, tempDir string, obfuscate bool) (int, 
 					printer.PrintError(fmt.Sprintf("Warning: Could not create directory for log file %s: %v", relPath, err))
 					return nil
 				}
-				if err := os.WriteFile(destPath, content, 0600); err != nil {
-					printer.PrintError(fmt.Sprintf("Warning: Could not write log file %s: %v", relPath, err))
+				if err := copyFile(path, destPath); err != nil {
+					printer.PrintError(fmt.Sprintf("Warning: Could not copy log file %s: %v", relPath, err))
 					return nil
 				}
 				logCount++
@@ -277,6 +272,24 @@ func runCommand(cmdName string, args ...string) ([]byte, error) {
 		return nil, err
 	}
 	return output, nil
+}
+
+// copyFile streams a file from src to dst without buffering the entire content in memory.
+func copyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	return err
 }
 
 // createTarGzArchive creates a .tar.gz archive from a source directory

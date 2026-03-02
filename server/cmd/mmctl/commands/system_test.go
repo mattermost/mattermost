@@ -449,9 +449,10 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		cmd.Flags().String("directory", "/nonexistent", "")
 		cmd.Flags().StringP("output-file", "o", "", "")
 		cmd.Flags().Bool("no-sanitize", false, "")
-		_ = cmd.ParseFlags([]string{"--offline"})
+		err := cmd.ParseFlags([]string{"--offline"})
+		s.Require().NoError(err)
 
-		err := systemSupportPacketWrapperF(cmd, []string{})
+		err = systemSupportPacketWrapperF(cmd, []string{})
 		s.Require().Error(err)
 		// Offline path produces a directory validation error, not a client error
 		s.Require().Contains(err.Error(), "does not appear to be a Mattermost installation")
