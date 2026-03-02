@@ -20,6 +20,7 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPolicyScope, ps.clusterInvalidatePolicyScopeCacheHandler)
 
 	for e, h := range ps.additionalClusterHandlers {
 		ps.clusterIFace.RegisterClusterMessageHandler(e, h)
@@ -120,6 +121,9 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	if err := linkCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
 	}
+	if err := PurgePolicyScopeCache(); err != nil {
+		ps.logger.Warn("Failed to clear the policy scope cache", mlog.Err(err))
+	}
 	ps.LoadLicense()
 	return nil
 }
@@ -140,4 +144,8 @@ func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	}
 
 	return nil
+}
+
+func (ps *PlatformService) clusterInvalidatePolicyScopeCacheHandler(msg *model.ClusterMessage) {
+	ps.InvalidatePolicyScopeCacheSkipClusterSend(string(msg.Data))
 }

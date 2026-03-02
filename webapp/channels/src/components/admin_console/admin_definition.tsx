@@ -692,16 +692,6 @@ const AdminDefinition: AdminDefinitionType = {
                                         ),
                                     },
                                 },
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.EnableTeamAdminPolicyManagement',
-                                    label: defineMessage({id: 'admin.accesscontrol.enableTeamAdminTitle', defaultMessage: 'Allow access policy management in team settings'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableTeamAdminDesc', defaultMessage: 'When enabled, team admins will be able to view and modify access control rules in team settings.'}),
-                                    isHidden: it.any(
-                                        it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
-                                    ),
-                                },
                             ],
                         },
                         {

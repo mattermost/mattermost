@@ -3391,18 +3391,6 @@
     "translation": "Updating viewed notices failed"
   },
   {
-    "id": "api.team.access_policies.channels_required.app_error",
-    "translation": "At least one channel is required for team policies."
-  },
-  {
-    "id": "api.team.access_policies.disabled.app_error",
-    "translation": "Team access policy management is not enabled."
-  },
-  {
-    "id": "api.team.access_policies.not_team_scoped.app_error",
-    "translation": "Policy is not scoped to this team."
-  },
-  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
@@ -7898,7 +7886,7 @@
   },
   {
     "id": "app.team.access_policies.channel_not_found.app_error",
-    "translation": "One or more channels not found."
+    "translation": "One or more channels were not found."
   },
   {
     "id": "app.team.access_policies.channel_not_private.app_error",
@@ -8635,6 +8623,10 @@
   {
     "id": "ent.autotranslation.add_task.nil_task",
     "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": ""
   },
   {
     "id": "ent.autotranslation.create_translation_failed",

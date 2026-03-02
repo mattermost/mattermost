@@ -3901,7 +3901,6 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
-	EnableTeamAdminPolicyManagement   *bool
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -3911,10 +3910,6 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableUserManagedAttributes == nil {
 		s.EnableUserManagedAttributes = NewPointer(false)
-	}
-
-	if s.EnableTeamAdminPolicyManagement == nil {
-		s.EnableTeamAdminPolicyManagement = NewPointer(false)
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -53,80 +54,28 @@ func createTestPolicyHierarchy(
 		require.NoError(t, err)
 	}
 
+	originalACS := th.App.Srv().ch.AccessControl
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
-	// Specific match for this policy
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+		mockACS.AssertExpectations(t)
+	})
+
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).Return(parentPolicy, nil)
-	// Catch-all for any other policy ID (from previous subtests) — returns error so they get skipped
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
-	// NormalizePolicy is called by SearchAccessControlPolicies for every parent policy found in the store.
-	// Returning an error is safe: the code logs it and keeps the original policy in the slice,
-	// which then gets filtered by SearchTeamAccessPolicies (IsPolicyTeamScoped, self-inclusion, etc.).
 	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
 
 	return parentPolicy, mockACS
 }
 
-func TestIsPolicyTeamScoped(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	t.Run("returns true when all channels belong to team", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
-
-		isScoped, appErr := th.App.IsPolicyTeamScoped(th.Context, parentPolicy.ID, th.BasicTeam.Id)
-		require.Nil(t, appErr)
-		assert.True(t, isScoped)
-	})
-
-	t.Run("returns false when no channels", func(t *testing.T) {
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
-
-		isScoped, appErr := th.App.IsPolicyTeamScoped(th.Context, parentPolicy.ID, th.BasicTeam.Id)
-		require.Nil(t, appErr)
-		assert.False(t, isScoped)
-	})
-
-	t.Run("returns false when channels span multiple teams", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-		otherTeam := th.CreateTeam(t)
-		ch2 := th.CreatePrivateChannel(t, otherTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
-
-		isScoped, appErr := th.App.IsPolicyTeamScoped(th.Context, parentPolicy.ID, th.BasicTeam.Id)
-		require.Nil(t, appErr)
-		assert.False(t, isScoped)
-	})
-
-	t.Run("returns false when checking wrong team", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
-
-		wrongTeamID := model.NewId()
-		isScoped, appErr := th.App.IsPolicyTeamScoped(th.Context, parentPolicy.ID, wrongTeamID)
-		require.Nil(t, appErr)
-		assert.False(t, isScoped)
-	})
-
-	t.Run("returns true with multiple channels from same team", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
-
-		isScoped, appErr := th.App.IsPolicyTeamScoped(th.Context, parentPolicy.ID, th.BasicTeam.Id)
-		require.Nil(t, appErr)
-		assert.True(t, isScoped)
-	})
-}
-
 func TestGetPolicyTeamScope(t *testing.T) {
 	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		_ = platform.PurgePolicyScopeCache()
+	})
 
 	t.Run("returns team ID when all channels belong to one team", func(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
@@ -257,8 +206,13 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 	})
 
 	t.Run("matching expression passes", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
 
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil)
@@ -268,8 +222,13 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 	})
 
 	t.Run("non-matching expression returns error", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
 
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "false", mock.Anything).
 			Return([]*model.User{}, int64(0), nil)
@@ -280,8 +239,13 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 	})
 
 	t.Run("expression evaluation error wraps as validation error", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
 
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "bad_expr", mock.Anything).
 			Return(([]*model.User)(nil), int64(0), model.NewAppError("test", "test.eval_failed", nil, "", 500))
@@ -294,17 +258,23 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 
 func TestSearchTeamAccessPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		_ = platform.PurgePolicyScopeCache()
+	})
 
 	t.Run("returns empty when no policies match", func(t *testing.T) {
-		// AccessControl mock must be non-nil for SearchAccessControlPolicies to proceed
+		originalACS := th.App.Srv().ch.AccessControl
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
 		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
 			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.not_found", nil, "", 404)).Maybe()
 		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
 			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
 
-		// Real store is empty -> no policies returned
 		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
 		assert.Empty(t, policies)
@@ -366,6 +336,9 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 // for clean DB isolation to test that policies excluding the admin are filtered out.
 func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		_ = platform.PurgePolicyScopeCache()
+	})
 
 	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 
@@ -395,14 +368,19 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	_, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, child)
 	require.NoError(t, err)
 
+	originalACS := th.App.Srv().ch.AccessControl
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+		mockACS.AssertExpectations(t)
+	})
+
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).Return(parentPolicy, nil)
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
 	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
-	// Admin does NOT match the restrictive expression
 	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"),
 		"user.attributes.clearance == 'top-secret'", mock.Anything).
 		Return([]*model.User{}, int64(0), nil)

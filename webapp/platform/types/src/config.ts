@@ -237,7 +237,6 @@ export type ClientConfig = {
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
     EnableUserManagedAttributes: string;
-    EnableTeamAdminPolicyManagement: string;
 
     // Auto Translation Settings
     AutoTranslationLanguages: string;

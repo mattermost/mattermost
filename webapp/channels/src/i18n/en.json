@@ -357,8 +357,6 @@
   "admin.access_control.table_editor.values.select_values": "Select values...",
   "admin.access_control.testResults": "Access Rule Test Results",
   "admin.accesscontrol.enableDesc": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-  "admin.accesscontrol.enableTeamAdminDesc": "When enabled, team admins will be able to view and modify access control rules in team settings.",
-  "admin.accesscontrol.enableTeamAdminTitle": "Allow access policy management in team settings",
   "admin.accesscontrol.enableTitle": "Allow attribute based access controls on this server",
   "admin.accesscontrol.title": "Attribute-Based Access",
   "admin.accesscontrol.user_properties.link.label": "User Attributes",
