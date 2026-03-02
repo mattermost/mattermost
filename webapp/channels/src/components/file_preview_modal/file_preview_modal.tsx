@@ -78,6 +78,8 @@ type State = {
 }
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
+    closeTimer: ReturnType<typeof setTimeout> | null = null;
+
     static defaultProps = {
         fileInfos: [],
         startIndex: 0,
@@ -136,6 +138,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     componentWillUnmount() {
         document.removeEventListener('keyup', this.handleKeyPress);
+        if (this.closeTimer != null) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+        }
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
@@ -284,11 +290,18 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleModalClose = () => {
+        // Clear any existing timer to prevent multiple callbacks
+        if (this.closeTimer != null) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+        }
+
         // Start closing animation using React state
         this.setState({isClosing: true});
 
         // Delay the actual modal close to allow for animation
-        setTimeout(() => {
+        this.closeTimer = setTimeout(() => {
+            this.closeTimer = null;
             this.setState({show: false});
         }, 150); // Match animation duration
     };
