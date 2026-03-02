@@ -1606,7 +1606,8 @@
     .file-preview__button {
         position: relative;
 
-        &:hover {
+        &:hover,
+        &:focus-within {
             .image-preview-utility-buttons-container {
                 display: inline-flex;
             }
@@ -1614,8 +1615,11 @@
     }
 
     .small-image-utility-buttons-wrapper {
-        &:hover .image-preview-utility-buttons-container {
-            display: inline-block;
+        &:hover,
+        &:focus-within {
+            .image-preview-utility-buttons-container {
+                display: inline-block;
+            }
         }
     }
 
