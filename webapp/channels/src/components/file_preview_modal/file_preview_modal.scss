@@ -41,7 +41,7 @@
         
         .modal-image__wrapper {
             &.closing {
-                animation: modalWrapperFadeOut 0.2s ease-in-out forwards;
+                animation: modalWrapperFadeOut 0.15s ease-in-out forwards;
             }
 
             &.initial-load {
