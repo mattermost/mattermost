@@ -8,6 +8,21 @@ import (
 	"strings"
 )
 
+// Deprecated: Use MessageAttachment instead.
+type SlackAttachment = MessageAttachment
+
+// Deprecated: Use MessageAttachmentField instead.
+type SlackAttachmentField = MessageAttachmentField
+
+// Deprecated: Use PostTypeMessageAttachment instead.
+const PostTypeSlackAttachment = PostTypeMessageAttachment
+
+// Deprecated: Use ParseMessageAttachment instead.
+var ParseSlackAttachment = ParseMessageAttachment
+
+// Deprecated: Use StringifyMessageAttachmentFieldValue instead.
+var StringifySlackFieldValue = StringifyMessageAttachmentFieldValue
+
 // SlackCompatibleBool is an alias for bool that implements json.Unmarshaler
 type SlackCompatibleBool bool
 
