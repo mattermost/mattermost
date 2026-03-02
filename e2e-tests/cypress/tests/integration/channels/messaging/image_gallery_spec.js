@@ -29,8 +29,8 @@ describe('Image Gallery', () => {
         cy.apiCreateChannel(Cypress.env('team').id, `test-channel-${Date.now()}`, 'Test Channel').then(({channel: newChannel}) => {
             channel = newChannel;
             cy.visit(`/${Cypress.env('team').name}/channels/${channel.name}`);
-            cy.get('#channelHeaderTitle', {timeout: 30000}).should('be.visible');
-            cy.get('#post_textbox', {timeout: 30000}).should('be.visible');
+            cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
+            cy.get('#post_textbox', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
             interceptFileUpload();
         });
     });
@@ -48,9 +48,6 @@ describe('Image Gallery', () => {
             cy.get('#fileUploadInput').attachFile(image.filename);
             waitUntilUploadComplete();
         });
-
-        // # Wait for all files to finish uploading
-        cy.wait(TIMEOUTS.THREE_SEC);
 
         // # Post the images
         const uniqueMessage = `Gallery test ${Date.now()}`;
@@ -125,9 +122,6 @@ describe('Image Gallery', () => {
             }
             waitUntilUploadComplete();
         });
-
-        // # Wait for all files to finish uploading
-        cy.wait(TIMEOUTS.THREE_SEC);
 
         const uniqueMessage = `Traditional layout test ${Date.now()}`;
         cy.postMessage(uniqueMessage);

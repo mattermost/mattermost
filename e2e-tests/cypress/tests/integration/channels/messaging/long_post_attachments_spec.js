@@ -58,6 +58,14 @@ describe('Messaging', () => {
         // Click on the first ImageGallery item in the last post to open the modal (scope to avoid hitting wrong post)
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
+                cy.findByTestId('fileAttachmentList').within(() => {
+                    cy.get('.image-gallery__body').then(($body) => {
+                        if ($body.hasClass('collapsed')) {
+                            cy.get('.image-gallery__toggle').click();
+                        }
+                    });
+                    cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
+                });
                 cy.get('.image-gallery__item').first().click();
             });
         });
