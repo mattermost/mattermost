@@ -2256,6 +2256,30 @@ func TestCreatePropertyValue(t *testing.T) {
 	})
 }
 
+func TestCreatePropertyValues(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("nil element returns error", func(t *testing.T) {
+		values := []*model.PropertyValue{
+			{GroupID: model.NewId()},
+			nil,
+		}
+		_, err := th.service.CreatePropertyValues(th.Context, values)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CreatePropertyValues: nil element at index 1")
+	})
+
+	t.Run("mixed group IDs returns error", func(t *testing.T) {
+		values := []*model.PropertyValue{
+			{GroupID: model.NewId()},
+			{GroupID: model.NewId()},
+		}
+		_, err := th.service.CreatePropertyValues(th.Context, values)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CreatePropertyValues: mixed group IDs in batch")
+	})
+}
+
 func TestUpsertPropertyValue(t *testing.T) {
 	th := Setup(t)
 
@@ -2263,5 +2287,29 @@ func TestUpsertPropertyValue(t *testing.T) {
 		_, err := th.service.UpsertPropertyValue(th.Context, nil)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "UpsertPropertyValue: value cannot be nil")
+	})
+}
+
+func TestUpsertPropertyValues(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("nil element returns error", func(t *testing.T) {
+		values := []*model.PropertyValue{
+			{GroupID: model.NewId()},
+			nil,
+		}
+		_, err := th.service.UpsertPropertyValues(th.Context, values)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "UpsertPropertyValues: nil element at index 1")
+	})
+
+	t.Run("mixed group IDs returns error", func(t *testing.T) {
+		values := []*model.PropertyValue{
+			{GroupID: model.NewId()},
+			{GroupID: model.NewId()},
+		}
+		_, err := th.service.UpsertPropertyValues(th.Context, values)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "UpsertPropertyValues: mixed group IDs in batch")
 	})
 }

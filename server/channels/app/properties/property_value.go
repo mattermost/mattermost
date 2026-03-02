@@ -98,6 +98,15 @@ func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*mode
 		return values, nil
 	}
 
+	for i, v := range values {
+		if v == nil {
+			return nil, fmt.Errorf("CreatePropertyValues: nil element at index %d", i)
+		}
+		if v.GroupID != values[0].GroupID {
+			return nil, fmt.Errorf("CreatePropertyValues: mixed group IDs in batch")
+		}
+	}
+
 	requiresAC, err := ps.requiresAccessControl(values[0].GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
@@ -202,6 +211,15 @@ func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.Pr
 func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
+	}
+
+	for i, v := range values {
+		if v == nil {
+			return nil, fmt.Errorf("UpsertPropertyValues: nil element at index %d", i)
+		}
+		if v.GroupID != values[0].GroupID {
+			return nil, fmt.Errorf("UpsertPropertyValues: mixed group IDs in batch")
+		}
 	}
 
 	requiresAC, err := ps.requiresAccessControl(values[0].GroupID)
