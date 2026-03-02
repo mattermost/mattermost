@@ -6,8 +6,8 @@
         display: flex;
 
         .ShareChannelWithWorkspaces__headerText {
-            flex: 1;
             display: flex;
+            flex: 1;
             flex-direction: column;
             gap: 8px;
 
@@ -30,8 +30,8 @@
     &__body {
         display: flex;
         flex-direction: column;
-        gap: 12px;
         padding-left: 0;
+        gap: 12px;
     }
 
     &__subheading {
@@ -42,24 +42,24 @@
     }
 
     &__list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
         display: flex;
+        overflow: hidden;
         flex-direction: column;
-        gap: 0;
+        padding: 0;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        overflow: hidden;
+        margin: 0;
+        gap: 0;
+        list-style: none;
     }
 
     &__item {
         display: flex;
         align-items: center;
-        gap: 12px;
         padding: 12px 16px;
-        background: var(--center-channel-bg);
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        background: var(--center-channel-bg);
+        gap: 12px;
 
         &:last-child {
             border-bottom: none;
@@ -74,8 +74,8 @@
     &__itemStatus {
         display: flex;
         align-items: center;
-        gap: 6px;
         font-size: 12px;
+        gap: 6px;
     }
 
     &__statusPending {
@@ -89,8 +89,8 @@
     &__statusOnline {
         display: flex;
         align-items: center;
-        gap: 6px;
         color: var(--online-indicator);
+        gap: 6px;
     }
 
     &__statusOffline {
@@ -100,10 +100,10 @@
     &__remove {
         padding: 4px;
         border: none;
+        border-radius: 4px;
         background: transparent;
         color: var(--dnd-indicator);
         cursor: pointer;
-        border-radius: 4px;
 
         &:hover:not(:disabled) {
             background: rgba(var(--center-channel-color-rgb), 0.08);
