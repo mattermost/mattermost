@@ -44,12 +44,12 @@ func searchPropertyValue(t *testing.T, th *TestHelper, postId, fieldName string)
 	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 	require.Nil(t, appErr)
 
-	values, err := th.Server.propertyAccessService.SearchPropertyValues("", groupId, model.PropertyValueSearchOpts{
+	values, appErr2 := th.App.SearchPropertyValues(th.Context, groupId, model.PropertyValueSearchOpts{
 		TargetIDs: []string{postId},
 		PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 		FieldID:   mappedFields[fieldName].ID,
 	})
-	require.NoError(t, err)
+	require.Nil(t, appErr2)
 	return values
 }
 
@@ -2715,8 +2715,8 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
-		require.NoError(t, err)
+		_, appErr = th.App.UpdatePropertyValue(th.Context, groupId, statusValue)
+		require.Nil(t, appErr)
 
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Trying to keep already removed post",
@@ -2739,8 +2739,8 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
-		require.NoError(t, err)
+		_, appErr = th.App.UpdatePropertyValue(th.Context, groupId, statusValue)
+		require.Nil(t, appErr)
 
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Trying to keep already retained post",
