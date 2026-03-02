@@ -160,6 +160,7 @@ func (sc *SharedChannelRemote) PreUpdate() {
 
 type SharedChannelRemoteStatus struct {
 	ChannelId        string `json:"channel_id"`
+	RemoteId         string `json:"remote_id"`
 	DisplayName      string `json:"display_name"`
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`

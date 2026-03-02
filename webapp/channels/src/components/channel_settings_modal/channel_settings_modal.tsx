@@ -14,7 +14,7 @@ import type {Channel} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -84,7 +84,20 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     });
 
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
-    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation;
+    const canManageSharedChannels = useSelector((state: GlobalState) => {
+        const config = getConfig(state);
+        const connectedWorkspacesEnabled = config?.ExperimentalSharedChannels === 'true' &&
+            config?.ExperimentalRemoteClusterService === 'true';
+        if (!connectedWorkspacesEnabled) {
+            return false;
+        }
+        const isDMorGM = channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+        if (isDMorGM) {
+            return false;
+        }
+        return haveISystemPermission(state, {permission: Permissions.MANAGE_SHARED_CHANNELS});
+    });
+    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation || canManageSharedChannels;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -209,6 +222,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 showTabSwitchError={showTabSwitchError}
                 canManageChannelTranslation={canManageChannelTranslation}
                 canManageBanner={canManageBanner}
+                canManageSharedChannels={canManageSharedChannels}
             />
         );
     };

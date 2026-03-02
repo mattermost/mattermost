@@ -13,6 +13,17 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     patchChannel: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION', data: []})),
+}));
+
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        sharedChannelRemoteInvite: jest.fn().mockResolvedValue({}),
+        sharedChannelRemoteUninvite: jest.fn().mockResolvedValue({}),
+    },
+}));
+
 // Mock the ShowFormat component to make it easier to test
 jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
     jest.fn().mockImplementation((props) => (
@@ -411,5 +422,43 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // The text input should now have the trimmed value
         expect(textInput).toHaveValue('Banner text with whitespace');
+    });
+
+    describe('Share channel with connected workspaces', () => {
+        it('should render ShareChannelWithWorkspaces section when canManageSharedChannels is true', () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(screen.getByText('Share channel with connected workspaces')).toBeInTheDocument();
+        });
+
+        it('should not render ShareChannelWithWorkspaces section when canManageSharedChannels is false', () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={false}
+                />,
+            );
+
+            expect(screen.queryByText('Share channel with connected workspaces')).not.toBeInTheDocument();
+        });
+
+        it('should show Add workspace button when toggle is enabled', async () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            await userEvent.click(toggle);
+
+            expect(screen.getByText('+ Add workspace')).toBeInTheDocument();
+        });
     });
 });

@@ -83,17 +83,41 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			return model.ErrOfflineRemote
 		}
 
-		scr := &model.SharedChannelRemote{
-			ChannelId:         sc.ChannelId,
-			CreatorId:         userId,
-			RemoteId:          rc.RemoteId,
-			IsInviteAccepted:  true,
-			IsInviteConfirmed: false,
-			LastMembersSyncAt: 0,
+		existingScr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(sc.ChannelId, rc.RemoteId)
+		var errNotFound *store.ErrNotFound
+		if getErr != nil && !errors.As(getErr, &errNotFound) {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %v", rc.DisplayName, getErr))
+			return getErr
 		}
-		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
-			return err
+		if getErr != nil {
+			existingScr = nil // ErrNotFound: no record, will insert
+		}
+
+		if existingScr != nil {
+			// restore previously uninvited (soft-deleted) record instead of inserting
+			curTime := model.GetMillis()
+			existingScr.DeleteAt = 0
+			existingScr.UpdateAt = curTime
+			existingScr.CreatorId = userId
+			existingScr.IsInviteAccepted = true
+			existingScr.IsInviteConfirmed = false
+			if _, err = scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
+				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
+				return err
+			}
+		} else {
+			scr := &model.SharedChannelRemote{
+				ChannelId:         sc.ChannelId,
+				CreatorId:         userId,
+				RemoteId:          rc.RemoteId,
+				IsInviteAccepted:  true,
+				IsInviteConfirmed: false,
+				LastMembersSyncAt: 0,
+			}
+			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
+				return err
+			}
 		}
 
 		return nil

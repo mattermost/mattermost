@@ -1,0 +1,121 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ShareChannelWithWorkspaces {
+    &__header {
+        display: flex;
+
+        .ShareChannelWithWorkspaces__headerText {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .Input_legend {
+                color: rgb(var(--center-channel-color-rgb));
+                font-size: 16px;
+            }
+
+            .Input_subheading {
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+            }
+        }
+
+        .ShareChannelWithWorkspaces__toggle {
+            flex-shrink: 0;
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-left: 0;
+    }
+
+    &__subheading {
+        display: block;
+        color: rgb(var(--center-channel-color-rgb));
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--center-channel-bg);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    &__itemName {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    &__itemStatus {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    &__statusPending {
+        color: var(--dnd-indicator);
+    }
+
+    &__statusConnectionPending {
+        color: var(--away-indicator);
+    }
+
+    &__statusOnline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--online-indicator);
+    }
+
+    &__statusOffline {
+        color: var(--dnd-indicator);
+    }
+
+    &__remove {
+        padding: 4px;
+        border: none;
+        background: transparent;
+        color: var(--dnd-indicator);
+        cursor: pointer;
+        border-radius: 4px;
+
+        &:hover:not(:disabled) {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    &__addBtn {
+        align-self: flex-start;
+    }
+}

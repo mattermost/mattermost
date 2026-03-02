@@ -276,11 +276,13 @@ func (rc *RemoteCluster) fixTopics() {
 
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
+		RemoteId:    rc.RemoteId,
 		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
 		DeleteAt:    rc.DeleteAt,
 		LastPingAt:  rc.LastPingAt,
+		SiteURL:     rc.SiteURL,
 	}
 }
 
@@ -290,11 +292,13 @@ func NormalizeRemoteName(name string) string {
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
 type RemoteClusterInfo struct {
+	RemoteId    string `json:"remote_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
 	DeleteAt    int64  `json:"delete_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
+	SiteURL     string `json:"site_url,omitempty"`
 }
 
 // RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.

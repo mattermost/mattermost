@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -267,27 +268,33 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get the remotes status
+	// Get the remotes status (return empty if channel is not yet shared)
 	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
 	if err != nil {
-		c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		if strings.Contains(err.Error(), "channel is not shared") {
+			remoteStatuses = []*model.SharedChannelRemoteStatus{}
+		} else {
+			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 	}
 
 	// For each remote status, get the RemoteClusterInfo
 	remoteInfos := make([]*model.RemoteClusterInfo, 0, len(remoteStatuses))
 	for _, status := range remoteStatuses {
 		// Use GetRemoteCluster to get the full remote cluster
-		remoteCluster, appErr := c.App.GetRemoteCluster(status.ChannelId, false)
+		remoteCluster, appErr := c.App.GetRemoteCluster(status.RemoteId, false)
 		if appErr == nil && remoteCluster != nil {
 			info := remoteCluster.ToRemoteClusterInfo()
 			remoteInfos = append(remoteInfos, &info)
 		} else {
 			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
 			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
-				Name:        status.ChannelId,
+				RemoteId:    status.RemoteId,
+				Name:        status.RemoteId,
 				DisplayName: status.DisplayName,
 				LastPingAt:  status.LastPingAt,
+				SiteURL:     status.SiteURL,
 			})
 		}
 	}
