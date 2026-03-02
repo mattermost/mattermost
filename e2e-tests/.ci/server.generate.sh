@@ -232,10 +232,11 @@ $(if mme2e_is_token_in_list "libretranslate" "$ENABLED_DOCKER_SERVICES"; then
       LT_DISABLE_WEB_UI: "true"
       LT_DETECT_LANG: "true"
     healthcheck:
-      test: [ "CMD", "sh", "-c", "exec 3<>/dev/tcp/localhost/5000 && echo 'HTTP/1.1 200 OK' >&3" ]
-      interval: 10s
-      timeout: 15s
-      retries: 12'
+      test: [ "CMD", "sh", "-c", "timeout 2 bash -c \"</dev/tcp/localhost/5000\" 2>/dev/null && exit 0 || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      start_period: 30s
+      retries: 30'
   fi)
 
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
