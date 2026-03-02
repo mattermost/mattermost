@@ -280,7 +280,7 @@ func TestCheckDirectoryConflict(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll(tmpDir)
 
-		// Root directory Both directories non-existent but separate - no error, no conflict
+		// Root directory handled as a conflict with a subdirectory of the root
 		conflict, err := CheckDirectoryConflict("/", tmpDir)
 		require.NoError(t, err)
 		assert.True(t, conflict)
@@ -299,7 +299,7 @@ func TestCheckDirectoryConflict(t *testing.T) {
 		err = os.Mkdir(subDir2, 0700)
 		require.NoError(t, err)
 
-		// Root directory Both directories non-existent but separate - no error, no conflict
+		// Two paths, one a string prefix but not an actual path prefix
 		conflict, err := CheckDirectoryConflict(subDir1, subDir2)
 		require.NoError(t, err)
 		assert.False(t, conflict)
