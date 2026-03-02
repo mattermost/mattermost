@@ -68,8 +68,6 @@ type PropertyField struct {
 	UpdatedBy         string           `json:"updated_by"`
 }
 
-// GetFieldPermission returns the permission level for editing the field definition.
-// Returns the default if Permissions is nil.
 func (pf *PropertyField) Auditable() map[string]any {
 	return map[string]any{
 		"id":          pf.ID,
