@@ -48,10 +48,13 @@ export default function FileAttachmentList(props: Props) {
         return null;
     }
 
-    // Check if all files are images
+    // Check if all files are images and none are archived or deleted
     const allImages = sortedFileInfos.every((fileInfo) => {
         const fileType = getFileType(fileInfo.extension);
-        return fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs);
+        const isImage = fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs);
+        const notArchived = !fileInfo.archived;
+        const notDeleted = (fileInfo.delete_at ?? 0) === 0;
+        return isImage && notArchived && notDeleted;
     });
 
     if (allImages && sortedFileInfos.length > 1) {
