@@ -11890,5 +11890,45 @@
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
     "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Kanälen eine Gastrolle. Anzahl der Gäste in den Kanälen: {{.ChannelGuestCount}}, Kanäle insgesamt: {{.TotalChannels}}."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Zeitüberschreitung vom Plugin-Hook"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Download von Dateien durch Plugin abgelehnt"
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Download der Datei-Vorschau per Plugin abgelehnt"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Download der Datei-Miniaturansichten durch Plugin abgelehnt"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Öffentlicher Datei Download durch Plugin abgelehnt"
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Nachrichtenpriorität für Beitrag mit Kontext kann nicht abgerufen werden"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Nachricht ist erforderlich"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Benutzer-ID ist erforderlich"
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Die Übersetzungsaufgabe kann nicht hinzugefügt werden, weil der Worker angehalten wurde."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR Weiterleitung URI Allowliste enthält ein ungültiges Muster. Muster müssen mit http:// oder https:// beginnen und dürfen nicht leer sein oder aus Leerzeichen bestehen."
   }
 ]
