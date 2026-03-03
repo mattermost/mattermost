@@ -135,9 +135,9 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 						searchAttachments = append(searchAttachments, s)
 					}
 				}
-				if fields, ok := m["fields"].([]any); ok {
+				if fields, fOk := m["fields"].([]any); fOk {
 					for _, f := range fields {
-						if fm, ok := f.(map[string]any); ok {
+						if fm, fmOk := f.(map[string]any); fmOk {
 							if s, _ := fm["title"].(string); s != "" {
 								searchAttachments = append(searchAttachments, s)
 							}

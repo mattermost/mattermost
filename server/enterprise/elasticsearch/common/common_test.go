@@ -49,7 +49,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Type:      "",
 				Hashtags:  "",
 				Props: map[string]any{
-					"attachments": []any{
+					model.PostPropsAttachments: []any{
 						map[string]any{
 							"text": "text 1",
 						},
@@ -84,7 +84,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Type:      "slack_attachment",
 				Hashtags:  "#buh #boh",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "text 2",
 						},
@@ -117,7 +117,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					"attachments": []any{
+					model.PostPropsAttachments: []any{
 						map[string]any{
 							"title":    "Build Failed",
 							"pretext":  "CI notification",
@@ -162,7 +162,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title:    "Build Failed",
 							Pretext:  "CI notification",
@@ -201,7 +201,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title: "Only Title",
 						},
@@ -226,7 +226,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						nil,
 						{
 							Text: "valid",
@@ -258,7 +258,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					"attachments": []any{
+					model.PostPropsAttachments: []any{
 						map[string]any{
 							"title": "First",
 							"text":  "one",
