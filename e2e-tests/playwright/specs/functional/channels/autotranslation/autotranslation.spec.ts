@@ -585,8 +585,10 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Verify post with original text appears before disabling
-        const spanishPost = channelsPage.centerView.container.locator('[id^="post_"]').filter({hasText: originalText});
+        // * Verify post with translated text appears before disabling
+        // Auto-translated channels display messages in the user's preferred language (English)
+        const translatedText = 'Only original text';
+        const spanishPost = channelsPage.centerView.container.locator('[id^="post_"]').filter({hasText: translatedText});
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         await channelsPage.centerView.header.openChannelMenu();
@@ -685,17 +687,18 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify both posts appear
+        // Auto-translated channels display messages in the user's preferred language (English)
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Spanish only'),
         ).toBeVisible();
 
         // * Verify both messages are present (translation indicators may vary with real LibreTranslate auto-detection)
         const spanishPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español'});
+            .filter({hasText: 'Spanish only'});
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         // * Verify English message is present and unchanged
@@ -784,17 +787,18 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify posts appeared
+        // Auto-translated channels display messages in the user's preferred language (English)
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Spanish only'),
         ).toBeVisible();
 
         // * Verify both messages are present (translation indicators may vary with real LibreTranslate auto-detection)
         const translatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español'});
+            .filter({hasText: 'Spanish only'});
         await expect(translatedPost).toBeVisible({timeout: 15000});
 
         const notTranslatedPost = channelsPage.centerView.container
