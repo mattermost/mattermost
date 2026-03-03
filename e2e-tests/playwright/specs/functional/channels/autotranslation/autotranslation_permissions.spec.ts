@@ -60,8 +60,8 @@ async function probeTranslationService(): Promise<string | null> {
         } finally {
             clearTimeout(timeoutId);
         }
-    } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
+    } catch {
+        // Service probe failed, will return null
     }
 
     // If mock server not found, try real LibreTranslate
