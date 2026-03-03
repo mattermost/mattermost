@@ -27,7 +27,6 @@ test.beforeEach(async () => {
     const fallbackRealUrl = 'http://localhost:5000';
 
     selectedTranslationUrl = null;
-    let lastError: string | null = null;
 
     // Try configured URL first (if provided)
     if (configuredUrl) {
@@ -43,50 +42,49 @@ test.beforeEach(async () => {
 
             clearTimeout(timeoutId);
             if (res?.ok) {
-                selectedUrl = configuredUrl;
+                selectedTranslationUrl = configuredUrl;
             }
-        } catch (error) {
-            lastError = error instanceof Error ? error.message : String(error);
+        } catch {
+            // Service probe failed, continue to next option
         }
     }
 
     // If no configured URL or it failed, try default mock server
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
             clearTimeout(timeoutId);
             if (res?.ok) {
-                selectedUrl = defaultMockUrl;
+                selectedTranslationUrl = defaultMockUrl;
             }
-        } catch (error) {
-            lastError = error instanceof Error ? error.message : String(error);
+        } catch {
+            // Service probe failed, continue to next option
         }
     }
 
     // If mock server not found, try real LibreTranslate
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
             clearTimeout(timeoutId);
             if (res?.ok) {
-                selectedUrl = fallbackRealUrl;
+                selectedTranslationUrl = fallbackRealUrl;
             }
-        } catch (error) {
-            lastError = error instanceof Error ? error.message : String(error);
+        } catch {
+            // Service probe failed, continue to error skip
         }
     }
 
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         test.skip(
             true,
             `Translation service not found. Please start one of the following:\n` +
                 `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
-                `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up\n` +
-                `Error: ${lastError}`,
+                `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up`,
         );
     }
 });
