@@ -123,9 +123,28 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		attachmentsInterfaceArray, ok := attachments.([]any)
 		if ok {
 			for _, attachment := range attachmentsInterfaceArray {
-				if attachment != nil {
-					if attachmentText := attachment.(map[string]any)["text"]; attachmentText != nil {
-						searchAttachments = append(searchAttachments, attachmentText.(string))
+				if attachment == nil {
+					continue
+				}
+				m, ok := attachment.(map[string]any)
+				if !ok {
+					continue
+				}
+				for _, key := range []string{"text", "title", "pretext", "fallback"} {
+					if s, _ := m[key].(string); s != "" {
+						searchAttachments = append(searchAttachments, s)
+					}
+				}
+				if fields, ok := m["fields"].([]any); ok {
+					for _, f := range fields {
+						if fm, ok := f.(map[string]any); ok {
+							if s, _ := fm["title"].(string); s != "" {
+								searchAttachments = append(searchAttachments, s)
+							}
+							if s, _ := fm["value"].(string); s != "" {
+								searchAttachments = append(searchAttachments, s)
+							}
+						}
 					}
 				}
 			}
@@ -134,8 +153,24 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		attachmentsArray, ok := attachments.([]*model.SlackAttachment)
 		if ok {
 			for _, attachment := range attachmentsArray {
-				if attachment != nil {
-					searchAttachments = append(searchAttachments, attachment.Text)
+				if attachment == nil {
+					continue
+				}
+				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback} {
+					if s != "" {
+						searchAttachments = append(searchAttachments, s)
+					}
+				}
+				for _, field := range attachment.Fields {
+					if field == nil {
+						continue
+					}
+					if field.Title != "" {
+						searchAttachments = append(searchAttachments, field.Title)
+					}
+					if s, ok := field.Value.(string); ok && s != "" {
+						searchAttachments = append(searchAttachments, s)
+					}
 				}
 			}
 		}
