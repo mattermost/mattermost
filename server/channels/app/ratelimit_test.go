@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -134,7 +135,7 @@ func TestRateLimitWriter(t *testing.T) {
 	t.Run("requests within burst succeed", func(t *testing.T) {
 		for i := range 3 {
 			w := httptest.NewRecorder()
-			limited := rl.RateLimitWriter("test-key", w)
+			limited := rl.RateLimitWriter(context.Background(), "test-key", w)
 			require.False(t, limited, "request %d should not be rate limited", i)
 
 			assert.Equal(t, "3", w.Header().Get("X-RateLimit-Limit"))
@@ -145,7 +146,7 @@ func TestRateLimitWriter(t *testing.T) {
 
 	t.Run("request exceeding burst is rate limited", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		limited := rl.RateLimitWriter("test-key", w)
+		limited := rl.RateLimitWriter(context.Background(), "test-key", w)
 		require.True(t, limited)
 
 		assert.Equal(t, http.StatusTooManyRequests, w.Code)
@@ -160,7 +161,7 @@ func TestRateLimitWriter(t *testing.T) {
 
 	t.Run("different keys are independent", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		limited := rl.RateLimitWriter("different-key", w)
+		limited := rl.RateLimitWriter(context.Background(), "different-key", w)
 		require.False(t, limited)
 	})
 }
@@ -176,19 +177,19 @@ func TestUserIdRateLimit(t *testing.T) {
 
 		for i := range 2 {
 			w := httptest.NewRecorder()
-			limited := rl.UserIdRateLimit("user-A", w)
+			limited := rl.UserIdRateLimit(context.Background(), "user-A", w)
 			require.False(t, limited, "request %d should not be rate limited", i)
 		}
 
 		// 3rd request should be limited
 		w := httptest.NewRecorder()
-		limited := rl.UserIdRateLimit("user-A", w)
+		limited := rl.UserIdRateLimit(context.Background(), "user-A", w)
 		require.True(t, limited)
 		assert.Equal(t, http.StatusTooManyRequests, w.Code)
 
 		// Different userId should not be limited
 		w = httptest.NewRecorder()
-		limited = rl.UserIdRateLimit("user-B", w)
+		limited = rl.UserIdRateLimit(context.Background(), "user-B", w)
 		require.False(t, limited)
 	})
 
@@ -199,7 +200,7 @@ func TestUserIdRateLimit(t *testing.T) {
 
 		for i := range 5 {
 			w := httptest.NewRecorder()
-			limited := rl.UserIdRateLimit("any-user", w)
+			limited := rl.UserIdRateLimit(context.Background(), "any-user", w)
 			require.False(t, limited, "call %d should not be rate limited when useAuth=false", i)
 		}
 	})
