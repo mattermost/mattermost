@@ -2535,11 +2535,11 @@ const AdminDefinition: AdminDefinitionType = {
                             }),
                             placeholder: defineMessage({
                                 id: 'admin.customization.minimumDesktopAppVersionPlaceholder',
-                                defaultMessage: 'Input a version number (eg: 5.0.0)',
+                                defaultMessage: 'Input a version number (e.g. 5.0.0)',
                             }),
                             help_text: defineMessage({
                                 id: 'admin.customization.minimumDesktopAppVersionDesc',
-                                defaultMessage: 'When enabled, users connecting with a Mattermost Desktop App version below the specified minimum will be shown an update required page and will not be able to use the application until they update. Users running a version below this will see an update required page.',
+                                defaultMessage: 'Specify the minimum version of the Mattermost Desktop App required to connect to this server (e.g., 5.10.0). Users connecting with a Desktop App version below this minimum will be shown an update required page and will not be able to use the application until they update. Leave this field blank to allow all Desktop App versions to connect without restriction.',
                             }),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             validate: (value) => {
