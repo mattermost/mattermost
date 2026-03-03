@@ -16,7 +16,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {AnnouncementBarTypes, LicenseSkus, Preferences} from 'utils/constants';
+import {AnnouncementBarTypes, LicenseLinks, LicenseSkus, Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -79,7 +79,7 @@ function SingleChannelGuestLimitBanner(props: Props) {
                     defaultMessage='Contact sales'
                 />
             }
-            onButtonClick={() => window.open('https://mattermost.com/contact-sales/', '_blank')}
+            onButtonClick={() => window.open(LicenseLinks.CONTACT_SALES, '_blank')}
         />
     );
 }
