@@ -46,6 +46,10 @@ type SystemBrowser struct {
 }
 
 func renderUnsupportedBrowser(rctx request.CTX, r *http.Request, subpath string) templates.Data {
+	if subpath == "" {
+		subpath = "/"
+	}
+
 	data := templates.Data{
 		Props: map[string]any{
 			"DownloadAppOrUpgradeBrowserString": rctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),

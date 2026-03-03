@@ -16,6 +16,9 @@ test('Desktop App update required screen shows when connecting with older versio
         },
     });
 
+    const config = await adminClient.getConfig();
+    const appDownloadLink = config.NativeAppSettings.AppDownloadLink;
+
     const context = await pw.testBrowser.browser.newContext({
         userAgent: DESKTOP_APP_USER_AGENT,
     });
@@ -32,7 +35,7 @@ test('Desktop App update required screen shows when connecting with older versio
 
         const downloadLink = page.getByRole('link', {name: 'Download Updated App'});
         await expect(downloadLink).toBeVisible();
-        await expect(downloadLink).toHaveAttribute('href', /mattermost\.com.*download/);
+        await expect(downloadLink).toHaveAttribute('href', appDownloadLink);
     } finally {
         await context.close();
     }
