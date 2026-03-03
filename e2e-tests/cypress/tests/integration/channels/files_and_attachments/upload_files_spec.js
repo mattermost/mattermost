@@ -237,7 +237,7 @@ describe('Upload Files', () => {
         cy.get(':nth-child(5) > .post-image__thumbnail > .post-image').should('be.visible');
         cy.postMessage('test');
         cy.findByTestId('fileAttachmentList').within(() => {
-            cy.get('.image-gallery__item').should('have.length', 5);
+            cy.findAllByTestId('image-gallery__item').should('have.length', 5);
         });
     });
 

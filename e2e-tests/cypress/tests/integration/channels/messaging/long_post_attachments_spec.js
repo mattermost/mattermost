@@ -32,21 +32,21 @@ describe('Messaging', () => {
         cy.getLastPostId().then((postID) => {
             cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').within(() => {
                 // Check if gallery is collapsed and expand it
-                cy.get('.image-gallery__body').then(($body) => {
+                cy.findByTestId('image-gallery__body').then(($body) => {
                     if ($body.hasClass('collapsed')) {
                         // Click toggle to expand the gallery
-                        cy.get('.image-gallery__toggle').click();
+                        cy.findByTestId('image-gallery__toggle').click();
                     }
                 });
 
                 // Ensure gallery is expanded
-                cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
+                cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
 
                 // Then verify we have 4 image gallery items
-                cy.get('.image-gallery__item').should('have.length', 4);
+                cy.findAllByTestId('image-gallery__item').should('have.length', 4);
 
                 // * Verify the preview attachments are visible (separate assertion like working tests)
-                cy.get('.image-gallery__item').should('exist').and('be.visible');
+                cy.findAllByTestId('image-gallery__item').should('exist').and('be.visible');
             });
         });
 
@@ -60,13 +60,13 @@ describe('Messaging', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').within(() => {
-                    cy.get('.image-gallery__body').then(($body) => {
+                    cy.findByTestId('image-gallery__body').then(($body) => {
                         if ($body.hasClass('collapsed')) {
-                            cy.get('.image-gallery__toggle').click();
+                            cy.findByTestId('image-gallery__toggle').click();
                         }
                     });
-                    cy.get('.image-gallery__body').should('not.have.class', 'collapsed');
-                    cy.get('.image-gallery__item').first().should('be.visible').click();
+                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
+                    cy.findAllByTestId('image-gallery__item').first().should('be.visible').click();
                 });
             });
         });

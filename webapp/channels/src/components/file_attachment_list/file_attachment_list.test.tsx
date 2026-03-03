@@ -140,6 +140,40 @@ describe('FileAttachmentList', () => {
         expect(container.querySelector('.file-view--single')).toBeInTheDocument();
     });
 
+    test('should render ImageGallery when post has 2+ image attachments only', () => {
+        const imageFileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image1.png', extension: 'png', create_at: 1, post_id: post.id});
+        const imageFileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image2.png', extension: 'png', create_at: 2, post_id: post.id});
+
+        const state = {
+            entities: {
+                general: defaultState.entities.general,
+                posts: defaultState.entities.posts,
+                files: {
+                    files: {
+                        file_id_1: imageFileInfo1,
+                        file_id_2: imageFileInfo2,
+                    },
+                    fileIdsByPostId: {
+                        post_id: ['file_id_1', 'file_id_2'],
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                file_ids: ['file_id_1', 'file_id_2'],
+            },
+        };
+
+        renderWithContext(<FileAttachmentList {...props}/>, state);
+
+        expect(screen.getByTestId('image-gallery__toggle')).toBeInTheDocument();
+        expect(screen.getByTestId('fileAttachmentList').querySelector('.post-image__column')).not.toBeInTheDocument();
+    });
+
     test('should render a FileAttachment for an SVG with SVG previews disabled', () => {
         const state = {
             ...defaultState,

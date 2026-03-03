@@ -70,8 +70,8 @@ function verifySingleImageThumbnail({mode = null} = {}) {
             cy.get('#image-name-text').should('contain', filename);
 
             // * Verify no gallery elements exist
-            cy.get('.image-gallery__toggle').should('not.exist');
-            cy.get('.image-gallery__body').should('not.exist');
+            cy.findByTestId('image-gallery__toggle').should('not.exist');
+            cy.findByTestId('image-gallery__body').should('not.exist');
         });
     });
 }
