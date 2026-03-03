@@ -340,12 +340,14 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             }
         }
 
-        // Always enforce min width/height for the image container
-        imageContainerStyle = {
-            ...imageContainerStyle,
-            minWidth: PREVIEW_IMAGE_MIN_DIMENSION,
-            minHeight: PREVIEW_IMAGE_MIN_DIMENSION,
-        };
+        // Enforce min width/height for the image container when expanded (avoids extra height when collapsed)
+        if (this.props.isEmbedVisible) {
+            imageContainerStyle = {
+                ...imageContainerStyle,
+                minWidth: PREVIEW_IMAGE_MIN_DIMENSION,
+                minHeight: PREVIEW_IMAGE_MIN_DIMENSION,
+            };
+        }
 
         if (loaded) {
             fadeInClass = 'image-fade-in';

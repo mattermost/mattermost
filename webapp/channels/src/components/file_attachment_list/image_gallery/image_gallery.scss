@@ -98,14 +98,15 @@
 
         display: grid;
         grid-template-rows: 1fr;
-        transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing) !important;
+        overflow: hidden; // Clip content during expand/collapse animation
+        transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing);
         
         @media (prefers-reduced-motion: reduce) {
-            transition: grid-template-rows 100ms ease !important;
+            transition: grid-template-rows 100ms ease;
         }
         
         &.collapsed {
-            grid-template-rows: 0fr !important;
+            grid-template-rows: 0fr;
         }
     }
 
