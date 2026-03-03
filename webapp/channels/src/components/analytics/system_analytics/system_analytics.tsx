@@ -357,9 +357,10 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         }
 
         const isCloud = this.props.license.Cloud === 'true';
+        const seatAdjustedUserCount = this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]);
         const userCount = (
             <ActivatedUserCard
-                activatedUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS])}
+                activatedUsers={seatAdjustedUserCount}
                 seatsPurchased={parseInt(this.props.license.Users, 10)}
                 isCloud={isCloud}
             />
@@ -535,7 +536,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     <div className='admin-console__content'>
                         <UserSeatAlertBanner
                             license={this.props.license}
-                            totalUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS]) || 0}
+                            totalUsers={this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]) ?? 0}
                             location='system_statistics'
                         />
                         {banner}
