@@ -1,0 +1,42 @@
+{
+  "profile": "mattermost",
+  "path": "../../webapp",
+  "testsRoot": ".",
+  "framework": "playwright",
+  "mode": "impact",
+  "git": {
+    "since": "origin/master",
+    "includeUncommitted": false
+  },
+  "testDiscovery": {
+    "patterns": [
+      "specs/**/*.spec.ts"
+    ]
+  },
+  "impact": {
+    "traceability": {
+      "enabled": true,
+      "manifestPath": ".e2e-ai-agents/traceability.json",
+      "minSignalsPerTest": 2
+    },
+    "dependencyGraph": {
+      "enabled": true,
+      "maxDepth": 3,
+      "maxExpandedFiles": 1200,
+      "filePatterns": [
+        "**/*.{ts,tsx,js,jsx}"
+      ],
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/coverage/**",
+        "**/__tests__/**",
+        "**/tests/**",
+        "**/*.spec.*",
+        "**/*.test.*"
+      ]
+    }
+  }
+}
