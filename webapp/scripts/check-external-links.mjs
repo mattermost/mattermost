@@ -8,7 +8,7 @@ import path from 'node:path';
 
 import chalk from 'chalk';
 
-const MATTERMOST_URL_PATTERN = /https?:\/\/[^"'\s<>()]*mattermost\.com[^"'\s<>()]*/g;
+const MATTERMOST_URL_PATTERN = /https?:\/\/(?:[a-z0-9-]+\.)*mattermost\.com(?:[/?#][^"'\s<>()]*)?/gi;
 
 const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
 
@@ -147,7 +147,7 @@ async function checkUrlWithRedirects(originalUrl) {
             signal: AbortSignal.timeout(10000),
         });
 
-        if (response.status === 405) {
+        if (response.status === 405 || response.status === 403) {
             const getResponse = await fetch(currentUrl, {
                 method: 'GET',
                 redirect: 'manual',
@@ -190,6 +190,10 @@ function processResponse(originalUrl, response) {
     const isRedirect = status >= 300 && status < 400;
 
     if (cfHeader && (isRedirect || status === 403 || status === 503)) {
+        return {url: originalUrl, status, ok: true};
+    }
+
+    if (status === 301) {
         return {url: originalUrl, status, ok: true};
     }
 
