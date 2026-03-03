@@ -199,7 +199,7 @@ func TestGetViewsForChannel(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// Create 3 views
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			v := makeTestViewForAPI()
 			v.Title = "Paginated View"
 			v.SortOrder = i
