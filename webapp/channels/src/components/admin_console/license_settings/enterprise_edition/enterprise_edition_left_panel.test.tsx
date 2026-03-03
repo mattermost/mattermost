@@ -126,11 +126,19 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should not add any class if active users is lower than the minimal', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                limits: {
+                    serverLimits: {activeUserCount: baseProps.statsActiveUsers},
+                },
+            },
+        });
+
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...baseProps}
             />,
-            initialState,
+            testState,
         );
 
         expect(screen.getByText(Intl.NumberFormat('en').format(baseProps.statsActiveUsers))).toHaveClass('value');
@@ -148,12 +156,19 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             ...baseProps,
             statsActiveUsers: exceedHighLimitExtraUsersError,
         };
+        const testState = mergeObjects(initialState, {
+            entities: {
+                limits: {
+                    serverLimits: {activeUserCount: exceedHighLimitExtraUsersError},
+                },
+            },
+        });
 
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
-            initialState,
+            testState,
         );
 
         expect(screen.getByText(Intl.NumberFormat('en').format(exceedHighLimitExtraUsersError))).toHaveClass('value');
@@ -377,7 +392,9 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).toHaveClass('legend--over-seats-purchased');
-        expect(screen.getByText('1,500')).toHaveClass('value--over-seats-purchased');
+        const valueSpan = document.querySelector('.value--over-seats-purchased');
+        expect(valueSpan).toBeInTheDocument();
+        expect(valueSpan).toHaveTextContent('(Limit reached)');
     });
 
     test('should not highlight single-channel guests when count is within limit', () => {

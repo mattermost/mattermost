@@ -69,7 +69,7 @@ function SingleChannelGuestLimitBanner(props: Props) {
                     defaultMessage='Your workspace has reached the limit for single-channel guests'
                 />
             }
-            type={AnnouncementBarTypes.ADVISOR}
+            type={AnnouncementBarTypes.CRITICAL}
             icon={<AlertOutlineIcon size={16}/>}
             showCTA={true}
             showLinkAsButton={true}

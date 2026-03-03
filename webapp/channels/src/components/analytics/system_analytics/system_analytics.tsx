@@ -15,6 +15,7 @@ import * as AdminActions from 'actions/admin_actions.jsx';
 
 import UserSeatAlertBanner from 'components/admin_console/license_settings/user_seat_alert_banner';
 import ActivatedUserCard from 'components/analytics/activated_users_card';
+import SingleChannelGuestsCard from 'components/analytics/single_channel_guests_card';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -487,15 +488,11 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
 
         const singleChannelGuestsCount = this.getStatValue(stats[StatTypes.SINGLE_CHANNEL_GUESTS]);
         const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? 0;
-        const singleChannelGuestLimitExceeded = singleChannelGuestsCount !== undefined && singleChannelGuestLimit > 0 && singleChannelGuestsCount > singleChannelGuestLimit;
 
         const singleChannelGuests = shouldShowSingleChannelGuests ? (
-            <StatisticCount
-                id='singleChannelGuests'
-                title={<FormattedMessage {...messages.singleChannelGuests}/>}
-                icon='fa-users'
-                status={singleChannelGuestLimitExceeded ? 'error' : undefined}
-                count={singleChannelGuestsCount}
+            <SingleChannelGuestsCard
+                singleChannelGuestsCount={singleChannelGuestsCount}
+                singleChannelGuestLimit={singleChannelGuestLimit}
             />
         ) : null;
 

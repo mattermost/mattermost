@@ -7,6 +7,7 @@ import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -236,7 +237,7 @@ const EnterpriseEditionLeftPanel = ({
                         skuName,
                         fileInputRef,
                         handleChange,
-                        statsActiveUsers,
+                        serverLimits?.activeUserCount ?? statsActiveUsers,
                         expirationDays,
                         isLicenseSetByEnvVar,
                         enableMattermostEntry,
@@ -274,13 +275,34 @@ type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USE
 const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
     if (legend === 'SINGLE-CHANNEL GUESTS:') {
         const isGuestLimitExceeded = singleChannelGuestLimit > 0 && singleChannelGuestCount > singleChannelGuestLimit;
+
+        const warningIcon = isGuestLimitExceeded ? (
+            <WithTooltip
+                title={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
+                hint={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+            >
+                <span style={{cursor: 'pointer', verticalAlign: 'middle', marginLeft: '4px'}}>
+                    <AlertOutlineIcon size={16}/>
+                </span>
+            </WithTooltip>
+        ) : null;
+
         return (
             <div
                 className='item-element'
                 key={'single-channel-guests-' + index.toString()}
             >
                 <span className={classNames({legend: true, 'legend--over-seats-purchased': isGuestLimitExceeded})}>{legend}</span>
-                <span className={classNames({value: true, 'value--over-seats-purchased': isGuestLimitExceeded})}>{value}</span>
+                <span className={classNames({value: true, 'value--over-seats-purchased': isGuestLimitExceeded})}>
+                    {value}
+                    {isGuestLimitExceeded && (
+                        <FormattedMessage
+                            id='admin.license.singleChannelGuests.limitReached'
+                            defaultMessage=' (Limit reached)'
+                        />
+                    )}
+                    {warningIcon}
+                </span>
             </div>
         );
     }

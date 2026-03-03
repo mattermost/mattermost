@@ -188,7 +188,12 @@ test(
         await adminClient.addToTeam(team.id, guestUser.id);
 
         const channel = await adminClient.createChannel(
-            pw.random.channel({teamId: team.id, name: 'guest-no-overage', displayName: 'Guest No Overage', unique: true}),
+            pw.random.channel({
+                teamId: team.id,
+                name: 'guest-no-overage',
+                displayName: 'Guest No Overage',
+                unique: true,
+            }),
         );
         await adminClient.addToChannel(guestUser.id, channel.id);
 
@@ -212,32 +217,26 @@ test(
  * @precondition
  * Server has a non-Entry license with guest accounts enabled and guest count is within the allowed limit
  */
-test(
-    'does not show guest limit banner when count is within limit',
-    {tag: '@system_console'},
-    async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
+test('does not show guest limit banner when count is within limit', {tag: '@system_console'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
 
-        if (!adminUser) {
-            throw new Error('Failed to create admin user');
-        }
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+    // # Enable guest accounts
+    const config = await adminClient.getConfig();
+    config.GuestAccountsSettings.Enable = true;
+    await adminClient.updateConfig(config);
 
-        // # Navigate to any page as admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+    // # Navigate to any page as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
 
-        // * Verify the guest limit banner is not visible (count is within limit)
-        await expect(
-            systemConsolePage.page.locator('#single_channel_guest_limit_banner'),
-        ).not.toBeVisible();
-    },
-);
+    // * Verify the guest limit banner is not visible (count is within limit)
+    await expect(systemConsolePage.page.locator('#single_channel_guest_limit_banner')).not.toBeVisible();
+});
 
 /**
  * @objective Verify that a guest in multiple channels is not counted as a single-channel guest
