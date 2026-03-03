@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 Cypress.Commands.add('uiGetFileThumbnail', (filename) => {
-    return cy.findByLabelText(`file thumbnail ${filename.toLowerCase()}`);
+    // Multiple elements may share this aria-label (e.g. wrapper and inner figure/img); take the first match
+    return cy.findAllByLabelText(`file thumbnail ${filename.toLowerCase()}`).first();
 });
 
 Cypress.Commands.add('uiGetFileUploadPreview', () => {
