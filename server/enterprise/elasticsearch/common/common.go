@@ -141,8 +141,14 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 							if s, _ := fm["title"].(string); s != "" {
 								searchAttachments = append(searchAttachments, s)
 							}
-							if s, _ := fm["value"].(string); s != "" {
-								searchAttachments = append(searchAttachments, s)
+							if v := fm["value"]; v != nil {
+								if s, ok := v.(string); ok {
+									if s != "" {
+										searchAttachments = append(searchAttachments, s)
+									}
+								} else {
+									searchAttachments = append(searchAttachments, fmt.Sprint(v))
+								}
 							}
 						}
 					}
@@ -168,8 +174,14 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 					if field.Title != "" {
 						searchAttachments = append(searchAttachments, field.Title)
 					}
-					if s, ok := field.Value.(string); ok && s != "" {
-						searchAttachments = append(searchAttachments, s)
+					if field.Value != nil {
+						if s, ok := field.Value.(string); ok {
+							if s != "" {
+								searchAttachments = append(searchAttachments, s)
+							}
+						} else {
+							searchAttachments = append(searchAttachments, fmt.Sprint(field.Value))
+						}
 					}
 				}
 			}
