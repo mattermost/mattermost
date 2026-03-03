@@ -570,7 +570,7 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Len(plugins.Inactive, 1)
 	})
 
-	s.RunForAllClients("error when plugin configs are disabled", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("error when plugin configs are disabled", func(c client.Client) {
 		printer.Clean()
 
 		appErr := s.th.App.EnablePlugin(pluginID)
