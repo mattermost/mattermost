@@ -83,8 +83,8 @@
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Mixed --"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -98,21 +98,14 @@
                   "color": "red",
                   "index": 0,
                   "text": "Offline"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
-                "from": 0,
-                "result": {
+                },
+                "1": {
                   "color": "green",
                   "index": 1,
                   "text": "Online"
-                },
-                "to": 99999999999999
+                }
               },
-              "type": "range"
+              "type": "value"
             }
           ],
           "thresholds": {
@@ -154,79 +147,79 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-postgres\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-postgres\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-postgres\"})) < 15) or vector(0)",
           "legendFormat": "Postgres",
-          "queryType": "range",
+          "range": true,
           "refId": "A"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-inbucket\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-inbucket\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-inbucket\"})) < 15) or vector(0)",
           "legendFormat": "Inbucket",
-          "queryType": "range",
+          "range": true,
           "refId": "C"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-minio\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-minio\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-minio\"})) < 15) or vector(0)",
           "legendFormat": "MinIO",
-          "queryType": "range",
+          "range": true,
           "refId": "D"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-openldap\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-openldap\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-openldap\"})) < 15) or vector(0)",
           "legendFormat": "OpenLDAP",
-          "queryType": "range",
+          "range": true,
           "refId": "E"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-dejavu\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-dejavu\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-dejavu\"})) < 15) or vector(0)",
           "legendFormat": "DejaVu",
-          "queryType": "range",
+          "range": true,
           "refId": "F"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-keycloak\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-keycloak\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-keycloak\"})) < 15) or vector(0)",
           "legendFormat": "Keycloak",
-          "queryType": "range",
+          "range": true,
           "refId": "G"
         },
         {
           "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-elasticsearch\"}[5m])) or vector(0)",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-elasticsearch\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-elasticsearch\"})) < 15) or vector(0)",
           "legendFormat": "Elasticsearch",
-          "queryType": "range",
+          "range": true,
           "refId": "H"
         },
         {
@@ -235,8 +228,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(up{container=\"mattermost-prometheus\"}) or vector(0)",
-          "hide": false,
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-prometheus\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-prometheus\"})) < 15) or vector(0)",
           "legendFormat": "Prometheus",
           "range": true,
           "refId": "I"
@@ -247,8 +239,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(up{container=\"mattermost-grafana\"}) or vector(0)",
-          "hide": false,
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-grafana\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-grafana\"})) < 15) or vector(0)",
           "legendFormat": "Grafana",
           "range": true,
           "refId": "J"
@@ -259,8 +250,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(up{container=\"mattermost-loki\"}) or vector(0)",
-          "hide": false,
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-loki\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-loki\"})) < 15) or vector(0)",
           "legendFormat": "Loki",
           "range": true,
           "refId": "K"
@@ -271,14 +261,24 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(up{container=\"mattermost-promtail\"}) or vector(0)",
-          "hide": false,
-          "legendFormat": "Promtail",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-otel-collector\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-otel-collector\"})) < 15) or vector(0)",
+          "legendFormat": "OTel Collector",
           "range": true,
           "refId": "L"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "max(container_uptime_seconds{container_name=\"mattermost-redis\"}) >bool 0 and on() (time() - max(timestamp(container_uptime_seconds{container_name=\"mattermost-redis\"})) < 15) or vector(0)",
+          "legendFormat": "Redis",
+          "range": true,
+          "refId": "M"
         }
       ],
-      "title": "Panel Title",
+      "title": "Docker containers",
       "type": "stat"
     },
     {
