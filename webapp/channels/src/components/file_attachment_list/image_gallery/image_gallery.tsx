@@ -209,7 +209,11 @@ const ImageGallery = (props: Props) => {
                 timeoutIdRef.current = setTimeout(handleResize, THROTTLE_DELAY);
             };
 
-            // Store reference for cleanup
+            // Clear any previous debounced resize before assigning (defensive for rapid setup/teardown)
+            if (debouncedResizeRef.current) {
+                window.removeEventListener('resize', debouncedResizeRef.current);
+                debouncedResizeRef.current = null;
+            }
             debouncedResizeRef.current = debouncedResize;
             window.addEventListener('resize', debouncedResize);
         }
@@ -228,7 +232,7 @@ const ImageGallery = (props: Props) => {
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
             }
-            if (rafIdRef.current) {
+            if (rafIdRef.current != null) {
                 cancelAnimationFrame(rafIdRef.current);
             }
             if (focusTimeoutRef.current) {
@@ -349,7 +353,7 @@ const ImageGallery = (props: Props) => {
 
             setAriaLiveMessage(announcement);
 
-            // Focus management
+            // Focus management: clear any pending focus timer before scheduling
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
