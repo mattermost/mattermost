@@ -699,7 +699,7 @@ func (g *apiRPCClient) pluginHTTPBuffered(request *http.Request) *http.Response 
 
 	_returns := &Z_PluginHTTPReturns{}
 	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
-		g.LogError("RPC call to PluginHTTP API failed: %s", mlog.Err(err))
+		g.LogError("RPC call to PluginHTTP API failed:", mlog.Err(err))
 		return nil
 	}
 
@@ -1003,7 +1003,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		g.LogError("RPC call to LogDebug API failed: %s", mlog.Err(err))
+		g.LogError("RPC call to LogDebug API failed:", mlog.Err(err))
 	}
 }
 
