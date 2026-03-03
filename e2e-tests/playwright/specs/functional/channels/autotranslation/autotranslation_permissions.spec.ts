@@ -23,8 +23,6 @@ async function probeTranslationService(): Promise<string | null> {
     const defaultMockUrl = 'http://localhost:3010';
     const fallbackRealUrl = 'http://localhost:5000';
 
-    let lastError: string | null = null;
-
     // Try configured URL first (if provided)
     if (configuredUrl) {
         try {
@@ -79,8 +77,8 @@ async function probeTranslationService(): Promise<string | null> {
         } finally {
             clearTimeout(timeoutId);
         }
-    } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+        // Service probe failed, will return null
     }
 
     return null;
