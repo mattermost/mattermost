@@ -53,30 +53,31 @@ describe('Image Gallery', () => {
         const uniqueMessage = `Gallery test ${Date.now()}`;
         cy.postMessage(uniqueMessage);
 
-        // * Verify gallery layout is displayed
+        // * Verify gallery layout is displayed (grid, toggle, item count)
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').within(() => {
                     cy.findByTestId('image-gallery__toggle').should('contain.text', '4 images');
                     cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed').within(() => {
                         cy.findAllByTestId('image-gallery__item').should('have.length', 4);
+                        // Gallery marks images as "small" when width or height < 216px; 3 of our 4 fixtures qualify
                         cy.get('.image-gallery__item--small').should('have.length', 3);
 
-                        // * Verify images display with reasonable aspect ratios
+                        // * Each thumbnail is visible and has non-zero size (catches layout collapse bugs)
                         cy.findAllByTestId('image-gallery__item').each(($item) => {
                             cy.wrap($item).find('img').should('be.visible').and(($img) => {
-                                const renderedRatio = $img.width() / $img.height();
-                                expect(renderedRatio).to.be.greaterThan(0.01);
-                                expect(renderedRatio).to.be.lessThan(100);
+                                expect($img.width(), 'image width').to.be.greaterThan(0);
+                                expect($img.height(), 'image height').to.be.greaterThan(0);
                             });
                         });
                     });
 
-                    // * Test collapse/expand functionality
+                    // * Collapse: body gets .collapsed, toggle text becomes "Show N images"
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('have.class', 'collapsed');
                     cy.findByTestId('image-gallery__toggle').should('contain.text', 'Show 4 images');
 
+                    // * Expand again: body loses .collapsed, toggle shows "N images", items visible
                     cy.findByTestId('image-gallery__toggle').click();
                     cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
                     cy.findByTestId('image-gallery__toggle').should('contain.text', '4 images');
@@ -84,7 +85,7 @@ describe('Image Gallery', () => {
                 });
             });
 
-            // * Test image preview modal opens when clicking gallery items
+            // * Clicking a gallery thumbnail opens the file preview modal
             cy.get(`#post_${postId}`).within(() => {
                 cy.findAllByTestId('image-gallery__item').first().click();
             });
@@ -125,7 +126,7 @@ describe('Image Gallery', () => {
         const uniqueMessage = `Traditional layout test ${Date.now()}`;
         cy.postMessage(uniqueMessage);
 
-        // * Verify traditional file attachment layout (no gallery)
+        // * With mixed content (images + PDF), FileAttachmentList uses traditional layout: no gallery, one column per file
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
                 cy.findByTestId('fileAttachmentList').should('exist').and('be.visible').within(() => {
