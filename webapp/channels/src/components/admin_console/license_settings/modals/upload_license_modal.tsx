@@ -257,13 +257,13 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     <div className='title'>
                         <FormattedMessage
                             id='admin.license.upload-modal.successfulUpgrade'
-                            defaultMessage='Successful Upgrade!'
+                            defaultMessage='New license successfully applied.'
                         />
                     </div>
                     <div className='subtitle'>
                         <FormattedMessage
                             id='admin.license.upload-modal.successfulUpgradeText'
-                            defaultMessage='You have upgraded to the {skuName} plan for {licensedUsersNum, number} seats. This is effective from {startsAt} until {expiresAt}. '
+                            defaultMessage='You are now on the {skuName} plan for {licensedUsersNum, number} seats. This is effective from {startsAt} until {expiresAt}.'
                             values={{
                                 expiresAt,
                                 startsAt,

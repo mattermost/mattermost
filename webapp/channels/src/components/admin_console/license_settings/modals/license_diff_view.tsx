@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {ClientLicense, License} from '@mattermost/types/config';
 
-import ExternalLink from 'components/external_link';
+import SectionNotice from 'components/section_notice';
 
 import {CloudLinks, LicenseSkus} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
@@ -63,13 +64,10 @@ const formatDate = (timestamp: number | string, locale: string) => {
     );
 };
 
-type BannerVariant = 'warning' | 'info' | 'success' | 'danger';
-
 type BannerConfig = {
-    variant: BannerVariant;
-    icon: string;
-    title: React.ReactNode;
-    description: React.ReactNode;
+    type: 'warning' | 'info' | 'success' | 'danger';
+    title: MessageDescriptor;
+    description: MessageDescriptor;
     showPlanDiffLink: boolean;
 };
 
@@ -95,56 +93,41 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
     switch (sku) {
     case LicenseSkus.Professional:
         return {
-            variant: 'warning',
-            icon: 'icon-alert-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_professional.title'
-                    defaultMessage='This license changes your available features'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_professional.description'
-                    defaultMessage='Mattermost Professional adds paid-tier capabilities such as unlimited message history. Some features in Mattermost Entry are not included in Professional (see plan differences).'
-                />
-            ),
+            type: 'warning',
+            title: {
+                id: 'admin.license.diff.banner.entry_to_professional.title',
+                defaultMessage: 'This license changes your available features',
+            },
+            description: {
+                id: 'admin.license.diff.banner.entry_to_professional.description',
+                defaultMessage: 'Mattermost Professional adds paid-tier capabilities such as unlimited message history. Some features in Mattermost Entry are not included in Professional (see plan differences).',
+            },
             showPlanDiffLink: true,
         };
     case LicenseSkus.Enterprise:
         return {
-            variant: 'info',
-            icon: 'icon-information-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_enterprise.title'
-                    defaultMessage='This license adds Enterprise capabilities, with feature changes'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_enterprise.description'
-                    defaultMessage='Mattermost Enterprise includes unlimited message history and adds enterprise-grade scale, compliance, and administration capabilities. Some features in Mattermost Entry are not included in Enterprise.'
-                />
-            ),
+            type: 'info',
+            title: {
+                id: 'admin.license.diff.banner.entry_to_enterprise.title',
+                defaultMessage: 'This license adds Enterprise capabilities, with feature changes',
+            },
+            description: {
+                id: 'admin.license.diff.banner.entry_to_enterprise.description',
+                defaultMessage: 'Mattermost Enterprise includes unlimited message history and adds enterprise-grade scale, compliance, and administration capabilities. Some features in Mattermost Entry are not included in Enterprise.',
+            },
             showPlanDiffLink: true,
         };
     case LicenseSkus.EnterpriseAdvanced:
         return {
-            variant: 'success',
-            icon: 'icon-arrow-up-bold-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_advanced.title'
-                    defaultMessage='This license adds Enterprise Advanced capabilities'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.entry_to_advanced.description'
-                    defaultMessage='Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations'
-                />
-            ),
+            type: 'success',
+            title: {
+                id: 'admin.license.diff.banner.entry_to_advanced.title',
+                defaultMessage: 'This license adds Enterprise Advanced capabilities',
+            },
+            description: {
+                id: 'admin.license.diff.banner.entry_to_advanced.description',
+                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations',
+            },
             showPlanDiffLink: false,
         };
     default:
@@ -158,40 +141,30 @@ const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortNa
 
     if (newSku === LicenseSkus.Enterprise) {
         return {
-            variant: 'success',
-            icon: 'icon-information-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.upgrade_to_enterprise.title'
-                    defaultMessage='This license adds Enterprise capabilities'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.upgrade_to_enterprise.description'
-                    defaultMessage='Mattermost Enterprise includes all features available in Mattermost Professional, plus enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.'
-                />
-            ),
+            type: 'success',
+            title: {
+                id: 'admin.license.diff.banner.upgrade_to_enterprise.title',
+                defaultMessage: 'This license adds Enterprise capabilities',
+            },
+            description: {
+                id: 'admin.license.diff.banner.upgrade_to_enterprise.description',
+                defaultMessage: 'Mattermost Enterprise includes all features available in Mattermost Professional, plus enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.',
+            },
             showPlanDiffLink: false,
         };
     }
 
     if (newSku === LicenseSkus.EnterpriseAdvanced) {
         return {
-            variant: 'success',
-            icon: 'icon-arrow-up-bold-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.upgrade_to_advanced.title'
-                    defaultMessage='This license adds Enterprise Advanced capabilities'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.upgrade_to_advanced.description'
-                    defaultMessage='Mattermost Enterprise Advanced includes all Enterprise features, plus Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations.'
-                />
-            ),
+            type: 'success',
+            title: {
+                id: 'admin.license.diff.banner.upgrade_to_advanced.title',
+                defaultMessage: 'This license adds Enterprise Advanced capabilities',
+            },
+            description: {
+                id: 'admin.license.diff.banner.upgrade_to_advanced.description',
+                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, plus Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations.',
+            },
             showPlanDiffLink: false,
         };
     }
@@ -206,60 +179,45 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
 
     if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.Professional) {
         return {
-            variant: 'danger',
-            icon: 'icon-alert-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade.title'
-                    defaultMessage='This license downgrades your plan'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade_enterprise_to_professional.description'
-                    defaultMessage='You will lose access to Enterprise features including enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.'
-                />
-            ),
+            type: 'danger',
+            title: {
+                id: 'admin.license.diff.banner.downgrade.title',
+                defaultMessage: 'This license downgrades your plan',
+            },
+            description: {
+                id: 'admin.license.diff.banner.downgrade_enterprise_to_professional.description',
+                defaultMessage: 'You will lose access to Enterprise features including enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.',
+            },
             showPlanDiffLink: true,
         };
     }
 
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Enterprise) {
         return {
-            variant: 'danger',
-            icon: 'icon-alert-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade.title'
-                    defaultMessage='This license downgrades your plan'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade_advanced_to_enterprise.description'
-                    defaultMessage='You will lose access to Mattermost Enterprise Advanced features, including Zero Trust security, sensitive information controls, and mobile security hardening.'
-                />
-            ),
+            type: 'danger',
+            title: {
+                id: 'admin.license.diff.banner.downgrade.title',
+                defaultMessage: 'This license downgrades your plan',
+            },
+            description: {
+                id: 'admin.license.diff.banner.downgrade_advanced_to_enterprise.description',
+                defaultMessage: 'You will lose access to Mattermost Enterprise Advanced features, including Zero Trust security, sensitive information controls, and mobile security hardening.',
+            },
             showPlanDiffLink: true,
         };
     }
 
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Professional) {
         return {
-            variant: 'danger',
-            icon: 'icon-alert-circle-outline',
-            title: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade.title'
-                    defaultMessage='This license downgrades your plan'
-                />
-            ),
-            description: (
-                <FormattedMessage
-                    id='admin.license.diff.banner.downgrade_advanced_to_professional.description'
-                    defaultMessage='You will lose access to Enterprise features for high availability administration, as well as Enterprise Advanced features including Zero Trust security, sensitive information controls, and advanced mobile security controls for mission-critical operations.'
-                />
-            ),
+            type: 'danger',
+            title: {
+                id: 'admin.license.diff.banner.downgrade.title',
+                defaultMessage: 'This license downgrades your plan',
+            },
+            description: {
+                id: 'admin.license.diff.banner.downgrade_advanced_to_professional.description',
+                defaultMessage: 'You will lose access to Enterprise features for high availability administration, as well as Enterprise Advanced features including Zero Trust security, sensitive information controls, and advanced mobile security controls for mission-critical operations.',
+            },
             showPlanDiffLink: true,
         };
     }
@@ -283,37 +241,30 @@ const getTransitionBanner = (currentSkuShortName: string | undefined, newSkuShor
     return getDowngradeBanner(currentSkuShortName, newSkuShortName);
 };
 
-const LicenseTransitionBanner = ({config}: {config: BannerConfig}) => (
-    <div className={`license-transition-banner license-transition-banner--${config.variant}`}>
-        <div className='license-transition-banner__icon'>
-            <i className={`icon ${config.icon}`}/>
-        </div>
-        <div className='license-transition-banner__content'>
-            <div className='license-transition-banner__title'>
-                {config.title}
-            </div>
-            <div className='license-transition-banner__description'>
-                {config.description}
-            </div>
-            {config.showPlanDiffLink && (
-                <ExternalLink
-                    className='license-transition-banner__link'
-                    href={CloudLinks.SELF_HOSTED_PRICING}
-                    location='license_diff_view'
-                >
-                    <FormattedMessage
-                        id='admin.license.diff.banner.viewPlanDifferences'
-                        defaultMessage='View plan differences'
-                    />
-                </ExternalLink>
-            )}
-        </div>
-    </div>
-);
-
 const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
+    const intl = useIntl();
     const hasCurrentLicense = currentLicense && Object.keys(currentLicense).length > 0 && currentLicense.IsLicensed === 'true';
     const isEntryLicense = hasCurrentLicense && currentLicense.SkuShortName?.toLowerCase() === LicenseSkus.Entry;
+
+    const renderBanner = (config: BannerConfig | null) => {
+        if (!config) {
+            return null;
+        }
+        return (
+            <SectionNotice
+                type={config.type}
+                title={intl.formatMessage(config.title)}
+                text={intl.formatMessage(config.description)}
+                linkButton={config.showPlanDiffLink ? {
+                    onClick: () => window.open(CloudLinks.SELF_HOSTED_PRICING, '_blank', 'noreferrer'),
+                    text: intl.formatMessage({
+                        id: 'admin.license.diff.banner.viewPlanDifferences',
+                        defaultMessage: 'View plan differences',
+                    }),
+                } : undefined}
+            />
+        );
+    };
 
     // If current license is "entry", show only new license info (no comparison)
     if (isEntryLicense || !hasCurrentLicense) {
@@ -321,7 +272,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
 
         return (
             <>
-                {bannerConfig && <LicenseTransitionBanner config={bannerConfig}/>}
+                {renderBanner(bannerConfig)}
                 <div className='license-diff-view'>
                     <table className='diff-table info-only'>
                         <tbody>
@@ -398,7 +349,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
 
     return (
         <>
-            {bannerConfig && <LicenseTransitionBanner config={bannerConfig}/>}
+            {renderBanner(bannerConfig)}
             <div className='license-diff-view'>
                 <table className='diff-table'>
                     <thead>
