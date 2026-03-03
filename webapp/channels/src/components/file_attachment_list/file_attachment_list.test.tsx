@@ -141,8 +141,8 @@ describe('FileAttachmentList', () => {
     });
 
     test('should render ImageGallery when post has 2+ image attachments only', () => {
-        const imageFileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image1.png', extension: 'png', create_at: 1, post_id: post.id});
-        const imageFileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image2.png', extension: 'png', create_at: 2, post_id: post.id});
+        const imageFileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image1.png', extension: 'png', create_at: 1, post_id: post.id, delete_at: 0});
+        const imageFileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image2.png', extension: 'png', create_at: 2, post_id: post.id, delete_at: 0});
 
         const state = {
             entities: {
