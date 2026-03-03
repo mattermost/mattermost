@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify the unreads filter shows only channels with unread messages
  */
-test('unreads filter will show and hide unread channels', {tag: '@filters'}, async ({pw}) => {
+test('unreads filter will show and hide unread channels', {tag: ['@smoke', '@filters']}, async ({pw}) => {
     // # Create a user with only one team
     const {adminClient, user, team} = await pw.initSetup();
 

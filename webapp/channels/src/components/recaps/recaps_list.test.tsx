@@ -44,10 +44,6 @@ describe('RecapsList', () => {
         },
     ];
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render empty state when no recaps', () => {
         renderWithContext(<RecapsList recaps={[]}/>);
 

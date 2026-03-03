@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
 import ManageTimezones from './manage_timezones';
+
+jest.mock('utils/timezone', () => ({
+    getBrowserTimezone: jest.fn(() => 'America/New_York'),
+}));
 
 describe('components/user_settings/display/manage_timezones/manage_timezones', () => {
     const user = {
@@ -30,22 +35,44 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
 
     test('submitUser() should have called [updateMe, updateSection]', async () => {
         const updateMe = jest.fn(() => Promise.resolve({data: true}));
-        const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallow(<ManageTimezones {...props}/>);
+        const updateSection = jest.fn();
+        const props = {
+            ...requiredProps,
+            updateSection,
+            useAutomaticTimezone: false,
+            automaticTimezone: 'Europe/London',
+            manualTimezone: 'Europe/London',
+            timezones: [{
+                value: 'GMT Standard Time',
+                abbr: 'GMT',
+                offset: 0,
+                isdst: false,
+                text: '(UTC) London',
+                utc: ['Europe/London'],
+            }],
+            actions: {...requiredProps.actions, updateMe},
+        };
+        renderWithContext(<ManageTimezones {...props}/>);
 
-        await (wrapper.instance() as ManageTimezones).submitUser();
+        // Toggle the automatic timezone checkbox to create a state diff
+        await userEvent.click(screen.getByRole('checkbox', {name: /automatic/i}));
 
-        const expected = {...props.user,
+        // Click Save to trigger changeTimezone → submitUser
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        const expected = {
+            ...props.user,
             timezone: {
-                useAutomaticTimezone: props.useAutomaticTimezone.toString(),
-                manualTimezone: props.manualTimezone,
-                automaticTimezone: props.automaticTimezone,
-            }};
+                useAutomaticTimezone: 'true',
+                manualTimezone: 'Europe/London',
+                automaticTimezone: 'America/New_York',
+            },
+        };
 
-        expect(props.actions.updateMe).toHaveBeenCalled();
-        expect(props.actions.updateMe).toHaveBeenCalledWith(expected);
+        expect(updateMe).toHaveBeenCalled();
+        expect(updateMe).toHaveBeenCalledWith(expected);
 
-        expect(props.updateSection).toHaveBeenCalled();
-        expect(props.updateSection).toHaveBeenCalledWith('');
+        expect(updateSection).toHaveBeenCalled();
+        expect(updateSection).toHaveBeenCalledWith('');
     });
 });

@@ -1,33 +1,34 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MaxLengthInput should match snapshot 1`] = `
-<Fragment>
+<div>
   <input
-    className="MaxLengthInput input"
+    class="MaxLengthInput input"
+    value=""
   />
-</Fragment>
+</div>
 `;
 
 exports[`components/MaxLengthInput should match snapshot 2`] = `
-<Fragment>
+<div>
   <input
-    className="MaxLengthInput input"
-    defaultValue="less than 20"
+    class="MaxLengthInput input"
+    value="less than 20"
   />
-</Fragment>
+</div>
 `;
 
 exports[`components/MaxLengthInput should match snapshot 3`] = `
-<Fragment>
+<div>
   <input
-    className="MaxLengthInput input has-error"
-    defaultValue="Where is Jessica Hyde?"
+    class="MaxLengthInput input has-error"
+    value="Where is Jessica Hyde?"
   />
   <span
-    className="MaxLengthInput__validation"
+    class="MaxLengthInput__validation"
   >
     -
     2
   </span>
-</Fragment>
+</div>
 `;

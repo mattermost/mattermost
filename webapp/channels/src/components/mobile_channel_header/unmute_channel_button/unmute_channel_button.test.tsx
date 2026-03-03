@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {NotificationLevels} from 'utils/constants';
 
 import UnmuteChannelButton from './unmute_channel_button';
@@ -22,19 +22,25 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(<UnmuteChannelButton {...baseProps}/>);
+        const {container} = renderWithContext(<UnmuteChannelButton {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    it('should runs updateChannelNotifyProps on click', () => {
-        const props = baseProps;
-        props.actions.updateChannelNotifyProps = jest.fn();
+    it('should runs updateChannelNotifyProps on click', async () => {
+        const updateChannelNotifyProps = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                updateChannelNotifyProps,
+            },
+        };
 
-        const wrapper = shallow(<UnmuteChannelButton {...props}/>);
-        wrapper.simulate('click');
+        renderWithContext(<UnmuteChannelButton {...props}/>);
 
-        expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(updateChannelNotifyProps).toHaveBeenCalledWith(
             props.user.id,
             props.channel.id,
             {mark_unread: NotificationLevels.ALL},

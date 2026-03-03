@@ -5,10 +5,12 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -428,5 +430,59 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval("yearly"))
 		require.Equal(t, returnedProducts[2].BillingScheme, model.BillingScheme(""))
 		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
+	})
+}
+
+func TestCheckCWSConnection(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns available when CWS is reachable", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
+		require.NoError(t, err)
+		defer closeBody(r)
+		require.Equal(t, http.StatusOK, r.StatusCode)
+
+		var response map[string]string
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&response))
+		assert.Equal(t, "available", response["status"])
+	})
+
+	t.Run("returns unavailable when CWS is not reachable", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(errors.New("connection failed"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
+		require.NoError(t, err)
+		defer closeBody(r)
+		require.Equal(t, http.StatusOK, r.StatusCode)
+
+		var response map[string]string
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&response))
+		assert.Equal(t, "unavailable", response["status"])
 	})
 }

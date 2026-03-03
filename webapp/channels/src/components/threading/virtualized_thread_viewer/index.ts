@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -55,6 +55,7 @@ function makeMapStateToProps() {
             lastPost,
             replyListIds,
             newMessagesSeparatorActions,
+            isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
         };
     };
 }

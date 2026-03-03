@@ -1,0 +1,89 @@
+---
+name: E2E Tests - Override Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to update status for"
+        required: true
+        type: string
+
+jobs:
+  override-status:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate inputs
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid PR number format. Must be numeric."
+            exit 1
+          fi
+      - name: Get PR head SHA
+        id: pr-info
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER})
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
+
+      - name: Override failed full test statuses
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
+        run: |
+          # Only full tests can be overridden (smoke tests must pass)
+          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise")
+
+          for CONTEXT_NAME in "${FULL_TEST_CONTEXTS[@]}"; do
+            echo "Checking: $CONTEXT_NAME"
+
+            # Get current status
+            STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \
+              --jq "[.[] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
+
+            if [ -z "$STATUS_JSON" ]; then
+              echo "  No status found, skipping"
+              continue
+            fi
+
+            CURRENT_DESC=$(echo "$STATUS_JSON" | jq -r '.description // ""')
+            CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
+            CURRENT_STATE=$(echo "$STATUS_JSON" | jq -r '.state // ""')
+
+            echo "  Current: $CURRENT_DESC ($CURRENT_STATE)"
+
+            # Only override if status is failure
+            if [ "$CURRENT_STATE" != "failure" ]; then
+              echo "  Not failed, skipping"
+              continue
+            fi
+
+            # Parse and construct new message
+            if [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed,\ ([0-9]+)\ passed$ ]]; then
+              FAILED="${BASH_REMATCH[1]}"
+              PASSED="${BASH_REMATCH[2]}"
+              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
+            elif [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed\ \([^)]+\),\ ([0-9]+)\ passed$ ]]; then
+              FAILED="${BASH_REMATCH[1]}"
+              PASSED="${BASH_REMATCH[2]}"
+              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
+            else
+              NEW_MSG="${CURRENT_DESC} (verified)"
+            fi
+
+            echo "  New: $NEW_MSG"
+
+            # Update status via GitHub API
+            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+              -f state=success \
+              -f context="$CONTEXT_NAME" \
+              -f description="$NEW_MSG" \
+              -f target_url="$CURRENT_URL"
+
+            echo "  Updated to success"
+          done

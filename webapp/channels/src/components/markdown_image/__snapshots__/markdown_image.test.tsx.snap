@@ -1,170 +1,491 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MarkdownImage should match snapshot 1`] = `
-<Connect(Component)
-  imageMetadata={
-    Object {
-      "format": "png",
-      "frameCount": 0,
-      "height": 90,
-      "width": 1041,
-    }
-  }
-  src="/images/logo.png"
->
-  <Component />
-</Connect(Component)>
+<div>
+  <div
+    class="image-loading__container markdown-inline-img markdown-inline-img--loading"
+    style="max-width: 1041px;"
+  >
+    <svg
+      style="max-height: 90px; max-width: 1041px; vertical-align: middle;"
+      viewBox="0 0 1041 90"
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  </div>
+  <div
+    class="file-preview__button"
+    style="display: none;"
+  >
+    <figure
+      class="image-loaded-container"
+    >
+      <img
+        alt="test image"
+        aria-label="file thumbnail"
+        class="markdown-inline-img markdown-inline-img--loading"
+        height=""
+        src="/images/logo.png"
+        tabindex="0"
+        title="test title"
+        width=""
+      />
+      <span
+        class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+      >
+        <button
+          aria-label="Copy link"
+          class="style--none size-aware-image__copy_link"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+            />
+          </svg>
+        </button>
+        <a
+          aria-label="Download"
+          class="style--none size-aware-image__download"
+          download=""
+          href="/images/logo.png"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+            />
+          </svg>
+        </a>
+      </span>
+    </figure>
+  </div>
+</div>
 `;
 
 exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimensions 1`] = `
-<injectIntl(SizeAwareImage)
-  alt="test image"
-  className="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
-  dimensions={
-    Object {
-      "format": "jpg",
-      "frameCount": 0,
-      "height": 90,
-      "width": 100,
-    }
-  }
-  height=""
-  onClick={[Function]}
-  onImageLoadFail={[Function]}
-  onImageLoaded={[Function]}
-  showLoader={false}
-  src="safeSrc"
-  title="test title"
-  width=""
-/>
+<div>
+  <div
+    class="file-preview__button"
+    style="display: inline-block;"
+  >
+    <figure
+      class="image-loaded-container"
+    >
+      <img
+        alt="test image"
+        aria-label="file thumbnail"
+        class="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
+        height=""
+        src="path/image"
+        tabindex="0"
+        title="test title"
+        width=""
+      />
+      <span
+        class="image-preview-utility-buttons-container"
+      >
+        <button
+          aria-label="Copy link"
+          class="style--none size-aware-image__copy_link"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+            />
+          </svg>
+        </button>
+        <a
+          aria-label="Download"
+          class="style--none size-aware-image__download"
+          download=""
+          href="path/image"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+            />
+          </svg>
+        </a>
+      </span>
+    </figure>
+  </div>
+</div>
 `;
 
 exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
-<Connect(Component)
-  imageMetadata={
-    Object {
-      "format": "png",
-      "frameCount": 0,
-      "height": 10,
-      "width": 10,
-    }
-  }
-  src="brokenLink"
->
-  <Component />
-</Connect(Component)>
+<div>
+  <div
+    class="image-loading__container markdown-inline-img markdown-inline-img--loading"
+    style="max-width: 10px;"
+  >
+    <svg
+      style="max-height: 10px; max-width: 10px; vertical-align: middle;"
+      viewBox="0 0 10 10"
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  </div>
+  <div
+    class="file-preview__button"
+    style="display: none;"
+  >
+    <figure
+      class="image-loaded-container"
+    >
+      <img
+        alt="test image"
+        aria-label="file thumbnail"
+        class="markdown-inline-img markdown-inline-img--loading"
+        height=""
+        src="brokenLink"
+        tabindex="0"
+        title="test title"
+        width=""
+      />
+    </figure>
+  </div>
+</div>
 `;
 
 exports[`components/MarkdownImage should provide image src as an alt text for MarkdownImageExpand if image has no own alt text 1`] = `
 <div>
-  <Connect(MarkdownImageExpand)
-    alt="https://example.com/image.png"
-    imageKey="https://example.com/image.png"
-    postId="post_id"
+  <div
+    class="markdown-image-expand markdown-image-expand--expanded"
   >
-    <injectIntl(SizeAwareImage)
-      alt=""
-      className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
-      dimensions={Object {}}
-      height="250"
-      onClick={[Function]}
-      onImageLoadFail={[Function]}
-      onImageLoaded={[Function]}
-      showLoader={false}
-      src="https://example.com/image.png"
-      title="test title"
-      width="50"
-    />
-  </Connect(MarkdownImageExpand)>
+    <button
+      class="markdown-image-expand__collapse-button"
+      type="button"
+    >
+      <span
+        class="icon icon-menu-down"
+      />
+    </button>
+    <div
+      class="file-preview__button"
+      style="display: inline-block;"
+    >
+      <figure
+        class="image-loaded-container"
+      >
+        <img
+          alt=""
+          aria-label="file thumbnail"
+          class="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
+          height="250"
+          src="https://example.com/image.png"
+          tabindex="0"
+          title="test title"
+          width="50"
+        />
+        <span
+          class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+        >
+          <button
+            aria-label="Copy link"
+            class="style--none size-aware-image__copy_link"
+          >
+            <svg
+              class="style--none"
+              fill="currentColor"
+              height="20"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </button>
+          <a
+            aria-label="Download"
+            class="style--none size-aware-image__download"
+            download=""
+            href="https://example.com/image.png"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <svg
+              class="style--none"
+              fill="currentColor"
+              height="20"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </a>
+        </span>
+      </figure>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/MarkdownImage should render a link if the source is unsafe 1`] = `
-<div
-  style={
-    Object {
-      "display": "inline-block",
-    }
-  }
->
-  <img
-    alt="test image"
-    className="markdown-inline-img broken-image"
-    src=""
-  />
+<div>
+  <div
+    style="display: inline-block;"
+  >
+    <img
+      alt="test image"
+      class="markdown-inline-img broken-image"
+      src=""
+    />
+  </div>
 </div>
 `;
 
 exports[`components/MarkdownImage should render an image with no preview if the source is safe and the image is a link 1`] = `
 <div>
-  <injectIntl(SizeAwareImage)
-    alt="test image"
-    className="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
-    dimensions={
-      Object {
-        "format": "png",
-        "frameCount": 0,
-        "height": 90,
-        "width": 1041,
-      }
-    }
-    height=""
-    onClick={[Function]}
-    onImageLoadFail={[Function]}
-    onImageLoaded={[Function]}
-    showLoader={false}
-    src="https://example.com/image.png"
-    title="test title"
-    width=""
-  />
+  <div
+    class="file-preview__button"
+    style="display: inline-block;"
+  >
+    <figure
+      class="image-loaded-container"
+    >
+      <img
+        alt="test image"
+        aria-label="file thumbnail"
+        class="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
+        height=""
+        src="https://example.com/image.png"
+        tabindex="0"
+        title="test title"
+        width=""
+      />
+      <span
+        class="image-preview-utility-buttons-container"
+      >
+        <button
+          aria-label="Copy link"
+          class="style--none size-aware-image__copy_link"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+            />
+          </svg>
+        </button>
+        <a
+          aria-label="Download"
+          class="style--none size-aware-image__download"
+          download=""
+          href="https://example.com/image.png"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+            />
+          </svg>
+        </a>
+      </span>
+    </figure>
+  </div>
 </div>
 `;
 
 exports[`components/MarkdownImage should render an image with preview modal if the source is safe 1`] = `
 <div>
-  <injectIntl(SizeAwareImage)
-    alt="test image"
-    className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
-    dimensions={
-      Object {
-        "format": "png",
-        "frameCount": 0,
-        "height": 90,
-        "width": 1041,
-      }
-    }
-    height=""
-    onClick={[Function]}
-    onImageLoadFail={[Function]}
-    onImageLoaded={[Function]}
-    showLoader={false}
-    src="https://example.com/image.png"
-    title="test title"
-    width=""
-  />
+  <div
+    class="file-preview__button"
+    style="display: inline-block;"
+  >
+    <figure
+      class="image-loaded-container"
+    >
+      <img
+        alt="test image"
+        aria-label="file thumbnail"
+        class="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
+        height=""
+        src="https://example.com/image.png"
+        tabindex="0"
+        title="test title"
+        width=""
+      />
+      <span
+        class="image-preview-utility-buttons-container"
+      >
+        <button
+          aria-label="Copy link"
+          class="style--none size-aware-image__copy_link"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+            />
+          </svg>
+        </button>
+        <a
+          aria-label="Download"
+          class="style--none size-aware-image__download"
+          download=""
+          href="https://example.com/image.png"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg
+            class="style--none"
+            fill="currentColor"
+            height="20"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+            />
+          </svg>
+        </a>
+      </span>
+    </figure>
+  </div>
 </div>
 `;
 
 exports[`components/MarkdownImage should render image with MarkdownImageExpand if it is taller than 100px 1`] = `
 <div>
-  <Connect(MarkdownImageExpand)
-    alt="test image"
-    imageKey="https://example.com/image.png"
-    postId="post_id"
+  <div
+    class="markdown-image-expand markdown-image-expand--expanded"
   >
-    <injectIntl(SizeAwareImage)
-      alt="test image"
-      className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
-      dimensions={Object {}}
-      height="250"
-      onClick={[Function]}
-      onImageLoadFail={[Function]}
-      onImageLoaded={[Function]}
-      showLoader={false}
-      src="https://example.com/image.png"
-      title="test title"
-      width="50"
-    />
-  </Connect(MarkdownImageExpand)>
+    <button
+      class="markdown-image-expand__collapse-button"
+      type="button"
+    >
+      <span
+        class="icon icon-menu-down"
+      />
+    </button>
+    <div
+      class="file-preview__button"
+      style="display: inline-block;"
+    >
+      <figure
+        class="image-loaded-container"
+      >
+        <img
+          alt="test image"
+          aria-label="file thumbnail"
+          class="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
+          height="250"
+          src="https://example.com/image.png"
+          tabindex="0"
+          title="test title"
+          width="50"
+        />
+        <span
+          class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+        >
+          <button
+            aria-label="Copy link"
+            class="style--none size-aware-image__copy_link"
+          >
+            <svg
+              class="style--none"
+              fill="currentColor"
+              height="20"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </button>
+          <a
+            aria-label="Download"
+            class="style--none size-aware-image__download"
+            download=""
+            href="https://example.com/image.png"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <svg
+              class="style--none"
+              fill="currentColor"
+              height="20"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </a>
+        </span>
+      </figure>
+    </div>
+  </div>
 </div>
 `;

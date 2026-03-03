@@ -366,6 +366,31 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     );
 }
 
+function renderAutoTranslationChangeMessage(post: Post): ReactNode {
+    if (!post.props.username) {
+        return null;
+    }
+
+    const username = renderUsername(post.props.username);
+    const enabled = post.props.enabled;
+    if (enabled) {
+        return (
+            <FormattedMessage
+                id='api.channel.auto_translation_change.message.enabled'
+                defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
+                values={{username}}
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='api.channel.auto_translation_change.message.disabled'
+            defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
+            values={{username}}
+        />
+    );
+}
+
 function renderMeMessage(post: Post): ReactNode {
     // Trim off the leading and trailing asterisk added to /me messages
     const message = post.message.replace(/^\*|\*$/g, '');
@@ -390,6 +415,7 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.CHANNEL_DELETED]: renderChannelDeletedMessage,
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
+    [Posts.POST_TYPES.AUTO_TRANSLATION_CHANGE]: renderAutoTranslationChangeMessage,
 };
 
 export type AddMemberProps = {

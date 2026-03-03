@@ -1,0 +1,69 @@
+---
+name: E2E Tests Check
+on:
+  pull_request:
+    paths:
+      - "e2e-tests/**"
+      - "webapp/platform/client/**"
+      - "webapp/platform/types/**"
+      - ".github/workflows/e2e-*.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: |
+            e2e-tests/cypress/package-lock.json
+            e2e-tests/playwright/package-lock.json
+
+      # Cypress check
+      - name: ci/cypress/npm-install
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      - name: ci/cypress/npm-check
+        working-directory: e2e-tests/cypress
+        run: npm run check
+
+      # Playwright check
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/playwright/npm-install
+        working-directory: e2e-tests/playwright
+        run: npm ci
+      - name: ci/playwright/npm-check
+        working-directory: e2e-tests/playwright
+        run: npm run check
+
+      # Shell check
+      - name: ci/shell-check
+        working-directory: e2e-tests
+        run: make check-shell
+
+      # E2E-only check and trigger
+      - name: ci/check-e2e-test-only
+        id: check
+        uses: ./.github/actions/check-e2e-test-only
+        with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          head_sha: ${{ github.event.pull_request.head.sha }}
+
+      - name: ci/trigger-e2e-with-master-image
+        if: steps.check.outputs.e2e_test_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          IMAGE_TAG: ${{ steps.check.outputs.image_tag }}
+        run: |
+          echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
+          gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"

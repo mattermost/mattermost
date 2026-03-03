@@ -1,51 +1,53 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`FileThumbnail should render a normal-sized image 1`] = `
-<div
-  className="post-image normal"
-  style={
-    Object {
-      "backgroundImage": "url(/api/v4/files/thumbnail_id/thumbnail)",
-      "backgroundSize": "cover",
-    }
-  }
-/>
+<div>
+  <div
+    class="post-image normal"
+    style="background-image: url(\\"/api/v4/files/thumbnail_id/thumbnail\\"); background-size: cover;"
+  />
+</div>
 `;
 
 exports[`FileThumbnail should render a small image 1`] = `
-<div
-  className="post-image small"
-  style={
-    Object {
-      "backgroundImage": "url(/api/v4/files/thumbnail_id/thumbnail)",
-      "backgroundSize": "cover",
-    }
-  }
-/>
+<div>
+  <div
+    class="post-image small"
+    style="background-image: url(\\"/api/v4/files/thumbnail_id/thumbnail\\"); background-size: cover;"
+  />
+</div>
 `;
 
 exports[`FileThumbnail should render an icon for a PDF 1`] = `
-<div
-  className="file-icon pdf"
-/>
+<div>
+  <div
+    class="file-icon pdf"
+  />
+</div>
 `;
 
 exports[`FileThumbnail should render an icon for a PSD (MM-67077) 1`] = `
-<div
-  className="file-icon generic"
-/>
+<div>
+  <div
+    class="file-icon generic"
+  />
+</div>
 `;
 
 exports[`FileThumbnail should render an icon for an SVG when SVG previews are disabled 1`] = `
-<div
-  className="file-icon generic"
-/>
+<div>
+  <div
+    class="file-icon generic"
+  />
+</div>
 `;
 
 exports[`FileThumbnail should render an svg when svg previews are enabled 1`] = `
-<img
-  alt="file thumbnail image"
-  className="post-image normal"
-  src="/api/v4/files/thumbnail_id"
-/>
+<div>
+  <img
+    alt="file thumbnail image"
+    class="post-image normal"
+    src="/api/v4/files/thumbnail_id"
+  />
+</div>
 `;
