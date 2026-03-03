@@ -126,8 +126,8 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 				if attachment == nil {
 					continue
 				}
-				m, ok := attachment.(map[string]any)
-				if !ok {
+				m, mOk := attachment.(map[string]any)
+				if !mOk {
 					continue
 				}
 				for _, key := range []string{"text", "title", "pretext", "fallback"} {
