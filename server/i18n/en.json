@@ -10014,7 +10014,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Workers must be between 1 and 32."
+    "translation": "Workers must be between 1 and 64."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
