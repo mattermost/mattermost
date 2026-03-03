@@ -79,6 +79,7 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
+        // Clone to avoid mutating the original moment when converting to UTC
         return momentValue.clone().utc().format(MOMENT_DATETIME_FORMAT);
     }
 

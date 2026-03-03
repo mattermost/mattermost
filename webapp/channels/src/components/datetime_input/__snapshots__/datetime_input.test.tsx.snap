@@ -64,7 +64,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
           class="date-time-input__value"
         >
           <time
-            datetime="2025-06-08T12:09:00.000"
+            datetime="2025-06-08T12:09:00.000Z"
           >
             12:09 PM
           </time>

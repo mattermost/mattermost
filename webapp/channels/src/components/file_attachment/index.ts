@@ -6,7 +6,10 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isFileRejected} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
@@ -20,6 +23,7 @@ import FileAttachment from './file_attachment';
 
 export type OwnProps = {
     preventDownload?: boolean;
+    fileInfo: FileInfo;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
@@ -31,6 +35,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         enablePublicLink: config.EnablePublicLink === 'true',
         pluginMenuItems: getFilesDropdownPluginMenuItems(state),
         currentChannel: getCurrentChannel(state),
+        isFileRejected: isFileRejected(state, ownProps.fileInfo.id),
     };
 }
 
