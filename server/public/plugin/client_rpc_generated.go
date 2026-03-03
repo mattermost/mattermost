@@ -5042,7 +5042,7 @@ func (g *apiRPCClient) SendToastMessage(userID, connectionID, message string, op
 	_args := &Z_SendToastMessageArgs{userID, connectionID, message, options}
 	_returns := &Z_SendToastMessageReturns{}
 	if err := g.client.Call("Plugin.SendToastMessage", _args, _returns); err != nil {
-		log.Printf("RPC call to SendToastMessage API failed: %s", err.Error())
+		g.LogError("RPC call to SendToastMessage API failed:", mlog.Err(err))
 	}
 	return _returns.A
 }
