@@ -97,8 +97,8 @@
         --item-child-small-img-object-fit: contain;
 
         display: grid;
-        grid-template-rows: 1fr;
         overflow: hidden; // Clip content during expand/collapse animation
+        grid-template-rows: 1fr;
         transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing);
         
         @media (prefers-reduced-motion: reduce) {
