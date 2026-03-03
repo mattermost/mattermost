@@ -9,6 +9,7 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from 'react';
 import type {
     ReactNode,
@@ -272,13 +273,20 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    const prevIsMenuOpenRef = useRef(props.menu.isMenuOpen);
     useEffect(() => {
+        const prev = prevIsMenuOpenRef.current;
+        prevIsMenuOpenRef.current = props.menu.isMenuOpen;
+
         if (props.menu.isMenuOpen === true && !anchorElement) {
             const button = document.getElementById(props.menuButton.id);
             if (button) {
                 setAnchorElement(button);
             }
         } else if (props.menu.isMenuOpen === false && anchorElement) {
+            setAnchorElement(null);
+        } else if (props.menu.isMenuOpen == null && prev === true && anchorElement) {
+            // Transition from controlled-open to uncontrolled — close the menu
             setAnchorElement(null);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude anchorElement/id to avoid loops
