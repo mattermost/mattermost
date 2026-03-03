@@ -6,7 +6,7 @@ package fileutils
 import (
 	"os"
 	"path/filepath"
-
+	"strings"
 	"github.com/mattermost/mattermost/server/v8"
 )
 
@@ -25,11 +25,9 @@ func CommonBaseSearchPaths() []string {
 }
 
 func findPath(path string, baseSearchPaths []string, workingDirFirst bool, filter func(os.FileInfo) bool) string {
-	if filepath.IsAbs(path) {
-		if _, err := os.Stat(path); err == nil {
-			return path
-		}
-
+	// Validate path input to prevent directory traversal or absolute path access
+	if filepath.IsAbs(path) || strings.Contains(path, "..") || strings.Contains(path, "/") || strings.Contains(path, "\\") {
+		// Disallowed: absolute paths, traversal, or path separators
 		return ""
 	}
 

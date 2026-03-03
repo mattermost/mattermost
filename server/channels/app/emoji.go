@@ -104,6 +104,10 @@ func (a *App) GetEmojiList(rctx request.CTX, page, perPage int, sort string) ([]
 }
 
 func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, file io.ReadSeeker) *model.AppError {
+	// Validate that the id is a safe single path component
+	if !isSafePathComponent(id) {
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.id.invalid", nil, "Unsafe emoji id used in file path", http.StatusBadRequest)
+	}
 	// make sure the file is an image and is within the required dimensions
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
@@ -326,8 +330,20 @@ func resizeEmojiGif(gifImg *gif.GIF) {
 	gifImg.Config.Height = resizedImage.Bounds().Dy()
 }
 
+// getEmojiImagePath constructs the storage path for an emoji's image given its id.
 func getEmojiImagePath(id string) string {
 	return "emoji/" + id + "/image"
+}
+
+// isSafePathComponent returns true iff s does not contain path separators or ".." and is non-empty
+func isSafePathComponent(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	if strings.Contains(s, "/") || strings.Contains(s, "\\") || strings.Contains(s, "..") {
+		return false
+	}
+	return true
 }
 
 func resizeEmoji(img image.Image, width int, height int) image.Image {
