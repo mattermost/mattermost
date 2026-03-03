@@ -47,7 +47,6 @@
 
                 button.single-image-view__toggle {
                     // Use opacity instead of display:none so the toggle stays in tab order for keyboard users
-                    opacity: 0;
                     width: 24px;
                     height: 24px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -55,6 +54,7 @@
                     background-color: var(--center-channel-bg);
                     box-shadow: variables.$elevation-1;
                     line-height: 20px;
+                    opacity: 0;
                     transition: opacity 0.15s ease;
 
                     &:hover {
@@ -73,8 +73,8 @@
 
         // Show toggle on hover (opacity) for mouse users
         &:hover .image-header--expanded button.single-image-view__toggle {
-            opacity: 1;
             color: rgba(var(--center-channel-color-rgb), 0.75);
+            opacity: 1;
         }
 
         .image-container {
@@ -178,9 +178,9 @@
                     }
 
                     &:focus-visible {
+                        border-radius: 4px;
                         outline: 2px solid var(--button-bg);
                         outline-offset: 2px;
-                        border-radius: 4px;
                     }
                 }
             }
