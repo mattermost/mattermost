@@ -28,7 +28,6 @@ function ResizableRhs({
     ariaLabeledby,
 }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const resizeDisabledTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const rhsSize = useSelector(getRhsSize);
     const isRhsExpanded = useSelector(getIsRhsExpanded);
@@ -79,30 +78,15 @@ function ResizableRhs({
             return;
         }
 
-        // Clear any existing timer so rapid toggles don't leave stale timers running
-        if (resizeDisabledTimeoutRef.current != null) {
-            clearTimeout(resizeDisabledTimeoutRef.current);
-            resizeDisabledTimeoutRef.current = null;
-        }
-
         setPreviousRhsExpanded(isRhsExpanded);
 
         if (previousRhsExpanded && !isRhsExpanded) {
             containerRefElement.classList.add('resize-disabled');
 
-            resizeDisabledTimeoutRef.current = setTimeout(() => {
+            setTimeout(() => {
                 containerRefElement.classList.remove('resize-disabled');
-                resizeDisabledTimeoutRef.current = null;
             }, 1000);
         }
-
-        return () => {
-            if (resizeDisabledTimeoutRef.current != null) {
-                clearTimeout(resizeDisabledTimeoutRef.current);
-                resizeDisabledTimeoutRef.current = null;
-            }
-            containerRef.current?.classList.remove('resize-disabled');
-        };
     }, [isRhsExpanded]);
 
     return (
