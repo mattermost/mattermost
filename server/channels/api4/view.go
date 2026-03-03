@@ -113,10 +113,13 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("cursor_create_at")
 			return
 		}
-		cursorSortOrder, err := strconv.Atoi(query.Get("cursor_sort_order"))
-		if err != nil {
-			c.SetInvalidParam("cursor_sort_order")
-			return
+		var cursorSortOrder int
+		if s := query.Get("cursor_sort_order"); s != "" {
+			cursorSortOrder, err = strconv.Atoi(s)
+			if err != nil {
+				c.SetInvalidParam("cursor_sort_order")
+				return
+			}
 		}
 		opts.Cursor = model.ViewQueryCursor{
 			ViewID:    cursorViewID,

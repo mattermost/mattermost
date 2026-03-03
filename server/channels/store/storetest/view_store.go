@@ -295,7 +295,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		assert.NotEqual(t, page1[0].Id, page2[0].Id)
 	})
 
-	t.Run("defaults PerPage to 20 when 0", func(t *testing.T) {
+	t.Run("defaults PerPage to ViewQueryDefaultPerPage when 0", func(t *testing.T) {
 		ch := model.NewId()
 		creator := model.NewId()
 		for i := 0; i < model.ViewQueryDefaultPerPage+1; i++ {

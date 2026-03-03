@@ -194,6 +194,54 @@ func TestGetViewsForChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("pagination with HasMore and cursor continuation", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// Create 3 views
+		for i := 0; i < 3; i++ {
+			v := makeTestViewForAPI()
+			v.Title = "Paginated View"
+			v.SortOrder = i
+			_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+			require.NoError(t, err)
+		}
+
+		// Page 1: request per_page=2
+		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, result.Views, 2)
+		require.True(t, result.HasMore)
+		require.NotNil(t, result.NextCursor)
+
+		// Page 2: use cursor from page 1
+		result2, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{
+			PerPage: 2,
+			Cursor:  *result.NextCursor,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, result2.Views, 1)
+		require.False(t, result2.HasMore)
+		require.Nil(t, result2.NextCursor)
+
+		// Ensure no overlap between pages
+		require.NotEqual(t, result.Views[0].Id, result2.Views[0].Id)
+		require.NotEqual(t, result.Views[1].Id, result2.Views[0].Id)
+	})
+
+	t.Run("invalid cursor_view_id returns 400", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		_, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{
+			Cursor: model.ViewQueryCursor{
+				ViewID:   "invalid",
+				CreateAt: 1000,
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetView(t *testing.T) {
