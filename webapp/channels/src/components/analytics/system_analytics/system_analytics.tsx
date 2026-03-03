@@ -488,7 +488,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         const shouldShowSingleChannelGuests = isLicensed && !isEntrySku && guestAccountsEnabled;
 
         const singleChannelGuestsCount = this.getStatValue(stats[StatTypes.SINGLE_CHANNEL_GUESTS]);
-        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? 0;
+        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? parseInt(this.props.license.Users, 10);
 
         const singleChannelGuests = shouldShowSingleChannelGuests ? (
             <SingleChannelGuestsCard
