@@ -132,7 +132,7 @@ describe('ImageGallery', () => {
                 isEmbedVisible={false}
             />,
         );
-        expect(screen.getByRole('application')).toHaveClass('collapsed');
+        expect(screen.getByRole('region', {name: /image gallery with 2 images/i})).toHaveClass('collapsed');
     });
 
     it('calls onToggleCollapse when toggled', () => {

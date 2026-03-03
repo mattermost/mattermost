@@ -46,7 +46,7 @@ exports[`ImageGallery matches snapshot 1`] = `
       class="image-gallery__body"
       data-testid="image-gallery__body"
       id="image-gallery-body-post1"
-      role="application"
+      role="region"
       tabindex="-1"
     >
       <div

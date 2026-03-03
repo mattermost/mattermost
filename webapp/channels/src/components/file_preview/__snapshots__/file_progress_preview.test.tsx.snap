@@ -10,7 +10,7 @@ exports[`component/file_preview/file_progress_preview should match snapshot 1`] 
       class="post-image__thumbnail"
     >
       <div
-        class="file-icon generic"
+        class="file-icon image"
       />
     </div>
     <div
@@ -73,7 +73,7 @@ exports[`component/file_preview/file_progress_preview snapshot for percent value
       class="post-image__thumbnail"
     >
       <div
-        class="file-icon generic"
+        class="file-icon image"
       />
     </div>
     <div
