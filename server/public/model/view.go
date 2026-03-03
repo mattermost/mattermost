@@ -88,9 +88,15 @@ type ViewPatch struct {
 }
 
 type ViewQueryCursor struct {
-	ViewID    string
-	CreateAt  int64
-	SortOrder int
+	ViewID    string `json:"view_id"`
+	CreateAt  int64  `json:"create_at"`
+	SortOrder int    `json:"sort_order"`
+}
+
+type ViewListResponse struct {
+	Views      []*View          `json:"views"`
+	HasMore    bool             `json:"has_more"`
+	NextCursor *ViewQueryCursor `json:"next_cursor,omitempty"`
 }
 
 func (c ViewQueryCursor) IsEmpty() bool {
@@ -113,13 +119,13 @@ func (c ViewQueryCursor) IsValid() error {
 	return nil
 }
 
-const ViewQueryDefaultPerPage = 20
+const ViewQueryDefaultPerPage = 60
 const ViewQueryMaxPerPage = 200
 
 type ViewQueryOpts struct {
 	IncludeDeleted bool
 	Cursor         ViewQueryCursor
-	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (20).
+	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (60).
 	// Values above ViewQueryMaxPerPage (200) are clamped to ViewQueryMaxPerPage.
 	PerPage int
 }

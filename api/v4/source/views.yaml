@@ -18,15 +18,47 @@
           required: true
           schema:
             type: string
+        - name: per_page
+          in: query
+          description: The number of views per page (default 60, max 200)
+          required: false
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+        - name: cursor_view_id
+          in: query
+          description: The view ID from a previous page's `next_cursor` to continue pagination
+          required: false
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: The create_at value from a previous page's `next_cursor`
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_sort_order
+          in: query
+          description: The sort_order value from a previous page's `next_cursor`
+          required: false
+          schema:
+            type: integer
+        - name: include_deleted
+          in: query
+          description: Whether to include soft-deleted views
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Channel views retrieval successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/View"
+                $ref: "#/components/schemas/ViewListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

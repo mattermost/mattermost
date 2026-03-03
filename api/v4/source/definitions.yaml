@@ -445,6 +445,34 @@ components:
           type: integer
         props:
           $ref: "#/components/schemas/ViewBoardProps"
+    ViewQueryCursor:
+      type: object
+      description: Cursor position for paginating view lists
+      properties:
+        view_id:
+          type: string
+          description: The ID of the last view in the page
+        create_at:
+          type: integer
+          format: int64
+          description: The create_at timestamp of the last view in the page
+        sort_order:
+          type: integer
+          description: The sort_order of the last view in the page
+    ViewListResponse:
+      type: object
+      description: Paginated list of views
+      properties:
+        views:
+          type: array
+          items:
+            $ref: "#/components/schemas/View"
+        has_more:
+          type: boolean
+          description: Whether there are more views available beyond this page
+        next_cursor:
+          $ref: "#/components/schemas/ViewQueryCursor"
+          description: Cursor to pass as query parameters for the next page. Only present when has_more is true.
     Post:
       type: object
       properties:

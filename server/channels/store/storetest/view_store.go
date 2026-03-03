@@ -196,7 +196,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, page2, 1)
 		assert.Equal(t, saved[2].Id, page2[0].Id)
-		assert.False(t, cursor2.IsEmpty(), "cursor should point to last returned element")
+		assert.True(t, cursor2.IsEmpty(), "cursor should be empty when no more pages")
 	})
 
 	t.Run("includes deleted when IncludeDeleted=true", func(t *testing.T) {

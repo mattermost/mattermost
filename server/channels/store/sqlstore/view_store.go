@@ -155,7 +155,7 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 	builder := s.viewSelect.
 		Where(sq.Eq{"ChannelId": channelID}).
 		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC").
-		Limit(uint64(opts.PerPage))
+		Limit(uint64(opts.PerPage + 1))
 
 	if !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
@@ -191,7 +191,9 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 	}
 
 	var nextCursor model.ViewQueryCursor
-	if len(views) > 0 {
+	if len(views) > opts.PerPage {
+		// Trim the extra row and build cursor from the last kept item.
+		views = views[:opts.PerPage]
 		last := views[len(views)-1]
 		nextCursor = model.ViewQueryCursor{
 			ViewID:    last.Id,

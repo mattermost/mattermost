@@ -167,18 +167,20 @@ func TestGetViewsForChannel(t *testing.T) {
 		_, _, err = th.Client.CreateView(context.Background(), channel.Id, v2)
 		require.NoError(t, err)
 
-		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
+		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, views, 2)
+		require.Len(t, result.Views, 2)
+		require.False(t, result.HasMore)
+		require.Nil(t, result.NextCursor)
 	})
 
 	t.Run("empty channel returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
+		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Empty(t, views)
+		require.Empty(t, result.Views)
 	})
 
 	t.Run("permission denied for non-member", func(t *testing.T) {
@@ -188,7 +190,7 @@ func TestGetViewsForChannel(t *testing.T) {
 		user2Client := th.CreateClient()
 		th.LoginBasic2WithClient(t, user2Client)
 
-		_, resp, err := user2Client.GetViewsForChannel(context.Background(), channel.Id)
+		_, resp, err := user2Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -424,7 +426,7 @@ func TestViewFeatureFlagOff(t *testing.T) {
 	})
 
 	t.Run("list returns 404 when flag is off", func(t *testing.T) {
-		_, resp, err := th.Client.GetViewsForChannel(context.Background(), th.BasicChannel.Id)
+		_, resp, err := th.Client.GetViewsForChannel(context.Background(), th.BasicChannel.Id, model.ViewQueryOpts{})
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})

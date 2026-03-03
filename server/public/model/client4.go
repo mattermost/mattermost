@@ -7709,14 +7709,30 @@ func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View,
 	return DecodeJSONFromResponse[*View](r)
 }
 
-// GetViewsForChannel lists all views for a channel.
-func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string) ([]*View, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.viewsRoute(channelId), "")
+// GetViewsForChannel lists views for a channel with cursor-based pagination.
+func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) (*ViewListResponse, *Response, error) {
+	query := url.Values{}
+	if len(opts) > 0 {
+		o := opts[0]
+		if o.PerPage > 0 {
+			query.Set("per_page", strconv.Itoa(o.PerPage))
+		}
+		if o.IncludeDeleted {
+			query.Set("include_deleted", "true")
+		}
+		if !o.Cursor.IsEmpty() {
+			query.Set("cursor_view_id", o.Cursor.ViewID)
+			query.Set("cursor_create_at", strconv.FormatInt(o.Cursor.CreateAt, 10))
+			query.Set("cursor_sort_order", strconv.Itoa(o.Cursor.SortOrder))
+		}
+	}
+
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*View](r)
+	return DecodeJSONFromResponse[*ViewListResponse](r)
 }
 
 // UpdateView patches a view.

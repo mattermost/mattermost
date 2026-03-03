@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -97,13 +98,48 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	views, _, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, model.ViewQueryOpts{})
+	query := r.URL.Query()
+	opts := model.ViewQueryOpts{
+		PerPage: c.Params.PerPage,
+	}
+	opts.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
+	if cursorViewID := query.Get("cursor_view_id"); cursorViewID != "" {
+		if !model.IsValidId(cursorViewID) {
+			c.SetInvalidParam("cursor_view_id")
+			return
+		}
+		cursorCreateAt, err := strconv.ParseInt(query.Get("cursor_create_at"), 10, 64)
+		if err != nil || cursorCreateAt <= 0 {
+			c.SetInvalidParam("cursor_create_at")
+			return
+		}
+		cursorSortOrder, err := strconv.Atoi(query.Get("cursor_sort_order"))
+		if err != nil {
+			c.SetInvalidParam("cursor_sort_order")
+			return
+		}
+		opts.Cursor = model.ViewQueryCursor{
+			ViewID:    cursorViewID,
+			CreateAt:  cursorCreateAt,
+			SortOrder: cursorSortOrder,
+		}
+	}
+
+	views, nextCursor, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(views); err != nil {
+	resp := model.ViewListResponse{
+		Views:   views,
+		HasMore: !nextCursor.IsEmpty(),
+	}
+	if resp.HasMore {
+		resp.NextCursor = &nextCursor
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
