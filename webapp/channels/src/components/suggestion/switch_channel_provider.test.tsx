@@ -587,7 +587,12 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -670,7 +675,12 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -757,7 +767,12 @@ describe('components/SwitchChannelProvider', () => {
             'channel_other_user1',
         ];
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -906,7 +921,12 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: channelsFromActiveTeams,
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: channelsFromActiveTeams,
+                }),
+            ]),
         }));
     });
 
@@ -992,7 +1012,12 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 

@@ -792,10 +792,6 @@
     "translation": "No se encontró el canal especificado. Por favor utiliza el [identificador del canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar canales."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "No se pudo silenciar el canal {{.Channel}} porque no eres miembro."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "No recibirás notificaciones para {{.Channel}} mientras el canal es silenciado."
   },
@@ -8602,10 +8598,6 @@
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Sólo las publicaciones raíz tienen permitidas tener prioridad."
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "El servidor CWS no está disponible."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",

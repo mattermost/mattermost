@@ -2857,7 +2857,6 @@
   "admin.site.fileSharingDownloads": "Абмен файламі і загрузкі",
   "admin.site.localization": "Лакалізацыя",
   "admin.site.localization.autoTranslationInfo": "Аўтапераклад таксама павінен быць уключаны ў кожным канале, дзе ён патрэбны.",
-  "admin.site.localization.autoTranslationInfoSecondary": "Калі выяўлена некалькі моў, карыстальнікам будзе прапанавана ўключыць аўтапераклад. [Даведацца больш](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>УВАГА:</strong> Калі вы карыстаецеся знешнімі службамі перакладу (напрыклад, воблачнымі),{br}даныя паведамлення могуць апрацоўвацца па-за межамі вашага асяроддзя.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "Калі ваш сервер LibreTranslate патрабуе ключа API, увядзіце яго тут. У адваротным выпадку пакіньце гэтае поле пустым. Глядзіце <link>дакументацыю LibreTranslate</link> для кіравання ключамі API.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "Увядзіце ключ API LibreTranslate",

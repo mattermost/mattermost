@@ -24,19 +24,19 @@ type Container struct {
 
 func main() {
 	validServices := map[string]int{
-		"postgres":      5432,
-		"minio":         9000,
-		"inbucket":      9001,
-		"openldap":      389,
-		"elasticsearch": 9200,
-		"opensearch":    9201,
-		"redis":         6379,
-		"dejavu":        1358,
-		"keycloak":      8080,
-		"prometheus":    9090,
-		"grafana":       3000,
-		"loki":          3100,
-		"promtail":      3180,
+		"postgres":       5432,
+		"minio":          9000,
+		"inbucket":       9001,
+		"openldap":       389,
+		"elasticsearch":  9200,
+		"opensearch":     9201,
+		"redis":          6379,
+		"dejavu":         1358,
+		"keycloak":       8080,
+		"prometheus":     9090,
+		"grafana":        3000,
+		"loki":           3100,
+		"otel-collector": 13133,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

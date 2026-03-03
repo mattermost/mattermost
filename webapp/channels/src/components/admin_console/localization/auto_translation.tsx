@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
+import BooleanSetting from 'components/admin_console/boolean_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
 import {
@@ -14,8 +15,10 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
+import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n.jsx';
 
@@ -24,8 +27,9 @@ import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
-import './localization.scss';
 import type {SearchableStrings} from '../types';
+
+import './localization.scss';
 
 const locales = I18n.getAllLanguages();
 
@@ -52,6 +56,12 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         return settings;
     });
 
+    // Track timeout input separately to allow intermediate invalid states while typing
+    const [timeoutInputValue, setTimeoutInputValue] = useState<string>(
+        String(autoTranslationSettings.TimeoutMs || 5000),
+    );
+    const [timeoutError, setTimeoutError] = useState<string>('');
+
     const handleChange = useCallback((id: string, value: AutoTranslationSettings[keyof AutoTranslationSettings] | string[]) => {
         const updatedSettings = {
             ...autoTranslationSettings,
@@ -60,6 +70,22 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         setAutoTranslationSettings(updatedSettings);
         props.onChange(props.id, updatedSettings);
     }, [props, autoTranslationSettings]);
+
+    const handleTimeoutChange = useCallback((id: string, value: string) => {
+        setTimeoutInputValue(value);
+
+        const numValue = parseInt(value, 10);
+        if (value === '' || isNaN(numValue) || numValue <= 0) {
+            setTimeoutError('Timeout must be a positive number');
+
+            // Propagate 0 so backend validation will reject the save
+            handleChange(id, 0);
+            return;
+        }
+
+        setTimeoutError('');
+        handleChange(id, numValue);
+    }, [handleChange]);
 
     const handleToggle = useCallback(() => {
         const newValue = !autoTranslationSettings.Enable;
@@ -129,6 +155,9 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
+                            <BetaTag
+                                variant='default'
+                            />
                         </h1>
                         <h5 className='localization-section-description'>
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>
@@ -230,6 +259,51 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                         />
                     }
                     selected={selectedLanguages}
+                    onChange={handleChange}
+                    disabled={props.disabled || props.setByEnv}
+                    setByEnv={props.setByEnv}
+                />
+                <TextSetting
+                    id='TimeoutMs'
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.autoTranslationTimeoutTitle'
+                            defaultMessage='Translation timeout (ms):'
+                        />
+                    }
+                    placeholder={defineMessage({
+                        id: 'admin.site.localization.autoTranslationTimeoutPlaceholder',
+                        defaultMessage: 'e.g.: 5000',
+                    })}
+                    helpText={timeoutError ? (
+                        <span className='autotranslation-error error-message'>{timeoutError}</span>
+                    ) : (
+                        <FormattedMessage
+                            id='admin.site.localization.autoTranslationTimeoutDescription'
+                            defaultMessage='Maximum time in milliseconds to wait for a translation response. Default is 5000ms (5 seconds).'
+                        />
+                    )}
+                    type='number'
+                    value={timeoutInputValue}
+                    setByEnv={props.setByEnv}
+                    onChange={handleTimeoutChange}
+                    disabled={props.disabled}
+                />
+                <BooleanSetting
+                    id='RestrictDMAndGM'
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMTitle'
+                            defaultMessage='Restrict auto-translation on direct messages and group messages'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMDescription'
+                            defaultMessage='By default, any member of a direct message or group message can enable auto-translation in those channels. If restricted, auto-translation will not be available in direct messages and group messages.'
+                        />
+                    }
+                    value={autoTranslationSettings.RestrictDMAndGM}
                     onChange={handleChange}
                     disabled={props.disabled || props.setByEnv}
                     setByEnv={props.setByEnv}

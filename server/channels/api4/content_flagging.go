@@ -20,18 +20,19 @@ func (api *API) InitContentFlagging() {
 		return
 	}
 
-	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(getFlaggingConfiguration)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostFlaggingFeatureStatus)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(flagPost)).Methods(http.MethodPost)
-	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(getContentFlaggingFields)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(getPostPropertyValues)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(contentFlaggingRequired(getFlaggingConfiguration))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(contentFlaggingRequired(getTeamPostFlaggingFeatureStatus))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(contentFlaggingRequired(flagPost))).Methods(http.MethodPost)
+	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(contentFlaggingRequired(getContentFlaggingFields))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(contentFlaggingRequired(getPostPropertyValues))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(getFlaggedPost))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(contentFlaggingRequired(removeFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(contentFlaggingRequired(keepFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(contentFlaggingRequired(searchReviewers))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(assignFlaggedPostReviewer))).Methods(http.MethodPost)
+
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
 }
 
 func requireContentFlaggingAvailable(c *Context) {
@@ -51,6 +52,17 @@ func requireContentFlaggingEnabled(c *Context) {
 	if contentFlaggingEnabled == nil || !*contentFlaggingEnabled {
 		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.disabled", nil, "", http.StatusNotImplemented)
 		return
+	}
+}
+
+func contentFlaggingRequired(h handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
+
+		h(c, w, r)
 	}
 }
 
@@ -81,7 +93,6 @@ func requireFlaggedPost(c *Context, postId string) {
 }
 
 func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -112,7 +123,6 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -145,7 +155,6 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 }
 
 func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -226,7 +235,6 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, as
 }
 
 func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -250,7 +258,6 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -294,7 +301,6 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -406,7 +412,6 @@ func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagContentActionRequest, string, *model.Post) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return nil, "", nil
 	}
@@ -525,7 +530,6 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -557,7 +561,6 @@ func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}

@@ -17,6 +17,7 @@ type Props = {
     post: Post;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
+    isChannelAutotranslated: boolean;
 }
 
 function Reply({
@@ -26,6 +27,7 @@ function Reply({
     post,
     previousPostId,
     timestampProps,
+    isChannelAutotranslated,
 }: Props) {
     return (
         <PostComponent
@@ -36,6 +38,7 @@ function Reply({
             previousPostId={previousPostId}
             timestampProps={timestampProps}
             location={Locations.RHS_COMMENT}
+            isChannelAutotranslated={isChannelAutotranslated}
         />
     );
 }

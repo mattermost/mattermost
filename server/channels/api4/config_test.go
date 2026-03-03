@@ -593,9 +593,13 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 
-	require.Contains(t, string(data),
-		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}`,
-			timeoutVal+1, timeoutVal))
+	entry := FindAuditEntry(string(data), "updateConfig", "")
+	require.NotNil(t, entry, "should find an updateConfig audit entry")
+	// Verify config diffs are in the raw entry
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("actual_val:%d", timeoutVal+1))
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("base_val:%d", timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
