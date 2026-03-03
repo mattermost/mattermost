@@ -65,11 +65,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -197,7 +197,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel."
+    "translation": "You cannot modify an archived channel."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -985,7 +985,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since Unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
@@ -4981,11 +4981,11 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Invalid ChannelID for RootID parameter."
+    "translation": "Invalid ChannelId for RootId parameter."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Can not post to deleted channel."
+    "translation": "Cannot post to deleted channel."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
@@ -5033,11 +5033,11 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid."
+    "translation": "The sign-up link does not appear to be valid."
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-    "translation": "The signup link has expired."
+    "translation": "The sign-up link has expired."
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -5165,7 +5165,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": "The number of users requested is not correct."
+    "translation": "The number of users requested is incorrect."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5217,7 +5217,7 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "group name already exists as a username"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
@@ -5229,7 +5229,7 @@
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "LDAP group not found"
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -5253,11 +5253,11 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "Invalid redirect url has been provided"
+    "translation": "Invalid redirect URL has been provided"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Invalid custom url scheme has been provided"
+    "translation": "Invalid custom URL scheme has been provided"
   },
   {
     "id": "api.invalid_channel",
@@ -5273,7 +5273,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "Requested image URL cannot be parsed."
   },
   {
     "id": "api.getThreadsForUser.bad_params",
@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "File attachments have been disabled on this server."
+    "translation": "File attachments are disabled on this server."
   },
   {
     "id": "api.file.append_file.app_error",
@@ -5873,7 +5873,7 @@
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
-    "translation": "Error trying to save the first admin visit marketplace status in the store."
+    "translation": "Error trying to mark the first admin marketplace visit in the store."
   },
   {
     "id": "api.error_get_first_admin_visit_marketplace_status",
@@ -6023,7 +6023,7 @@
   },
   {
     "id": "api.context.permissions.app_error",
-    "translation": "You do not have the appropriate permissions."
+    "translation": "You lack the appropriate permissions."
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -6167,7 +6167,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Secure connection | Site URL | Read Only | Invite accepted | Online | Last Sync |"
+    "translation": "| Secure connection | Site URL | Read-only | Invite accepted | Online | Last sync |"
   },
   {
     "id": "api.command_share.remote_not_valid",
@@ -6351,7 +6351,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Set your status offline"
+    "translation": "Set your status to 'offline'"
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
@@ -6391,7 +6391,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
+    "translation": "You lack the appropriate permissions to direct message this user."
   },
   {
     "id": "api.command_msg.name",
@@ -6435,7 +6435,7 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Logout of Mattermost"
+    "translation": "Log out of Mattermost"
   },
   {
     "id": "api.command_leave.name",
@@ -6443,7 +6443,7 @@
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "An error occurred while leaving the channel."
+    "translation": "An error occurred whilst leaving the channel."
   },
   {
     "id": "api.command_leave.desc",
@@ -6487,7 +6487,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": {
+      "one": "{{.User}} is already in the channel.",
+      "other": "{{.User}} are already in the channel."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -6499,7 +6502,7 @@
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+    "translation": "You lack sufficient permissions to add {{.User}} to {{.Channel}}."
   },
   {
     "id": "api.command_invite.name",
@@ -6535,7 +6538,7 @@
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_help.name",
@@ -6547,7 +6550,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
+    "translation": "You lack the appropriate permissions to create a new group message."
   },
   {
     "id": "api.command_groupmsg.name",
@@ -6634,7 +6637,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Do not disturb disables desktop and mobile push notifications."
+    "translation": "'Do not disturb' disables desktop and mobile push notifications."
   },
   {
     "id": "api.command_custom_status.success",
@@ -6822,7 +6825,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initialise rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "Unable to initialise rate-limiting memory store. Check MemoryStoreSize config setting."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
@@ -6958,7 +6961,7 @@
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
-    "translation": "Unable to update sidebar to match deleted preferences"
+    "translation": "Unable to update sidebar to match deleted preferences."
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
@@ -6986,7 +6989,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Cannot update a post in a deleted channel."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
@@ -7026,7 +7029,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Cannot update a post in a deleted channel."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -7056,23 +7059,23 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for further information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for further information."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for further information."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Cannot delete a post in a deleted channel."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Rejected post because another client is making the same request."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -7084,7 +7087,7 @@
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Invalid RootID parameter."
+    "translation": "Invalid RootId parameter."
   },
   {
     "id": "api.command_collapse.success",
@@ -7168,7 +7171,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "You don't have the appropriate permissions to edit the channel purpose."
+    "translation": "You lack the appropriate permissions to edit the channel purpose."
   },
   {
     "id": "api.command_channel_purpose.name",
@@ -7192,7 +7195,7 @@
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
@@ -7224,11 +7227,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_away.success",
-    "translation": "You are now away"
+    "translation": "You are now 'away'"
   },
   {
     "id": "api.command_away.name",
@@ -7236,7 +7239,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Set your status away"
+    "translation": "Set your status to 'away'"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -7308,7 +7311,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "This trigger word is already in use. Please choose another word."
+    "translation": "This trigger word is already in use. Please choose another."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -7384,7 +7387,7 @@
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} un-archived the channel."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
@@ -7400,7 +7403,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Can not remove user from this channel type."
+    "translation": "Cannot remove user from this channel type."
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -7436,7 +7439,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while updating channel header"
+    "translation": "Failed to retrieve user whilst updating channel header"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -7452,7 +7455,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while updating channel DisplayName field"
+    "translation": "Failed to retrieve user whilst updating channel DisplayName field"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -7528,7 +7531,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Group message channels must contain at least 3 and no more than 8 users."
+    "translation": "Group message channels must contain at least 3, and no more than 8 users."
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -7676,7 +7679,7 @@
   },
   {
     "id": "api.command_remote.invite_password.hint",
-    "translation": "Password to be used to encrypt the invitation"
+    "translation": "Password to be used for encrypting the invitation"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -7724,7 +7727,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Can not add user to this channel type."
+    "translation": "Cannot add user to this channel type."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -7760,7 +7763,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "Back to {{.SiteName}}"
+    "translation": "Return to {{.SiteName}}"
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
@@ -7784,7 +7787,7 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Bucket is required"
+    "translation": "S3 Bucket is required."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -7796,7 +7799,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server is required"
+    "translation": "SMTP Server is required."
   },
   {
     "id": "api.admin.test_email.body",
@@ -7992,7 +7995,7 @@
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
-    "translation": "Failed to send licence up for renewal emails"
+    "translation": "Failed to send licence renewal notification email"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8168,7 +8171,7 @@
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
-    "translation": "Error trying to save first admin complete setup in the store."
+    "translation": "Error trying to mark first admin setup as complete in the store."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -8352,7 +8355,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open-source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",
@@ -8552,7 +8555,7 @@
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
+    "translation": "You cannot delete an acknowledgment after 5 minutes have elapsed."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -8612,7 +8615,7 @@
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
-    "translation": "User is not allowed to create priority post or persistent notification."
+    "translation": "User is not allowed to create a priority post or persistent notification."
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
@@ -8628,7 +8631,7 @@
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
-    "translation": "Error: no organisation name provided for self hosted onboarding."
+    "translation": "Error: no organisation name provided for self-hosted onboarding."
   },
   {
     "id": "app.file_info.get.gif.app_error",
@@ -8636,7 +8639,7 @@
   },
   {
     "id": "app.plugin.skip_installation.app_error",
-    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
+    "translation": "Skipping installation of plugin {{.Id}} because the existing version is equal or newer."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -8680,7 +8683,7 @@
   },
   {
     "id": "api.command_exportlink.permission.app_error",
-    "translation": "You don't have the correct permissions to run this command."
+    "translation": "You lack sufficient permissions to run this command."
   },
   {
     "id": "api.command_exportlink.presign.app_error",
@@ -8904,7 +8907,7 @@
   },
   {
     "id": "api.context.ip_filtering.not_available.app_error",
-    "translation": "IP Filtering is not available on this server"
+    "translation": "IP Filtering is unavailable on this server"
   },
   {
     "id": "api.templates.ip_filters_changed.button",
@@ -10073,10 +10076,6 @@
     "translation": "Failed to restore post file attachments."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "User roles are not consistent with guest status."
-  },
-  {
     "id": "app.post.restore_post_version.not_allowed.app_error",
     "translation": "You do not have the appropriate permissions."
   },
@@ -10446,7 +10445,7 @@
   },
   {
     "id": "api.channel.update_channel.not_allowed.app_error",
-    "translation": "Policy enforced channels cannot be updated."
+    "translation": "Policy-enforced channels cannot be updated."
   },
   {
     "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
@@ -10626,7 +10625,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
-    "translation": "Invalid team member update: A team member always has a user scheme."
+    "translation": "Invalid team member update: a team member always has a user scheme."
   },
   {
     "id": "api.upload.invalid_type_for_shared_channel.app_error",
@@ -10666,7 +10665,7 @@
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
-    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
+    "translation": "Notifications for newly flagged posts cannot be disabled for reviewers."
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
@@ -11602,7 +11601,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
-    "translation": "Auto translation is not allowed for this channel."
+    "translation": "Auto-translation is not allowed for this channel."
   },
   {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
@@ -11847,5 +11846,49 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "Invalid translation type. Must be 'string' or 'object'."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} setting must be set to true when {{.EnableCJKAnalyzers}} is set to true"
   }
 ]

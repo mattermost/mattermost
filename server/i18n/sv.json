@@ -9906,10 +9906,6 @@
     "translation": "Egenskapen meddelande är längre än den maximalt tillåtna längden."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Användarrollerna stämmer inte överens med gäststatus."
-  },
-  {
     "id": "app.notifications.send_test_message.errors.no_bot",
     "translation": "Kan inte få tag i systemboten"
   },
