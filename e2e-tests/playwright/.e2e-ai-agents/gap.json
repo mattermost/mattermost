@@ -1,0 +1,5881 @@
+{
+  "mode": "gap",
+  "runMetadata": {
+    "runId": "gap-local-mma0b9ea-ufklja",
+    "startedAt": "2026-03-03T02:46:48.656Z",
+    "completedAt": "2026-03-03T02:47:14.435Z",
+    "durationMs": 25777,
+    "sinceRef": "HEAD~1",
+    "appPath": "/Users/yasserkhan/Documents/mattermost/mattermost/webapp",
+    "testsRoot": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright"
+  },
+  "changedFiles": [
+    "channels/src/actions/admin_actions.jsx",
+    "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss",
+    "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.test.tsx",
+    "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx",
+    "channels/src/components/admin_console/license_settings/license_settings.tsx",
+    "channels/src/components/analytics/single_channel_guests_card/index.tsx",
+    "channels/src/components/analytics/system_analytics/analytics.scss",
+    "channels/src/components/analytics/system_analytics/index.ts",
+    "channels/src/components/analytics/system_analytics/system_analytics.test.tsx",
+    "channels/src/components/analytics/system_analytics/system_analytics.tsx",
+    "channels/src/components/announcement_bar/announcement_bar_controller.tsx",
+    "channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx",
+    "channels/src/components/announcement_bar/single_channel_guest_limit_banner/single_channel_guest_limit_banner.test.tsx",
+    "channels/src/i18n/en.json",
+    "channels/src/packages/mattermost-redux/src/actions/limits.ts",
+    "channels/src/packages/mattermost-redux/src/constants/stats.ts",
+    "channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts",
+    "channels/src/utils/constants.tsx",
+    "platform/types/src/admin.ts",
+    "platform/types/src/limits.ts"
+  ],
+  "flows": [
+    {
+      "id": "admin",
+      "name": "Admin",
+      "kind": "flow",
+      "score": 14,
+      "priority": "P0",
+      "reasons": [
+        "State or data flow change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers",
+        "entities",
+        "admin",
+        "platform",
+        "types",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts",
+        "platform/types/src/admin.ts",
+        "channels/src/packages/mattermost-redux/src/actions/admin.ts"
+      ],
+      "audience": [
+        "channel_admin",
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "channel_admin",
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin_sidebar",
+      "name": "Admin Sidebar",
+      "kind": "flow",
+      "score": 13,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "sidebar",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx",
+        "channels/src/components/admin_console/admin_sidebar/index.ts"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "license_settings",
+      "name": "License Settings",
+      "kind": "flow",
+      "score": 11,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/license_settings.tsx",
+        "channels/src/components/admin_console/license_settings/index.ts"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "system_analytics",
+      "name": "System Analytics",
+      "kind": "flow",
+      "score": 9,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "system",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/analytics/system_analytics/index.ts",
+        "channels/src/components/analytics/system_analytics/system_analytics.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "enterprise_edition_left_panel",
+      "name": "Enterprise Edition Left Panel",
+      "kind": "flow",
+      "score": 8,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "enterprise",
+        "edition",
+        "left",
+        "panel",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "single_channel_guest_limit_banner",
+      "name": "Single Channel Guest Limit Banner",
+      "kind": "flow",
+      "score": 8,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar",
+        "single",
+        "channel",
+        "guest",
+        "limit",
+        "banner",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin_actions",
+      "name": "Admin Actions",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change",
+        "State or data flow change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "actions",
+        "admin",
+        "jsx"
+      ],
+      "files": [
+        "channels/src/actions/admin_actions.jsx"
+      ],
+      "audience": [
+        "channel_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "channel_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "single_channel_guests_card",
+      "name": "Single Channel Guests Card",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "single",
+        "channel",
+        "guests",
+        "card",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/analytics/single_channel_guests_card/index.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "announcement_bar_controller",
+      "name": "Announcement Bar Controller",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar",
+        "controller",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/announcement_bar_controller.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin_definition",
+      "name": "Admin Definition",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "definition",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/admin_definition.tsx"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [
+        {
+          "name": "SiteURL",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ListenAddress",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "Forward80To443",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ConnectionSecurity",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TLSCertFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "UseLetsEncrypt",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TLSKeyFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "LetsEncryptCertificateCacheFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ReadTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "WriteTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "MaximumPayloadSizeBytes",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "WebserverMode",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableInsecureOutgoingConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ManagedResourcePaths",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableSecurityFixAlert",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableTesting",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDeveloper",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableClientPerformanceDebugging",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowedUntrustedInternalConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDesktopLandingPage",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCustomGroups",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "RefreshPostStatsRunTime",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "DeleteAccountLink",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableEmojiPicker",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCustomEmoji",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ThreadAutoFollow",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CollapsedThreads",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowSyncedDrafts",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ScheduledPosts",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PostPriority",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowPersistentNotifications",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationMaxRecipients",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationIntervalMinutes",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationMaxCount",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowPersistentNotificationsForGuests",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableBurnOnRead",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "BurnOnReadDurationSeconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "BurnOnReadMaximumTimeToLiveSeconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableLinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "RestrictLinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePermalinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableSVGs",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableLatex",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableInlineLatex",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "GoogleDeveloperKey",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "UniqueEmojiReactionLimitPerPost",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableEmailInvitations",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableMultifactorAuthentication",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnforceMultifactorAuthentication",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableIncomingWebhooks",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOutgoingWebhooks",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOutgoingOAuthConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCommands",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOAuthServiceProvider",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDynamicClientRegistration",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "OutgoingIntegrationRequestsTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePostUsernameOverride",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePostIconOverride",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableUserAccessTokens",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableBotAccountCreation",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "DisableBotsWhenOwnerIsDeactivated",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableGifPicker",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowCorsFrom",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsExposedHeaders",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsAllowCredentials",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsDebug",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "FrameAncestors",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableAuthenticationTransfer",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableChannelViewedMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableDefaultChannelLeaveJoinMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableHardenedMode",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableTutorial",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOnboardingFlow",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableUserTypingMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TimeBetweenUserTypingUpdatesMilliseconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        }
+      ],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [
+          {
+            "name": "SiteURL",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ListenAddress",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "Forward80To443",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ConnectionSecurity",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TLSCertFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "UseLetsEncrypt",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TLSKeyFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "LetsEncryptCertificateCacheFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ReadTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "WriteTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "MaximumPayloadSizeBytes",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "WebserverMode",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableInsecureOutgoingConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ManagedResourcePaths",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableSecurityFixAlert",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableTesting",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDeveloper",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableClientPerformanceDebugging",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowedUntrustedInternalConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDesktopLandingPage",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCustomGroups",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "RefreshPostStatsRunTime",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "DeleteAccountLink",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableEmojiPicker",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCustomEmoji",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ThreadAutoFollow",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CollapsedThreads",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowSyncedDrafts",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ScheduledPosts",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PostPriority",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowPersistentNotifications",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationMaxRecipients",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationIntervalMinutes",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationMaxCount",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowPersistentNotificationsForGuests",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableBurnOnRead",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "BurnOnReadDurationSeconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "BurnOnReadMaximumTimeToLiveSeconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableLinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "RestrictLinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePermalinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableSVGs",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableLatex",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableInlineLatex",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "GoogleDeveloperKey",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "UniqueEmojiReactionLimitPerPost",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableEmailInvitations",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableMultifactorAuthentication",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnforceMultifactorAuthentication",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableIncomingWebhooks",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOutgoingWebhooks",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOutgoingOAuthConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCommands",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOAuthServiceProvider",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDynamicClientRegistration",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "OutgoingIntegrationRequestsTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePostUsernameOverride",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePostIconOverride",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableUserAccessTokens",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableBotAccountCreation",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "DisableBotsWhenOwnerIsDeactivated",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableGifPicker",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowCorsFrom",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsExposedHeaders",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsAllowCredentials",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsDebug",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "FrameAncestors",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableAuthenticationTransfer",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableChannelViewedMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableDefaultChannelLeaveJoinMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableHardenedMode",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableTutorial",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOnboardingFlow",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableUserTypingMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TimeBetweenUserTypingUpdatesMilliseconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          }
+        ],
+        "summary": "admin-only; flagged-on",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change",
+        "Critical keyword: search"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "search"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/search.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "enterprise_edition",
+      "name": "Enterprise Edition",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "Visual styling change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "enterprise",
+        "edition",
+        "scss"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "Visual styling change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "system",
+        "scss"
+      ],
+      "files": [
+        "channels/src/components/analytics/system_analytics/analytics.scss"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "limits",
+      "name": "Limits",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "limits",
+        "platform",
+        "types"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/limits.ts",
+        "platform/types/src/limits.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "constants",
+      "name": "Constants",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "constants",
+        "tsx",
+        "packages",
+        "mattermost",
+        "redux"
+      ],
+      "files": [
+        "channels/src/utils/constants.tsx",
+        "channels/src/packages/mattermost-redux/src/constants/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "announcement_bar",
+      "name": "Announcement Bar",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "entities",
+      "name": "Entities",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers",
+        "entities"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "text_formatting",
+      "name": "Text Formatting",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "text",
+        "formatting",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/utils/text_formatting.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "syntax_highlighting",
+      "name": "Syntax Highlighting",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "syntax",
+        "highlighting",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/utils/syntax_highlighting.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "schemes",
+      "name": "Schemes",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "schemes"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/schemes.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "roles",
+      "name": "Roles",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "roles"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/roles.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "preferences",
+      "name": "Preferences",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "preferences"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/preferences.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "jobs"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/jobs.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "integrations",
+      "name": "Integrations",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "integrations"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/integrations.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "emojis",
+      "name": "Emojis",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "emojis"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/emojis.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "channels",
+      "name": "Channels",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/channels.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "channel_categories",
+      "name": "Channel Categories",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "channel",
+        "categories"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/channel_categories.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "boards",
+      "name": "Boards",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "boards"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/boards.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "reducers",
+      "name": "Reducers",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "actions",
+      "name": "Actions",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "general",
+      "name": "General",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "general"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/general.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "configureStore",
+      "name": "ConfigureStore",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "configure"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/store/configureStore.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "en",
+      "name": "En",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "i18n",
+        "json"
+      ],
+      "files": [
+        "channels/src/i18n/en.json"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "stats",
+      "name": "Stats",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "constants",
+        "stats"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/constants/stats.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "storage_utils",
+      "name": "Storage Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "storage"
+      ],
+      "files": [
+        "channels/src/utils/storage_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "products",
+      "name": "Products",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "products"
+      ],
+      "files": [
+        "channels/src/utils/products.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "overage_team",
+      "name": "Overage Team",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "overage",
+        "team"
+      ],
+      "files": [
+        "channels/src/utils/overage_team.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "notify_admin_utils",
+      "name": "Notify Admin Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "notify",
+        "admin"
+      ],
+      "files": [
+        "channels/src/utils/notify_admin_utils.ts"
+      ],
+      "audience": [
+        "channel_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "channel_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "contact_support_sales",
+      "name": "Contact Support Sales",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "contact",
+        "support",
+        "sales"
+      ],
+      "files": [
+        "channels/src/utils/contact_support_sales.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "a11y_utils",
+      "name": "A11y Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "a11y"
+      ],
+      "files": [
+        "channels/src/utils/a11y_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "store",
+      "name": "Store",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "platform",
+        "types",
+        "src"
+      ],
+      "files": [
+        "platform/types/src/store.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "user_utils",
+      "name": "User Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "user"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/user_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "team_utils",
+      "name": "Team Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "team"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/team_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "post_utils",
+      "name": "Post Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "post"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/post_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "notify_props",
+      "name": "Notify Props",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "notify",
+        "props"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/notify_props.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "group_utils",
+      "name": "Group Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "group"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/group_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "file_utils",
+      "name": "File Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "file"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/file_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "channel_utils",
+      "name": "Channel Utils",
+      "kind": "flow",
+      "score": 2,
+      "priority": "P2",
+      "reasons": [],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "utils",
+        "channel"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/utils/channel_utils.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "flowId": "admin_actions",
+      "flowName": "Admin Actions",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "enterprise_edition",
+      "flowName": "Enterprise Edition",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "enterprise_edition_left_panel",
+      "flowName": "Enterprise Edition Left Panel",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "license_settings",
+      "flowName": "License Settings",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "single_channel_guests_card",
+      "flowName": "Single Channel Guests Card",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "analytics",
+      "flowName": "Analytics",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "system_analytics",
+      "flowName": "System Analytics",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "announcement_bar_controller",
+      "flowName": "Announcement Bar Controller",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "single_channel_guest_limit_banner",
+      "flowName": "Single Channel Guest Limit Banner",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "en",
+      "flowName": "En",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "limits",
+      "flowName": "Limits",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "stats",
+      "flowName": "Stats",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "admin",
+      "flowName": "Admin",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "constants",
+      "flowName": "Constants",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "admin_definition",
+      "flowName": "Admin Definition",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "announcement_bar",
+      "flowName": "Announcement Bar",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "entities",
+      "flowName": "Entities",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "text_formatting",
+      "flowName": "Text Formatting",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "syntax_highlighting",
+      "flowName": "Syntax Highlighting",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "storage_utils",
+      "flowName": "Storage Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "products",
+      "flowName": "Products",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "overage_team",
+      "flowName": "Overage Team",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "notify_admin_utils",
+      "flowName": "Notify Admin Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "contact_support_sales",
+      "flowName": "Contact Support Sales",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "a11y_utils",
+      "flowName": "A11y Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "store",
+      "flowName": "Store",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "admin_sidebar",
+      "flowName": "Admin Sidebar",
+      "priority": "P0",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "user_utils",
+      "flowName": "User Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "team_utils",
+      "flowName": "Team Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "post_utils",
+      "flowName": "Post Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "notify_props",
+      "flowName": "Notify Props",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "group_utils",
+      "flowName": "Group Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "file_utils",
+      "flowName": "File Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "channel_utils",
+      "flowName": "Channel Utils",
+      "priority": "P2",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "schemes",
+      "flowName": "Schemes",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "roles",
+      "flowName": "Roles",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "preferences",
+      "flowName": "Preferences",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "jobs",
+      "flowName": "Jobs",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "integrations",
+      "flowName": "Integrations",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "emojis",
+      "flowName": "Emojis",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "channels",
+      "flowName": "Channels",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "channel_categories",
+      "flowName": "Channel Categories",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "boards",
+      "flowName": "Boards",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "reducers",
+      "flowName": "Reducers",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "actions",
+      "flowName": "Actions",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "general",
+      "flowName": "General",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "search",
+      "flowName": "Search",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    },
+    {
+      "flowId": "configureStore",
+      "flowName": "ConfigureStore",
+      "priority": "P1",
+      "coveredBy": [],
+      "score": 0,
+      "source": "heuristic"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "admin_actions",
+      "name": "Admin Actions",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change",
+        "State or data flow change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "actions",
+        "admin",
+        "jsx"
+      ],
+      "files": [
+        "channels/src/actions/admin_actions.jsx"
+      ],
+      "audience": [
+        "channel_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "channel_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "enterprise_edition",
+      "name": "Enterprise Edition",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "Visual styling change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "enterprise",
+        "edition",
+        "scss"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "enterprise_edition_left_panel",
+      "name": "Enterprise Edition Left Panel",
+      "kind": "flow",
+      "score": 8,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "enterprise",
+        "edition",
+        "left",
+        "panel",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "license_settings",
+      "name": "License Settings",
+      "kind": "flow",
+      "score": 11,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "license",
+        "settings",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/license_settings/license_settings.tsx",
+        "channels/src/components/admin_console/license_settings/index.ts"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "single_channel_guests_card",
+      "name": "Single Channel Guests Card",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "single",
+        "channel",
+        "guests",
+        "card",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/analytics/single_channel_guests_card/index.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "Visual styling change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "system",
+        "scss"
+      ],
+      "files": [
+        "channels/src/components/analytics/system_analytics/analytics.scss"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "system_analytics",
+      "name": "System Analytics",
+      "kind": "flow",
+      "score": 9,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "analytics",
+        "system",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/analytics/system_analytics/index.ts",
+        "channels/src/components/analytics/system_analytics/system_analytics.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "announcement_bar_controller",
+      "name": "Announcement Bar Controller",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar",
+        "controller",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/announcement_bar_controller.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "single_channel_guest_limit_banner",
+      "name": "Single Channel Guest Limit Banner",
+      "kind": "flow",
+      "score": 8,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar",
+        "single",
+        "channel",
+        "guest",
+        "limit",
+        "banner",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "limits",
+      "name": "Limits",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "limits",
+        "platform",
+        "types"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/limits.ts",
+        "platform/types/src/limits.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin",
+      "name": "Admin",
+      "kind": "flow",
+      "score": 14,
+      "priority": "P0",
+      "reasons": [
+        "State or data flow change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers",
+        "entities",
+        "admin",
+        "platform",
+        "types",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts",
+        "platform/types/src/admin.ts",
+        "channels/src/packages/mattermost-redux/src/actions/admin.ts"
+      ],
+      "audience": [
+        "channel_admin",
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "channel_admin",
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "constants",
+      "name": "Constants",
+      "kind": "flow",
+      "score": 5,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "constants",
+        "tsx",
+        "packages",
+        "mattermost",
+        "redux"
+      ],
+      "files": [
+        "channels/src/utils/constants.tsx",
+        "channels/src/packages/mattermost-redux/src/constants/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin_definition",
+      "name": "Admin Definition",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "definition",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/admin_definition.tsx"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [
+        {
+          "name": "SiteURL",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ListenAddress",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "Forward80To443",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ConnectionSecurity",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TLSCertFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "UseLetsEncrypt",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TLSKeyFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "LetsEncryptCertificateCacheFile",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ReadTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "WriteTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "MaximumPayloadSizeBytes",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "WebserverMode",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableInsecureOutgoingConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ManagedResourcePaths",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableSecurityFixAlert",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableTesting",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDeveloper",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableClientPerformanceDebugging",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowedUntrustedInternalConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDesktopLandingPage",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCustomGroups",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "RefreshPostStatsRunTime",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "DeleteAccountLink",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableEmojiPicker",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCustomEmoji",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ThreadAutoFollow",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CollapsedThreads",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowSyncedDrafts",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ScheduledPosts",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PostPriority",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowPersistentNotifications",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationMaxRecipients",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationIntervalMinutes",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "PersistentNotificationMaxCount",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowPersistentNotificationsForGuests",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableBurnOnRead",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "BurnOnReadDurationSeconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "BurnOnReadMaximumTimeToLiveSeconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableLinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "RestrictLinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePermalinkPreviews",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableSVGs",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableLatex",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableInlineLatex",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "GoogleDeveloperKey",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "UniqueEmojiReactionLimitPerPost",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableEmailInvitations",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableMultifactorAuthentication",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnforceMultifactorAuthentication",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableIncomingWebhooks",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOutgoingWebhooks",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOutgoingOAuthConnections",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableCommands",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOAuthServiceProvider",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableDynamicClientRegistration",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "OutgoingIntegrationRequestsTimeout",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePostUsernameOverride",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnablePostIconOverride",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableUserAccessTokens",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableBotAccountCreation",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "DisableBotsWhenOwnerIsDeactivated",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableGifPicker",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "AllowCorsFrom",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsExposedHeaders",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsAllowCredentials",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "CorsDebug",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "FrameAncestors",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableAuthenticationTransfer",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableChannelViewedMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableDefaultChannelLeaveJoinMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "ExperimentalEnableHardenedMode",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableTutorial",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableOnboardingFlow",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "EnableUserTypingMessages",
+          "source": "configFlag",
+          "defaultState": "on"
+        },
+        {
+          "name": "TimeBetweenUserTypingUpdatesMilliseconds",
+          "source": "configFlag",
+          "defaultState": "on"
+        }
+      ],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [
+          {
+            "name": "SiteURL",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ListenAddress",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "Forward80To443",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ConnectionSecurity",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TLSCertFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "UseLetsEncrypt",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TLSKeyFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "LetsEncryptCertificateCacheFile",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ReadTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "WriteTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "MaximumPayloadSizeBytes",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "WebserverMode",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableInsecureOutgoingConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ManagedResourcePaths",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableSecurityFixAlert",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableTesting",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDeveloper",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableClientPerformanceDebugging",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowedUntrustedInternalConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDesktopLandingPage",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCustomGroups",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "RefreshPostStatsRunTime",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "DeleteAccountLink",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableEmojiPicker",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCustomEmoji",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ThreadAutoFollow",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CollapsedThreads",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowSyncedDrafts",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ScheduledPosts",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PostPriority",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowPersistentNotifications",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationMaxRecipients",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationIntervalMinutes",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "PersistentNotificationMaxCount",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowPersistentNotificationsForGuests",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableBurnOnRead",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "BurnOnReadDurationSeconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "BurnOnReadMaximumTimeToLiveSeconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableLinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "RestrictLinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePermalinkPreviews",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableSVGs",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableLatex",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableInlineLatex",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "GoogleDeveloperKey",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "UniqueEmojiReactionLimitPerPost",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableEmailInvitations",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableMultifactorAuthentication",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnforceMultifactorAuthentication",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableIncomingWebhooks",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOutgoingWebhooks",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOutgoingOAuthConnections",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableCommands",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOAuthServiceProvider",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableDynamicClientRegistration",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "OutgoingIntegrationRequestsTimeout",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePostUsernameOverride",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnablePostIconOverride",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableUserAccessTokens",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableBotAccountCreation",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "DisableBotsWhenOwnerIsDeactivated",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableGifPicker",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "AllowCorsFrom",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsExposedHeaders",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsAllowCredentials",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "CorsDebug",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "FrameAncestors",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableAuthenticationTransfer",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableChannelViewedMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableDefaultChannelLeaveJoinMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "ExperimentalEnableHardenedMode",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableTutorial",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableOnboardingFlow",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "EnableUserTypingMessages",
+            "source": "configFlag",
+            "defaultState": "on"
+          },
+          {
+            "name": "TimeBetweenUserTypingUpdatesMilliseconds",
+            "source": "configFlag",
+            "defaultState": "on"
+          }
+        ],
+        "summary": "admin-only; flagged-on",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "announcement_bar",
+      "name": "Announcement Bar",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "Shared component change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "announcement",
+        "bar"
+      ],
+      "files": [
+        "channels/src/components/announcement_bar/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "entities",
+      "name": "Entities",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers",
+        "entities"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "text_formatting",
+      "name": "Text Formatting",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "text",
+        "formatting",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/utils/text_formatting.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "syntax_highlighting",
+      "name": "Syntax Highlighting",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "UI logic change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "utils",
+        "syntax",
+        "highlighting",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/utils/syntax_highlighting.tsx"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "admin_sidebar",
+      "name": "Admin Sidebar",
+      "kind": "flow",
+      "score": 13,
+      "priority": "P0",
+      "reasons": [
+        "Shared component change",
+        "UI logic change",
+        "Interactive element change",
+        "Critical keyword: admin"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "admin",
+        "console",
+        "sidebar",
+        "tsx"
+      ],
+      "files": [
+        "channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx",
+        "channels/src/components/admin_console/admin_sidebar/index.ts"
+      ],
+      "audience": [
+        "system_admin"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "system_admin"
+        ],
+        "flags": [],
+        "summary": "admin-only; unflagged",
+        "scoreDelta": -1
+      }
+    },
+    {
+      "id": "schemes",
+      "name": "Schemes",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "schemes"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/schemes.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "roles",
+      "name": "Roles",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "roles"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/roles.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "preferences",
+      "name": "Preferences",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "preferences"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/preferences.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "jobs"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/jobs.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "integrations",
+      "name": "Integrations",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "integrations"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/integrations.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "emojis",
+      "name": "Emojis",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "emojis"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/emojis.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "channels",
+      "name": "Channels",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/channels.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "channel_categories",
+      "name": "Channel Categories",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "channel",
+        "categories"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/channel_categories.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "boards",
+      "name": "Boards",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "boards"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/boards.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "reducers",
+      "name": "Reducers",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "reducers"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/reducers/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "actions",
+      "name": "Actions",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/index.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "general",
+      "name": "General",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "general"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/general.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "kind": "flow",
+      "score": 6,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change",
+        "Critical keyword: search"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "actions",
+        "search"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/actions/search.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    },
+    {
+      "id": "configureStore",
+      "name": "ConfigureStore",
+      "kind": "flow",
+      "score": 4,
+      "priority": "P1",
+      "reasons": [
+        "State or data flow change"
+      ],
+      "keywords": [
+        "channels",
+        "src",
+        "packages",
+        "mattermost",
+        "redux",
+        "configure"
+      ],
+      "files": [
+        "channels/src/packages/mattermost-redux/src/store/configureStore.ts"
+      ],
+      "audience": [
+        "member"
+      ],
+      "flags": [],
+      "subsystemRiskBoost": 0,
+      "subsystemRiskRules": [],
+      "blastRadius": {
+        "audience": [
+          "member"
+        ],
+        "flags": [],
+        "summary": "broad; unflagged",
+        "scoreDelta": 1
+      }
+    }
+  ],
+  "dataTestIds": [],
+  "framework": "playwright",
+  "testPatterns": [
+    "specs/**/*.spec.ts"
+  ],
+  "warnings": [
+    "Dependency graph expanded impacted files by 38 (depth=3).",
+    "Traceability manifest not found or invalid: /Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/.e2e-ai-agents/traceability.json",
+    "Mattermost profile: traceability manifest is missing; targeted recommendations require traceability evidence.",
+    "Mattermost profile: heuristic-only test mapping is disallowed; forcing broad run recommendation."
+  ],
+  "recommendedTests": [],
+  "impactModel": {
+    "schemaVersion": "1.0.0",
+    "flowMapping": "heuristic",
+    "testMapping": "heuristic",
+    "confidenceClass": "low",
+    "traceability": {
+      "source": "manifest",
+      "enabled": true,
+      "manifestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/.e2e-ai-agents/traceability.json",
+      "manifestFound": false,
+      "manifestTests": 0,
+      "manifestEdges": 0,
+      "matchedFlows": 0,
+      "totalFlows": 48,
+      "matchedTests": 0,
+      "coverageRatio": 0
+    },
+    "dependencyGraph": {
+      "source": "static-dependency-graph",
+      "enabled": true,
+      "seedFiles": 14,
+      "expandedFiles": 38,
+      "analyzedFiles": 2812,
+      "analyzedEdges": 2458,
+      "maxDepth": 3,
+      "truncated": false
+    }
+  },
+  "testSuggestions": [
+    {
+      "flowId": "admin_actions",
+      "flowName": "Admin Actions",
+      "priority": "P1",
+      "rationale": "UI logic change; State or data flow change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/actions/admin_actions.jsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_actions.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Admin Actions critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/actions/admin_actions.jsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "enterprise_edition",
+      "flowName": "Enterprise Edition",
+      "priority": "P1",
+      "rationale": "Shared component change; Visual styling change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/enterprise_edition.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Enterprise Edition critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "enterprise_edition_left_panel",
+      "flowName": "Enterprise Edition Left Panel",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/enterprise_edition_left_panel.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Enterprise Edition Left Panel critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "license_settings",
+      "flowName": "License Settings",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/license_settings.tsx",
+        "channels/src/components/admin_console/license_settings/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/license_settings.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: License Settings critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/license_settings.tsx, channels/src/components/admin_console/license_settings/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "single_channel_guests_card",
+      "flowName": "Single Channel Guests Card",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/analytics/single_channel_guests_card/index.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/single_channel_guests_card.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Single Channel Guests Card critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/single_channel_guests_card/index.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "analytics",
+      "flowName": "Analytics",
+      "priority": "P1",
+      "rationale": "Shared component change; Visual styling change",
+      "sourceFiles": [
+        "channels/src/components/analytics/system_analytics/analytics.scss"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/analytics.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Analytics critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/system_analytics/analytics.scss\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "system_analytics",
+      "flowName": "System Analytics",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/analytics/system_analytics/index.ts",
+        "channels/src/components/analytics/system_analytics/system_analytics.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/system_analytics.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: System Analytics critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/system_analytics/index.ts, channels/src/components/analytics/system_analytics/system_analytics.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "announcement_bar_controller",
+      "flowName": "Announcement Bar Controller",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/announcement_bar_controller.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/announcement_bar_controller.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Announcement Bar Controller critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/announcement_bar_controller.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "single_channel_guest_limit_banner",
+      "flowName": "Single Channel Guest Limit Banner",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/single_channel_guest_limit_banner.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Single Channel Guest Limit Banner critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "limits",
+      "flowName": "Limits",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/limits.ts",
+        "platform/types/src/limits.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/limits.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Limits critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/limits.ts, platform/types/src/limits.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin",
+      "flowName": "Admin",
+      "priority": "P0",
+      "rationale": "State or data flow change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts",
+        "platform/types/src/admin.ts",
+        "channels/src/packages/mattermost-redux/src/actions/admin.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Admin critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts, platform/types/src/admin.ts, channels/src/packages/mattermost-redux/src/actions/admin.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "constants",
+      "flowName": "Constants",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/constants.tsx",
+        "channels/src/packages/mattermost-redux/src/constants/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/constants.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Constants critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/constants.tsx, channels/src/packages/mattermost-redux/src/constants/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin_definition",
+      "flowName": "Admin Definition",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/admin_definition.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_definition.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Admin Definition critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/admin_definition.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "announcement_bar",
+      "flowName": "Announcement Bar",
+      "priority": "P1",
+      "rationale": "Shared component change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/announcement_bar.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Announcement Bar critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "entities",
+      "flowName": "Entities",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/entities.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Entities critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/entities/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "text_formatting",
+      "flowName": "Text Formatting",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/text_formatting.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/text_formatting.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Text Formatting critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/text_formatting.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "syntax_highlighting",
+      "flowName": "Syntax Highlighting",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/syntax_highlighting.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/syntax_highlighting.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Syntax Highlighting critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/syntax_highlighting.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin_sidebar",
+      "flowName": "Admin Sidebar",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx",
+        "channels/src/components/admin_console/admin_sidebar/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_sidebar.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Admin Sidebar critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx, channels/src/components/admin_console/admin_sidebar/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "schemes",
+      "flowName": "Schemes",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/schemes.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/schemes.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Schemes critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/schemes.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "roles",
+      "flowName": "Roles",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/roles.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/roles.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Roles critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/roles.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "preferences",
+      "flowName": "Preferences",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/preferences.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/preferences.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Preferences critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/preferences.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "jobs",
+      "flowName": "Jobs",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/jobs.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/jobs.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Jobs critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/jobs.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "integrations",
+      "flowName": "Integrations",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/integrations.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/integrations.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Integrations critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/integrations.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "emojis",
+      "flowName": "Emojis",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/emojis.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/emojis.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Emojis critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/emojis.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "channels",
+      "flowName": "Channels",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/channels.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/channels.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Channels critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/channels.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "channel_categories",
+      "flowName": "Channel Categories",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/channel_categories.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/channel_categories.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Channel Categories critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/channel_categories.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "boards",
+      "flowName": "Boards",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/boards.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/boards.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Boards critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/boards.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "reducers",
+      "flowName": "Reducers",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/reducers.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Reducers critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "actions",
+      "flowName": "Actions",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/actions.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Actions critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "general",
+      "flowName": "General",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/general.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/general.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: General critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/general.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "search",
+      "flowName": "Search",
+      "priority": "P1",
+      "rationale": "State or data flow change; Critical keyword: search",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/search.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/search.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Search critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/search.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "configureStore",
+      "flowName": "ConfigureStore",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/store/configureStore.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/configureStore.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: ConfigureStore critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/store/configureStore.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    }
+  ],
+  "pipeline": {
+    "runner": "playwright-agents",
+    "results": [
+      {
+        "flowId": "admin_actions",
+        "flowName": "Admin Actions",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/admin_actions",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "enterprise_edition",
+        "flowName": "Enterprise Edition",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/enterprise_edition",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "enterprise_edition_left_panel",
+        "flowName": "Enterprise Edition Left Panel",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/enterprise_edition_left_panel",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "license_settings",
+        "flowName": "License Settings",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/license_settings",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "single_channel_guests_card",
+        "flowName": "Single Channel Guests Card",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/single_channel_guests_card",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "analytics",
+        "flowName": "Analytics",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/analytics",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "system_analytics",
+        "flowName": "System Analytics",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/system_analytics",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "announcement_bar_controller",
+        "flowName": "Announcement Bar Controller",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/announcement_bar_controller",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "single_channel_guest_limit_banner",
+        "flowName": "Single Channel Guest Limit Banner",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/single_channel_guest_limit_banner",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "limits",
+        "flowName": "Limits",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/limits",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "admin",
+        "flowName": "Admin",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/admin",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "constants",
+        "flowName": "Constants",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/constants",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "admin_definition",
+        "flowName": "Admin Definition",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/admin_definition",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "announcement_bar",
+        "flowName": "Announcement Bar",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/announcement_bar",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "entities",
+        "flowName": "Entities",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/entities",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "text_formatting",
+        "flowName": "Text Formatting",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/text_formatting",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "syntax_highlighting",
+        "flowName": "Syntax Highlighting",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/syntax_highlighting",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "admin_sidebar",
+        "flowName": "Admin Sidebar",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/admin_sidebar",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "schemes",
+        "flowName": "Schemes",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/schemes",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "roles",
+        "flowName": "Roles",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/roles",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "preferences",
+        "flowName": "Preferences",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/preferences",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "jobs",
+        "flowName": "Jobs",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/jobs",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "integrations",
+        "flowName": "Integrations",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/integrations",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "emojis",
+        "flowName": "Emojis",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/emojis",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "channels",
+        "flowName": "Channels",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/channels",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "channel_categories",
+        "flowName": "Channel Categories",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/channel_categories",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "boards",
+        "flowName": "Boards",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/boards",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "reducers",
+        "flowName": "Reducers",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/reducers",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "actions",
+        "flowName": "Actions",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/actions",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "general",
+        "flowName": "General",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/general",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "search",
+        "flowName": "Search",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/search",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      },
+      {
+        "flowId": "configureStore",
+        "flowName": "ConfigureStore",
+        "generatedDir": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/functional/ai-assisted/configureStore",
+        "generateStatus": "skipped",
+        "healStatus": "skipped"
+      }
+    ],
+    "warnings": [],
+    "mcp": {
+      "requested": true,
+      "active": true,
+      "backend": "playwright-agents"
+    }
+  },
+  "suggestedNewTests": [
+    {
+      "flowId": "admin_actions",
+      "flowName": "Admin Actions",
+      "priority": "P1",
+      "rationale": "UI logic change; State or data flow change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/actions/admin_actions.jsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_actions.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Admin Actions critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/actions/admin_actions.jsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "enterprise_edition",
+      "flowName": "Enterprise Edition",
+      "priority": "P1",
+      "rationale": "Shared component change; Visual styling change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/enterprise_edition.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Enterprise Edition critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition.scss\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "enterprise_edition_left_panel",
+      "flowName": "Enterprise Edition Left Panel",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/enterprise_edition_left_panel.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Enterprise Edition Left Panel critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "license_settings",
+      "flowName": "License Settings",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/license_settings/license_settings.tsx",
+        "channels/src/components/admin_console/license_settings/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/license_settings.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: License Settings critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/license_settings/license_settings.tsx, channels/src/components/admin_console/license_settings/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "single_channel_guests_card",
+      "flowName": "Single Channel Guests Card",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/analytics/single_channel_guests_card/index.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/single_channel_guests_card.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Single Channel Guests Card critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/single_channel_guests_card/index.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "analytics",
+      "flowName": "Analytics",
+      "priority": "P1",
+      "rationale": "Shared component change; Visual styling change",
+      "sourceFiles": [
+        "channels/src/components/analytics/system_analytics/analytics.scss"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/analytics.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Analytics critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/system_analytics/analytics.scss\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "system_analytics",
+      "flowName": "System Analytics",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/analytics/system_analytics/index.ts",
+        "channels/src/components/analytics/system_analytics/system_analytics.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/system_analytics.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: System Analytics critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/analytics/system_analytics/index.ts, channels/src/components/analytics/system_analytics/system_analytics.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "announcement_bar_controller",
+      "flowName": "Announcement Bar Controller",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/announcement_bar_controller.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/announcement_bar_controller.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Announcement Bar Controller critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/announcement_bar_controller.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "single_channel_guest_limit_banner",
+      "flowName": "Single Channel Guest Limit Banner",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/single_channel_guest_limit_banner.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Single Channel Guest Limit Banner critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/single_channel_guest_limit_banner/index.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "limits",
+      "flowName": "Limits",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/limits.ts",
+        "platform/types/src/limits.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/limits.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Limits critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/limits.ts, platform/types/src/limits.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin",
+      "flowName": "Admin",
+      "priority": "P0",
+      "rationale": "State or data flow change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts",
+        "platform/types/src/admin.ts",
+        "channels/src/packages/mattermost-redux/src/actions/admin.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Admin critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/entities/admin.ts, platform/types/src/admin.ts, channels/src/packages/mattermost-redux/src/actions/admin.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "constants",
+      "flowName": "Constants",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/constants.tsx",
+        "channels/src/packages/mattermost-redux/src/constants/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/constants.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Constants critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/constants.tsx, channels/src/packages/mattermost-redux/src/constants/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin_definition",
+      "flowName": "Admin Definition",
+      "priority": "P1",
+      "rationale": "Shared component change; UI logic change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/admin_definition.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_definition.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Admin Definition critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/admin_definition.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "announcement_bar",
+      "flowName": "Announcement Bar",
+      "priority": "P1",
+      "rationale": "Shared component change",
+      "sourceFiles": [
+        "channels/src/components/announcement_bar/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/announcement_bar.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Announcement Bar critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/announcement_bar/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "entities",
+      "flowName": "Entities",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/entities/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/entities.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Entities critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/entities/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "text_formatting",
+      "flowName": "Text Formatting",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/text_formatting.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/text_formatting.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Text Formatting critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/text_formatting.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "syntax_highlighting",
+      "flowName": "Syntax Highlighting",
+      "priority": "P1",
+      "rationale": "UI logic change",
+      "sourceFiles": [
+        "channels/src/utils/syntax_highlighting.tsx"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/syntax_highlighting.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Syntax Highlighting critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/utils/syntax_highlighting.tsx\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "admin_sidebar",
+      "flowName": "Admin Sidebar",
+      "priority": "P0",
+      "rationale": "Shared component change; UI logic change; Interactive element change; Critical keyword: admin",
+      "sourceFiles": [
+        "channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx",
+        "channels/src/components/admin_console/admin_sidebar/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/admin_sidebar.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P0: Admin Sidebar critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/components/admin_console/admin_sidebar/admin_sidebar.tsx, channels/src/components/admin_console/admin_sidebar/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "schemes",
+      "flowName": "Schemes",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/schemes.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/schemes.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Schemes critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/schemes.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "roles",
+      "flowName": "Roles",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/roles.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/roles.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Roles critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/roles.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "preferences",
+      "flowName": "Preferences",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/preferences.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/preferences.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Preferences critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/preferences.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "jobs",
+      "flowName": "Jobs",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/jobs.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/jobs.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Jobs critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/jobs.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "integrations",
+      "flowName": "Integrations",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/integrations.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/integrations.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Integrations critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/integrations.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "emojis",
+      "flowName": "Emojis",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/emojis.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/emojis.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Emojis critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/emojis.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "channels",
+      "flowName": "Channels",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/channels.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/channels.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Channels critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/channels.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "channel_categories",
+      "flowName": "Channel Categories",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/channel_categories.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/channel_categories.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Channel Categories critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/channel_categories.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "boards",
+      "flowName": "Boards",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/boards.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/boards.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Boards critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/boards.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "reducers",
+      "flowName": "Reducers",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/reducers/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/reducers.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Reducers critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/reducers/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "actions",
+      "flowName": "Actions",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/index.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/actions.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Actions critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/index.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "general",
+      "flowName": "General",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/general.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/general.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: General critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/general.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "search",
+      "flowName": "Search",
+      "priority": "P1",
+      "rationale": "State or data flow change; Critical keyword: search",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/actions/search.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/search.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: Search critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/actions/search.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    },
+    {
+      "flowId": "configureStore",
+      "flowName": "ConfigureStore",
+      "priority": "P1",
+      "rationale": "State or data flow change",
+      "sourceFiles": [
+        "channels/src/packages/mattermost-redux/src/store/configureStore.ts"
+      ],
+      "suggestedTestPath": "/Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/configureStore.spec.ts",
+      "framework": "playwright",
+      "skeleton": "import {test, expect} from '@mattermost/playwright-lib';\n\ntest('P1: ConfigureStore critical path', {tag: '@ai-assisted'}, async ({pw}) => {\n  const {user, team} = await pw.initSetup();\n  const {channelsPage} = await pw.testBrowser.login(user);\n  await channelsPage.goto(team.name);\n  // Linked code areas: channels/src/packages/mattermost-redux/src/store/configureStore.ts\n  // TODO: implement critical user path assertions\n  await expect(channelsPage.page).toHaveURL(/.*/);\n});\n"
+    }
+  ]
+}

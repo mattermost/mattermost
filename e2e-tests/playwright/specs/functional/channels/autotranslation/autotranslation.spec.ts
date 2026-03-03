@@ -305,8 +305,10 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify new message appears (translation happens server-side)
+        // Auto-translated channels display messages in the user's preferred language (English)
+        const translatedNewMessage = 'Hello, new';
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText(newMessage, {exact: false}),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText(translatedNewMessage, {exact: false}),
         ).toBeVisible({timeout: 15000});
 
         // * Verify old message is unchanged
@@ -479,8 +481,9 @@ test(
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
 
         // * Verify post appeared with translation
+        // Auto-translated channels display messages in the user's preferred language (English)
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Hola para nuevo miembro'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Hello for new member'),
         ).toBeVisible();
     },
 );
