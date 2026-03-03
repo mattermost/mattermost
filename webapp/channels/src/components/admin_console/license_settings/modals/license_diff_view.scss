@@ -2,7 +2,7 @@
     display: flex;
     padding: 16px;
     border: 1px solid;
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     margin: 16px 0 0;
     gap: 12px;
 
@@ -23,9 +23,7 @@
     }
 
     &__title {
-        font-size: 14px;
         font-weight: 600;
-        line-height: 20px;
     }
 
     &__description {
@@ -34,9 +32,7 @@
     }
 
     &__link {
-        font-size: 14px;
         font-weight: 600;
-        line-height: 20px;
     }
 
     &--warning {
