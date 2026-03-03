@@ -884,7 +884,7 @@ test(
         // Translation button should be present - test expects translation to happen
         if (!hasTranslationButton) {
             throw new Error(
-                'Translation button not found on post. Expected autotranslation to produce a translated message indicator.'
+                'Translation button not found on post. Expected autotranslation to produce a translated message indicator.',
             );
         }
 

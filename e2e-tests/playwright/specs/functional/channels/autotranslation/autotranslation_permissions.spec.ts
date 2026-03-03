@@ -77,7 +77,7 @@ async function probeTranslationService(): Promise<string | null> {
         } finally {
             clearTimeout(timeoutId);
         }
-    } catch (_error) {
+    } catch {
         // Service probe failed, will return null
     }
 
@@ -195,7 +195,9 @@ test.describe('autotranslation configuration tests', () => {
                 const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
                 if (configTabVisible) {
                     const configurationTab = await channelSettingsModal.openConfigurationTab();
-                    await expect(configurationTab.container.getByTestId('channelTranslationToggle-button')).not.toBeVisible();
+                    await expect(
+                        configurationTab.container.getByTestId('channelTranslationToggle-button'),
+                    ).not.toBeVisible();
                 }
             } finally {
                 // Restore original config to prevent state leakage

@@ -51,7 +51,7 @@ export default class PermissionsSystemScheme {
         if (count === 0) {
             throw new Error(
                 'Manage Channel Auto Translation permission rows not found in the section. ' +
-                'Expected to find at least one permission row to verify the checked state.'
+                    'Expected to find at least one permission row to verify the checked state.',
             );
         }
         for (let i = 0; i < count; i++) {
@@ -69,7 +69,7 @@ export default class PermissionsSystemScheme {
         if (count === 0) {
             throw new Error(
                 'Manage Channel Auto Translation permission rows not found in the section. ' +
-                'Expected to find at least one permission row to verify the unchecked state.'
+                    'Expected to find at least one permission row to verify the unchecked state.',
             );
         }
         for (let i = 0; i < count; i++) {

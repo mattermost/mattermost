@@ -116,7 +116,7 @@ export async function setMockSourceLanguage(mockBaseUrl: string, language: strin
         } finally {
             clearTimeout(timeoutId);
         }
-    } catch (_error) {
+    } catch {
         // Silently ignore all errors - could be mock server down or real LibreTranslate without control endpoint
         // Real LibreTranslate uses automatic language detection from message content anyway
         // Expected errors: AbortError (timeout), network errors, 404 from real LibreTranslate
