@@ -10,6 +10,10 @@ import {
 } from '@mattermost/playwright-lib';
 import {getRandomId} from 'utils/utils';
 
+// Module-level variable to store the discovered translation service URL
+// Set during test.beforeEach() and used by tests
+let selectedTranslationUrl: string | null = null;
+
 test.beforeEach(async () => {
     // Verify translation service is running (mock server or real LibreTranslate)
     // The translation service is called on the server side, so we need the service running
@@ -17,7 +21,7 @@ test.beforeEach(async () => {
     const defaultMockUrl = 'http://localhost:3010';
     const fallbackRealUrl = 'http://localhost:5000';
 
-    let selectedUrl: string | null = null;
+    selectedTranslationUrl = null;
     let lastError: string | null = null;
 
     // Try configured URL first (if provided)
@@ -34,7 +38,7 @@ test.beforeEach(async () => {
                 }
 
                 if (res?.ok) {
-                    selectedUrl = configuredUrl;
+                    selectedTranslationUrl = configuredUrl;
                 }
             } finally {
                 clearTimeout(timeoutId);
@@ -45,7 +49,7 @@ test.beforeEach(async () => {
     }
 
     // If no configured URL or it failed, try default mock server
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -53,7 +57,7 @@ test.beforeEach(async () => {
             try {
                 const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
                 if (res?.ok) {
-                    selectedUrl = defaultMockUrl;
+                    selectedTranslationUrl = defaultMockUrl;
                 }
             } finally {
                 clearTimeout(timeoutId);
@@ -64,7 +68,7 @@ test.beforeEach(async () => {
     }
 
     // If mock server not found, try real LibreTranslate
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -72,7 +76,7 @@ test.beforeEach(async () => {
             try {
                 const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
                 if (res?.ok) {
-                    selectedUrl = fallbackRealUrl;
+                    selectedTranslationUrl = fallbackRealUrl;
                 }
             } finally {
                 clearTimeout(timeoutId);
@@ -82,7 +86,7 @@ test.beforeEach(async () => {
         }
     }
 
-    if (!selectedUrl) {
+    if (!selectedTranslationUrl) {
         test.skip(
             true,
             `Translation service not found. Please start one of the following:\n` +
@@ -162,7 +166,7 @@ test(
         );
 
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: process.env.LIBRETRANSLATE_URL || 'http://localhost:3010',
+            mockBaseUrl: selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010',
             targetLanguages: ['en', 'es'],
         });
 

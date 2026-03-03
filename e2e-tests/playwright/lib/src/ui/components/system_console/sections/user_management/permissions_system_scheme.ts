@@ -48,7 +48,12 @@ export default class PermissionsSystemScheme {
     async expectManageChannelAutoTranslationChecked(section: Locator) {
         const rows = this.getManageChannelAutoTranslationRows(section);
         const count = await rows.count();
-        expect(count).toBeGreaterThanOrEqual(1);
+        if (count === 0) {
+            throw new Error(
+                'Manage Channel Auto Translation permission rows not found in the section. ' +
+                'Expected to find at least one permission row to verify the checked state.'
+            );
+        }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);
             await expect(row.locator('.permission-check.checked')).toBeVisible();

@@ -52,7 +52,7 @@ const server = createServer(async (req, res) => {
     if (method === 'GET' && path === '/') {
         return sendJson(res, 200, {
             message: 'LibreTranslate mock',
-            endpoints: ['GET /', 'POST /translate', 'POST /detect', 'GET /languages', 'POST /__control/detect_queue'],
+            endpoints: ['GET /', 'POST /translate', 'POST /detect', 'GET /languages', 'POST /__control/source'],
         });
     }
 
