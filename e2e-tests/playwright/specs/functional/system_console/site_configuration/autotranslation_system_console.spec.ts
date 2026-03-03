@@ -62,7 +62,9 @@ test.describe('System Console - Autotranslation (Localization)', () => {
 
             await expect(systemConsolePage.localization.autoTranslationSection).toBeVisible();
             await expect(systemConsolePage.localization.autoTranslationToggle).toBeVisible();
-            await expect(systemConsolePage.localization.container.getByText('Off')).toBeVisible();
+            // Check toggle state directly (not via unscoped text search which is flaky)
+            const isOn = await systemConsolePage.localization.isToggleOn();
+            expect(isOn).toBe(false);
         },
     );
 
@@ -146,10 +148,34 @@ test.describe('System Console - Autotranslation (Localization)', () => {
             await systemConsolePage.sidebar.siteConfiguration.localization.click();
             await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
 
+            // Enable autotranslation first
             await systemConsolePage.localization.turnOnAutoTranslation();
 
+            // Verify multiselect is visible
             await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
             await expect(systemConsolePage.localization.container.getByText('Languages allowed')).toBeVisible();
+
+            // Select multiple languages (Spanish and French)
+            const multiSelect = systemConsolePage.localization.targetLanguagesMultiSelect;
+            await multiSelect.click();
+
+            // Select Spanish
+            const languageOptions = systemConsolePage.localization.container.getByRole('option');
+            await languageOptions.filter({hasText: 'Spanish'}).click();
+
+            // Select French (keep multiselect open)
+            await languageOptions.filter({hasText: 'French'}).click();
+
+            // Close multiselect
+            await multiSelect.press('Escape');
+
+            // Verify both languages are selected (check for selected chips or tags)
+            const selectedChips = systemConsolePage.localization.container.locator('[class*="chip"], [class*="tag"]');
+            const spanishChip = selectedChips.filter({hasText: 'Spanish'});
+            const frenchChip = selectedChips.filter({hasText: 'French'});
+
+            await expect(spanishChip).toBeVisible();
+            await expect(frenchChip).toBeVisible();
         },
     );
 });

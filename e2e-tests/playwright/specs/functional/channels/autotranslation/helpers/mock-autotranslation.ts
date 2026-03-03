@@ -59,9 +59,8 @@ export async function mockAutotranslationRoute(
         supportedLanguages?: string[];
     },
 ): Promise<void> {
-    if (options?.sourceLanguage) {
-        mockSourceLanguage = options.sourceLanguage;
-    }
+    // Reset mockSourceLanguage to avoid state leakage between tests
+    mockSourceLanguage = options?.sourceLanguage || 'es';
 
     const supportedLanguages = options?.supportedLanguages || ['en', 'es', 'fr', 'de'];
 
@@ -76,13 +75,20 @@ export async function mockAutotranslationRoute(
             try {
                 postData = (await request.postDataJSON()) as MockTranslateRequest;
             } catch {
-                // If POST data is not JSON, try to parse as form data
+                // If POST data is not JSON, try to parse as form-encoded data
                 const postDataBuffer = request.postData();
                 if (!postDataBuffer) {
                     await route.abort('failed');
                     return;
                 }
-                postData = {text: postDataBuffer};
+                // Parse form-encoded data (application/x-www-form-urlencoded)
+                const formData = new URLSearchParams(postDataBuffer.toString());
+                postData = {
+                    q: formData.get('q') || undefined,
+                    text: formData.get('text') || undefined,
+                    source: formData.get('source') || undefined,
+                    target: formData.get('target') || undefined,
+                };
             }
 
             const textToTranslate = postData.q || postData.text || '';

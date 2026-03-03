@@ -62,7 +62,10 @@ export default class PermissionsSystemScheme {
         const rows = this.getManageChannelAutoTranslationRows(section);
         const count = await rows.count();
         if (count === 0) {
-            return;
+            throw new Error(
+                'Manage Channel Auto Translation permission rows not found in the section. ' +
+                'Expected to find at least one permission row to verify the unchecked state.'
+            );
         }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);

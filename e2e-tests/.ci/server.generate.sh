@@ -65,7 +65,7 @@ services:
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
-      LIBRETRANSLATE_URL: "http://localhost:5000"
+      LIBRETRANSLATE_URL: "${LIBRETRANSLATE_URL:-http://localhost:5000}"
     network_mode: host
     ports:
       - "8065:8065"
@@ -223,7 +223,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
 $(if mme2e_is_token_in_list "libretranslate" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   libretranslate:
-    image: "libretranslate/libretranslate:latest"
+    image: "libretranslate/libretranslate:v1.9.4"
     restart: "no"
     network_mode: host
     networks: !reset []

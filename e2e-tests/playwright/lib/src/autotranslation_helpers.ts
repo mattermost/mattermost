@@ -119,11 +119,8 @@ export async function setMockSourceLanguage(mockBaseUrl: string, language: strin
     } catch (error) {
         // Silently ignore all errors - could be mock server down or real LibreTranslate without control endpoint
         // Real LibreTranslate uses automatic language detection from message content anyway
-        const message = error instanceof Error ? error.message : String(error);
-        if (!message.includes('AbortError')) {
-            // Only warn for non-timeout errors, and only in debug mode
-            // console.debug(`setMockSourceLanguage: Could not reach ${mockBaseUrl}/__control/source (expected if using real LibreTranslate)`);
-        }
+        // Expected errors: AbortError (timeout), network errors, 404 from real LibreTranslate
+        // All are handled gracefully by the retry logic above
     }
 }
 

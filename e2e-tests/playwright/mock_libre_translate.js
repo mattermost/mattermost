@@ -18,8 +18,8 @@ const LANGUAGES = [
     {code: 'de', name: 'German'},
 ];
 
-// Source language to return from /translate when source=auto. Set via POST /__control/detect_queue.
-// Applies to all messages until changed. Default 'es'. /detect always returns 'es'.
+// Source language to return from /translate and /detect when source=auto. Set via POST /__control/source.
+// Applies to all messages until changed. Default 'es'. Both /detect and /translate use this value.
 let sourceLanguage = 'es';
 
 function parseJsonBody(req) {

@@ -15,6 +15,10 @@ import {getRandomId} from 'utils/utils';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
 
+// Module-level variable to store the discovered translation service URL
+// Set during test.beforeEach() and used by tests
+let selectedTranslationUrl: string | null = null;
+
 test.beforeEach(async () => {
     // Verify translation service is running (mock server or real LibreTranslate)
     // The translation service is called on the server side, so we need the service running
@@ -22,7 +26,7 @@ test.beforeEach(async () => {
     const defaultMockUrl = 'http://localhost:3010';
     const fallbackRealUrl = 'http://localhost:5000';
 
-    let selectedUrl: string | null = null;
+    selectedTranslationUrl = null;
     let lastError: string | null = null;
 
     // Try configured URL first (if provided)
@@ -101,8 +105,8 @@ test(
             'Skipping test - server does not have Entry or Advanced license',
         );
         // # Enable autotranslation in config
-        // Use the LibreTranslate service URL for translation
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        // Use the discovered translation service URL (from beforeEach probe)
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -169,7 +173,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -212,7 +216,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -256,7 +260,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -325,7 +329,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -365,7 +369,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -435,7 +439,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -496,7 +500,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -540,7 +544,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -614,7 +618,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -714,7 +718,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -812,7 +816,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -877,17 +881,19 @@ test(
         const translationButton = modalPost.getByRole('button', {name: 'This post has been translated'});
         const hasTranslationButton = (await translationButton.count()) > 0;
 
-        if (hasTranslationButton) {
-            // Translation happened - verify the modal opens
-            await translationButton.click();
-            const showTranslationDialog = page.getByRole('dialog').filter({hasText: 'Show Translation'});
-            await expect(showTranslationDialog).toBeVisible();
-            await expect(showTranslationDialog.getByText('ORIGINAL')).toBeVisible();
-            await expect(showTranslationDialog.getByText('AUTO-TRANSLATED')).toBeVisible();
-        } else {
-            // The message should still appear but without translation
-            await expect(modalPost).toContainText('Este es un texto');
+        // Translation button should be present - test expects translation to happen
+        if (!hasTranslationButton) {
+            throw new Error(
+                'Translation button not found on post. Expected autotranslation to produce a translated message indicator.'
+            );
         }
+
+        // Translation happened - verify the modal opens
+        await translationButton.click();
+        const showTranslationDialog = page.getByRole('dialog').filter({hasText: 'Show Translation'});
+        await expect(showTranslationDialog).toBeVisible();
+        await expect(showTranslationDialog.getByText('ORIGINAL')).toBeVisible();
+        await expect(showTranslationDialog.getByText('AUTO-TRANSLATED')).toBeVisible();
     },
 );
 
@@ -904,7 +910,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -971,17 +977,11 @@ test(
         await messagePost.locator('.post-menu').getByRole('button').first().click();
 
         const messageActionMenu = page.getByRole('menu').filter({has: page.getByRole('menuitem', {name: 'Reply'})});
-        // Check for Show translation menu item - if it exists, verify it
+        // Check for Show translation menu item - should be present since translation happened
         const showTranslationItem = messageActionMenu.getByRole('menuitem', {name: 'Show translation'});
-        const hasShowTranslationItem = (await showTranslationItem.count()) > 0;
 
-        if (hasShowTranslationItem) {
-            // Translation happened - menu item should be visible
-            await expect(showTranslationItem).toBeVisible({timeout: 15000});
-        } else {
-            // Verify the post is still there
-            await expect(messagePost).toContainText('Este mensaje es para probar');
-        }
+        // Translation should have happened - menu item should be visible
+        await expect(showTranslationItem).toBeVisible({timeout: 15000});
     },
 );
 
@@ -998,7 +998,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -1047,7 +1047,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],
@@ -1098,7 +1098,7 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = process.env.LIBRETRANSLATE_URL || 'http://localhost:3010';
+        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: libretranslateUrl,
             targetLanguages: ['en', 'es'],

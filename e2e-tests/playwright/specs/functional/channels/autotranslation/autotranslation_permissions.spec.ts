@@ -26,15 +26,18 @@ test.beforeEach(async () => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-            // Try /health endpoint first (real LibreTranslate), then fallback to / (mock server)
-            let res = await fetch(`${configuredUrl}/health`, {signal: controller.signal}).catch(() => null);
-            if (!res?.ok) {
-                res = await fetch(`${configuredUrl}/`, {signal: controller.signal});
-            }
+            try {
+                // Try /health endpoint first (real LibreTranslate), then fallback to / (mock server)
+                let res = await fetch(`${configuredUrl}/health`, {signal: controller.signal}).catch(() => null);
+                if (!res?.ok) {
+                    res = await fetch(`${configuredUrl}/`, {signal: controller.signal});
+                }
 
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedUrl = configuredUrl;
+                if (res?.ok) {
+                    selectedUrl = configuredUrl;
+                }
+            } finally {
+                clearTimeout(timeoutId);
             }
         } catch (error) {
             lastError = error instanceof Error ? error.message : String(error);
@@ -46,10 +49,14 @@ test.beforeEach(async () => {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
-            const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedUrl = defaultMockUrl;
+
+            try {
+                const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
+                if (res?.ok) {
+                    selectedUrl = defaultMockUrl;
+                }
+            } finally {
+                clearTimeout(timeoutId);
             }
         } catch (error) {
             lastError = error instanceof Error ? error.message : String(error);
@@ -61,10 +68,14 @@ test.beforeEach(async () => {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
-            const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedUrl = fallbackRealUrl;
+
+            try {
+                const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
+                if (res?.ok) {
+                    selectedUrl = fallbackRealUrl;
+                }
+            } finally {
+                clearTimeout(timeoutId);
             }
         } catch (error) {
             lastError = error instanceof Error ? error.message : String(error);
