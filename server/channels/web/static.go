@@ -12,7 +12,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/klauspost/compress/gzhttp"
 
@@ -90,27 +89,8 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 			subpath = "/"
 		}
 
-		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", templates.Data{
-			Props: map[string]any{
-				"CurrentDesktopAppVersion": currentVersion,
-				"MinimumDesktopAppVersion": *cfg.ServiceSettings.MinimumDesktopAppVersion,
-				"DownloadLink":             *cfg.NativeAppSettings.AppDownloadLink,
-				"BackgroundImageURL":       path.Join(subpath, "static", "images", "admin-onboarding-background.jpg"),
-				"LogoURL":                  path.Join(subpath, "static", "images", "logo.svg"),
-				"AlertIconURL":             path.Join(subpath, "static", "images", "alert.svg"),
-				"MetropolisFontURL":        path.Join(subpath, "static", "fonts", "Metropolis-SemiBold.woff"),
-				"OpenSansRegularWoff2URL":  path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2"),
-				"OpenSansRegularWoffURL":   path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff"),
-				"OpenSans600Woff2URL":      path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2"),
-				"OpenSans600WoffURL":       path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff"),
-				"CopyrightYear":            time.Now().Year(),
-				"SiteName":                 *cfg.TeamSettings.SiteName,
-				"AboutLink":                *cfg.SupportSettings.AboutLink,
-				"PrivacyPolicyLink":        *cfg.SupportSettings.PrivacyPolicyLink,
-				"TermsOfServiceLink":       *cfg.SupportSettings.TermsOfServiceLink,
-				"HelpLink":                 *cfg.SupportSettings.HelpLink,
-			},
-		})
+		data := renderUnsupportedDesktopApp(c.AppContext, cfg, currentVersion, subpath)
+		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", data)
 		if err != nil {
 			c.Logger.Error("Failed to render template", mlog.Err(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -208,6 +188,20 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 
 	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
+}
+
+func staticAssetURL(subpath string, assetPath ...string) string {
+	parts := append([]string{subpath, "static"}, assetPath...)
+	return path.Join(parts...)
+}
+
+func openSansFontProps(subpath string) map[string]any {
+	return map[string]any{
+		"OpenSansRegularWoff2URL": staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2"),
+		"OpenSansRegularWoffURL":  staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff"),
+		"OpenSans600Woff2URL":     staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2"),
+		"OpenSans600WoffURL":      staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff"),
+	}
 }
 
 func getOpenGraphMetaTags(c *Context) string {

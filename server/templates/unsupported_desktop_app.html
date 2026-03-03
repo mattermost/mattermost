@@ -148,21 +148,21 @@
             <main class="main">
                 <div class="content">
                     <img class="warning-icon" src="{{.Props.AlertIconURL}}" alt="" />
-                    <h1 class="title">Update Required</h1>
-                    <div class="message">Your {{.Props.SiteName}} Desktop App version ({{.Props.CurrentDesktopAppVersion}}) is below the minimum required version ({{.Props.MinimumDesktopAppVersion}}). Please update your app or open {{.Props.SiteName}} in a web browser to continue.</div>
+                    <h1 class="title">{{.Props.Title}}</h1>
+                    <div class="message">{{.Props.MessageString}}</div>
                     <div class="download-container">
-                        <a class="download-button" href="{{.Props.DownloadLink}}" target="_blank" rel="noopener noreferrer">Download Updated App</a>
+                        <a class="download-button" href="{{.Props.DownloadLink}}" target="_blank" rel="noopener noreferrer">{{.Props.DownloadButtonLabel}}</a>
                     </div>
-                    <p class="assistance">Contact your system administrator if you need further assistance.</p>
+                    <p class="assistance">{{.Props.AssistanceString}}</p>
                 </div>
             </main>
             <footer class="footer">
                 <span>© {{.Props.CopyrightYear}} Mattermost Inc.</span>
                 <span class="footer-links">
-                    {{if .Props.AboutLink}}<a href="{{.Props.AboutLink}}" target="_blank" rel="noopener noreferrer">About</a>{{end}}
-                    {{if .Props.PrivacyPolicyLink}}<a href="{{.Props.PrivacyPolicyLink}}" target="_blank" rel="noopener noreferrer">Privacy Policy</a>{{end}}
-                    {{if .Props.TermsOfServiceLink}}<a href="{{.Props.TermsOfServiceLink}}" target="_blank" rel="noopener noreferrer">Terms</a>{{end}}
-                    {{if .Props.HelpLink}}<a href="{{.Props.HelpLink}}" target="_blank" rel="noopener noreferrer">Help</a>{{end}}
+                    {{if .Props.AboutLink}}<a href="{{.Props.AboutLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterAboutLabel}}</a>{{end}}
+                    {{if .Props.PrivacyPolicyLink}}<a href="{{.Props.PrivacyPolicyLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterPrivacyLabel}}</a>{{end}}
+                    {{if .Props.TermsOfServiceLink}}<a href="{{.Props.TermsOfServiceLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterTermsLabel}}</a>{{end}}
+                    {{if .Props.HelpLink}}<a href="{{.Props.HelpLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterHelpLabel}}</a>{{end}}
                 </span>
             </footer>
         </body>

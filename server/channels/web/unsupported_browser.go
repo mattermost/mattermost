@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"path"
 
 	"github.com/avct/uasurfer"
 
@@ -50,16 +49,11 @@ func renderUnsupportedBrowser(rctx request.CTX, r *http.Request, subpath string)
 		subpath = "/"
 	}
 
-	data := templates.Data{
-		Props: map[string]any{
-			"DownloadAppOrUpgradeBrowserString": rctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
-			"LearnMoreString":                   rctx.T("web.error.unsupported_browser.learn_more"),
-			"OpenSansRegularWoff2URL":           path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2"),
-			"OpenSansRegularWoffURL":            path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff"),
-			"OpenSans600Woff2URL":               path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2"),
-			"OpenSans600WoffURL":                path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff"),
-		},
-	}
+	props := openSansFontProps(subpath)
+	props["DownloadAppOrUpgradeBrowserString"] = rctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser")
+	props["LearnMoreString"] = rctx.T("web.error.unsupported_browser.learn_more")
+
+	data := templates.Data{Props: props}
 
 	// User Agent info
 	ua := uasurfer.Parse(r.UserAgent())
@@ -99,9 +93,13 @@ func renderUnsupportedBrowser(rctx request.CTX, r *http.Request, subpath string)
 	return data
 }
 
+func browserIconURL(subpath, filename string) string {
+	return staticAssetURL(subpath, "images", "browser-icons", filename)
+}
+
 func renderMattermostAppMac(rctx request.CTX, subpath string) MattermostApp {
 	return MattermostApp{
-		path.Join(subpath, "static", "images", "browser-icons", "mac.png"),
+		browserIconURL(subpath, "mac.png"),
 		rctx.T("web.error.unsupported_browser.download_the_app"),
 		rctx.T("web.error.unsupported_browser.min_os_version.mac"),
 		rctx.T("web.error.unsupported_browser.download"),
@@ -113,7 +111,7 @@ func renderMattermostAppMac(rctx request.CTX, subpath string) MattermostApp {
 
 func renderMattermostAppWindows(rctx request.CTX, subpath string) MattermostApp {
 	return MattermostApp{
-		path.Join(subpath, "static", "images", "browser-icons", "windows.svg"),
+		browserIconURL(subpath, "windows.svg"),
 		rctx.T("web.error.unsupported_browser.download_the_app"),
 		rctx.T("web.error.unsupported_browser.min_os_version.windows"),
 		rctx.T("web.error.unsupported_browser.download"),
@@ -125,7 +123,7 @@ func renderMattermostAppWindows(rctx request.CTX, subpath string) MattermostApp 
 
 func renderBrowserChrome(rctx request.CTX, subpath string) Browser {
 	return Browser{
-		path.Join(subpath, "static", "images", "browser-icons", "chrome.svg"),
+		browserIconURL(subpath, "chrome.svg"),
 		rctx.T("web.error.unsupported_browser.browser_title.chrome"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.chrome"),
 		"http://www.google.com/chrome",
@@ -135,7 +133,7 @@ func renderBrowserChrome(rctx request.CTX, subpath string) Browser {
 
 func renderBrowserFirefox(rctx request.CTX, subpath string) Browser {
 	return Browser{
-		path.Join(subpath, "static", "images", "browser-icons", "firefox.svg"),
+		browserIconURL(subpath, "firefox.svg"),
 		rctx.T("web.error.unsupported_browser.browser_title.firefox"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.firefox"),
 		"https://www.mozilla.org/firefox/new/",
@@ -145,7 +143,7 @@ func renderBrowserFirefox(rctx request.CTX, subpath string) Browser {
 
 func renderBrowserSafari(rctx request.CTX, subpath string) Browser {
 	return Browser{
-		path.Join(subpath, "static", "images", "browser-icons", "safari.svg"),
+		browserIconURL(subpath, "safari.svg"),
 		rctx.T("web.error.unsupported_browser.browser_title.safari"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.safari"),
 		"macappstore://showUpdatesPage",
@@ -155,7 +153,7 @@ func renderBrowserSafari(rctx request.CTX, subpath string) Browser {
 
 func renderSystemBrowserEdge(rctx request.CTX, r *http.Request, subpath string) SystemBrowser {
 	return SystemBrowser{
-		path.Join(subpath, "static", "images", "browser-icons", "edge.svg"),
+		browserIconURL(subpath, "edge.svg"),
 		rctx.T("web.error.unsupported_browser.browser_title.edge"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.edge"),
 		rctx.T("web.error.unsupported_browser.open_system_browser.edge"),

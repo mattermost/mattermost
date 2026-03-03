@@ -11873,6 +11873,38 @@
     "translation": "or"
   },
   {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Contact your system administrator if you need further assistance."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Download Updated App"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "About"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Privacy Policy"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Terms"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Your {{.SiteName}} Desktop App version ({{.CurrentVersion}}) is below the minimum required version ({{.MinimumVersion}}). Please update your app or open {{.SiteName}} in a web browser to continue."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Update Required"
+  },
+  {
     "id": "web.get_access_token.internal_saving.app_error",
     "translation": "Unable to update the user access data."
   },
