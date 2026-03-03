@@ -42,7 +42,7 @@
     "@mattermost/client": "11.4.0",
     "@mattermost/types": "11.4.0",
     "@redux-devtools/extension": "3.3.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "moment-timezone": "^0.5.38",
     "redux": "^5.0.0",
     "redux-batched-actions": "0.5.0",

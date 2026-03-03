@@ -124,6 +124,11 @@ var PermissionAddBookmarkPrivateChannel *Permission
 var PermissionEditBookmarkPrivateChannel *Permission
 var PermissionDeleteBookmarkPrivateChannel *Permission
 var PermissionOrderBookmarkPrivateChannel *Permission
+var PermissionCreatePage *Permission
+var PermissionReadPage *Permission
+var PermissionEditPage *Permission
+var PermissionDeleteOwnPage *Permission
+var PermissionDeletePage *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
@@ -417,6 +422,7 @@ var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
 var ModeratedBookmarkPermissions []*Permission
+var ModeratedPagePermissions []*Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -1330,6 +1336,36 @@ func initializePermissions() {
 	}
 	PermissionOrderBookmarkPrivateChannel = &Permission{
 		"order_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionCreatePage = &Permission{
+		"create_page",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionReadPage = &Permission{
+		"read_page",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditPage = &Permission{
+		"edit_page",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteOwnPage = &Permission{
+		"delete_own_page",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeletePage = &Permission{
+		"delete_page",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2593,6 +2629,11 @@ func initializePermissions() {
 		PermissionEditBookmarkPrivateChannel,
 		PermissionDeleteBookmarkPrivateChannel,
 		PermissionOrderBookmarkPrivateChannel,
+		PermissionCreatePage,
+		PermissionReadPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
@@ -2674,6 +2715,7 @@ func initializePermissions() {
 		"manage_members",
 		PermissionUseChannelMentions.Id,
 		"manage_bookmarks",
+		"manage_pages",
 	}
 
 	ChannelModeratedPermissionsMap = map[string]string{
@@ -2696,8 +2738,20 @@ func initializePermissions() {
 		PermissionOrderBookmarkPrivateChannel,
 	}
 
+	ModeratedPagePermissions = []*Permission{
+		PermissionCreatePage,
+		PermissionReadPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
+	}
+
 	for _, mbp := range ModeratedBookmarkPermissions {
 		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
+	}
+
+	for _, mpp := range ModeratedPagePermissions {
+		ChannelModeratedPermissionsMap[mpp.Id] = ChannelModeratedPermissions[5]
 	}
 }
 

@@ -77,6 +77,12 @@ exports[`components/threading/global_threads/thread_item should report total num
       dir="auto"
       onClick={[Function]}
       onKeyDown={[Function]}
+      style={
+        Object {
+          "height": "auto",
+          "maxHeight": "none",
+        }
+      }
     >
       <MockMarkdown
         imageProps={
@@ -231,6 +237,12 @@ exports[`components/threading/global_threads/thread_item should report unread me
       dir="auto"
       onClick={[Function]}
       onKeyDown={[Function]}
+      style={
+        Object {
+          "height": "auto",
+          "maxHeight": "none",
+        }
+      }
     >
       <MockMarkdown
         imageProps={
@@ -383,6 +395,12 @@ exports[`components/threading/global_threads/thread_item should report unread me
       dir="auto"
       onClick={[Function]}
       onKeyDown={[Function]}
+      style={
+        Object {
+          "height": "auto",
+          "maxHeight": "none",
+        }
+      }
     >
       <MockMarkdown
         imageProps={

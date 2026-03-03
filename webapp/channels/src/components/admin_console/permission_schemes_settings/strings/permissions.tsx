@@ -745,4 +745,54 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Configure attribute-based access control policy for channels.',
         },
     }),
+    create_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_page.name',
+            defaultMessage: 'Create Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_page.description',
+            defaultMessage: 'Allow users to create pages.',
+        },
+    }),
+    read_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.read_page.name',
+            defaultMessage: 'View Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.read_page.description',
+            defaultMessage: 'Allow users to view pages.',
+        },
+    }),
+    edit_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.edit_page.name',
+            defaultMessage: 'Edit Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.edit_page.description',
+            defaultMessage: 'Allow users to edit pages.',
+        },
+    }),
+    delete_own_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_own_page.name',
+            defaultMessage: 'Delete Own Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_own_page.description',
+            defaultMessage: 'Allow users to delete their own pages.',
+        },
+    }),
+    delete_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_page.name',
+            defaultMessage: 'Delete Others\' Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_page.description',
+            defaultMessage: 'Allow users to delete any page.',
+        },
+    }),
 };

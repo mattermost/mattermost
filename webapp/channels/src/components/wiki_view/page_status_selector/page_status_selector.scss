@@ -1,0 +1,15 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.page-status-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-status-label {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}

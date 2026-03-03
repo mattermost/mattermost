@@ -65,3 +65,8 @@ export type SearchRequestsStatuses = {
     flaggedPosts: RequestStatusType;
     pinnedPosts: RequestStatusType;
 };
+
+export type WikiRequestsStatuses = {
+    loading: Record<string, boolean>;
+    error: Record<string, string | null>;
+};

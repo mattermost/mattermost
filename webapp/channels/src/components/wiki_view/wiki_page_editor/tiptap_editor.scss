@@ -1,0 +1,616 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.tiptap-editor-wrapper {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: 400px;
+    flex-direction: column;
+    flex-grow: 1;
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+
+    // Define the CSS variable used by ProseMirror tables for cells without explicit column widths.
+    // Without this, the variable defaults to 0, causing table columns to collapse.
+    --default-cell-min-width: 100px;
+
+    // Position the RewriteMenu's trigger button near the formatting toolbar
+    // The button is visually hidden but needed for menu positioning
+    #rewrite-button {
+        position: absolute;
+        z-index: 1000;
+        top: 0;
+        left: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%);
+
+        // Make it visible for debugging if needed
+        // opacity: 1;
+        // pointer-events: auto;
+    }
+
+    .tiptap-editor-content {
+        min-height: 400px;
+        flex: 1;
+        padding: 24px 0 80px 0;
+        color: var(--center-channel-color);
+        font-size: 15px;
+        line-height: 1.6;
+        outline: none;
+
+        // TipTap Placeholder extension adds .is-empty class to empty paragraph nodes
+        // Show placeholder in every empty paragraph block
+        p.is-empty::before {
+            height: 0;
+            color: var(--center-channel-color-40);
+            content: attr(data-placeholder);
+            float: left;
+            pointer-events: none;
+        }
+
+        h1, h2, h3 {
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: -8px;
+            margin-left: -8px;
+            scroll-margin-top: 80px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+            &.highlighted {
+                background-color: rgba(var(--button-bg-rgb), 0.12);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.24);
+            }
+        }
+
+        h1 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: var(--center-channel-color);
+            font-size: 2em;
+            font-weight: 600;
+            line-height: 1.3;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+
+        h2 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: var(--center-channel-color);
+            font-size: 1.5em;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        h3 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: var(--center-channel-color);
+            font-size: 1.25em;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        p {
+            margin: 0.75em 0;
+
+            &:first-child {
+                margin-top: 0;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5em;
+            margin: 0.75em 0;
+        }
+
+        ul {
+            list-style-type: disc;
+        }
+
+        ol {
+            list-style-type: decimal;
+        }
+
+        li {
+            margin: 0.25em 0;
+
+            p {
+                margin: 0;
+            }
+        }
+
+        // Task list styles (checkbox lists)
+        ul[data-type="taskList"] {
+            padding-left: 0;
+            list-style: none;
+
+            li {
+                display: flex;
+                align-items: flex-start;
+                margin: 0.25em 0;
+                gap: 8px;
+
+                > label {
+                    display: flex;
+                    flex: 0 0 auto;
+                    align-items: center;
+                    margin-top: 2px;
+                    user-select: none;
+
+                    input[type="checkbox"] {
+                        width: 16px;
+                        height: 16px;
+                        border: 1px solid var(--center-channel-color-40);
+                        border-radius: 3px;
+                        margin: 0;
+                        accent-color: var(--button-bg);
+                        cursor: pointer;
+                    }
+                }
+
+                > div {
+                    flex: 1 1 auto;
+                }
+
+                &[data-checked="true"] {
+                    > div {
+                        color: var(--center-channel-color-56);
+                        text-decoration: line-through;
+                    }
+                }
+            }
+
+            // Nested task lists
+            ul[data-type="taskList"] {
+                margin-top: 4px;
+            }
+        }
+
+        blockquote {
+            padding-left: 16px;
+            border-left: 3px solid var(--center-channel-color-16);
+            margin: 1em 0;
+            color: var(--center-channel-color-64);
+            font-style: italic;
+        }
+
+        // Callout blocks
+        .callout {
+            display: flex;
+            padding: 12px 16px;
+            border-radius: 4px;
+            border-left: 4px solid;
+            margin: 1em 0;
+            gap: 12px;
+
+            // Icon via pseudo-element
+            &::before {
+                flex-shrink: 0;
+                font-family: 'compass-icons';
+                font-size: 20px;
+                line-height: 1.4;
+            }
+
+            // Content wrapper - contains paragraphs stacked vertically
+            .callout-content {
+                min-width: 0;
+                flex: 1;
+
+                > *:first-child {
+                    margin-top: 0;
+                }
+
+                > *:last-child {
+                    margin-bottom: 0;
+                }
+            }
+
+            &.callout-info {
+                border-left-color: var(--button-bg);
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+
+                &::before {
+                    color: var(--button-bg);
+                    content: '\f2fc'; // icon-information-outline
+                }
+            }
+
+            &.callout-warning {
+                border-left-color: var(--away-indicator);
+                background-color: rgba(var(--away-indicator-rgb), 0.08);
+
+                &::before {
+                    color: var(--away-indicator);
+                    content: '\f028'; // icon-alert-outline
+                }
+            }
+
+            &.callout-success {
+                border-left-color: var(--online-indicator);
+                background-color: rgba(var(--online-indicator-rgb), 0.08);
+
+                &::before {
+                    color: var(--online-indicator);
+                    content: '\f0e1'; // icon-check-circle
+                }
+            }
+
+            &.callout-error {
+                border-left-color: var(--error-text);
+                background-color: rgba(var(--error-text-rgb), 0.08);
+
+                &::before {
+                    color: var(--error-text);
+                    content: '\f159'; // icon-close-circle
+                }
+            }
+        }
+
+        pre {
+            padding: 12px;
+            border: 1px solid var(--center-channel-color-08);
+            border-radius: 4px;
+            margin: 1em 0;
+            background: var(--center-channel-color-04);
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+
+            code {
+                padding: 0;
+                border: none;
+                background: none;
+                font-size: inherit;
+            }
+        }
+
+        code {
+            padding: 2px 6px;
+            border: 1px solid var(--center-channel-color-08);
+            border-radius: 3px;
+            background: var(--center-channel-color-04);
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        a.wiki-link {
+            color: var(--link-color);
+            cursor: pointer;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        img {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+            border-radius: 4px;
+        }
+
+        img.wiki-image {
+            max-width: 100%;
+            height: auto;
+            margin: 1em 0;
+        }
+
+        // Add pointer cursor and hover effect for images in view mode
+        &.ProseMirror[contenteditable="false"] img,
+        &.ProseMirror[contenteditable="false"] img.wiki-image {
+            cursor: pointer;
+
+            &:hover {
+                opacity: 0.9;
+            }
+        }
+
+        // Hide file attachment delete button in view mode
+        &.ProseMirror[contenteditable="false"] {
+            .wiki-file-attachment__delete {
+                display: none !important;
+            }
+
+            .wiki-file-attachment-wrapper--selected .wiki-file-attachment {
+                outline: none;
+            }
+        }
+
+        // Video styling
+        video,
+        video.wiki-video {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 1em 0;
+            background-color: var(--center-channel-color-04);
+        }
+
+        // Selected video node styling
+        video.ProseMirror-selectednode,
+        .ProseMirror-selectednode video {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        // ImageResize extension wraps images in a div with inline styles
+        // Override the default dashed border to make selection more visible
+        div[style*="border: 1px dashed"] {
+            border: 2px solid var(--button-bg) !important;
+            border-radius: 4px !important;
+            box-shadow: 0 0 0 4px rgba(var(--button-bg-rgb), 0.12) !important;
+        }
+
+        table {
+            overflow: hidden;
+            width: 100%;
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
+            margin: 1em 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            
+
+            td,
+            th {
+                position: relative;
+                min-width: 1em;
+                box-sizing: border-box;
+                padding: 8px 12px;
+                border: var(--border-default);
+                background-color: var(--center-channel-bg);
+                vertical-align: top;
+
+                > * {
+                    margin-bottom: 0;
+                }
+            }
+
+            th {
+                background-color: var(--center-channel-color-04);
+                color: var(--center-channel-color);
+                font-weight: 600;
+                text-align: left;
+            }
+
+            .selectedCell {
+                background-color: var(--button-bg-08);
+            }
+
+            .column-resize-handle {
+                position: absolute;
+                top: 0;
+                right: -2px;
+                bottom: -2px;
+                width: 4px;
+                background-color: var(--button-bg);
+                pointer-events: none;
+            }
+
+            p {
+                margin: 0;
+            }
+        }
+
+        hr {  
+            border: none;
+            border-top: var(--border-dark);
+            margin: 3.5em -1em 3em -1em;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        s {
+            text-decoration: line-through;
+        }
+
+        .mention {
+            padding: 2px 4px;
+            border-radius: 3px;
+            background-color: var(--mention-highlight-bg);
+            color: var(--mention-highlight-link);
+            cursor: pointer;
+            font-weight: 600;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            // Override TipTap's default blue background for contenteditable="false" nodes
+            &[contenteditable="false"] {
+                background-color: var(--mention-highlight-bg) !important;
+                color: var(--mention-highlight-link) !important;
+            }
+
+            // When selected by TipTap
+            &.ProseMirror-selectednode {
+                background-color: var(--button-bg-08) !important;
+                outline: 2px solid var(--button-bg);
+            }
+        }
+
+        .channel-mention {
+            padding: 2px 4px;
+            border-radius: 3px;
+            background-color: rgba(var(--link-color-rgb, 35, 137, 215), 0.08);
+            color: var(--link-color);
+            cursor: pointer;
+            font-weight: 600;
+
+            &::before {
+                content: '~';
+            }
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            // Override TipTap's default blue background for contenteditable="false" nodes
+            &[contenteditable="false"] {
+                background-color: rgba(var(--link-color-rgb, 35, 137, 215), 0.08) !important;
+                color: var(--link-color) !important;
+            }
+
+            // When selected by TipTap
+            &.ProseMirror-selectednode {
+                background-color: var(--button-bg-08) !important;
+                outline: 2px solid var(--button-bg);
+            }
+        }
+    }
+}
+
+.tiptap-toolbar {
+    // Visual styles only - positioning handled in wiki_view.scss
+    position: sticky;
+    z-index: 1000;
+    bottom: 0px;
+    display: flex;
+    width: max-content;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: var(--radius-m);
+    margin: 0 auto;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
+    gap: 4px;
+
+    button {
+        margin: 0;
+
+        &.is-active {
+            border-color: var(--button-bg);
+            background: var(--button-bg-08);
+            color: var(--button-bg);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        margin: 0 4px;
+        background: var(--center-channel-color-16);
+    }
+}
+
+.ProseMirror-focused {
+    outline: none;
+}
+
+// Inline comment highlight styles
+.inline-comment-highlight {
+    padding: 2px 0;
+    border-radius: 2px;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
+    background-color: rgba(255, 235, 59, 0.3);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        border-bottom-color: rgba(255, 193, 7, 0.9);
+        background-color: rgba(255, 235, 59, 0.5);
+    }
+}
+
+.inline-comment-icon {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    margin-right: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .icon {
+        font-size: 14px;
+    }
+}
+
+// Comment anchor mark styles (new mark-based approach)
+// Used for inline comments with stable anchor IDs
+// Base class: no visible styling (resolved comments have mark but no highlight)
+.comment-anchor {
+    // Account for sticky header when scrolling to anchor
+    scroll-margin-top: 80px;
+}
+
+// Active class: applied via decorations only when comment is non-resolved
+// This class is added dynamically by InlineCommentExtension based on inlineComments
+.comment-anchor-active {
+    padding: 2px 0;
+    border-radius: 2px;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
+    background-color: rgba(255, 235, 59, 0.2);
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-bottom-color: rgba(255, 193, 7, 0.9);
+        background-color: rgba(255, 235, 59, 0.4);
+    }
+}
+
+// Native :target selector for fragment navigation
+// Triggered when URL hash matches the anchor id (e.g., #ic-abc123)
+// Only apply to active anchors
+.comment-anchor-active:target,
+.comment-anchor-active.anchor-highlighted {
+    animation: anchor-pulse 0.5s ease-in-out 2;
+    background-color: rgba(255, 235, 59, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+}
+
+@keyframes anchor-pulse {
+    0%, 100% {
+        background-color: rgba(255, 235, 59, 0.5);
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+    }
+
+    50% {
+        background-color: rgba(255, 235, 59, 0.7);
+        box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.6);
+    }
+}
+
+// Respect reduced motion preference for accessibility
+@media (prefers-reduced-motion: reduce) {
+    .comment-anchor-active:target,
+    .comment-anchor-active.anchor-highlighted {
+        animation: none;
+    }
+}

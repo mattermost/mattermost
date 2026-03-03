@@ -354,7 +354,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                             <SidebarCategoryHeader
                                                 ref={this.categoryTitleRef}
                                                 displayName={displayName}
-                                                dragHandleProps={provided.dragHandleProps}
+                                                dragHandleProps={provided.dragHandleProps ?? undefined}
                                                 isCollapsed={category.collapsed}
                                                 isCollapsible={isCollapsible}
                                                 isDragging={snapshot.isDragging}

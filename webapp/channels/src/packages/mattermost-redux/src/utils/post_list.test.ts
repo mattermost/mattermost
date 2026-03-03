@@ -9,6 +9,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {
     COMBINED_USER_ACTIVITY,
+    COMBINED_PAGE_ACTIVITY,
     combineUserActivitySystemPost,
     DATE_LINE,
     getDateForDateLine,
@@ -16,12 +17,16 @@ import {
     getLastPostId,
     getLastPostIndex,
     getPostIdsForCombinedUserActivityPost,
+    getPostIdsForCombinedPageActivityPost,
     isCombinedUserActivityPost,
+    isCombinedPageActivityPost,
     isDateLine,
     makeAddDateSeparatorsForSearchResults,
     makeCombineUserActivityPosts,
+    makeCombinePageActivityPosts,
     makeFilterPostsAndAddSeparators,
     makeGenerateCombinedPost,
+    makeGenerateCombinedPagePost,
     extractUserActivityData,
     START_OF_NEW_MESSAGES,
 } from './post_list';
@@ -1550,5 +1555,401 @@ describe('combineUserActivityData', () => {
             ],
         };
         expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+    });
+});
+
+describe('isCombinedPageActivityPost', () => {
+    test('should correctly identify combined page activity posts', () => {
+        expect(isCombinedPageActivityPost('post1')).toBe(false);
+        expect(isCombinedPageActivityPost('date-1234')).toBe(false);
+        expect(isCombinedPageActivityPost('user-activity-post1')).toBe(false);
+        expect(isCombinedPageActivityPost('page-activity-post1')).toBe(true);
+        expect(isCombinedPageActivityPost('page-activity-post1_post2')).toBe(true);
+        expect(isCombinedPageActivityPost('page-activity-post1_post2_post3')).toBe(true);
+    });
+});
+
+describe('getPostIdsForCombinedPageActivityPost', () => {
+    test('should get IDs correctly', () => {
+        expect(getPostIdsForCombinedPageActivityPost('page-activity-post1_post2_post3')).toEqual(['post1', 'post2', 'post3']);
+        expect(getPostIdsForCombinedPageActivityPost('page-activity-post1')).toEqual(['post1']);
+    });
+});
+
+describe('makeCombinePageActivityPosts', () => {
+    test('should do nothing if no post IDs are provided', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds: string[] = [];
+        const state = {
+            entities: {
+                posts: {
+                    posts: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).toBe(postIds);
+        expect(result).toEqual([]);
+    });
+
+    test('should do nothing if there are no page activity posts', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            START_OF_NEW_MESSAGES,
+            'post2',
+            DATE_LINE + '1001',
+            'post3',
+            DATE_LINE + '1000',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: ''},
+                        post2: {id: 'post2', type: ''},
+                        post3: {id: 'post3', type: ''},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).toBe(postIds);
+    });
+
+    test('should combine adjacent page activity posts from same user and wiki', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            'post2',
+            'post3',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post3: {id: 'post3', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            COMBINED_PAGE_ACTIVITY + 'post1_post2_post3',
+        ]);
+    });
+
+    test('should "combine" a single page activity post', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            'post2',
+            'post3',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: ''},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post3: {id: 'post3', type: ''},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            'post1',
+            COMBINED_PAGE_ACTIVITY + 'post2',
+            'post3',
+        ]);
+    });
+
+    test('should not combine page activity posts from different wikis', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            'post2',
+            'post3',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki2'}},
+                        post3: {id: 'post3', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            COMBINED_PAGE_ACTIVITY + 'post1',
+            COMBINED_PAGE_ACTIVITY + 'post2',
+            COMBINED_PAGE_ACTIVITY + 'post3',
+        ]);
+    });
+
+    test('should not combine page activity posts from different users', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            'post2',
+            'post3',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user2', props: {wiki_id: 'wiki1'}},
+                        post3: {id: 'post3', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            COMBINED_PAGE_ACTIVITY + 'post1',
+            COMBINED_PAGE_ACTIVITY + 'post2',
+            COMBINED_PAGE_ACTIVITY + 'post3',
+        ]);
+    });
+
+    test('should not combine with regular messages', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            'post2',
+            'post3',
+            'post4',
+            'post5',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post3: {id: 'post3', type: ''},
+                        post4: {id: 'post4', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post5: {id: 'post5', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            COMBINED_PAGE_ACTIVITY + 'post1_post2',
+            'post3',
+            COMBINED_PAGE_ACTIVITY + 'post4_post5',
+        ]);
+    });
+
+    test('should not combine across non-post items', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds = deepFreeze([
+            'post1',
+            START_OF_NEW_MESSAGES,
+            'post2',
+            'post3',
+            DATE_LINE + '1001',
+            'post4',
+        ]);
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {id: 'post1', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post2: {id: 'post2', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post3: {id: 'post3', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                        post4: {id: 'post4', type: Posts.POST_TYPES.PAGE_ADDED, user_id: 'user1', props: {wiki_id: 'wiki1'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).not.toBe(postIds);
+        expect(result).toEqual([
+            COMBINED_PAGE_ACTIVITY + 'post1',
+            START_OF_NEW_MESSAGES,
+            COMBINED_PAGE_ACTIVITY + 'post2_post3',
+            DATE_LINE + '1001',
+            COMBINED_PAGE_ACTIVITY + 'post4',
+        ]);
+    });
+
+    test('should not combine more than 100 posts', () => {
+        const combinePageActivityPosts = makeCombinePageActivityPosts();
+
+        const postIds: string[] = [];
+        const posts: Record<string, Post> = {};
+        for (let i = 0; i < 110; i++) {
+            const postId = `post${i}`;
+
+            postIds.push(postId);
+            posts[postId] = TestHelper.getPostMock({
+                id: postId,
+                type: Posts.POST_TYPES.PAGE_ADDED,
+                user_id: 'user1',
+                props: {wiki_id: 'wiki1'},
+            });
+        }
+
+        const state = {
+            entities: {
+                posts: {
+                    posts,
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = combinePageActivityPosts(state, postIds);
+
+        expect(result).toHaveLength(2);
+    });
+});
+
+describe('makeGenerateCombinedPagePost', () => {
+    test('should output a combined page post', () => {
+        const generateCombinedPagePost = makeGenerateCombinedPagePost();
+
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'channel1',
+                            create_at: 1002,
+                            delete_at: 0,
+                            message: '',
+                            props: {
+                                wiki_id: 'wiki1',
+                                wiki_title: 'My Wiki',
+                                page_id: 'page1',
+                                page_title: 'First Page',
+                                username: 'alice',
+                            },
+                            type: Posts.POST_TYPES.PAGE_ADDED,
+                            user_id: 'user1',
+                            metadata: {},
+                        },
+                        post2: {
+                            id: 'post2',
+                            channel_id: 'channel1',
+                            create_at: 1001,
+                            delete_at: 0,
+                            message: '',
+                            props: {
+                                wiki_id: 'wiki1',
+                                wiki_title: 'My Wiki',
+                                page_id: 'page2',
+                                page_title: 'Second Page',
+                                username: 'alice',
+                            },
+                            type: Posts.POST_TYPES.PAGE_ADDED,
+                            user_id: 'user1',
+                            metadata: {},
+                        },
+                        post3: {
+                            id: 'post3',
+                            channel_id: 'channel1',
+                            create_at: 1000,
+                            delete_at: 0,
+                            message: '',
+                            props: {
+                                wiki_id: 'wiki1',
+                                wiki_title: 'My Wiki',
+                                page_id: 'page3',
+                                page_title: 'Third Page',
+                                username: 'alice',
+                            },
+                            type: Posts.POST_TYPES.PAGE_ADDED,
+                            user_id: 'user1',
+                            metadata: {},
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+        const combinedId = 'page-activity-post1_post2_post3';
+
+        const result = generateCombinedPagePost(state, combinedId);
+
+        expect(result).toMatchObject({
+            id: combinedId,
+            root_id: '',
+            channel_id: 'channel1',
+            create_at: 1000,
+            delete_at: 0,
+            message: '',
+            props: {
+                wiki_id: 'wiki1',
+                wiki_title: 'My Wiki',
+                pages: [
+                    {pageId: 'page1', pageTitle: 'First Page'},
+                    {pageId: 'page2', pageTitle: 'Second Page'},
+                    {pageId: 'page3', pageTitle: 'Third Page'},
+                ],
+                username: 'alice',
+            },
+            system_post_ids: ['post1', 'post2', 'post3'],
+            type: Posts.POST_TYPES.COMBINED_PAGE_ACTIVITY,
+            user_id: 'user1',
+        });
+        expect(result.page_activity_posts).toHaveLength(3);
+    });
+});
+
+describe('getFirstPostId with page activity posts', () => {
+    test('should return the first ID from a combined page activity post', () => {
+        expect(getFirstPostId(['page-activity-post2_post3', 'post4', 'page-activity-post5_post6'])).toBe('post2');
+    });
+
+    test('should skip date separators and return first page activity post', () => {
+        expect(getFirstPostId(['date-1234', 'page-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post1');
+    });
+});
+
+describe('getLastPostId with page activity posts', () => {
+    test('should return the last ID from a combined page activity post', () => {
+        expect(getLastPostId(['page-activity-post2_post3', 'post4', 'page-activity-post5_post6'])).toBe('post6');
+    });
+
+    test('should skip date separators and return last page activity post', () => {
+        expect(getLastPostId(['date-1234', 'page-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post4');
     });
 });

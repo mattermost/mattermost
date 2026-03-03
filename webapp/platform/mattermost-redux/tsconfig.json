@@ -5,7 +5,8 @@
         "moduleResolution": "node",
         "target": "ES2022",
         "lib": [
-            "ES2022"
+            "ES2022",
+            "DOM"
         ],
         "declaration": true,
         "strict": true,

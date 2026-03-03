@@ -125,6 +125,7 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
 import ValidationResult from './validation';
+import WikiExportSettings, {searchableStrings as wikiExportSearchableStrings} from './wiki_export_settings';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
 // Re-export for backward compatibility
@@ -3708,6 +3709,17 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'SecureConnections',
                     component: SecureConnections,
+                },
+            },
+            wiki_export: {
+                url: 'site_config/wiki_export',
+                title: defineMessage({id: 'admin.sidebar.wikiExport', defaultMessage: 'Wiki Export/Import'}),
+                searchableStrings: wikiExportSearchableStrings,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                schema: {
+                    id: 'WikiExportSettings',
+                    component: WikiExportSettings,
                 },
             },
         },

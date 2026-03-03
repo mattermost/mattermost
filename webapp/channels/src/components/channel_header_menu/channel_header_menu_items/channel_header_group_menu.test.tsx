@@ -75,7 +75,6 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         isMobile: false,
         isFavorite: false,
         pluginItems: [],
-        isChannelBookmarksEnabled: false,
         isChannelAutotranslated: false,
     };
 

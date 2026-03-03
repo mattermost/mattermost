@@ -681,6 +681,17 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -1759,6 +1770,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -2833,6 +2855,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -3813,6 +3846,17 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
                 />
               }
             />
@@ -4798,6 +4842,17 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
                 />
               }
             />
@@ -5814,6 +5869,17 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -6788,6 +6854,17 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -7756,6 +7833,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="authentication"
@@ -8634,6 +8722,17 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wiki_export"
+              key="site.wiki_export"
+              name="site_config/wiki_export"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wiki Export/Import"
+                  id="admin.sidebar.wikiExport"
                 />
               }
             />

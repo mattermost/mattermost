@@ -9,8 +9,6 @@ import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
@@ -19,7 +17,6 @@ import * as Menu from 'components/menu';
 import type {GlobalState} from 'types/store';
 
 import MenuItemAutotranslation from '../menu_items/autotranslation';
-import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
@@ -36,11 +33,10 @@ interface Props extends Menu.FirstMenuItemProps {
     isMobile: boolean;
     isFavorite: boolean;
     pluginItems: ReactNode[];
-    isChannelBookmarksEnabled: boolean;
     isChannelAutotranslated: boolean;
 }
 
-const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
+const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelAutotranslated, ...rest}: Props) => {
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
     return (
@@ -81,11 +77,6 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                 />
             )}
             <Menu.Separator/>
-            {!isGuest(user.roles) && isChannelBookmarksEnabled && (
-                <MenuItemChannelBookmarks
-                    channel={channel}
-                />
-            )}
             <ChannelMoveToSubMenu
                 channel={channel}
             />

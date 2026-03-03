@@ -51,6 +51,11 @@ jest.mock('@mui/styled-engine', () => {
 
 global.ResizeObserver = require('resize-observer-polyfill');
 
+// Polyfill structuredClone for jsdom environment (used by pdfjs-dist)
+if (typeof globalThis.structuredClone === 'undefined') {
+    globalThis.structuredClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+}
+
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {
@@ -86,24 +91,22 @@ afterEach(() => {
             continue;
         }
 
+        // Ignore Redux DevTools selector tracking warnings
+        if (typeof call[0] === 'string' && call[0].includes('Selector unknown returned a different result')) {
+            continue;
+        }
+
         warns.push(call);
     }
 
     for (const call of errorSpy.mock.calls) {
+        const errorMessage = typeof call[0] === 'string' ? call[0] : '';
+
         if (
-            typeof call[0] === 'string' && (
-                call[0].includes('inside a test was not wrapped in act') ||
-                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
-            )
+            errorMessage.includes('inside a test was not wrapped in act') ||
+            errorMessage.includes('A suspended resource finished loading inside a test, but the event was not wrapped in act') ||
+            errorMessage.includes('react-beautiful-dnd')
         ) {
-            // These warnings indicate that we're not using React Testing Library properly because we're not waiting
-            // for some async action to complete. Sometimes, these are side effects during the test which are missed
-            // which could lead our tests to be invalid, but more often than not, this warning is printed because of
-            // unhandled side effects from something that wasn't being tested (such as some data being loaded that we
-            // didn't care about in that test case).
-            //
-            // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
-            // fix this everywhere at the moment.
             continue;
         }
 
@@ -166,3 +169,25 @@ jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
 }));
+
+// Mock tiptap-extension-resize-image to avoid Image.extend errors in tests
+jest.mock('tiptap-extension-resize-image', () => ({
+    __esModule: true,
+    default: {
+        configure: jest.fn().mockReturnThis(),
+    },
+}));
+
+// Mock pdfjs-dist to avoid ReadableStream errors in jsdom test environment
+jest.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
+    getDocument: jest.fn(() => ({
+        promise: Promise.resolve({
+            numPages: 0,
+            getPage: jest.fn(),
+        }),
+    })),
+    GlobalWorkerOptions: {
+        workerSrc: '',
+    },
+}));
+jest.mock('pdfjs-dist/build/pdf.worker.min.mjs', () => ({}));

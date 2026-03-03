@@ -23,12 +23,12 @@ import type {SuggestionProps} from './suggestion';
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 
-type EmojiItem = {
+export type EmojiItem = {
     emoji: Emoji;
     name: string;
 }
 
-const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
+export const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
     const text = props.term;
     const emoji = props.item.emoji;
 

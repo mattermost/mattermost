@@ -1,0 +1,79 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.DeletePageModal {
+    .DeletePageModal__body {
+        padding: 0;
+    }
+
+    .DeletePageModal__warning {
+        margin: 0 0 20px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .DeletePageModal__options {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+        gap: 12px;
+    }
+
+    .DeletePageModal__option {
+        display: flex;
+        align-items: flex-start;
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        cursor: pointer;
+        gap: 12px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        input[type="radio"] {
+            margin-top: 2px;
+            cursor: pointer;
+        }
+    }
+
+    .DeletePageModal__optionContent {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 4px;
+
+        strong {
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+    }
+
+    .DeletePageModal__optionDescription {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .DeletePageModal__note {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 4px;
+        margin: 0;
+        background: rgba(var(--dnd-indicator-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 8px;
+
+        .icon {
+            color: var(--dnd-indicator);
+            font-size: 16px;
+        }
+    }
+}

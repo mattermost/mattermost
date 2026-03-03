@@ -141,6 +141,16 @@ type MetricsInterface interface {
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
 
+	// Wiki metrics
+	ObserveWikiPageOperation(operation string, elapsed float64)
+	ObserveWikiHierarchyLoad(elapsed float64)
+	ObserveWikiBreadcrumbFetch(elapsed float64)
+	IncrementWikiDraftSave(result string)
+	IncrementWikiEditConflict()
+	ObserveWikiHierarchyDepth(depth float64)
+	ObserveWikiPagesPerChannel(count float64)
+	ObserveWikiSearchDuration(elapsed float64)
+
 	// Auto-translation metrics
 	ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64)
 	ObserveAutoTranslateLinguaDetectionDuration(elapsed float64)

@@ -33,13 +33,9 @@ export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props
         <AdminPanel
             id='channel_groups'
             title={
-                synced ?
-                    defineMessage({id: 'admin.channel_settings.channel_detail.syncedGroupsTitle', defaultMessage: 'Synced Groups'}) :
-                    defineMessage({id: 'admin.channel_settings.channel_detail.groupsTitle', defaultMessage: 'Groups'})}
+                synced ? defineMessage({id: 'admin.channel_settings.channel_detail.syncedGroupsTitle', defaultMessage: 'Synced Groups'}) : defineMessage({id: 'admin.channel_settings.channel_detail.groupsTitle', defaultMessage: 'Groups'})}
             subtitle={
-                synced ?
-                    defineMessage({id: 'admin.channel_settings.channel_detail.syncedGroupsDescription', defaultMessage: 'Add and remove channel members based on their group membership.'}) :
-                    defineMessage({id: 'admin.channel_settings.channel_detail.groupsDescription', defaultMessage: 'Select groups to be added to this channel.'})}
+                synced ? defineMessage({id: 'admin.channel_settings.channel_detail.syncedGroupsDescription', defaultMessage: 'Add and remove channel members based on their group membership.'}) : defineMessage({id: 'admin.channel_settings.channel_detail.groupsDescription', defaultMessage: 'Select groups to be added to this channel.'})}
             button={
                 <ToggleModalButton
                     id='addGroupsToChannelToggle'

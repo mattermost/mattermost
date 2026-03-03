@@ -12,6 +12,7 @@ import roles from './roles';
 import search from './search';
 import teams from './teams';
 import users from './users';
+import wiki from './wiki';
 
 export default combineReducers({
     channels,
@@ -23,4 +24,5 @@ export default combineReducers({
     admin,
     search,
     roles,
+    wiki,
 });

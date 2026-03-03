@@ -258,6 +258,7 @@ const values = {
         MANAGE_MEMBERS: 'manage_members',
         USE_CHANNEL_MENTIONS: 'use_channel_mentions',
         MANAGE_BOOKMARKS: 'manage_bookmarks',
+        MANAGE_PAGES: 'manage_pages',
     },
     MANAGE_BOTS: 'manage_bots',
     MANAGE_OTHERS_BOTS: 'manage_others_bots',
@@ -280,6 +281,12 @@ const values = {
     EDIT_BOOKMARK_PRIVATE_CHANNEL: 'edit_bookmark_private_channel',
     DELETE_BOOKMARK_PRIVATE_CHANNEL: 'delete_bookmark_private_channel',
     ORDER_BOOKMARK_PRIVATE_CHANNEL: 'order_bookmark_private_channel',
+
+    CREATE_PAGE: 'create_page',
+    READ_PAGE: 'read_page',
+    EDIT_PAGE: 'edit_page',
+    DELETE_OWN_PAGE: 'delete_own_page',
+    DELETE_PAGE: 'delete_page',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

@@ -479,6 +479,31 @@ describe('PostUtils.shouldFocusMainTextbox', () => {
             expect(shouldFocus).toEqual(data.expected);
         }
     });
+
+    test('should not focus when active element is contenteditable', () => {
+        const div = document.createElement('div');
+        div.contentEditable = 'true';
+        document.body.appendChild(div);
+
+        try {
+            const shouldFocus = PostUtils.shouldFocusMainTextbox({key: 'a'} as KeyboardEvent, div);
+            expect(shouldFocus).toBe(false);
+        } finally {
+            document.body.removeChild(div);
+        }
+    });
+
+    test('should focus when active element is not contenteditable', () => {
+        const div = document.createElement('div');
+        document.body.appendChild(div);
+
+        try {
+            const shouldFocus = PostUtils.shouldFocusMainTextbox({key: 'a'} as KeyboardEvent, div);
+            expect(shouldFocus).toBe(true);
+        } finally {
+            document.body.removeChild(div);
+        }
+    });
 });
 
 describe('PostUtils.postMessageOnKeyPress', () => {

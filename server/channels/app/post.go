@@ -287,7 +287,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
-			return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			if shouldTransformReply(rootPost) {
+				if !a.TransformPageCommentReply(rctx, post, rootPost) {
+					return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+				}
+			} else {
+				return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 
 		if rootPost.Type == model.PostTypeBurnOnRead {
@@ -295,6 +301,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// ParseHashtags errors are non-critical - hashtag parsing failures don't prevent post creation
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if err = a.FillInPostProps(rctx, post, channel); err != nil {
@@ -472,8 +479,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	if err := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
-		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
+	if shouldCallAfterCreateHook(rpost) {
+		if threadErr := a.handlePageCommentThreadCreation(rctx, rpost, user, channel); threadErr != nil {
+			rctx.Logger().Warn("Failed to handle page comment thread creation", mlog.Err(threadErr))
+		}
+	}
+
+	if eventsErr := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); eventsErr != nil {
+		rctx.Logger().Warn("Failed to handle post events", mlog.Err(eventsErr))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
@@ -667,7 +680,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	}
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
+	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline, nil); err != nil {
 		return err
 	}
 
@@ -855,6 +868,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
+		newPost.PageParentId = receivedUpdatedPost.PageParentId
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
 		var fileIds []string
@@ -984,6 +998,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	if shouldSkipWebSocketPublish(post) {
+		return nil
+	}
+
 	if post.Type == model.PostTypeBurnOnRead {
 		post.Message = ""
 		post.FileIds = []string{}
@@ -1842,6 +1860,15 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if shouldSendCommentDeletedEvent(post) {
+		if pageId, ok := post.Props[model.PagePropsPageID].(string); ok && pageId != "" {
+			page, pageErr := a.GetSinglePost(rctx, pageId, false)
+			if pageErr == nil {
+				a.SendCommentDeletedEvent(rctx, post, page, channel)
+			}
+		}
 	}
 
 	return post, nil
@@ -3196,6 +3223,45 @@ func (a *App) RewriteMessage(
 	customPrompt string,
 	rootID string,
 ) (*model.RewriteResponse, *model.AppError) {
+	// Get agent and service details to log model information
+	var serviceID string
+	var serviceType string
+	var serviceName string
+
+	agents, agentsErr := a.GetAgents(rctx, rctx.Session().UserId)
+	if agentsErr == nil {
+		for _, agent := range agents {
+			if agent.ID == agentID {
+				serviceID = agent.ServiceID
+				serviceType = agent.ServiceType
+				break
+			}
+		}
+	}
+
+	// Get service details to find the model name
+	if serviceID != "" {
+		services, servicesErr := a.GetLLMServices(rctx, rctx.Session().UserId)
+		if servicesErr == nil {
+			for _, service := range services {
+				if service.ID == serviceID {
+					serviceName = service.Name
+					break
+				}
+			}
+		}
+	}
+
+	rctx.Logger().Info("AI Rewrite request received",
+		mlog.String("agent_id", agentID),
+		mlog.String("service_id", serviceID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.String("action", string(action)),
+		mlog.Int("message_length", len(message)),
+		mlog.Bool("has_custom_prompt", customPrompt != ""),
+	)
+
 	// Build thread context if rootID is provided
 	var threadContext string
 	if rootID != "" {
@@ -3234,14 +3300,38 @@ func (a *App) RewriteMessage(
 		},
 	}
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
-	if err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
+	rctx.Logger().Info("Calling AI agent",
+		mlog.String("agent_id", agentID),
+		mlog.String("service_id", serviceID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.Int("system_prompt_length", len(model.RewriteSystemPrompt)),
+		mlog.Int("user_prompt_length", len(userPrompt)),
+	)
+
+	completion, completionErr := client.AgentCompletion(agentID, completionRequest)
+	if completionErr != nil {
+		rctx.Logger().Error("AI agent call failed",
+			mlog.String("agent_id", agentID),
+			mlog.String("service_type", serviceType),
+			mlog.Err(completionErr),
+		)
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, completionErr.Error(), 500)
 	}
+
+	rctx.Logger().Info("AI agent call succeeded",
+		mlog.String("agent_id", agentID),
+		mlog.Int("response_length", len(completion)),
+	)
 
 	var response model.RewriteResponse
 	if err := json.Unmarshal([]byte(completion), &response); err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, err.Error(), 500)
+		// JSON parsing failed - use raw response as rewritten text (graceful fallback)
+		rctx.Logger().Warn("AI response was not valid JSON, using raw response as text",
+			mlog.String("agent_id", agentID),
+			mlog.Err(err),
+		)
+		response.RewrittenText = strings.TrimSpace(completion)
 	}
 
 	if response.RewrittenText == "" {

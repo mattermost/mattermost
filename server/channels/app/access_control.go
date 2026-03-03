@@ -27,7 +27,7 @@ func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor mod
 			Limit:    limit,
 		})
 		if err != nil {
-			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		channelIDs := make([]string, 0, len(policies))
 
@@ -38,14 +38,14 @@ func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor mod
 
 		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds(channelIDs, true)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		return chs, total, nil
 	case model.AccessControlPolicyTypeChannel:
 		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds([]string{policyID}, true)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		total := int64(len(chs))
@@ -110,7 +110,7 @@ func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELE
 
 	errs, appErr := acs.CheckExpression(rctx, expression)
 	if appErr != nil {
-		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return errs, nil
@@ -124,7 +124,7 @@ func (a *App) TestExpression(rctx request.CTX, expression string, opts model.Sub
 
 	res, count, err := acs.QueryUsersForExpression(rctx, expression, opts)
 	if err != nil {
-		return nil, 0, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return res, count, nil
@@ -162,7 +162,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 
 		child, err := acs.GetPolicy(rctx, channel.Id)
 		if err != nil && err.StatusCode != http.StatusNotFound {
-			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if child == nil {
 			child = &model.AccessControlPolicy{
@@ -202,7 +202,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		Limit:    1000,
 	})
 	if err != nil {
-		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	childPolicies := make(map[string]bool)
@@ -218,7 +218,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 
 		child, appErr := acs.GetPolicy(rctx, channelID)
 		if appErr != nil {
-			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
@@ -227,7 +227,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		if len(child.Imports) == 0 && len(child.Rules) == 0 {
 			// If the policy has no imports and no rules, we can delete it
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
-				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			// invalidate the channel cache
 			a.Srv().Store().Channel().InvalidateChannel(channelID)
@@ -235,7 +235,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
-			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
@@ -250,7 +250,7 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 
 	policies, total, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
 	if err != nil {
-		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for i, policy := range policies {
@@ -286,7 +286,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
 	cpaGroupID, err := a.CpaGroupID()
 	if err != nil {
-		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Use PropertyAccessService instead of direct Store access to enforce access control
@@ -298,7 +298,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 		PerPage: limit,
 	})
 	if err != nil {
-		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return fields, nil

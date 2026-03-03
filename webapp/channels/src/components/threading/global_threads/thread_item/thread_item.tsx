@@ -32,12 +32,15 @@ import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
+import {navigateToPageFromPost} from 'utils/page_navigation';
+import {isPageComment, isPagePost} from 'utils/page_utils';
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
+import {renderPageCommentPreview, renderPagePreview, usePagePostForComment} from './page_thread_utils';
 
 import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
@@ -50,6 +53,8 @@ export type OwnProps = {
     threadId: UserThread['id'];
     style?: React.CSSProperties;
     isFirstThreadInList: boolean;
+    rowIndex?: number;
+    setRowHeight?: (index: number, height: number) => void;
 };
 
 type Props = {
@@ -69,6 +74,9 @@ const markdownPreviewOptions = {
     atMentions: true,
 };
 
+// Height for page threads in the virtualized list
+const PAGE_THREAD_HEIGHT = 160;
+
 function ThreadItem({
     channel,
     currentRelativeTeamUrl,
@@ -82,9 +90,11 @@ function ThreadItem({
     isFirstThreadInList,
     isPostPriorityEnabled,
     isChannelAutotranslated,
+    rowIndex,
+    setRowHeight,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
-    const {select, goToInChannel, currentTeamId} = useThreadRouting();
+    const {select, goToInChannel, currentTeamId, params} = useThreadRouting();
     const {formatMessage, locale} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
@@ -92,6 +102,8 @@ function ThreadItem({
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
+
+    const pagePost = usePagePostForComment(post ?? null);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -110,6 +122,16 @@ function ThreadItem({
             ref.current?.focus();
         }
     }, [isSelected, threadId]);
+
+    // Report increased height for page threads to allow more content
+    useEffect(() => {
+        if (post && setRowHeight && rowIndex !== undefined) {
+            const isPage = isPagePost(post) || isPageComment(post);
+            if (isPage) {
+                setRowHeight(rowIndex, PAGE_THREAD_HEIGHT);
+            }
+        }
+    }, [post, setRowHeight, rowIndex]);
 
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
@@ -172,6 +194,22 @@ function ThreadItem({
         }
         Utils.handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
+
+    const handlePageLinkClick = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (post?.props?.page_id && post?.props?.wiki_id && post?.channel_id) {
+            const syntheticPagePost = {
+                id: post.props.page_id as string,
+                channel_id: post.channel_id,
+                props: {
+                    wiki_id: post.props.wiki_id,
+                },
+            } as Pick<Post, 'id' | 'channel_id' | 'props'>;
+            navigateToPageFromPost(syntheticPagePost as Post, params.team);
+        }
+    }, [params.team, post]);
 
     if (!thread || !post) {
         return null;
@@ -297,18 +335,40 @@ function ThreadItem({
                     dir='auto'
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
+                    style={{height: 'auto', maxHeight: 'none'}}
                 >
-                    {message ? (
-                        <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : message}
-                            options={markdownPreviewOptions}
-                            imagesMetadata={post?.metadata && post?.metadata?.images}
-                            mentionKeys={mentionsKeys}
-                            imageProps={imageProps}
-                        />
-                    ) : (
-                        <Attachment post={post}/>
-                    )}
+                    {(() => {
+                        if (isPageComment(post) && pagePost) {
+                            return renderPageCommentPreview(
+                                post,
+                                pagePost,
+                                msgDeleted,
+                                markdownPreviewOptions,
+                                mentionsKeys,
+                                imageProps,
+                                handlePageLinkClick,
+                                currentRelativeTeamUrl,
+                            );
+                        }
+
+                        if (isPagePost(post)) {
+                            return renderPagePreview(post, thread ? thread.reply_count > 0 : false);
+                        }
+
+                        if (message) {
+                            return (
+                                <Markdown
+                                    message={post.state === Posts.POST_DELETED ? msgDeleted : message}
+                                    options={markdownPreviewOptions}
+                                    imagesMetadata={post?.metadata && post?.metadata?.images}
+                                    mentionKeys={mentionsKeys}
+                                    imageProps={imageProps}
+                                />
+                            );
+                        }
+
+                        return <Attachment post={post}/>;
+                    })()}
                 </div>
                 <div className='activity'>
                     {participantIds?.length ? (

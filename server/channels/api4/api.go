@@ -53,6 +53,9 @@ type Routes struct {
 	ChannelBookmarks         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks'
 	ChannelBookmark          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks/{bookmark_id:[A-Za-z0-9]+}'
 
+	Wikis *mux.Router // 'api/v4/wikis'
+	Wiki  *mux.Router // 'api/v4/wikis/{wiki_id:[A-Za-z0-9]+}'
+
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
 	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
@@ -320,6 +323,9 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
+	api.BaseRoutes.Wikis = api.BaseRoutes.APIRoot.PathPrefix("/wikis").Subrouter()
+	api.BaseRoutes.Wiki = api.BaseRoutes.Wikis.PathPrefix("/{wiki_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -363,8 +369,10 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
+	api.InitPageDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
+	api.InitWiki()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()

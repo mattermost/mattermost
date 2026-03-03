@@ -234,6 +234,21 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        wikiPages: {
+            byWiki: {},
+            publishedDraftTimestamps: {},
+            deletedDraftTimestamps: {},
+            lastPagesInvalidated: {},
+            lastDraftsInvalidated: {},
+            statusField: null,
+        },
+        wikis: {
+            byChannel: {},
+            byId: {},
+        },
+        activeEditors: {
+            byPageId: {},
+        },
     },
     errors: [],
     requests: {
@@ -328,6 +343,10 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
+        },
+        wiki: {
+            loading: {},
+            error: {},
         },
     },
     websocket: {

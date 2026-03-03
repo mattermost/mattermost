@@ -11,6 +11,7 @@ import {
     shouldIgnorePost,
     isMeMessage,
     isUserActivityPost,
+    isPageActivityPost,
     shouldFilterJoinLeavePost,
     isPostCommentMention,
     getEmbedFromMetadata,
@@ -393,6 +394,27 @@ describe('PostUtils', () => {
         testCases.forEach((testCase) => {
             it(`should identify if post is user activity - add/remove/join/leave channel/team: isUserActivityPost('${testCase.input}') should return ${testCase.output}`, () => {
                 expect(isUserActivityPost(testCase.input)).toBe(testCase.output);
+            });
+        });
+    });
+
+    describe('isPageActivityPost', () => {
+        const testCases = [
+            {input: '' as any, output: false},
+            {input: null as any, output: false},
+
+            {input: PostTypes.CHANNEL_DELETED, output: false},
+            {input: PostTypes.JOIN_CHANNEL, output: false},
+            {input: PostTypes.LEAVE_CHANNEL, output: false},
+            {input: PostTypes.COMBINED_USER_ACTIVITY, output: false},
+            {input: PostTypes.COMBINED_PAGE_ACTIVITY, output: false},
+
+            {input: PostTypes.PAGE_ADDED, output: true},
+        ];
+
+        testCases.forEach((testCase) => {
+            it(`should identify if post is page activity: isPageActivityPost('${testCase.input}') should return ${testCase.output}`, () => {
+                expect(isPageActivityPost(testCase.input)).toBe(testCase.output);
             });
         });
     });

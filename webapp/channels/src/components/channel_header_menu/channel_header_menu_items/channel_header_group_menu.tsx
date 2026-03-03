@@ -25,7 +25,6 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import type {GlobalState} from 'types/store';
 
 import MenuItemAutotranslation from '../menu_items/autotranslation';
-import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
@@ -45,11 +44,10 @@ interface Props extends Menu.FirstMenuItemProps {
     isMobile: boolean;
     isFavorite: boolean;
     pluginItems: ReactNode[];
-    isChannelBookmarksEnabled: boolean;
     isChannelAutotranslated: boolean;
 }
 
-const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
+const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelAutotranslated, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
@@ -132,11 +130,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
             )}
             {isChannelAutotranslated && (
                 <MenuItemAutotranslation
-                    channel={channel}
-                />
-            )}
-            {!isArchived && !isGuest(user.roles) && isChannelBookmarksEnabled && (
-                <MenuItemChannelBookmarks
                     channel={channel}
                 />
             )}

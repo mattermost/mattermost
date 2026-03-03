@@ -26,6 +26,7 @@ import type {GlobalState} from 'types/store';
 import Button from '../../common/button';
 import FollowButton from '../../common/follow_button';
 import {useThreadRouting} from '../../hooks';
+import {renderThreadPaneHeaderTitle, usePagePostForInlineComment} from '../../page_thread_utils';
 import ThreadMenu from '../thread_menu';
 
 import './thread_pane.scss';
@@ -68,6 +69,8 @@ const ThreadPane = ({
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
     const selectHandler = useCallback(() => select(), []);
     let unreadTimestamp = post.edit_at || post.create_at;
+
+    const pagePost = usePagePostForInlineComment(post);
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp
@@ -115,13 +118,7 @@ const ThreadPane = ({
                                     defaultMessage: 'Thread',
                                 })}
                             </span>
-                            <Button
-                                className='separated'
-                                allowTextOverflow={true}
-                                onClick={goToInChannelHandler}
-                            >
-                                {channel?.display_name}
-                            </Button>
+                            {renderThreadPaneHeaderTitle(post, pagePost, channel ?? null, goToInChannelHandler)}
                         </h3>
                     </>
                 )}

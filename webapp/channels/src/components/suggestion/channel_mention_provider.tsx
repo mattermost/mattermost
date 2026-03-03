@@ -284,6 +284,13 @@ export default class ChannelMentionProvider extends Provider {
         this.lastCompletedWord = term;
         this.lastPrefixWithNoResults = '';
     }
+
+    // Called when suggestion popup is dismissed (e.g., by pressing Escape)
+    // to reset caching state so the next ~ trigger gets fresh results
+    resetSuggestionState() {
+        this.lastPrefixWithNoResults = '';
+        this.lastCompletedWord = '';
+    }
 }
 
 export function myChannelsGroup(items: Channel[]) {

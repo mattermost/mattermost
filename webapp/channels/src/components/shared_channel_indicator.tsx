@@ -35,9 +35,7 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
 
         // Truncate long organization names
         const truncatedNames = props.remoteNames.map((name) => (
-            name.length > MAX_NAME_LENGTH ?
-                `${name.substring(0, MAX_NAME_LENGTH)}...` :
-                name
+            name.length > MAX_NAME_LENGTH ? `${name.substring(0, MAX_NAME_LENGTH)}...` : name
         ));
 
         if (truncatedNames.length <= MAX_DISPLAY_NAMES) {

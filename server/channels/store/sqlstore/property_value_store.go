@@ -184,7 +184,11 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	}
 
 	var values []*model.PropertyValue
-	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
+	db := s.GetReplica()
+	if opts.UseMaster {
+		db = s.GetMaster()
+	}
+	if err := db.SelectBuilder(&values, builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_search_query")
 	}
 

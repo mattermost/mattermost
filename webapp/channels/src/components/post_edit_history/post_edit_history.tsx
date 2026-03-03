@@ -19,11 +19,17 @@ import EditedPostItem from './edited_post_item';
 import type {PropsFromRedux} from './index';
 import './post_edit_history.scss';
 
+type PostEditHistoryProps = {
+    channelDisplayName: string;
+    originalPost: Post;
+    isChannelAutotranslated?: boolean;
+};
+
 const PostEditHistory = ({
     channelDisplayName,
     originalPost,
     isChannelAutotranslated,
-}: PropsFromRedux) => {
+}: PropsFromRedux | PostEditHistoryProps) => {
     const [postEditHistory, setPostEditHistory] = useState<Post[]>([]);
     const [hasError, setHasError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -105,7 +111,7 @@ const PostEditHistory = ({
             post={originalPost}
             key={originalPost.id}
             isCurrent={true}
-            isChannelAutotranslated={isChannelAutotranslated}
+            isChannelAutotranslated={isChannelAutotranslated ?? false}
         />
     );
 
@@ -113,7 +119,7 @@ const PostEditHistory = ({
         <EditedPostItem
             key={postEdited.id}
             post={postEdited}
-            isChannelAutotranslated={isChannelAutotranslated}
+            isChannelAutotranslated={isChannelAutotranslated ?? false}
         />
     ))];
 

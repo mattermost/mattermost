@@ -56,10 +56,12 @@ const itemMessages = defineMessages({
 export type Props = PropsFromRedux & {
     post: Post;
     isCurrent?: boolean;
+    onVersionRestored?: () => void;
+    customHandleUndo?: () => Promise<void>;
     isChannelAutotranslated: boolean;
 }
 
-const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, isChannelAutotranslated}: Props) => {
+const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, onVersionRestored, customHandleUndo, isChannelAutotranslated}: Props) => {
     const {formatMessage, locale} = useIntl();
     const [open, setOpen] = useState(isCurrent);
 
@@ -68,6 +70,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
     const connectionId = useSelector(getConnectionId);
 
     const handleUndo = useCallback(async () => {
+        if (customHandleUndo) {
+            await customHandleUndo();
+            return;
+        }
+
         if (!postCurrentVersion) {
             actions.closeRightHandSide();
             return;
@@ -83,7 +90,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
 
         const previousPostVersion = result.data[0];
         await dispatch(restorePostVersion(previousPostVersion.original_id, previousPostVersion.id, connectionId));
-    }, [actions, connectionId, dispatch, post.original_id, postCurrentVersion]);
+    }, [actions, connectionId, customHandleUndo, dispatch, post.original_id, postCurrentVersion]);
 
     const showInfoTooltip = useCallback(() => {
         const infoToastModalData = {
@@ -111,11 +118,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
         if (result.data) {
             actions.closeRightHandSide();
             showInfoTooltip();
+            onVersionRestored?.();
         }
 
         const key = StoragePrefixes.EDIT_DRAFT + post.original_id;
         dispatch(removeDraft(key, post.channel_id, post.root_id));
-    }, [actions, connectionId, dispatch, post, postCurrentVersion, showInfoTooltip]);
+    }, [actions, connectionId, dispatch, onVersionRestored, post, postCurrentVersion, showInfoTooltip]);
     const profileSrc = imageURLForUser(post.user_id);
     const overwriteName = ensureString(post.props?.override_username);
     const postHeader = useMemo(() => (

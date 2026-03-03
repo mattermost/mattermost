@@ -1249,7 +1249,7 @@ func buildChannelModerations(rctx request.CTX, channelType model.ChannelType, me
 			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
-		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" {
+		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" || permissionKey == "manage_pages" {
 			roles.Guests = nil
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{
@@ -1892,7 +1892,7 @@ func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.Use
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
 	profiles, err := a.Srv().Store().User().GetProfiles(options)
 	if err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var preferences model.Preferences
@@ -1917,7 +1917,7 @@ func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.Use
 	}
 
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

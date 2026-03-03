@@ -232,10 +232,18 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, input, or contenteditable element
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
         return false;
+    }
+
+    // Do not focus if the active element is contenteditable (e.g., TipTap editor)
+    if (activeElement instanceof HTMLElement) {
+        // Use isContentEditable when available, fallback to checking attribute directly
+        if (activeElement.isContentEditable || activeElement.contentEditable === 'true') {
+            return false;
+        }
     }
 
     // Focus if it is an attempted paste
@@ -904,6 +912,38 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.priority === PostPriority.URGENT &&
         priority?.persistent_notifications
     );
+}
+
+export function canEditPage(state: GlobalState, page: Post, channel: Channel): boolean {
+    if (!page || !channel) {
+        return false;
+    }
+
+    return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
+}
+
+export const DEFAULT_PAGE_TITLE = 'Untitled';
+
+/**
+ * Gets the display title for a page post.
+ * @param page - The page post object (or partial with props)
+ * @param defaultTitle - The fallback title if no title is found (defaults to 'Untitled')
+ * @returns The page title string
+ */
+export function getPageTitle(
+    page: Pick<Post, 'props'> | null | undefined,
+    defaultTitle: string = DEFAULT_PAGE_TITLE,
+): string {
+    if (!page) {
+        return defaultTitle;
+    }
+
+    const propsTitle = page.props?.title as string | undefined;
+    if (propsTitle) {
+        return propsTitle;
+    }
+
+    return defaultTitle;
 }
 
 export function getPostTranslation(post: Post, locale: string): PostTranslation | undefined {

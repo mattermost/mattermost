@@ -1,0 +1,45 @@
+.HeadingNode {
+    &__button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 4px 10px;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        gap: 8px;
+        text-align: left;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        i {
+            font-size: 14px;
+            opacity: 0.56;
+        }
+    }
+
+    &__text {
+        overflow: hidden;
+        font-size: 13px;
+        font-weight: 400;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.highlighted {
+    animation: highlight-fade 2s ease-in-out;
+}
+
+@keyframes highlight-fade {
+    0%, 100% {
+        background-color: transparent;
+    }
+    10% {
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+    }
+}

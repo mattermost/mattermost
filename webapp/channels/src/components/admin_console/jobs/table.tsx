@@ -129,7 +129,7 @@ class JobTable extends React.PureComponent<Props, State> {
             paginatedJobs = this.props.jobs.slice(startIndex, endIndex);
         }
 
-        const showFilesColumn = this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults;
+        const showFilesColumn = (this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults) || this.props.jobType === JobTypes.WIKI_EXPORT;
         const hideDetailsColumn = this.props.jobType === JobTypes.ACCESS_CONTROL_SYNC;
         const items = paginatedJobs.map((job) => {
             return (

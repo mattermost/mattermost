@@ -19,8 +19,10 @@ import type {AttachmentTextOverflowType} from 'components/post_view/show_more/sh
 
 import Pluggable from 'plugins/pluggable';
 import {PostTypes} from 'utils/constants';
+import {getPageDisplayMessage} from 'utils/page_utils';
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
@@ -146,6 +148,13 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
+
+        // For page posts, show title and content preview
+        const pageDisplayMessage = getPageDisplayMessage(post, extractPlaintextFromTipTapJSON);
+        if (pageDisplayMessage !== null) {
+            message = pageDisplayMessage;
+        }
+
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);

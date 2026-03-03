@@ -54,6 +54,22 @@ export default class SystemConsoleSidebar {
         await this.searchInput.clear();
     }
 
+    /**
+     * Navigate to a sidebar item by its visible text.
+     * Finds the link in the sidebar and clicks it.
+     */
+    async goToItem(name: string) {
+        const link = this.container.getByRole('link', {name, exact: true});
+        await link.click();
+    }
+
+    /**
+     * Search for an item in the sidebar using the search input.
+     */
+    async searchForItem(text: string) {
+        await this.searchInput.fill(text);
+    }
+
     // Convenience shortcuts
     get editionAndLicense() {
         return this.about.editionAndLicense;
@@ -81,6 +97,9 @@ export default class SystemConsoleSidebar {
     }
     get notifications() {
         return this.siteConfiguration.notifications;
+    }
+    get wikiExportImport() {
+        return this.siteConfiguration.wikiExportImport;
     }
     get pluginManagement() {
         return this.plugins.pluginManagement;
@@ -235,6 +254,7 @@ class SiteConfigurationCategory extends SidebarCategory {
     readonly fileSharingAndDownloads: SidebarSection;
     readonly publicLinks: SidebarSection;
     readonly notices: SidebarSection;
+    readonly wikiExportImport: SidebarSection;
 
     constructor(container: Locator) {
         super(container);
@@ -250,6 +270,7 @@ class SiteConfigurationCategory extends SidebarCategory {
         this.fileSharingAndDownloads = this.section('File Sharing and Downloads');
         this.publicLinks = this.section('Public Links');
         this.notices = this.section('Notices');
+        this.wikiExportImport = this.section('Wiki Export/Import');
     }
 }
 

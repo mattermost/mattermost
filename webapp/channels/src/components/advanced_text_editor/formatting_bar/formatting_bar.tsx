@@ -238,7 +238,11 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             {Array.isArray(additionalControls) && additionalControls.length > 0 && (
                 <>
                     {showSeparators && <Separator/>}
-                    {additionalControls}
+                    {additionalControls.map((control, index) => (
+                        <React.Fragment key={`additional-control-${index}`}>
+                            {control}
+                        </React.Fragment>
+                    ))}
                 </>
             )}
 

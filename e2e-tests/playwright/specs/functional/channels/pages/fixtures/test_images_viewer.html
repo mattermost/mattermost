@@ -1,0 +1,546 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Test Image Generator</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                background: #f0f0f0;
+            }
+            .card {
+                background: white;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .image-container {
+                border: 1px solid #ddd;
+                margin: 10px 0;
+                display: inline-block;
+            }
+            .image-container svg {
+                display: block;
+            }
+            .expected {
+                background: #f9f9f9;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 4px;
+            }
+            .expected pre {
+                white-space: pre-wrap;
+                margin: 5px 0;
+            }
+            button {
+                background: #4299e1;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #3182ce;
+            }
+            h1 {
+                color: #2d3748;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Handwritten Test Images for E2E Testing</h1>
+        <p>Click the download button to save each image as PNG.</p>
+
+        <div class="card">
+            <h3>whiteboard_meeting_notes</h3>
+            <p>Whiteboard with meeting notes</p>
+            <div class="image-container" id="container-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+                    <!-- Whiteboard background -->
+                    <rect width="800" height="600" fill="#f5f5f5" />
+                    <rect x="20" y="20" width="760" height="560" fill="white" stroke="#ccc" stroke-width="2" rx="5" />
+
+                    <!-- Title -->
+                    <text
+                        x="100"
+                        y="80"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="36"
+                        fill="#2c5282"
+                        transform="rotate(-2 100 80)"
+                    >
+                        Meeting Notes
+                    </text>
+
+                    <!-- Underline -->
+                    <path d="M 95 90 Q 200 95 350 88" stroke="#2c5282" stroke-width="2" fill="none" />
+
+                    <!-- Bullet points -->
+                    <circle cx="80" cy="160" r="6" fill="#e53e3e" />
+                    <text
+                        x="100"
+                        y="168"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#333"
+                        transform="rotate(1 100 168)"
+                    >
+                        Review Q4 goals
+                    </text>
+
+                    <circle cx="80" cy="220" r="6" fill="#e53e3e" />
+                    <text
+                        x="100"
+                        y="228"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#333"
+                        transform="rotate(-1 100 228)"
+                    >
+                        Discuss budget
+                    </text>
+
+                    <circle cx="80" cy="280" r="6" fill="#e53e3e" />
+                    <text
+                        x="100"
+                        y="288"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#333"
+                        transform="rotate(0.5 100 288)"
+                    >
+                        Team updates
+                    </text>
+
+                    <!-- Doodle/arrow -->
+                    <path
+                        d="M 450 150 Q 500 120 550 150 L 540 140 M 550 150 L 540 160"
+                        stroke="#38a169"
+                        stroke-width="3"
+                        fill="none"
+                    />
+                    <text
+                        x="560"
+                        y="155"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="18"
+                        fill="#38a169"
+                    >
+                        Important!
+                    </text>
+
+                    <!-- Box around action items -->
+                    <rect
+                        x="400"
+                        y="200"
+                        width="320"
+                        height="150"
+                        fill="none"
+                        stroke="#dd6b20"
+                        stroke-width="2"
+                        stroke-dasharray="5,5"
+                        rx="10"
+                    />
+                    <text
+                        x="420"
+                        y="240"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="20"
+                        fill="#dd6b20"
+                    >
+                        Action Items:
+                    </text>
+                    <text
+                        x="440"
+                        y="280"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="18"
+                        fill="#333"
+                    >
+                        1. Send report by Friday
+                    </text>
+                    <text
+                        x="440"
+                        y="320"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="18"
+                        fill="#333"
+                    >
+                        2. Schedule follow-up
+                    </text>
+                </svg>
+            </div>
+            <div class="expected">
+                <strong>Expected text:</strong>
+                <pre>
+Meeting Notes
+- Review Q4 goals
+- Discuss budget
+- Team updates</pre
+                >
+            </div>
+            <button onclick="downloadImage(0, 'whiteboard_meeting_notes')">Download PNG</button>
+        </div>
+
+        <div class="card">
+            <h3>handwritten_todo_list</h3>
+            <p>Handwritten todo list on paper</p>
+            <div class="image-container" id="container-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+                    <!-- Paper background with lines -->
+                    <rect width="600" height="800" fill="#fffef0" />
+                    <defs>
+                        <pattern id="lines" patternUnits="userSpaceOnUse" width="600" height="30">
+                            <line x1="0" y1="29" x2="600" y2="29" stroke="#d4e5ed" stroke-width="1" />
+                        </pattern>
+                    </defs>
+                    <rect width="600" height="800" fill="url(#lines)" />
+
+                    <!-- Red margin line -->
+                    <line x1="80" y1="0" x2="80" y2="800" stroke="#ffcccc" stroke-width="2" />
+
+                    <!-- Title -->
+                    <text
+                        x="100"
+                        y="60"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="32"
+                        fill="#1a365d"
+                        transform="rotate(-1 100 60)"
+                    >
+                        To Do Today
+                    </text>
+
+                    <!-- Todo items -->
+                    <rect x="100" y="100" width="20" height="20" fill="none" stroke="#333" stroke-width="2" />
+                    <text
+                        x="135"
+                        y="118"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#333"
+                    >
+                        Write documentation
+                    </text>
+
+                    <rect x="100" y="160" width="20" height="20" fill="none" stroke="#333" stroke-width="2" />
+                    <text
+                        x="135"
+                        y="178"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#333"
+                    >
+                        Fix bug #123
+                    </text>
+
+                    <rect x="100" y="220" width="20" height="20" fill="none" stroke="#333" stroke-width="2" />
+                    <path d="M 102 230 L 110 238 L 118 222" stroke="#38a169" stroke-width="3" fill="none" />
+                    <text
+                        x="135"
+                        y="238"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#666"
+                        text-decoration="line-through"
+                    >
+                        Code review
+                    </text>
+
+                    <rect x="100" y="280" width="20" height="20" fill="none" stroke="#333" stroke-width="2" />
+                    <text
+                        x="135"
+                        y="298"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#333"
+                    >
+                        Deploy to staging
+                    </text>
+
+                    <!-- Note at bottom -->
+                    <text
+                        x="100"
+                        y="400"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="18"
+                        fill="#e53e3e"
+                        transform="rotate(2 100 400)"
+                    >
+                        * Priority: High!
+                    </text>
+                </svg>
+            </div>
+            <div class="expected">
+                <strong>Expected text:</strong>
+                <pre>
+To Do Today
+☐ Write documentation
+☐ Fix bug #123
+☑ Code review
+☐ Deploy to staging</pre
+                >
+            </div>
+            <button onclick="downloadImage(1, 'handwritten_todo_list')">Download PNG</button>
+        </div>
+
+        <div class="card">
+            <h3>simple_diagram</h3>
+            <p>Simple diagram with labels</p>
+            <div class="image-container" id="container-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+                    <!-- Background -->
+                    <rect width="800" height="500" fill="#fafafa" />
+
+                    <!-- Title -->
+                    <text
+                        x="300"
+                        y="50"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="28"
+                        fill="#2d3748"
+                        transform="rotate(-1 300 50)"
+                    >
+                        System Architecture
+                    </text>
+                    <path d="M 295 60 Q 400 65 530 58" stroke="#2d3748" stroke-width="2" fill="none" />
+
+                    <!-- Client box -->
+                    <rect
+                        x="50"
+                        y="150"
+                        width="140"
+                        height="80"
+                        fill="#bee3f8"
+                        stroke="#3182ce"
+                        stroke-width="2"
+                        rx="10"
+                    />
+                    <text
+                        x="85"
+                        y="200"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#2c5282"
+                    >
+                        Client
+                    </text>
+
+                    <!-- Arrow 1 -->
+                    <path d="M 190 190 L 270 190" stroke="#333" stroke-width="2" fill="none" />
+                    <polygon points="280,190 270,185 270,195" fill="#333" />
+
+                    <!-- API box -->
+                    <rect
+                        x="290"
+                        y="150"
+                        width="140"
+                        height="80"
+                        fill="#c6f6d5"
+                        stroke="#38a169"
+                        stroke-width="2"
+                        rx="10"
+                    />
+                    <text
+                        x="340"
+                        y="200"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#276749"
+                    >
+                        API
+                    </text>
+
+                    <!-- Arrow 2 -->
+                    <path d="M 430 190 L 510 190" stroke="#333" stroke-width="2" fill="none" />
+                    <polygon points="520,190 510,185 510,195" fill="#333" />
+
+                    <!-- Database box -->
+                    <rect
+                        x="530"
+                        y="150"
+                        width="160"
+                        height="80"
+                        fill="#fed7d7"
+                        stroke="#e53e3e"
+                        stroke-width="2"
+                        rx="10"
+                    />
+                    <text
+                        x="560"
+                        y="200"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="24"
+                        fill="#c53030"
+                    >
+                        Database
+                    </text>
+
+                    <!-- Cache annotation -->
+                    <ellipse
+                        cx="360"
+                        cy="320"
+                        rx="120"
+                        ry="40"
+                        fill="none"
+                        stroke="#805ad5"
+                        stroke-width="2"
+                        stroke-dasharray="5,5"
+                    />
+                    <text
+                        x="280"
+                        y="328"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="18"
+                        fill="#553c9a"
+                    >
+                        Cache layer
+                    </text>
+
+                    <!-- Arrow to cache -->
+                    <path d="M 360 230 L 360 280" stroke="#805ad5" stroke-width="2" stroke-dasharray="3,3" />
+
+                    <!-- Note -->
+                    <text
+                        x="500"
+                        y="400"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="16"
+                        fill="#666"
+                        transform="rotate(2 500 400)"
+                    >
+                        * for performance
+                    </text>
+                </svg>
+            </div>
+            <div class="expected">
+                <strong>Expected text:</strong>
+                <pre>
+System Architecture
+Client → API → Database
+Cache layer for performance</pre
+                >
+            </div>
+            <button onclick="downloadImage(2, 'simple_diagram')">Download PNG</button>
+        </div>
+
+        <div class="card">
+            <h3>quick_notes</h3>
+            <p>Quick handwritten notes</p>
+            <div class="image-container" id="container-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="500" height="400" viewBox="0 0 500 400">
+                    <!-- Sticky note background -->
+                    <rect width="500" height="400" fill="#fff59d" />
+                    <rect x="0" y="0" width="500" height="30" fill="#ffee58" />
+
+                    <!-- Fold corner effect -->
+                    <polygon points="450,0 500,0 500,50" fill="#fdd835" />
+
+                    <!-- Title -->
+                    <text
+                        x="40"
+                        y="80"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="32"
+                        fill="#333"
+                        transform="rotate(-2 40 80)"
+                    >
+                        Ideas:
+                    </text>
+
+                    <!-- Notes -->
+                    <text
+                        x="50"
+                        y="140"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#555"
+                        transform="rotate(1 50 140)"
+                    >
+                        - New feature brainstorm
+                    </text>
+
+                    <text
+                        x="50"
+                        y="190"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#555"
+                        transform="rotate(-0.5 50 190)"
+                    >
+                        - User feedback integration
+                    </text>
+
+                    <text
+                        x="50"
+                        y="240"
+                        font-family="cursive, 'Comic Sans MS', 'Bradley Hand', fantasy"
+                        font-size="22"
+                        fill="#555"
+                        transform="rotate(0.5 50 240)"
+                    >
+                        - Performance improvements
+                    </text>
+
+                    <!-- Star doodle -->
+                    <polygon
+                        points="420,320 425,340 445,340 430,352 435,372 420,360 405,372 410,352 395,340 415,340"
+                        fill="#ff8f00"
+                        stroke="#f57c00"
+                        stroke-width="1"
+                    />
+                </svg>
+            </div>
+            <div class="expected">
+                <strong>Expected text:</strong>
+                <pre>
+Ideas:
+- New feature brainstorm
+- User feedback integration
+- Performance improvements</pre
+                >
+            </div>
+            <button onclick="downloadImage(3, 'quick_notes')">Download PNG</button>
+        </div>
+
+        <script>
+            async function downloadImage(index, name) {
+                const container = document.getElementById('container-' + index);
+                const svg = container.querySelector('svg');
+
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Get SVG dimensions
+                const width = parseInt(svg.getAttribute('width'));
+                const height = parseInt(svg.getAttribute('height'));
+                canvas.width = width;
+                canvas.height = height;
+
+                // Convert SVG to data URL
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(svgBlob);
+
+                // Draw to canvas and download
+                const img = new Image();
+                img.onload = function () {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0);
+                    URL.revokeObjectURL(url);
+
+                    // Download
+                    const link = document.createElement('a');
+                    link.download = name + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+                img.src = url;
+            }
+        </script>
+    </body>
+</html>

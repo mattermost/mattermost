@@ -38,6 +38,13 @@ const Recaps = makeAsyncComponent('Recaps', lazy(() => import('components/recaps
 );
 const PermalinkView = makeAsyncComponent('PermalinkView', lazy(() => import('components/permalink_view')));
 const PlaybookRunner = makeAsyncComponent('PlaybookRunner', lazy(() => import('components/channel_layout/playbook_runner')));
+const WikiRouter = makeAsyncComponent('WikiRouter', lazy(() => import('components/channel_layout/wiki_router')),
+    (
+        <div className='app__content'>
+            <LoadingScreen/>
+        </div>
+    ),
+);
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -94,6 +101,14 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                                     returnTo={this.state.returnTo}
                                 />
                             )}
+                        />
+                        <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:channelId(${ID_PATH_PATTERN})/:wikiId(${ID_PATH_PATTERN})/drafts/:draftId`}
+                            component={WikiRouter}
+                        />
+                        <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:channelId(${ID_PATH_PATTERN})/:wikiId(${ID_PATH_PATTERN})/:pageId(${ID_PATH_PATTERN})?`}
+                            component={WikiRouter}
                         />
                         <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}

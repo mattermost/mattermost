@@ -37,6 +37,9 @@ func stopOnError(rctx request.CTX, err imports.LineImportWorkerError) bool {
 	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
 		rctx.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
+	case "app.import.import_page.nested_comment_failed.error":
+		rctx.Logger().Warn("Nested comment import failed (page was created but comment was skipped)", mlog.Err(err.Error))
+		return false
 	default:
 		return true
 	}
@@ -139,6 +142,12 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 				if line.Emoji.Data, ok = filesMap[path]; !ok {
 					return fmt.Errorf("attachment %q not found in map", path)
 				}
+			}
+		}
+	case "page":
+		if line.Page != nil {
+			if err := processAttachmentPaths(rctx, line.Page.Attachments, basePath, filesMap); err != nil {
+				return err
 			}
 		}
 	}
@@ -389,6 +398,26 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
 		return a.importEmoji(rctx, line.Emoji, dryRun)
+	case line.Type == "wiki":
+		if line.Wiki == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_wiki.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importWiki(rctx, line.Wiki, dryRun)
+	case line.Type == "page":
+		if line.Page == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_page.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importPage(rctx, line.Page, dryRun)
+	case line.Type == "page_comment":
+		if line.PageComment == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_page_comment.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importPageComment(rctx, line.PageComment, dryRun, nil)
+	case line.Type == "resolve_wiki_placeholders":
+		if line.ResolveWikiPlaceholders == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_resolve_wiki_placeholders.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importResolveWikiPlaceholders(rctx, line.ResolveWikiPlaceholders, dryRun)
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}

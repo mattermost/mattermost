@@ -10,6 +10,7 @@ import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
     BookmarkOutlineIcon,
+    CheckCircleOutlineIcon,
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
@@ -104,6 +105,10 @@ type Props = {
     canCopyText: boolean;
     canCopyLink: boolean;
     canFlagContent?: boolean;
+    isPageComment?: boolean;
+    isCommentResolved?: boolean;
+    wikiId?: string | null;
+    pageId?: string | null;
 
     actions: {
 
@@ -162,6 +167,15 @@ type Props = {
          */
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
 
+        /**
+         * Function to resolve a page comment
+         */
+        resolvePageComment?: (wikiId: string, pageId: string, commentId: string) => void;
+
+        /**
+         * Function to unresolve a page comment
+         */
+        unresolvePageComment?: (wikiId: string, pageId: string, commentId: string) => void;
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -265,6 +279,18 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.actions.unpinPost(this.props.post.id);
         } else {
             this.props.actions.pinPost(this.props.post.id);
+        }
+    };
+
+    handleResolveCommentMenuItemActivated = (): void => {
+        if (!this.props.wikiId || !this.props.pageId) {
+            return;
+        }
+
+        if (this.props.isCommentResolved) {
+            this.props.actions.unresolvePageComment?.(this.props.wikiId, this.props.pageId, this.props.post.id);
+        } else {
+            this.props.actions.resolvePageComment?.(this.props.wikiId, this.props.pageId, this.props.post.id);
         }
     };
 
@@ -734,6 +760,27 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={this.props.post.is_pinned ? <PinIcon size={18}/> : <PinOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='P'/>}
                         onClick={this.handlePinMenuItemActivated}
+                    />
+                }
+                {Boolean(this.props.isPageComment && !this.props.isReadOnly && this.props.wikiId && this.props.pageId) &&
+                    <Menu.Item
+                        id={`${this.props.isCommentResolved ? 'unresolve' : 'resolve'}_comment_${this.props.post.id}`}
+                        data-testid={`resolve_comment_${this.props.post.id}`}
+                        labels={
+                            this.props.isCommentResolved ? (
+                                <FormattedMessage
+                                    id='post_info.unresolve_comment'
+                                    defaultMessage='Unresolve'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='post_info.resolve_comment'
+                                    defaultMessage='Resolve'
+                                />
+                            )
+                        }
+                        leadingElement={<CheckCircleOutlineIcon size={18}/>}
+                        onClick={this.handleResolveCommentMenuItemActivated}
                     />
                 }
                 {showMove &&
