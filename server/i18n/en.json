@@ -8473,6 +8473,10 @@
     "translation": "Unable to get views for this channel."
   },
   {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Invalid input when getting views for channel."
+  },
+  {
     "id": "app.view.update.app_error",
     "translation": "Unable to update the view."
   },
