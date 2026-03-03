@@ -175,7 +175,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		ch := model.NewId()
 		creator := model.NewId()
 		var saved []*model.View
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			v := makeView(ch, creator)
 			v.Title = "Paginate Board"
 			v.SortOrder = i
@@ -248,7 +248,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	t.Run("cursor with SortOrder=0", func(t *testing.T) {
 		ch := model.NewId()
 		creator := model.NewId()
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			v := makeView(ch, creator)
 			v.Title = "SO0 Board"
 			v.SortOrder = 0
@@ -273,7 +273,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		ch := model.NewId()
 		creator := model.NewId()
 		now := model.GetMillis()
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			v := makeView(ch, creator)
 			v.Title = "Tiebreak Board"
 			v.SortOrder = 1
@@ -298,7 +298,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	t.Run("defaults PerPage to ViewQueryDefaultPerPage when 0", func(t *testing.T) {
 		ch := model.NewId()
 		creator := model.NewId()
-		for i := 0; i < model.ViewQueryDefaultPerPage+1; i++ {
+		for i := range model.ViewQueryDefaultPerPage + 1 {
 			v := makeView(ch, creator)
 			v.Title = "Default PerPage Board"
 			v.SortOrder = i
@@ -322,7 +322,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	t.Run("clamps PerPage above max to max", func(t *testing.T) {
 		ch := model.NewId()
 		creator := model.NewId()
-		for i := 0; i < model.ViewQueryMaxPerPage+1; i++ {
+		for i := range model.ViewQueryMaxPerPage + 1 {
 			v := makeView(ch, creator)
 			v.Title = "Clamp Board"
 			v.SortOrder = i
