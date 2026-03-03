@@ -86,20 +86,11 @@ describe('Image attachment', () => {
 
         verifyImageInPostFooter(false);
 
-        // # File thumbnail should have correct dimensions - use getLastPostId to target the specific post
-        cy.getLastPostId().then((postId) => {
-            cy.get(`#${postId}_message`).within(() => {
-                cy.uiGetFileThumbnail(filename).
-                    should((img) => {
-                        expect(img.height()).to.be.closeTo(334, 2.0); // Updated to match actual rendered height
-                        expect(img.width()).to.be.closeTo(22, 2.0);
-                    }).
-                    parent().
-                    should((img) => {
-                        expect(img.height()).to.be.closeTo(334, 2.0); // Updated to match actual rendered dimensions with padding
-                        expect(img.width()).to.be.closeTo(34, 2.0); // Updated to match actual rendered width
-                    });
-            });
+        // # File thumbnail should have correct dimensions
+        verifyFileThumbnail({
+            filename,
+            actualImage: {height: 334, width: 34},
+            container: {height: 334, width: 34},
         });
     });
 
