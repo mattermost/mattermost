@@ -121,6 +121,9 @@ func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
 	if idx == -1 {
 		return "", false
 	}
+	if idx > 0 && userAgentString[idx-1] != ' ' {
+		return "", false
+	}
 	after := userAgentString[idx+len(desktopAppVersionPrefix):]
 	if fields := strings.Fields(after); len(fields) > 0 {
 		return limitStringLength(fields[0], maxUserAgentVersionLength), true

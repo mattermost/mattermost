@@ -122,10 +122,24 @@
                     text-decoration: underline;
                 }
             </style>
-            <link
-                href='https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap'
-                rel='stylesheet'
-            />
+            <style>
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 400;
+                    src:
+                        url("{{.Props.OpenSansRegularWoff2URL}}") format('woff2'),
+                        url("{{.Props.OpenSansRegularWoffURL}}") format('woff');
+                }
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 600;
+                    src:
+                        url("{{.Props.OpenSans600Woff2URL}}") format('woff2'),
+                        url("{{.Props.OpenSans600WoffURL}}") format('woff');
+                }
+            </style>
         </head>
         <body>
             <header class="header">

@@ -264,10 +264,24 @@
                     text-decoration: underline;
                 }
             </style>
-            <link 
-                href='https://fonts.googleapis.com/css?family=Open+Sans&display=swap' 
-                rel='stylesheet'
-            />
+            <style>
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 400;
+                    src:
+                        url("{{.Props.OpenSansRegularWoff2URL}}") format('woff2'),
+                        url("{{.Props.OpenSansRegularWoffURL}}") format('woff');
+                }
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 600;
+                    src:
+                        url("{{.Props.OpenSans600Woff2URL}}") format('woff2'),
+                        url("{{.Props.OpenSans600WoffURL}}") format('woff');
+                }
+            </style>
             <script 
                 type='text/javascript' 
                 src='/unsupported_browser.js'

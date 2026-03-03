@@ -64,7 +64,8 @@ func (w *Web) InitStatic() {
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckClientCompatibility(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
-		data := renderUnsupportedBrowser(c.AppContext, r)
+		subpath, _ := utils.GetSubpathFromConfig(c.App.Srv().Config())
+		data := renderUnsupportedBrowser(c.AppContext, r, subpath)
 
 		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
 		if err != nil {
@@ -83,16 +84,21 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 			currentVersion = "unknown"
 		}
 		cfg := c.App.Srv().Config()
+		subpath, _ := utils.GetSubpathFromConfig(cfg)
 
 		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", templates.Data{
 			Props: map[string]any{
 				"CurrentDesktopAppVersion": currentVersion,
 				"MinimumDesktopAppVersion": *cfg.ServiceSettings.MinimumDesktopAppVersion,
 				"DownloadLink":             *cfg.NativeAppSettings.AppDownloadLink,
-				"BackgroundImageURL":       "/static/images/admin-onboarding-background.jpg",
-				"LogoURL":                  "/static/images/logo.svg",
-				"AlertIconURL":             "/static/images/alert.svg",
-				"MetropolisFontURL":        "/static/fonts/Metropolis-SemiBold.woff",
+				"BackgroundImageURL":       path.Join(subpath, "static", "images", "admin-onboarding-background.jpg"),
+				"LogoURL":                  path.Join(subpath, "static", "images", "logo.svg"),
+				"AlertIconURL":             path.Join(subpath, "static", "images", "alert.svg"),
+				"MetropolisFontURL":        path.Join(subpath, "static", "fonts", "Metropolis-SemiBold.woff"),
+				"OpenSansRegularWoff2URL":  path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2"),
+				"OpenSansRegularWoffURL":   path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff"),
+				"OpenSans600Woff2URL":      path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2"),
+				"OpenSans600WoffURL":       path.Join(subpath, "static", "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff"),
 				"CopyrightYear":            time.Now().Year(),
 				"SiteName":                 *cfg.TeamSettings.SiteName,
 				"AboutLink":                *cfg.SupportSettings.AboutLink,

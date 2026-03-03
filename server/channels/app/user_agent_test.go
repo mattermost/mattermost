@@ -339,7 +339,8 @@ func TestGetDesktopAppVersion(t *testing.T) {
 		{"mmctl/1.2.3", "", false},
 		{"Franz/4.0.4 Chrome/52.0.2743.82 Electron/1.3.1", "", false},
 		{"MattermostMobile/1.0", "", false},
-		{"SomeMattermost/2.0.0", "2.0.0", true},
+		{"SomeMattermost/2.0.0", "", false},
+		{"Chrome/120.0.0 SomeMattermost/2.0.0", "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.ua, func(t *testing.T) {
