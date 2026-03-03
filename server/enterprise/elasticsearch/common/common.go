@@ -142,7 +142,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 								searchAttachments = append(searchAttachments, s)
 							}
 							if v := fm["value"]; v != nil {
-								if s, ok := v.(string); ok {
+								if s, vOk := v.(string); vOk {
 									if s != "" {
 										searchAttachments = append(searchAttachments, s)
 									}
