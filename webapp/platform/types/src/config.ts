@@ -1017,7 +1017,6 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
-    EnableTeamAdminPolicyManagement: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {

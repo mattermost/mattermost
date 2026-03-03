@@ -376,7 +376,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
-				"EnableTeamAdminPolicyManagement":   "false",
 			},
 		},
 		{

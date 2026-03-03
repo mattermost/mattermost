@@ -810,7 +810,6 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableUserManagedAttributes: false,
-        EnableTeamAdminPolicyManagement: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
