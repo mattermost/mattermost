@@ -5,10 +5,14 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
+import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
@@ -76,6 +80,12 @@ const EnterpriseEditionLeftPanel = ({
         }
         fetchUnSanitizedLicense();
     }, [license]);
+
+    const serverLimits = useSelector(getServerLimits);
+    const config = useSelector(getConfig);
+    const guestAccountsEnabled = config?.EnableGuestAccounts === 'true';
+    const singleChannelGuestCount = guestAccountsEnabled ? (serverLimits?.singleChannelGuestCount ?? 0) : 0;
+    const singleChannelGuestLimit = guestAccountsEnabled ? (serverLimits?.singleChannelGuestLimit ?? 0) : 0;
 
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
@@ -227,10 +237,12 @@ const EnterpriseEditionLeftPanel = ({
                         skuName,
                         fileInputRef,
                         handleChange,
-                        statsActiveUsers,
+                        serverLimits?.activeUserCount ?? statsActiveUsers,
                         expirationDays,
                         isLicenseSetByEnvVar,
                         enableMattermostEntry,
+                        singleChannelGuestCount,
+                        singleChannelGuestLimit,
                     )
                 }
             </div>
@@ -258,9 +270,43 @@ const EnterpriseEditionLeftPanel = ({
     );
 };
 
-type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
+type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
 
-const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
+const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
+    if (legend === 'SINGLE-CHANNEL GUESTS:') {
+        const isGuestLimitExceeded = singleChannelGuestLimit > 0 && singleChannelGuestCount > singleChannelGuestLimit;
+
+        const warningIcon = isGuestLimitExceeded ? (
+            <WithTooltip
+                title={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
+                hint={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+            >
+                <span style={{cursor: 'pointer', verticalAlign: 'middle', marginLeft: '4px'}}>
+                    <AlertOutlineIcon size={16}/>
+                </span>
+            </WithTooltip>
+        ) : null;
+
+        return (
+            <div
+                className='item-element'
+                key={'single-channel-guests-' + index.toString()}
+            >
+                <span className={classNames({legend: true, 'legend--over-seats-purchased': isGuestLimitExceeded})}>{legend}</span>
+                <span className={classNames({value: true, 'value--over-seats-purchased': isGuestLimitExceeded})}>
+                    {value}
+                    {isGuestLimitExceeded && (
+                        <FormattedMessage
+                            id='admin.license.singleChannelGuests.limitReached'
+                            defaultMessage=' (Limit reached)'
+                        />
+                    )}
+                    {warningIcon}
+                </span>
+            </div>
+        );
+    }
+
     if (legend === 'ACTIVE USERS:') {
         const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({activeUsers, seatsPurchased});
         return (
@@ -330,6 +376,8 @@ const renderLicenseContent = (
     expirationDays: number,
     isLicenseSetByEnvVar: boolean,
     enableMattermostEntry: string | undefined,
+    singleChannelGuestCount: number,
+    singleChannelGuestLimit: number,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -359,6 +407,7 @@ const renderLicenseContent = (
         {legend: 'EXPIRES:', value: expiresAt},
         {legend: 'LICENSED SEATS:', value: users},
         {legend: 'ACTIVE USERS:', value: activeUsers},
+        ...(singleChannelGuestLimit > 0 ? [{legend: 'SINGLE-CHANNEL GUESTS:' as LegendValues, value: <FormattedNumber value={singleChannelGuestCount}/>}] : []),
         {legend: 'EDITION:', value: sku},
         {legend: 'LICENSE ISSUED:', value: issued},
         {legend: 'NAME:', value: license.Name},
@@ -367,7 +416,7 @@ const renderLicenseContent = (
 
     return (
         <div className='licenseElements'>
-            {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays))}
+            {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays, singleChannelGuestCount, singleChannelGuestLimit))}
             <hr/>
             {renderAddNewLicenseButton(fileInputRef, handleChange, isLicenseSetByEnvVar)}
             {renderRemoveButton(handleRemove, isDisabled, removing, enableMattermostEntry)}

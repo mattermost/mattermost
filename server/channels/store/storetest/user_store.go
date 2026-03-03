@@ -48,6 +48,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("AnalyticsGetInactiveUsersCountIgnoreBots", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t, rctx, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
 	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
+	t.Run("AnalyticsGetSingleChannelGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetSingleChannelGuestCount(t, rctx, ss) })
 	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, rctx, ss) })
@@ -4599,6 +4600,93 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, rctx request.CTX, ss stor
 	result, err := ss.User().AnalyticsGetGuestCount()
 	require.NoError(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
+}
+
+func testUserStoreAnalyticsGetSingleChannelGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
+	countBefore, err := ss.User().AnalyticsGetSingleChannelGuestCount()
+	require.NoError(t, err)
+
+	teamID := model.NewId()
+
+	ch1 := &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Single channel guest test 1",
+		Name:        "scg-test-1-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
+	require.NoError(t, nErr)
+
+	ch2 := &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Single channel guest test 2",
+		Name:        "scg-test-2-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
+	require.NoError(t, nErr)
+
+	singleChannelGuest := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_guest",
+	}
+	_, nErr = ss.User().Save(rctx, &singleChannelGuest)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, singleChannelGuest.Id)) }()
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      singleChannelGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	multiChannelGuest := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_guest",
+	}
+	_, nErr = ss.User().Save(rctx, &multiChannelGuest)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, multiChannelGuest.Id)) }()
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      multiChannelGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      multiChannelGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	regularUser := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_user",
+	}
+	_, nErr = ss.User().Save(rctx, &regularUser)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, regularUser.Id)) }()
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      regularUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, nErr)
+
+	result, err := ss.User().AnalyticsGetSingleChannelGuestCount()
+	require.NoError(t, err)
+	require.Equal(t, countBefore+1, result)
 }
 
 func testUserStoreAnalyticsGetExternalUsers(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -492,6 +492,7 @@ type UserStore interface {
 	AnalyticsGetExternalUsers(hostDomain string) (bool, error)
 	AnalyticsGetSystemAdminCount() (int64, error)
 	AnalyticsGetGuestCount() (int64, error)
+	AnalyticsGetSingleChannelGuestCount() (int64, error)
 	GetProfilesNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetEtagForProfilesNotInTeam(teamID string) string
 	ClearAllCustomRoleAssignments() error
