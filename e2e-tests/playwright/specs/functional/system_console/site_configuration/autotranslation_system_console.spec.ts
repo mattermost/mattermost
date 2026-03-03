@@ -161,18 +161,18 @@ test.describe('System Console - Autotranslation (Localization)', () => {
 
             // Select Spanish
             const languageOptions = systemConsolePage.localization.container.getByRole('option');
-            await languageOptions.filter({hasText: 'Spanish'}).click();
+            await languageOptions.filter({hasText: /Español/}).click();
 
             // Select French (keep multiselect open)
-            await languageOptions.filter({hasText: 'French'}).click();
+            await languageOptions.filter({hasText: /Français/}).click();
 
             // Close multiselect
             await multiSelect.press('Escape');
 
             // Verify both languages are selected (check for selected chips or tags)
             const selectedChips = systemConsolePage.localization.container.locator('[class*="chip"], [class*="tag"]');
-            const spanishChip = selectedChips.filter({hasText: 'Spanish'});
-            const frenchChip = selectedChips.filter({hasText: 'French'});
+            const spanishChip = selectedChips.filter({hasText: /Español/});
+            const frenchChip = selectedChips.filter({hasText: /Français/});
 
             await expect(spanishChip).toBeVisible();
             await expect(frenchChip).toBeVisible();

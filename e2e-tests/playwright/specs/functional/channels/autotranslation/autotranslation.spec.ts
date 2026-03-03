@@ -876,10 +876,10 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Wait for post by searching for the message text
+        // * Wait for post by searching for the message text (search for English translation, not Spanish original)
         const modalPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Este es un texto para la modal de traducción automática'});
+            .filter({hasText: 'This is a text for the machine translation modal'});
         await expect(modalPost).toBeVisible({timeout: 15000});
 
         // * Check for translation button - if it exists, click it and verify modal
@@ -972,10 +972,10 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Find post with message text and open dot menu
+        // * Find post with message text and open dot menu (search for English translation, not Spanish original)
         const messagePost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
+            .filter({hasText: 'This message is to test the action menu'});
         await messagePost.waitFor({state: 'visible', timeout: 15000});
         await messagePost.hover();
         // Click the post menu button (three dots)
