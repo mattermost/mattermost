@@ -39,8 +39,8 @@ describe('Recent Emoji', () => {
     });
 
     it('MM-T155 Recently used emoji reactions are shown first', () => {
-        const firstEmoji = 'joy';
-        const secondEmoji = 'grin';
+        const firstEmoji = 'smile';
+        const secondEmoji = 'tada';
 
         // # Show emoji list
         cy.uiOpenEmojiPicker();
@@ -48,12 +48,12 @@ describe('Recent Emoji', () => {
         // * Verify emoji picker is opened
         cy.get('#emojiPicker').should('be.visible');
 
-        // # Add first emoji (picker inserts unicode for system emojis)
+        // # Add first emoji
         cy.clickEmojiInEmojiPicker(firstEmoji);
 
-        // # Submit post (textbox contains unicode emoji + space)
+        // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('have.value', '😄 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post
@@ -69,10 +69,10 @@ describe('Recent Emoji', () => {
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
         // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'grin emoji');
+        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'tada emoji');
 
         // * Assert second emoji should equal with first recent emoji
-        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'joy emoji');
+        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'smile emoji');
     });
 
     it('MM-T4463 Recently used custom emoji, when is deleted should be removed from recent emoji category and quick reactions', () => {
