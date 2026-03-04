@@ -20,6 +20,10 @@ jest.mock('selectors/i18n');
 describe('components/admin_console/license_settings/modals/upload_license_modal', () => {
     (i18Selectors.getCurrentLocale as jest.Mock).mockReturnValue(General.DEFAULT_LOCALE);
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     // required state to mount using the provider
     const license = {
         IsLicensed: 'true',
@@ -108,7 +112,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(wrapper.find('UploadLicenseModal').find('.content-body').exists()).toBe(true);
         expect(wrapper.find('UploadLicenseModal').find('.title').text()).toContain('Validating License');
 
-        useDispatchMock.mockClear();
     });
 
     test('should show error and close button when preview fails', async () => {
@@ -134,7 +137,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(wrapper.find('UploadLicenseModal').find('.serverError').exists()).toBe(true);
         expect(wrapper.find('UploadLicenseModal').find('#close-button').exists()).toBe(true);
 
-        useDispatchMock.mockClear();
     });
 
     test('should show preview step after successful license preview', async () => {
@@ -178,7 +180,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(wrapper.find('UploadLicenseModal').find('#cancel-button').exists()).toBe(true);
         expect(wrapper.find('UploadLicenseModal').find('#confirm-button').exists()).toBe(true);
 
-        useDispatchMock.mockClear();
     });
 
     test('should show success image when license upload succeeds', async () => {
@@ -247,7 +248,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(wrapper.find('UploadLicenseModal').find('.hands-svg')).toHaveLength(1);
         expect(wrapper.find('UploadLicenseModal').find('#done-button')).toHaveLength(1);
 
-        useDispatchMock.mockClear();
     });
 
     test('should format users number in success message', async () => {
@@ -312,7 +312,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         const modalSubtitle = wrapper.find('UploadLicenseModal').find('.subtitle').text();
         expect(modalSubtitle).toContain('123,456,789');
 
-        useDispatchMock.mockClear();
     });
 
     test('should hide the upload modal when modal state is closed', () => {
