@@ -88,6 +88,31 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 	return *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
+// fetchServerInfo retrieves and stores the server version and plugins from the given client.
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient, cfg *model.Config) *model.AppError {
+	version, major, appErr := checkMaxVersion(client, cfg)
+	if appErr != nil {
+		return appErr
+	}
+
+	es.version = major
+	es.fullVersion = version
+
+	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
+	// Instead, we will log it and move forward
+	resp, err := client.API.Cat.Plugins().Do(context.Background())
+	if err != nil {
+		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
+	} else {
+		es.plugins = nil
+		for _, p := range resp {
+			es.plugins = append(es.plugins, *p.Component)
+		}
+	}
+
+	return nil
+}
+
 func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*es.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
@@ -108,27 +133,13 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	version, major, appErr := checkMaxVersion(es.client, es.Platform.Config())
-	if appErr != nil {
+	if appErr = es.fetchServerInfo(es.client, es.Platform.Config()); appErr != nil {
 		return appErr
 	}
 
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := es.client.API.Cat.Plugins().Do(context.Background())
-	if err != nil {
-		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
-	} else {
-		for _, p := range resp {
-			es.plugins = append(es.plugins, *p.Component)
-		}
-	}
-
-	es.version = major
-	es.fullVersion = version
-
 	ctx := context.Background()
 
+	var err error
 	esSettings := es.Platform.Config().ElasticsearchSettings
 	if *esSettings.LiveIndexingBatchSize > 1 {
 		es.bulkProcessor, err = NewBulk(
@@ -1362,8 +1373,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	_, _, appErr = checkMaxVersion(client, cfg)
-	if appErr != nil {
+	if appErr = es.fetchServerInfo(client, cfg); appErr != nil {
 		return appErr
 	}
 
