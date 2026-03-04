@@ -3279,8 +3279,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3307,8 +3307,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",

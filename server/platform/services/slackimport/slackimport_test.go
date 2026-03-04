@@ -6,6 +6,7 @@ package slackimport
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -759,4 +760,61 @@ func TestSlackImportEnhancedSecurityBackwardsCompatibility(t *testing.T) {
 
 	// Verify VerifyEmail was NOT called
 	userStore.AssertNotCalled(t, "VerifyEmail")
+}
+
+func TestSlackAddUsersLogContainsOnlyEmail(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	teamStore := &mocks.TeamStore{}
+	userStore := &mocks.UserStore{}
+	store.On("Team").Return(teamStore)
+	store.On("User").Return(userStore)
+
+	team := &model.Team{Id: "test-team-id", Name: "test-team"}
+	teamStore.On("Get", "test-team-id").Return(team, nil)
+
+	userStore.On("GetByEmail", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("not found"))
+
+	var capturedPassword string
+	savedUser := &model.User{
+		Id:       "test-user-id",
+		Username: "testuser",
+		Email:    "testuser@example.com",
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).
+		Return(savedUser, nil).
+		Run(func(args mock.Arguments) {
+			capturedPassword = args.Get(1).(*model.User).Password
+		})
+
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+	importer := New(store, actions, config)
+
+	slackUsers := []slackUser{
+		{
+			Id:       "U001",
+			Username: "testuser",
+			Profile: slackProfile{
+				FirstName: "Test",
+				LastName:  "User",
+				Email:     "testuser@example.com",
+			},
+		},
+	}
+
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", slackUsers, importerLog)
+
+	logOutput := importerLog.String()
+	require.NotEmpty(t, capturedPassword, "expected password to be set on the user")
+	assert.Contains(t, logOutput, "testuser@example.com", "import log should contain the user's email")
+	assert.NotContains(t, logOutput, capturedPassword, "import log must not contain the user's password")
 }

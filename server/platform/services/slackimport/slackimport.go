@@ -296,7 +296,7 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			continue
 		}
 		addedUsers[sUser.Id] = mUser
-		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email_pwd", map[string]any{"Email": newUser.Email, "Password": password}))
+		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email", map[string]any{"Email": newUser.Email}))
 	}
 
 	return addedUsers
@@ -327,7 +327,7 @@ func (si *SlackImporter) slackAddBotUser(rctx request.CTX, teamId string, log *b
 		return nil
 	}
 
-	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]any{"Email": botUser.Email, "Password": password}))
+	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email", map[string]any{"Email": botUser.Email}))
 	return mUser
 }
 
