@@ -19,6 +19,7 @@ func TestPostAcknowledgementsStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("GetForPosts", func(t *testing.T) { testPostAcknowledgementsStoreGetForPosts(t, rctx, ss) })
 	t.Run("BatchSave", func(t *testing.T) { testPostAcknowledgementsStoreBatchSave(t, rctx, ss) })
 	t.Run("BatchDelete", func(t *testing.T) { testPostAcknowledgementsStoreBatchDelete(t, rctx, ss) })
+	t.Run("DeleteAllForPost", func(t *testing.T) { testPostAcknowledgementsStoreDeleteAllForPost(t, rctx, ss) })
 }
 
 func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -417,5 +418,165 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		// Delete non-existent acknowledgement should not error
 		err := ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{nonExistentAck})
 		require.NoError(t, err)
+	})
+}
+
+func testPostAcknowledgementsStoreDeleteAllForPost(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID1 := model.NewId()
+	userID2 := model.NewId()
+	userID3 := model.NewId()
+
+	t.Run("should permanently delete all acknowledgements for a post", func(t *testing.T) {
+		p1 := model.Post{}
+		p1.ChannelId = model.NewId()
+		p1.UserId = model.NewId()
+		p1.Message = NewTestID()
+		p1.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewPointer("important"),
+				RequestedAck:            model.NewPointer(true),
+				PersistentNotifications: model.NewPointer(false),
+			},
+		}
+		post, err := ss.Post().Save(rctx, &p1)
+		require.NoError(t, err)
+
+		// Create multiple acknowledgements
+		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack1)
+		require.NoError(t, err)
+		ack2 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack2)
+		require.NoError(t, err)
+		ack3 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID3, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack3)
+		require.NoError(t, err)
+
+		// Verify acknowledgements were created
+		acks, err := ss.PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, err)
+		require.Len(t, acks, 3)
+
+		// Delete all acknowledgements for the post
+		err = ss.PostAcknowledgement().DeleteAllForPost(post.Id)
+		require.NoError(t, err)
+
+		// Verify all acknowledgements were permanently deleted
+		acks, err = ss.PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, err)
+		require.Empty(t, acks)
+
+		// Verify they are truly deleted and not just soft-deleted (AcknowledgedAt = 0)
+		// by checking GetForPostSince with inclDeleted = true
+		acksWithDeleted, err := ss.PostAcknowledgement().GetForPostSince(post.Id, 0, "", true)
+		require.NoError(t, err)
+		require.Empty(t, acksWithDeleted, "Acknowledgements should be permanently deleted, not soft-deleted")
+	})
+
+	t.Run("should only delete acknowledgements for the specified post", func(t *testing.T) {
+		// Create two posts
+		p1 := model.Post{}
+		p1.ChannelId = model.NewId()
+		p1.UserId = model.NewId()
+		p1.Message = NewTestID()
+		post1, err := ss.Post().Save(rctx, &p1)
+		require.NoError(t, err)
+
+		p2 := model.Post{}
+		p2.ChannelId = model.NewId()
+		p2.UserId = model.NewId()
+		p2.Message = NewTestID()
+		post2, err := ss.Post().Save(rctx, &p2)
+		require.NoError(t, err)
+
+		// Create acknowledgements for both posts
+		ack1 := &model.PostAcknowledgement{PostId: post1.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post1.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack1)
+		require.NoError(t, err)
+		ack2 := &model.PostAcknowledgement{PostId: post1.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post1.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack2)
+		require.NoError(t, err)
+		ack3 := &model.PostAcknowledgement{PostId: post2.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post2.ChannelId}
+		ack3, err = ss.PostAcknowledgement().SaveWithModel(ack3)
+		require.NoError(t, err)
+		ack4 := &model.PostAcknowledgement{PostId: post2.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post2.ChannelId}
+		ack4, err = ss.PostAcknowledgement().SaveWithModel(ack4)
+		require.NoError(t, err)
+
+		// Delete all acknowledgements for post1 only
+		err = ss.PostAcknowledgement().DeleteAllForPost(post1.Id)
+		require.NoError(t, err)
+
+		// Verify post1 acknowledgements are deleted
+		acks1, err := ss.PostAcknowledgement().GetForPost(post1.Id)
+		require.NoError(t, err)
+		require.Empty(t, acks1)
+
+		// Verify post2 acknowledgements are still present
+		acks2, err := ss.PostAcknowledgement().GetForPost(post2.Id)
+		require.NoError(t, err)
+		require.Len(t, acks2, 2)
+		require.ElementsMatch(t, acks2, []*model.PostAcknowledgement{ack3, ack4})
+	})
+
+	t.Run("should not error when deleting from post with no acknowledgements", func(t *testing.T) {
+		p1 := model.Post{}
+		p1.ChannelId = model.NewId()
+		p1.UserId = model.NewId()
+		p1.Message = NewTestID()
+		post, err := ss.Post().Save(rctx, &p1)
+		require.NoError(t, err)
+
+		// Verify no acknowledgements exist
+		acks, err := ss.PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, err)
+		require.Empty(t, acks)
+
+		// Delete should not error
+		err = ss.PostAcknowledgement().DeleteAllForPost(post.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should not error when deleting from non-existent post", func(t *testing.T) {
+		nonExistentPostId := model.NewId()
+
+		// Delete should not error even for non-existent post
+		err := ss.PostAcknowledgement().DeleteAllForPost(nonExistentPostId)
+		require.NoError(t, err)
+	})
+
+	t.Run("should delete both active and soft-deleted acknowledgements", func(t *testing.T) {
+		p1 := model.Post{}
+		p1.ChannelId = model.NewId()
+		p1.UserId = model.NewId()
+		p1.Message = NewTestID()
+		post, err := ss.Post().Save(rctx, &p1)
+		require.NoError(t, err)
+
+		// Create active acknowledgement
+		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack1)
+		require.NoError(t, err)
+
+		// Create another acknowledgement and soft-delete it
+		ack2 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID2, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
+		require.NoError(t, err)
+		err = ss.PostAcknowledgement().Delete(ack2) // Soft delete sets AcknowledgedAt to 0
+		require.NoError(t, err)
+
+		// Verify we have active acknowledgements
+		activeAcks, err := ss.PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, err)
+		require.Len(t, activeAcks, 1)
+
+		// Delete all acknowledgements for the post
+		err = ss.PostAcknowledgement().DeleteAllForPost(post.Id)
+		require.NoError(t, err)
+
+		// Verify all acknowledgements (including soft-deleted) are permanently deleted
+		acksWithDeleted, err := ss.PostAcknowledgement().GetForPostSince(post.Id, 0, "", true)
+		require.NoError(t, err)
+		require.Empty(t, acksWithDeleted, "All acknowledgements including soft-deleted should be permanently deleted")
 	})
 }

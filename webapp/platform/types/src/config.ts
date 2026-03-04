@@ -336,6 +336,7 @@ export type ServiceSettings = {
     GoogleDeveloperKey: string;
     EnableOAuthServiceProvider: boolean;
     EnableDynamicClientRegistration: boolean;
+    DCRRedirectURIAllowlist: string[];
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableOutgoingOAuthConnections: boolean;
@@ -508,11 +509,6 @@ export type LogSettings = {
 export type ExperimentalAuditSettings = {
     FileEnabled: boolean;
     FileName: string;
-    FileMaxSizeMB: number;
-    FileMaxAgeDays: number;
-    FileMaxBackups: number;
-    FileCompress: boolean;
-    FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
 };
