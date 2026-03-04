@@ -7,7 +7,7 @@ import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PolicyList from './policies';
 
@@ -69,17 +69,26 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not call previousPage if no history', async () => {
-        mockSearchPolicies.mockResolvedValueOnce({data: {policies: [], total: 0}} as ActionResult);
+    test('should not call searchPolicies when clicking previous page on the first page', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [
+                    {id: 'policy1', name: 'Policy 1'} as AccessControlPolicy,
+                    {id: 'policy2', name: 'Policy 2'} as AccessControlPolicy,
+                ],
+                total: 2,
+            },
+        } as ActionResult);
         renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
-            expect(screen.getByText('No policies found')).toBeInTheDocument();
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
 
-        mockSearchPolicies.mockClear(); // Clear calls from mount
+        mockSearchPolicies.mockClear();
 
-        // The previous page button should not trigger additional calls when there's no history
-        // Since there are no policies and we're on page 0, previousPage should be a no-op
+        const prevButton = screen.getByRole('button', {name: 'Previous page'});
+        await userEvent.click(prevButton);
+
         expect(mockSearchPolicies).not.toHaveBeenCalled();
     });
 

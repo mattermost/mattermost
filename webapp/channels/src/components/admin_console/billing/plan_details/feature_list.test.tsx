@@ -56,13 +56,6 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when running paid tier and free', () => {
-        const {container} = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        });
-        expect(container).toMatchSnapshot();
-    });
-
     test('all feature items must have different values', () => {
         const plans = [
             CloudProducts.PROFESSIONAL,

@@ -54,11 +54,7 @@ describe('components/admin_console/access_control/channel_list', () => {
     test('should match snapshot with no channels', () => {
         // The Filter component has an existing prop type issue with TeamFilterDropdown
         // that only surfaces during full rendering (not shallow). Suppress for this test.
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
-            if (typeof args[0] === 'string' && args[0].includes('Failed prop type')) {
-                // no-op: suppress prop type warnings
-            }
-        });
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const props = {
             ...defaultProps,
@@ -66,10 +62,12 @@ describe('components/admin_console/access_control/channel_list', () => {
             totalCount: 0,
             policyId: '',
         };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
-        expect(container).toMatchSnapshot();
-
-        errorSpy.mockRestore();
+        try {
+            const {container} = renderWithContext(<ChannelList {...props}/>);
+            expect(container).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     test('should match snapshot with channels', () => {

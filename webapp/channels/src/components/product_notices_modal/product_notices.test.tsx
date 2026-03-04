@@ -134,14 +134,6 @@ describe('ProductNoticesModal', () => {
         expect(screen.queryByText('Previous')).not.toBeInTheDocument();
     });
 
-    test('Should not have previous button if there is only one notice', async () => {
-        renderWithContext(<ProductNoticesModal {...baseProps}/>);
-        await waitFor(() => {
-            expect(screen.getByText('for sysadmin')).toBeInTheDocument();
-        });
-        expect(screen.queryByText('Previous')).not.toBeInTheDocument();
-    });
-
     test('Should open url in a new window on click of handleConfirm for single notice', async () => {
         window.open = jest.fn();
         const singleNoticeProps = {

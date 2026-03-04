@@ -157,16 +157,16 @@ describe('components/marketplace/', () => {
         useStateSpy.mockImplementation(() => [true, setState]);
 
         // Suppress expected errors from useState mock affecting all child components
-        const originalError = console.error;
-        console.error = jest.fn();
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-
-        console.error = originalError;
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', () => {
@@ -182,19 +182,19 @@ describe('components/marketplace/', () => {
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
 
         // Suppress expected errors from useState mock affecting all child components
-        const originalError = console.error;
-        console.error = jest.fn();
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-        );
+            expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
+            expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
 
-        expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
-        expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
-
-        console.error = originalError;
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", () => {
@@ -206,17 +206,17 @@ describe('components/marketplace/', () => {
         mockState.entities.general.license.Cloud = 'true';
 
         // Suppress expected errors from useState mock affecting all child components
-        const originalError = console.error;
-        console.error = jest.fn();
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-        );
+            expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
 
-        expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
-
-        console.error = originalError;
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 });

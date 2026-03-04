@@ -52,6 +52,15 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         trialJustStarted: false,
     };
 
+    beforeAll(() => {
+        jest.useFakeTimers({advanceTimers: true});
+        jest.setSystemTime(new Date('2026-02-20T00:00:00Z'));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     beforeEach(() => {
         mockLocation.pathname = '';
     });

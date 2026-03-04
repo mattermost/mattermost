@@ -182,20 +182,25 @@ describe('components/MoreDirectChannels', () => {
 
     test('should call on search', () => {
         jest.useFakeTimers();
-        const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
-            <MoreDirectChannels
-                ref={ref}
-                {...props}
-            />,
-        );
-        ref.current!.search('user_search');
-        expect(props.actions.setModalSearchTerm).not.toHaveBeenCalled();
-        jest.runAllTimers();
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
-        jest.useRealTimers();
+        try {
+            const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
+            const ref = React.createRef<MoreDirectChannels>();
+            renderWithContext(
+                <MoreDirectChannels
+                    ref={ref}
+                    {...props}
+                />,
+            );
+            ref.current!.search('user_search');
+            expect(props.actions.setModalSearchTerm).not.toHaveBeenCalled();
+            act(() => {
+                jest.runAllTimers();
+            });
+            expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
+            expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('should match state on handleDelete', () => {
@@ -291,7 +296,7 @@ describe('components/MoreDirectChannels', () => {
 
         ref.current!.handleHide = handleHide;
         ref.current!.exitToChannel = exitToChannel;
-        act(() => {
+        await act(async () => {
             ref.current!.handleSubmit();
         });
         expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledTimes(1);

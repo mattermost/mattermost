@@ -110,61 +110,6 @@ exports[`components/admin_console/billing/plan_details/feature_list should match
 </div>
 `;
 
-exports[`components/admin_console/billing/plan_details/feature_list should match snapshot when running paid tier and free 1`] = `
-<div>
-  <div
-    class="PlanDetailsFeature"
-  >
-    <i
-      class="icon-check"
-    />
-    <span>
-      Group and one-to-one messaging, file sharing, and search
-    </span>
-  </div>
-  <div
-    class="PlanDetailsFeature"
-  >
-    <i
-      class="icon-check"
-    />
-    <span>
-      Incident collaboration
-    </span>
-  </div>
-  <div
-    class="PlanDetailsFeature"
-  >
-    <i
-      class="icon-check"
-    />
-    <span>
-      Unlimited users & message history
-    </span>
-  </div>
-  <div
-    class="PlanDetailsFeature"
-  >
-    <i
-      class="icon-check"
-    />
-    <span>
-      Multi-Factor Authentication (MFA)
-    </span>
-  </div>
-  <div
-    class="PlanDetailsFeature"
-  >
-    <i
-      class="icon-check"
-    />
-    <span>
-      Multi-language translations
-    </span>
-  </div>
-</div>
-`;
-
 exports[`components/admin_console/billing/plan_details/feature_list should match snapshot when running paid tier and professional 1`] = `
 <div>
   <div

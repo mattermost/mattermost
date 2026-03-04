@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelMembersModal from './channel_members_modal';
@@ -46,57 +46,32 @@ describe('components/ChannelMembersModal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match state when onHide is called', () => {
-        const ref = React.createRef<ChannelMembersModal>();
+    test('should hide the modal when close button is clicked', async () => {
         renderWithContext(
-            <ChannelMembersModal
-                ref={ref}
-                {...baseProps}
-            />,
+            <ChannelMembersModal {...baseProps}/>,
         );
 
-        act(() => {
-            ref.current!.setState({show: true});
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByLabelText('Close'));
+
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
-        act(() => {
-            ref.current!.handleHide();
-        });
-        expect(ref.current!.state.show).toEqual(false);
     });
 
-    test('should have called props.actions.openModal and hide modal when onAddNewMembersButton is called', () => {
-        const ref = React.createRef<ChannelMembersModal>();
+    test('should call openModal and hide modal when Add Members is clicked', async () => {
         renderWithContext(
-            <ChannelMembersModal
-                ref={ref}
-                {...baseProps}
-            />,
+            <ChannelMembersModal {...baseProps}/>,
         );
 
-        act(() => {
-            ref.current!.onAddNewMembersButton();
-        });
+        await userEvent.click(screen.getByText('Add Members'));
+
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
 
-        expect(ref.current!.state.show).toBe(false);
-    });
-
-    test('should have state when Modal.onHide', () => {
-        const ref = React.createRef<ChannelMembersModal>();
-        renderWithContext(
-            <ChannelMembersModal
-                ref={ref}
-                {...baseProps}
-            />,
-        );
-
-        act(() => {
-            ref.current!.setState({show: true});
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
-        act(() => {
-            ref.current!.handleHide();
-        });
-        expect(ref.current!.state.show).toEqual(false);
     });
 
     test('should match snapshot with archived channel', () => {
@@ -132,26 +107,22 @@ describe('components/ChannelMembersModal', () => {
         expect(document.querySelector('#showInviteModal')).not.toBeInTheDocument();
     });
 
-    test('should call openModal with ChannelInviteModal when the add members link is clicked', () => {
+    test('should call openModal with ChannelInviteModal when the add members link is clicked', async () => {
         const openModal = jest.fn();
         const newProps = {
             ...baseProps,
-            canManageChannelMembers: false,
+            canManageChannelMembers: true,
             actions: {
                 openModal,
             },
         };
-        const ref = React.createRef<ChannelMembersModal>();
         renderWithContext(
-            <ChannelMembersModal
-                ref={ref}
-                {...newProps}
-            />,
+            <ChannelMembersModal {...newProps}/>,
         );
         expect(openModal).not.toHaveBeenCalled();
-        act(() => {
-            ref.current!.onAddNewMembersButton();
-        });
+
+        await userEvent.click(screen.getByText('Add Members'));
+
         expect(openModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.CHANNEL_INVITE,
             dialogType: ChannelInviteModal,
