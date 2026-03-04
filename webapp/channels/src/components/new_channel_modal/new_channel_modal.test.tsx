@@ -29,7 +29,9 @@ describe('components/new_channel_modal', () => {
     const initialState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    UseSecureURLs: 'false',
+                },
             },
             channels: {
                 currentChannelId: 'current_channel_id',

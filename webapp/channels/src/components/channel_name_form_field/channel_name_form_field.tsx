@@ -186,7 +186,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.currentUrl]);
 
-    const showURLEditor = props.isEditingExistingChannel || !config.UseSecureURLs || config.UseSecureURLs === 'false';
+    const showURLEditor = props.isEditingExistingChannel || config.UseSecureURLs === 'false';
 
     return (
         <>

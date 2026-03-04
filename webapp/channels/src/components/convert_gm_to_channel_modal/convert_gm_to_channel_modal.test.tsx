@@ -47,6 +47,11 @@ describe('component/ConvertGmToChannelModal', () => {
                 },
                 currentTeamId: 'team_id_1',
             },
+            general: {
+                config: {
+                    UseSecureURLs: 'false',
+                },
+            },
         },
     };
 
