@@ -10453,6 +10453,10 @@
     "translation": "Notifications for new flagged post cannot be disabled for reviewers."
   },
   {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "One or more app download links are not valid URLs."
+  },
+  {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
     "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
