@@ -5,8 +5,8 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -271,7 +271,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 	// Get the remotes status (return empty if channel is not yet shared)
 	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
 	if err != nil {
-		if strings.Contains(err.Error(), "channel is not shared") {
+		if errors.Is(err, model.ErrChannelNotShared) {
 			remoteStatuses = []*model.SharedChannelRemoteStatus{}
 		} else {
 			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
