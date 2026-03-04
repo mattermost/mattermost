@@ -149,7 +149,7 @@ test(
         await adminClient.updateConfig(config);
 
         // # Fetch server limits
-        const limits = await adminClient.getServerLimits();
+        const {data: limits} = await adminClient.getServerLimits();
 
         // * Verify the response includes single-channel guest fields
         expect(limits).toHaveProperty('singleChannelGuestCount');
