@@ -239,6 +239,73 @@ test('does not show guest limit banner when count is within limit', {tag: '@syst
 });
 
 /**
+ * @objective Verify error styling appears on the single-channel guests card and dismissible banner shows when single-channel guest count exceeds the limit
+ *
+ * @precondition
+ * Server has a non-Entry license with guest accounts enabled and a small enough seat count to make overage testable
+ */
+test(
+    'shows error styling on guests card and banner when single-channel guest count exceeds limit',
+    {tag: '@system_console'},
+    async ({pw}) => {
+        const {adminUser, adminClient, team} = await pw.initSetup();
+
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        // # Enable guest accounts
+        const config = await adminClient.getConfig();
+        config.GuestAccountsSettings.Enable = true;
+        await adminClient.updateConfig(config);
+
+        // # Check the current limit to see if overage is feasible
+        const {data: initialLimits} = await adminClient.getServerLimits();
+        const limit = initialLimits.singleChannelGuestLimit;
+        const currentCount = initialLimits.singleChannelGuestCount;
+        const guestsNeeded = limit - currentCount + 1;
+
+        // # Skip if the limit is too large to make this test practical
+        if (limit === 0 || guestsNeeded > 20) {
+            test.skip(
+                true,
+                `License has ${limit} seats; creating ${guestsNeeded} guests to trigger overage is not practical`,
+            );
+            return;
+        }
+
+        // # Create enough single-channel guests to exceed the limit
+        for (let i = 0; i < guestsNeeded; i++) {
+            const guest = await adminClient.createUser(await pw.random.user(), '', '');
+            await adminClient.updateUserRoles(guest.id, 'system_guest');
+            await adminClient.addToTeam(team.id, guest.id);
+
+            const channel = await adminClient.createChannel(pw.random.channel({teamId: team.id, unique: true}));
+            await adminClient.addToChannel(guest.id, channel.id);
+        }
+
+        // # Navigate to site statistics page
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
+        await systemConsolePage.page.waitForLoadState('networkidle');
+
+        // * Verify the card title has error styling
+        const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
+        await expect(cardTitle).toBeVisible();
+        await expect(cardTitle).toHaveClass(/team_statistics--error/);
+
+        // # Navigate back to System Console home to check global banner
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // * Verify the dismissible guest limit banner is visible
+        await expect(systemConsolePage.page.locator('#single_channel_guest_limit_banner')).toBeVisible();
+    },
+);
+
+/**
  * @objective Verify that a guest in multiple channels is not counted as a single-channel guest
  *
  * @precondition
