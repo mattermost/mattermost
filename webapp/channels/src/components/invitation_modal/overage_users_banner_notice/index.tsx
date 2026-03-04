@@ -10,6 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -44,7 +45,8 @@ const OverageUsersBannerNotice = () => {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector(getOverageBannerPreferences);
-    const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
+    const serverLimits = useSelector(getServerLimits);
+    const activeUsers = serverLimits?.activeUserCount ?? (((stats || {})[StatTypes.TOTAL_USERS]) as number) ?? 0;
 
     const {
         isBetween5PercerntAnd10PercentPurchasedSeats,
