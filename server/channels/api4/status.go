@@ -22,6 +22,9 @@ func (api *API) InitStatus() {
 	// as DELETE method doesn't support request body in the mobile app.
 	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequired(removeUserRecentCustomStatus)).Methods(http.MethodDelete)
 	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequired(removeUserRecentCustomStatus)).Methods(http.MethodPost)
+
+	// Get User Custom Status
+	api.BaseRoutes.User.Handle("/{user_id}/status/custom", api.APISessionRequired(getUserCustomStatus)).Methods(http.MethodGet)
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -131,6 +134,22 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func getUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	status, err := c.App.GetCustomStatus(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
