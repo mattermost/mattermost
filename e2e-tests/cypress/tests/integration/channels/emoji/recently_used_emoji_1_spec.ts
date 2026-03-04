@@ -40,7 +40,7 @@ describe('Recent Emoji', () => {
 
     it('MM-T155 Recently used emoji reactions are shown first', () => {
         const firstEmoji = 'smile';
-        const secondEmoji = 'tada';
+        const secondEmoji = 'laughing';
 
         // # Show emoji list
         cy.uiOpenEmojiPicker();
@@ -69,7 +69,7 @@ describe('Recent Emoji', () => {
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
         // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'tada emoji');
+        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'laughing emoji');
 
         // * Assert second emoji should equal with first recent emoji
         cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'smile emoji');
