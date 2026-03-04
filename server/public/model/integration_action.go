@@ -354,6 +354,25 @@ type DialogDateTimeConfig struct {
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
+// IsValid validates the DialogDateTimeConfig fields.
+func (c *DialogDateTimeConfig) IsValid() error {
+	var multiErr *multierror.Error
+
+	if c.RangeLayout != "" && c.RangeLayout != "horizontal" && c.RangeLayout != "vertical" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid range_layout %q, allowed values are \"horizontal\" or \"vertical\"", c.RangeLayout))
+	}
+
+	if c.AllowSingleDayRange && !c.IsRange {
+		multiErr = multierror.Append(multiErr, errors.New("allow_single_day_range requires is_range to be true"))
+	}
+
+	if c.RangeLayout != "" && !c.IsRange {
+		multiErr = multierror.Append(multiErr, errors.New("range_layout requires is_range to be true"))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -678,6 +697,9 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.Default))
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		if e.DateTimeConfig != nil {
+			multiErr = multierror.Append(multiErr, e.DateTimeConfig.IsValid())
+		}
 
 	case "datetime":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -693,6 +715,9 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
 		} else if 1440%timeInterval != 0 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		}
+		if e.DateTimeConfig != nil {
+			multiErr = multierror.Append(multiErr, e.DateTimeConfig.IsValid())
 		}
 
 	default:

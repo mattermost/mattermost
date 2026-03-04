@@ -44,7 +44,35 @@
     }
 
     .rdp-cell {
-        padding: 4px;
+        padding: 4px 0;
+    }
+
+    // Range selection styles: solid blue bar connecting start → middle → end
+    .rdp-day_range_start,
+    .rdp-day_range_end,
+    .rdp-day_range_middle {
+        background-color: var(--button-bg);
+    }
+
+    .rdp-day_range_start {
+        border-radius: 50% 0 0 50%;
+    }
+
+    .rdp-day_range_end {
+        border-radius: 0 50% 50% 0;
+    }
+
+    .rdp-day_range_start.rdp-day_range_end {
+        border-radius: 50%;
+    }
+
+    .rdp-day_range_middle {
+        border-radius: 0;
+
+        .rdp-button {
+            color: var(--button-color);
+            background-color: transparent;
+        }
     }
 
     .rdp-button {

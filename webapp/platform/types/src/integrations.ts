@@ -172,7 +172,7 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string | string[] | DateTimeRangeValue;
+        [x: string]: string | number | boolean | string[] | DateTimeRangeValue | null;
     };
     cancelled: boolean;
     type?: string;

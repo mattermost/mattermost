@@ -9,6 +9,26 @@ import {getCurrentMomentForTimezone, parseDateInTimezone} from './timezone';
 
 const DEFAULT_TIME_ROUNDING_INTERVAL = 30;
 
+/**
+ * Convert a Moment to a local Date for react-day-picker
+ * Preserves year/month/day without UTC shift
+ */
+export function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
+    if (!m) {
+        return undefined;
+    }
+    return new Date(m.year(), m.month(), m.date());
+}
+
+/**
+ * Check if two Dates represent the same calendar day
+ */
+export function isSameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
+}
+
 export enum DateReference {
 
     // Absolute

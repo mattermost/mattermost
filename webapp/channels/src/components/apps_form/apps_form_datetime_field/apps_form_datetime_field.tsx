@@ -126,6 +126,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     // Handle start time change in range mode
     const handleStartTimeChange = useCallback((newMoment: moment.Moment | null) => {
         if (!newMoment) {
+            // A range without a start is invalid, so clear the entire range
             onChange(field.name, null);
             return;
         }
@@ -138,17 +139,20 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     // Handle end time change in range mode
     const handleEndTimeChange = useCallback((newMoment: moment.Moment | null) => {
         if (!newMoment) {
-            onChange(field.name, null);
+            // Clear end; preserve start as a partial range, or clear everything if no start
+            if (startMoment) {
+                emitRange(momentToString(startMoment, true));
+            } else {
+                onChange(field.name, null);
+            }
             return;
         }
 
-        if (startMoment) {
-            const startString = momentToString(startMoment, true);
-            const endString = momentToString(newMoment, true);
-            emitRange(startString, endString);
-        }
-
-        // No start yet — ignore end change; user must pick start first
+        // If no start yet, default start to the same date/time as end
+        const resolvedStart = startMoment || newMoment.clone();
+        const startString = momentToString(resolvedStart, true);
+        const endString = momentToString(newMoment, true);
+        emitRange(startString, endString);
     }, [onChange, field.name, startMoment, emitRange]);
 
     // Handle range change from START field calendar
@@ -161,10 +165,15 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         const existingStartTime = startMoment || defaultTime;
         newStartMoment.hour(existingStartTime.hour()).minute(existingStartTime.minute());
 
-        // Check if new start is on or after existing end - if so, start fresh range
-        if (endMoment && newStartMoment.isSameOrAfter(endMoment, 'day')) {
-            emitRange(momentToString(newStartMoment, true));
-            return;
+        // Check if new start invalidates existing end - if so, start fresh range
+        if (endMoment) {
+            const invalidRange = allowSingleDayRange
+                ? newStartMoment.isAfter(endMoment, 'day')
+                : newStartMoment.isSameOrAfter(endMoment, 'day');
+            if (invalidRange) {
+                emitRange(momentToString(newStartMoment, true));
+                return;
+            }
         }
 
         // Otherwise, update start and keep existing end (or use rangeTo if dragging)
@@ -180,19 +189,20 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         }
 
         emitRange(momentToString(newStartMoment, true), endString);
-    }, [emitRange, timezone, startMoment, endMoment, timePickerInterval]);
+    }, [emitRange, timezone, startMoment, endMoment, timePickerInterval, allowSingleDayRange]);
 
     // Handle range change from END field calendar
     const handleEndRangeChange = useCallback((selectedDate: Date, endDate: Date | null) => {
-        if (!startMoment) {
-            // No start yet — ignore end change; user must pick start first
-            return;
-        }
-
         const currentTime = timezone ? moment.tz(timezone) : moment();
         const defaultTime = getRoundedTime(currentTime, timePickerInterval || 60);
 
-        const startString = momentToString(startMoment, true);
+        // If no start yet, default start to the selected end date
+        const resolvedStart = startMoment || (timezone ? moment(selectedDate).tz(timezone, true) : moment(selectedDate));
+        if (!startMoment) {
+            const existingStartTime = defaultTime;
+            resolvedStart.hour(existingStartTime.hour()).minute(existingStartTime.minute());
+        }
+        const startString = momentToString(resolvedStart, true);
 
         // Use the selected end date
         const resolvedEndDate = endDate || selectedDate;

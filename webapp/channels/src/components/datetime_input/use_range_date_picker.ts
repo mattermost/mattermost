@@ -5,6 +5,8 @@ import type {Moment} from 'moment-timezone';
 import {useCallback, useMemo} from 'react';
 import type {DateRange, DayPickerProps, Matcher} from 'react-day-picker';
 
+import {isSameDay, momentToLocalDate} from 'utils/date_utils';
+
 export type RangeConfig = {
     rangeValue: {from?: Moment | null; to?: Moment | null};
     isStartField: boolean;
@@ -25,14 +27,6 @@ type UseRangeDatePickerResult = {
     rangeDatePickerProps: DayPickerProps | null;
     disabledDays: Matcher[] | undefined;
 };
-
-// Convert moment to local Date for react-day-picker (preserves year/month/day without UTC shift)
-function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
-    if (!m) {
-        return undefined;
-    }
-    return new Date(m.year(), m.month(), m.date());
-}
 
 export function useRangeDatePicker({
     rangeConfig,
@@ -67,17 +61,8 @@ export function useRangeDatePicker({
 
         // Validate range.to based on allowSingleDayRange
         let validTo = range.to;
-        if (range.to && !allowSingleDayRange) {
-            const fromDate = range.from;
-            const toDate = range.to;
-
-            if (
-                fromDate.getFullYear() === toDate.getFullYear() &&
-                fromDate.getMonth() === toDate.getMonth() &&
-                fromDate.getDate() === toDate.getDate()
-            ) {
-                validTo = undefined;
-            }
+        if (range.to && !allowSingleDayRange && isSameDay(range.from, range.to)) {
+            validTo = undefined;
         }
 
         if (onRangeChange) {

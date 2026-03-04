@@ -394,7 +394,9 @@ export type DateTimeRangeValue = {
 };
 
 export function isDateTimeRangeValue(v: unknown): v is DateTimeRangeValue {
-    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'start' in v;
+    return v !== null && typeof v === 'object' && !Array.isArray(v) &&
+        'start' in v && typeof (v as Record<string, unknown>).start === 'string' &&
+        !('label' in v) && !('value' in v);
 }
 
 export type AppFormValue = string | AppSelectOption | AppSelectOption[] | DateTimeRangeValue | boolean | null;

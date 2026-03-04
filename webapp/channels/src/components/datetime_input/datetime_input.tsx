@@ -15,7 +15,7 @@ import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
-import {formatDateForDisplay, getRoundedTime} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime, momentToLocalDate} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
@@ -201,14 +201,6 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         </div>
     );
 };
-
-// Helper to convert moment to Date for react-day-picker (preserves year/month/day without UTC shift)
-function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
-    if (!m) {
-        return undefined;
-    }
-    return new Date(m.year(), m.month(), m.date());
-}
 
 type Props = {
     time: Moment | null;

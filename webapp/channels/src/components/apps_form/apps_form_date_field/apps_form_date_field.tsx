@@ -9,7 +9,7 @@ import {isDateTimeRangeValue} from '@mattermost/types/apps';
 
 import DatePicker from 'components/date_picker/date_picker';
 
-import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} from 'utils/date_utils';
+import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay, isSameDay} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -99,16 +99,8 @@ const AppsFormDateField: React.FC<Props> = ({
 
         // Validate same-day range based on allow_single_day_range setting
         let validTo = range.to;
-        if (range.to && !allowSingleDayRange) {
-            const from = range.from;
-            const to = range.to;
-            if (
-                from.getFullYear() === to.getFullYear() &&
-                from.getMonth() === to.getMonth() &&
-                from.getDate() === to.getDate()
-            ) {
-                validTo = undefined;
-            }
+        if (range.to && !allowSingleDayRange && isSameDay(range.from, range.to)) {
+            validTo = undefined;
         }
 
         const end = validTo ? dateToString(validTo) : undefined;

@@ -642,10 +642,9 @@ export function convertAppFormValuesToDialogSubmission(
     elements: DialogElement[] | undefined,
     options: ConversionOptions,
 ): {submission: DialogSubmissionValues; errors: ValidationError[]} {
-    // Internal record uses 'any' because intermediate processing assigns booleans,
-    // AppSelectOptions, etc. before converting them to their final string forms.
-    // The return type ensures callers see the correct narrowed type.
-    const submission: Record<string, any> = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
+    // The server relays submission values as-is (map[string]any) to the integration
+    // callback URL, so non-string types (booleans, numbers, DateTimeRangeValue) are valid.
+    const submission: DialogSubmissionValues = {};
     const errors: ValidationError[] = [];
 
     if (!elements) {
