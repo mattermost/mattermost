@@ -5547,6 +5547,10 @@
     "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
   {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Unable to retrieve the content flagging property group."
+  },
+  {
     "id": "app.content_flagging.get_reviewer_settings.app_error",
     "translation": "Failed to fetch content reviewer settings from the database"
   },
@@ -5669,6 +5673,10 @@
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
     "translation": "Unable to count the number of fields for the custom profile attribute group"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",

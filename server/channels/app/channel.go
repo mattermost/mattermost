@@ -1725,7 +1725,11 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	if channel.Type == model.ChannelTypePrivate {
 		if ok, appErr := a.ChannelAccessControlled(rctx, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
-				groupID := a.CpaGroupID()
+				groupID, err := a.CpaGroupID()
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
+				}
 
 				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
 				if err != nil {

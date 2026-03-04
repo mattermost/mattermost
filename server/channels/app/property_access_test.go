@@ -2592,7 +2592,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 	th := Setup(t)
 
-	groupID := th.App.CpaGroupID()
+	groupID, err := th.App.CpaGroupID()
+	require.NoError(t, err)
 	pas := th.App.PropertyAccessService()
 
 	t.Run("allows deletion of orphaned protected field when plugin is uninstalled", func(t *testing.T) {

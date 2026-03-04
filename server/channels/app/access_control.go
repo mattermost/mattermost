@@ -284,7 +284,10 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 }
 
 func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
-	cpaGroupID := a.CpaGroupID()
+	cpaGroupID, err := a.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	// Use PropertyAccessService instead of direct Store access to enforce access control
 	fields, err := a.PropertyAccessService().SearchPropertyFields(callerID, cpaGroupID, model.PropertyFieldSearchOpts{
