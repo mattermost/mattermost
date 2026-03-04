@@ -37,8 +37,26 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         cy.get('.rdp', {timeout: 5000}).should('be.visible');
     };
 
-    const selectDateFromPicker = (day) => {
-        cy.get('.rdp-day').contains(day).first().click();
+    // Helper to compute a day safely selectable in the date picker.
+    // Uses an offset from today to avoid midnight boundary issues.
+    // Returns {day: string, needsNextMonth: boolean}
+    const getSelectableDay = (daysFromToday = 2) => {
+        const now = new Date();
+        const today = now.getDate();
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const targetDay = today + daysFromToday;
+
+        if (targetDay <= lastDayOfMonth) {
+            return {day: targetDay.toString(), needsNextMonth: false};
+        }
+        return {day: (targetDay - lastDayOfMonth).toString(), needsNextMonth: true};
+    };
+
+    const selectDateFromPicker = ({day, needsNextMonth = false}) => {
+        if (needsNextMonth) {
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)').filter((i, el) => el.textContent.trim() === day).first().click();
     };
 
     const verifyModalTitle = (title) => {
@@ -119,7 +137,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Open date picker and select a date
         openDatePicker('Event Date');
-        selectDateFromPicker('15');
+        selectDateFromPicker(getSelectableDay());
 
         // * Verify the selected date appears in the field
         cy.get('#appsModal').within(() => {
@@ -157,7 +175,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         cy.get('.rdp', {timeout: 5000}).should('be.visible');
-        selectDateFromPicker('20');
+        selectDateFromPicker(getSelectableDay(3));
 
         // # Open time menu and select time
         cy.get('#appsModal').within(() => {
@@ -183,24 +201,32 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open the date picker for constrained field
         openDatePicker('Future Date Only');
 
-        // * Verify past dates are disabled and current dates are enabled
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayDay = yesterday.getDate().toString();
+        // * Verify a past date is disabled (use 2 days ago to avoid midnight boundary)
+        // Navigate to previous month if the past date is in a different month
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 2);
+        const needsPrevMonth = pastDate.getMonth() !== new Date().getMonth();
+        if (needsPrevMonth) {
+            cy.get('.rdp .rdp-nav_button_previous').click();
+        }
+        const pastDay = pastDate.getDate().toString();
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === pastDay)
+            .should('have.class', 'rdp-day_disabled').and('be.disabled');
 
-        const today = new Date();
-        const todayDay = today.getDate().toString();
-
-        // Check if yesterday is visible and disabled
-        cy.get('.rdp').then(($calendar) => {
-            if ($calendar.find(`button:contains("${yesterdayDay}")`).length > 0) {
-                cy.get(`button:contains("${yesterdayDay}")`).should('have.class', 'rdp-day_disabled').and('be.disabled');
-            }
-        });
-
-        // Verify today is enabled and clickable
-        cy.get('.rdp').find('button').filter((i, el) => el.textContent === todayDay.toString()).should('not.have.class', 'rdp-day_disabled').and('not.be.disabled');
-        cy.get('.rdp').find('button').filter((i, el) => el.textContent === todayDay.toString()).click();
+        // * Verify a future date is enabled and select it (use +2 days for midnight safety)
+        const {day: futureDay, needsNextMonth} = getSelectableDay(2);
+        if (needsPrevMonth) {
+            // Return to current month after validating a past date in previous month
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+        if (needsNextMonth) {
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === futureDay)
+            .should('not.have.class', 'rdp-day_disabled').and('not.be.disabled')
+            .first().click();
 
         // * Verify date selection
         cy.get('#appsModal').within(() => {
@@ -243,6 +269,24 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         cy.get('[id^="time_option_"]').should('have.length.greaterThan', 0);
     });
 
+    it('MM-T2530E - Form submission with date and datetime values', () => {
+        // # Open dialog and select date
+        openDateTimeDialog('basic');
+        openDatePicker('Event Date');
+        selectDateFromPicker(getSelectableDay());
+
+        // # Submit the form
+        cy.get('#appsModal').within(() => {
+            cy.get('#appsModalSubmit').click();
+        });
+
+        // * Verify submission success
+        cy.get('#appsModal', {timeout: 10000}).should('not.exist');
+        cy.get('#postListContent', {timeout: 10000}).within(() => {
+            cy.get('.post-message__text').last().should('contain', 'Form submitted successfully');
+        });
+    });
+
     it('MM-T2530F - Relative date values functionality', () => {
         // # Open datetime dialog
         openDateTimeDialog('relative');
@@ -264,16 +308,17 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open dialog, select date, and verify date formatting
         openDateTimeDialog('basic');
         openDatePicker('Event Date');
-        selectDateFromPicker('10');
+        const selectedDay = getSelectableDay();
+        selectDateFromPicker(selectedDay);
 
         // * Verify date is formatted consistently (using formatDateForDisplay utility)
         // Expected format: "Month Day, Year" (e.g., "Jan 10, 2026")
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Event Date').within(() => {
-                cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').and('contain', '10').invoke('text').then((text) => {
-                    // Verify the format matches "MMM DD, YYYY" pattern
-                    // This tests that formatDateForDisplay is being used (not browser default)
-                    expect(text).to.match(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+                cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').invoke('text').then((text) => {
+                    const match = text.trim().match(/^[A-Z][a-z]{2} (\d{1,2}), \d{4}$/);
+                    expect(match, 'date format').to.not.be.null;
+                    expect(Number(match[1]), 'selected day').to.equal(Number(selectedDay.day));
                 });
             });
         });
@@ -302,7 +347,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         cy.get('.rdp', {timeout: 5000}).should('be.visible');
-        selectDateFromPicker('15');
+        selectDateFromPicker(getSelectableDay());
 
         // # Open time menu
         cy.get('#appsModal').within(() => {
@@ -351,7 +396,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         cy.get('.rdp').should('be.visible');
-        selectDateFromPicker('20');
+        selectDateFromPicker(getSelectableDay(3));
 
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Meeting Time').within(() => {
@@ -743,7 +788,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         cy.get('.rdp').should('be.visible');
-        selectDateFromPicker('15');
+        selectDateFromPicker(getSelectableDay());
 
         // # Open time dropdown
         cy.contains('.form-group', 'London Office Hours (Dropdown)').within(() => {
@@ -789,7 +834,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         cy.get('.rdp').should('be.visible');
-        selectDateFromPicker('15');
+        selectDateFromPicker(getSelectableDay());
 
         // # Type time in manual entry
         cy.contains('.form-group', 'London Office Hours (Manual Entry)').within(() => {

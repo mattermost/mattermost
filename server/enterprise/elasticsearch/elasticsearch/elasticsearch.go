@@ -320,7 +320,7 @@ func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query s
 
 	if es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
 		!*es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
-		!common.ContainsCJK(query) {
+		!model.ContainsCJK(query) {
 		return variants
 	}
 
