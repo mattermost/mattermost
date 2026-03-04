@@ -45,7 +45,12 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
         } catch {
             return [href, {}];
         }
-        if (!(/\bmattermost.com$/).test(parsedUrl.host) || parsedUrl.protocol === 'mailto:') {
+
+        if (parsedUrl.hostname !== 'mattermost.com' && !parsedUrl.hostname.endsWith('.mattermost.com')) {
+            return [href, {}];
+        }
+
+        if (parsedUrl.protocol === 'mailto:') {
             return [href, {}];
         }
 
