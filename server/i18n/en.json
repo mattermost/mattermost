@@ -2197,8 +2197,16 @@
     "translation": "Mismatched flagged post ID specified."
   },
   {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "File download rejected by plugin"
   },
   {
     "id": "api.file.get_file_info.app_error",
@@ -2209,8 +2217,20 @@
     "translation": "File doesn't have a preview image."
   },
   {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "File preview download rejected by plugin"
+  },
+  {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
     "translation": "File doesn't have a thumbnail image."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "File thumbnail download rejected by plugin"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Public file download rejected by plugin"
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
@@ -2671,6 +2691,14 @@
   {
     "id": "api.payload.parse.error",
     "translation": "An error occurred while parsing the payload."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "An error occurred while checking the plugin directory configuration."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Cannot install plugin: PluginSettings.Directory conflicts with ImportSettings.Directory."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -4147,6 +4175,14 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "An error occurred while checking the import directory configuration."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Cannot create import upload: ImportSettings.Directory conflicts with PluginSettings.Directory."
+  },
+  {
     "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
     "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
@@ -4545,6 +4581,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
   },
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
@@ -6535,6 +6575,10 @@
     "translation": "User AuthData is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "User email has an invalid length."
   },
@@ -6545,10 +6589,6 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "User roles are not consistent with guest status."
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
@@ -6605,6 +6645,18 @@
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "User roles are not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -7371,6 +7423,10 @@
     "translation": "Unable to get postpriority for post"
   },
   {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Unable to get postpriority for post with context"
+  },
+  {
     "id": "app.post_reminder_dm",
     "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
@@ -8037,6 +8093,14 @@
     "translation": "Unable to mark all threads as read by channel"
   },
   {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Message is required"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "User ID is required"
+  },
+  {
     "id": "app.update_error",
     "translation": "update error"
   },
@@ -8543,6 +8607,10 @@
   {
     "id": "ent.autotranslation.add_task.nil_task",
     "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Translation task cannot be added because the worker has been stopped."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
@@ -10033,6 +10101,10 @@
     "translation": "Message retention days and message retention hours cannot both be greater than 0."
   },
   {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+  },
+  {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },
@@ -10119,22 +10191,6 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Max File Age of audit logs config must not be negative."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maximum File Backups of audit logs config must not be negative."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maximum File Queue of audit logs config must be greater than zero."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximum File Size of audit logs config must be greater than zero."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",

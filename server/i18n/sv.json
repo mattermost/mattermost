@@ -9906,10 +9906,6 @@
     "translation": "Egenskapen meddelande är längre än den maximalt tillåtna längden."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Användarrollerna stämmer inte överens med gäststatus."
-  },
-  {
     "id": "app.notifications.send_test_message.errors.no_bot",
     "translation": "Kan inte få tag i systemboten"
   },
@@ -10946,10 +10942,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Misslyckades med att skriva över inlägg med rensat inlägg när flaggat inlägg raderades permanent."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",

@@ -337,7 +337,7 @@ func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query stri
 
 	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
 		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
-		!common.ContainsCJK(query) {
+		!model.ContainsCJK(query) {
 		return variants
 	}
 

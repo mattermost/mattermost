@@ -76,7 +76,9 @@ type FeatureFlags struct {
 
 	EnableMattermostEntry bool
 
-	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	// DEPRECATED: Mobile SSO SAML code-exchange flow - disabled by default
+	// This feature is deprecated and will be removed in a future release.
+	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
@@ -91,6 +93,9 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: EnableAIRecaps - Remove this when GA is released
 	EnableAIRecaps bool
+
+	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
+	CJKSearch bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -123,10 +128,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
-	f.MobileSSOCodeExchange = true
+	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
+	f.MobileSSOCodeExchange = false
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
-	f.AutoTranslation = false
+	f.AutoTranslation = true
 
 	f.BurnOnRead = true
 
@@ -134,6 +139,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIPluginBridge = false
 
 	f.EnableAIRecaps = false
+
+	f.CJKSearch = false
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -16,10 +16,12 @@ import './file_card.scss';
 type Props = {
     file?: FileInfo;
     enableSVGs: boolean;
+    isFileRejected?: boolean;
 }
 
 type FileProps = FileInfo & {
     enableSVGs: boolean;
+    isFileRejected?: boolean;
 }
 
 type CardProps = {
@@ -35,16 +37,19 @@ function File({
     mime_type: mimeType,
     extension,
     enableSVGs,
+    isFileRejected,
 }: FileProps) {
     const imgSrc = useMemo(() => {
-        if (!hasPreviewImage) {
+        if (!hasPreviewImage || isFileRejected) {
             return undefined;
         }
+
+        // Don't show blurred preview for rejected files
         if (miniPreview) {
             return `data:${mimeType};base64,${miniPreview}`;
         }
         return getFileThumbnailUrl(id);
-    }, [id, miniPreview, mimeType, hasPreviewImage]);
+    }, [id, miniPreview, mimeType, hasPreviewImage, isFileRejected]);
 
     const fileType = getFileType(extension);
 
@@ -110,7 +115,7 @@ function Card({children, title, size}: CardProps) {
     );
 }
 
-function FileCard({file, enableSVGs}: Props) {
+function FileCard({file, enableSVGs, isFileRejected}: Props) {
     if (!file) {
         return null;
     }
@@ -122,6 +127,7 @@ function FileCard({file, enableSVGs}: Props) {
         >
             <File
                 enableSVGs={enableSVGs}
+                isFileRejected={isFileRejected}
                 {...file}
             />
         </Card>

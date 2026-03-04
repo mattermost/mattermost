@@ -31,28 +31,48 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     await expect(emailColumnHeader).toBeVisible();
     await expect(emailColumnHeader).toHaveAttribute('aria-sort');
 
-    // # Store all emails before sorting to compare order
-    const rowsBeforeSort = await systemConsolePage.users.usersTable.bodyRows.count();
-    const emailsBeforeSort: string[] = [];
-    for (let i = 0; i < rowsBeforeSort; i++) {
-        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
-        const email = await row.getEmail();
-        emailsBeforeSort.push(email);
-    }
-
     // # Click on the 'Email' column header to sort and wait for sort to complete
-    await systemConsolePage.users.usersTable.sortByColumn('Email');
+    const sortDirection = await systemConsolePage.users.usersTable.sortByColumn('Email');
 
-    // # Store all emails after sorting
-    const emailsAfterSort: string[] = [];
-    for (let i = 0; i < rowsBeforeSort; i++) {
-        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
-        const email = await row.getEmail();
-        emailsAfterSort.push(email);
-    }
+    // * Verify that emails are sorted in the expected direction
+    await expect(async () => {
+        const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+        const emails: string[] = [];
+        for (let i = 0; i < rowCount; i++) {
+            const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+            const email = await row.getEmail();
+            emails.push(email);
+        }
 
-    // * Verify that the order has changed (emails array is different)
-    expect(emailsBeforeSort).not.toEqual(emailsAfterSort);
+        const expectedOrder = [...emails].sort((a, b) => a.localeCompare(b));
+        if (sortDirection === 'descending') {
+            expectedOrder.reverse();
+        }
+        expect(emails).toEqual(expectedOrder);
+    }).toPass();
+
+    // # Click on the 'Email' column header again to toggle sort direction
+    const reversedDirection = await systemConsolePage.users.usersTable.sortByColumn('Email');
+
+    // * Verify that the sort direction has toggled
+    expect(reversedDirection).not.toEqual(sortDirection);
+
+    // * Verify that emails are sorted in the toggled direction
+    await expect(async () => {
+        const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+        const emails: string[] = [];
+        for (let i = 0; i < rowCount; i++) {
+            const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+            const email = await row.getEmail();
+            emails.push(email);
+        }
+
+        const expectedOrder = [...emails].sort((a, b) => a.localeCompare(b));
+        if (reversedDirection === 'descending') {
+            expectedOrder.reverse();
+        }
+        expect(emails).toEqual(expectedOrder);
+    }).toPass();
 });
 
 test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
