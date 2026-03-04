@@ -52,25 +52,19 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-// checkCommandUsageRestrictions checks whether the user is allowed to execute the given command
-// based on its AllowedRoles, AllowedUsers, and AllowedChannels restrictions.
-// Returns nil if the user is allowed, or an AppError if not.
-func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command, args *model.CommandArgs) *model.AppError {
-	if !cmd.HasRestrictions() {
-		return nil
-	}
-
-	// Gather the user's combined roles from system, team, and channel levels
+// getCombinedUserRoles returns the combined system, team, and channel roles for a user
+// as a single space-separated string, suitable for passing to Command.IsUserAllowed.
+func (a *App) getCombinedUserRoles(rctx request.CTX, userID, teamID, channelID string) (string, *model.AppError) {
 	var combinedRoles strings.Builder
 
-	user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+	user, err := a.Srv().Store().User().Get(context.Background(), userID)
 	if err != nil {
-		return model.NewAppError("checkCommandUsageRestrictions", "app.command.check_restrictions.user_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("getCombinedUserRoles", "app.command.check_restrictions.user_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	combinedRoles.WriteString(user.Roles)
 
-	if args.TeamId != "" {
-		teamMember, nErr := a.Srv().Store().Team().GetMember(rctx, args.TeamId, args.UserId)
+	if teamID != "" {
+		teamMember, nErr := a.Srv().Store().Team().GetMember(rctx, teamID, userID)
 		if nErr == nil && teamMember != nil {
 			combinedRoles.WriteString(" ")
 			combinedRoles.WriteString(teamMember.Roles)
@@ -80,8 +74,8 @@ func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command
 		}
 	}
 
-	if args.ChannelId != "" {
-		channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, args.ChannelId, args.UserId)
+	if channelID != "" {
+		channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
 		if nErr == nil && channelMember != nil {
 			combinedRoles.WriteString(" ")
 			combinedRoles.WriteString(channelMember.Roles)
@@ -91,7 +85,23 @@ func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command
 		}
 	}
 
-	if !cmd.IsUserAllowed(args.UserId, args.ChannelId, combinedRoles.String()) {
+	return combinedRoles.String(), nil
+}
+
+// checkCommandUsageRestrictions checks whether the user is allowed to execute the given command
+// based on its AllowedRoles, AllowedUsers, and AllowedChannels restrictions.
+// Returns nil if the user is allowed, or an AppError if not.
+func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command, args *model.CommandArgs) *model.AppError {
+	if !cmd.HasRestrictions() {
+		return nil
+	}
+
+	combinedRoles, appErr := a.getCombinedUserRoles(rctx, args.UserId, args.TeamId, args.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if !cmd.IsUserAllowed(args.UserId, args.ChannelId, combinedRoles) {
 		return model.NewAppError("checkCommandUsageRestrictions", "api.command.execute_command.restricted.app_error",
 			map[string]any{"Trigger": cmd.Trigger}, "", http.StatusForbidden)
 	}
@@ -100,14 +110,36 @@ func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command
 }
 
 // FilterCommandsByRestrictions filters a list of commands to only those the user is allowed to execute.
+// Roles are fetched once and reused across all commands to avoid redundant DB queries.
 func (a *App) FilterCommandsByRestrictions(rctx request.CTX, commands []*model.Command, args *model.CommandArgs) []*model.Command {
+	// Check if any commands have restrictions at all
+	hasRestricted := false
+	for _, cmd := range commands {
+		if cmd.HasRestrictions() {
+			hasRestricted = true
+			break
+		}
+	}
+	if !hasRestricted {
+		return commands
+	}
+
+	// Fetch roles once for the user
+	combinedRoles, appErr := a.getCombinedUserRoles(rctx, args.UserId, args.TeamId, args.ChannelId)
+	if appErr != nil {
+		// On error fetching roles, return only unrestricted commands
+		filtered := make([]*model.Command, 0, len(commands))
+		for _, cmd := range commands {
+			if !cmd.HasRestrictions() {
+				filtered = append(filtered, cmd)
+			}
+		}
+		return filtered
+	}
+
 	filtered := make([]*model.Command, 0, len(commands))
 	for _, cmd := range commands {
-		if !cmd.HasRestrictions() {
-			filtered = append(filtered, cmd)
-			continue
-		}
-		if err := a.checkCommandUsageRestrictions(rctx, cmd, args); err == nil {
+		if cmd.IsUserAllowed(args.UserId, args.ChannelId, combinedRoles) {
 			filtered = append(filtered, cmd)
 		}
 	}

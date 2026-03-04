@@ -5,8 +5,11 @@ package model
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 )
+
+var validRoleNameRegex = regexp.MustCompile(`^[a-z0-9_]+$`)
 
 const (
 	CommandMethodPost = "P"
@@ -142,12 +145,30 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_roles.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, role := range o.AllowedRolesList() {
+		if len(role) > RoleNameMaxLength || !validRoleNameRegex.MatchString(role) {
+			return NewAppError("Command.IsValid", "model.command.is_valid.allowed_roles.app_error", nil, "invalid role name: "+role, http.StatusBadRequest)
+		}
+	}
+
 	if len(o.AllowedUsers) > 1024 {
 		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_users.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, userID := range o.AllowedUsersList() {
+		if !IsValidId(userID) {
+			return NewAppError("Command.IsValid", "model.command.is_valid.allowed_users.app_error", nil, "invalid user ID: "+userID, http.StatusBadRequest)
+		}
+	}
+
 	if len(o.AllowedChannels) > 1024 {
 		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	for _, channelID := range o.AllowedChannelsList() {
+		if !IsValidId(channelID) {
+			return NewAppError("Command.IsValid", "model.command.is_valid.allowed_channels.app_error", nil, "invalid channel ID: "+channelID, http.StatusBadRequest)
+		}
 	}
 
 	return nil

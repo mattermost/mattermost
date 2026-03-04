@@ -149,6 +149,48 @@ func TestCommandIsValidAllowedFields(t *testing.T) {
 		o.AllowedChannels = strings.Repeat("a", 1025)
 		require.NotNil(t, o.IsValid())
 	})
+
+	t.Run("invalid role name with special characters", func(t *testing.T) {
+		o := base
+		o.AllowedRoles = "system_admin invalid-role!"
+		require.NotNil(t, o.IsValid())
+	})
+
+	t.Run("invalid role name with uppercase", func(t *testing.T) {
+		o := base
+		o.AllowedRoles = "SystemAdmin"
+		require.NotNil(t, o.IsValid())
+	})
+
+	t.Run("valid custom role name", func(t *testing.T) {
+		o := base
+		o.AllowedRoles = "my_custom_role"
+		require.Nil(t, o.IsValid())
+	})
+
+	t.Run("invalid user ID in allowed users", func(t *testing.T) {
+		o := base
+		o.AllowedUsers = "not-a-valid-id"
+		require.NotNil(t, o.IsValid())
+	})
+
+	t.Run("valid user IDs in allowed users", func(t *testing.T) {
+		o := base
+		o.AllowedUsers = NewId() + " " + NewId()
+		require.Nil(t, o.IsValid())
+	})
+
+	t.Run("invalid channel ID in allowed channels", func(t *testing.T) {
+		o := base
+		o.AllowedChannels = "bad-channel-id"
+		require.NotNil(t, o.IsValid())
+	})
+
+	t.Run("valid channel IDs in allowed channels", func(t *testing.T) {
+		o := base
+		o.AllowedChannels = NewId() + " " + NewId()
+		require.Nil(t, o.IsValid())
+	})
 }
 
 func TestCommandHasRestrictions(t *testing.T) {

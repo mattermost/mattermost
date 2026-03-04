@@ -446,6 +446,14 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Filter out commands the user is not allowed to execute.
+	// No channel context is available here, so channel-restricted commands will be excluded.
+	commandArgs := &model.CommandArgs{
+		UserId: c.AppContext.Session().UserId,
+		TeamId: c.Params.TeamId,
+	}
+	commands = c.App.FilterCommandsByRestrictions(c.AppContext, commands, commandArgs)
+
 	if err := json.NewEncoder(w).Encode(commands); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
