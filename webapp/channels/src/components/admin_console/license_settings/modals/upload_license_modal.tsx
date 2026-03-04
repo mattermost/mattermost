@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import marked from 'marked';
 import React, {useEffect, useCallback} from 'react';
-import {defineMessage, FormattedDate, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -39,6 +38,7 @@ type ModalStep = 'loading' | 'preview' | 'success';
 
 const UploadLicenseModal = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();
+    const intl = useIntl();
 
     const [fileObj] = React.useState<File | null>(props.fileObjFromProps);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -65,6 +65,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
     useEffect(() => {
         const doPreview = async () => {
             if (!fileObj || !show) {
+                setIsLoading(false);
                 return;
             }
 
@@ -74,7 +75,10 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             const {data, error} = await dispatch(previewLicense(fileObj));
 
             if (error || !data) {
-                setServerError(error?.message ?? 'Failed to preview license');
+                setServerError(error?.message ?? intl.formatMessage({
+                    id: 'admin.license.preview_error',
+                    defaultMessage: 'Failed to preview license',
+                }));
                 setIsLoading(false);
                 return;
             }
@@ -93,7 +97,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
 
     const handleConfirmUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (fileObj === null) {
+        if (fileObj === null || isLoading) {
             return;
         }
 
@@ -133,10 +137,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     {serverError && (
                         <div className='serverError'>
                             <i className='icon icon-alert-outline'/>
-                            <span
-                                className='server-error-text'
-                                dangerouslySetInnerHTML={{__html: marked(serverError)}}
-                            />
+                            <span className='server-error-text'>
+                                {serverError}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -189,10 +192,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     {serverError && (
                         <div className='serverError'>
                             <i className='icon icon-alert-outline'/>
-                            <span
-                                className='server-error-text'
-                                dangerouslySetInnerHTML={{__html: marked(serverError)}}
-                            />
+                            <span className='server-error-text'>
+                                {serverError}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -210,6 +212,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     <button
                         className='btn btn-primary'
                         onClick={handleConfirmUpload}
+                        disabled={isLoading}
                         id='confirm-button'
                     >
                         <LoadingWrapper
