@@ -247,6 +247,78 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "field value")
 	})
 
+	t.Run("non-string field values are indexed", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"text": "metrics",
+							"fields": []any{
+								map[string]any{
+									"title": "Count",
+									"value": 42,
+								},
+								map[string]any{
+									"title": "Rate",
+									"value": 99.5,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "metrics")
+		assert.Contains(t, espost.Attachments, "Count")
+		assert.Contains(t, espost.Attachments, "42")
+		assert.Contains(t, espost.Attachments, "Rate")
+		assert.Contains(t, espost.Attachments, "99.5")
+	})
+
+	t.Run("non-string field values in SlackAttachment form are indexed", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.SlackAttachment{
+						{
+							Text: "metrics",
+							Fields: []*model.SlackAttachmentField{
+								{Title: "Count", Value: 42},
+								{Title: "Rate", Value: 99.5},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "metrics")
+		assert.Contains(t, espost.Attachments, "Count")
+		assert.Contains(t, espost.Attachments, "42")
+		assert.Contains(t, espost.Attachments, "Rate")
+		assert.Contains(t, espost.Attachments, "99.5")
+	})
+
 	t.Run("multiple attachments are combined", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId: model.NewId(),
