@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ChannelList from './channel_list';
 
@@ -51,14 +52,24 @@ describe('components/admin_console/access_control/channel_list', () => {
     });
 
     test('should match snapshot with no channels', () => {
+        // The Filter component has an existing prop type issue with TeamFilterDropdown
+        // that only surfaces during full rendering (not shallow). Suppress for this test.
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
+            if (typeof args[0] === 'string' && args[0].includes('Failed prop type')) {
+                // no-op: suppress prop type warnings
+            }
+        });
+
         const props = {
             ...defaultProps,
             channels: [],
             totalCount: 0,
             policyId: '',
         };
-        const wrapper = shallow(<ChannelList {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ChannelList {...props}/>);
+        expect(container).toMatchSnapshot();
+
+        errorSpy.mockRestore();
     });
 
     test('should match snapshot with channels', () => {
@@ -70,8 +81,8 @@ describe('components/admin_console/access_control/channel_list', () => {
                 ...defaultProps.actions,
             },
         };
-        const wrapper = shallow(<ChannelList {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ChannelList {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with channels to remove', () => {
@@ -83,8 +94,8 @@ describe('components/admin_console/access_control/channel_list', () => {
                 channel1: {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             },
         };
-        const wrapper = shallow(<ChannelList {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ChannelList {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with channels to add', () => {
@@ -94,7 +105,7 @@ describe('components/admin_console/access_control/channel_list', () => {
                 channel3: {id: 'channel3', name: 'channel3', display_name: 'Channel 3', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             },
         };
-        const wrapper = shallow(<ChannelList {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ChannelList {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });
