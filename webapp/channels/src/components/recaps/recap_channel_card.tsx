@@ -15,6 +15,8 @@ import {switchToChannel} from 'actions/views/channel';
 
 import ExternalLink from 'components/external_link';
 
+import {isUrlSafe} from 'utils/url';
+
 import type {GlobalState} from 'types/store';
 
 import RecapMenu from './recap_menu';
@@ -37,9 +39,10 @@ const parsePermalink = (text: string): ParsedItem => {
     const match = text.match(permalinkRegex);
 
     if (match) {
+        const url = match[1];
         return {
             text: text.replace(permalinkRegex, '').trim(),
-            permalink: match[1],
+            permalink: isUrlSafe(url) ? url : null,
         };
     }
 

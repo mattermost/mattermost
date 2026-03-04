@@ -166,6 +166,82 @@ func TestRecapStore(t *testing.T) {
 			}
 		})
 
+		t.Run("GetRecapsForUserByStatus", func(t *testing.T) {
+			userId := model.NewId()
+
+			// Create recaps with different statuses
+			for range 2 {
+				recap := &model.Recap{
+					Id:                model.NewId(),
+					UserId:            userId,
+					Title:             "Pending Recap",
+					CreateAt:          model.GetMillis(),
+					UpdateAt:          model.GetMillis(),
+					DeleteAt:          0,
+					ReadAt:            0,
+					TotalMessageCount: 0,
+					Status:            model.RecapStatusPending,
+					BotID:             "test-bot-id",
+				}
+				_, err := ss.Recap().SaveRecap(recap)
+				require.NoError(t, err)
+			}
+
+			// Create a completed recap
+			completedRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Completed Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusCompleted,
+				BotID:             "test-bot-id",
+			}
+			_, err := ss.Recap().SaveRecap(completedRecap)
+			require.NoError(t, err)
+
+			// Query pending only
+			pendingRecaps, err := ss.Recap().GetRecapsForUserByStatus(userId, model.RecapStatusPending)
+			require.NoError(t, err)
+			assert.Len(t, pendingRecaps, 2)
+
+			// Query completed only
+			completedRecaps, err := ss.Recap().GetRecapsForUserByStatus(userId, model.RecapStatusCompleted)
+			require.NoError(t, err)
+			assert.Len(t, completedRecaps, 1)
+		})
+
+		t.Run("GetRecapsForUserByStatus excludes deleted", func(t *testing.T) {
+			userId := model.NewId()
+
+			recap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Deleted Pending Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 0,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
+			}
+			_, err := ss.Recap().SaveRecap(recap)
+			require.NoError(t, err)
+
+			// Soft delete it
+			err = ss.Recap().DeleteRecap(recap.Id)
+			require.NoError(t, err)
+
+			// Should not appear in results
+			pendingRecaps, err := ss.Recap().GetRecapsForUserByStatus(userId, model.RecapStatusPending)
+			require.NoError(t, err)
+			assert.Len(t, pendingRecaps, 0)
+		})
+
 		t.Run("DeleteRecap", func(t *testing.T) {
 			recap := &model.Recap{
 				Id:                model.NewId(),

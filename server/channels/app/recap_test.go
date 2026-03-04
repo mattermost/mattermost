@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"os"
 	"testing"
 
@@ -30,6 +31,35 @@ func TestCreateRecap(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, recap.UserId)
 		assert.Equal(t, model.RecapStatusPending, recap.Status)
 		assert.Equal(t, "My Test Recap", recap.Title)
+	})
+
+	t.Run("create recap rejected when user has too many pending recaps", func(t *testing.T) {
+		channelIds := []string{th.BasicChannel.Id}
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+		// Create 3 pending recaps directly in the store to simulate existing pending recaps
+		for range 3 {
+			recap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            th.BasicUser.Id,
+				Title:             "Pending Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 0,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-agent-id",
+			}
+			_, storeErr := th.App.Srv().Store().Recap().SaveRecap(recap)
+			require.NoError(t, storeErr)
+		}
+
+		// 4th recap should be rejected
+		_, err := th.App.CreateRecap(ctx, "One Too Many", channelIds, "test-agent-id")
+		require.NotNil(t, err)
+		assert.Equal(t, "app.recap.too_many_pending.app_error", err.Id)
+		assert.Equal(t, http.StatusTooManyRequests, err.StatusCode)
 	})
 
 	t.Run("create recap with channel user is not member of", func(t *testing.T) {
@@ -281,6 +311,21 @@ func TestProcessRecapChannel(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, "app.ai.summarize.agent_call_failed", err.Id)
 		assert.False(t, result.Success)
+	})
+}
+
+func TestValidateAgentAccess(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+
+	t.Run("skips validation when bridge is unavailable", func(t *testing.T) {
+		// Without the AI plugin active, the bridge is unavailable and
+		// validateAgentAccess should return nil (skip validation).
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		appErr := th.App.validateAgentAccess(ctx, th.BasicUser.Id, "any-agent-id")
+		require.Nil(t, appErr)
 	})
 }
 

@@ -315,5 +315,83 @@ describe('RecapChannelCard', () => {
         expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
         expect(screen.getByText('Action items:')).toBeInTheDocument();
     });
+
+    test('should not render permalink link for javascript: URI scheme', () => {
+        const channelWithXSS: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: ['Malicious highlight [PERMALINK:javascript:alert(document.cookie)]'],
+            action_items: [],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithXSS}/>,
+            baseState,
+        );
+
+        // Text should still render
+        expect(screen.getByText('Malicious highlight')).toBeInTheDocument();
+
+        // No link should be rendered — should fall back to a plain badge
+        const link = container.querySelector('a');
+        expect(link).toBeNull();
+
+        // Should render a plain badge span instead
+        const badge = container.querySelector('.recap-item-badge:not(.recap-item-badge-link)');
+        expect(badge).toBeInTheDocument();
+    });
+
+    test('should not render permalink link for data: URI scheme', () => {
+        const channelWithDataURI: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: ['Data URI highlight [PERMALINK:data:text/html,<script>alert(1)</script>]'],
+            action_items: [],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithDataURI}/>,
+            baseState,
+        );
+
+        expect(screen.getByText('Data URI highlight')).toBeInTheDocument();
+
+        const link = container.querySelector('a');
+        expect(link).toBeNull();
+    });
+
+    test('should not render permalink link for vbscript: URI scheme', () => {
+        const channelWithVBScript: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: ['VBScript highlight [PERMALINK:vbscript:MsgBox("XSS")]'],
+            action_items: [],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithVBScript}/>,
+            baseState,
+        );
+
+        expect(screen.getByText('VBScript highlight')).toBeInTheDocument();
+
+        const link = container.querySelector('a');
+        expect(link).toBeNull();
+    });
+
+    test('should not render permalink link for obfuscated javascript: URI with encoding', () => {
+        const channelWithObfuscated: RecapChannel = {
+            ...mockRecapChannel,
+            action_items: ['Obfuscated XSS [PERMALINK:java\tscript:alert(1)]'],
+            highlights: [],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithObfuscated}/>,
+            baseState,
+        );
+
+        expect(screen.getByText('Obfuscated XSS')).toBeInTheDocument();
+
+        const link = container.querySelector('a');
+        expect(link).toBeNull();
+    });
 });
 
