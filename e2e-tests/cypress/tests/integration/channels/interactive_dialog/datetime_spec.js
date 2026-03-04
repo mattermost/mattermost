@@ -201,16 +201,18 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open the date picker for constrained field
         openDatePicker('Future Date Only');
 
-        const today = new Date().getDate();
-
         // * Verify a past date is disabled (use 2 days ago to avoid midnight boundary)
-        // Only check when today >= 3 so the past day is guaranteed in the current month
-        if (today >= 3) {
-            const pastDay = (today - 2).toString();
-            cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
-                .filter((i, el) => el.textContent.trim() === pastDay)
-                .should('have.class', 'rdp-day_disabled').and('be.disabled');
+        // Navigate to previous month if the past date is in a different month
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 2);
+        const needsPrevMonth = pastDate.getMonth() !== new Date().getMonth();
+        if (needsPrevMonth) {
+            cy.get('.rdp .rdp-nav_button_previous').click();
         }
+        const pastDay = pastDate.getDate().toString();
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === pastDay)
+            .should('have.class', 'rdp-day_disabled').and('be.disabled');
 
         // * Verify a future date is enabled and select it (use +2 days for midnight safety)
         const {day: futureDay, needsNextMonth} = getSelectableDay(2);
@@ -306,8 +308,10 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // * Verify en-US locale formatting (e.g., "Aug 10, 2025")
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Event Date').within(() => {
-                cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').and('contain', selectedDay.day).invoke('text').then((text) => {
-                    expect(text).to.match(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+                cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').invoke('text').then((text) => {
+                    const match = text.trim().match(/^[A-Z][a-z]{2} (\d{1,2}), \d{4}$/);
+                    expect(match, 'date format').to.not.be.null;
+                    expect(Number(match[1]), 'selected day').to.equal(Number(selectedDay.day));
                 });
             });
         });
