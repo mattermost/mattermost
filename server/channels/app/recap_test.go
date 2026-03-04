@@ -35,13 +35,18 @@ func TestCreateRecap(t *testing.T) {
 
 	t.Run("create recap rejected when user has too many pending recaps", func(t *testing.T) {
 		channelIds := []string{th.BasicChannel.Id}
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 
-		// Create 3 pending recaps directly in the store to simulate existing pending recaps
+		// Use a dedicated user so that pending recaps from other subtests cannot affect the count.
+		isolatedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, isolatedUser, th.BasicTeam)
+		th.AddUserToChannel(t, isolatedUser, th.BasicChannel)
+		ctx := th.Context.WithSession(&model.Session{UserId: isolatedUser.Id})
+
+		// Create exactly 3 pending recaps directly in the store
 		for range 3 {
 			recap := &model.Recap{
 				Id:                model.NewId(),
-				UserId:            th.BasicUser.Id,
+				UserId:            isolatedUser.Id,
 				Title:             "Pending Recap",
 				CreateAt:          model.GetMillis(),
 				UpdateAt:          model.GetMillis(),
