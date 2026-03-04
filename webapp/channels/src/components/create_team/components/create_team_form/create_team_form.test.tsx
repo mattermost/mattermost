@@ -6,7 +6,7 @@ import React from 'react';
 import CreateTeamForm from 'components/create_team/components/create_team_form/create_team_form';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import Constants from 'utils/constants';
+import Constants, {LicenseSkus} from 'utils/constants';
 
 jest.mock('images/logo.png', () => 'logo.png');
 
@@ -97,6 +97,7 @@ describe('CreateTeamForm - display_name step', () => {
                     config: {
                         UseSecureURLs: 'true',
                     },
+                    license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
                 },
             },
         };

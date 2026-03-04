@@ -6,6 +6,7 @@ import React from 'react';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {LicenseSkus} from 'utils/constants';
 
 const baseProps = {
     value: 'Test Channel',
@@ -21,6 +22,7 @@ const makeState = (useSecureURLs: string) => ({
             config: {
                 UseSecureURLs: useSecureURLs,
             },
+            license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
         },
         teams: {
             currentTeamId: 'team-id',
