@@ -130,7 +130,7 @@ describe('SupportSettings', () => {
 
     it('MM-T1038 - Customization App download link - Change to different', () => {
         // # Edit links in the support email field
-        const link = 'https://mattermost.com/download';
+        const link = 'https://github.com/mattermost/desktop/releases';
         cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(link);
 
         // # Save setting then back to team view
