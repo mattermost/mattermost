@@ -650,7 +650,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	var jsonFile io.ReadCloser
 	for _, f := range importZipReader.File {
-		if filepath.Ext(f.Name) != ".jsonl" {
+		if !imports.IsRootJsonlFile(f.Name) {
 			continue
 		}
 
