@@ -60,6 +60,7 @@ const formatDate = (timestamp: number | string, locale: string) => {
             day='2-digit'
             month={getMonthLong(locale)}
             year='numeric'
+            timeZone='UTC'
         />
     );
 };
