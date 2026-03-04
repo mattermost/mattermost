@@ -12,6 +12,7 @@ import ChannelSettingsModal from './channels/channel_settings/channel_settings_m
 import DeletePostModal from './channels/delete_post_modal';
 import FindChannelsModal from './channels/find_channels_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
+import MembersInvitedModal from './channels/members_invited_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
@@ -69,6 +70,7 @@ const components = {
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
+    MembersInvitedModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -122,6 +124,7 @@ export {
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
+    MembersInvitedModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,

@@ -4,7 +4,15 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelsPost, ChannelSettingsModal, SettingsModal, components, InvitePeopleModal} from '@/ui/components';
+import {
+    ChannelsPost,
+    ChannelSettingsModal,
+    MembersInvitedModal,
+    SettingsModal,
+    TeamSettingsModal,
+    components,
+    InvitePeopleModal,
+} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -25,6 +33,7 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly findChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
+    public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
     readonly settingsModal;
     readonly teamSettingsModal;
@@ -105,6 +114,13 @@ export default class ChannelsPage {
         return this.invitePeopleModal;
     }
 
+    async getMembersInvitedModal(teamDisplayName: string) {
+        this.membersInvitedModal = new components.MembersInvitedModal(
+            this.page.getByRole('dialog', {name: `invited to ${teamDisplayName}`}),
+        );
+        return this.membersInvitedModal;
+    }
+
     async goto(teamName = '', channelName = '') {
         let channelsUrl = '/';
         if (teamName) {
@@ -150,6 +166,14 @@ export default class ChannelsPage {
         const lastPost = await sidebarRight.getLastPost();
 
         return {rootPost, sidebarRight, lastPost};
+    }
+
+    async openTeamSettings(): Promise<TeamSettingsModal> {
+        await this.page.locator('#sidebarTeamMenuButton').click();
+        await this.page.getByText('Team settings').first().click();
+        await this.teamSettingsModal.toBeVisible();
+
+        return this.teamSettingsModal;
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
