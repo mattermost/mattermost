@@ -262,7 +262,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     echo '
   webhook-interactions:
     image: node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
+    command: sh -c "npm install && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
       interval: 10s
@@ -272,7 +272,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     network_mode: host
     restart: on-failure
     volumes:
-      - "../../e2e-tests/cypress/:/cypress:ro"'
+      - "../../e2e-tests/cypress/:/cypress"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
