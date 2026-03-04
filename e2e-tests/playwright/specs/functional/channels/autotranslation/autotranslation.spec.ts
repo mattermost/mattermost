@@ -588,7 +588,9 @@ test(
         // * Verify post with translated text appears before disabling
         // Auto-translated channels display messages in the user's preferred language (English)
         const translatedText = 'Only original text';
-        const spanishPost = channelsPage.centerView.container.locator('[id^="post_"]').filter({hasText: translatedText});
+        const spanishPost = channelsPage.centerView.container
+            .locator('[id^="post_"]')
+            .filter({hasText: translatedText});
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         await channelsPage.centerView.header.openChannelMenu();
