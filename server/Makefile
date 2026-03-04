@@ -415,7 +415,8 @@ endif
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: ## Sets up your go.work file
 ifneq ($(SKIP_SETUP_GO_WORK),true)
-	@if [ -f go.work ]; then cp go.work go.work.bak; fi; \
+	@set -e; \
+	if [ -f go.work ]; then cp -p go.work go.work.bak; fi; \
 	rm -f go.work; \
 	$(GO) work init; \
 	$(GO) work use .; \
