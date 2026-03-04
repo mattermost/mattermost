@@ -216,6 +216,10 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify a future date is enabled and select it (use +2 days for midnight safety)
         const {day: futureDay, needsNextMonth} = getSelectableDay(2);
+        if (needsPrevMonth) {
+            // Return to current month after validating a past date in previous month
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
         if (needsNextMonth) {
             cy.get('.rdp .rdp-nav_button_next').click();
         }
