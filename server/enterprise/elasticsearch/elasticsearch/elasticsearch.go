@@ -89,8 +89,8 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 }
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient, cfg *model.Config) *model.AppError {
-	version, major, appErr := checkMaxVersion(client, cfg)
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient) *model.AppError {
+	version, major, appErr := checkMaxVersion(client)
 	if appErr != nil {
 		return appErr
 	}
@@ -133,7 +133,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(es.client, es.Platform.Config()); appErr != nil {
+	if appErr = es.fetchServerInfo(es.client); appErr != nil {
 		return appErr
 	}
 
@@ -1373,7 +1373,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(client, cfg); appErr != nil {
+	if appErr = es.fetchServerInfo(client); appErr != nil {
 		return appErr
 	}
 
@@ -1952,7 +1952,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkMaxVersion(client *elastic.TypedClient, cfg *model.Config) (string, int, *model.AppError) {
+func checkMaxVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
 	resp, err := client.API.Core.Info().Do(context.Background())
 	if err != nil {
 		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
