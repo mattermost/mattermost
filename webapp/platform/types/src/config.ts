@@ -439,6 +439,7 @@ export type ServiceSettings = {
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
     DeleteAccountLink: string;
+    MinimumDesktopAppVersion: string;
 };
 
 export type TeamSettings = {
