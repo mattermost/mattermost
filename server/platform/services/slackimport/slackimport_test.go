@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -762,59 +763,117 @@ func TestSlackImportEnhancedSecurityBackwardsCompatibility(t *testing.T) {
 	userStore.AssertNotCalled(t, "VerifyEmail")
 }
 
-func TestSlackAddUsersLogContainsOnlyEmail(t *testing.T) {
-	rctx := request.TestContext(t)
+type slackAddUsersTestSetup struct {
+	store     *mocks.Store
+	teamStore *mocks.TeamStore
+	userStore *mocks.UserStore
+	team      *model.Team
+	savedUser *model.User
+}
 
-	store := &mocks.Store{}
-	teamStore := &mocks.TeamStore{}
-	userStore := &mocks.UserStore{}
-	store.On("Team").Return(teamStore)
-	store.On("User").Return(userStore)
+func newSlackAddUsersTestSetup(t *testing.T) *slackAddUsersTestSetup {
+	t.Helper()
 
-	team := &model.Team{Id: "test-team-id", Name: "test-team"}
-	teamStore.On("Get", "test-team-id").Return(team, nil)
+	s := &slackAddUsersTestSetup{}
+	s.store = &mocks.Store{}
+	s.teamStore = &mocks.TeamStore{}
+	s.userStore = &mocks.UserStore{}
+	s.store.On("Team").Return(s.teamStore)
+	s.store.On("User").Return(s.userStore)
 
-	userStore.On("GetByEmail", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("not found"))
+	s.team = &model.Team{Id: "test-team-id", Name: "test-team"}
+	s.teamStore.On("Get", "test-team-id").Return(s.team, nil)
+	s.userStore.On("GetByEmail", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("not found"))
 
-	var capturedPassword string
-	savedUser := &model.User{
-		Id:       "test-user-id",
-		Username: "testuser",
-		Email:    "testuser@example.com",
-	}
-	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).
-		Return(savedUser, nil).
-		Run(func(args mock.Arguments) {
-			capturedPassword = args.Get(1).(*model.User).Password
-		})
+	s.savedUser = &model.User{Id: "test-user-id", Username: "testuser", Email: "testuser@example.com"}
+	s.userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(s.savedUser, nil)
 
-	actions := Actions{
+	return s
+}
+
+func (s *slackAddUsersTestSetup) newImporter(actions Actions) *SlackImporter {
+	config := &model.Config{}
+	config.SetDefaults()
+	return New(s.store, actions, config)
+}
+
+func (s *slackAddUsersTestSetup) defaultActions() Actions {
+	return Actions{
 		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 			return &model.TeamMember{}, nil
 		},
-	}
-
-	config := &model.Config{}
-	config.SetDefaults()
-	importer := New(store, actions, config)
-
-	slackUsers := []slackUser{
-		{
-			Id:       "U001",
-			Username: "testuser",
-			Profile: slackProfile{
-				FirstName: "Test",
-				LastName:  "User",
-				Email:     "testuser@example.com",
-			},
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			return true, nil
 		},
 	}
+}
 
+func defaultSlackUsers() []slackUser {
+	return []slackUser{
+		{Id: "U001", Username: "testuser", Profile: slackProfile{FirstName: "Test", LastName: "User", Email: "testuser@example.com"}},
+	}
+}
+
+func TestSlackAddUsersLogContainsProperUserCreationMessage(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
 	importerLog := new(bytes.Buffer)
-	importer.slackAddUsers(rctx, "test-team-id", slackUsers, importerLog)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
 
 	logOutput := importerLog.String()
-	require.NotEmpty(t, capturedPassword, "expected password to be set on the user")
-	assert.Contains(t, logOutput, "testuser@example.com", "import log should contain the user's email")
-	assert.NotContains(t, logOutput, capturedPassword, "import log must not contain the user's password")
+	assert.Contains(t, logOutput, i18n.T("api.slackimport.slack_add_users.email", map[string]any{"Email": "testuser@example.com"}), "import log should contain the user creation message")
+	assert.NotContains(t, logOutput, i18n.T("api.slackimport.slack_add_users.email_pwd"), "import log must not use the old user creation message")
+}
+
+func TestSlackAddUsersLogsSendResetEmailFailure(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		return false, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	expected := i18n.T("api.slackimport.slack_add_users.send_reset_email_failed", map[string]any{
+		"Username": "testuser",
+		"Email":    "testuser@example.com",
+	})
+	assert.Contains(t, importerLog.String(), expected)
+}
+
+func TestSlackAddUsersGeneratesUserWithEmptyPassword(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	s.userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(u *model.User) bool {
+		return u.Password == ""
+	}))
+}
+
+func TestSlackAddUsersTriggersPasswordResetFlow(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	passwordResetCalled := false
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		passwordResetCalled = true
+		return true, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	assert.True(t, passwordResetCalled, "SendPasswordReset should be called for each imported user")
 }

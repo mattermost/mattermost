@@ -3323,6 +3323,10 @@
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Unable to import Slack user: {{.Username}}.\r\n"
   },
