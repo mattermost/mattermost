@@ -1,5 +1,5 @@
 ---
-name: E2E Tests (full)
+name: E2E Tests (pull request)
 on:
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
@@ -72,16 +72,31 @@ jobs:
           # Argo Events trigger: commit SHA provided, resolve PR number
           if [ -n "$INPUT_COMMIT_SHA" ]; then
             echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_NUMBER=$(gh api "repos/${{ github.repository }}/commits/${INPUT_COMMIT_SHA}/pulls" \
-              --jq '.[0].number // empty' 2>/dev/null || echo "")
-            if [ -n "$PR_NUMBER" ]; then
-              echo "Found PR #${PR_NUMBER} for commit ${INPUT_COMMIT_SHA}"
-              echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-              echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
-            else
+            PR_DATA=$(gh api "repos/${{ github.repository }}/commits/${INPUT_COMMIT_SHA}/pulls" \
+              --jq '.[0] // empty' 2>/dev/null || echo "")
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
+            if [ -z "$PR_NUMBER" ]; then
               echo "::error::No PR found for commit ${INPUT_COMMIT_SHA}. This workflow is for PRs only."
               exit 1
             fi
+
+            echo "Found PR #${PR_NUMBER} for commit ${INPUT_COMMIT_SHA}"
+
+            # Skip if PR is already merged to master or a release branch.
+            # The e2e-tests-on-merge workflow handles post-merge E2E tests.
+            PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged_at // empty' 2>/dev/null || echo "")
+            PR_BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref // empty' 2>/dev/null || echo "")
+            if [ -n "$PR_MERGED" ]; then
+              if [ "$PR_BASE_REF" = "master" ] || [[ "$PR_BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+                echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
+                echo "PR_NUMBER=" >> $GITHUB_OUTPUT
+                echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            fi
+
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -90,6 +105,7 @@ jobs:
           exit 1
 
       - name: ci/check-e2e-test-only
+        if: steps.resolve.outputs.PR_NUMBER != ''
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
@@ -98,6 +114,7 @@ jobs:
 
   check-changes:
     needs: resolve-pr
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
     runs-on: ubuntu-24.04
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"

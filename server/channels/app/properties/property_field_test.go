@@ -553,9 +553,9 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Update non-name fields (Type, Attrs)
 		field.Type = model.PropertyFieldTypeSelect
 		field.Attrs = map[string]any{
-			"options": []map[string]any{
-				{"id": "opt1", "value": "a"},
-				{"id": "opt2", "value": "b"},
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
 			},
 		}
 
