@@ -57,10 +57,8 @@ func (ps *PlatformService) InvalidatePolicyScopeCacheSkipClusterSend(policyID st
 // - A channel's team membership changes
 // - A policy is deleted
 func (ps *PlatformService) InvalidatePolicyScopeCacheForPolicy(policyID string) {
-	// Invalidate locally
-	if err := PolicyScopeCache().Remove(policyID); err != nil {
-		ps.logger.Warn("Failed to invalidate local policy scope cache", mlog.String("policy_id", policyID), mlog.Err(err))
-	}
+	// Invalidate locally using the same semantics as cluster handlers
+	ps.InvalidatePolicyScopeCacheSkipClusterSend(policyID)
 
 	// Broadcast to cluster
 	if ps.clusterIFace != nil {
