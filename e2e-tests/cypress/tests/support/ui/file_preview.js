@@ -11,7 +11,7 @@ Cypress.Commands.add('uiGetFileUploadPreview', () => {
 
 Cypress.Commands.add('uiWaitForFileUploadPreview', () => {
     cy.waitUntil(() => cy.uiGetFileUploadPreview().then((el) => {
-        return el.find('.post-image.normal').length > 0;
+        return el.find('.post-image__thumbnail').length > 0;
     }));
 });
 

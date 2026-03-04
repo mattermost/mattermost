@@ -8,7 +8,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -201,7 +201,7 @@ describe('components/overage_users_banner', () => {
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
     });
 
-    it('should track if the admin click Contact Sales CTA in a 10% overage state', () => {
+    it('should track if the admin click Contact Sales CTA in a 10% overage state', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.cloud = {
@@ -217,7 +217,7 @@ describe('components/overage_users_banner', () => {
 
         renderWithContext(<OverageUsersBanner/>, store);
 
-        fireEvent.click(screen.getByText(contactSalesTextLink));
+        await userEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toHaveBeenCalledTimes(1);
 
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
@@ -255,7 +255,7 @@ describe('components/overage_users_banner', () => {
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
     });
 
-    it('should save the preferences for 5% banner if admin click on close', () => {
+    it('should save the preferences for 5% banner if admin click on close', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.admin = {
@@ -267,7 +267,7 @@ describe('components/overage_users_banner', () => {
 
         renderWithContext(<OverageUsersBanner/>, store);
 
-        fireEvent.click(screen.getByRole('link'));
+        await userEvent.click(screen.getByRole('link'));
 
         expect(savePreferences).toHaveBeenCalledTimes(1);
         expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
@@ -298,7 +298,7 @@ describe('components/overage_users_banner', () => {
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
     });
 
-    it('should track if the admin click Contact Sales CTA in a 10% overage state', () => {
+    it('should track if the admin click Contact Sales CTA in a 10% overage state', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.cloud = {
@@ -314,7 +314,7 @@ describe('components/overage_users_banner', () => {
 
         renderWithContext(<OverageUsersBanner/>, store);
 
-        fireEvent.click(screen.getByText(contactSalesTextLink));
+        await userEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toHaveBeenCalledTimes(1);
 
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook

@@ -33,8 +33,8 @@ jobs:
       - name: buildenv/docker-login
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
-          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: buildenv/build
         uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
@@ -44,16 +44,16 @@ jobs:
           load: true
           push: false
           pull: false
-          tags: mattermostdevelopment/mattermost-build-server:test
+          tags: mattermost/mattermost-build-server:test
 
       - name: buildenv/test
         run: |
-          docker run --rm mattermostdevelopment/mattermost-build-server:test /bin/sh -c "go version && node --version"
+          docker run --rm mattermost/mattermost-build-server:test /bin/sh -c "go version && node --version"
 
       - name: buildenv/calculate-golang-version
         id: go
         run: |
-          GO_VERSION=$(docker run --rm mattermostdevelopment/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
+          GO_VERSION=$(docker run --rm mattermost/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
           echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
@@ -65,7 +65,7 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
 
   build-image-fips:
     runs-on: ubuntu-22.04
@@ -79,8 +79,8 @@ jobs:
       - name: buildenv/docker-login
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
-          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: buildenv/build
         uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
@@ -90,16 +90,16 @@ jobs:
           load: true
           push: false
           pull: false
-          tags: mattermostdevelopment/mattermost-build-server-fips:test
+          tags: mattermost/mattermost-build-server-fips:test
 
       - name: buildenv/test
         run: |
-          docker run --rm --entrypoint bash mattermostdevelopment/mattermost-build-server-fips:test -c "go version && node --version"
+          docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
 
       - name: buildenv/calculate-golang-version
         id: go
         run: |
-          GO_VERSION=$(docker run --rm --entrypoint bash mattermostdevelopment/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
+          GO_VERSION=$(docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
           echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
@@ -111,4 +111,4 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermostdevelopment/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}

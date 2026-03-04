@@ -103,7 +103,6 @@ const SystemRoles = ({roles}: Props) => {
                             <DataGrid
                                 rows={rows}
                                 columns={columns}
-                                page={1}
                                 startCount={0}
                                 endCount={rows.length}
                                 loading={false}

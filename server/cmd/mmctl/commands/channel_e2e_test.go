@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,10 +26,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 			got = append(got, lines[i].(*model.Channel).Name)
 		}
 
-		sort.Strings(want)
-		sort.Strings(got)
-
-		s.Equal(want, got)
+		s.ElementsMatch(want, got)
 	}
 
 	s.Run("List channels/Client", func() {

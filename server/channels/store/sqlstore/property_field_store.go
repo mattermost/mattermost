@@ -35,6 +35,9 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 
 	field.PreSave()
+	if err := field.EnsureOptionIDs(); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_ensure_option_ids")
+	}
 
 	if err := field.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
@@ -200,7 +203,6 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	nameCase := sq.Case("id")
 	typeCase := sq.Case("id")
 	attrsCase := sq.Case("id")
@@ -211,27 +213,21 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	for i, field := range fields {
 		field.UpdateAt = updateTime
+		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
+			return nil, errors.Wrap(ensureErr, "property_field_update_ensure_option_ids")
+		}
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}
 
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
-		if isPostgres {
-			nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
-		} else {
-			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
-		}
+		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 	}
 
 	builder := s.getQueryBuilder().

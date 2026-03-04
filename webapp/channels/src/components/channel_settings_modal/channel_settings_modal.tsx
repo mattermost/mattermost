@@ -13,7 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -68,7 +68,23 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     );
     const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
 
-    const shouldShowConfigurationTab = channelBannerEnabled && hasManageChannelBannerPermission;
+    const canManageChannelTranslation = useSelector((state: GlobalState) => {
+        const config = getConfig(state);
+        if (config?.EnableAutoTranslation !== 'true') {
+            return false;
+        }
+
+        const isDMorGM = channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+        if (isDMorGM && config?.RestrictDMAndGMAutotranslation === 'true') {
+            return false;
+        }
+
+        const permissionToCheck = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION : Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION;
+        return haveIChannelPermission(state, channel.team_id, channel.id, permissionToCheck);
+    });
+
+    const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
+    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -191,6 +207,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
+                canManageChannelTranslation={canManageChannelTranslation}
+                canManageBanner={canManageBanner}
             />
         );
     };

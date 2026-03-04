@@ -52,7 +52,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
     const defaultMessage = (
         <FormattedMessage
             id='deactivate_member_modal.desc'
-            defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system.\n'
+            defaultMessage={'This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system.\n'}
             values={{
                 username: user.username,
             }}
@@ -107,7 +107,6 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
                                     id='deactivate_member_modal.desc.for_users_with_bot_accounts3'
                                     defaultMessage='Bot accounts they manage will be disabled along with their integrations. To enable them again, go to <linkBots>Integrations > Bot Accounts</linkBots>. <linkDocumentation>Learn more about bot accounts</linkDocumentation>.'
                                     values={{
-                                        siteURL,
                                         linkBots: (msg: React.ReactNode) => (
                                             <a
                                                 href={`${siteURL}/_redirect/integrations/bots`}

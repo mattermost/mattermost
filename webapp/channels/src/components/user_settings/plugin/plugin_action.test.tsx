@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PluginAction from './plugin_action';
 
@@ -28,14 +27,14 @@ describe('PluginAction', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('does show the correct information', () => {
+    it('does show the correct information', async () => {
         const props = getBaseProps();
         renderWithContext(<PluginAction {...props}/>);
         const button = screen.getByText(props.action!.buttonText);
         expect(button).toBeInTheDocument();
         expect(screen.queryByText(props.action!.text)).toBeInTheDocument();
         expect(screen.queryByText(props.action!.title)).toBeInTheDocument();
-        fireEvent.click(button);
+        await userEvent.click(button);
         expect(props.action?.onClick).toHaveBeenCalled();
     });
 });

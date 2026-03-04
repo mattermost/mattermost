@@ -198,7 +198,6 @@ var config = {
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
-                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
             ],
         }),
 
@@ -303,6 +302,11 @@ var config = {
             ],
         }),
     ],
+    watchOptions: {
+
+        // By default, Webpack doesn't watch node_modules for changes, but we want it to watch packages in the monorepo
+        ignored: /node_modules([\\]+|\/)(?!@mattermost\/(client|components|types|shared))/,
+    },
 };
 
 function generateCSP() {

@@ -401,6 +401,22 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Enforce DCR redirect URI allowlist if configured
+	allowlist := c.App.Config().ServiceSettings.DCRRedirectURIAllowlist
+	if len(allowlist) > 0 {
+		for _, uri := range clientRequest.RedirectURIs {
+			if !model.RedirectURIMatchesAllowlist(uri, allowlist) {
+				dcrError := model.NewDCRError(model.DCRErrorInvalidRedirectURI, "One or more redirect URIs do not match the allowlist")
+
+				w.WriteHeader(http.StatusBadRequest)
+				if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
+				return
+			}
+		}
+	}
+
 	// No user ID for DCR
 	userID := ""
 

@@ -77,6 +77,7 @@ const EmailToOAuth = (props: Props) => {
             <LoginMfa
                 loginId={props.email}
                 password={password}
+                // eslint-disable-next-line formatjs/enforce-placeholders -- uiType provided when message is formatted at component level
                 title={formatMessage({id: 'claim.email_to_oauth.title', defaultMessage: 'Switch Email/Password Account to {uiType}'})}
                 onSubmit={submit}
             />

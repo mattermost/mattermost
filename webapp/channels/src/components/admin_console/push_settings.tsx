@@ -389,14 +389,14 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                     label={
                         <FormattedMessage
                             id='admin.team.maxNotificationsPerChannelTitle'
-                            defaultMessage='Max Notifications Per Channel:'
+                            defaultMessage='Large Channel Notification Threshold:'
                         />
                     }
                     placeholder={defineMessage({id: 'admin.team.maxNotificationsPerChannelExample', defaultMessage: 'E.g.: "1000"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.team.maxNotificationsPerChannelDescription'
-                            defaultMessage='Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance.'
+                            defaultMessage='The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.'
                         />
                     }
                     value={this.state.maxNotificationsPerChannel}

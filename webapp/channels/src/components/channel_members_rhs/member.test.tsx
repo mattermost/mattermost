@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import Member from './member';
 import type {ChannelMember} from './member_list';
@@ -256,6 +255,5 @@ describe('components/channel_members_rhs/Member', () => {
     afterEach(() => {
         jest.clearAllTimers();
         jest.useRealTimers();
-        jest.clearAllMocks();
     });
 });
