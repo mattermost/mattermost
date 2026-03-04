@@ -14,8 +14,8 @@ import (
 func renderUnsupportedDesktopApp(rctx request.CTX, cfg *model.Config, currentVersion, subpath string) templates.Data {
 	return templates.Data{
 		Props: map[string]any{
-			"Subpath":            ensureTrailingSlash(subpath),
-			"Title":              rctx.T("web.error.unsupported_desktop_app.title"),
+			"Subpath": ensureTrailingSlash(subpath),
+			"Title":   rctx.T("web.error.unsupported_desktop_app.title"),
 			"MessageString": rctx.T("web.error.unsupported_desktop_app.message", map[string]any{
 				"SiteName":       *cfg.TeamSettings.SiteName,
 				"CurrentVersion": currentVersion,
