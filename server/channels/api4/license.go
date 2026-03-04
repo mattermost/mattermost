@@ -60,10 +60,15 @@ func parseLicenseFileFromRequest(c *Context, r *http.Request) ([]byte, string, *
 	if err != nil {
 		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.parse_license.parse_form.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+	defer func() {
+		if r.MultipartForm != nil {
+			if err := r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
 
-	m := r.MultipartForm
-
-	fileArray, ok := m.File["license"]
+	fileArray, ok := r.MultipartForm.File["license"]
 	if !ok {
 		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
 	}

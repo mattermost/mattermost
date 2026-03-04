@@ -30,9 +30,15 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := r.MultipartForm
+	defer func() {
+		if r.MultipartForm != nil {
+			if err := r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
 
-	fileArray, ok := m.File["license"]
+	fileArray, ok := r.MultipartForm.File["license"]
 	if !ok {
 		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
