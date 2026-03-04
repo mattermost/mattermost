@@ -62,7 +62,7 @@ func parseLicenseFileFromRequest(c *Context, r *http.Request) ([]byte, string, *
 	}
 	defer func() {
 		if r.MultipartForm != nil {
-			if err := r.MultipartForm.RemoveAll(); err != nil {
+			if err = r.MultipartForm.RemoveAll(); err != nil {
 				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
 			}
 		}

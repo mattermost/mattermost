@@ -32,7 +32,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if r.MultipartForm != nil {
-			if err := r.MultipartForm.RemoveAll(); err != nil {
+			if err = r.MultipartForm.RemoveAll(); err != nil {
 				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
 			}
 		}
