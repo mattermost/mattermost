@@ -203,7 +203,7 @@ function BookmarksBarMenu({
                     hideBackdrop: forceOpen,
                     disableRestoreFocus: reorderState?.isReordering,
                     autoFocusItem: false,
-                    width: '280px',
+                    width: hasOverflow ? '280px' : undefined,
                 }}
             >
                 {menuItems}

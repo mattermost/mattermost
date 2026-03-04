@@ -57,6 +57,33 @@ function OverflowBookmarkItem({
         getElement: () => liRef.current,
     });
 
+    // Compose keyboard handlers: reorder first, then ArrowRight to open dot menu
+    const handleItemKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (keyboardReorderProps?.onKeyDown) {
+            keyboardReorderProps.onKeyDown(e);
+            if (e.defaultPrevented) {
+                return;
+            }
+        }
+
+        if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            e.stopPropagation();
+            const button = liRef.current?.querySelector('.channelBookmarksDotMenuButton--overflow') as HTMLElement;
+            button?.click();
+        }
+    }, [keyboardReorderProps]);
+
+    // ArrowLeft from the open dot menu closes it and returns focus to the item
+    const handleDotMenuKeyDown = useCallback((_event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => {
+        if (_event.key === 'ArrowLeft') {
+            _event.preventDefault();
+            _event.stopPropagation();
+            closeMenu?.();
+            liRef.current?.focus();
+        }
+    }, []);
+
     const linksDisabled = isDragging || isDragSelf;
     const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
@@ -73,7 +100,7 @@ function OverflowBookmarkItem({
             data-bookmark-id={id}
             data-testid={`overflow-bookmark-item-${id}`}
             onClick={openBookmark}
-            onKeyDown={keyboardReorderProps?.onKeyDown}
+            onKeyDown={handleItemKeyDown}
             leadingElement={icon}
             labels={(
                 <WithTooltip
@@ -92,6 +119,7 @@ function OverflowBookmarkItem({
                     open={openBookmark}
                     buttonClassName='channelBookmarksDotMenuButton--overflow'
                     onBeforeAction={handleNavigate}
+                    onMenuKeyDown={handleDotMenuKeyDown}
                 />
             )}
         >

@@ -42,12 +42,14 @@ type Props = {
     open: () => void;
     buttonClassName?: string;
     onBeforeAction?: () => void;
+    onMenuKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => void;
 };
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
     buttonClassName,
     onBeforeAction,
+    onMenuKeyDown,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -141,6 +143,7 @@ const BookmarkItemDotMenu = ({
             }}
             menu={{
                 id: 'channelBookmarksDotMenuDropdown',
+                onKeyDown: onMenuKeyDown,
             }}
         >
             <Menu.Item

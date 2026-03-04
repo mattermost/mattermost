@@ -175,6 +175,16 @@ export function Menu(props: Props) {
         e.stopPropagation();
     }
 
+    // MUI MenuList handles arrow keys internally. This handler runs AFTER
+    // MenuList's own onKeyDown (MUI calls our onKeyDown prop at the end).
+    // Stop propagation so the arrow event doesn't also reach the Popover's
+    // onKeyDown, which could cause double-movement.
+    function handleMenuListKeyDown(event: KeyboardEvent<HTMLUListElement>) {
+        if (isKeyPressed(event, Constants.KeyCodes.UP) || isKeyPressed(event, Constants.KeyCodes.DOWN)) {
+            event.stopPropagation();
+        }
+    }
+
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
         if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
             const target = event.target as HTMLElement;
@@ -349,6 +359,7 @@ export function Menu(props: Props) {
                             width: props.menu.width,
                         }}
                         autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
+                        onKeyDown={handleMenuListKeyDown}
                     >
                         {props.children}
                     </MuiMenuList>
