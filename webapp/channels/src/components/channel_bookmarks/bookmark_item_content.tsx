@@ -222,9 +222,10 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
 
     button {
         position: absolute;
-        visibility: hidden;
         right: 6px;
         top: 3px;
+        opacity: 0;
+        pointer-events: none;
     }
 
     ${({$disableInteractions}) => !$disableInteractions && css`
@@ -232,7 +233,8 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
         &:focus-within,
         &:has([aria-expanded="true"]) {
             button {
-                visibility: visible;
+                opacity: 1;
+                pointer-events: auto;
             }
         }
 

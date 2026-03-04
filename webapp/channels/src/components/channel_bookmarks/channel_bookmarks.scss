@@ -58,6 +58,11 @@
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--link-color) inset;
+        outline: none;
+    }
+
     &:active,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 16%);
