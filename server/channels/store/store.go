@@ -1308,6 +1308,7 @@ type RecapStore interface {
 	UpdateRecap(recap *model.Recap) (*model.Recap, error)
 	GetRecap(id string) (*model.Recap, error)
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
+	GetRecapsForUserByStatus(userId string, status string) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
 	MarkRecapAsRead(id string) error
 	DeleteRecap(id string) error

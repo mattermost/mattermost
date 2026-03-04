@@ -140,6 +140,36 @@ func (_m *RecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]
 	return r0, r1
 }
 
+// GetRecapsForUserByStatus provides a mock function with given fields: userId, status
+func (_m *RecapStore) GetRecapsForUserByStatus(userId string, status string) ([]*model.Recap, error) {
+	ret := _m.Called(userId, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRecapsForUserByStatus")
+	}
+
+	var r0 []*model.Recap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Recap, error)); ok {
+		return rf(userId, status)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Recap); ok {
+		r0 = rf(userId, status)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Recap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, status)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MarkRecapAsRead provides a mock function with given fields: id
 func (_m *RecapStore) MarkRecapAsRead(id string) error {
 	ret := _m.Called(id)

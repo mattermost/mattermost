@@ -49,6 +49,11 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	_ = storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
 	publishRecapUpdate(appInstance, recapID, userID)
 
+	// Build a request context that carries the requesting user's identity,
+	// so downstream code (e.g. bridge client) can enforce access checks and
+	// session-dependent code (e.g. auto-translation supplements) works correctly.
+	rctx := request.EmptyContext(logger).WithSession(&model.Session{UserId: userID})
+
 	totalMessages := 0
 	successfulChannels := []string{}
 	failedChannels := []string{}
@@ -60,9 +65,7 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 			setProgress(progress)
 		}
 
-		// Process the channel - use a context with the user's session so that
-		// session-dependent code (e.g. auto-translation supplements) works correctly.
-		rctx := request.EmptyContext(logger).WithSession(&model.Session{UserId: userID})
+		// Process the channel
 		result, err := appInstance.ProcessRecapChannel(rctx, recapID, channelID, userID, agentID)
 		if err != nil {
 			logger.Warn("Failed to process channel",

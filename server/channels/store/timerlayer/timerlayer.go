@@ -8593,6 +8593,22 @@ func (s *TimerLayerRecapStore) GetRecapsForUser(userId string, page int, perPage
 	return result, err
 }
 
+func (s *TimerLayerRecapStore) GetRecapsForUserByStatus(userId string, status string) ([]*model.Recap, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.GetRecapsForUserByStatus(userId, status)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.GetRecapsForUserByStatus", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRecapStore) MarkRecapAsRead(id string) error {
 	start := time.Now()
 

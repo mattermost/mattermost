@@ -102,6 +102,44 @@ func TestProcessRecapJob(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("context carries user identity", func(t *testing.T) {
+		mockStore := &mocks.Store{}
+		mockRecapStore := &mocks.RecapStore{}
+		mockStore.On("Recap").Return(mockRecapStore)
+
+		mockApp := &MockAppIface{}
+
+		mockRecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil)
+		mockApp.On("Publish", mock.Anything).Return()
+
+		// Verify that the context passed to ProcessRecapChannel contains the user's session
+		contextWithUserID := mock.MatchedBy(func(rctx request.CTX) bool {
+			return rctx.Session() != nil && rctx.Session().UserId == "user1"
+		})
+
+		mockApp.On("ProcessRecapChannel", contextWithUserID, "recap1", "channel1", "user1", "agent1").Return(&model.RecapChannelResult{
+			ChannelID:    "channel1",
+			Success:      true,
+			MessageCount: 5,
+		}, nil)
+
+		mockApp.On("ProcessRecapChannel", contextWithUserID, "recap1", "channel2", "user1", "agent1").Return(&model.RecapChannelResult{
+			ChannelID:    "channel2",
+			Success:      true,
+			MessageCount: 3,
+		}, nil)
+
+		recap := &model.Recap{Id: "recap1"}
+		mockRecapStore.On("GetRecap", "recap1").Return(recap, nil)
+		mockRecapStore.On("UpdateRecap", mock.MatchedBy(func(r *model.Recap) bool {
+			return r.TotalMessageCount == 8 && r.Status == model.RecapStatusCompleted
+		})).Return(recap, nil)
+
+		err := processRecapJob(logger, job, mockStore, mockApp, nil)
+		require.NoError(t, err)
+		mockApp.AssertExpectations(t)
+	})
+
 	t.Run("complete failure", func(t *testing.T) {
 		mockStore := &mocks.Store{}
 		mockRecapStore := &mocks.RecapStore{}
