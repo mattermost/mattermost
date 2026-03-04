@@ -160,7 +160,7 @@ test.describe('System Console - Autotranslation (Localization)', () => {
             await multiSelect.click();
 
             // Select Spanish
-            const languageOptions = systemConsolePage.localization.container.getByRole('option');
+            const languageOptions = multiSelect.getByRole('option');
             await languageOptions.filter({hasText: /Español/}).click();
 
             // Select French (keep multiselect open)
