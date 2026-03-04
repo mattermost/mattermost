@@ -1661,11 +1661,6 @@ func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 type ExperimentalAuditSettings struct {
 	FileEnabled         *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileName            *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB       *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
@@ -1678,22 +1673,6 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 
 		if strings.HasSuffix(*s.FileName, `\`) {
 			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxSizeMB <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxAgeDays < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxBackups < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxQueueSize <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1718,26 +1697,6 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 	if s.FileName == nil {
 		s.FileName = NewPointer("")
-	}
-
-	if s.FileMaxSizeMB == nil {
-		s.FileMaxSizeMB = NewPointer(100)
-	}
-
-	if s.FileMaxAgeDays == nil {
-		s.FileMaxAgeDays = NewPointer(0) // no limit on age
-	}
-
-	if s.FileMaxBackups == nil { // no limit on number of backups
-		s.FileMaxBackups = NewPointer(0)
-	}
-
-	if s.FileCompress == nil {
-		s.FileCompress = NewPointer(false)
-	}
-
-	if s.FileMaxQueueSize == nil {
-		s.FileMaxQueueSize = NewPointer(1000)
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
