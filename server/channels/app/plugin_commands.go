@@ -137,6 +137,11 @@ func (a *App) tryExecutePluginCommand(rctx request.CTX, args *model.CommandArgs)
 		return nil, nil, nil
 	}
 
+	// Check usage restrictions before executing plugin command
+	if appErr := a.checkCommandUsageRestrictions(rctx, matched.Command, args); appErr != nil {
+		return matched.Command, nil, appErr
+	}
+
 	rctx = rctx.WithLogFields(mlog.String("plugin_id", matched.PluginId))
 
 	pluginsEnvironment := a.GetPluginsEnvironment()

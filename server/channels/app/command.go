@@ -52,6 +52,68 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
+// checkCommandUsageRestrictions checks whether the user is allowed to execute the given command
+// based on its AllowedRoles, AllowedUsers, and AllowedChannels restrictions.
+// Returns nil if the user is allowed, or an AppError if not.
+func (a *App) checkCommandUsageRestrictions(rctx request.CTX, cmd *model.Command, args *model.CommandArgs) *model.AppError {
+	if !cmd.HasRestrictions() {
+		return nil
+	}
+
+	// Gather the user's combined roles from system, team, and channel levels
+	var combinedRoles strings.Builder
+
+	user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+	if err != nil {
+		return model.NewAppError("checkCommandUsageRestrictions", "app.command.check_restrictions.user_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	combinedRoles.WriteString(user.Roles)
+
+	if args.TeamId != "" {
+		teamMember, nErr := a.Srv().Store().Team().GetMember(rctx, args.TeamId, args.UserId)
+		if nErr == nil && teamMember != nil {
+			combinedRoles.WriteString(" ")
+			combinedRoles.WriteString(teamMember.Roles)
+			if teamMember.SchemeAdmin {
+				combinedRoles.WriteString(" " + model.TeamAdminRoleId)
+			}
+		}
+	}
+
+	if args.ChannelId != "" {
+		channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, args.ChannelId, args.UserId)
+		if nErr == nil && channelMember != nil {
+			combinedRoles.WriteString(" ")
+			combinedRoles.WriteString(channelMember.Roles)
+			if channelMember.SchemeAdmin {
+				combinedRoles.WriteString(" " + model.ChannelAdminRoleId)
+			}
+		}
+	}
+
+	if !cmd.IsUserAllowed(args.UserId, args.ChannelId, combinedRoles.String()) {
+		return model.NewAppError("checkCommandUsageRestrictions", "api.command.execute_command.restricted.app_error",
+			map[string]any{"Trigger": cmd.Trigger}, "", http.StatusForbidden)
+	}
+
+	return nil
+}
+
+// FilterCommandsByRestrictions filters a list of commands to only those the user is allowed to execute.
+func (a *App) FilterCommandsByRestrictions(rctx request.CTX, commands []*model.Command, args *model.CommandArgs) []*model.Command {
+	filtered := make([]*model.Command, 0, len(commands))
+	for _, cmd := range commands {
+		if !cmd.HasRestrictions() {
+			filtered = append(filtered, cmd)
+			continue
+		}
+		if err := a.checkCommandUsageRestrictions(rctx, cmd, args); err == nil {
+			filtered = append(filtered, cmd)
+		}
+	}
+	return filtered
+}
+
 func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
@@ -469,6 +531,11 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	if cmd == nil {
 		return nil, nil, nil
+	}
+
+	// Check usage restrictions before executing
+	if appErr := a.checkCommandUsageRestrictions(rctx, cmd, args); appErr != nil {
+		return cmd, nil, appErr
 	}
 
 	rctx = rctx.WithLogFields(mlog.String("command_id", cmd.Id))

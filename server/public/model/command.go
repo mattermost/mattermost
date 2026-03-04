@@ -39,6 +39,15 @@ type Command struct {
 	AutocompleteData *AutocompleteData `db:"-" json:"autocomplete_data,omitempty"`
 	// AutocompleteIconData is a base64 encoded svg
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
+	// AllowedRoles is a space-separated list of role names (e.g. "system_admin team_admin channel_admin")
+	// that are permitted to execute this command. Empty means no role-based restriction.
+	AllowedRoles string `json:"allowed_roles"`
+	// AllowedUsers is a space-separated list of user IDs that are permitted to execute this command.
+	// Empty means no user-based restriction.
+	AllowedUsers string `json:"allowed_users"`
+	// AllowedChannels is a space-separated list of channel IDs in which this command can be executed.
+	// Empty means no channel-based restriction.
+	AllowedChannels string `json:"allowed_channels"`
 }
 
 func (o *Command) Auditable() map[string]any {
@@ -58,6 +67,9 @@ func (o *Command) Auditable() map[string]any {
 		"display_name":       o.DisplayName,
 		"description":        o.Description,
 		"url":                o.URL,
+		"allowed_roles":      o.AllowedRoles,
+		"allowed_users":      o.AllowedUsers,
+		"allowed_channels":   o.AllowedChannels,
 	}
 }
 
@@ -126,7 +138,96 @@ func (o *Command) IsValid() *AppError {
 		}
 	}
 
+	if len(o.AllowedRoles) > 1024 {
+		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_roles.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.AllowedUsers) > 1024 {
+		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_users.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.AllowedChannels) > 1024 {
+		return NewAppError("Command.IsValid", "model.command.is_valid.allowed_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
+}
+
+// HasRestrictions returns true if the command has any usage restrictions configured.
+func (o *Command) HasRestrictions() bool {
+	return o.AllowedRoles != "" || o.AllowedUsers != "" || o.AllowedChannels != ""
+}
+
+// AllowedRolesList returns the allowed roles as a slice.
+func (o *Command) AllowedRolesList() []string {
+	if o.AllowedRoles == "" {
+		return nil
+	}
+	return strings.Fields(o.AllowedRoles)
+}
+
+// AllowedUsersList returns the allowed user IDs as a slice.
+func (o *Command) AllowedUsersList() []string {
+	if o.AllowedUsers == "" {
+		return nil
+	}
+	return strings.Fields(o.AllowedUsers)
+}
+
+// AllowedChannelsList returns the allowed channel IDs as a slice.
+func (o *Command) AllowedChannelsList() []string {
+	if o.AllowedChannels == "" {
+		return nil
+	}
+	return strings.Fields(o.AllowedChannels)
+}
+
+// IsUserAllowed checks whether a user with the given ID, roles, and in the given channel
+// is allowed to execute this command. If no restrictions are configured, all users are allowed.
+// The check logic is: if AllowedChannels is set, the channel must match; if AllowedUsers or
+// AllowedRoles is set, the user must match at least one of those criteria.
+func (o *Command) IsUserAllowed(userID string, channelID string, userRoles string) bool {
+	if !o.HasRestrictions() {
+		return true
+	}
+
+	// Check channel restriction first — if AllowedChannels is set, channel must be in the list
+	if o.AllowedChannels != "" {
+		channelAllowed := false
+		for _, ch := range o.AllowedChannelsList() {
+			if ch == channelID {
+				channelAllowed = true
+				break
+			}
+		}
+		if !channelAllowed {
+			return false
+		}
+	}
+
+	// If only channel restrictions are set (no user/role restrictions), channel match is sufficient
+	if o.AllowedUsers == "" && o.AllowedRoles == "" {
+		return true
+	}
+
+	// Check user allowlist
+	for _, uid := range o.AllowedUsersList() {
+		if uid == userID {
+			return true
+		}
+	}
+
+	// Check role allowlist
+	userRoleList := strings.Fields(userRoles)
+	for _, allowedRole := range o.AllowedRolesList() {
+		for _, userRole := range userRoleList {
+			if allowedRole == userRole {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (o *Command) PreSave() {

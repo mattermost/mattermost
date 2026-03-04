@@ -490,6 +490,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		Command:   userInput,
 	}
 
+	// Filter out commands the user is not allowed to execute
+	commands = c.App.FilterCommandsByRestrictions(c.AppContext, commands, commandArgs)
+
 	suggestions := c.App.GetSuggestions(c.AppContext, commandArgs, commands, roleId)
 
 	js, err := json.Marshal(suggestions)

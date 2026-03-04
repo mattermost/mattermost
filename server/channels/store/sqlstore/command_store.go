@@ -43,6 +43,9 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 		"Description",
 		"URL",
 		"PluginId",
+		"AllowedRoles",
+		"AllowedUsers",
+		"AllowedChannels",
 	}
 
 	s.commandsQuery = s.getQueryBuilder().
@@ -83,6 +86,9 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 			command.Description,
 			command.URL,
 			command.PluginId,
+			command.AllowedRoles,
+			command.AllowedUsers,
+			command.AllowedChannels,
 		)
 
 	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
@@ -213,6 +219,9 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		Set("Description", cmd.Description).
 		Set("URL", cmd.URL).
 		Set("PluginId", cmd.PluginId).
+		Set("AllowedRoles", cmd.AllowedRoles).
+		Set("AllowedUsers", cmd.AllowedUsers).
+		Set("AllowedChannels", cmd.AllowedChannels).
 		Where(sq.Eq{"Id": cmd.Id})
 
 	// Trigger is a keyword

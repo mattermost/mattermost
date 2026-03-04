@@ -724,6 +724,10 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.restricted.app_error",
+    "translation": "You are not allowed to execute the command '/{{.Trigger}}'. This command is restricted to specific users, roles, or channels."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
   },
@@ -5459,6 +5463,10 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.check_restrictions.user_error",
+    "translation": "Unable to check command usage restrictions."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
@@ -9895,6 +9903,18 @@
   {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.command.is_valid.allowed_roles.app_error",
+    "translation": "Invalid allowed roles. Must be 1024 characters or less."
+  },
+  {
+    "id": "model.command.is_valid.allowed_users.app_error",
+    "translation": "Invalid allowed users. Must be 1024 characters or less."
+  },
+  {
+    "id": "model.command.is_valid.allowed_channels.app_error",
+    "translation": "Invalid allowed channels. Must be 1024 characters or less."
   },
   {
     "id": "model.command.is_valid.description.app_error",
