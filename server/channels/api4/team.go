@@ -83,7 +83,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
-	if *c.App.Config().PrivacySettings.UseSecureURLs {
+	if model.SafeDereference(c.App.Config().PrivacySettings.UseSecureURLs) {
 		team.Name = model.NewId()
 	}
 

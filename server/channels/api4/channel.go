@@ -92,7 +92,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !channel.IsGroupOrDirect() && *c.App.Config().PrivacySettings.UseSecureURLs {
+	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseSecureURLs) {
 		channel.Name = model.NewId()
 	}
 

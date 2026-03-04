@@ -168,7 +168,7 @@ func TestCreateTeam(t *testing.T) {
 		require.True(t, model.IsValidId(createdTeam.Name))
 		require.Equal(t, "Secure URL Team", createdTeam.DisplayName, "display name should remain unchanged")
 
-		// setting UseSecureURl to false should preserve team name
+		// setting UseSecureURL to false should preserve team name
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
 		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
