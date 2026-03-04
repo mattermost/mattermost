@@ -368,7 +368,7 @@ func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bo
 		return true, nil
 	}
 
-	if bot.OwnerId == rctx.Session().UserId {
+	if session := rctx.Session(); session != nil && bot.OwnerId == session.UserId {
 		return true, nil
 	}
 
