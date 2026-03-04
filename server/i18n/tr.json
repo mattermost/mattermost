@@ -10024,10 +10024,6 @@
     "translation": "Yapılandırma süzülemedi."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Kullanıcı rolleri konuk durumu ile tutarlı değil."
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Özel ifade görselleri için bir klasörler oluşturulamadı"
   },
