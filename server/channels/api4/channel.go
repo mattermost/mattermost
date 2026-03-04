@@ -91,8 +91,8 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
-
-	if !channel.IsGroupOrDirect() && *c.App.Config().PrivacySettings.UseSecureURLs {
+	license := c.App.Channels().License()
+	if !channel.IsGroupOrDirect() && *c.App.Config().PrivacySettings.UseSecureURLs && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
 	}
 

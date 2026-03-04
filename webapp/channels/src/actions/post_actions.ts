@@ -33,6 +33,7 @@ import {removeDraft} from 'actions/views/drafts';
 import {closeModal, openModal} from 'actions/views/modals';
 import * as RhsActions from 'actions/views/rhs';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {isSecureURLEnabled} from 'selectors/config';
 import {getConnectionId} from 'selectors/general';
 import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
@@ -376,7 +377,7 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
             // Convert real channel name mentions to display slugs for readable editing
             let editablePost = post;
 
-            if (config.UseSecureURLs === 'true') {
+            if (isSecureURLEnabled(state)) {
                 const allChannelsList = Object.values(getMyChannels(state));
 
                 // Fetch any obfuscated channel mentions not yet in the store

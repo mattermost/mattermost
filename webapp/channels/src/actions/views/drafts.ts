@@ -10,11 +10,11 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setGlobalItem} from 'actions/storage';
+import {isSecureURLEnabled} from 'selectors/config';
 import {makeGetDrafts} from 'selectors/drafts';
 import {getConnectionId} from 'selectors/general';
 import {getGlobalItem} from 'selectors/storage';
@@ -113,8 +113,7 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             // Resolve display-name channel mentions for the server copy only
             let serverDraft = updatedValue;
 
-            const config = getConfig(state);
-            if (config.UseSecureURLs === 'true') {
+            if (isSecureURLEnabled(state)) {
                 const allChannelsList = Object.values(getAllChannels(state));
                 serverDraft = {
                     ...updatedValue,

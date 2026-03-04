@@ -8,8 +8,9 @@ import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import {isSecureURLEnabled} from 'selectors/config';
 
 import ExternalLink from 'components/external_link';
 
@@ -39,7 +40,7 @@ type Props = {
 
 export default function CreateTeamForm({step, state: parentState, updateParent, actions, history}: Props) {
     const teamURLInput = useRef<HTMLInputElement>(null);
-    const config = useSelector(getConfig);
+    const useSecureURLs = useSelector(isSecureURLEnabled);
 
     const [teamDisplayName, setTeamDisplayName] = useState<string>(parentState.team?.display_name || '');
     const [teamURL, setTeamURL] = useState<string>(parentState.team?.name || '');
@@ -99,7 +100,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             return;
         }
 
-        if (config.UseSecureURLs === 'true') {
+        if (useSecureURLs) {
             doCreateTeam();
             return;
         }
@@ -112,7 +113,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         setTeamURL(newState.team!.name);
 
         updateParent(newState);
-    }, [isValidTeamName, config.UseSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
+    }, [isValidTeamName, useSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setTeamDisplayName(e.target.value);
@@ -267,12 +268,12 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             </>
         );
 
-        if (config.UseSecureURLs === 'true' || step === 'team_url') {
+        if (useSecureURLs || step === 'team_url') {
             return isLoading ? loadingMessage : finishMessage;
         }
 
         return nextMessage;
-    }, [config.UseSecureURLs, isLoading, step]);
+    }, [useSecureURLs, isLoading, step]);
 
     if (step === 'team_url') {
         return (

@@ -204,8 +204,14 @@ func TestCreateChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("should override channel name with server-generated ID when UseSecureURLs is enabled", func(t *testing.T) {
+	t.Run("should override channel name with server-generated ID when UseSecureURLs is enabled and not otherwise", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		originalName := GenerateTestChannelName()
 		ch := &model.Channel{DisplayName: "Secure URL Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
@@ -220,6 +226,17 @@ func TestCreateChannel(t *testing.T) {
 		// setting UseSecureURLs to false should preserve names
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
 
+		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
+		createdChannel, response, err = th.SystemAdminClient.CreateChannel(context.Background(), ch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		require.Equal(t, originalName, createdChannel.Name)
+
+		// setting license to something other than Enterprise Advanced should also preserve team name
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+
+		originalName = GenerateTestChannelName()
 		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
 		createdChannel, response, err = th.SystemAdminClient.CreateChannel(context.Background(), ch)
 		require.NoError(t, err)

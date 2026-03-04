@@ -156,6 +156,12 @@ func TestCreateTeam(t *testing.T) {
 	t.Run("should override team name with server-generated ID when UseSecureURLs is enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
 
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
 		th.LoginBasic(t)
 
 		originalName := "originalname"
@@ -170,6 +176,17 @@ func TestCreateTeam(t *testing.T) {
 
 		// setting UseSecureURl to false should preserve team name
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
+
+		// setting license to something other than Enterprise Advanced should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		originalName = "original-name-2"
 		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)

@@ -12,7 +12,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getAllChannels, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
     getLatestInteractablePostId,
@@ -29,6 +29,7 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+import {isSecureURLEnabled} from 'selectors/config';
 
 import {resolveDisplayMentionsToSlugs} from 'utils/channel_mention_utils';
 import EmojiMap from 'utils/emoji_map';
@@ -72,8 +73,7 @@ export function submitPost(
         } as unknown as Post;
 
         // Resolve display-name channel mentions back to real slugs when secure URLs are enabled
-        const config = getConfig(state);
-        if (config.UseSecureURLs === 'true') {
+        if (isSecureURLEnabled(state)) {
             const allChannelsList = Object.values(getAllChannels(state));
             post.message = resolveDisplayMentionsToSlugs(post.message, allChannelsList);
         }

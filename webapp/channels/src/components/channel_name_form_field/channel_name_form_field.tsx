@@ -8,8 +8,9 @@ import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import {isSecureURLEnabled} from 'selectors/config';
 
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';
@@ -57,7 +58,7 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const config = useSelector(getConfig);
+    const useSecureURLs = useSelector(isSecureURLEnabled);
 
     // Track if the field has been interacted with
     const [hasInteracted, setHasInteracted] = useState(false);
@@ -186,7 +187,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.currentUrl]);
 
-    const showURLEditor = props.isEditingExistingChannel || config.UseSecureURLs === 'false';
+    const showURLEditor = props.isEditingExistingChannel || !useSecureURLs;
 
     return (
         <>
