@@ -4,11 +4,12 @@
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            <base href="{{.Props.Subpath}}">
             <title>{{.Props.Title}}</title>
             <style>
                 @font-face {
                     font-family: 'Metropolis';
-                    src: url("{{.Props.MetropolisFontURL}}") format('woff');
+                    src: url("static/fonts/Metropolis-SemiBold.woff") format('woff');
                     font-weight: 600;
                     font-style: normal;
                 }
@@ -23,7 +24,7 @@
                     display: flex;
                     flex-direction: column;
                     background-color: #F0F0F0;
-                    background-image: url("{{.Props.BackgroundImageURL}}");
+                    background-image: url("static/images/admin-onboarding-background.jpg");
                     background-size: cover;
                     background-position: center;
                     background-repeat: no-repeat;
@@ -129,26 +130,26 @@
                     font-style: normal;
                     font-weight: 400;
                     src:
-                        url("{{.Props.OpenSansRegularWoff2URL}}") format('woff2'),
-                        url("{{.Props.OpenSansRegularWoffURL}}") format('woff');
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff") format('woff');
                 }
                 @font-face {
                     font-family: 'Open Sans';
                     font-style: normal;
                     font-weight: 600;
                     src:
-                        url("{{.Props.OpenSans600Woff2URL}}") format('woff2'),
-                        url("{{.Props.OpenSans600WoffURL}}") format('woff');
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff") format('woff');
                 }
             </style>
         </head>
         <body>
             <header class="header">
-                <img class="logo" src="{{.Props.LogoURL}}" alt="{{.Props.SiteName}}" />
+                <img class="logo" src="static/images/logo.svg" alt="{{.Props.SiteName}}" />
             </header>
             <main class="main">
                 <div class="content">
-                    <img class="warning-icon" src="{{.Props.AlertIconURL}}" alt="" />
+                    <img class="warning-icon" src="static/images/alert.svg" alt="" />
                     <h1 class="title">{{.Props.Title}}</h1>
                     <div class="message">{{.Props.MessageString}}</div>
                     <div class="download-container">

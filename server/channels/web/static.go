@@ -85,10 +85,6 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg := c.App.Srv().Config()
 		subpath, _ := utils.GetSubpathFromConfig(cfg)
 
-		if subpath == "" {
-			subpath = "/"
-		}
-
 		data := renderUnsupportedDesktopApp(c.AppContext, cfg, currentVersion, subpath)
 		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", data)
 		if err != nil {
@@ -190,18 +186,14 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }
 
-func staticAssetURL(subpath string, assetPath ...string) string {
-	parts := append([]string{subpath, "static"}, assetPath...)
-	return path.Join(parts...)
-}
-
-func openSansFontProps(subpath string) map[string]any {
-	return map[string]any{
-		"OpenSansRegularWoff2URL": staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2"),
-		"OpenSansRegularWoffURL":  staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff"),
-		"OpenSans600Woff2URL":     staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2"),
-		"OpenSans600WoffURL":      staticAssetURL(subpath, "fonts", "open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff"),
+func ensureTrailingSlash(s string) string {
+	if s == "" {
+		return "/"
 	}
+	if !strings.HasSuffix(s, "/") {
+		return s + "/"
+	}
+	return s
 }
 
 func getOpenGraphMetaTags(c *Context) string {
