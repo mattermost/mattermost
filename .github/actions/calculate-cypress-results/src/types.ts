@@ -130,6 +130,7 @@ export interface CalculationResult {
     total: number;
     passRate: string;
     color: string;
+    testDuration: string;
 }
 
 export interface FailedTest {

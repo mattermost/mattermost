@@ -170,7 +170,6 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     dateComponent={SuggestionDate}
                     providers={suggestionProviders}
                     type='search'
-                    delayInputUpdate={true}
                     clearable={true}
                     onClear={props.handleClear}
                 />

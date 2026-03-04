@@ -19082,6 +19082,12 @@ function getColor(passRate) {
     return "#F44336";
   }
 }
+function formatDuration(ms) {
+  const totalSeconds = Math.round(ms / 1e3);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
 function calculateResultsFromSpecs(specs) {
   let passed = 0;
   let failed = 0;
@@ -19105,6 +19111,25 @@ function calculateResultsFromSpecs(specs) {
       }
     }
   }
+  let earliestStart = null;
+  let latestEnd = null;
+  for (const spec of specs) {
+    const { start, end } = spec.result.stats;
+    if (start) {
+      const startMs = new Date(start).getTime();
+      if (earliestStart === null || startMs < earliestStart) {
+        earliestStart = startMs;
+      }
+    }
+    if (end) {
+      const endMs = new Date(end).getTime();
+      if (latestEnd === null || endMs > latestEnd) {
+        latestEnd = endMs;
+      }
+    }
+  }
+  const testDurationMs = earliestStart !== null && latestEnd !== null ? latestEnd - earliestStart : 0;
+  const testDuration = formatDuration(testDurationMs);
   const totalSpecs = specs.length;
   const failedSpecs = Array.from(failedSpecsSet).join(",");
   const failedSpecsCount = failedSpecsSet.size;
@@ -19146,7 +19171,8 @@ function calculateResultsFromSpecs(specs) {
     failedTests,
     total,
     passRate,
-    color
+    color,
+    testDuration
   };
 }
 async function loadSpecFiles(resultsPath) {
@@ -19292,6 +19318,7 @@ async function run() {
   info(`Failed Specs Count: ${calc.failedSpecsCount}`);
   info(`Commit Status Message: ${calc.commitStatusMessage}`);
   info(`Failed Specs: ${calc.failedSpecs || "none"}`);
+  info(`Test Duration: ${calc.testDuration}`);
   endGroup();
   setOutput("merged", merged.toString());
   setOutput("passed", calc.passed);
@@ -19305,6 +19332,7 @@ async function run() {
   setOutput("total", calc.total);
   setOutput("pass_rate", calc.passRate);
   setOutput("color", calc.color);
+  setOutput("test_duration", calc.testDuration);
 }
 
 // src/index.ts

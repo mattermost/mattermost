@@ -900,6 +900,22 @@ func (s *TimerLayerAutoTranslationStore) GetLatestPostUpdateAtForChannel(channel
 	return result, err
 }
 
+func (s *TimerLayerAutoTranslationStore) GetTranslationsSinceForChannel(channelID string, dstLang string, since int64) (map[string]*model.Translation, error) {
+	start := time.Now()
+
+	result, err := s.AutoTranslationStore.GetTranslationsSinceForChannel(channelID, dstLang, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetTranslationsSinceForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 	start := time.Now()
 
@@ -7010,6 +7026,22 @@ func (s *TimerLayerPostStore) PermanentDelete(rctx request.CTX, postID string) e
 	return err
 }
 
+func (s *TimerLayerPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	start := time.Now()
+
+	err := s.PostStore.PermanentDeleteAssociatedData(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteAssociatedData", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := time.Now()
 
@@ -7502,6 +7534,22 @@ func (s *TimerLayerPostPriorityStore) GetForPost(postID string) (*model.PostPrio
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostPriorityStore) GetForPostWithContext(rctx request.CTX, postID string) (*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.GetForPostWithContext(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPostWithContext", success, elapsed)
 	}
 	return result, err
 }
@@ -11407,10 +11455,10 @@ func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFro
 	return result, err
 }
 
-func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx, lastPostId, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

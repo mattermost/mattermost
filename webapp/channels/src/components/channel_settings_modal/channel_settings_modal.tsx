@@ -68,12 +68,23 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     );
     const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
 
-    const channelTranslationEnabled = useSelector((state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true');
-    const permissionToCheck = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-    const canManageChannelTranslation = useSelector((state: GlobalState) => haveIChannelPermission(state, channel.team_id, channel.id, permissionToCheck));
+    const canManageChannelTranslation = useSelector((state: GlobalState) => {
+        const config = getConfig(state);
+        if (config?.EnableAutoTranslation !== 'true') {
+            return false;
+        }
+
+        const isDMorGM = channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+        if (isDMorGM && config?.RestrictDMAndGMAutotranslation === 'true') {
+            return false;
+        }
+
+        const permissionToCheck = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION : Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION;
+        return haveIChannelPermission(state, channel.team_id, channel.id, permissionToCheck);
+    });
 
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
-    const shouldShowConfigurationTab = canManageBanner || (channelTranslationEnabled && canManageChannelTranslation);
+    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -196,7 +207,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
-                canManageChannelTranslation={channelTranslationEnabled}
+                canManageChannelTranslation={canManageChannelTranslation}
                 canManageBanner={canManageBanner}
             />
         );
