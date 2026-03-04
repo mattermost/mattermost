@@ -340,33 +340,36 @@ const renderLicenseContent = (
 
     const users = <FormattedNumber value={parseInt(license.Users, 10)}/>;
     const activeUsers = <FormattedNumber value={statsActiveUsers}/>;
+    const startsDate = new Date(parseInt(license.StartsAt, 10));
     const startsAt = (
         <FormattedDate
-            value={new Date(parseInt(license.StartsAt, 10))}
+            value={startsDate}
             day='2-digit'
             month={getMonthLong(locale)}
             year='numeric'
         />
     );
+    const expiresDate = new Date(parseInt(license.ExpiresAt, 10));
     const expiresAt = (
         <FormattedDate
-            value={new Date(parseInt(license.ExpiresAt, 10))}
+            value={expiresDate}
             day='2-digit'
             month={getMonthLong(locale)}
             year='numeric'
         />
     );
 
+    const issuedDate = new Date(parseInt(license.IssuedAt, 10));
     const issued = (
         <>
             <FormattedDate
-                value={new Date(parseInt(license.IssuedAt, 10))}
+                value={issuedDate}
                 day='2-digit'
                 month={getMonthLong(locale)}
                 year='numeric'
             />
             {' '}
-            <FormattedTime value={new Date(parseInt(license.IssuedAt, 10))}/>
+            <FormattedTime value={issuedDate}/>
         </>
     );
 

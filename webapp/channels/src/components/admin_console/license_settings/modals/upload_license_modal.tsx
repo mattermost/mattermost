@@ -50,15 +50,16 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
     const locale = useSelector(getCurrentLocale);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.UPLOAD_LICENSE));
 
+    const {onExited} = props;
     const handleOnClose = useCallback(() => {
         if (isLoading) {
             return;
         }
-        if (props.onExited) {
-            props.onExited();
+        if (onExited) {
+            onExited();
         }
         dispatch(closeModal(ModalIdentifiers.UPLOAD_LICENSE));
-    }, [isLoading, props, dispatch]);
+    }, [isLoading, onExited, dispatch]);
 
     // Automatically preview the license when the modal opens with a file
     useEffect(() => {

@@ -136,7 +136,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
 };
 
 // Upgrade banners (comparison diff view)
-const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortName: string | undefined): BannerConfig | null => {
+const getUpgradeBanner = (newSkuShortName: string | undefined): BannerConfig | null => {
     const newSku = newSkuShortName?.toLowerCase();
 
     if (newSku === LicenseSkus.Enterprise) {
@@ -235,7 +235,7 @@ const getTransitionBanner = (currentSkuShortName: string | undefined, newSkuShor
     }
 
     if (newLevel > currentLevel) {
-        return getUpgradeBanner(currentSkuShortName, newSkuShortName);
+        return getUpgradeBanner(newSkuShortName);
     }
 
     return getDowngradeBanner(currentSkuShortName, newSkuShortName);
