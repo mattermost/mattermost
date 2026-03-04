@@ -9,6 +9,7 @@ import (
 	"maps"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -2873,4 +2874,68 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
+	permissionMap := map[string]bool{}
+	for _, p := range AllPermissions {
+		permissionMap[p.Id] = true
+	}
+
+	specialTags := map[string]bool{
+		ConfigAccessTagWriteRestrictable: true,
+		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagAnySysConsoleRead: true,
+	}
+
+	// Pre-existing tag issues tracked separately; skip to avoid blocking on known problems.
+	knownIssues := map[string]bool{
+		"Config.SqlSettings.ReplicaLagSettings.DataSource":       true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryAbsoluteLag": true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryTimeLag":     true,
+	}
+
+	var checkStruct func(t *testing.T, st reflect.Type, path string)
+	checkStruct = func(t *testing.T, st reflect.Type, path string) {
+		for i := 0; i < st.NumField(); i++ {
+			field := st.Field(i)
+			fieldPath := path + "." + field.Name
+
+			elemType := field.Type
+			if elemType.Kind() == reflect.Ptr || elemType.Kind() == reflect.Slice {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Ptr {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Struct {
+				checkStruct(t, elemType, fieldPath)
+				continue
+			}
+
+			accessTag := field.Tag.Get("access")
+			if accessTag == "" {
+				continue
+			}
+
+			if knownIssues[fieldPath] {
+				continue
+			}
+
+			for tagValue := range strings.SplitSeq(accessTag, ",") {
+				tagValue = strings.TrimSpace(tagValue)
+				if tagValue == "" || specialTags[tagValue] {
+					continue
+				}
+
+				readID := "sysconsole_read_" + tagValue
+				writeID := "sysconsole_write_" + tagValue
+				assert.True(t, permissionMap[readID] || permissionMap[writeID],
+					"Config field %s has access tag %q which does not map to any known permission (tried %s and %s)",
+					fieldPath, tagValue, readID, writeID)
+			}
+		}
+	}
+
+	checkStruct(t, reflect.TypeFor[Config](), "Config")
 }
