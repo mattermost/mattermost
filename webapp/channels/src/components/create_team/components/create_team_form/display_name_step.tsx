@@ -28,7 +28,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
             <label
                 role='alert'
                 className='control-label'
-                id='teamURLInputError'
+                id='teamNameInputError'
             >
                 {nameError}
             </label>

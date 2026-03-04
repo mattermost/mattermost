@@ -462,7 +462,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	useSecureURL := *api.app.Config().PrivacySettings.UseSecureURLs
-	if (channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) && useSecureURL {
+	if !channel.IsGroupOrDirect() && useSecureURL {
 		channel.Name = model.NewId()
 	}
 

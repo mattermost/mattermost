@@ -217,7 +217,7 @@ func TestCreateChannel(t *testing.T) {
 		require.True(t, model.IsValidId(createdChannel.Name))
 		require.Equal(t, "Secure URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
 
-		// setting UseSecureUrl to false should preserve names
+		// setting UseSecureURLs to false should preserve names
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
 
 		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
