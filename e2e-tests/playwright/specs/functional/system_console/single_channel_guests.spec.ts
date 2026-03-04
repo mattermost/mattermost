@@ -261,8 +261,8 @@ test(
 
         // # Check the current limit to see if overage is feasible
         const {data: initialLimits} = await adminClient.getServerLimits();
-        const limit = initialLimits.singleChannelGuestLimit;
-        const currentCount = initialLimits.singleChannelGuestCount;
+        const limit = initialLimits.singleChannelGuestLimit ?? 0;
+        const currentCount = initialLimits.singleChannelGuestCount ?? 0;
         const guestsNeeded = limit - currentCount + 1;
 
         // # Skip if the limit is too large to make this test practical
@@ -280,7 +280,14 @@ test(
             await adminClient.updateUserRoles(guest.id, 'system_guest');
             await adminClient.addToTeam(team.id, guest.id);
 
-            const channel = await adminClient.createChannel(pw.random.channel({teamId: team.id, unique: true}));
+            const channel = await adminClient.createChannel(
+                pw.random.channel({
+                    teamId: team.id,
+                    name: `scg-overage-${i}`,
+                    displayName: `SCG Overage ${i}`,
+                    unique: true,
+                }),
+            );
             await adminClient.addToChannel(guest.id, channel.id);
         }
 
