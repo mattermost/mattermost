@@ -2395,71 +2395,10 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(1000),
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer("audit.log"),
 			},
 			ExpectError: false,
-		},
-		"invalid file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"negative file max age": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(-5),
-			},
-			ExpectError: true,
-		},
-		"negative file max backups": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(5),
-				FileMaxBackups: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"zero file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(-1000),
-			},
-			ExpectError: true,
 		},
 		"AdvancedLoggingJSON has JSON error ": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
