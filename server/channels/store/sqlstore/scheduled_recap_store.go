@@ -120,8 +120,6 @@ func (s *SqlScheduledRecapStore) fromDB(dbSR *dbScheduledRecap) (*model.Schedule
 
 // Save inserts a new ScheduledRecap into the database.
 func (s *SqlScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
-	scheduledRecap.PreSave()
-
 	query := s.getQueryBuilder().
 		Insert("ScheduledRecaps").
 		SetMap(s.toMap(scheduledRecap))

@@ -5,14 +5,9 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import classNames from 'classnames';
 
-// Day-of-week bitmask constants (matching Go model and schedule_display.tsx)
-const Sunday = 1 << 0; // 1
-const Monday = 1 << 1; // 2
-const Tuesday = 1 << 2; // 4
-const Wednesday = 1 << 3; // 8
-const Thursday = 1 << 4; // 16
-const Friday = 1 << 5; // 32
-const Saturday = 1 << 6; // 64
+import {DaysOfWeek} from '@mattermost/types/recaps';
+
+const {Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday} = DaysOfWeek;
 
 type DayInfo = {
     bit: number;

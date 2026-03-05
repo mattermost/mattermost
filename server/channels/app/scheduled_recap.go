@@ -200,12 +200,6 @@ func (a *App) DeleteScheduledRecap(rctx request.CTX, id string) *model.AppError 
 
 // PauseScheduledRecap disables a scheduled recap without deleting it.
 func (a *App) PauseScheduledRecap(rctx request.CTX, id string) (*model.ScheduledRecap, *model.AppError) {
-	// Verify recap exists
-	_, err := a.Srv().Store().ScheduledRecap().Get(id)
-	if err != nil {
-		return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
 	// Disable the recap
 	if err := a.Srv().Store().ScheduledRecap().SetEnabled(id, false); err != nil {
 		return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.pause.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -223,7 +217,7 @@ func (a *App) PauseScheduledRecap(rctx request.CTX, id string) (*model.Scheduled
 // ResumeScheduledRecap enables a paused scheduled recap.
 // It recomputes NextRunAt before enabling to ensure the next run is in the future.
 func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.ScheduledRecap, *model.AppError) {
-	// Get existing recap
+	// Get existing recap to compute next run
 	recap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
 		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
@@ -235,20 +229,12 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.compute_next_run.app_error", nil, "", http.StatusBadRequest).Wrap(computeErr)
 	}
 
-	// Update NextRunAt
-	if err := a.Srv().Store().ScheduledRecap().UpdateNextRunAt(id, nextRunAt); err != nil {
-		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.update_next_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Enable the recap
-	if err := a.Srv().Store().ScheduledRecap().SetEnabled(id, true); err != nil {
-		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.resume.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Fetch and return updated recap
-	updatedRecap, err := a.Srv().Store().ScheduledRecap().Get(id)
-	if err != nil {
-		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Update NextRunAt, enable, and return in one update
+	recap.NextRunAt = nextRunAt
+	recap.Enabled = true
+	updatedRecap, updateErr := a.Srv().Store().ScheduledRecap().Update(recap)
+	if updateErr != nil {
+		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.resume.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 	}
 
 	return updatedRecap, nil

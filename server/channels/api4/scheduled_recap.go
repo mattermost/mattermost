@@ -12,6 +12,23 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+// requireScheduledRecapOwnership fetches a scheduled recap and verifies the current user owns it.
+// Returns the recap on success, or nil if c.Err was set.
+func requireScheduledRecapOwnership(c *Context) *model.ScheduledRecap {
+	recap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	if recap.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("requireScheduledRecapOwnership", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	return recap
+}
+
 func (api *API) InitScheduledRecap() {
 	api.BaseRoutes.ScheduledRecaps.Handle("", api.APISessionRequired(createScheduledRecap)).Methods(http.MethodPost)
 	api.BaseRoutes.ScheduledRecaps.Handle("", api.APISessionRequired(getScheduledRecaps)).Methods(http.MethodGet)
@@ -102,15 +119,8 @@ func getScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("scheduled_recap")
 	model.AddEventParameterToAuditRec(auditRec, "scheduled_recap_id", c.Params.ScheduledRecapId)
 
-	recap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Authorization check: user can only view their own recaps
-	if recap.UserId != c.AppContext.Session().UserId {
-		c.Err = model.NewAppError("getScheduledRecap", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+	recap := requireScheduledRecapOwnership(c)
+	if c.Err != nil {
 		return
 	}
 
@@ -169,16 +179,8 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Ensure ID matches URL param
 	recap.Id = c.Params.ScheduledRecapId
 
-	// Fetch existing recap to check ownership
-	existingRecap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Authorization check
-	if existingRecap.UserId != c.AppContext.Session().UserId {
-		c.Err = model.NewAppError("updateScheduledRecap", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+	existingRecap := requireScheduledRecapOwnership(c)
+	if c.Err != nil {
 		return
 	}
 
@@ -217,16 +219,8 @@ func deleteScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch existing recap to check ownership
-	existingRecap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Authorization check
-	if existingRecap.UserId != c.AppContext.Session().UserId {
-		c.Err = model.NewAppError("deleteScheduledRecap", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+	existingRecap := requireScheduledRecapOwnership(c)
+	if c.Err != nil {
 		return
 	}
 
@@ -256,16 +250,8 @@ func pauseScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch existing recap to check ownership
-	existingRecap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Authorization check
-	if existingRecap.UserId != c.AppContext.Session().UserId {
-		c.Err = model.NewAppError("pauseScheduledRecap", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+	existingRecap := requireScheduledRecapOwnership(c)
+	if c.Err != nil {
 		return
 	}
 
@@ -300,16 +286,8 @@ func resumeScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch existing recap to check ownership
-	existingRecap, err := c.App.GetScheduledRecap(c.AppContext, c.Params.ScheduledRecapId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Authorization check
-	if existingRecap.UserId != c.AppContext.Session().UserId {
-		c.Err = model.NewAppError("resumeScheduledRecap", "api.scheduled_recap.permission_denied", nil, "", http.StatusForbidden)
+	existingRecap := requireScheduledRecapOwnership(c)
+	if c.Err != nil {
 		return
 	}
 

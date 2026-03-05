@@ -30,6 +30,25 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		return cfg.FeatureFlags.EnableAIRecaps
 	}
 
+	// advanceSchedule computes the next run time and marks the scheduled recap as executed.
+	// If the next run time can't be computed, the recap is disabled.
+	advanceSchedule := func(logger mlog.LoggerIFace, sr *model.ScheduledRecap) {
+		nextRunAt, computeErr := sr.ComputeNextRunAt(time.Now())
+		if computeErr != nil {
+			logger.Error("Failed to compute next run time",
+				mlog.String("scheduled_recap_id", sr.Id),
+				mlog.Err(computeErr))
+			_ = storeInstance.ScheduledRecap().SetEnabled(sr.Id, false)
+			return
+		}
+
+		if markErr := storeInstance.ScheduledRecap().MarkExecuted(sr.Id, model.GetMillis(), nextRunAt); markErr != nil {
+			logger.Error("Failed to mark as executed",
+				mlog.String("scheduled_recap_id", sr.Id),
+				mlog.Err(markErr))
+		}
+	}
+
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
 
@@ -90,7 +109,6 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 
 				if _, saveErr := storeInstance.Recap().SaveRecap(skippedRecap); saveErr != nil {
 					logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
-					// Continue anyway - don't fail the job entirely
 				}
 
 				logger.Info("Scheduled recap skipped due to daily limit",
@@ -99,24 +117,8 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 					mlog.Int("daily_count", int(count)),
 					mlog.Int("limit", limits.MaxRecapsPerDay))
 
-				// Update next run time so scheduler moves on
-				nextNow := time.Now()
-				nextRunAt, computeErr := sr.ComputeNextRunAt(nextNow)
-				if computeErr != nil {
-					logger.Error("Failed to compute next run time for skipped recap",
-						mlog.String("scheduled_recap_id", scheduledRecapID),
-						mlog.Err(computeErr))
-					_ = storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false)
-					return nil
-				}
-				lastRunAt := model.GetMillis()
-				if markErr := storeInstance.ScheduledRecap().MarkExecuted(scheduledRecapID, lastRunAt, nextRunAt); markErr != nil {
-					logger.Error("Failed to mark skipped as executed",
-						mlog.String("scheduled_recap_id", scheduledRecapID),
-						mlog.Err(markErr))
-				}
-
-				return nil // Skip execution, not an error
+				advanceSchedule(logger, sr)
+				return nil
 			}
 		}
 
@@ -127,23 +129,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 			return fmt.Errorf("failed to create recap from schedule: %w", appErr)
 		}
 
-		// Compute next run time
-		now := time.Now()
-		nextRunAt, computeErr := sr.ComputeNextRunAt(now)
-		if computeErr != nil {
-			logger.Error("Failed to compute next run time",
-				mlog.String("scheduled_recap_id", scheduledRecapID),
-				mlog.Err(computeErr))
-			// Disable if can't compute next run
-			_ = storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false)
-			return nil
-		}
-
-		// Update scheduled recap state atomically
-		lastRunAt := model.GetMillis()
-		if markErr := storeInstance.ScheduledRecap().MarkExecuted(scheduledRecapID, lastRunAt, nextRunAt); markErr != nil {
-			return fmt.Errorf("failed to mark executed: %w", markErr)
-		}
+		advanceSchedule(logger, sr)
 
 		// Handle non-recurring schedules
 		if !sr.IsRecurring {
@@ -153,8 +139,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		}
 
 		logger.Info("Scheduled recap executed successfully",
-			mlog.String("scheduled_recap_id", scheduledRecapID),
-			mlog.Int("next_run_at", int(nextRunAt)))
+			mlog.String("scheduled_recap_id", scheduledRecapID))
 
 		return nil
 	}

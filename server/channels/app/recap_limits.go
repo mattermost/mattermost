@@ -73,25 +73,14 @@ func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *m
 		SourceID: "",
 	}
 
-	// Apply system defaults from config
-	if settings.DefaultLimits != nil {
-		limits.MaxRecapsPerDay = getValueOrDefault(settings.DefaultLimits.MaxRecapsPerDay, 10)
-		limits.MaxScheduledRecaps = getValueOrDefault(settings.DefaultLimits.MaxScheduledRecaps, 5)
-		limits.MaxChannelsPerRecap = getValueOrDefault(settings.DefaultLimits.MaxChannelsPerRecap, -1)
-		limits.MaxPostsPerRecap = getValueOrDefault(settings.DefaultLimits.MaxPostsPerRecap, 500)
-		limits.MaxTokensPerRecap = getValueOrDefault(settings.DefaultLimits.MaxTokensPerRecap, 100000)
-		limits.MaxPostsPerDay = getValueOrDefault(settings.DefaultLimits.MaxPostsPerDay, 5000)
-		limits.CooldownMinutes = getValueOrDefault(settings.DefaultLimits.CooldownMinutes, 60)
-	} else {
-		// Hardcoded fallback if DefaultLimits somehow nil
-		limits.MaxRecapsPerDay = 10
-		limits.MaxScheduledRecaps = 5
-		limits.MaxChannelsPerRecap = -1
-		limits.MaxPostsPerRecap = 500
-		limits.MaxTokensPerRecap = 100000
-		limits.MaxPostsPerDay = 5000
-		limits.CooldownMinutes = 60
-	}
+	// Apply system defaults from config (SetDefaults guarantees DefaultLimits is non-nil)
+	limits.MaxRecapsPerDay = getValueOrDefault(settings.DefaultLimits.MaxRecapsPerDay, 10)
+	limits.MaxScheduledRecaps = getValueOrDefault(settings.DefaultLimits.MaxScheduledRecaps, 5)
+	limits.MaxChannelsPerRecap = getValueOrDefault(settings.DefaultLimits.MaxChannelsPerRecap, -1)
+	limits.MaxPostsPerRecap = getValueOrDefault(settings.DefaultLimits.MaxPostsPerRecap, 500)
+	limits.MaxTokensPerRecap = getValueOrDefault(settings.DefaultLimits.MaxTokensPerRecap, 100000)
+	limits.MaxPostsPerDay = getValueOrDefault(settings.DefaultLimits.MaxPostsPerDay, 5000)
+	limits.CooldownMinutes = getValueOrDefault(settings.DefaultLimits.CooldownMinutes, 60)
 
 	// Apply per-limit enforcement toggles
 	// When a toggle is disabled, set limit to -1 (unlimited)

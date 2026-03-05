@@ -3,18 +3,9 @@
 
 import {useIntl} from 'react-intl';
 
-// Day-of-week bitmask constants (matching Go model)
-const Sunday = 1 << 0; // 1
-const Monday = 1 << 1; // 2
-const Tuesday = 1 << 2; // 4
-const Wednesday = 1 << 3; // 8
-const Thursday = 1 << 4; // 16
-const Friday = 1 << 5; // 32
-const Saturday = 1 << 6; // 64
+import {DaysOfWeek, Weekdays, Weekend, EveryDay} from '@mattermost/types/recaps';
 
-const Weekdays = Monday | Tuesday | Wednesday | Thursday | Friday; // 62
-const Weekend = Saturday | Sunday; // 65
-const EveryDay = Weekdays | Weekend; // 127
+const {Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday} = DaysOfWeek;
 
 type DayInfo = {
     bit: number;
@@ -83,19 +74,25 @@ export function useScheduleDisplay() {
         const now = new Date();
         const diffDays = Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
+        const timeStr = formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
         let dateStr: string;
         if (diffDays <= 0) {
-            // Today
-            dateStr = formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
+            dateStr = timeStr;
         } else if (diffDays === 1) {
-            // Tomorrow
-            dateStr = `Tomorrow at ${formatTime(nextDate, {hour: 'numeric', minute: '2-digit'})}`;
+            dateStr = formatMessage(
+                {id: 'recaps.nextRun.tomorrow', defaultMessage: 'Tomorrow at {time}'},
+                {time: timeStr},
+            );
         } else if (diffDays <= 7) {
-            // Within a week - show day name
-            dateStr = formatDate(nextDate, {weekday: 'long'}) + ' at ' + formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
+            dateStr = formatMessage(
+                {id: 'recaps.nextRun.dayAt', defaultMessage: '{day} at {time}'},
+                {day: formatDate(nextDate, {weekday: 'long'}), time: timeStr},
+            );
         } else {
-            // Beyond a week - show date
-            dateStr = formatDate(nextDate, {month: 'short', day: 'numeric'}) + ' at ' + formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
+            dateStr = formatMessage(
+                {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
+                {date: formatDate(nextDate, {month: 'short', day: 'numeric'}), time: timeStr},
+            );
         }
 
         return formatMessage(

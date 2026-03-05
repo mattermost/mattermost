@@ -39,6 +39,21 @@ export enum RecapStatus {
     FAILED = 'failed',
 }
 
+// Day-of-week bitmask constants (matching Go model)
+export const DaysOfWeek = {
+    Sunday: 1 << 0,    // 1
+    Monday: 1 << 1,    // 2
+    Tuesday: 1 << 2,   // 4
+    Wednesday: 1 << 3, // 8
+    Thursday: 1 << 4,  // 16
+    Friday: 1 << 5,    // 32
+    Saturday: 1 << 6,  // 64
+} as const;
+
+export const Weekdays = DaysOfWeek.Monday | DaysOfWeek.Tuesday | DaysOfWeek.Wednesday | DaysOfWeek.Thursday | DaysOfWeek.Friday; // 62
+export const Weekend = DaysOfWeek.Saturday | DaysOfWeek.Sunday; // 65
+export const EveryDay = Weekdays | Weekend; // 127
+
 export type ScheduledRecap = {
     id: string;
     user_id: string;
