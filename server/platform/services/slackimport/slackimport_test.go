@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -823,8 +822,8 @@ func TestSlackAddUsersLogContainsProperUserCreationMessage(t *testing.T) {
 	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
 
 	logOutput := importerLog.String()
-	assert.Contains(t, logOutput, i18n.T("api.slackimport.slack_add_users.email", map[string]any{"Email": "testuser@example.com"}), "import log should contain the user creation message")
-	assert.NotContains(t, logOutput, i18n.T("api.slackimport.slack_add_users.email_pwd"), "import log must not use the old user creation message")
+	assert.Contains(t, logOutput, "api.slackimport.slack_add_users.email", "import log should contain the user creation message")
+	assert.NotContains(t, logOutput, "api.slackimport.slack_add_users.email_pwd", "import log must not use the old user creation message")
 }
 
 func TestSlackAddUsersLogsSendResetEmailFailure(t *testing.T) {
@@ -840,11 +839,7 @@ func TestSlackAddUsersLogsSendResetEmailFailure(t *testing.T) {
 	importerLog := new(bytes.Buffer)
 	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
 
-	expected := i18n.T("api.slackimport.slack_add_users.send_reset_email_failed", map[string]any{
-		"Username": "testuser",
-		"Email":    "testuser@example.com",
-	})
-	assert.Contains(t, importerLog.String(), expected)
+	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.send_reset_email_failed")
 }
 
 func TestSlackAddUsersGeneratesUserWithEmptyPassword(t *testing.T) {
