@@ -2160,6 +2160,19 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadAiRecaps = &Permission{
+		"sysconsole_read_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteAiRecaps = &Permission{
+		"sysconsole_write_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PermissionCreateCustomGroup = &Permission{
 		"create_custom_group",
 		"authentication.permissions.create_custom_group.name",
@@ -2385,6 +2398,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadProductsBoards,
 		PermissionSysconsoleReadIPFilters,
+		PermissionSysconsoleReadAiRecaps,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2444,6 +2458,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteProductsBoards,
 		PermissionSysconsoleWriteIPFilters,
+		PermissionSysconsoleWriteAiRecaps,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{

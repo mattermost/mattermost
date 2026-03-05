@@ -121,6 +121,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             setTimePeriod(editScheduledRecap.time_period);
             setCustomInstructions(editScheduledRecap.custom_instructions || '');
             setSelectedBotId(editScheduledRecap.agent_id);
+
             // Don't set runOnce in edit mode - it's always a scheduled recap
         }
     }, [editScheduledRecap]);
@@ -226,9 +227,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 is_recurring: true,
             };
 
-            const result = isEditMode && editScheduledRecap
-                ? await dispatch(updateScheduledRecap(editScheduledRecap.id, input))
-                : await dispatch(createScheduledRecap(input));
+            const result = isEditMode && editScheduledRecap ?
+                await dispatch(updateScheduledRecap(editScheduledRecap.id, input)) :
+                await dispatch(createScheduledRecap(input));
 
             if (result.error) {
                 setError(result.error.message || formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
@@ -271,9 +272,11 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 if (isBlocked) {
                     return false;
                 }
+
                 // Run once summary step
                 return selectedChannelIds.length > 0 && selectedBotId.length > 0;
             }
+
             // Schedule configuration step
             return daysOfWeek > 0 && timeOfDay.length > 0 && timePeriod.length > 0;
         }
@@ -285,6 +288,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             // Run once: same as current behavior
             return recapType === 'all_unreads' ? 2 : 3;
         }
+
         // Scheduled: always 3 steps (config -> channels/confirmation -> schedule)
         return 3;
     };
@@ -297,10 +301,14 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             }
             return currentStep;
         }
+
         // Scheduled: always shows 3 steps
         // For all_unreads, step 3 shows schedule (not channel selector)
         if (recapType === 'all_unreads') {
-            return currentStep === 1 ? 1 : currentStep === 3 ? 2 : currentStep;
+            if (currentStep === 1) {
+                return 1;
+            }
+            return currentStep === 3 ? 2 : currentStep;
         }
         return currentStep;
     };
@@ -396,9 +404,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const headerText = (
         <div className='create-recap-modal-header'>
             <span>
-                {isEditMode
-                    ? formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'})
-                    : formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
+                {isEditMode ?
+                    formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'}) :
+                    formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
                 }
             </span>
             <div className='create-recap-modal-header-actions'>

@@ -41,13 +41,13 @@ export enum RecapStatus {
 
 // Day-of-week bitmask constants (matching Go model)
 export const DaysOfWeek = {
-    Sunday: 1 << 0,    // 1
-    Monday: 1 << 1,    // 2
-    Tuesday: 1 << 2,   // 4
+    Sunday: 1 << 0, // 1
+    Monday: 1 << 1, // 2
+    Tuesday: 1 << 2, // 4
     Wednesday: 1 << 3, // 8
-    Thursday: 1 << 4,  // 16
-    Friday: 1 << 5,    // 32
-    Saturday: 1 << 6,  // 64
+    Thursday: 1 << 4, // 16
+    Friday: 1 << 5, // 32
+    Saturday: 1 << 6, // 64
 } as const;
 
 export const Weekdays = DaysOfWeek.Monday | DaysOfWeek.Tuesday | DaysOfWeek.Wednesday | DaysOfWeek.Thursday | DaysOfWeek.Friday; // 62
@@ -60,19 +60,19 @@ export type ScheduledRecap = {
     title: string;
 
     // Schedule configuration
-    days_of_week: number;      // Bitmask: Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64
-    time_of_day: string;       // HH:MM format
-    timezone: string;          // IANA timezone
-    time_period: string;       // "last_24h" | "last_week" | "since_last_read"
+    days_of_week: number; // Bitmask: Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64
+    time_of_day: string; // HH:MM format
+    timezone: string; // IANA timezone
+    time_period: string; // "last_24h" | "last_week" | "since_last_read"
 
     // Schedule state
-    next_run_at: number;       // UTC milliseconds
-    last_run_at: number;       // UTC milliseconds
+    next_run_at: number; // UTC milliseconds
+    last_run_at: number; // UTC milliseconds
     run_count: number;
 
     // Channel configuration
-    channel_mode: string;      // "specific" | "all_unreads"
-    channel_ids?: string[];    // Present when mode = "specific"
+    channel_mode: string; // "specific" | "all_unreads"
+    channel_ids?: string[]; // Present when mode = "specific"
 
     // AI configuration
     custom_instructions?: string;

@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 import {
     useFloating,
@@ -14,6 +13,9 @@ import {
     useInteractions,
     FloatingPortal,
 } from '@floating-ui/react';
+import React, {useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
 
@@ -68,9 +70,9 @@ const RecapUsageBadge = () => {
     }
 
     // Format badge text
-    const badgeText = isUnlimited
-        ? `${daily.used}`
-        : `${daily.used}/${daily.limit}`;
+    const badgeText = isUnlimited ?
+        `${daily.used}` :
+        `${daily.used}/${daily.limit}`;
 
     // Format reset time (midnight in user timezone)
     const resetTime = new Date(daily.reset_at);
@@ -80,17 +82,17 @@ const RecapUsageBadge = () => {
     });
 
     // Format cooldown available time
-    const cooldownTime = cooldown.is_active
-        ? new Date(cooldown.available_at)
-        : null;
-    const formattedCooldownTime = cooldownTime
-        ? formatTime(cooldownTime, {hour: 'numeric', minute: '2-digit'})
-        : null;
+    const cooldownTime = cooldown.is_active ?
+        new Date(cooldown.available_at) :
+        null;
+    const formattedCooldownTime = cooldownTime ?
+        formatTime(cooldownTime, {hour: 'numeric', minute: '2-digit'}) :
+        null;
 
     // Calculate relative cooldown time
-    const cooldownRelative = cooldown.is_active
-        ? formatCooldownRelative(cooldown.retry_after_seconds, formatMessage)
-        : null;
+    const cooldownRelative = cooldown.is_active ?
+        formatCooldownRelative(cooldown.retry_after_seconds, formatMessage) :
+        null;
 
     return (
         <>
@@ -193,7 +195,7 @@ const RecapUsageBadge = () => {
 // Helper to format cooldown as relative time
 function formatCooldownRelative(
     seconds: number,
-    formatMessage: ReturnType<typeof useIntl>['formatMessage']
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
 ): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -201,12 +203,12 @@ function formatCooldownRelative(
     if (hours > 0) {
         return formatMessage(
             {id: 'recaps.cooldown.hoursMinutes', defaultMessage: '~{hours}h {minutes}m'},
-            {hours, minutes}
+            {hours, minutes},
         );
     }
     return formatMessage(
         {id: 'recaps.cooldown.minutes', defaultMessage: '~{minutes}m'},
-        {minutes: Math.max(1, minutes)}
+        {minutes: Math.max(1, minutes)},
     );
 }
 

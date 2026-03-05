@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
 import {DaysOfWeek} from '@mattermost/types/recaps';
 
@@ -40,6 +40,7 @@ const DayOfWeekSelector = ({value, onChange, disabled, error}: Props) => {
         if (disabled) {
             return;
         }
+
         // XOR to toggle the bit
         onChange(value ^ dayBit);
     };
