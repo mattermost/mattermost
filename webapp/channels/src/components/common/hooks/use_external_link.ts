@@ -32,12 +32,7 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
             return [href, {}];
         }
 
-        let parsedUrl: URL;
-        try {
-            parsedUrl = new URL(href);
-        } catch {
-            return [href, {}];
-        }
+        const parsedUrl = new URL(href);
 
         // Determine edition type (enterprise vs team)
         const isEnterpriseReady = config?.BuildEnterpriseReady === 'true';
