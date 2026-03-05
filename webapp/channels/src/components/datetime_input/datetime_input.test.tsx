@@ -193,11 +193,11 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
 
-        test('should allow past dates and all times when allowPastDates is true', () => {
+        test('should show all times when no minDate is set', () => {
             // Test the core time generation logic directly
             const selectedDate = moment('2025-06-08T15:00:00Z'); // 3 PM
 
-            // When allowPastDates=true, time intervals should start from beginning of day
+            // When no minDate, time intervals should start from beginning of day
             const timeOptions = getTimeInIntervals(selectedDate.clone().startOf('day'), 30);
 
             // Should include times from start of day (midnight)
@@ -209,12 +209,12 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(timeOptions.length).toBe(48); // 24 hours * 2 (30-min intervals)
         });
 
-        test('should restrict past dates and times when allowPastDates is false (default)', () => {
+        test('should restrict times when minDate is set to today', () => {
             // Test the core time generation logic for restricted past times
             const currentTime = moment('2025-06-08T15:30:00Z'); // 3:30 PM
             const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
 
-            // When allowPastDates=false and selecting today, time options should start from current time
+            // When minDate is today, time options should start from minDate's time
             const timeOptions = getTimeInIntervals(roundedTime, 30);
 
             // Should NOT include times before current time (no midnight options)
@@ -348,11 +348,9 @@ describe('components/datetime_input/DateTimeInput', () => {
         const baseRangeProps = {
             time: null,
             handleChange: jest.fn(),
-            allowPastDates: true,
             timezone: 'UTC',
             rangeConfig: {
                 rangeValue: {from: null, to: null},
-                isStartField: true,
                 onRangeChange: onRangeChangeMock,
                 allowSingleDayRange: false,
             },
@@ -444,52 +442,16 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(endDate).toBeNull();
         });
 
-        test('should toggle start date disabled state when allowSingleDayRange changes', async () => {
-            const rangeValue = {from: dayMoment(15), to: null};
-
-            const {rerender} = renderWithContext(
-                <DateTimeInput
-                    {...baseRangeProps}
-                    rangeConfig={{
-                        ...baseRangeProps.rangeConfig,
-                        rangeValue,
-                        isStartField: false,
-                        allowSingleDayRange: false,
-                    }}
-                />,
-            );
-
-            const dateButton = screen.getByText('Date').closest('.date-time-input');
-            await userEvent.click(dateButton!);
-
-            // Day 15 should be disabled (same-day not allowed)
-            expect(screen.getByText('15').closest('button')).toBeDisabled();
-
-            rerender(
-                <DateTimeInput
-                    {...baseRangeProps}
-                    rangeConfig={{
-                        ...baseRangeProps.rangeConfig,
-                        rangeValue,
-                        isStartField: false,
-                        allowSingleDayRange: true,
-                    }}
-                />,
-            );
-
-            // Day 15 should now be enabled
-            expect(screen.getByText('15').closest('button')).not.toBeDisabled();
-        });
-
-        test('should disable dates before start when isStartField is false', async () => {
+        test('should disable dates before minDate', async () => {
+            // minDate is day 16 (day after start on day 15, same-day not allowed)
+            const minDate = new Date(year, month, 16);
             renderWithContext(
                 <DateTimeInput
                     {...baseRangeProps}
+                    minDate={minDate}
                     rangeConfig={{
                         ...baseRangeProps.rangeConfig,
                         rangeValue: {from: dayMoment(15), to: null},
-                        isStartField: false,
-                        allowSingleDayRange: false,
                     }}
                 />,
             );
@@ -497,44 +459,26 @@ describe('components/datetime_input/DateTimeInput', () => {
             const dateButton = screen.getByText('Date').closest('.date-time-input');
             await userEvent.click(dateButton!);
 
-            // Day 14 should be disabled (before start)
+            // Day 14 should be disabled (before minDate)
             expect(screen.getByText('14').closest('button')).toBeDisabled();
 
-            // Day 16 should be enabled (after start)
-            expect(screen.getByText('16').closest('button')).not.toBeDisabled();
-        });
-
-        test('should disable start date when allowSingleDayRange is false', async () => {
-            renderWithContext(
-                <DateTimeInput
-                    {...baseRangeProps}
-                    rangeConfig={{
-                        ...baseRangeProps.rangeConfig,
-                        rangeValue: {from: dayMoment(15), to: null},
-                        isStartField: false,
-                        allowSingleDayRange: false,
-                    }}
-                />,
-            );
-
-            const dateButton = screen.getByText('Date').closest('.date-time-input');
-            await userEvent.click(dateButton!);
-
-            // Day 15 (start) should be disabled when same-day not allowed
+            // Day 15 should be disabled (before minDate of 16)
             expect(screen.getByText('15').closest('button')).toBeDisabled();
 
-            // Day 16 should be the first enabled day
+            // Day 16 should be enabled (= minDate)
             expect(screen.getByText('16').closest('button')).not.toBeDisabled();
         });
 
-        test('should allow selecting start date when allowSingleDayRange is true', async () => {
+        test('should allow start date when minDate includes it (allowSingleDayRange)', async () => {
+            // minDate is day 15 (same as start, same-day range allowed)
+            const minDate = new Date(year, month, 15);
             renderWithContext(
                 <DateTimeInput
                     {...baseRangeProps}
+                    minDate={minDate}
                     rangeConfig={{
                         ...baseRangeProps.rangeConfig,
                         rangeValue: {from: dayMoment(15), to: null},
-                        isStartField: false,
                         allowSingleDayRange: true,
                     }}
                 />,
@@ -543,10 +487,10 @@ describe('components/datetime_input/DateTimeInput', () => {
             const dateButton = screen.getByText('Date').closest('.date-time-input');
             await userEvent.click(dateButton!);
 
-            // Day 15 (start) should be enabled when same-day range allowed
+            // Day 15 should be enabled (= minDate, same-day allowed)
             expect(screen.getByText('15').closest('button')).not.toBeDisabled();
 
-            // Day 14 (before start) should still be disabled
+            // Day 14 should be disabled (before minDate)
             expect(screen.getByText('14').closest('button')).toBeDisabled();
         });
     });

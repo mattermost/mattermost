@@ -209,7 +209,7 @@ type Props = {
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
-    allowPastDates?: boolean;
+    minDate?: Date; // Earliest selectable date; undefined = no restriction
     rangeConfig?: RangeConfig;
     allowManualTimeEntry?: boolean;
 }
@@ -221,7 +221,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     setIsInteracting,
     relativeDate,
     timePickerInterval,
-    allowPastDates = false,
+    minDate,
     rangeConfig,
     allowManualTimeEntry = false,
 }: Props) => {
@@ -285,16 +285,18 @@ const DateTimeInputContainer: React.FC<Props> = ({
         // Use clone() to preserve timezone information
         let startTime = timeForOptions.clone().startOf('day');
 
-        // For form fields (allowPastDates=true), always start from beginning of day
-        // For scheduling (allowPastDates=false), restrict to current time if today
-        if (!allowPastDates && currentTime.isSame(timeForOptions, 'date')) {
-            startTime = getRoundedTime(currentTime, timePickerInterval);
+        // If minDate is set and we're on the same day, restrict time options
+        if (minDate) {
+            const minMoment = timezone ? moment(minDate).tz(timezone, true) : moment(minDate);
+            if (minMoment.isSame(timeForOptions, 'date')) {
+                startTime = getRoundedTime(minMoment, timePickerInterval);
+            }
         }
 
         setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
     };
 
-    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone]);
+    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, minDate, timezone]);
 
     // Auto-round time to interval boundary when not using manual entry
     useEffect(() => {
@@ -307,10 +309,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
     }, [time, allowManualTimeEntry, timePickerInterval, handleChange]);
 
     // Range calendar logic (no-ops when rangeConfig is undefined)
-    const {rangeDatePickerProps, disabledDays} = useRangeDatePicker({
+    const {rangeDatePickerProps} = useRangeDatePicker({
         rangeConfig,
-        allowPastDates,
-        currentTime,
         displayTime,
         isPopperOpen,
         handlePopperOpenState,
@@ -332,7 +332,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+            if (minDate && isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
@@ -388,7 +388,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         selected: momentToLocalDate(displayTime),
         defaultMonth: momentToLocalDate(displayTime) || new Date(),
         onDayClick: handleDayChange,
-        disabled: disabledDays,
+        disabled: minDate ? {before: minDate} : undefined,
         showOutsideDays: true,
     };
 

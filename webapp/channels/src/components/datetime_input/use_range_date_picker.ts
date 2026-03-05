@@ -2,22 +2,19 @@
 // See LICENSE.txt for license information.
 
 import type {Moment} from 'moment-timezone';
-import {useCallback, useMemo} from 'react';
-import type {DateRange, DayPickerProps, Matcher} from 'react-day-picker';
+import {useCallback} from 'react';
+import type {DateRange, DayPickerProps} from 'react-day-picker';
 
 import {isSameDay, momentToLocalDate} from 'utils/date_utils';
 
 export type RangeConfig = {
     rangeValue: {from?: Moment | null; to?: Moment | null};
-    isStartField: boolean;
     onRangeChange: (start: Date, end: Date | null) => void;
     allowSingleDayRange: boolean;
 };
 
 type UseRangeDatePickerArgs = {
     rangeConfig?: RangeConfig;
-    allowPastDates: boolean;
-    currentTime: Moment;
     displayTime: Moment | null;
     isPopperOpen: boolean;
     handlePopperOpenState: (isOpen: boolean) => void;
@@ -25,19 +22,15 @@ type UseRangeDatePickerArgs = {
 
 type UseRangeDatePickerResult = {
     rangeDatePickerProps: DayPickerProps | null;
-    disabledDays: Matcher[] | undefined;
 };
 
 export function useRangeDatePicker({
     rangeConfig,
-    allowPastDates,
-    currentTime,
     displayTime,
     isPopperOpen,
     handlePopperOpenState,
 }: UseRangeDatePickerArgs): UseRangeDatePickerResult {
     const rangeValue = rangeConfig?.rangeValue;
-    const isStartField = rangeConfig?.isStartField ?? false;
     const onRangeChange = rangeConfig?.onRangeChange;
     const allowSingleDayRange = rangeConfig?.allowSingleDayRange ?? false;
     const rangeMode = Boolean(rangeConfig);
@@ -89,38 +82,6 @@ export function useRangeDatePicker({
         }
     }, [rangeValue, onRangeChange]);
 
-    // Stable "today" value — only changes when the calendar date changes,
-    // not on every render like currentTime (which is a new moment object each render).
-    const todayDateString = currentTime.format('YYYY-MM-DD');
-
-    // Compute disabled days (unified for both range and single modes)
-    const disabledDays = useMemo(() => {
-        const disabled: Matcher[] = [];
-
-        if (rangeMode && !isStartField && rangeValue?.from) {
-            // End field: disable dates before start
-            const startDate = rangeValue.from.toDate();
-            const startYear = startDate.getFullYear();
-            const startMonth = startDate.getMonth();
-            const startDay = startDate.getDate();
-            const startOfDay = new Date(startYear, startMonth, startDay);
-
-            if (allowSingleDayRange) {
-                disabled.push({before: startOfDay});
-            } else {
-                const dayAfterStart = new Date(startYear, startMonth, startDay + 1);
-                disabled.push({before: dayAfterStart});
-            }
-        }
-
-        if (!allowPastDates) {
-            const [year, month, day] = todayDateString.split('-').map(Number);
-            disabled.push({before: new Date(year, month - 1, day)});
-        }
-
-        return disabled.length > 0 ? disabled : undefined;
-    }, [rangeMode, isStartField, rangeValue, allowPastDates, todayDateString, allowSingleDayRange]);
-
     // Build range-mode datePickerProps (null when not in range mode)
     const rangeDatePickerProps: DayPickerProps | null = rangeMode ? {
         initialFocus: isPopperOpen,
@@ -132,9 +93,8 @@ export function useRangeDatePicker({
         defaultMonth: momentToLocalDate(displayTime) || new Date(),
         onSelect: handleRangeSelect,
         onDayClick: handleRangeDayClick,
-        disabled: disabledDays,
         showOutsideDays: true,
     } : null;
 
-    return {rangeDatePickerProps, disabledDays};
+    return {rangeDatePickerProps};
 }
