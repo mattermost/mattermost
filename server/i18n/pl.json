@@ -11894,5 +11894,45 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
     "translation": "{{.Searching}} ustawienie musi mieć wartość true, gdy {{.EnableCJKAnalyzers}} ma wartość true"
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Wtyczka przekroczyła limit czasu"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Pobieranie pliku odrzucone przez wtyczkę"
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Pobieranie podglądu plików odrzucone przez wtyczkę"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Pobieranie miniatury pliku odrzucone przez wtyczkę"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Pobieranie plików publicznych odrzucone przez wtyczkę"
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Nie można uzyskać priorytetu postu z kontekstem"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Wiadomość jest wymagana"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Wymagany jest identyfikator użytkownika"
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Nie można dodać zadania tłumaczenia, ponieważ worker został zatrzymany."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "Lista dozwolonych URI przekierowania DCR zawiera nieprawidłowy wzorzec. Wzorce muszą zaczynać się od http:// lub https:// i nie mogą być puste ani zawierać białych znaków."
   }
 ]
