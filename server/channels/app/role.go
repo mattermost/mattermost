@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"slices"
@@ -333,7 +334,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			}
 		}
 	default:
-		publishEvent("", "")
+		return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.unknown_scope", nil, fmt.Sprintf("unknown scheme scope: %s", scheme.Scope), http.StatusInternalServerError)
 	}
 	return nil
 }

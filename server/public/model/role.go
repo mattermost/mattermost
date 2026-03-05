@@ -433,6 +433,7 @@ func (r *Role) Auditable() map[string]any {
 		"permissions":    r.Permissions,
 		"scheme_managed": r.SchemeManaged,
 		"built_in":       r.BuiltIn,
+		"scheme_id":      r.SchemeId,
 	}
 }
 
@@ -453,6 +454,7 @@ func (r *Role) MarshalYAML() (any, error) {
 		Permissions   []string `yaml:"permissions"`
 		SchemeManaged bool     `yaml:"scheme_managed"`
 		BuiltIn       bool     `yaml:"built_in"`
+		SchemeId      *string  `yaml:"scheme_id"`
 	}{
 		Id:            r.Id,
 		Name:          r.Name,
@@ -464,6 +466,7 @@ func (r *Role) MarshalYAML() (any, error) {
 		Permissions:   r.Permissions,
 		SchemeManaged: r.SchemeManaged,
 		BuiltIn:       r.BuiltIn,
+		SchemeId:      r.SchemeId,
 	}, nil
 }
 
@@ -479,6 +482,7 @@ func (r *Role) UnmarshalYAML(unmarshal func(any) error) error {
 		Permissions   []string `yaml:"permissions"`
 		SchemeManaged bool     `yaml:"scheme_managed"`
 		BuiltIn       bool     `yaml:"built_in"`
+		SchemeId      *string  `yaml:"scheme_id"`
 	}{}
 
 	err := unmarshal(&out)
@@ -510,6 +514,7 @@ func (r *Role) UnmarshalYAML(unmarshal func(any) error) error {
 		Permissions:   out.Permissions,
 		SchemeManaged: out.SchemeManaged,
 		BuiltIn:       out.BuiltIn,
+		SchemeId:      out.SchemeId,
 	}
 	return nil
 }

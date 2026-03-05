@@ -532,6 +532,16 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 				require.NotNil(t, roleByName[roleName].SchemeId)
 				assert.Equal(t, channelScheme1.Id, *roleByName[roleName].SchemeId)
 			}
+
+			// Roles for channelScheme2 must carry channelScheme2's ID.
+			for _, roleName := range []string{
+				channelScheme2.DefaultChannelGuestRole,
+				channelScheme2.DefaultChannelUserRole,
+				channelScheme2.DefaultChannelAdminRole,
+			} {
+				require.NotNil(t, roleByName[roleName].SchemeId)
+				assert.Equal(t, channelScheme2.Id, *roleByName[roleName].SchemeId)
+			}
 		})
 	})
 }

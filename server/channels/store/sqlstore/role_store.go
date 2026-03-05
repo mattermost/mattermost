@@ -233,7 +233,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		err = rows.Scan(
 			&role.Id, &role.Name, &role.DisplayName, &role.Description,
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
-			&role.SchemeManaged, &role.BuiltIn)
+			&role.SchemeManaged, &role.BuiltIn, &role.SchemeId)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan values")
 		}
