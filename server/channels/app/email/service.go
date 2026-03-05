@@ -116,12 +116,12 @@ func (es *Service) setUpRateLimiters() error {
 	}
 
 	perMinuteRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perMinuteQuota)
-	if err != nil || perMinuteRateLimiter == nil {
+	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
 	perHourRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perHourQuota)
-	if err != nil || perHourRateLimiter == nil {
+	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
