@@ -92,7 +92,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	license := c.App.Channels().License()
-	if !channel.IsGroupOrDirect() && *c.App.Config().PrivacySettings.UseAnonymousURLs && model.MinimumEnterpriseAdvancedLicense(license) {
+	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
 	}
 

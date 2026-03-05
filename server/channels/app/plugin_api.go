@@ -161,7 +161,7 @@ func (api *PluginAPI) GetTelemetryId() string {
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	if *api.app.Config().PrivacySettings.UseAnonymousURLs && model.MinimumEnterpriseAdvancedLicense(api.app.License()) {
+	if model.SafeDereference(api.app.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(api.app.License()) {
 		team.Name = model.NewId()
 	}
 
@@ -461,7 +461,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	UseAnonymousURLs := *api.app.Config().PrivacySettings.UseAnonymousURLs && model.MinimumEnterpriseAdvancedLicense(api.app.License())
+	UseAnonymousURLs := model.SafeDereference(api.app.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(api.app.License())
 	if !channel.IsGroupOrDirect() && UseAnonymousURLs {
 		channel.Name = model.NewId()
 	}
