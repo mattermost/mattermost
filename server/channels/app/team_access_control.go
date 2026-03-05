@@ -9,60 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
-
-const maxChannelsPerPolicyLookup = 1000
-
-// GetPolicyTeamScope returns the team ID if the policy is team-scoped (all channels
-// belong to the same team), or empty string if the policy has no channels or
-// spans multiple teams.
-func (a *App) GetPolicyTeamScope(rctx request.CTX, policyID string) (string, *model.AppError) {
-	// Check cache first
-	var cachedTeamID string
-	if err := platform.PolicyScopeCache().Get(policyID, &cachedTeamID); err == nil {
-		return cachedTeamID, nil
-	}
-
-	var teamID string
-	cursor := model.AccessControlPolicyCursor{}
-
-	for {
-		channels, _, appErr := a.GetChannelsForPolicy(rctx, policyID, cursor, maxChannelsPerPolicyLookup)
-		if appErr != nil {
-			return "", appErr
-		}
-
-		if len(channels) == 0 {
-			break
-		}
-
-		var maxID string
-		for _, ch := range channels {
-			if teamID == "" {
-				teamID = ch.TeamId
-			} else if ch.TeamId != teamID {
-				if err := platform.PolicyScopeCache().SetWithDefaultExpiry(policyID, ""); err != nil {
-					rctx.Logger().Warn("Failed to cache policy scope", mlog.String("policy_id", policyID), mlog.Err(err))
-				}
-				return "", nil
-			}
-			if ch.Id > maxID {
-				maxID = ch.Id
-			}
-		}
-
-		if len(channels) < maxChannelsPerPolicyLookup {
-			break
-		}
-		cursor.ID = maxID
-	}
-
-	if err := platform.PolicyScopeCache().SetWithDefaultExpiry(policyID, teamID); err != nil {
-		rctx.Logger().Warn("Failed to cache policy scope", mlog.String("policy_id", policyID), mlog.Err(err))
-	}
-	return teamID, nil
-}
 
 // SearchTeamAccessPolicies returns parent policies visible to the given Team Admin.
 // A policy is visible only if:
@@ -70,64 +17,35 @@ func (a *App) GetPolicyTeamScope(rctx request.CTX, policyID string) (string, *mo
 //  2. All its assigned channels belong to the given team (team-scoped)
 //  3. The requesting admin satisfies the policy's access rules (self-inclusion)
 //
-// Post-query filtering is required because scope is derived at runtime from
-// channel relationships.
+// Team scope is resolved at the store layer via a single SQL query that joins
+// channel policies with the channels table and groups by parent, filtering to
+// parents whose channels all belong to the requested team.
 func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID string, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, *model.AppError) {
+	opts.TeamID = teamID
 	opts.Type = model.AccessControlPolicyTypeParent
+	opts.IncludeChildren = true
 
-	const defaultPageSize = 60
-	limit := opts.Limit
-	if limit == 0 {
-		limit = defaultPageSize
+	policies, _, appErr := a.SearchAccessControlPolicies(rctx, opts)
+	if appErr != nil {
+		return nil, 0, appErr
 	}
-	opts.Limit = limit
 
-	var filtered []*model.AccessControlPolicy
-
-	for {
-		policies, _, appErr := a.SearchAccessControlPolicies(rctx, opts)
-		if appErr != nil {
-			return nil, 0, appErr
-		}
-
-		if len(policies) == 0 {
-			break
-		}
-
-		for _, policy := range policies {
-			scopeTeamID, err := a.GetPolicyTeamScope(rctx, policy.ID)
-			if err != nil {
-				rctx.Logger().Warn("Failed to check policy team scope",
-					mlog.String("policy_id", policy.ID), mlog.Err(err))
+	// Post-filter by self-inclusion (requester must satisfy the policy's rules).
+	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
+	for _, policy := range policies {
+		if len(policy.Rules) > 0 {
+			expression := policy.Rules[0].Expression
+			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+			if matchErr != nil {
+				rctx.Logger().Warn("Failed to validate self-inclusion for policy",
+					mlog.String("policy_id", policy.ID), mlog.Err(matchErr))
 				continue
 			}
-			if scopeTeamID != teamID {
+			if !matches {
 				continue
 			}
-
-			if len(policy.Rules) > 0 {
-				expression := policy.Rules[0].Expression
-				matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
-				if matchErr != nil {
-					rctx.Logger().Warn("Failed to validate self-inclusion for policy",
-						mlog.String("policy_id", policy.ID), mlog.Err(matchErr))
-					continue
-				}
-				if !matches {
-					continue
-				}
-			}
-
-			filtered = append(filtered, policy)
-			if len(filtered) >= limit {
-				return filtered, int64(len(filtered)), nil
-			}
 		}
-
-		if len(policies) < limit {
-			break
-		}
-		opts.Cursor.ID = policies[len(policies)-1].ID
+		filtered = append(filtered, policy)
 	}
 
 	return filtered, int64(len(filtered)), nil

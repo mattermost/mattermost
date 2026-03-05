@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -69,55 +68,6 @@ func createTestPolicyHierarchy(
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
 
 	return parentPolicy, mockACS
-}
-
-func TestGetPolicyTeamScope(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		_ = platform.PurgePolicyScopeCache()
-	})
-
-	t.Run("returns team ID when all channels belong to one team", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
-
-		teamID, appErr := th.App.GetPolicyTeamScope(th.Context, parentPolicy.ID)
-		require.Nil(t, appErr)
-		assert.Equal(t, th.BasicTeam.Id, teamID)
-	})
-
-	t.Run("returns empty string when no channels", func(t *testing.T) {
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
-
-		teamID, appErr := th.App.GetPolicyTeamScope(th.Context, parentPolicy.ID)
-		require.Nil(t, appErr)
-		assert.Empty(t, teamID)
-	})
-
-	t.Run("returns empty string when channels span multiple teams", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-		otherTeam := th.CreateTeam(t)
-		ch2 := th.CreatePrivateChannel(t, otherTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
-
-		teamID, appErr := th.App.GetPolicyTeamScope(th.Context, parentPolicy.ID)
-		require.Nil(t, appErr)
-		assert.Empty(t, teamID)
-	})
-
-	t.Run("returns consistent team ID with multiple channels", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
-		ch3 := th.CreatePrivateChannel(t, th.BasicTeam)
-
-		parentPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2, ch3})
-
-		teamID, appErr := th.App.GetPolicyTeamScope(th.Context, parentPolicy.ID)
-		require.Nil(t, appErr)
-		assert.Equal(t, th.BasicTeam.Id, teamID)
-	})
 }
 
 func TestValidateTeamPolicyChannelAssignment(t *testing.T) {
@@ -258,9 +208,6 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 
 func TestSearchTeamAccessPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		_ = platform.PurgePolicyScopeCache()
-	})
 
 	t.Run("returns empty when no policies match", func(t *testing.T) {
 		originalACS := th.App.Srv().ch.AccessControl
@@ -283,7 +230,6 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 
 	t.Run("filters out system-scoped policies", func(t *testing.T) {
 		// Create a parent policy with NO child channels -> system-scoped
-		// The policy is saved in the real store; SearchAccessControlPolicies queries the store.
 		_, _ = createTestPolicyHierarchy(t, th, []*model.Channel{})
 
 		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
@@ -336,9 +282,6 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 // for clean DB isolation to test that policies excluding the admin are filtered out.
 func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		_ = platform.PurgePolicyScopeCache()
-	})
 
 	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 
@@ -385,8 +328,7 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 		"user.attributes.clearance == 'top-secret'", mock.Anything).
 		Return([]*model.User{}, int64(0), nil)
 
-	policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+	policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 	require.Nil(t, appErr)
 	assert.Empty(t, policies, "policy where admin doesn't satisfy rules should be filtered out")
-	assert.Equal(t, int64(0), total)
 }

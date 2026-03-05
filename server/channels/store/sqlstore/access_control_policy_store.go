@@ -631,6 +631,20 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
+	if opts.TeamID != "" {
+		condition := sq.Expr(`Id IN (
+			SELECT parent_id FROM (
+				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+				FROM AccessControlPolicies cp
+				JOIN Channels ch ON ch.Id = cp.Id
+				WHERE cp.Type = 'channel'
+			) team_children
+			GROUP BY parent_id
+			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
 	cursor := opts.Cursor
 
 	if !cursor.IsEmpty() {
@@ -689,3 +703,4 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	return policies, total, nil
 }
+
