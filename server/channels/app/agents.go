@@ -204,7 +204,12 @@ func stripMarkdownCodeFencing(s string) string {
 		content = content[firstNewline+1:]
 	} else {
 		// Single-line fenced payload, e.g. ```json {"a":1}```
-		content = strings.TrimSpace(strings.TrimPrefix(content, "json"))
+		content = strings.TrimSpace(content)
+		if len(content) >= 4 && strings.EqualFold(content[:4], "json") {
+			if len(content) == 4 || content[4] == ' ' || content[4] == '\t' {
+				content = strings.TrimSpace(content[4:])
+			}
+		}
 	}
 
 	// Remove closing fence
