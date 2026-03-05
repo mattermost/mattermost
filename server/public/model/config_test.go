@@ -2847,6 +2847,33 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			},
 			expectError: false,
 		},
+		{
+			name: "valid workers at 48",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(48),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:    "invalid workers above 64",
+			errorId: "model.config.is_valid.autotranslation.workers.app_error",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(65),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: true,
+		},
 		// TODO: Enable Agents provider in future release
 		// {
 		// 	name: "valid agents settings",
