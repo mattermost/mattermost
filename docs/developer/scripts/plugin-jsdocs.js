@@ -1,9 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parse } from '@typescript-eslint/typescript-estree';
-import fetch from 'node-fetch';
 
 // Parse the registry and extract the class methods, parameters and leading comments.
-const response = await fetch('https://raw.githubusercontent.com/mattermost/mattermost/master/webapp/channels/src/plugins/registry.ts');
-const registryContent = await response.text();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// This reads from: ../../../webapp/channels/src/plugins/registry.ts
+const registryPath = resolve(__dirname, '..', '..', '..', 'webapp', 'channels', 'src', 'plugins', 'registry.ts');
+const registryContent = readFileSync(registryPath, 'utf8');
 const registryParsed = parse(registryContent, { comment: true, loc: true });
 
 const pluginRegistryClassMethods = registryParsed.body.find(statement =>

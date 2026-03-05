@@ -25,7 +25,6 @@ backend-plugin-data:
 
 .PHONY: frontend-plugin-data
 frontend-plugin-data:
-	rm -rf scripts/mattermost-webapp || true
 	cd scripts && npm install
 	mkdir -p site/data
 	node scripts/plugin-jsdocs.js > site/data/PluginJSDocs.json

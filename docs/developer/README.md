@@ -47,7 +47,7 @@ You're all set! You can start making changes as desired; the development server 
 | `make` | Build the full site (default target, alias for `dist`) |
 | `make run` | Start the Hugo development server with drafts enabled |
 | `make build` | Build with verbose output and unused template checks |
-| `make plugin-data` | Generate plugin documentation JSON (backend + frontend) |
+| `make plugin-data` | Generate plugin documentation JSON (server + webapp) |
 | `make test` | Run HTML validation on the built site |
 | `make compass-icons` | Download Compass Icon fonts and CSS |
 

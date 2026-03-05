@@ -5,7 +5,6 @@
 /site/data/PluginGoDocs.json
 /site/data/PluginManifestDocs.json
 /site/data/PluginJSDocs.json
-/scripts/mattermost-webapp
 /scripts/package-lock.json
 /package-lock.json
 

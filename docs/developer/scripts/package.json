@@ -10,7 +10,6 @@
   "author": "Joram Wilander",
   "license": "MIT",
   "dependencies": {
-    "@typescript-eslint/typescript-estree": "5.41.0",
-    "node-fetch": "^3.3.2"
+    "@typescript-eslint/typescript-estree": "5.41.0"
   }
 }
