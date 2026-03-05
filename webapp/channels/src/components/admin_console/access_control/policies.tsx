@@ -49,8 +49,8 @@ export default function PolicyList(props: Props): JSX.Element {
 
         try {
             const action = await props.actions.searchPolicies(term, 'parent', afterParam, PAGE_SIZE + 1);
-            const data = action.data.policies || [];
-            const newTotal = action.data.total || 0;
+            const data = action?.data?.policies || [];
+            const newTotal = action?.data?.total || 0;
 
             // Check if we have more data than the page size, indicating there's a next page
             const hasNextPage = data.length > PAGE_SIZE;

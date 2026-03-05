@@ -35,6 +35,8 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Team.Handle("/access_policies/search", api.APISessionRequired(searchTeamAccessControlPolicies)).Methods(http.MethodPost)
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -375,6 +377,47 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	js, err := json.Marshal(result)
 	if err != nil {
 		c.Err = model.NewAppError("searchAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func searchTeamAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamAccessRules) {
+		c.SetPermissionError(model.PermissionManageTeamAccessRules)
+		return
+	}
+
+	var props *model.AccessControlPolicySearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil || props == nil {
+		c.SetInvalidParamWithErr("access_control_policy_search", err)
+		return
+	}
+
+	requesterID := c.AppContext.Session().UserId
+	policies, total, appErr := c.App.SearchTeamAccessPolicies(c.AppContext, c.Params.TeamId, requesterID, *props)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	result := model.AccessControlPoliciesWithCount{
+		Policies: policies,
+		Total:    total,
+	}
+
+	js, err := json.Marshal(result)
+	if err != nil {
+		c.Err = model.NewAppError("searchTeamAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

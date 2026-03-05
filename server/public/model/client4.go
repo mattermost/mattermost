@@ -7865,6 +7865,15 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
 }
 
+func (c *Client4) SearchTeamAccessControlPolicies(ctx context.Context, teamID string, options AccessControlPolicySearch) (*AccessControlPoliciesWithCount, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.teamRoute(teamID).Join("access_policies", "search"), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
+}
+
 func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
