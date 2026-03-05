@@ -10,5 +10,7 @@ updates:
         applies-to: version-updates
         dependency-type: production
     schedule:
-      # Check for updates to GitHub Actions every month
-      interval: "monthly"
+      # Check for updates to GitHub Actions every week
+      day: "monday"
+      time: "09:00"
+      interval: "weekly"
