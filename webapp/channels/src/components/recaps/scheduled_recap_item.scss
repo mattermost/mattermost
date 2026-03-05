@@ -25,13 +25,13 @@
     }
 
     .scheduled-recap-item-title {
+        overflow: hidden;
         margin: 0 0 4px;
         color: var(--center-channel-color);
         font-family: 'Metropolis', sans-serif;
         font-size: 16px;
         font-weight: 600;
         line-height: 24px;
-        overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -84,10 +84,10 @@
 
     .scheduled-recap-menu-button {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 28px;
         height: 28px;
+        align-items: center;
+        justify-content: center;
         padding: 0;
         border: none;
         border-radius: var(--radius-s);

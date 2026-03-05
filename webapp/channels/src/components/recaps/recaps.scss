@@ -536,10 +536,10 @@
     // Scheduled Recaps Empty State
     .scheduled-recaps-empty-state {
         display: flex;
+        max-width: 400px;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        max-width: 400px;
         padding: 80px 24px;
         margin: 0 auto;
         text-align: center;

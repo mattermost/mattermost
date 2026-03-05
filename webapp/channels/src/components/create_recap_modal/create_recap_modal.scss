@@ -248,9 +248,9 @@
 
         // Run once toggle
         .run-once-group {
-            margin-top: 24px;
             padding-top: 20px;
             border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-top: 24px;
 
             .run-once-toggle {
                 display: flex;
@@ -442,8 +442,8 @@
             transition: all 0.15s ease;
 
             &:hover:not(.disabled) {
-                background-color: rgba(var(--center-channel-color-rgb), 0.04);
                 border-color: rgba(var(--center-channel-color-rgb), 0.32);
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
             }
 
             &.selected {
