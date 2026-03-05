@@ -163,7 +163,10 @@ const ScheduleConfiguration = ({
             <div className='schedule-section'>
                 {/* Days of week selection */}
                 <div className='form-group days-group'>
-                    <label htmlFor='daysOfWeek' className='section-subtitle'>
+                    <label
+                        htmlFor='daysOfWeek'
+                        className='section-subtitle'
+                    >
                         <FormattedMessage
                             id='recaps.modal.whichDays'
                             defaultMessage='On which days should your recap run?'
@@ -186,7 +189,10 @@ const ScheduleConfiguration = ({
 
                 {/* Time of day selection with next run preview as helper text */}
                 <div className='form-group time-selection-group'>
-                    <label htmlFor='timeOfDay' className='section-subtitle'>
+                    <label
+                        htmlFor='timeOfDay'
+                        className='section-subtitle'
+                    >
                         <FormattedMessage
                             id='recaps.modal.atWhatTime'
                             defaultMessage='At what time?'
@@ -221,7 +227,10 @@ const ScheduleConfiguration = ({
             {/* Section: Time period to cover */}
             <div className='schedule-section'>
                 <div className='form-group'>
-                    <label htmlFor='timePeriod' className='section-subtitle'>
+                    <label
+                        htmlFor='timePeriod'
+                        className='section-subtitle'
+                    >
                         <FormattedMessage
                             id='recaps.modal.selectTimePeriod'
                             defaultMessage='Select a time period for your recap to cover'
@@ -241,7 +250,10 @@ const ScheduleConfiguration = ({
             {/* Section: Custom instructions */}
             <div className='schedule-section'>
                 <div className='form-group'>
-                    <label htmlFor='customInstructions' className='section-subtitle'>
+                    <label
+                        htmlFor='customInstructions'
+                        className='section-subtitle'
+                    >
                         <FormattedMessage
                             id='recaps.modal.additionalInstructions'
                             defaultMessage='Additional instructions for {agentName}'
