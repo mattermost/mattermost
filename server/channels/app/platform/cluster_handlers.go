@@ -140,4 +140,3 @@ func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 
 	return nil
 }
-

@@ -703,4 +703,3 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	return policies, total, nil
 }
-
