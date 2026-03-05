@@ -191,6 +191,13 @@
         }
     }
 
+    .single-channel-guest-limit-reached {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        gap: 4px;
+    }
+
     // Entry SKU specific styles
     .have-license-section {
         margin: 24px 0;
@@ -201,7 +208,9 @@
             font-size: 16px;
             line-height: 24px;
         }
-
-
     }
+}
+
+.single-channel-guest-license-tooltip {
+    max-width: 300px;
 }

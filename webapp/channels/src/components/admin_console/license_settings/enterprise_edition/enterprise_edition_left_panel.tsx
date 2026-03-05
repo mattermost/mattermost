@@ -280,13 +280,14 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
             <WithTooltip
                 title={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
                 hint={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+                className='single-channel-guest-license-tooltip'
             >
-                <span style={{cursor: 'pointer', verticalAlign: 'middle'}}>
+                <span className='single-channel-guest-limit-reached'>
                     <FormattedMessage
                         id='admin.license.singleChannelGuests.limitReached'
                         defaultMessage=' (Limit reached)'
                     />
-                    <span style={{marginLeft: '4px', verticalAlign: 'middle', display: 'inline-flex'}}><AlertOutlineIcon size={16}/></span>
+                    <AlertOutlineIcon size={16}/>
                 </span>
             </WithTooltip>
         ) : null;
