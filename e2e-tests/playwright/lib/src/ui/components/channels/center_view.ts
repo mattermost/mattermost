@@ -26,8 +26,6 @@ export default class ChannelsCenterView {
     readonly channelBanner;
     readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
-    readonly messageDeleted;
-    readonly postText;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -45,9 +43,6 @@ export default class ChannelsCenterView {
             page.locator('#FlagPostModal div.modal-content'),
             page,
         );
-        this.messageDeleted = (postId: string) =>
-            this.container.locator(`#${postId}_message >> text=(message deleted)`);
-        this.postText = (postID: string) => this.container.locator(`#postMessageText_${postID}`);
     }
 
     async toBeVisible() {
@@ -177,14 +172,5 @@ export default class ChannelsCenterView {
 
         const actualText = await strikethroughText.textContent();
         expect(actualText).toBe(text);
-    }
-
-    async messageDeletedVisible(isVisible: boolean = false, postId: string, message: string) {
-        await expect(this.messageDeleted(postId)).toBeVisible({visible: isVisible});
-        if (!isVisible) {
-            const postMessageText = this.postText(postId);
-            const postMessageTextContent = await postMessageText.textContent();
-            expect(postMessageTextContent).toBe(message);
-        }
     }
 }
