@@ -390,7 +390,7 @@ test(
         if (!posterClient) throw new Error('Failed to create poster client');
 
         // Set Spanish source to ensure translation happens for new member
-        await setMockSourceLanguage(translationUrl,'es');
+        await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Hola para nuevo miembro',
@@ -407,7 +407,9 @@ test(
 
         // * Verify post appeared with translation (mock server appends "[translated to en]" to original)
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Hola para nuevo miembro [translated to en]', {exact: false}),
+            channelsPage.centerView.container
+                .locator('[id^="post_"]')
+                .getByText('Hola para nuevo miembro [translated to en]', {exact: false}),
         ).toBeVisible();
     },
 );
@@ -498,7 +500,7 @@ test(
 
         const originalText = 'Solo texto original';
         // Set Spanish to ensure translation
-        await setMockSourceLanguage(translationUrl,'es');
+        await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: originalText,
@@ -588,14 +590,14 @@ test(
         // Set source language for mock/real server before creating posts
         // For mock: controls which language is detected; for real: auto-detection is used
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
-        await setMockSourceLanguage(translationUrl,'es');
+        await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Solo español',
             user_id: createdPoster.id,
         });
         // English message won't be translated
-        await setMockSourceLanguage(translationUrl,'en');
+        await setMockSourceLanguage(translationUrl, 'en');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'English only',
@@ -618,7 +620,9 @@ test(
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español [translated to en]', {exact: false}),
+            channelsPage.centerView.container
+                .locator('[id^="post_"]')
+                .getByText('Solo español [translated to en]', {exact: false}),
         ).toBeVisible();
 
         // * Verify both messages are present
@@ -688,14 +692,14 @@ test(
 
         // Set source language before creating posts
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
-        await setMockSourceLanguage(translationUrl,'es');
+        await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Solo español',
             user_id: createdPoster.id,
         });
         // English message won't be translated
-        await setMockSourceLanguage(translationUrl,'en');
+        await setMockSourceLanguage(translationUrl, 'en');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'English only',
@@ -718,7 +722,9 @@ test(
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español [translated to en]', {exact: false}),
+            channelsPage.centerView.container
+                .locator('[id^="post_"]')
+                .getByText('Solo español [translated to en]', {exact: false}),
         ).toBeVisible();
 
         // * Verify both messages are present
@@ -880,7 +886,7 @@ test(
         if (!posterClient2) throw new Error('Failed to create second poster client');
 
         // Set Spanish source to ensure translation happens
-        await setMockSourceLanguage(translationUrl,'es');
+        await setMockSourceLanguage(translationUrl, 'es');
         // Post Spanish message that's long enough for reliable detection
         await posterClient.createPost({
             channel_id: created.id,

@@ -10,7 +10,6 @@ import {
 } from '@mattermost/playwright-lib';
 import {getRandomId} from 'utils/utils';
 
-
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
     {
@@ -66,7 +65,6 @@ test(
 );
 
 test.describe('autotranslation configuration tests', () => {
-
     test(
         'user without permission cannot enable autotranslation at channel level',
         {
