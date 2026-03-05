@@ -78,7 +78,7 @@ describe('useSearchResultsActions', () => {
             views: {
                 rhs: {
                     ...initialState.views.rhs,
-                    rhsState,
+                    rhsState: rhsState ?? initialState.views.rhs.rhsState,
                 },
             },
         };
