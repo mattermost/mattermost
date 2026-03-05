@@ -310,7 +310,7 @@ func TestTruncatePostsProportionally(t *testing.T) {
 	// Helper to create posts with IDs
 	makePosts := func(count int, prefix string) []*model.Post {
 		posts := make([]*model.Post, count)
-		for i := 0; i < count; i++ {
+		for i := range count {
 			posts[i] = &model.Post{Id: prefix + string(rune('a'+i)), Message: "test message"}
 		}
 		return posts
@@ -458,7 +458,7 @@ func TestTruncateToTokenLimit(t *testing.T) {
 		// Create posts with known token counts
 		// 400 chars = ~100 tokens each
 		longMessage := ""
-		for i := 0; i < 400; i++ {
+		for range 400 {
 			longMessage += "x"
 		}
 
@@ -485,7 +485,7 @@ func TestTruncateToTokenLimit(t *testing.T) {
 	t.Run("removes from largest channel first", func(t *testing.T) {
 		// 80 chars = ~20 tokens
 		msg80 := ""
-		for i := 0; i < 80; i++ {
+		for range 80 {
 			msg80 += "x"
 		}
 

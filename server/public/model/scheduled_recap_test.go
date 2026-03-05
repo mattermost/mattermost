@@ -462,9 +462,10 @@ func TestScheduledRecapAuditable(t *testing.T) {
 func TestScheduledRecapDayOfWeekBitmask(t *testing.T) {
 	t.Run("single day", func(t *testing.T) {
 		// Monday = 2
-		assert.Equal(t, 2, Monday)
-		assert.True(t, Monday&Monday != 0)
-		assert.False(t, Monday&Tuesday != 0)
+		days := Monday
+		assert.Equal(t, 2, days)
+		assert.True(t, days&Monday != 0)
+		assert.False(t, days&Tuesday != 0)
 	})
 
 	t.Run("multiple days Mon+Wed+Fri", func(t *testing.T) {

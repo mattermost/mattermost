@@ -4789,6 +4789,85 @@ components:
         retry_after_seconds:
           type: integer
           description: Seconds until recap creation is available again
+    ScheduledRecap:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the scheduled recap
+        user_id:
+          type: string
+          description: The ID of the user who owns this scheduled recap
+        title:
+          type: string
+          description: Title for the scheduled recap
+          maxLength: 255
+        days_of_week:
+          type: integer
+          description: >
+            Bitmask for days of the week the recap should run.
+            Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64.
+          minimum: 1
+          maximum: 127
+        time_of_day:
+          type: string
+          description: Time of day in HH:MM format (e.g., "09:00")
+        timezone:
+          type: string
+          description: IANA timezone (e.g., "America/New_York")
+        time_period:
+          type: string
+          description: The lookback period for the recap content
+          enum:
+            - last_24h
+            - last_week
+            - since_last_read
+        next_run_at:
+          type: integer
+          format: int64
+          description: The next scheduled execution time in UTC milliseconds
+        last_run_at:
+          type: integer
+          format: int64
+          description: The last execution time in UTC milliseconds
+        run_count:
+          type: integer
+          description: Number of times this schedule has executed
+        channel_mode:
+          type: string
+          description: How channels are selected for the recap
+          enum:
+            - specific
+            - all_unreads
+        channel_ids:
+          type: array
+          items:
+            type: string
+          description: List of channel IDs to include (when channel_mode is "specific")
+        custom_instructions:
+          type: string
+          description: Custom AI instructions for the recap
+        agent_id:
+          type: string
+          description: ID of the AI agent to use for generating the recap
+        is_recurring:
+          type: boolean
+          description: Whether the recap runs on a recurring schedule or just once
+        enabled:
+          type: boolean
+          description: Whether the scheduled recap is active (false when paused)
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the scheduled recap was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the scheduled recap was last updated
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the scheduled recap was soft-deleted (0 if not deleted)
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

@@ -124,7 +124,7 @@ func (sr *ScheduledRecap) ComputeNextRunAt(fromTime time.Time) (int64, error) {
 	}
 
 	// Find next matching day of week (max 7 iterations)
-	for i := 0; i < 7; i++ {
+	for range 7 {
 		weekday := int(candidate.Weekday()) // 0=Sunday
 		dayBit := 1 << weekday
 

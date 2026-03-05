@@ -80,7 +80,7 @@ func TestScheduledRecapStore(t *testing.T) {
 			otherUserId := model.NewId()
 
 			// Create 3 scheduled recaps for same user
-			for i := 0; i < 3; i++ {
+			for i := range 3 {
 				sr := createTestScheduledRecap(userId)
 				sr.Id = model.NewId()
 				sr.Title = "Recap " + string(rune('A'+i))

@@ -1,0 +1,382 @@
+  /api/v4/scheduled_recaps:
+    post:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Create a scheduled recap
+      description: >
+        Create a new scheduled recap configuration. Scheduled recaps run on a
+        recurring or one-time schedule, generating AI-powered channel summaries
+        at the configured time and day(s).
+
+        ##### Permissions
+
+        Must be authenticated. The recap is created for the authenticated user.
+
+        __Minimum server version__: 11.2
+      operationId: CreateScheduledRecap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - days_of_week
+                - time_of_day
+                - timezone
+                - time_period
+                - channel_mode
+                - agent_id
+              properties:
+                title:
+                  type: string
+                  description: Title for the scheduled recap
+                  maxLength: 255
+                days_of_week:
+                  type: integer
+                  description: >
+                    Bitmask for days of the week the recap should run.
+                    Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64.
+                    For example, weekdays = 62, every day = 127.
+                  minimum: 1
+                  maximum: 127
+                time_of_day:
+                  type: string
+                  description: Time of day in HH:MM format (e.g., "09:00")
+                  pattern: "^([0-1][0-9]|2[0-3]):([0-5][0-9])$"
+                timezone:
+                  type: string
+                  description: IANA timezone (e.g., "America/New_York")
+                time_period:
+                  type: string
+                  description: The lookback period for the recap content
+                  enum:
+                    - last_24h
+                    - last_week
+                    - since_last_read
+                channel_mode:
+                  type: string
+                  description: How channels are selected for the recap
+                  enum:
+                    - specific
+                    - all_unreads
+                channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channel IDs to include (required when channel_mode is "specific")
+                custom_instructions:
+                  type: string
+                  description: Custom AI instructions for the recap
+                agent_id:
+                  type: string
+                  description: ID of the AI agent to use for generating the recap
+                is_recurring:
+                  type: boolean
+                  description: Whether the recap runs on a recurring schedule or just once
+        description: Scheduled recap configuration
+        required: true
+      responses:
+        "201":
+          description: Scheduled recap created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledRecap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Get current user's scheduled recaps
+      description: >
+        Get a paginated list of scheduled recaps for the authenticated user.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetScheduledRecaps
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of scheduled recaps per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Scheduled recaps retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduledRecap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/scheduled_recaps/{scheduled_recap_id}:
+    get:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Get a scheduled recap
+      description: >
+        Get a scheduled recap by its ID. Only the user who owns the scheduled
+        recap can retrieve it.
+
+        ##### Permissions
+
+        Must be authenticated. Must own the scheduled recap.
+
+        __Minimum server version__: 11.2
+      operationId: GetScheduledRecap
+      parameters:
+        - name: scheduled_recap_id
+          in: path
+          description: Scheduled Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheduled recap retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledRecap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    put:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Update a scheduled recap
+      description: >
+        Update a scheduled recap configuration. Only the user who owns the
+        scheduled recap can update it. The `user_id` and `create_at` fields
+        are preserved from the original and cannot be changed.
+
+        ##### Permissions
+
+        Must be authenticated. Must own the scheduled recap.
+
+        __Minimum server version__: 11.2
+      operationId: UpdateScheduledRecap
+      parameters:
+        - name: scheduled_recap_id
+          in: path
+          description: Scheduled Recap GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title for the scheduled recap
+                  maxLength: 255
+                days_of_week:
+                  type: integer
+                  description: >
+                    Bitmask for days of the week the recap should run.
+                    Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64.
+                  minimum: 1
+                  maximum: 127
+                time_of_day:
+                  type: string
+                  description: Time of day in HH:MM format (e.g., "09:00")
+                  pattern: "^([0-1][0-9]|2[0-3]):([0-5][0-9])$"
+                timezone:
+                  type: string
+                  description: IANA timezone (e.g., "America/New_York")
+                time_period:
+                  type: string
+                  description: The lookback period for the recap content
+                  enum:
+                    - last_24h
+                    - last_week
+                    - since_last_read
+                channel_mode:
+                  type: string
+                  description: How channels are selected for the recap
+                  enum:
+                    - specific
+                    - all_unreads
+                channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channel IDs to include (required when channel_mode is "specific")
+                custom_instructions:
+                  type: string
+                  description: Custom AI instructions for the recap
+                agent_id:
+                  type: string
+                  description: ID of the AI agent to use for generating the recap
+                is_recurring:
+                  type: boolean
+                  description: Whether the recap runs on a recurring schedule or just once
+                enabled:
+                  type: boolean
+                  description: Whether the scheduled recap is active
+        description: Updated scheduled recap configuration
+        required: true
+      responses:
+        "200":
+          description: Scheduled recap updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledRecap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Delete a scheduled recap
+      description: >
+        Delete a scheduled recap by its ID. Only the user who owns the scheduled
+        recap can delete it.
+
+        ##### Permissions
+
+        Must be authenticated. Must own the scheduled recap.
+
+        __Minimum server version__: 11.2
+      operationId: DeleteScheduledRecap
+      parameters:
+        - name: scheduled_recap_id
+          in: path
+          description: Scheduled Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheduled recap deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/scheduled_recaps/{scheduled_recap_id}/pause:
+    post:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Pause a scheduled recap
+      description: >
+        Pause a scheduled recap, preventing it from running until resumed.
+        Only the user who owns the scheduled recap can pause it.
+
+        ##### Permissions
+
+        Must be authenticated. Must own the scheduled recap.
+
+        __Minimum server version__: 11.2
+      operationId: PauseScheduledRecap
+      parameters:
+        - name: scheduled_recap_id
+          in: path
+          description: Scheduled Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheduled recap paused successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledRecap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/scheduled_recaps/{scheduled_recap_id}/resume:
+    post:
+      tags:
+        - scheduled recaps
+        - ai
+      summary: Resume a scheduled recap
+      description: >
+        Resume a previously paused scheduled recap, allowing it to run on its
+        configured schedule again. Only the user who owns the scheduled recap
+        can resume it.
+
+        ##### Permissions
+
+        Must be authenticated. Must own the scheduled recap.
+
+        __Minimum server version__: 11.2
+      operationId: ResumeScheduledRecap
+      parameters:
+        - name: scheduled_recap_id
+          in: path
+          description: Scheduled Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheduled recap resumed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledRecap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

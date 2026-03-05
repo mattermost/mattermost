@@ -45,9 +45,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 			if now < cooldownEndTime {
 				remainingMs := cooldownEndTime - now
 				remainingMinutes := int(remainingMs / 60000)
-				if remainingMinutes < 1 {
-					remainingMinutes = 1 // Show at least 1 minute
-				}
+			remainingMinutes = max(remainingMinutes, 1) // Show at least 1 minute
 
 				return nil, model.NewAppError("CreateRecap",
 					"app.recap.cooldown_active.app_error",
@@ -358,10 +356,7 @@ func truncatePostsProportionally(postsByChannel map[string][]*model.Post, maxPos
 		if channelCount == 0 {
 			continue
 		}
-		share := int(float64(channelCount) / float64(totalPosts) * float64(maxPosts))
-		if share > channelCount {
-			share = channelCount
-		}
+		share := min(int(float64(channelCount)/float64(totalPosts)*float64(maxPosts)), channelCount)
 		shares[channelID] = share
 	}
 

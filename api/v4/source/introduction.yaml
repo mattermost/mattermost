@@ -464,6 +464,8 @@ tags:
     description: Endpoints for managing audit log certificates and configuration.
   - name: recaps
     description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
+  - name: scheduled recaps
+    description: Endpoints for creating and managing scheduled recaps that run automatically on a configured schedule.
   - name: agents
     description: Endpoints for interacting with AI agents and LLM services.
 servers:
