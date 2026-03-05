@@ -1,0 +1,11 @@
+{{ if .File }}
+{{ if eq .Section "api-documentation" }}
+<a href="https://github.com/mattermost/mattermost/tree/master/api/v4/source" class="float-right edit-github">
+    Edit on GitHub!
+</a>
+{{ else }}
+<a href="{{.Site.Params.ghrepo}}edit/master/site/content/{{ .File.Path }}" class="float-right edit-github">
+    Edit on GitHub
+</a>
+{{ end }}
+{{ end }}

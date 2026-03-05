@@ -1,0 +1,8 @@
+{{ $docs := .Site.Data.PluginGoDocs }}
+
+{{ if $docs }}
+    {{ $example := .Get "name" | index $docs.Examples }}
+    {{ highlight $example.Code "go" "" }}
+{{ else }}
+    Run <code>make plugin-godocs</code> to generate this example code.
+{{ end }}

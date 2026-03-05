@@ -1,0 +1,22 @@
+# build artifacts
+/dist
+/site/.hugo_build.lock
+/site/data/PluginGoDocs.json
+/site/data/PluginManifestDocs.json
+/site/data/PluginJSDocs.json
+/scripts/mattermost-webapp
+/scripts/package-lock.json
+/package-lock.json
+
+# os artifacts
+*.swp
+.DS_Store
+
+# IDE artifacts
+.idea/
+
+# node
+node_modules
+
+# `make run` artifacts
+docs

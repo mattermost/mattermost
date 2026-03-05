@@ -1,0 +1,46 @@
+{{ $docs := .Site.Data.PluginJSDocs }}
+
+{{ define "JSFieldsString" }}
+    {{- if . -}}
+        {{- range $index, $field := . -}}
+            {{- if ne $index 0 }}, {{ end -}}
+            {{ $field }}
+        {{- end -}}
+    {{- end -}}
+{{ end }}
+
+{{ define "JSInterfaceTOC" }}
+    <ul>
+        {{ range .Interface.Methods }}
+        <li><a href="#{{ .Name }}">{{ .Name }}({{ template "JSFieldsString" .Parameters }})</a></li>
+        {{ end }}
+    </ul>
+{{ end }}
+
+{{ define "JSInterfaceMethodDocs" }}
+    {{ range .Interface.Methods }}
+        <div>
+            <h5 id="{{ .Name }}">{{ .Name }}</h3>
+            <p>{{ template "JSFunctionSignatureHTML" . }}</p>
+        </div>
+    {{ end }}
+{{ end }}
+
+{{ define "JSFunctionSignatureHTML" }}
+    <pre><code>/**
+{{- range .Comments }}
+    *{{ . }}
+{{- end }}
+*/
+{{.Name }}({{ template "JSFieldsString" .Parameters }})</code></pre>
+{{ end }}
+
+{{ if $docs }}
+    <div>
+        {{ template "JSInterfaceTOC" $docs }}
+    </div>
+    <hr />
+    {{ template "JSInterfaceMethodDocs" $docs }}
+{{ else }}
+    Run <code>make plugin-data</code> to generate this documentation.
+{{ end }}

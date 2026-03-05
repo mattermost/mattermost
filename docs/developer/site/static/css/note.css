@@ -1,0 +1,29 @@
+.note {
+    border-left-width: 3px;
+    border-left-style: solid;
+    position: relative;
+    border-color: #0594CB;
+
+    display: block;
+}
+.note #exclamation-icon,
+.warning #exclamation-icon {
+
+    fill: #0594CB;
+    position: absolute;
+    top: 35%;
+    left: -12px;
+    /*background-color: white;*/
+}
+
+.note-content {
+    display: block;
+    margin: 2px;
+    padding: .125em 1em;
+    /*margin-left: 1em;*/
+    margin-top: 1em;
+    margin-bottom: 1em;
+    overflow-x: auto;
+    /*font-size: .9375em;*/
+    background-color: rgba(0, 0, 0, .05);
+}

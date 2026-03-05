@@ -1,0 +1,9 @@
+{{- $tabid := .Get 0 | default "" -}}
+{{- $divstyle := .Get 1 | default "" -}}
+{{- if (eq $divstyle "") -}}
+<div id="{{ $tabid }}" class="tabcontent">
+    {{- else -}}
+<div id="{{ $tabid }}" class="tabcontent" style="{{ $divstyle | safeCSS }}">
+{{- end -}}
+{{ .Inner | markdownify }}
+</div>

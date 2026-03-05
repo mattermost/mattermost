@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {{ partial "head.html" .}}
+        <link rel="stylesheet" href="/css/api-reference.css">
+    </head>
+<body>
+    {{ partial "gtm-body-noscript.html" }}
+    {{ partial "nav2.html" .}}
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 doc-content">
+                    {{ partial "page-edit.html" . }}
+                    {{ .Content }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ partial "footer.html" .}}
+    {{ partial "feedback.html" . }}
+</body>
+</html>

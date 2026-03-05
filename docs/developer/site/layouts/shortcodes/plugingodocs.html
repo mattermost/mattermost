@@ -1,0 +1,147 @@
+{{ $docs := .Site.Data.PluginGoDocs }}
+
+{{ define "TypeString" }}
+    {{- if hasPrefix . "[]" }}[]{{ template "TypeString" (strings.TrimPrefix "[]" .) }}
+    {{- else if hasPrefix . "*"}}*{{ template "TypeString" (strings.TrimPrefix "*" .) }}
+    {{- else }}{{ index (split . "/" | last 1) 0 }}
+    {{- end -}}
+{{ end }}
+
+{{ define "TypeHTML" }}
+    {{- $builtInTypes := slice "bool" "byte" "complex128" "complex64" "error" "float32" "float64" "int" "int16" "int32" "int64" "int8" "rune" "string" "uint" "uint16" "uint32" "uint64" "uint8" "uintptr" -}}
+    {{- if in $builtInTypes . }}<a href="https://pkg.go.dev/builtin#{{ . }}">{{ . }}</a>
+    {{- else if hasPrefix . "[]" }}[]{{ template "TypeHTML" (strings.TrimPrefix "[]" .) }}
+    {{- else if hasPrefix . "*" }}*{{ template "TypeHTML" (strings.TrimPrefix "*" .) }}
+    {{- else if hasPrefix . "..." }}...{{ template "TypeHTML" (strings.TrimPrefix "..." .) }}
+    {{- else if in . "." -}}
+        {{- $name := index (split . "." | last 1) 0 }}
+        {{- $package := strings.TrimSuffix $name . | strings.TrimSuffix "." -}}
+        <a href="https://pkg.go.dev/{{ $package }}">{{ index (split $package "/" | last 1) 0 }}</a>.<a href="https://pkg.go.dev/{{ $package }}#{{ $name }}">{{ $name }}</a>
+    {{- else }}{{ range split . "/" | last 1 }}{{ . }}{{ end }}
+    {{- end -}}
+{{ end }}
+
+{{ define "FieldsString" }}
+    {{- if . -}}
+        {{- range $index, $field := . -}}
+            {{- if ne $index 0 }}, {{ end -}}
+            {{- if $field.Names }}{{ delimit $field.Names ", " }} {{ end }}{{ template "TypeString" $field.Type -}}
+        {{- end -}}
+    {{- end -}}
+{{ end }}
+
+{{ define "FieldsHTML" }}
+    {{- if . -}}
+        {{- range $index, $field := . -}}
+            {{- if ne $index 0 }}, {{ end -}}
+            {{- if $field.Names }}{{ delimit $field.Names ", " }} {{ end }}{{ template "TypeHTML" $field.Type -}}
+        {{- end -}}
+    {{- end -}}
+{{ end }}
+
+{{ define "ParenthesizedResults" }}
+    {{- if .Results -}}
+        {{- $needsParentheses := or (gt (len .Results) 1) (index .Results 0).Names -}}
+        {{- if $needsParentheses }}({{ end -}}
+        {{- if .HTML }}{{ template "FieldsHTML" .Results }}{{ else }}{{ template "FieldsString" .Results }}{{ end -}}
+        {{- if $needsParentheses }}){{ end -}}
+    {{- end -}}
+{{ end }}
+
+{{ define "ResultsString" }}{{ template "ParenthesizedResults" dict "HTML" false "Results" . }}{{ end }}
+{{ define "ResultsHTML" }}{{ template "ParenthesizedResults" dict "HTML" true "Results" . }}{{ end }}
+
+{{ define "FunctionSignatureHTML" }}
+    <pre><code>
+        {{- .Name }}({{ template "FieldsHTML" .Parameters }}) {{ template "ResultsHTML" .Results -}}
+    </code></pre>
+{{ end }}
+
+{{ define "InterfaceTOC" }}
+<ul>
+    {{ range .Interface.Methods }}
+        {{ if not (isset . "Tags") }}
+            <li><a href="#{{ $.Name }}.{{ .Name }}">{{ .Name }}({{ template "FieldsString" .Parameters }}) {{ template "ResultsString" .Results }}</a></li>
+        {{ end }}
+    {{ end }}
+    {{ $interface := .Interface }}
+    {{ range .Interface.Tags }}
+    {{ $tag := . }}
+    <li>
+        {{ $tag }}
+        <ul>
+            {{ range $interface.Methods }}
+                {{ if in .Tags $tag }}
+                    <li><a href="#{{ $.Name }}.{{ .Name }}">{{ .Name }}({{ template "FieldsString" .Parameters }}) {{ template "ResultsString" .Results }}</a></li>
+                {{ end }}
+            {{ end }}
+        </ul>
+    </li>
+    {{ end }}
+</ul>
+{{ end }}
+
+{{ define "ExamplesTOC" }}
+    <ul>
+        {{ range $name, $example := . }}
+        <li><a href="#Examples.{{ $name }}">{{ substr $name 1 1 | upper }}{{ substr (strings.TrimPrefix "_" $name) 1 }}</a></li>
+        {{ end }}
+    </ul>
+{{ end }}
+
+{{ define "InterfaceMethodDocs" }}
+    <h2>{{ .Name }}</h2>
+    {{ range .Interface.Methods }}
+        <div>
+            <h3 id="{{ $.Name }}.{{ .Name }}">({{ $.Name }}) {{ .Name }}</h3>
+            <p>{{ template "FunctionSignatureHTML" . }}</p>
+            <p>{{ safeHTML .HTML }}</p>
+        </div>
+    {{ end }}
+{{ end }}
+
+{{ define "ExampleDocs" }}
+    <h2>Examples</h2>
+    {{ range $name, $example := . }}
+        {{ if hasPrefix $name "_" }}
+            <div>
+                <h3 id="Examples.{{ $name }}">(Example) {{ substr $name 1 1 | upper }}{{ substr (strings.TrimPrefix "_" $name) 1 }}</h3>
+                <p>{{ safeHTML $example.HTML }}</p>
+                <p>{{ highlight $example.Code "go" "" }}</p>
+            </div>
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+{{ if $docs }}
+    <p>{{ safeHTML $docs.HTML }}</p>
+    <div>
+        <h2 id="API">API</h2>
+        <p>{{ safeHTML $docs.API.HTML }}</p>
+        {{ template "InterfaceTOC" dict "Name" "API" "Interface" $docs.API }}
+    </div>
+    <div>
+        <h2 id="Hooks">Hooks</h2>
+        <p>{{ safeHTML $docs.Hooks.HTML }}</p>
+        {{ template "InterfaceTOC" dict "Name" "Hooks" "Interface" $docs.Hooks }}
+    </div>
+    <div>
+        <h2 id="Helpers">Helpers</h2>
+        <p>{{ safeHTML $docs.Helpers.HTML }}</p>
+        {{ template "InterfaceTOC" dict "Name" "Helpers" "Interface" $docs.Helpers }}
+    </div>
+    <div>
+        <h2>Examples</h2>
+        {{ template "ExamplesTOC" $docs.Examples }}
+    </div>
+    <hr />
+    {{ template "InterfaceMethodDocs" dict "Name" "API" "Interface" $docs.API }}
+    <hr />
+    {{ template "InterfaceMethodDocs" dict "Name" "Hooks" "Interface" $docs.Hooks }}
+    <hr />
+    {{ template "InterfaceMethodDocs" dict "Name" "Helpers" "Interface" $docs.Helpers }}
+    <hr />
+    {{ template "ExampleDocs" $docs.Examples }}
+{{ else }}
+    Run <code>make plugin-data</code> to generate this documentation.
+{{ end }}

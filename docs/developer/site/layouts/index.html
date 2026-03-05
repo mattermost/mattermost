@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+<html>
+    <head>
+        {{ partial "head.html" . }}
+    </head>
+    <body class="homepage">
+        {{ partial "gtm-body-noscript.html" }}
+        {{ partial "nav.html" . }}
+        <div class="homepage-wrapper">
+            {{ partial "hero.html" . }}
+            <div class="container-fluid">
+                {{ partial "intro.html" . }}
+                {{ partial "mailinglist.html" . }}
+            </div>
+        </div>
+        {{ partial "footer.html" . }}
+    </body>
+</html>

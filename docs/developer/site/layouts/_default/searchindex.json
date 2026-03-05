@@ -1,0 +1,9 @@
+{{- /* This file generates a raw search index which is later parsed by lunr.js */ -}}
+{{- $.Scratch.Add "index" slice -}}
+{{- range .Site.Pages -}}
+{{- /* The next `if` statement effectively ignores documents in the 'blog' and 'internal' sections */ -}}
+{{- if not (or (eq .Section "blog") (eq .Section "internal")) -}}
+{{- $.Scratch.Add "index" (dict "title" .Title "section" .Section "subsection" .Params.subsection "tags" .Params.tags "categories" .Params.categories "contents" (.Plain | htmlUnescape) "permalink" .Permalink) -}}
+{{- end -}}
+{{- end -}}
+{{- $.Scratch.Get "index" | jsonify -}}

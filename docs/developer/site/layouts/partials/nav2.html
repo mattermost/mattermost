@@ -1,0 +1,499 @@
+{{ partial "notification.html" . }}
+<header class="site-header" itemscope="" itemtype="https://schema.org/WebSite">
+	<div class="nav-container site-header__container">
+		<div class="row site-header__row">
+			<div class="col-9 col-md-3 col-lg-2 site-header__col--logo">
+				<a href="/" data-ol-has-click-handler=""><img src="/img/nav/Mattermost-Logo-Denim.svg" alt="Mattermost Logo"></a>
+			</div>
+			<div class="col-3 col-md-9 site-header__mobile-menu" id="hamburger" data-ol-has-click-handler="">
+				<svg class="hamburger-open" width="25" height="20" viewBox="0 0 25 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<line y1="1.5" x2="25" y2="1.5" stroke="#1B1D22" stroke-width="3"></line>
+					<line y1="9.83325" x2="25" y2="9.83325" stroke="#1B1D22" stroke-width="3"></line>
+					<line y1="18.1667" x2="25" y2="18.1667" stroke="#1B1D22" stroke-width="3"></line>
+				</svg>
+				<svg class="hamburger-close" width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<line x1="2.06066" y1="1.93934" x2="19.0607" y2="18.9393" stroke="#1B1D22" stroke-width="3"></line>
+					<line y1="-1.5" x2="24.0416" y2="-1.5" transform="matrix(-0.707107 0.707107 0.707107 0.707107 20 3)" stroke="#1B1D22" stroke-width="3"></line>
+				</svg>
+			</div>
+			<div class="col-12 col-lg-10 site-header__col--menu">
+				<ul class="site-nav" id="navigation">
+					<li class="site-nav__toplink site-nav__hassubnav">
+						<a href="javascript:void(0);" data-ol-has-click-handler="">
+							<div class="toplink-wrapper">
+								Platform
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round"></path>
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__products">
+							<div class="sub-menu__products__main">
+								<div class="sub-menu__products-link-col">
+									<p class="sub-menu__link-col-header">Platform</p>
+									<ul>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/platform-overview/">
+												Overview
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/channels/">
+												Channels
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/playbooks/">
+												Playbooks
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/integrations-overview/">
+												Integrations
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/mobile/">
+												Mobile
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/security/">
+												Security
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://trust.mattermost.com/">
+												Trust Center
+											</a>
+										</li>
+									</ul>
+								</div>
+								<div class="sub-menu__products-link-col">
+									<p class="sub-menu__link-col-header sub-menu__link-col-header-space">Interoperability</p>
+									<ul>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/mattermost-for-microsoft-teams/">
+												MS Teams
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/atlassian/">
+												Atlassian
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/mattermost-gitlab/">
+												GitLab
+											</a>
+										</li>
+									</ul>
+									<p class="sub-menu__link-col-header sub-menu__header-flex-deploy sub-menu__link-col-header-space">Flexible Deployment</p>
+									<ul>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/enterprise/on-prem/">
+												On-Premise
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/enterprise/cloud/">
+												Cloud
+											</a>
+										</li>
+									</ul>
+
+								</div>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink site-nav__hassubnav">
+						<a href="javascript:void(0);" data-ol-has-click-handler="">
+							<div class="toplink-wrapper">
+								Solutions
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round"></path>
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__solutions">
+							<div class="sub-menu__solutions__main-wrapper">
+								<div class="sub-menu__solutions-link-col">
+									<p class="sub-menu__link-col-header sub-menu__link-col-header-first">Use Cases</p>
+									<ul>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/purpose-built-collaboration/">
+											Purpose-Built Collaboration Hub
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/self-sovereign-collaboration/">
+											Self-Sovereign Collaboration
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/mission-critical-chatops/">
+											Mission-Critical ChatOps
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/devsecops-collaboration/">
+											Real-Time DevSecOps Collaboration
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/integrated-security-operations/">
+											Integrated Security Operations
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/use-cases/out-of-band-incident-response/">
+											Out-of-Band Incident Response
+											</a>
+										</li>
+									</ul>
+								</div>
+								<div class="sub-menu__solutions-link-col">
+									<p class="sub-menu__link-col-header sub-menu__link-col-header-space">Industries</p>
+									<ul>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/critical-infrastructure/">
+											Critical Infrastructure
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/defense/">
+											Defense
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/technology/">
+											Technology
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/government/">
+											Global Public Sector
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/financial-services/">
+											Financial Services
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/energy-and-utilities/">
+											Energy and Utilities
+											</a>
+										</li>
+										<li class="sub-menu__links--single">
+											<a href="https://mattermost.com/solutions/industries/manufacturing/">
+											Manufacturing
+											</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink site-nav__hassubnav">
+						<a href="javascript:void(0);">
+							<div class="toplink-wrapper">
+								Customers
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round" />
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__customers">
+							<div class="sub-menu__links-wrapper">
+								<p class="sub-menu__link-col-header">Customers</p>
+								<div class="sub-menu__customers-grid-wrapper">
+									<div class="sub-menu__customers-link-col">
+										<ul>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/us-department-of-defense/">
+													<img src="/img/nav/logos/nav-logo-icon-usaf.png" alt="">
+													<span>USAF</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/fujitsu/">
+												<img src="/img/nav/logos/nav-logo-icon-fujitsu.png" alt="">
+													<span>Fujitsu</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/rte/">
+												<img src="/img/nav/logos/nav-logo-icon-rte.png" alt="">
+													<span>RTE</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/cern/">
+												<img src="/img/nav/logos/nav-logo-icon-cern.png" alt="">
+													<span>CERN</span>
+												</a>
+											</li>
+										</ul>
+									</div>
+									<div class="sub-menu__customers-link-col">
+										<ul>
+										<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/nri/">
+												<img src="/img/nav/logos/nav-logo-icon-nri.png" alt="">
+													<span>NRI</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/pramacom/">
+												<img src="/img/nav/logos/nav-logo-icon-pramacom.png" alt="">
+													<span>Pramacom</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/crossover-health/">
+												<img src="/img/nav/logos/nav-logo-icon-crossover.png" alt="">
+													<span>Crossover Health</span>
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/customers/netfoundry/">
+												<img src="/img/nav/logos/nav-logo-icon-netfoundry.png" alt="">
+													<span>Netfoundry</span>
+												</a>
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div class="sub-menu__bottom-link">
+									<a href="https://mattermost.com/customers/">See more customer stories &raquo;</a>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink">
+						<a href="https://mattermost.com/pricing/" data-ol-has-click-handler="">
+							<div class="toplink-wrapper">Pricing</div>
+						</a>
+					</li>
+					<li class="site-nav__toplink site-nav__hassubnav">
+						<a href="javascript:void(0);">
+							<div class="toplink-wrapper">
+								Partners
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round" />
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__partners">
+							<div class="sub-menu__links-wrapper">
+								<p class="sub-menu__link-col-header">Partners</p>
+								<ul>
+									<li class="sub-menu__links--single">
+										<a href="https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=24278352368532">
+										Become a Partner
+										</a>
+									</li>
+									<li class="sub-menu__links--single">
+										<a href="https://mattermost.com/partners/">
+										Partner Program
+										</a>
+									</li>
+									<li class="sub-menu__links--single">
+										<a href="https://mattermost.com/reseller-deal-registration/">
+										Deal Registration
+										</a>
+									</li>
+
+								</ul>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink site-nav__hassubnav">
+						<a href="javascript:void(0);" data-ol-has-click-handler="">
+							<div class="toplink-wrapper">
+								Resources
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round"></path>
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__developers">
+							<div class="sub-menu__developers__main">
+								<div class="sub-menu__developers-grid-wrapper">
+									<div class="sub-menu__dev-link-col">
+										<p class="sub-menu__link-col-header sub-menu__link-col-header-first">Resources</p>
+										<ul>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/resources/">
+													Resource Library
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/blog/">
+													Blog
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/resources/?filter=demos">
+												Demos
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/events/">
+												Events
+												</a>
+											</li>
+										</ul>
+									</div>
+									<div class="sub-menu__dev-link-col">
+										<p class="sub-menu__link-col-header sub-menu__link-col-header-space">Documentation</p>
+										<ul>
+
+											<li class="sub-menu__links--single">
+												<a href="https://academy.mattermost.com/">
+												Academy
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://docs.mattermost.com/guides/channels.html">
+												Channels Guide
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://docs.mattermost.com/guides/repeatable-processes.html">
+												Playbooks Guide
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://docs.mattermost.com/guides/administration.html">
+												Admin
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://docs.mattermost.com/">
+												Docs
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://api.mattermost.com/">
+													API Reference
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://docs.mattermost.com/administration/changelog.html">
+													Release Notes
+												</a>
+											</li>
+										</ul>
+									</div>
+									<div class="sub-menu__dev-link-col">
+										<p class="sub-menu__link-col-header sub-menu__link-col-header-space">Community</p>
+										<ul>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/community/">
+													Join Community
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/contribute/">
+													Contribute
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/download/">
+													Deploy
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://developers.mattermost.com/integrate/getting-started/">
+													Integrate
+												</a>
+											</li>
+											<li class="sub-menu__links--single">
+												<a href="https://mattermost.com/download/">
+													Download
+												</a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink site-nav__hassubnav site-nav-login">
+						<a href="javascript:void(0);" data-ol-has-click-handler="">
+							<div class="toplink-wrapper">
+								Login
+								<span>
+									<svg width="11" height="7" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 1.50262L5.5 5.97313L10 1.50262" stroke="#BABEC9" stroke-width="1.5" stroke-linejoin="round"></path>
+									</svg>
+								</span>
+							</div>
+						</a>
+						<div class="sub-menu sub-menu__login">
+							<div class="sub-menu__links-wrapper">
+								<p class="sub-menu__link-col-header">Login</p>
+								<ul>
+									<li class="sub-menu__links--single">
+										<a href="https://customers.mattermost.com/cloud/connect-workspace" data-ol-has-click-handler="">
+										My Workspace
+										</a>
+									</li>
+									<li class="sub-menu__links--single">
+										<a href="https://customers.mattermost.com/login/" data-ol-has-click-handler="">
+											Admin Portal
+										</a>
+									</li>
+									<li class="sub-menu__links--single">
+										<a href="https://mattermost.com/download/" data-ol-has-click-handler="">
+											Apps
+										</a>
+									</li>
+									<li class="sub-menu__links--single">
+										<a href="https://support.mattermost.com/hc/en-us/" data-ol-has-click-handler="">
+											Support
+										</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</li>
+					<li class="site-nav__toplink site-nav__button">
+						<a class="mm-button mm-button-solid mm-button-blue" href="https://mattermost.com/contact-sales/" data-ol-has-click-handler="">Contact Sales</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="second-nav-container">
+		<div class="nav-container">
+			<div class="row">
+				<div class="col-12">
+					<ul class="second-nav">
+						<li class="second-nav__item">
+							<a href="/contribute/" class="second-nav__link {{ if eq $.Section "contribute" }}active{{ end }}">Contribute</a>
+						</li>
+						<li class="second-nav__item">
+							<a href="/integrate/getting-started" class="second-nav__link {{ if eq $.Section "integrate" }}active{{ end }}">Integrate & Extend</a>
+						</li>
+						<li class="second-nav__item">
+							<a href="/api-documentation" class="second-nav__link {{ if eq $.Section "api-documentation" }}active{{ end }}">API Documentation</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</header>

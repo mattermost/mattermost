@@ -1,0 +1,64 @@
+/**
+ * API Reference Layout and Structure Styles
+ *
+ * This file handles the structural layout and positioning of the API reference documentation.
+ * It affects:
+ * - Overall container and content area layout
+ * - Elements API component positioning and sizing
+ * - Navigation elements and their alignment
+ * - Responsive behavior and overflow handling
+ * - General layout fixes for the API reference section
+ */
+
+/* Base container styles */
+.container-fluid {
+    padding: 0;
+    max-width: 100%;
+}
+
+/* Content area styles */
+.doc-content {
+    padding: 0;
+    max-width: 100%;
+}
+
+/* Elements API component styles */
+elements-api {
+    display: block;
+    width: 100%;
+    min-height: calc(100vh - 200px); /* Account for header/footer */
+}
+
+/* Navigation styles */
+.site-nav__toplink .toplink-wrapper {
+    display: inline-flex;
+    align-items: center;
+}
+
+.site-nav__toplink .toplink-wrapper span {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+}
+
+/* Ensure proper layout on all screens */
+#wrapper {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove any margins that might affect the layout */
+.row {
+    margin: 0;
+}
+
+.col-12 {
+    padding: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    elements-api {
+        overflow-x: auto;
+    }
+}

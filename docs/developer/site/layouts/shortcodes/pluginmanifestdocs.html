@@ -1,0 +1,46 @@
+{{ $docs := .Site.Data.PluginManifestDocs }}
+
+{{ define "ToC" }}
+    {{ if eq .Schema.Type "object" }}
+        <ul>
+            {{ range .Schema.ObjectProperties }}
+                <li><a href="#{{ $.Prefix }}{{ .Name }}"><tt>{{ .Name }}</tt></a>{{ if .Schema }} - {{ title .Schema.Type }}{{ end }}</li>
+                {{ if .Schema }}{{ template "ToC" dict "Schema" .Schema "Prefix" (print $.Prefix .Name ".") }}{{ end }}
+            {{ end }}
+        </ul>
+    {{ else if eq .Schema.Type "array" | or (eq .Schema.Type "dict") }}
+        {{ if .Schema.ValueSchema }}{{ template "ToC" dict "Schema" .Schema.ValueSchema "Prefix" $.Prefix }}{{ end }}
+    {{ end }}
+{{ end }}
+
+{{ define "Docs" }}
+    {{ if eq .Schema.Type "object" }}
+        <ul>
+            {{ range .Schema.ObjectProperties }}
+            <li id="{{ $.Prefix }}{{ .Name }}">
+                <p><tt>{{ .Name }}</tt>{{ if .Schema }} - {{ title .Schema.Type }}{{ end }}</p>
+                {{ safeHTML .DocHTML }}
+                {{ if .Schema }}
+                    {{ safeHTML .Schema.DocHTML }}
+                    {{ template "Docs" dict "Schema" .Schema "Prefix" (print $.Prefix .Name ".") }}
+                {{ end }}
+            </li>
+            {{ end }}
+        </ul>
+    {{ else if eq .Schema.Type "array" | or (eq .Schema.Type "dict") }}
+        {{ if .Schema.ValueSchema }}
+            {{ safeHTML .Schema.ValueSchema.DocHTML }}
+            {{ template "Docs" dict "Schema" .Schema.ValueSchema "Prefix" $.Prefix }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+{{ if $docs }}
+    {{ safeHTML $docs.Schema.DocHTML }}
+    <h2>Table of contents</h2>
+    {{ template "ToC" dict "Schema" $docs.Schema "Prefix" "" }}
+    <h2>Documentation</h2>
+    {{ template "Docs" dict "Schema" $docs.Schema "Prefix" "" }}
+{{ else }}
+    Run <code>make plugin-data</code> to generate this documentation.
+{{ end }}

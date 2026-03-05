@@ -164,3 +164,13 @@ docker-compose.override.yaml
 **/CLAUDE.md
 .cursorrules
 .cursor/
+
+# Developer docs build artifacts
+docs/developer/dist
+docs/developer/site/.hugo_build.lock
+docs/developer/site/data/PluginGoDocs.json
+docs/developer/site/data/PluginManifestDocs.json
+docs/developer/site/data/PluginJSDocs.json
+docs/developer/scripts/mattermost-webapp
+docs/developer/scripts/package-lock.json
+docs/developer/package-lock.json

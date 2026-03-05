@@ -1,0 +1,260 @@
+# Page settings
+baseURL = "https://developers.mattermost.com/"
+canonifyURLs = true
+#relativeURLs = true
+
+title = "Mattermost Developers"
+languageCode = "en-us"
+publishDir = "../docs"
+pygmentsCodeFences = true
+pygmentsStyle = "manni"
+enableEmoji = true
+
+[taxonomies]
+  category = "categories"
+
+[params]
+  # Meta
+  author = ""
+  description = "Your one-stop shop for all of your Mattermost contribution, integration, and extension needs."
+  email = ""
+  ghrepo = "https://github.com/mattermost/mattermost-developer-documentation/"
+
+  # Parameters controlling collapsable blocks
+  [params.collapse]
+    collapsedIcon = "icon-chevron-right"  # Icon to show when the block is collapsed
+    expandedIcon = "icon-chevron-down"    # Icon to show when the block is expanded
+    collapseShowClass = "show"            # CSS class to add when expanding the block
+    toggleClass = "collapseToggle"        # CSS class to control icon attributes (e.g. size)
+
+  [params.mailinglist]
+    enable = false
+
+  [params.notification]
+    enable = true
+    url = "https://mattermost.com/blog/mattermost-v11-powering-more-mission-critical-collaboration/"
+    text = "Mattermost v11.0 is now available! Learn what's new »"
+
+  [params.search]
+    enable = true
+
+  [params.sidebar]
+  [[params.sidebar.item]]
+    name = "contribute"
+    displayName = "Contribute"
+    draft = false
+
+  [[params.sidebar.item]]
+    name = "integrate"
+    displayName = "Integrate & Extend"
+    draft = false
+
+#  [[params.sidebar.item]]
+#    name = "extend"
+#    displayName = "Extend"
+#    draft = true
+
+  [[params.sidebar.item]]
+    name = "internal"
+    displayName = "Internal"
+    draft = true
+
+  # Navigation
+  [params.navigation]
+    brand = "Mattermost Developers"
+    home = "Home"
+
+    # You can add custom links before or after the default links
+    # Assign a weight to define the order
+
+    # prepended links
+    #[[menu.prepend]]
+    #  url = "http://gohugo.io"
+    #  name = "Hugo"
+    #  weight = 10
+
+    # postpended links
+    [[menu.postpend]]
+      url = "/contribute/"
+      name = "Contribute"
+      weight = 1
+
+    [[menu.postpend]]
+      url = "/integrate/getting-started/"
+      name = "Integrate & Extend"
+      weight = 2
+
+    [[menu.postpend]]
+      url = "/blog/"
+      name = "Blog"
+      weight = 4
+
+    [[menu.postpend]]
+      url = "https://docs.mattermost.com/guides/administration.html"
+      name = "Admin Docs"
+      weight = 5
+
+
+    # Workaround to add draft status to menu items
+    [[params.navigation.drafts]]
+      Contribute = false
+      'Integrate & Extend' = false
+      Blog = false
+      Internal = false
+      'Admin Docs' = false
+
+  # Hero section
+  [params.hero]
+    title = "All your Mattermost development needs"
+    subtitle = ''
+
+  # Intro section
+  # Available icons: https://simplelineicons.github.io/
+  [params.intro]
+  [[params.intro.item]]
+    title = "Contribute"
+    description = "Join thousands of developers who contribute to the Mattermost open source project."
+    url = "contribute/"
+    button = "Start Contributing"
+    icon = "img/home/Contribute.svg"
+    draft = false
+
+  [[params.intro.item]]
+    title = "Integrate & Extend"
+    description = "Integrate with Mattermost via webhooks, slash commands, Apps, and more."
+    url = "integrate/getting-started/"
+    button = "Integrate Today"
+    icon = "img/home/IntegrateExtend.svg"
+    draft = false
+
+  [[params.intro.item]]
+    title = "API Documentation"
+    description = "Explore the Mattermost API documentation with interactive examples."
+    url = "api-documentation"
+    button = "View API docs"
+    icon = "img/home/apidocs.png"
+    draft = false
+
+  #[params.intro.video]
+  #  enable = true
+  #  title = "Watch the video"
+  #  icon = "icon-play2"
+  #  url = "https://vimeo.com/channels/staffpicks/93951774"
+
+  # Indexes Meta (Sections/Lists that do not have an _index.md)
+  [params.indexes]
+    [[params.indexes.item]]
+      relPermaLink = "/blog/"
+      heading = "The Mattermost Developer Blog"
+      description = "Read the latest technical how-tos and articles from the Mattermost team and community on the Mattermost Developer Blog."
+
+    [[params.indexes.item]]
+      relPermaLink = "/contribute/"
+      heading = "How to Contribute to Mattermost"
+      description = "Find out how to contribute to the Mattermost open source project and the various ways to get involved."
+
+    [[params.indexes.item]]
+      relPermaLink = "/integrate/"
+      heading = "Learn about Integrations at Mattermost"
+      description = "Mattermost integrates with a number of tools your DevOps team uses every day."
+
+    [[params.indexes.item]]
+      relPermaLink = "/internal/"
+      heading = "Internal Mattermost Documentation"
+      description = "This is a place for documentation used internally by Mattermost employees. If you don't work at Mattermost, this might not be helpful."
+
+  # Categories Meta (Taxonomies appearing under /categories/)
+  [params.categories]
+    heading = "Content Categories at Mattermost"
+    description = "Looking to learn about open source, DevOps, and Mattermost? Browse this list of categories to find content that interests you."
+
+    [[params.categories.item]]
+      term = "announcement"
+      heading = "Content about Announcements at Mattermost"
+      description = "This repository includes announcements related to the Mattermost open source project."
+
+    [[params.categories.item]]
+      term = "announcements"
+      heading = "Content about Announcements at Mattermost"
+      description = "Check out this repository to read Mattermost announcements and keep up with company developments."
+
+    [[params.categories.item]]
+      term = "contributing"
+      heading = "Content about Contributing at Mattermost"
+      description = "Thinking about getting involved with Mattermost? Read some tips on contributing effectively."
+
+    [[params.categories.item]]
+      term = "devops"
+      heading = "Content about DevOps at Mattermost"
+      description = "Mattermost is designed for DevOps. Learn more about how development teams can use Mattermost to improve their DevOps workflow and processes."
+
+    [[params.categories.item]]
+      term = "git"
+      heading = "Content about Git at Mattermost"
+      description = "Check out this repository to find out information about Git and how Mattermost uses it."
+
+    [[params.categories.item]]
+      term = "Go"
+      heading = "Content about Go at Mattermost"
+      description = "Interested in Go? We are too. Learn about how Mattermost uses Go to build powerful software."
+
+    [[params.categories.item]]
+      term = "kubernetes"
+      heading = "Content about Kubernetes at Mattermost"
+      description = "Are you looking to learn more about Kubernetes? See how Mattermost uses Kubernetes to build apps."
+
+    [[params.categories.item]]
+      term = "linting"
+      heading = "Content about Linting at Mattermost"
+      description = "Interested in learning more about linting? Find out how we use linting at Mattermost."
+
+    [[params.categories.item]]
+      term = "markdown"
+      heading = "Content about Markdown"
+      description = "Markdown makes formatting text easy, which enables you to communicate more effectively online."
+
+    [[params.categories.item]]
+      term = "opensource"
+      heading = "Content about Open Source at Mattermost"
+      description = "This repository includes articles about open source technology and open source communities."
+
+    [[params.categories.item]]
+      term = "performance"
+      heading = "Content about Performance at Mattermost"
+      description = "Looking to improve the performance of your applications? Learn how we approach performance at Mattermost."
+
+    [[params.categories.item]]
+      term = "plugins"
+      heading = "Content about Plugins at Mattermost"
+      description = "Want to learn about plugins in Mattermost? Check out this repository to learn more."
+
+    [[params.categories.item]]
+      term = "security"
+      heading = "Content about Security at Mattermost"
+      description = "Read these articles to learn about how Mattermost approaches security and other related security content."
+
+    [[params.categories.item]]
+      term = "testing"
+      heading = "Content about Testing at Mattermost"
+      description = "Read about how the Mattermost team uses testing to ensure apps deliver optimal user experiences."
+
+    [[params.categories.item]]
+      term = "ui automation"
+      heading = "Content about UI Automation at Mattermost"
+      description = "Check out this repository to read Mattermost content about UI automation."
+
+  # Footer section
+  [params.footer]
+    enable = true
+    twitter = 'https://twitter.com/mattermost'
+    facebook = 'https://www.facebook.com/Mattermost-2300985916642531/'
+    youtube = 'https://www.youtube.com/channel/UCNR05H72hi692y01bWaFXNA'
+    linkedin = 'https://www.linkedin.com/company/mattermost/'
+    github = 'https://github.com/mattermost/'
+    copyright = '&copy; Mattermost, Inc. All Rights Reserved.'
+
+# Allows html in Hugo >= v0.60.0.  See Github issue #506.
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true

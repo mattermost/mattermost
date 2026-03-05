@@ -1,0 +1,66 @@
+/**
+ * API Reference Code Block and Syntax Styling
+ *
+ * This file handles the visual presentation of code blocks and syntax highlighting
+ * in the API reference documentation. It affects:
+ * - Documentation code block appearance
+ * - Interactive API request/response formatting
+ * - Shell command styling
+ * - Syntax highlighting colors for different code elements (strings, numbers, properties, etc.)
+ * - Code viewer text colors and formatting
+ */
+
+/* Custom styles for Stoplight Elements code blocks */
+
+/* Style for documentation code blocks */
+elements-api .content pre {
+    background-color: #f6f8fa !important;
+    border: 1px solid #e1e4e8 !important;
+    border-radius: 6px !important;
+    color: #24292e !important;
+}
+
+/* Style for interactive request bodies - no background */
+elements-api .try-it-api pre,
+elements-api .try-it pre {
+    background: none !important;
+    border: none !important;
+}
+
+/* Style for response sections */
+elements-api .sl-panel__content-wrapper .sl-code-viewer,
+elements-api .sl-panel__content-wrapper .sl-code-highlight {
+    background: none !important;
+    border: none !important;
+}
+
+elements-api .sl-panel__content-wrapper .token.punctuation {
+    color: #a33310 !important;
+}
+elements-api .sl-panel__content-wrapper .token.number {
+    color: #7b84b3 !important;
+}
+
+/* Style for shell commands */
+elements-api .token.function,
+elements-api .shell-command,
+elements-api .token.command {
+    color: #891101 !important;
+    font-weight: bold !important;
+}
+
+elements-api .sl-code-viewer {
+    color: #0b0b0b !important;
+}
+
+elements-api .token.string {
+    color: #2394a8 !important;
+}
+
+elements-api .token.number {
+    color: #404d98 !important;
+}
+
+elements-api .token.property {
+    color: #d4980c !important;
+}

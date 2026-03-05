@@ -1,0 +1,77 @@
+<div class="col-lg-3 px-0 px-lg-4 sidebar">
+    <div class="sidebar__menu-toggle">
+        {{ .Title }}
+        <i class="fa fa-bars pull-right"></i>
+    </div>
+    <div class="row sidebar__links">
+        {{ range .Site.Sections }}
+            {{ if eq $.Section .Section }}
+            {{ range .Pages.ByWeight }}
+                {{ $active := (eq $ .) }}
+                {{ $expanded := or ($.IsDescendant .) (eq $ .) }}
+                {{ if (eq .Section "contribute") }}
+                    {{ $expanded = true }}
+                {{ end }}
+
+                {{ $icon :=  "fa-plus-square-o" }}
+                {{ if $expanded }}
+                    {{ $icon = "fa-minus-square-o" }}
+                {{ end }}
+
+                {{ $iconstyle := "" }}
+                {{ if not .Pages }}
+                    {{ $iconstyle = "display: none" }}
+                {{ end }}
+
+                <span class="item {{ if $active }}active{{ end }}">
+                    <i class="sub-menu__toggle fa {{ $icon }}" aria-hidden="true" style="{{ $iconstyle }}"></i>
+                    {{ if $active }}
+                        <a class="active" href="#"> {{ .Title }}</a>
+                    {{ else }}
+                        <a href="{{ .Permalink }}"> {{ .Title }}</a>
+                    {{ end }}
+                </span>
+
+                <ul class="sub-menu" {{ if $expanded }}style="display: block"{{ end }}>
+                    {{ range .Pages.ByWeight }}
+                        {{ $active := (eq $ .) }}
+                        {{ $expanded := or ($.IsDescendant .) (eq $ .) }}
+
+                        {{ $icon :=  "fa-plus-square-o" }}
+                        {{ if $expanded }}
+                            {{ $icon = "fa-minus-square-o" }}
+                        {{ end }}
+
+                        {{ $iconstyle := "" }}
+                        {{if not .Pages }}
+                            {{ $iconstyle = "display: none" }}
+                        {{ end }}
+
+                        <span class="item {{ if $active }}active{{ end }}">
+                            <i class="sub-menu__toggle fa {{ $icon }}" aria-hidden="true" style="{{ $iconstyle }}"></i>
+                            {{ if $active }}
+                                <a class="active" href="#"> {{ .Title }}</a>
+                            {{ else }}
+                                <a href="{{ .Permalink }}"> {{ .Title }}</a>
+                            {{ end }}
+                        </span>
+
+                        <ul class="sub-menu" {{ if $expanded }}style="display: block"{{ end }}>
+                            {{ range .Pages.ByWeight }}
+                            {{ $active := (eq $ .) }}
+                                <span class="item {{ if $active }}active{{ end }}">
+                                {{ if $active }}
+                                    <a class="active" href="#"> {{ .Title }}</a>
+                                {{ else }}
+                                    <a href="{{ .Permalink }}"> {{ .Title }}</a>
+                                {{ end }}
+                                </span>
+                            {{ end }}
+                        </ul>
+                {{ end }}
+                </ul>
+            {{ end }}
+            {{ end }}
+        {{ end }}
+    </div>
+</div>

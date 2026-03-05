@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+<html lang="en">
+<head>
+    {{ partial "head.html" .}}
+</head>
+<body>
+    {{ partial "gtm-body-noscript.html" }}
+    {{ partial "nav2.html" .}}
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12 mx-2 mx-lg-0 mt-4 mt-lg-5">
+                    <form role="search" class="search__form" id="search-form">
+                        <div class="search__input">
+                            <input id="search-query" class="search__query-input ff--trade-gothic" type="search" placeholder="What are you looking for?" aria-label="search">
+                        </div>
+                    </form>
+                    <span id="search-status" class="search__span_status badge badge-secondary"></span>
+                    <div class="search__heading">
+                        <h2 class="doc-title search__title">{{ .Title }}</h2>
+                        <span id="search-result-count" class="search__span_result-count"></span>
+                    </div>
+                    <ul id="results" class="search__results"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ partial "footer.html" .}}
+    <!-- Search engine -->
+    <script src="https://unpkg.com/lunr@2.3.9/lunr.min.js"></script>
+    <!-- Text highlight functionality -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.es6.min.js"
+        integrity="sha512-jZSRKDD86PmExf0ZoXQEMxhtxvLtOxo2xMJwgnx3VE/5VT5c8LCsnvut4wK3fIdFyO4szlbz/2tpg+xulnJDyQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <!-- Search implementation -->
+    <script src="{{ "js/search.js" | absURL }}"></script>
+</body>
+</html>

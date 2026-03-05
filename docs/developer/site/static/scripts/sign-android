@@ -1,0 +1,189 @@
+#!/bin/bash
+
+error() {
+    echo "$@" >&2
+    exit 1
+}
+
+usage() {
+    echo -e "Usage: $(basename "$0") <unsigned apk file>" >&2
+    echo -e "\t\t[-e|--extract path]" >&2
+    echo -e "\t\t[-p|--package-id packageID]" >&2
+    echo -e "\t\t[-g|--google-services path]" >&2
+    echo -e "\t\t[-d|--display-name displayName]" >&2
+    echo -e "\t\toutputApk" >&2
+    echo "Usage: $(basename "$0") -h|--help" >&2
+    echo "Options:" >&2
+    echo -e "\t-e, --extract path\t\t\t(Optional) Path to extract the unsigned APK file. By default the path of the unsigned APK is used." >&2
+    echo "" >&2
+    echo -e "\t-p, --package-id packageID\t\t(Optional) Specify the unique Android application ID." >&2
+    echo "" >&2
+    echo -e "\t-g, --google-services path\t\t(Optional) Path to the google-services.json file." >&2
+    echo -e "\t\t\t\t\t\t\tWill setup the Firebase to receive Push Notifications." >&2
+    echo -e "\t\t\t\t\t\t\tWarning: will apply only if packageID is set." >&2
+    echo "" >&2
+    echo -e "\t-d, --display-name displayName\t\t(Optional) Specify new application display name. By default \"Mattermost\" is used." >&2
+    echo "" >&2
+    echo -e "\t-h, --help\t\t\t\tDisplay help message." >&2
+    exit 2
+}
+
+if [ $# -lt 3 ]; then
+    usage
+fi
+
+if ! command -v apktool &> /dev/null; then
+    echo ""
+    echo "Apktool not available."
+    echo "See installation instructions at https://ibotpeaches.github.io/Apktool/install/"
+    echo ""
+    exit 1
+fi
+
+if ! command -v xmlstarlet &> /dev/null; then
+    echo ""
+    echo "XMLStarlet not available."
+    echo "See installation instructions at https://xmlstar.sourceforge.net/doc/UG/xmlstarlet-ug.html"
+    echo ""
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo ""
+    echo "jq not available."
+    echo "More info at https://stedolan.github.io/jq/"
+    echo ""
+    exit 1
+fi
+
+ANDROID="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+
+if [ -z $ANDROID ]; then
+    echo ""
+    echo "\$ANDROID_HOME or \$ANDROID_SDK_ROOT environment variable not set."
+    echo "More info at https://developer.android.com/studio/command-line/variables#android_sdk_root"
+    echo ""
+    exit 1
+fi
+
+if [ ! -f ~/.gradle/gradle.properties ]; then
+    echo ""
+    echo "gradle.properties file not found."
+    echo "More info at https://mattermost.dev/contribute/mobile/build-your-own/android/#gradle"
+    echo ""
+    exit 1
+else
+    source ~/.gradle/gradle.properties
+fi
+
+if [ -z $MATTERMOST_RELEASE_STORE_FILE ] || [ -z $MATTERMOST_RELEASE_KEY_ALIAS  ] || [ -z $MATTERMOST_RELEASE_PASSWORD ]; then
+    echo ""
+    echo "\$MATTERMOST_RELEASE_STORE_FILE, \$MATTERMOST_RELEASE_KEY_ALIAS or \$MATTERMOST_RELEASE_PASSWORD not defined."
+    echo "More info at https://mattermost.dev/contribute/mobile/build-your-own/android/#gradle"
+    echo ""
+    exit 1
+fi
+
+APK_FILE_PATH=$1
+GOOGLE_SERVICES_PATH=
+APK_FILE=$(basename "${APK_FILE_PATH}")
+PATH_NAME=`echo "$APK_FILE" | cut -d'.' -f1`
+EXTRACT_PATH=`echo $(dirname "${APK_FILE_PATH}")/$PATH_NAME`
+STRINGS_VALUES_PATH="$EXTRACT_PATH/res/values/strings.xml"
+OUTPUT=`echo $(dirname "${APK_FILE_PATH}")`
+PACKAGE_ID=""
+APP_NAME=""
+
+shift 1
+# Parse args
+while [ "$1" != "" ]; do
+    case $1 in
+    -e | --extract-path )
+        shift
+        EXTRACT_PATH="$1"
+    ;;
+    -g | --google-services )
+        shift
+        GOOGLE_SERVICES_PATH="$1"
+    ;;
+    -d | --display-name )
+        shift
+        APP_NAME="$1"
+    ;;
+    -p | --package-id )
+        shift
+        PACKAGE_ID="$1"
+    ;;
+    -h | --help )
+        usage
+    ;;
+    * )
+        [[ -n "$NEW_FILE" ]] && error "Multiple output file names specified!"
+        [[ -z "$NEW_FILE" ]] && NEW_FILE="$1"
+        ;;
+    esac
+    shift
+done
+
+# Check output file name
+if [ -z "$NEW_FILE" ]; then
+    error "Output file name required"
+fi
+
+echo "Extracting APK"
+apktool d $APK_FILE_PATH -o $EXTRACT_PATH
+
+
+if [ "$APP_NAME" != "" ]; then
+    echo "Renaming Application"
+    xmlstarlet ed -L -u "/resources/string[@name='app_name']" -v "$APP_NAME" "$STRINGS_VALUES_PATH"
+fi
+
+if [ "$PACKAGE_ID" != "" ]; then
+    echo "Replacing package ID"
+    IFS='.' read -r -a DIRS <<< "$PACKAGE_ID"
+    PACKAGE_DIR=$( IFS=$'/'; echo "${DIRS[*]}" )
+    mkdir -p "$EXTRACT_PATH/smali_classes2/$PACKAGE_DIR"
+    SRC="$EXTRACT_PATH/smali_classes2/com/mattermost/rnbeta/*.*"
+    DEST="$EXTRACT_PATH/smali_classes2/$PACKAGE_DIR"
+    find "$EXTRACT_PATH/smali_classes2/com/mattermost" -type f -exec sed -i '' -e "s~Lcom/mattermost/rnbeta~L$PACKAGE_DIR~g" {} \;
+    sed -i '' -e "s/com.mattermost.rnbeta/$PACKAGE_ID/g" "$EXTRACT_PATH/AndroidManifest.xml"
+    mv $SRC $DEST
+
+    if [ "$GOOGLE_SERVICES_PATH" != "" ]; then
+        echo "Replacing Google Services values"
+        GOOGLE_SERVICES=$(jq . "$GOOGLE_SERVICES_PATH")
+        PROJECT_NUMBER=$(echo "$GOOGLE_SERVICES" | jq -r .project_info.project_number)
+        FIREBASE_URL=$(echo "$GOOGLE_SERVICES" | jq -r .project_info.firebase_url)
+        FIREBASE_STORAGE_BUCKET=$(echo "$GOOGLE_SERVICES" | jq -r .project_info.storage_bucket)
+        FIREBASE_CLIENT=$(echo "$GOOGLE_SERVICES" | jq ".client[] | select(. | .client_info.android_client_info.package_name == \"$PACKAGE_ID\")")
+        FIREBASE_API_KEY=$(echo "$FIREBASE_CLIENT" | jq -r .api_key[].current_key)
+        FIREBASE_SDK_APP_ID=$(echo "$FIREBASE_CLIENT" | jq -r .client_info.mobilesdk_app_id)
+
+        xmlstarlet ed -L -u "/resources/string[@name='firebase_database_url']" -v "$FIREBASE_URL" "$STRINGS_VALUES_PATH"
+        xmlstarlet ed -L -u "/resources/string[@name='gcm_defaultSenderId']" -v "$PROJECT_NUMBER" "$STRINGS_VALUES_PATH"
+        xmlstarlet ed -L -u "/resources/string[@name='google_api_key']" -v "$FIREBASE_API_KEY" "$STRINGS_VALUES_PATH"
+        xmlstarlet ed -L -u "/resources/string[@name='google_app_id']" -v "$FIREBASE_SDK_APP_ID" "$STRINGS_VALUES_PATH"
+        xmlstarlet ed -L -u "/resources/string[@name='google_crash_reporting_api_key']" -v "$FIREBASE_API_KEY" "$STRINGS_VALUES_PATH"
+        xmlstarlet ed -L -u "/resources/string[@name='google_storage_bucket']" -v "$FIREBASE_STORAGE_BUCKET" "$STRINGS_VALUES_PATH"
+    fi
+fi
+
+echo "Re-Packaging APK"
+APP_NAME="${APP_NAME:-Mattermost}"
+REPACK_APK="$OUTPUT/$APP_NAME-repack.apk"
+apktool b "$EXTRACT_PATH" -o "$REPACK_APK"
+
+if [ "$MATTERMOST_RELEASE_STORE_FILE" != "" ] && [ "$MATTERMOST_RELEASE_KEY_ALIAS" != ""  ] && [ "$MATTERMOST_RELEASE_PASSWORD" != "" ]; then
+    echo "Signing APK"
+    ALIGNED_APK="$OUTPUT/$APP_NAME-aligned.apk"
+    SIGNED_APK="$OUTPUT/$NEW_FILE.apk"
+    ZIPALIGN=$(find "$ANDROID" -name zipalign)
+    APKSIGNER=$(find "$ANDROID" -name apksigner)
+    $ZIPALIGN -v -p 4 "$REPACK_APK" "$ALIGNED_APK"
+    $APKSIGNER sign --ks "$MATTERMOST_RELEASE_STORE_FILE" --ks-key-alias "$MATTERMOST_RELEASE_KEY_ALIAS" --ks-pass "pass:$MATTERMOST_RELEASE_PASSWORD" --out "$SIGNED_APK" "$ALIGNED_APK"
+    rm "$ALIGNED_APK"
+    rm "$REPACK_APK"
+fi
+
+rm -rf $EXTRACT_PATH
