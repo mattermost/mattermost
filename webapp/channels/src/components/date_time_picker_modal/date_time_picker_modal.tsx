@@ -124,6 +124,7 @@ export default function DateTimePickerModal({
                 setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}
+                minDateTime={currentTime}
             />
 
             {bodySuffix}

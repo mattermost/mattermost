@@ -3,6 +3,7 @@
 
 import {parseISO, isValid, format} from 'date-fns';
 import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import {getCurrentMomentForTimezone, parseDateInTimezone} from './timezone';
 
@@ -106,28 +107,30 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
         return now.subtract(1, 'day').startOf('day');
 
     default: {
-        // Handle dynamic patterns like "+5d", "+2w", "+1m"
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwm])$/i);
+        // Handle dynamic patterns like "+5d", "+2w", "+1m", "+2H", "+30M", "+90S"
+        // Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,3})([dwmHMS])$/);
         if (dynamicMatch) {
             const [, amount, unit] = dynamicMatch;
             const value = parseInt(amount, 10);
 
-            if (Math.abs(value) > 9999) {
+            if (Math.abs(value) > 999) {
                 return null;
             }
 
-            let momentUnit: moment.unitOfTime.DurationConstructor;
-
-            switch (unit.toLowerCase()) {
+            switch (unit) {
             case 'd':
-                momentUnit = 'day';
-                return now.add(value, momentUnit).startOf('day');
+                return now.add(value, 'day').startOf('day');
             case 'w':
-                momentUnit = 'week';
-                return now.add(value, momentUnit).startOf('day');
+                return now.add(value, 'week').startOf('day');
             case 'm':
-                momentUnit = 'month';
-                return now.add(value, momentUnit).startOf('day');
+                return now.add(value, 'month').startOf('day');
+            case 'H':
+                return now.add(value, 'hour');
+            case 'M':
+                return now.add(value, 'minute');
+            case 'S':
+                return now.add(value, 'second');
             default:
                 return null;
             }
@@ -183,5 +186,29 @@ export function dateToString(date: Date | null): string | null {
         return null;
     }
     return format(date, DATE_FORMAT);
+}
+
+/**
+ * Convert a Moment to a local Date for react-day-picker
+ * Preserves year/month/day without UTC shift
+ */
+export function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
+    if (!m) {
+        return undefined;
+    }
+    return new Date(m.year(), m.month(), m.date());
+}
+
+/**
+ * Round a moment time UP to the next interval boundary.
+ * e.g. with a 30-minute interval, 3:17 PM → 3:30 PM, 3:00 PM → 3:00 PM
+ */
+export function getRoundedTime(value: Moment, roundedTo = 30): Moment {
+    const diff = value.minute() % roundedTo;
+    if (diff === 0) {
+        return moment(value).seconds(0).milliseconds(0);
+    }
+    const remainder = roundedTo - diff;
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 

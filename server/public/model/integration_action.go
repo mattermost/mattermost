@@ -338,10 +338,16 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
-// DialogDateTimeConfig groups date/datetime specific configuration
+// DialogDateTimeConfig groups date/datetime specific configuration.
+// These fields take precedence over the top-level DialogElement fields
+// (MinDate, MaxDate, TimeInterval) which are deprecated.
 type DialogDateTimeConfig struct {
 	// TimeInterval: Minutes between time options in dropdown (default: 60)
 	TimeInterval int `json:"time_interval,omitempty"`
+	// MinDate: Minimum selectable date (ISO format or relative: "today", "+5d", "+2w")
+	MinDate string `json:"min_date,omitempty"`
+	// MaxDate: Maximum selectable date (ISO format or relative: "+30d", "+1m")
+	MaxDate string `json:"max_date,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
 	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
@@ -365,13 +371,15 @@ type DialogElement struct {
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
-	// Date/datetime field configuration
+	// Date/datetime field configuration (preferred)
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
 
-	// Simple date/datetime configuration (fallback when datetime_config not provided)
-	MinDate      string `json:"min_date,omitempty"`
-	MaxDate      string `json:"max_date,omitempty"`
-	TimeInterval int    `json:"time_interval,omitempty"`
+	// Deprecated: Use DateTimeConfig.MinDate instead. Kept for backward compatibility.
+	MinDate string `json:"min_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.MaxDate instead. Kept for backward compatibility.
+	MaxDate string `json:"max_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility.
+	TimeInterval int `json:"time_interval,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -677,16 +685,24 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
-		// Validate time_interval for datetime fields
+		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MaxDate))
+		// Validate time_interval (check both top-level and nested config)
 		timeInterval := e.TimeInterval
+		if e.DateTimeConfig != nil && e.DateTimeConfig.TimeInterval != 0 {
+			timeInterval = e.DateTimeConfig.TimeInterval
+		}
 		if timeInterval == 0 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval of 0 will be reset to default, %d minutes", DefaultTimeIntervalMinutes))
 		} else if timeInterval < 1 || timeInterval > 1440 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
 		} else if 1440%timeInterval != 0 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		}
+		// Validate DateTimeConfig min/max dates if provided
+		if e.DateTimeConfig != nil {
+			multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.DateTimeConfig.MinDate))
+			multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.DateTimeConfig.MaxDate))
 		}
 
 	default:
@@ -734,14 +750,15 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S
+// Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
-	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	lastChar := value[len(value)-1]
+	if !strings.ContainsRune("dwmHMS", rune(lastChar)) {
 		return false
 	}
 
@@ -779,9 +796,15 @@ func validateDateFormat(dateStr string) error {
 	return fmt.Errorf("invalid date format: %q, expected ISO format (YYYY-MM-DD), datetime format, or relative format", dateStr)
 }
 
-// validateDateTimeFormat validates datetime strings: ISO datetime or relative formats
+// validateDateTimeFormat validates datetime strings: ISO datetime, ISO date, or relative formats.
+// Date-only strings (YYYY-MM-DD) are accepted and treated as start-of-day for backward compatibility.
 func validateDateTimeFormat(dateTimeStr string) error {
 	if dateTimeStr == "" || isValidRelativeFormat(dateTimeStr) {
+		return nil
+	}
+
+	// Accept date-only format (backward compatibility: treated as start-of-day)
+	if _, err := time.Parse(ISODateFormat, dateTimeStr); err == nil {
 		return nil
 	}
 
@@ -791,7 +814,7 @@ func validateDateTimeFormat(dateTimeStr string) error {
 		}
 	}
 
-	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
+	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ), date format (YYYY-MM-DD), or relative format", dateTimeStr)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {

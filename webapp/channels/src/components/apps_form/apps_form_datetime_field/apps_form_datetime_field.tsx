@@ -3,6 +3,7 @@
 
 import moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AppField} from '@mattermost/types/apps';
@@ -11,7 +12,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
-import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
+import {stringToMoment, momentToString} from 'utils/date_utils';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
@@ -45,6 +46,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     onChange,
     setIsInteracting,
 }) => {
+    const {formatMessage} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
 
     // Extract datetime config with fallback to top-level fields
@@ -81,23 +83,30 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    const allowPastDates = useMemo(() => {
-        if (field.min_date) {
-            const resolvedMinDate = resolveRelativeDate(field.min_date);
-            const minMoment = stringToMoment(resolvedMinDate, timezone);
-            const currentMoment = timezone ? moment.tz(timezone) : moment();
-
-            return !minMoment || minMoment.isBefore(currentMoment, 'day');
+    const minDateTime = useMemo(() => {
+        const minDate = config.min_date ?? field.min_date;
+        if (!minDate) {
+            return undefined;
         }
+        return stringToMoment(minDate, timezone) ?? undefined;
+    }, [config.min_date, field.min_date, timezone]);
 
-        return true;
-    }, [field.min_date, timezone]);
+    const maxDateTime = useMemo(() => {
+        const maxDate = config.max_date ?? field.max_date;
+        if (!maxDate) {
+            return undefined;
+        }
+        return stringToMoment(maxDate, timezone) ?? undefined;
+    }, [config.max_date, field.max_date, timezone]);
 
     return (
         <div className='apps-form-datetime-input'>
             {showTimezoneIndicator && (
-                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px'}}>
-                    {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
+                <div className='apps-form-datetime-timezone'>
+                    {formatMessage(
+                        {id: 'datetime.timezone_indicator', defaultMessage: 'Times in {timezone}'},
+                        {timezone: getTimezoneAbbreviation(timezone)},
+                    )}
                 </div>
             )}
             <DateTimeInput
@@ -106,9 +115,10 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 timezone={timezone}
                 relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
-                allowPastDates={allowPastDates}
                 allowManualTimeEntry={allowManualTimeEntry}
                 setIsInteracting={setIsInteracting}
+                minDateTime={minDateTime}
+                maxDateTime={maxDateTime}
             />
         </div>
     );

@@ -4249,6 +4249,7 @@
   "datetime.date": "Date",
   "datetime.select_date": "Select date",
   "datetime.time": "Time",
+  "datetime.timezone_indicator": "Times in {timezone}",
   "datetime.today": "today",
   "datetime.yesterday": "yesterday",
   "deactivate_member_modal.deactivate": "Deactivate",

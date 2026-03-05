@@ -15,22 +15,15 @@ import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
-import {formatDateForDisplay} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime, momentToLocalDate} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
-    const diff = value.minute() % roundedTo;
-    if (diff === 0) {
-        // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
-    }
-    const remainder = roundedTo - diff;
-    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
-}
+// Re-exported from date_utils for backward compatibility
+export {getRoundedTime} from 'utils/date_utils';
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
     let time = moment(startTime);
@@ -113,6 +106,8 @@ type TimeInputManualProps = {
     timezone?: string;
     isMilitaryTime: boolean;
     onTimeChange: (time: Moment) => void;
+    minDateTime?: Moment;
+    maxDateTime?: Moment;
 }
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
@@ -120,6 +115,8 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     timezone,
     isMilitaryTime,
     onTimeChange,
+    minDateTime,
+    maxDateTime,
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
@@ -173,10 +170,17 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             targetMoment = baseMoment;
         }
 
+        if (minDateTime && targetMoment.isBefore(minDateTime, 'minute')) {
+            targetMoment = minDateTime.clone();
+        }
+        if (maxDateTime && targetMoment.isAfter(maxDateTime, 'minute')) {
+            targetMoment = maxDateTime.clone();
+        }
+
         // Valid time - update (no auto-advance, no exclusion checking)
         onTimeChange(targetMoment);
         setTimeInputError(false);
-    }, [timeInputValue, time, timezone, onTimeChange]);
+    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
@@ -213,8 +217,9 @@ type Props = {
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
-    allowPastDates?: boolean;
     allowManualTimeEntry?: boolean;
+    minDateTime?: Moment;
+    maxDateTime?: Moment;
 }
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -224,8 +229,9 @@ const DateTimeInputContainer: React.FC<Props> = ({
     setIsInteracting,
     relativeDate,
     timePickerInterval,
-    allowPastDates = false,
     allowManualTimeEntry = false,
+    minDateTime,
+    maxDateTime,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
@@ -303,16 +309,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
         // Use clone() to preserve timezone information
         let startTime = timeForOptions.clone().startOf('day');
 
-        // For form fields (allowPastDates=true), always start from beginning of day
-        // For scheduling (allowPastDates=false), restrict to current time if today
-        if (!allowPastDates && currentTime.isSame(timeForOptions, 'date')) {
-            startTime = getRoundedTime(currentTime, timePickerInterval);
+        let options = getTimeInIntervals(startTime, timePickerInterval);
+
+        if (minDateTime && timeForOptions.isSame(minDateTime, 'date')) {
+            options = options.filter((opt) => !opt.isBefore(minDateTime, 'minute'));
+        }
+        if (maxDateTime && timeForOptions.isSame(maxDateTime, 'date')) {
+            options = options.filter((opt) => !opt.isAfter(maxDateTime, 'minute'));
         }
 
-        setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
+        setTimeOptions(options);
     };
 
-    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone]);
+    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, timezone, minDateTime, maxDateTime]);
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         // Use existing time if available, otherwise use current time in display timezone
@@ -330,7 +339,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+            if (minDateTime && isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
@@ -363,10 +372,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
             return relativeFormatDate(date, formatMessage);
         }
 
-        // Extract date in the moment's timezone, not UTC
-        // .toDate() would convert to UTC and lose the timezone-specific date
-        const dateInTimezone = new Date(date.year(), date.month(), date.date());
-        return formatDateForDisplay(dateInTimezone, locale);
+        return formatDateForDisplay(momentToLocalDate(date)!, locale);
     };
 
     const calendarIcon = (
@@ -377,13 +383,26 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
+    const disabledDays = (() => {
+        const matchers: Array<{before: Date} | {after: Date}> = [];
+        const minDate = momentToLocalDate(minDateTime?.clone().startOf('day'));
+        const maxDate = momentToLocalDate(maxDateTime?.clone().startOf('day'));
+        if (minDate) {
+            matchers.push({before: minDate});
+        }
+        if (maxDate) {
+            matchers.push({after: maxDate});
+        }
+        return matchers.length > 0 ? matchers : undefined;
+    })();
+
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: displayTime?.toDate(),
-        defaultMonth: displayTime?.toDate() || new Date(),
+        selected: momentToLocalDate(displayTime),
+        defaultMonth: momentToLocalDate(displayTime) || new Date(),
         onDayClick: handleDayChange,
-        disabled: allowPastDates ? undefined : {before: currentTime.toDate()},
+        disabled: disabledDays,
         showOutsideDays: true,
     };
 
@@ -420,6 +439,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
                         onTimeChange={handleTimeChange}
+                        minDateTime={minDateTime}
+                        maxDateTime={maxDateTime}
                     />
                 ) : (
                     <Menu.Container

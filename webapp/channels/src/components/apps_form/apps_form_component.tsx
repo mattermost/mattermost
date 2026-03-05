@@ -156,11 +156,22 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
-    // Sanitize time_interval for datetime fields
-    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
-        const interval = field.time_interval;
-        if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
-            sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
+    // Sanitize time_interval for datetime fields (both top-level and nested config)
+    if (field.type === AppFieldTypes.DATETIME) {
+        if (field.time_interval !== undefined) {
+            const interval = field.time_interval;
+            if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
+                sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
+            }
+        }
+        if (field.datetime_config?.time_interval !== undefined) {
+            const interval = field.datetime_config.time_interval;
+            if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
+                sanitized.datetime_config = {
+                    ...sanitized.datetime_config,
+                    time_interval: DEFAULT_TIME_INTERVAL_MINUTES,
+                };
+            }
         }
     }
 
@@ -770,6 +781,7 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
+        datetime_config: f.datetime_config,
     })) as DialogElement[];
 }
 
