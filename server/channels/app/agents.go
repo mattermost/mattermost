@@ -198,16 +198,18 @@ func stripMarkdownCodeFencing(s string) string {
 	if !strings.HasPrefix(trimmed, "```") {
 		return s
 	}
-	// Remove opening fence (```json, ```, etc.)
-	firstNewline := strings.Index(trimmed, "\n")
-	if firstNewline == -1 {
-		return s
+	// Remove opening ``` prefix (and optional language tag like "json")
+	content := strings.TrimPrefix(trimmed, "```")
+	if firstNewline := strings.Index(content, "\n"); firstNewline != -1 {
+		content = content[firstNewline+1:]
+	} else {
+		// Single-line fenced payload, e.g. ```json {"a":1}```
+		content = strings.TrimSpace(strings.TrimPrefix(content, "json"))
 	}
-	trimmed = trimmed[firstNewline+1:]
 
 	// Remove closing fence
-	if idx := strings.LastIndex(trimmed, "```"); idx != -1 {
-		trimmed = trimmed[:idx]
+	if idx := strings.LastIndex(content, "```"); idx != -1 {
+		content = content[:idx]
 	}
-	return strings.TrimSpace(trimmed)
+	return strings.TrimSpace(content)
 }
