@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak libretranslate cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -65,7 +65,6 @@ services:
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
-      LIBRETRANSLATE_URL: "${LIBRETRANSLATE_URL:-http://localhost:5000}"
     network_mode: host
     ports:
       - "8065:8065"
@@ -220,24 +219,6 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
       retries: 12'
   fi)
 
-$(if mme2e_is_token_in_list "libretranslate" "$ENABLED_DOCKER_SERVICES"; then
-    echo '
-  libretranslate:
-    image: "libretranslate/libretranslate:v1.9.4"
-    restart: "no"
-    network_mode: host
-    networks: !reset []
-    environment:
-      LT_LOAD_ONLY: "en,es,fr,de"
-      LT_DISABLE_WEB_UI: "true"
-      LT_DETECT_LANG: "true"
-    healthcheck:
-      test: [ "CMD", "sh", "-c", "timeout 2 bash -c \"</dev/tcp/localhost/5000\" 2>/dev/null && exit 0 || exit 1" ]
-      interval: 5s
-      timeout: 10s
-      start_period: 30s
-      retries: 30'
-  fi)
 
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '

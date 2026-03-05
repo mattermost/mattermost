@@ -15,80 +15,6 @@ import {getRandomId} from 'utils/utils';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
 
-// Module-level variable to store the discovered translation service URL
-// Set during test.beforeEach() and used by tests
-let selectedTranslationUrl: string | null = null;
-
-test.beforeEach(async () => {
-    // Verify translation service is running (mock server or real LibreTranslate)
-    // The translation service is called on the server side, so we need the service running
-    const configuredUrl = process.env.LIBRETRANSLATE_URL;
-    const defaultMockUrl = 'http://localhost:3010';
-    const fallbackRealUrl = 'http://localhost:5000';
-
-    selectedTranslationUrl = null;
-
-    // Try configured URL first (if provided)
-    if (configuredUrl) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-            // Try /health endpoint first (real LibreTranslate), then fallback to / (mock server)
-            let res = await fetch(`${configuredUrl}/health`, {signal: controller.signal}).catch(() => null);
-            if (!res?.ok) {
-                res = await fetch(`${configuredUrl}/`, {signal: controller.signal});
-            }
-
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedTranslationUrl = configuredUrl;
-            }
-        } catch {
-            // Service probe failed, continue to next option
-        }
-    }
-
-    // If no configured URL or it failed, try default mock server
-    if (!selectedTranslationUrl) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedTranslationUrl = defaultMockUrl;
-            }
-        } catch {
-            // Service probe failed, continue to next option
-        }
-    }
-
-    // If mock server not found, try real LibreTranslate
-    if (!selectedTranslationUrl) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
-            clearTimeout(timeoutId);
-            if (res?.ok) {
-                selectedTranslationUrl = fallbackRealUrl;
-            }
-        } catch {
-            // Service probe failed, continue to error skip
-        }
-    }
-
-    if (!selectedTranslationUrl) {
-        test.skip(
-            true,
-            `Translation service not found. Please start one of the following:\n` +
-                `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
-                `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up`,
-        );
-    }
-});
-
 test(
     'post is translated for user with autotranslation enabled',
     {
@@ -104,9 +30,9 @@ test(
         );
         // # Enable autotranslation in config
         // Use the discovered translation service URL (from beforeEach probe)
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -171,9 +97,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -214,9 +140,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -258,9 +184,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -304,9 +230,8 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Verify new message appears (translation happens server-side)
-        // Auto-translated channels display messages in the user's preferred language (English)
-        const translatedNewMessage = 'Hello, new';
+        // * Verify new message appears (mock server appends "[translated to en]" to original)
+        const translatedNewMessage = 'Hola nuevo [translated to en]';
         await expect(
             channelsPage.centerView.container.locator('[id^="post_"]').getByText(translatedNewMessage, {exact: false}),
         ).toBeVisible({timeout: 15000});
@@ -329,9 +254,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -369,9 +294,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -439,9 +364,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -465,7 +390,7 @@ test(
         if (!posterClient) throw new Error('Failed to create poster client');
 
         // Set Spanish source to ensure translation happens for new member
-        await setMockSourceLanguage(libretranslateUrl, 'es');
+        await setMockSourceLanguage(translationUrl,'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Hola para nuevo miembro',
@@ -480,10 +405,9 @@ test(
         // * Verify translation badge is visible (indicates autotranslation is ON by default)
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
 
-        // * Verify post appeared with translation
-        // Auto-translated channels display messages in the user's preferred language (English)
+        // * Verify post appeared with translation (mock server appends "[translated to en]" to original)
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Hello for new member'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Hola para nuevo miembro [translated to en]', {exact: false}),
         ).toBeVisible();
     },
 );
@@ -501,9 +425,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -545,9 +469,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -574,7 +498,7 @@ test(
 
         const originalText = 'Solo texto original';
         // Set Spanish to ensure translation
-        await setMockSourceLanguage(libretranslateUrl, 'es');
+        await setMockSourceLanguage(translationUrl,'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: originalText,
@@ -586,8 +510,8 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify post with translated text appears before disabling
-        // Auto-translated channels display messages in the user's preferred language (English)
-        const translatedText = 'Only original text';
+        // Mock server appends "[translated to en]" to the original text
+        const translatedText = 'Solo texto original [translated to en]';
         const spanishPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: translatedText});
@@ -623,9 +547,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -664,14 +588,14 @@ test(
         // Set source language for mock/real server before creating posts
         // For mock: controls which language is detected; for real: auto-detection is used
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
-        await setMockSourceLanguage(libretranslateUrl, 'es');
+        await setMockSourceLanguage(translationUrl,'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Solo español',
             user_id: createdPoster.id,
         });
         // English message won't be translated
-        await setMockSourceLanguage(libretranslateUrl, 'en');
+        await setMockSourceLanguage(translationUrl,'en');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'English only',
@@ -689,18 +613,18 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify both posts appear
-        // Auto-translated channels display messages in the user's preferred language (English)
+        // Mock server produces "<original> [translated to en]", not real translations
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Spanish only'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español [translated to en]', {exact: false}),
         ).toBeVisible();
 
-        // * Verify both messages are present (translation indicators may vary with real LibreTranslate auto-detection)
+        // * Verify both messages are present
         const spanishPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Spanish only'});
+            .filter({hasText: 'Solo español [translated to en]'});
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         // * Verify English message is present and unchanged
@@ -724,9 +648,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -764,14 +688,14 @@ test(
 
         // Set source language before creating posts
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
-        await setMockSourceLanguage(libretranslateUrl, 'es');
+        await setMockSourceLanguage(translationUrl,'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Solo español',
             user_id: createdPoster.id,
         });
         // English message won't be translated
-        await setMockSourceLanguage(libretranslateUrl, 'en');
+        await setMockSourceLanguage(translationUrl,'en');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'English only',
@@ -789,18 +713,18 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify posts appeared
-        // Auto-translated channels display messages in the user's preferred language (English)
+        // Mock server produces "<original> [translated to en]", not real translations
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
             timeout: 15000,
         });
         await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Spanish only'),
+            channelsPage.centerView.container.locator('[id^="post_"]').getByText('Solo español [translated to en]', {exact: false}),
         ).toBeVisible();
 
-        // * Verify both messages are present (translation indicators may vary with real LibreTranslate auto-detection)
+        // * Verify both messages are present
         const translatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'Spanish only'});
+            .filter({hasText: 'Solo español [translated to en]'});
         await expect(translatedPost).toBeVisible({timeout: 15000});
 
         const notTranslatedPost = channelsPage.centerView.container
@@ -823,9 +747,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -878,10 +802,10 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Wait for post by searching for the message text (search for English translation, not Spanish original)
+        // * Wait for post by searching for the Spanish original (mock appends "[translated to en]", no real translation)
         const modalPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'This is a text for the machine translation modal'});
+            .filter({hasText: 'Este es un texto para la modal de traducción automática'});
         await expect(modalPost).toBeVisible({timeout: 15000});
 
         // * Check for translation button - if it exists, click it and verify modal
@@ -917,9 +841,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -956,7 +880,7 @@ test(
         if (!posterClient2) throw new Error('Failed to create second poster client');
 
         // Set Spanish source to ensure translation happens
-        await setMockSourceLanguage(libretranslateUrl, 'es');
+        await setMockSourceLanguage(translationUrl,'es');
         // Post Spanish message that's long enough for reliable detection
         await posterClient.createPost({
             channel_id: created.id,
@@ -974,14 +898,14 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Find post with message text and open dot menu (search for English translation, not Spanish original)
+        // * Find post with message text and open dot menu (mock appends "[translated to en]", no real translation)
         const messagePost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'This message is to test the action menu'});
+            .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
         await messagePost.waitFor({state: 'visible', timeout: 15000});
         await messagePost.hover();
-        // Click the post menu button (three dots)
-        await messagePost.locator('.post-menu').getByRole('button').first().click();
+        // Click the "more" (three dots) button to open the action menu
+        await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
 
         const messageActionMenu = page.getByRole('menu').filter({has: page.getByRole('menuitem', {name: 'Reply'})});
         // Check for Show translation menu item - should be present since translation happened
@@ -1005,9 +929,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -1054,9 +978,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 
@@ -1105,9 +1029,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
-        const libretranslateUrl = selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010';
+        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: libretranslateUrl,
+            mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
 

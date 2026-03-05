@@ -10,79 +10,6 @@ import {
 } from '@mattermost/playwright-lib';
 import {getRandomId} from 'utils/utils';
 
-// Module-level variable to store the discovered translation service URL
-// Set during translation-service probes and used by tests that need the service
-let selectedTranslationUrl: string | null = null;
-
-/**
- * Probe for available translation service (mock or real LibreTranslate)
- * Returns the first reachable service URL or null if none available
- */
-async function probeTranslationService(): Promise<string | null> {
-    const configuredUrl = process.env.LIBRETRANSLATE_URL;
-    const defaultMockUrl = 'http://localhost:3010';
-    const fallbackRealUrl = 'http://localhost:5000';
-
-    // Try configured URL first (if provided)
-    if (configuredUrl) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-            try {
-                // Try /health endpoint first (real LibreTranslate), then fallback to / (mock server)
-                let res = await fetch(`${configuredUrl}/health`, {signal: controller.signal}).catch(() => null);
-                if (!res?.ok) {
-                    res = await fetch(`${configuredUrl}/`, {signal: controller.signal});
-                }
-
-                if (res?.ok) {
-                    return configuredUrl;
-                }
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        } catch {
-            // Service probe failed, will return null
-        }
-    }
-
-    // If no configured URL or it failed, try default mock server
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        try {
-            const res = await fetch(`${defaultMockUrl}/`, {signal: controller.signal}).catch(() => null);
-            if (res?.ok) {
-                return defaultMockUrl;
-            }
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    } catch {
-        // Service probe failed, will return null
-    }
-
-    // If mock server not found, try real LibreTranslate
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        try {
-            const res = await fetch(`${fallbackRealUrl}/health`, {signal: controller.signal}).catch(() => null);
-            if (res?.ok) {
-                return fallbackRealUrl;
-            }
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    } catch {
-        // Service probe failed, will return null
-    }
-
-    return null;
-}
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
@@ -138,21 +65,7 @@ test(
     },
 );
 
-// Set up translation service probe only for the test that needs it
 test.describe('autotranslation configuration tests', () => {
-    test.beforeEach(async () => {
-        // Only probe translation service for tests in this block that need it
-        selectedTranslationUrl = await probeTranslationService();
-
-        if (!selectedTranslationUrl) {
-            test.skip(
-                true,
-                `Translation service not found. Please start one of the following:\n` +
-                    `1. Mock server (recommended): npm run start:libretranslate-mock\n` +
-                    `2. Real LibreTranslate: docker-compose -f ../docker-compose.autotranslation.yml up`,
-            );
-        }
-    });
 
     test(
         'user without permission cannot enable autotranslation at channel level',
@@ -174,7 +87,7 @@ test.describe('autotranslation configuration tests', () => {
             try {
                 // Enable autotranslation
                 await enableAutotranslationConfig(adminClient, {
-                    mockBaseUrl: selectedTranslationUrl ?? process.env.LIBRETRANSLATE_URL ?? 'http://localhost:3010',
+                    mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
                     targetLanguages: ['en', 'es'],
                 });
 
