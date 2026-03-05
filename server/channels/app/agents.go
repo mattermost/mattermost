@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/blang/semver/v4"
 
@@ -15,13 +16,51 @@ import (
 )
 
 const (
-	aiPluginID                  = "mattermost-ai"
-	minAIPluginVersionForBridge = "1.5.0"
+	aiPluginID = "mattermost-ai"
 )
 
-// GetBridgeClient returns a bridge client for making requests to the plugin bridge API
-func (a *App) GetBridgeClient(userID string) *agentclient.Client {
-	return agentclient.NewClientFromApp(a, userID)
+var minAIPluginVersionForBridgeSemver = semver.MustParse("1.5.0")
+
+// BridgeClient wraps the bridge client to sanitize LLM completion responses.
+// Methods are explicitly delegated to prevent unsanitized methods from being promoted.
+type BridgeClient struct {
+	client *agentclient.Client
+}
+
+// AgentCompletion makes a non-streaming completion request and strips any markdown
+// code fencing that LLMs sometimes wrap around JSON responses.
+func (c *BridgeClient) AgentCompletion(agent string, request agentclient.CompletionRequest) (string, error) {
+	completion, err := c.client.AgentCompletion(agent, request)
+	if err != nil {
+		return "", err
+	}
+	return stripMarkdownCodeFencing(completion), nil
+}
+
+// ServiceCompletion makes a non-streaming completion request and strips any markdown
+// code fencing that LLMs sometimes wrap around JSON responses.
+func (c *BridgeClient) ServiceCompletion(service string, request agentclient.CompletionRequest) (string, error) {
+	completion, err := c.client.ServiceCompletion(service, request)
+	if err != nil {
+		return "", err
+	}
+	return stripMarkdownCodeFencing(completion), nil
+}
+
+// GetAgents delegates to the underlying client (no sanitization needed for metadata).
+func (c *BridgeClient) GetAgents(userID string) ([]agentclient.BridgeAgentInfo, error) {
+	return c.client.GetAgents(userID)
+}
+
+// GetServices delegates to the underlying client (no sanitization needed for metadata).
+func (c *BridgeClient) GetServices(userID string) ([]agentclient.BridgeServiceInfo, error) {
+	return c.client.GetServices(userID)
+}
+
+// GetBridgeClient returns a bridge client for making requests to the plugin bridge API.
+// Completion responses are automatically sanitized (e.g. markdown code fencing is stripped).
+func (a *App) GetBridgeClient(userID string) *BridgeClient {
+	return &BridgeClient{client: agentclient.NewClientFromApp(a, userID)}
 }
 
 // GetAIPluginBridgeStatus checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)
@@ -55,16 +94,11 @@ func (a *App) GetAIPluginBridgeStatus(rctx request.CTX) (bool, string) {
 				return false, "app.agents.bridge.not_available.plugin_version_parse_failed"
 			}
 
-			minVersion, err := semver.Parse(minAIPluginVersionForBridge)
-			if err != nil {
-				return false, "app.agents.bridge.not_available.min_version_parse_failed"
-			}
-
-			if pluginVersion.LT(minVersion) {
+			if pluginVersion.LT(minAIPluginVersionForBridgeSemver) {
 				rctx.Logger().Debug("AI plugin bridge not available - plugin version is too old",
 					mlog.String("plugin_id", aiPluginID),
 					mlog.String("current_version", plugin.Manifest.Version),
-					mlog.String("minimum_version", minAIPluginVersionForBridge),
+					mlog.String("minimum_version", minAIPluginVersionForBridgeSemver.String()),
 				)
 				return false, "app.agents.bridge.not_available.plugin_version_too_old"
 			}
@@ -155,4 +189,25 @@ func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.Bri
 	}
 
 	return services, nil
+}
+
+// stripMarkdownCodeFencing removes markdown code block fencing (e.g. ```json ... ```)
+// that LLMs sometimes wrap around JSON responses despite being told not to.
+func stripMarkdownCodeFencing(s string) string {
+	trimmed := strings.TrimSpace(s)
+	if !strings.HasPrefix(trimmed, "```") {
+		return s
+	}
+	// Remove opening fence (```json, ```, etc.)
+	firstNewline := strings.Index(trimmed, "\n")
+	if firstNewline == -1 {
+		return s
+	}
+	trimmed = trimmed[firstNewline+1:]
+
+	// Remove closing fence
+	if idx := strings.LastIndex(trimmed, "```"); idx != -1 {
+		trimmed = trimmed[:idx]
+	}
+	return strings.TrimSpace(trimmed)
 }
