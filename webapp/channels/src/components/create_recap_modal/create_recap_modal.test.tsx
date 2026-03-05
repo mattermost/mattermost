@@ -112,10 +112,6 @@ describe('CreateRecapModal', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal with header including AI agent dropdown', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 

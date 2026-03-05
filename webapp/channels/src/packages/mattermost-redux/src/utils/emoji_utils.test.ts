@@ -52,8 +52,6 @@ describe('EmojiUtils', () => {
                 category: 'activities',
                 short_names: ['sampleEmoji'],
                 short_name: 'sampleEmoji',
-                batch: 2,
-                image: 'sampleEmoji.png',
             });
             expect(EmojiUtils.isSystemEmoji(sampleEmoji)).toBe(true);
         });
@@ -64,8 +62,6 @@ describe('EmojiUtils', () => {
                 name: 'sampleEmoji',
                 short_names: ['sampleEmoji'],
                 short_name: 'sampleEmoji',
-                batch: 2,
-                image: 'sampleEmoji.png',
             });
             expect(EmojiUtils.isSystemEmoji(sampleEmoji)).toBe(true);
         });

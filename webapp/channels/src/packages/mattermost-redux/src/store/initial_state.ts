@@ -9,6 +9,8 @@ const state: GlobalState = {
     entities: {
         agents: {
             agents: [],
+            llmServices: [],
+            agentsStatus: {available: false},
         },
         general: {
             config: {},
@@ -153,6 +155,7 @@ const state: GlobalState = {
             files: {},
             filesFromSearch: {},
             fileIdsByPostId: {},
+            rejectedFiles: new Set(),
         },
         emojis: {
             customEmoji: {},

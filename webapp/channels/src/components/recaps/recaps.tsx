@@ -208,8 +208,8 @@ const Recaps = () => {
                     <button
                         className='btn btn-tertiary recap-add-button'
                         onClick={handleAddRecap}
-                        disabled={agentsBridgeEnabled === false}
-                        title={agentsBridgeEnabled ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                        disabled={!agentsBridgeEnabled.available}
+                        title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
                     >
                         <PlusIcon size={12}/>
                         {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
@@ -223,7 +223,7 @@ const Recaps = () => {
                         scheduledRecaps={scheduledRecaps}
                         onEdit={handleEditScheduledRecap}
                         onCreateClick={handleAddRecap}
-                        createDisabled={agentsBridgeEnabled === false}
+                        createDisabled={!agentsBridgeEnabled.available}
                     />
                 ) : (
                     <RecapsList recaps={displayedRecaps}/>

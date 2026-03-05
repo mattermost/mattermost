@@ -5,6 +5,8 @@ import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
+import type {WebSocketMessages} from '@mattermost/client';
+
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
 import {
@@ -24,7 +26,7 @@ import {
     unregisterPluginWebSocketEvent,
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
-} from 'actions/websocket_actions.jsx';
+} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
 import {ActionTypes} from 'utils/constants';
@@ -233,6 +235,16 @@ export default class PluginRegistry {
             action,
         });
         return id;
+    });
+
+    /**
+     * Register a component to render in the channel header next to the pinned posts button.
+     * This component will be rendered in the left icon section of the channel header, unlike registerChannelHeaderButtonAction which
+     * renders in the right plugin section or App Bar.
+     * Accepts a React component. Returns a unique identifier.
+     */
+    registerChannelHeaderIcon = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelHeaderIcon', this.id, component);
     });
 
     /**
@@ -818,7 +830,16 @@ export default class PluginRegistry {
      * - handler - a function to handle the event, receives the event message as an argument
      * Returns undefined.
      */
-    registerWebSocketEventHandler = reArg(['event', 'handler'], ({event, handler}) => {
+    registerWebSocketEventHandler = reArg([
+        'event',
+        'handler',
+    ], ({
+        event,
+        handler,
+    }: {
+        event: string;
+        handler: (msg: WebSocketMessages.Unknown) => void;
+    }) => {
         registerPluginWebSocketEvent(this.id, event, handler);
     });
 
@@ -827,7 +848,7 @@ export default class PluginRegistry {
      * Accepts a string event type.
      * Returns undefined.
      */
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}) => {
+    unregisterWebSocketEventHandler = reArg(['event'], ({event}: { event: string }) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 
@@ -836,7 +857,7 @@ export default class PluginRegistry {
      * internet after previously disconnecting.
      * Accepts a function to handle the event. Returns undefined.
      */
-    registerReconnectHandler = reArg(['handler'], ({handler}) => {
+    registerReconnectHandler = reArg(['handler'], ({handler}: {handler: () => void}) => {
         registerPluginReconnectHandler(this.id, handler);
     });
 
@@ -1162,7 +1183,7 @@ export default class PluginRegistry {
         dispatchPluginComponentWithData('Product', {
             id,
             pluginId: this.id,
-            switcherIcon,
+            switcherIcon: resolveReactElement(switcherIcon),
             switcherText: resolveReactElement(switcherText),
             baseURL: '/' + standardizeRoute(baseURL),
             switcherLinkURL: '/' + standardizeRoute(switcherLinkURL),

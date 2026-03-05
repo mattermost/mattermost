@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPolicyActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPoliciesActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
@@ -127,7 +127,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             saveChannelAccessPolicy: createAccessControlPolicy,
             validateChannelExpression: validateExpressionAgainstRequester,
             createAccessControlSyncJob: createJob,
-            updateAccessControlPolicyActive,
+            updateAccessControlPoliciesActive,
             searchUsersForExpression,
             getChannelMembers,
             getProfilesByIds,

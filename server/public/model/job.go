@@ -48,6 +48,7 @@ const (
 	JobTypeRecap                         = "recap"
 	JobTypeScheduledRecap                = "scheduled_recap"
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
+	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

@@ -9,7 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * Two users must be members of the same team
  */
-test('displays multiple mentions correctly in Recent Mentions panel', {tag: '@mentions'}, async ({pw}) => {
+test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@smoke', '@mentions']}, async ({pw}) => {
     // # Define the number of mentions to create
     const MENTION_COUNT = 20;
 

@@ -29,7 +29,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 	return supportedExtensions[extension]
 }
 
-func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker) (out string, outErr error) {
+func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""

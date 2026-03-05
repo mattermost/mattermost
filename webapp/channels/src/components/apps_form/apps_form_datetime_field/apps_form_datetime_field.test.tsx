@@ -44,8 +44,6 @@ describe('AppsFormDateTimeField', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Mock current time to avoid timezone-dependent tests
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));

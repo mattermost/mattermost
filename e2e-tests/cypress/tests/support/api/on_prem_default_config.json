@@ -175,11 +175,6 @@
     "ExperimentalAuditSettings": {
         "FileEnabled": false,
         "FileName": "",
-        "FileMaxSizeMB": 100,
-        "FileMaxAgeDays": 0,
-        "FileMaxBackups": 0,
-        "FileCompress": false,
-        "FileMaxQueueSize": 1000,
         "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
@@ -484,6 +479,7 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
+        "EnableCJKAnalyzers": false,
         "EnableAutocomplete": false,
         "Sniff": false,
         "PostIndexReplicas": 1,

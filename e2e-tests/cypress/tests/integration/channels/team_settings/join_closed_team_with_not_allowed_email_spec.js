@@ -87,7 +87,10 @@ describe('Team Settings', () => {
             cy.get('#input_name').type(username);
             cy.get('#input_password-input').type(password);
 
-            // # Attempt to create an account by clicking on the 'Create account' button
+            // # Check the terms and privacy checkbox
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+            // # Attempt to create an account by clicking on the 'Create Account' button
             cy.findByText('Create account').click();
 
             // * Assert that the expected error message from creating an account with an email not from the allowed email domain exists and is visible

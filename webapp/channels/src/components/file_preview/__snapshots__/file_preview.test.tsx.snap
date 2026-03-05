@@ -1,355 +1,334 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`FilePreview should match snapshot 1`] = `
-<div
-  className="file-preview__container"
->
+<div>
   <div
-    className="file-preview post-image__column"
-    key="file_id_1"
+    class="file-preview__container"
   >
     <div
-      className="post-image__thumbnail"
+      class="file-preview post-image__column"
     >
       <div
-        className="post-image normal"
-        style={
-          Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
-            "backgroundSize": "cover",
-          }
-        }
-      />
-    </div>
-    <div
-      className="post-image__details"
-    >
-      <div
-        className="post-image__detail_wrapper"
+        class="post-image__thumbnail"
       >
         <div
-          className="post-image__detail"
+          class="post-image normal"
+          style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
+        />
+      </div>
+      <div
+        class="post-image__details"
+      >
+        <div
+          class="post-image__detail_wrapper"
         >
-          <FilenameOverlay
-            canDownload={false}
-            compactDisplay={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "extension": "png",
-                "has_preview_image": true,
-                "height": 100,
-                "id": "file_id_1",
-                "mime_type": "",
-                "name": "test_filename",
-                "size": 100,
-                "type": "image/png",
-                "update_at": 0,
-                "user_id": "",
-                "width": 100,
-              }
-            }
-          />
-          <span
-            className="post-image__type"
+          <div
+            class="post-image__detail"
           >
-            PNG
-          </span>
-          <span
-            className="post-image__size"
+            <span
+              class="post-image__name"
+            >
+              test_filename
+            </span>
+            <span
+              class="post-image__type"
+            >
+              PNG
+            </span>
+            <span
+              class="post-image__size"
+            >
+              100B
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
           >
-            100B
-          </span>
+            <i
+              class="icon icon-close"
+            />
+          </a>
         </div>
       </div>
-      <div>
-        <a
-          className="file-preview__remove"
-          onClick={[Function]}
+    </div>
+    <div
+      class="file-preview post-image__column"
+      data-client-id="clientID_1"
+    >
+      <div
+        class="post-image__thumbnail"
+      >
+        <div
+          class="file-icon generic"
+        />
+      </div>
+      <div
+        class="post-image__details"
+      >
+        <div
+          class="post-image__detail_wrapper"
         >
-          <i
-            className="icon icon-close"
+          <div
+            class="post-image__detail"
+          >
+            <span
+              class="post-image__name"
+            >
+              file
+            </span>
+            <span
+              class="post-image__uploadingTxt"
+            >
+              Uploading...
+              <span>
+                 (50%)
+              </span>
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
+          >
+            <i
+              class="icon icon-close"
+            />
+          </a>
+        </div>
+        <div
+          class="post-image__progressBar progress"
+        >
+          <div
+            aria-valuemax="100"
+            aria-valuemin="0"
+            aria-valuenow="50"
+            class="progress-bar"
+            role="progressbar"
+            style="width: 50%;"
           />
-        </a>
+        </div>
       </div>
     </div>
   </div>
-  <FileProgressPreview
-    clientId="clientID_1"
-    fileInfo={
-      Object {
-        "archived": false,
-        "channel_id": "channel_id",
-        "clientId": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "extension": "image/png",
-        "has_preview_image": true,
-        "height": 100,
-        "id": "file_id_1",
-        "mime_type": "",
-        "name": "file",
-        "percent": 50,
-        "size": 100,
-        "update_at": 0,
-        "user_id": "",
-        "width": 100,
-      }
-    }
-    handleRemove={[Function]}
-    key="clientID_1"
-  />
 </div>
 `;
 
 exports[`FilePreview should match snapshot when props are changed 1`] = `
-<div
-  className="file-preview__container"
->
+<div>
   <div
-    className="file-preview post-image__column"
-    key="file_id_1"
+    class="file-preview__container"
   >
     <div
-      className="post-image__thumbnail"
+      class="file-preview post-image__column"
     >
       <div
-        className="post-image normal"
-        style={
-          Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
-            "backgroundSize": "cover",
-          }
-        }
-      />
-    </div>
-    <div
-      className="post-image__details"
-    >
-      <div
-        className="post-image__detail_wrapper"
+        class="post-image__thumbnail"
       >
         <div
-          className="post-image__detail"
+          class="post-image normal"
+          style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
+        />
+      </div>
+      <div
+        class="post-image__details"
+      >
+        <div
+          class="post-image__detail_wrapper"
         >
-          <FilenameOverlay
-            canDownload={false}
-            compactDisplay={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "extension": "png",
-                "has_preview_image": true,
-                "height": 100,
-                "id": "file_id_1",
-                "mime_type": "",
-                "name": "test_filename",
-                "size": 100,
-                "type": "image/png",
-                "update_at": 0,
-                "user_id": "",
-                "width": 100,
-              }
-            }
-          />
-          <span
-            className="post-image__type"
+          <div
+            class="post-image__detail"
           >
-            PNG
-          </span>
-          <span
-            className="post-image__size"
+            <span
+              class="post-image__name"
+            >
+              test_filename
+            </span>
+            <span
+              class="post-image__type"
+            >
+              PNG
+            </span>
+            <span
+              class="post-image__size"
+            >
+              100B
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
           >
-            100B
-          </span>
+            <i
+              class="icon icon-close"
+            />
+          </a>
         </div>
       </div>
-      <div>
-        <a
-          className="file-preview__remove"
-          onClick={[Function]}
+    </div>
+    <div
+      class="file-preview post-image__column"
+      data-client-id="clientID_1"
+    >
+      <div
+        class="post-image__thumbnail"
+      >
+        <div
+          class="file-icon generic"
+        />
+      </div>
+      <div
+        class="post-image__details"
+      >
+        <div
+          class="post-image__detail_wrapper"
         >
-          <i
-            className="icon icon-close"
+          <div
+            class="post-image__detail"
+          >
+            <span
+              class="post-image__name"
+            >
+              file
+            </span>
+            <span
+              class="post-image__uploadingTxt"
+            >
+              Uploading...
+              <span>
+                 (50%)
+              </span>
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
+          >
+            <i
+              class="icon icon-close"
+            />
+          </a>
+        </div>
+        <div
+          class="post-image__progressBar progress"
+        >
+          <div
+            aria-valuemax="100"
+            aria-valuemin="0"
+            aria-valuenow="50"
+            class="progress-bar"
+            role="progressbar"
+            style="width: 50%;"
           />
-        </a>
+        </div>
       </div>
     </div>
   </div>
-  <FileProgressPreview
-    clientId="clientID_1"
-    fileInfo={
-      Object {
-        "archived": false,
-        "channel_id": "channel_id",
-        "clientId": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "extension": "image/png",
-        "has_preview_image": true,
-        "height": 100,
-        "id": "file_id_1",
-        "mime_type": "",
-        "name": "file",
-        "percent": 50,
-        "size": 100,
-        "update_at": 0,
-        "user_id": "",
-        "width": 100,
-      }
-    }
-    handleRemove={[Function]}
-    key="clientID_1"
-  />
 </div>
 `;
 
 exports[`FilePreview should match snapshot when props are changed 2`] = `
-<div
-  className="file-preview__container"
->
+<div>
   <div
-    className="file-preview post-image__column"
-    key="file_id_1"
+    class="file-preview__container"
   >
     <div
-      className="post-image__thumbnail"
+      class="file-preview post-image__column"
     >
       <div
-        className="post-image normal"
-        style={
-          Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
-            "backgroundSize": "cover",
-          }
-        }
-      />
-    </div>
-    <div
-      className="post-image__details"
-    >
-      <div
-        className="post-image__detail_wrapper"
+        class="post-image__thumbnail"
       >
         <div
-          className="post-image__detail"
-        >
-          <FilenameOverlay
-            canDownload={false}
-            compactDisplay={false}
-            fileInfo={
-              Object {
-                "archived": false,
-                "channel_id": "channel_id",
-                "clientId": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "extension": "png",
-                "has_preview_image": true,
-                "height": 100,
-                "id": "file_id_1",
-                "mime_type": "",
-                "name": "test_filename",
-                "size": 100,
-                "type": "image/png",
-                "update_at": 0,
-                "user_id": "",
-                "width": 100,
-              }
-            }
-          />
-          <span
-            className="post-image__type"
-          >
-            PNG
-          </span>
-          <span
-            className="post-image__size"
-          >
-            100B
-          </span>
-        </div>
+          class="post-image normal"
+          style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
+        />
       </div>
-      <div>
-        <a
-          className="file-preview__remove"
-          onClick={[Function]}
-        >
-          <i
-            className="icon icon-close"
-          />
-        </a>
-      </div>
-    </div>
-  </div>
-  <div
-    className="file-preview post-image__column"
-    key="file_id_2"
-  >
-    <div
-      className="post-image__thumbnail"
-    >
       <div
-        className="post-image normal"
-        style={
-          Object {
-            "backgroundImage": "url(/api/v4/files/file_id_2/thumbnail)",
-            "backgroundSize": "cover",
-          }
-        }
-      />
-    </div>
-    <div
-      className="post-image__details"
-    >
-      <div
-        className="post-image__detail_wrapper"
+        class="post-image__details"
       >
         <div
-          className="post-image__detail"
+          class="post-image__detail_wrapper"
         >
-          <FilenameOverlay
-            canDownload={false}
-            compactDisplay={false}
-            fileInfo={
-              Object {
-                "create_at": "2",
-                "extension": "jpg",
-                "height": 100,
-                "id": "file_id_2",
-                "width": 100,
-              }
-            }
-          />
-          <span
-            className="post-image__type"
+          <div
+            class="post-image__detail"
           >
-            JPG
-          </span>
-          <span
-            className="post-image__size"
+            <span
+              class="post-image__name"
+            >
+              test_filename
+            </span>
+            <span
+              class="post-image__type"
+            >
+              PNG
+            </span>
+            <span
+              class="post-image__size"
+            >
+              100B
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
           >
-            undefinedB
-          </span>
+            <i
+              class="icon icon-close"
+            />
+          </a>
         </div>
       </div>
-      <div>
-        <a
-          className="file-preview__remove"
-          onClick={[Function]}
+    </div>
+    <div
+      class="file-preview post-image__column"
+    >
+      <div
+        class="post-image__thumbnail"
+      >
+        <div
+          class="post-image normal"
+          style="background-image: url(\\"/api/v4/files/file_id_2/thumbnail\\"); background-size: cover;"
+        />
+      </div>
+      <div
+        class="post-image__details"
+      >
+        <div
+          class="post-image__detail_wrapper"
         >
-          <i
-            className="icon icon-close"
-          />
-        </a>
+          <div
+            class="post-image__detail"
+          >
+            <span
+              class="post-image__name"
+            >
+              file_two.jpg
+            </span>
+            <span
+              class="post-image__type"
+            >
+              JPG
+            </span>
+            <span
+              class="post-image__size"
+            >
+              120B
+            </span>
+          </div>
+        </div>
+        <div>
+          <a
+            class="file-preview__remove"
+          >
+            <i
+              class="icon icon-close"
+            />
+          </a>
+        </div>
       </div>
     </div>
   </div>

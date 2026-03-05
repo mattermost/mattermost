@@ -166,3 +166,4 @@ docker-compose.override.yaml
 
 # Planning files (local only)
 .planning
+.cursor/

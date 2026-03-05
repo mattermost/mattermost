@@ -12,27 +12,81 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+// TestGetGroup tests basic group retrieval and verifies that ViewUsersRestrictions
+// are properly applied when fetching member IDs to prevent guest users from
+// enumerating user IDs they shouldn't have access to.
 func TestGetGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup(t)
+	t.Run("basic retrieval", func(t *testing.T) {
+		group := th.CreateGroup(t)
 
-	group, err := th.App.GetGroup(group.Id, nil, nil)
-	require.Nil(t, err)
-	require.NotNil(t, group)
+		g, err := th.App.GetGroup(group.Id, nil, nil)
+		require.Nil(t, err)
+		require.NotNil(t, g)
 
-	nilGroup, err := th.App.GetGroup(model.NewId(), nil, nil)
-	require.NotNil(t, err)
-	require.Nil(t, nilGroup)
+		nilGroup, err := th.App.GetGroup(model.NewId(), nil, nil)
+		require.NotNil(t, err)
+		require.Nil(t, nilGroup)
+	})
 
-	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false}, nil)
-	require.Nil(t, err)
-	require.Nil(t, group.MemberCount)
+	t.Run("include member count", func(t *testing.T) {
+		group := th.CreateGroup(t)
 
-	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
-	require.Nil(t, err)
-	require.NotNil(t, group.MemberCount)
+		g, err := th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false}, nil)
+		require.Nil(t, err)
+		require.Nil(t, g.MemberCount)
+
+		g, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
+		require.Nil(t, err)
+		require.NotNil(t, g.MemberCount)
+	})
+
+	t.Run("member IDs respect view restrictions", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+
+		th.LinkUserToTeam(t, user1, team)
+		th.AddUserToChannel(t, user1, channel)
+
+		id := model.NewId()
+		groupWithUserIds := &model.GroupWithUserIds{
+			Group: model.Group{
+				DisplayName:    "dn_" + id,
+				Name:           model.NewPointer("name" + id),
+				Source:         model.GroupSourceCustom,
+				AllowReference: true,
+			},
+			UserIds: []string{user1.Id, user2.Id, user3.Id},
+		}
+		group, err := th.App.CreateGroupWithUserIds(groupWithUserIds)
+		require.Nil(t, err)
+
+		opts := &model.GetGroupOpts{IncludeMemberIDs: true}
+
+		g, appErr := th.App.GetGroup(group.Id, opts, nil)
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 3)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 1)
+		assert.Contains(t, g.MemberIDs, user1.Id)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Teams: []string{team.Id}})
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 1)
+		assert.Contains(t, g.MemberIDs, user1.Id)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Channels: []string{}, Teams: []string{}})
+		require.Nil(t, appErr)
+		assert.Empty(t, g.MemberIDs)
+	})
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
