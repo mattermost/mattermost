@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -10,22 +10,30 @@ import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost
 import type {Post} from '@mattermost/types/posts';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
+import {getSearchTeam} from 'selectors/rhs';
 
 import Scrollbars from 'components/common/scrollbars';
 import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
+import {getSearchPopoutTitle} from 'components/rhs_search_popout/rhs_search_popout';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {searchHintOptions, DataSearchTypes} from 'utils/constants';
+import {getHistory} from 'utils/browser_history';
+import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {popoutRhsSearch} from 'utils/popouts/popout_windows';
+
+import type {RhsState, SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
@@ -48,6 +56,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const [searchType, setSearchType] = useState<string>(props.searchType);
     const filesDropdownPluginMenuItems = useSelector(getFilesDropdownPluginMenuItems);
     const config = useSelector(getConfig);
+    const currentChannel = useSelector(getCurrentChannel);
+    const currentTeam = useSelector(getCurrentTeam);
+    const searchTeamId = useSelector(getSearchTeam);
     const intl = useIntl();
 
     useEffect(() => {
@@ -227,9 +238,41 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const formattedTitle = intl.formatMessage(titleDescriptor);
 
     const handleOptionSelection = (term: string): void => {
-        handleSearchHintSelection();
+        handleSearchHintSelection?.();
         updateSearchTerms(term);
     };
+
+    const newWindowHandler = useCallback(() => {
+        let mode: NonNullable<RhsState> = RHSStates.SEARCH;
+        if (isMentionSearch) {
+            mode = RHSStates.MENTION;
+        } else if (isFlaggedPosts) {
+            mode = RHSStates.FLAG;
+        } else if (isPinnedPosts) {
+            mode = RHSStates.PIN;
+        } else if (isChannelFiles) {
+            mode = RHSStates.CHANNEL_FILES;
+        }
+
+        const needsChannel = isPinnedPosts || isChannelFiles;
+        const popoutTitle = getSearchPopoutTitle(mode);
+
+        popoutRhsSearch(
+            intl.formatMessage(popoutTitle, {serverName: '{serverName}', channelName: '{channelName}', searchTerms}),
+            currentTeam?.name ?? '',
+            searchTerms,
+            mode,
+            searchType as SearchType,
+            needsChannel ? currentChannel?.name : undefined,
+            searchTeamId,
+        );
+    }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId]);
+
+    const handleChannelNameClick = useCallback(() => {
+        if (currentTeam?.name && currentChannel?.name) {
+            getHistory().push(`/${currentTeam.name}/channels/${currentChannel.name}`);
+        }
+    }, [currentTeam?.name, currentChannel?.name]);
 
     switch (true) {
     case isLoading:
@@ -341,11 +384,20 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             id='searchContainer'
             className='SearchResults sidebar-right__body'
         >
-            <SearchResultsHeader>
+            <SearchResultsHeader
+                newWindowHandler={newWindowHandler}
+            >
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
-                {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
+                {props.channelDisplayName &&
+                    <button
+                        className='style--none sidebar--right__title__channel'
+                        onClick={handleChannelNameClick}
+                    >
+                        {props.channelDisplayName}
+                    </button>
+                }
             </SearchResultsHeader>
             {isMessagesSearch &&
                 <MessageOrFileSelector
@@ -373,7 +425,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     />
                 </div>
             }
-            <SearchLimitsBanner searchType={searchType}/>
+            <SearchLimitsBanner
+                searchType={searchType}
+            />
             <Scrollbars
                 ref={scrollbars}
                 color='--center-channel-color-rgb'
@@ -422,7 +476,7 @@ export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
             continue;
         }
 
-        if (nextProps[key] !== props[key]) {
+        if (nextProps[key as keyof Props] !== props[key as keyof Props]) {
             return false;
         }
     }

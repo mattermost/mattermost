@@ -1,10 +1,189 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {arePropsEqual} from 'components/search_results/search_results';
+import {within} from '@testing-library/react';
+import React from 'react';
+
+import SearchResults, {arePropsEqual} from 'components/search_results/search_results';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
+import {popoutRhsSearch} from 'utils/popouts/popout_windows';
+import {TestHelper} from 'utils/test_helper';
+
+import type {Props} from './types';
+
+jest.mock('utils/popouts/popout_windows', () => ({
+    popoutRhsSearch: jest.fn(),
+    canPopout: () => true,
+}));
+
+jest.mock('utils/browser_history', () => ({
+    getHistory: jest.fn(() => ({push: jest.fn()})),
+}));
+
+jest.mock('components/search_results_header', () => ({
+    __esModule: true,
+    default: (props: {newWindowHandler?: () => void; children: React.ReactNode}) => (
+        <div data-testid='search-results-header'>
+            {props.children}
+            {props.newWindowHandler && (
+                <button
+                    data-testid='popout-button'
+                    onClick={props.newWindowHandler}
+                />
+            )}
+        </div>
+    ),
+}));
+
+window.HTMLElement.prototype.scrollTo = jest.fn();
 
 describe('components/SearchResults', () => {
-    describe('shouldRenderFromProps', () => {
+    const team = TestHelper.getTeamMock({id: 'team1', name: 'test-team'});
+    const channel = TestHelper.getChannelMock({
+        id: 'channel1',
+        name: 'test-channel',
+        display_name: 'Test Channel',
+        team_id: team.id,
+    });
+
+    const baseState = {
+        entities: {
+            channels: {
+                currentChannelId: channel.id,
+                channels: {[channel.id]: channel},
+                channelsInTeam: {[team.id]: new Set([channel.id])},
+                myMembers: {},
+            },
+            teams: {
+                currentTeamId: team.id,
+                teams: {[team.id]: team},
+                myMembers: {[team.id]: {}},
+            },
+            general: {
+                config: {},
+                license: {},
+                serverVersion: '',
+            },
+            users: {
+                currentUserId: 'user1',
+                profiles: {},
+            },
+            preferences: {myPreferences: {}},
+            roles: {roles: {}},
+        },
+        views: {
+            rhs: {
+                rhsState: 'search',
+                isSidebarExpanded: false,
+                searchTeam: team.id,
+                searchTerms: 'hello',
+            },
+        },
+        plugins: {
+            components: {},
+        },
+    };
+
+    const baseProps: Props = {
+        results: [],
+        fileResults: [],
+        matches: {},
+        searchPage: 0,
+        searchTerms: 'hello',
+        searchSelectedType: 'messages',
+        isSearchingTerm: false,
+        isSearchingFlaggedPost: false,
+        isSearchingPinnedPost: false,
+        isSearchGettingMore: false,
+        isSearchAtEnd: true,
+        isSearchFilesAtEnd: true,
+        currentTeamName: team.name,
+        channelDisplayName: '',
+        crossTeamSearchEnabled: false,
+        isChannelFiles: false,
+        isFlaggedPosts: false,
+        isMentionSearch: false,
+        isOpened: true,
+        isPinnedPosts: false,
+        isSideBarExpanded: false,
+        searchFilterType: 'all',
+        searchType: 'messages',
+        getMoreFilesForSearch: jest.fn(),
+        getMorePostsForSearch: jest.fn(),
+        setSearchFilterType: jest.fn(),
+        updateSearchTeam: jest.fn(),
+        updateSearchTerms: jest.fn(),
+    };
+
+    const mockPopoutRhsSearch = popoutRhsSearch as jest.MockedFunction<typeof popoutRhsSearch>;
+    const mockGetHistory = getHistory as jest.MockedFunction<typeof getHistory>;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockGetHistory.mockReturnValue({push: jest.fn()} as any);
+    });
+
+    function renderSearchResults(propOverrides?: Partial<Props>) {
+        const props = {...baseProps, ...propOverrides};
+        return renderWithContext(
+            <SearchResults {...props}/>,
+            baseState,
+        );
+    }
+
+    describe('newWindowHandler', () => {
+        function clickPopout(propOverrides?: Partial<Props>) {
+            const {container} = renderSearchResults(propOverrides);
+            within(container).getByTestId('popout-button').click();
+        }
+
+        test('should resolve mode from boolean props and pass channel only when needed', () => {
+            clickPopout({isMentionSearch: true});
+            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id,
+            );
+
+            jest.clearAllMocks();
+            clickPopout({isFlaggedPosts: true});
+            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id,
+            );
+
+            jest.clearAllMocks();
+            clickPopout({isPinnedPosts: true});
+            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'pin', 'messages', channel.name, team.id,
+            );
+
+            jest.clearAllMocks();
+            clickPopout({isChannelFiles: true});
+            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'channel-files', 'messages', channel.name, team.id,
+            );
+
+            jest.clearAllMocks();
+            clickPopout();
+            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
+            );
+        });
+    });
+
+    describe('handleChannelNameClick', () => {
+        test('should navigate to channel URL when channel display name is clicked', () => {
+            const pushMock = jest.fn();
+            mockGetHistory.mockReturnValue({push: pushMock} as any);
+
+            renderSearchResults({channelDisplayName: 'Test Channel'});
+            screen.getByText('Test Channel').click();
+
+            expect(pushMock).toHaveBeenCalledWith(`/${team.name}/channels/${channel.name}`);
+        });
+    });
+
+    describe('arePropsEqual', () => {
         const result1 = {test: 'test'};
         const result2 = {test: 'test'};
         const fileResult1 = {test: 'test'};
@@ -17,9 +196,6 @@ describe('components/SearchResults', () => {
             results,
             fileResults,
         };
-
-        // Using a lot of anys here since the function is only used by SearchResults so the parameters are bound to its props
-        // But the tests are written using arbitrary props
 
         test('should not render', () => {
             expect(arePropsEqual(props as any, {...props} as any)).toBeTruthy();
