@@ -2330,7 +2330,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if canSendMagicLinkEmail(user) {
-		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(c.AppContext, user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.NoRateLimiterError):
