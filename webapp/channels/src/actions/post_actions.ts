@@ -5,18 +5,16 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessages} from '@mattermost/client';
-import type {ServerChannel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
-import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
+import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
-import {Client4} from 'mattermost-redux/client';
-import {getChannel, getMyChannels, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
@@ -33,7 +31,6 @@ import {removeDraft} from 'actions/views/drafts';
 import {closeModal, openModal} from 'actions/views/modals';
 import * as RhsActions from 'actions/views/rhs';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-import {isSecureURLEnabled} from 'selectors/config';
 import {getConnectionId} from 'selectors/general';
 import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
@@ -41,7 +38,6 @@ import {getGlobalItem} from 'selectors/storage';
 
 import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
 
-import {convertSlugsToDisplayMentions, extractUnresolvedObfuscatedSlugs} from 'utils/channel_mention_utils';
 import {
     ActionTypes,
     Constants,
@@ -326,10 +322,10 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFuncAsync<boolean, GlobalState> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
     const getFilesForPost = makeGetFilesForPost();
 
-    return async (dispatch, getState) => {
+    return (dispatch, getState) => {
         const state = getState();
         let post = PostSelectors.getPost(state, postId);
 
@@ -374,46 +370,7 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
                     editDraftInStore?.uploadsInProgress?.length === 0
                 )
         ) {
-            // Convert real channel name mentions to display slugs for readable editing
-            let editablePost = post;
-
-            if (isSecureURLEnabled(state)) {
-                const allChannelsList = Object.values(getMyChannels(state));
-
-                // Fetch any obfuscated channel mentions not yet in the store
-                const unresolvedSlugs = extractUnresolvedObfuscatedSlugs(post.message, allChannelsList);
-                let combinedChannels = allChannelsList;
-                if (unresolvedSlugs.size > 0 && teamId) {
-                    const fetchPromises: Array<Promise<ServerChannel | null>> = [];
-                    for (const slug of unresolvedSlugs) {
-                        fetchPromises.push(
-                            Client4.getChannelByName(teamId, slug).catch(
-                                () => null,
-                            ),
-                        );
-                    }
-                    const fetchedChannels = await Promise.all(fetchPromises);
-                    const validFetched = fetchedChannels.filter(
-                        (ch): ch is ServerChannel => ch !== null,
-                    );
-
-                    dispatch(
-                        batchActions(
-                            validFetched.map((ch) => ({
-                                type: ChannelTypes.RECEIVED_CHANNEL,
-                                data: ch,
-                            })),
-                        ),
-                    );
-                    combinedChannels = [...allChannelsList, ...validFetched];
-                }
-
-                editablePost = {
-                    ...post,
-                    message: convertSlugsToDisplayMentions(post.message, combinedChannels),
-                };
-            }
-            actions.push(setGlobalItem(storageKey, editablePost));
+            actions.push(setGlobalItem(storageKey, post));
         }
 
         dispatch(batchActions(actions));

@@ -4,8 +4,7 @@
 import {logError} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -14,7 +13,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getPermalinkURL} from 'selectors/urls';
 
-import {resolveDisplayMentionsToSlugs} from 'utils/channel_mention_utils';
 import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
@@ -23,20 +21,8 @@ import {getTimestamp} from 'utils/utils';
 import {runMessageWillBePostedHooks} from '../hooks';
 
 export function editPost(post) {
-    return async (dispatch, getState) => {
-        const state = getState();
-        let resolvedPost = post;
-
-        const config = getConfig(state);
-        if (config.UseSecureURLs === 'true') {
-            const allChannelsList = Object.values(getAllChannels(state));
-            resolvedPost = {
-                ...post,
-                message: resolveDisplayMentionsToSlugs(post.message, allChannelsList),
-            };
-        }
-
-        const result = await dispatch(PostActions.editPost(resolvedPost));
+    return async (dispatch) => {
+        const result = await dispatch(PostActions.editPost(post));
 
         // Send to error bar if it's an edit post error about time limit.
         if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
