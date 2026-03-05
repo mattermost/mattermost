@@ -248,12 +248,10 @@ func (v *Validator) Validate() error {
 
 	var jsonlZip *zip.File
 	for _, zfile := range z.File {
-		if filepath.Ext(zfile.Name) != ".jsonl" {
-			continue
+		if imports.IsRootJsonlFile(zfile.Name) {
+			jsonlZip = zfile
+			break
 		}
-
-		jsonlZip = zfile
-		break
 	}
 	if jsonlZip == nil {
 		return fmt.Errorf("could not find a .jsonl file in the import archive")
