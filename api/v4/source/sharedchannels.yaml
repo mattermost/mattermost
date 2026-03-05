@@ -135,6 +135,12 @@
           required: true
           schema:
             type: string
+        - name: include_deleted
+          in: query
+          description: Include deleted remote clusters
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Remote cluster info retrieval successful
@@ -234,9 +240,9 @@
       summary: Get remote clusters for a shared channel
       description: |
         Gets the remote clusters information for a shared channel.
-        
+
         __Minimum server version__: 10.11
-        
+
         ##### Permissions
         Must be authenticated and have the `read_channel` permission for the channel.
       operationId: GetSharedChannelRemotes
@@ -273,9 +279,9 @@
       description: |
         Checks if a user can send direct messages to another user, considering shared channel restrictions.
         This is specifically for shared channels where DMs require direct connections between clusters.
-        
+
         __Minimum server version__: 10.11
-        
+
         ##### Permissions
         Must be authenticated and have permission to view the user.
       operationId: CanUserDirectMessage
