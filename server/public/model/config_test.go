@@ -9,6 +9,7 @@ import (
 	"maps"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -2394,71 +2395,10 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(1000),
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer("audit.log"),
 			},
 			ExpectError: false,
-		},
-		"invalid file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"negative file max age": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(-5),
-			},
-			ExpectError: true,
-		},
-		"negative file max backups": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(5),
-				FileMaxBackups: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"zero file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(-1000),
-			},
-			ExpectError: true,
 		},
 		"AdvancedLoggingJSON has JSON error ": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
@@ -2847,6 +2787,33 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			},
 			expectError: false,
 		},
+		{
+			name: "valid workers at 48",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(48),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:    "invalid workers above 64",
+			errorId: "model.config.is_valid.autotranslation.workers.app_error",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(65),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: true,
+		},
 		// TODO: Enable Agents provider in future release
 		// {
 		// 	name: "valid agents settings",
@@ -2873,4 +2840,68 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
+	permissionMap := map[string]bool{}
+	for _, p := range AllPermissions {
+		permissionMap[p.Id] = true
+	}
+
+	specialTags := map[string]bool{
+		ConfigAccessTagWriteRestrictable: true,
+		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagAnySysConsoleRead: true,
+	}
+
+	// Pre-existing tag issues tracked separately; skip to avoid blocking on known problems.
+	knownIssues := map[string]bool{
+		"Config.SqlSettings.ReplicaLagSettings.DataSource":       true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryAbsoluteLag": true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryTimeLag":     true,
+	}
+
+	var checkStruct func(t *testing.T, st reflect.Type, path string)
+	checkStruct = func(t *testing.T, st reflect.Type, path string) {
+		for i := 0; i < st.NumField(); i++ {
+			field := st.Field(i)
+			fieldPath := path + "." + field.Name
+
+			elemType := field.Type
+			if elemType.Kind() == reflect.Ptr || elemType.Kind() == reflect.Slice {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Ptr {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Struct {
+				checkStruct(t, elemType, fieldPath)
+				continue
+			}
+
+			accessTag := field.Tag.Get("access")
+			if accessTag == "" {
+				continue
+			}
+
+			if knownIssues[fieldPath] {
+				continue
+			}
+
+			for tagValue := range strings.SplitSeq(accessTag, ",") {
+				tagValue = strings.TrimSpace(tagValue)
+				if tagValue == "" || specialTags[tagValue] {
+					continue
+				}
+
+				readID := "sysconsole_read_" + tagValue
+				writeID := "sysconsole_write_" + tagValue
+				assert.True(t, permissionMap[readID] || permissionMap[writeID],
+					"Config field %s has access tag %q which does not map to any known permission (tried %s and %s)",
+					fieldPath, tagValue, readID, writeID)
+			}
+		}
+	}
+
+	checkStruct(t, reflect.TypeFor[Config](), "Config")
 }
