@@ -790,7 +790,7 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
-	if appErr := a.validateCommandTriggerUniqueness(team.Id, strings.ToLower(command.Trigger), command.Id); appErr != nil {
+	if appErr := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); appErr != nil {
 		return appErr
 	}
 
