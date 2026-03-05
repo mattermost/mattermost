@@ -37,10 +37,7 @@ test('MM-65630-1 Search results should show popout button that opens results in 
     const popoutButton = page.locator('.PopoutButton');
     await expect(popoutButton).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        popoutButton.click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -88,10 +85,7 @@ test('MM-65630-2 Recent mentions popout should open with the right results', asy
     const popoutButton = page.locator('.PopoutButton');
     await expect(popoutButton).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        popoutButton.click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -123,12 +117,14 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
         message: savedText,
     });
 
-    await userClient.savePreferences(user.id, [{
-        user_id: user.id,
-        category: 'flagged_post',
-        name: post.id,
-        value: 'true',
-    }]);
+    await userClient.savePreferences(user.id, [
+        {
+            user_id: user.id,
+            category: 'flagged_post',
+            name: post.id,
+            value: 'true',
+        },
+    ]);
 
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -145,10 +141,7 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
     const popoutButton = page.locator('.PopoutButton');
     await expect(popoutButton).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        popoutButton.click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -192,10 +185,7 @@ test('MM-65630-4 Search popout should not show popout button in the popout windo
 
     await expect(page.locator('#searchContainer')).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        page.locator('.PopoutButton').click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), page.locator('.PopoutButton').click()]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
@@ -237,10 +227,7 @@ test('MM-65630-5 Search popout should preserve search type (files) in the URL', 
     const popoutButton = page.locator('.PopoutButton');
     await expect(popoutButton).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        popoutButton.click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
