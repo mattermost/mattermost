@@ -164,6 +164,13 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.FileWillBeDownloaded(c, fileInfo, userID, downloadType)
+	hooks.recordTime(startTime, "FileWillBeDownloaded", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ReactionHasBeenAdded(c, reaction)
@@ -230,6 +237,13 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
 	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EmailNotificationWillBeSent(emailNotification)
+	hooks.recordTime(startTime, "EmailNotificationWillBeSent", true)
 	return _returnsA, _returnsB
 }
 

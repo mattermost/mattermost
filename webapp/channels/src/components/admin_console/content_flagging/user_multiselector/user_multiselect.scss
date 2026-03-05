@@ -1,0 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.UserMultiSelector {
+    width: 100%;
+
+    &__menu-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__value-container {
+        display: flex;
+        gap: 8px;
+    }
+
+    &.singleSelect {
+        .UserMultiSelector__value-container {
+            display: flex;
+        }
+    }
+}
+
+// Menu is portaled to body, so we need global selector
+.UserMultiSelector__menu {
+    width: max-content !important;
+    // Force the menu to match the control width
+    min-width: 100% !important;
+}

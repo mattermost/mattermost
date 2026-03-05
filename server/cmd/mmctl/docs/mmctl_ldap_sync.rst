@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    ldap sync
+  mmctl ldap sync
 
 Options
 ~~~~~~~

@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Channel', () => {
@@ -51,15 +52,15 @@ describe('Channel', () => {
         // * Should match each channel item
         cy.get('#suggestionList').should('be.visible').children().as('suggestionList');
 
-        // * Should render "MY CHANNELS" suggestion list divider
-        cy.get('@suggestionList').eq(0).contains(myChannelsDividerText, {matchCase: false});
-        cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
-        cy.get('@suggestionList').eq(2).should('contain', 'Off-Topic');
-        cy.get('@suggestionList').eq(3).should('contain', 'Town Square');
+        // * Should render "MY CHANNELS" suggestion list group
+        cy.get('@suggestionList').get('[role="presentation"]').contains(myChannelsDividerText, {matchCase: false});
+        cy.get('@suggestionList').get('[role="option"]').should('contain', ownChannel.display_name);
+        cy.get('@suggestionList').get('[role="option"]').should('contain', 'Off-Topic');
+        cy.get('@suggestionList').get('[role="option"]').should('contain', 'Town Square');
 
-        // * Should render "OTHER CHANNELS" suggestion list divider
-        cy.get('@suggestionList').eq(4).contains(otherChannelsDividerText, {matchCase: false});
-        cy.get('@suggestionList').eq(5).should('contain', otherChannel.display_name);
+        // * Should render "OTHER CHANNELS" suggestion list group
+        cy.get('@suggestionList').get('[role="presentation"]').contains(otherChannelsDividerText, {matchCase: false});
+        cy.get('@suggestionList').get('[role="option"]').should('contain', otherChannel.display_name);
     });
 
     it('Joining a channel should alter channel mention autocomplete lists accordingly', () => {
@@ -77,12 +78,12 @@ describe('Channel', () => {
         // * Should match each channel
         cy.get('#suggestionList').should('be.visible').children().as('suggestionList');
 
-        // * Should render "MY CHANNELS" suggestion list divider
-        cy.get('@suggestionList').eq(0).contains(myChannelsDividerText, {matchCase: false});
-        cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
-        cy.get('@suggestionList').eq(2).should('contain', otherChannel.display_name);
-        cy.get('@suggestionList').eq(3).should('contain', 'Off-Topic');
-        cy.get('@suggestionList').eq(4).should('contain', 'Town Square');
+        // * Should render "MY CHANNELS" suggestion list group
+        cy.get('@suggestionList').get('[role="presentation"]').contains(myChannelsDividerText, {matchCase: false});
+        cy.get('@suggestionList').get('[role="option"]').should('contain', ownChannel.display_name);
+        cy.get('@suggestionList').get('[role="option"]').should('contain', otherChannel.display_name);
+        cy.get('@suggestionList').get('[role="option"]').should('contain', 'Off-Topic');
+        cy.get('@suggestionList').get('[role="option"]').should('contain', 'Town Square');
     });
 
     it('Getting removed from a channel should alter channel mention autocomplete lists accordingly', () => {
@@ -103,15 +104,15 @@ describe('Channel', () => {
             // * Should match each channel item
             cy.get('#suggestionList').should('be.visible').children().as('suggestionList');
 
-            // * Should render "MY CHANNELS" suggestion list divider
-            cy.get('@suggestionList').eq(0).contains(myChannelsDividerText, {matchCase: false});
-            cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
-            cy.get('@suggestionList').eq(2).should('contain', 'Off-Topic');
-            cy.get('@suggestionList').eq(3).should('contain', 'Town Square');
+            // * Should render "MY CHANNELS" suggestion list group
+            cy.get('@suggestionList').get('[role="presentation"]').contains(myChannelsDividerText, {matchCase: false});
+            cy.get('@suggestionList').get('[role="option"]').should('contain', ownChannel.display_name);
+            cy.get('@suggestionList').get('[role="option"]').should('contain', 'Off-Topic');
+            cy.get('@suggestionList').get('[role="option"]').should('contain', 'Town Square');
 
-            // * Should render "OTHER CHANNELS" suggestion list divider
-            cy.get('@suggestionList').eq(4).contains(otherChannelsDividerText, {matchCase: false});
-            cy.get('@suggestionList').eq(5).should('contain', otherChannel.display_name);
+            // * Should render "OTHER CHANNELS" suggestion list group
+            cy.get('@suggestionList').get('[role="presentation"]').contains(otherChannelsDividerText, {matchCase: false});
+            cy.get('@suggestionList').get('[role="option"]').should('contain', otherChannel.display_name);
         });
     });
 });

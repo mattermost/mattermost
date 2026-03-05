@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React, {type ComponentProps} from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import OpenInvite from './open_invite';
 
@@ -23,7 +22,7 @@ describe('components/TeamSettings/OpenInvite', () => {
         expect(title).toBeInTheDocument();
         const externalLink = screen.getByText('Learn More');
         expect(externalLink).toBeInTheDocument();
-        expect(externalLink).toHaveAttribute('href', 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=open_invite&uid=&sid=');
+        expect(externalLink).toHaveAttribute('href', 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=open_invite&uid=&sid=&edition=team&server_version=');
     });
 
     test('should render the checkbox when the team is not constrained and not checked', () => {
@@ -41,12 +40,12 @@ describe('components/TeamSettings/OpenInvite', () => {
         expect(checkbox).toBeChecked();
     });
 
-    test('should call setAllowOpenInvite when the checkbox is clicked', () => {
+    test('should call setAllowOpenInvite when the checkbox is clicked', async () => {
         renderWithContext(<OpenInvite {...defaultProps}/>);
         const checkbox = screen.getByRole('checkbox');
         expect(checkbox).toBeInTheDocument();
         expect(checkbox).not.toBeChecked();
-        fireEvent.click(checkbox);
+        await userEvent.click(checkbox);
         expect(setAllowOpenInvite).toHaveBeenCalledTimes(1);
         expect(setAllowOpenInvite).toHaveBeenCalledWith(true);
     });

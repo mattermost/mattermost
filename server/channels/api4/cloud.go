@@ -44,8 +44,11 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/installation
 	api.BaseRoutes.Cloud.Handle("/installation", api.APISessionRequired(getInstallation)).Methods(http.MethodGet)
 
-	// GET /api/v4/cloud/cws-health-check
+	// GET /api/v4/cloud/check-cws-connection
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods(http.MethodGet)
+
+	// GET /api/v4/cloud/preview/modal_data
+	api.BaseRoutes.Cloud.Handle("/preview/modal_data", api.APISessionRequired(getPreviewModalData)).Methods(http.MethodGet)
 }
 
 func ensureCloudInterface(c *Context, where string) bool {
@@ -62,7 +65,36 @@ func ensureCloudInterface(c *Context, where string) bool {
 	return true
 }
 
+func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	license := c.App.Channels().License()
+	subscription := &model.Subscription{
+		ID:             "cloud-preview",
+		ProductID:      license.SkuName,
+		StartAt:        license.StartsAt,
+		TrialEndAt:     license.ExpiresAt,
+		EndAt:          license.ExpiresAt,
+		IsFreeTrial:    "true",
+		IsCloudPreview: true,
+	}
+
+	json, err := json.Marshal(subscription)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Preview subscription is a special case for cloud preview licenses.
+	if c.App.Channels().License().IsCloudPreview() {
+		getPreviewSubscription(c, w, r)
+		return
+	}
+
 	ensured := ensureCloudInterface(c, "Api4.getSubscription")
 	if !ensured {
 		return
@@ -116,7 +148,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -249,11 +283,15 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Write(byteSanitizedProductsData)
+		if _, err := w.Write(byteSanitizedProductsData); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	w.Write(byteProductsData)
+	if _, err := w.Write(byteProductsData); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -279,7 +317,9 @@ func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -310,7 +350,9 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getInstallation(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -376,7 +418,9 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -419,7 +463,9 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -450,7 +496,9 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -557,10 +605,32 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	status := "available"
 	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
-		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
+		status = "unavailable"
+	}
+
+	response := map[string]string{"status": status}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Err = model.NewAppError("Api4.handleCheckCWSConnection", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+}
+
+func getPreviewModalData(c *Context, w http.ResponseWriter, r *http.Request) {
+	modalData, err := c.App.GetPreviewModalData()
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	responseData, jsonErr := json.Marshal(modalData)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getPreviewModalData", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	if _, writeErr := w.Write(responseData); writeErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(writeErr))
+	}
 }

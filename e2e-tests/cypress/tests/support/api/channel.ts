@@ -4,6 +4,7 @@
 import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 import {ChainableT} from 'tests/types';
+
 import {getRandomId} from '../../utils';
 
 // *****************************************************************************

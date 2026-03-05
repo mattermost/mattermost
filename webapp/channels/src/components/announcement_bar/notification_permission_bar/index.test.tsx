@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, userEvent, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
 
 import NotificationPermissionBar from './index';
@@ -63,9 +63,7 @@ describe('NotificationPermissionBar', () => {
 
         expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
 
-        await waitFor(async () => {
-            userEvent.click(screen.getByText('Manage notification preferences'));
-        });
+        await userEvent.click(screen.getByText('Manage notification preferences'));
 
         expect(utilsNotifications.requestNotificationPermission).toHaveBeenCalled();
         expect(screen.queryByText('We need your permission to show browser notifications.')).not.toBeInTheDocument();
@@ -85,6 +83,27 @@ describe('NotificationPermissionBar', () => {
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('granted');
 
         const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('should not render anything in cloud preview environment', () => {
+        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
+        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
+
+        const stateWithCloudPreview = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                cloud: {
+                    subscription: {
+                        is_cloud_preview: true,
+                    },
+                },
+            },
+        };
+
+        const {container} = renderWithContext(<NotificationPermissionBar/>, stateWithCloudPreview);
 
         expect(container).toBeEmptyDOMElement();
     });

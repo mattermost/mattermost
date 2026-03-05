@@ -100,7 +100,7 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
 
         return (
             <ProfilePicture
-                size='md'
+                size={this.props.compactDisplay ? 'inherit' : 'md'}
                 src={src}
                 profileSrc={profileSrc}
                 isEmoji={isEmoji}

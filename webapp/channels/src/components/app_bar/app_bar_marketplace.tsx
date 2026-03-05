@@ -23,7 +23,7 @@ const AppBarMarketplace = () => {
             openModal({
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
                 dialogType: MarketplaceModal,
-                dialogProps: {openedFrom: 'app_bar'},
+                dialogProps: {},
             }),
         );
     }, [dispatch]);

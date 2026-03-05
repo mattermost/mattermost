@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 guest profiles 1`] = `
 <Provider
@@ -121,7 +121,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             className="AlertBanner__footerMessage"
           >
             <FormattedList
-              key=".0"
+              key="0/.0"
               value={
                 Array [
                   <Memo(Connect(Component))
@@ -299,7 +299,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           >
             You can add 
             <FormattedList
-              key=".1"
+              key="1/.1"
               value={
                 Array [
                   <Memo(Connect(Component))
@@ -343,7 +343,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             </FormattedList>
              to this channel once they are members of the 
             <strong
-              key=".3"
+              key="3/.3"
             >
               Team Name Display
             </strong>
@@ -549,7 +549,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             className="AlertBanner__footerMessage"
           >
             <Connect(Component)
-              key=".$user-0"
+              key="0/.$user-0"
               mentionName="user-0"
             >
               <Memo(AtMention)
@@ -563,7 +563,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             </Connect(Component)>
              and 
             <WithTooltip
-              key=".2"
+              key="2/.2"
               title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
               <span
@@ -799,7 +799,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           >
             You can add 
             <Connect(Component)
-              key=".$user-0"
+              key="1/.$user-0"
               mentionName="user-0"
             >
               <Memo(AtMention)
@@ -813,7 +813,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             </Connect(Component)>
              and 
             <WithTooltip
-              key=".3"
+              key="3/.3"
               title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
               <span
@@ -843,7 +843,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             </WithTooltip>
              to this channel once they are members of the 
             <strong
-              key=".5"
+              key="5/.5"
             >
               Team Name Display
             </strong>

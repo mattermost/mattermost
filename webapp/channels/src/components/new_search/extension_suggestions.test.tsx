@@ -12,6 +12,7 @@ import ExtensionSuggestion from './extension_suggestions';
 
 describe('components/new_search/ExtensionSuggestion', () => {
     const baseProps = {
+        id: 'test-suggestion',
         item: {type: 'test-type', label: 'test-label', value: 'test-value'},
         term: 'test',
         matchedPretext: 'test',

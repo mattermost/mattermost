@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {buildQueryString} from '@mattermost/client/lib/helpers';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {Client4} from 'mattermost-redux/client';
@@ -55,8 +56,20 @@ export function getFileUrl(fileId: string): string {
     return Client4.getFileRoute(fileId);
 }
 
-export function getFileDownloadUrl(fileId: string): string {
-    return `${Client4.getFileRoute(fileId)}?download=1`;
+export function getFileDownloadUrl(fileId: string, asContentReviewer?: boolean, flaggedPostId?: string): string {
+    const queryParamsArgs: Record<string, any> = {};
+    queryParamsArgs.download = 1;
+
+    if (asContentReviewer) {
+        queryParamsArgs.as_content_reviewer = true;
+    }
+
+    if (flaggedPostId) {
+        queryParamsArgs.flagged_post_id = flaggedPostId;
+    }
+
+    const queryParams = buildQueryString(queryParamsArgs);
+    return `${Client4.getFileRoute(fileId)}${queryParams}`;
 }
 
 export function getFileThumbnailUrl(fileId: string): string {

@@ -174,9 +174,9 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(close).not.toBeCalled();
+        expect(close).not.toHaveBeenCalled();
         wrapper.find('button.close-x').simulate('click');
-        expect(close).toBeCalled();
+        expect(close).toHaveBeenCalled();
     });
 
     test('go back on back icon click', () => {
@@ -191,9 +191,9 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(back).not.toBeCalled();
+        expect(back).not.toHaveBeenCalled();
         wrapper.find('button.back').simulate('click');
-        expect(back).toBeCalled();
+        expect(back).toHaveBeenCalled();
     });
 
     test('close on esc keypress', () => {
@@ -207,9 +207,9 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(close).not.toBeCalled();
+        expect(close).not.toHaveBeenCalled();
         const event = new KeyboardEvent('keydown', {key: 'Escape'});
         document.dispatchEvent(event);
-        expect(close).toBeCalled();
+        expect(close).toHaveBeenCalled();
     });
 });

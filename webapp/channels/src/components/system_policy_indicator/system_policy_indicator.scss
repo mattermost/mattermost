@@ -1,0 +1,72 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.system-policy-indicator {
+    &__title {
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    &__description {
+        line-height: 1.5;
+        
+        strong {
+            font-weight: 600;
+        }
+    }
+
+    &__more-link {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--link-color);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: 600;
+        line-height: inherit;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            outline: none;
+            text-decoration: underline;
+        }
+
+        &:focus-visible {
+            border-radius: 2px;
+            outline: 2px solid var(--link-color);
+            outline-offset: 2px;
+        }
+    }
+
+    &__policy-link {
+        color: var(--link-color);
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &:visited {
+            color: var(--link-color);
+        }
+    }
+
+    &__policy-name {
+        font-weight: 600;
+    }
+
+    // Compact variant styles
+    &.compact {
+        .system-policy-indicator__main-message {
+            margin-bottom: 0;
+        }
+
+        .system-policy-indicator__policy-list {
+            display: none;
+        }
+    }
+}

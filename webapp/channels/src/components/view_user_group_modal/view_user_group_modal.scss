@@ -5,11 +5,15 @@
         padding-bottom: 0;
 
         .modal-title {
+            display: flex;
+            align-items: center;
             margin-left: 16px;
+            gap: 4px;
 
-            i {
+            i,
+            svg {
                 margin-left: 5px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
 
@@ -74,11 +78,14 @@
                     background-clip: padding-box;
                 }
 
-                h2.group-member-count {
+                .group-member-count {
+                    
                     padding: 0 32px;
-                    margin: 16px 0;
-                    font-size: 16px;
-                    line-height: 24px;
+                    margin: 12px 0 8px 0;
+                    font-family: inherit;
+                    font-size: inherit;
+                    font-weight: 600;
+                    line-height: inherit;
                 }
 
                 .group-member-row {

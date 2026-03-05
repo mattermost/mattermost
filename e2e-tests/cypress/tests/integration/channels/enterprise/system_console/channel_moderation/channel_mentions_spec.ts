@@ -13,8 +13,8 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-import {checkboxesTitleToIdMap} from './constants';
 
+import {checkboxesTitleToIdMap} from './constants';
 import {
     disablePermission,
     enablePermission,

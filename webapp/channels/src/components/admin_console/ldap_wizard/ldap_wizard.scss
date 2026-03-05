@@ -1,0 +1,185 @@
+.ldap-wizard-wrapper {
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+    .ldap-wizard-content-wrapper {
+        display: flex;
+        overflow: hidden; // Prevent double scrollbars on the body if content overflows
+        flex-grow: 1;
+
+        .config-section {
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 8px;
+            margin-top: 32px;
+
+            .section-body {
+                // reminder: top | left and right | bottom
+                padding: 32px 48px 48px;
+
+                // Custom components are sometimes nested, but don't do their horizontal spacing again
+                .section-header {
+                    // reminder: top | left and right | bottom
+                    padding: 48px 0 0;
+                }
+            }
+
+            .custom-section-body {
+                // reminder: top | left and right | bottom
+                padding: 32px 0 0;
+            }
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+    }
+
+    .admin-console__content {
+        padding-top: 20px;
+    }
+
+    .ldap-wizard-sidebar {
+        display: flex;
+        flex-direction: column;
+        padding: 40px 52px;
+        gap: 8px;
+
+        .ldap-wizard-sidebar-header {
+            display: flex;
+            padding: 0 0 8px 6px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .ldap-wizard-sidebar-item {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            font-weight: 600;
+            text-align: left;
+            transition: background-color 0.2s ease;
+
+            &:hover:not(.ldap-wizard-sidebar-item--active) {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            &--active {
+                background-color: rgba(var(--button-bg-rgb), 0.04);
+                color: var(--button-bg);
+            }
+        }
+    }
+
+    .section-header {
+        display: flex;
+        flex-direction: column;
+        padding: 48px 48px 0;
+        border-bottom: 0;
+        gap: 10px;
+
+        .section-title {
+            font-family: Metropolis;
+            font-size: 22px;
+            line-height: 28px;
+        }
+
+        .section-subtitle {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-family: Metropolis;
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
+    .ldap-expandable-section {
+        margin: 20px 0;
+
+        .ldap-expandable-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ldap-expandable-section-toggle {
+            padding: 4px 0;
+            border: none;
+            background: none;
+            color: var(--button-bg);
+            font-weight: 600;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+        }
+
+        .ldap-expandable-arrow {
+            color: var(--button-bg);
+            transition: transform 0.2s ease;
+            
+            &.open {
+                transform: rotate(90deg);
+            }
+        }
+
+        .ldap-expandable-section-content {
+            overflow: hidden;
+            max-height: 0;
+            padding-left: 0;
+            margin-top: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, opacity 0.2s ease-out, margin-top 0.3s ease-out;
+
+            &.expanded {
+                max-height: 800px; // Large enough to contain all settings
+                margin-top: 20px;
+                opacity: 1;
+            }
+        }
+    }
+
+    .ldap-help-text-more-info {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--button-bg);
+        cursor: pointer;
+        text-decoration: underline;
+
+    }
+}
+
+.tooltipContainer.ldap-help-text-hover-tooltip {
+    max-width: 400px; // Wider than the default 220px to accommodate detailed help text
+    text-align: left; // Left-align for better readability of longer text
+    white-space: pre-line; // Preserve line breaks in help text
+}
+
+
+.ldap-text-setting {
+    position: relative;
+
+    .filter-icon {
+        position: absolute;
+        top: 10px;
+        right: 36px;
+        cursor: pointer;
+        font-size: 16px;
+        pointer-events: all;
+
+        &success {
+            color: rgba(var(--semantic-color-success), 1);
+        }
+
+        &warning {
+            color: rgba(var(--semantic-color-warning), 1);
+        }
+
+        &error {
+            color: rgba(var(--semantic-color-danger), 1);
+        }
+    }
+}

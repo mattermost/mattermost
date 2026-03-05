@@ -22,8 +22,6 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
 	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}
 	}
@@ -126,8 +124,6 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
 	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}
 	}
@@ -169,8 +165,6 @@ func TestIsInaccessibleFile(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
 	file := &model.FileInfo{CreateAt: 3}
 	firstInaccessibleFileTime, appErr := th.App.isInaccessibleFile(file)
 	require.Nil(t, appErr)
@@ -191,8 +185,6 @@ func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
 		Value: "2",
 	})
 	require.NoError(t, err)
-
-	defer th.TearDown()
 
 	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}

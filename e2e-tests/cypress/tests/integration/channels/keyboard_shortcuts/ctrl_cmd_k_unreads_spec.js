@@ -56,7 +56,7 @@ describe('Keyboard Shortcuts', () => {
         cy.apiLogin(testUser);
     });
 
-    it.skip('MM-T1241 - CTRL/CMD+K: Unreads', () => {
+    it('MM-T1241 - CTRL/CMD+K: Unreads', () => {
         const otherUserMention = `@${otherUser.username}`;
 
         // # Post messages as testUser to first and second team's channels
@@ -90,21 +90,21 @@ describe('Keyboard Shortcuts', () => {
         // # Verify that the mentions in the channels of this team are displayed, channel will come based on recency of post
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#suggestionList').
-            findByTestId(team2Channels[2].name).should('be.visible').and('have.class', 'suggestion--selected').
+            findByRole('option', {name: team2Channels[2].display_name}).should('be.visible').and('have.class', 'suggestion--selected').
             find('.badge').should('be.visible').and('have.text', baseCount + withMention);
 
-        cy.findByRole('textbox', {name: 'quick switch input'}).type('{downarrow}');
+        cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
         cy.get('#suggestionList').
-            findByTestId(team2Channels[1].name).should('be.visible').and('have.class', 'suggestion--selected').
+            findByRole('option', {name: team2Channels[1].display_name}).should('be.visible').and('have.class', 'suggestion--selected').
             find('.badge').should('be.visible').and('have.text', baseCount);
 
-        cy.findByRole('textbox', {name: 'quick switch input'}).type('{downarrow}');
+        cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
         cy.get('#suggestionList').
-            findByTestId(team2Channels[0].name).should('be.visible').and('have.class', 'suggestion--selected').
+            findByRole('option', {name: team2Channels[0].display_name}).should('be.visible').and('have.class', 'suggestion--selected').
             find('.badge').should('be.visible').and('have.text', baseCount + withMention);
 
-        cy.findByRole('textbox', {name: 'quick switch input'}).type('{downarrow}');
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(team2Channels[1].display_name).wait(TIMEOUTS.HALF_SEC);
+        cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(team2Channels[1].display_name).wait(TIMEOUTS.HALF_SEC);
 
         // # Verify that the channels of this team are displayed
         cy.get('#suggestionList').should('be.visible').children().within((el) => {

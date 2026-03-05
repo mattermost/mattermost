@@ -22,7 +22,7 @@ export const creditCardExpiredBanner = (setShowCreditCardBanner: (value: boolean
                     id='admin.billing.subscription.creditCardHasExpired.description'
                     defaultMessage='Please <link>update your payment information</link> to avoid any disruption.'
                     values={{
-                        link: (text: string) => <BlockableLink to='/admin_console/billing/payment_info'>{text}</BlockableLink>,
+                        link: (text) => <BlockableLink to='/admin_console/billing/payment_info'>{text}</BlockableLink>,
                     }}
                 />
             }
@@ -46,7 +46,7 @@ export const paymentFailedBanner = () => {
                     id='billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed'
                     defaultMessage='It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.'
                     values={{
-                        link: (text: string) => <BlockableLink to='/admin_console/billing/payment_info'>{text}</BlockableLink>,
+                        link: (text) => <BlockableLink to='/admin_console/billing/payment_info'>{text}</BlockableLink>,
                     }}
                 />
             }

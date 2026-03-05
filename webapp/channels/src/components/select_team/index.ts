@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {withRouter} from 'react-router-dom';
-import {bindActionCreators, compose} from 'redux';
+import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
@@ -64,8 +63,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default compose(
-    withRouter,
-    connect(mapStateToProps, mapDispatchToProps),
-    withUseGetUsageDelta,
-)(SelectTeam) as any;
+export default withUseGetUsageDelta(connect(mapStateToProps, mapDispatchToProps)(SelectTeam));

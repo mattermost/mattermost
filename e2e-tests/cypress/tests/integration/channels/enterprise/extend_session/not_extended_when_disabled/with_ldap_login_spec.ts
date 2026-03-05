@@ -10,6 +10,7 @@
 // Group: @channels @enterprise @not_cloud @extend_session @ldap
 
 import {UserProfile} from '@mattermost/types/users';
+
 import ldapUsers from '../../../../../fixtures/ldap_users.json';
 
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';

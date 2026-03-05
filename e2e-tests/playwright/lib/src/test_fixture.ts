@@ -19,15 +19,27 @@ import {
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
     createNewUserProfile,
+    createNewTeam,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
     createRandomUser,
+    createUserWithAttributes,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    makeClient,
+    mergeWithOnPremServerConfig,
+    installAndEnablePlugin,
+    isPluginActive,
 } from './server';
-import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
+import {
+    toBeFocusedWithFocusVisible,
+    hideDynamicChannelsContent,
+    waitForAnimationEnd,
+    waitUntil,
+    logFocusedElement,
+} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
@@ -78,12 +90,17 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
+    readonly mergeWithOnPremServerConfig;
     readonly initSetup;
+    readonly installAndEnablePlugin;
+    readonly isPluginActive;
 
     // ./test_action
+    readonly toBeFocusedWithFocusVisible;
     readonly hideDynamicChannelsContent;
     readonly waitForAnimationEnd;
     readonly waitUntil;
+    readonly logFocusedElement;
 
     // ./mock_browser_api
     readonly stubNotification;
@@ -91,7 +108,9 @@ export class PlaywrightExtended {
 
     // ./server
     readonly createNewUserProfile;
+    readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
+    readonly makeClient;
 
     // ./visual
     readonly matchSnapshot;
@@ -133,11 +152,17 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
+        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+        this.installAndEnablePlugin = installAndEnablePlugin;
+        this.isPluginActive = isPluginActive;
+
         // ./test_action
+        this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;
         this.waitUntil = waitUntil;
+        this.logFocusedElement = logFocusedElement;
 
         // unauthenticated page
         this.loginPage = new pages.LoginPage(page);
@@ -151,6 +176,8 @@ export class PlaywrightExtended {
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
+        this.createNewTeam = createNewTeam;
+        this.makeClient = makeClient;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
@@ -166,6 +193,7 @@ export class PlaywrightExtended {
             post: createRandomPost,
             team: createRandomTeam,
             user: createRandomUser,
+            userWithAttributes: createUserWithAttributes,
         };
 
         this.hasSeenLandingPage = async () => {
@@ -180,7 +208,7 @@ export class AxeBuilderExtended {
     readonly builder: (page: Page, options?: AxeBuilderOptions) => AxeBuilder;
 
     // See https://github.com/dequelabs/axe-core/blob/master/doc/API.md#axe-core-tags
-    readonly tags: string[] = ['wcag2a', 'wcag2aa'];
+    readonly tags: string[] = ['wcag2a', 'wcag2aa', 'wcag21aa'];
 
     constructor() {
         this.builder = (page: Page, options: AxeBuilderOptions = {}) => {

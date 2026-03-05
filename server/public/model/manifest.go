@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
+	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 )
 
 type PluginOption struct {
@@ -254,7 +254,7 @@ func (m *Manifest) HasClient() bool {
 func (m *Manifest) ClientManifest() *Manifest {
 	cm := new(Manifest)
 	*cm = *m
-	cm.Name = ""
+	cm.Name = m.Name
 	cm.Description = ""
 	cm.Server = nil
 	if cm.Webapp != nil {

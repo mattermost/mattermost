@@ -10,8 +10,6 @@ import type {Channel} from '@mattermost/types/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import InvitationModal from 'components/invitation_modal';
@@ -71,7 +69,6 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
                     className='btn btn-sm btn-primary'
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
-                    onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
                     dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i

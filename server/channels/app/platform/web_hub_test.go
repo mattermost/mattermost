@@ -18,6 +18,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -61,8 +62,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
@@ -72,8 +72,6 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = th.Service.Start(nil)
-	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -86,11 +84,8 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.Service.Store.Close()
-	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
-	// Making it idempotent is not really important to the server because close only happens once.
-	// So we just use this quick hack for the test.
+	th := Setup(t).InitBasic(t)
+
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
@@ -98,13 +93,11 @@ func TestHubStopRaceCondition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = th.Service.Start(nil)
-	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
 	hub := th.Service.hubs[0]
-	th.Service.HubStop()
+	th.Shutdown(t)
 
 	done := make(chan bool)
 	go func() {
@@ -135,7 +128,6 @@ func TestHubStopRaceCondition(t *testing.T) {
 func TestHubSessionRevokeRace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// This needs to be false for the condition to trigger
 	th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -173,7 +165,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	// There's no guarantee this will happen. But that's our best bet to trigger this race.
 	wc1.InvalidateCache()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		// If broadcast buffer has not emptied,
 		// we sleep for a second and check again
 		if len(hub.broadcast) > 0 {
@@ -188,8 +180,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 func TestHubConnIndex(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 		ChannelId:   th.BasicChannel.Id,
@@ -413,7 +404,7 @@ func TestHubConnIndex(t *testing.T) {
 			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
 		})
 
-		ch := th.CreateChannel(th.BasicTeam)
+		ch := th.CreateChannel(t, th.BasicTeam)
 		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   ch.Id,
 			UserId:      th.BasicUser2.Id,
@@ -441,7 +432,6 @@ func TestHubConnIndex(t *testing.T) {
 func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
@@ -492,7 +482,6 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 func TestHubConnIndexInactive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
 
@@ -559,7 +548,6 @@ func TestReliableWebSocketSend(t *testing.T) {
 	testCluster := &testlib.FakeClusterInterface{}
 
 	th := SetupWithCluster(t, testCluster)
-	defer th.TearDown()
 
 	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
 	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
@@ -592,8 +580,7 @@ func TestReliableWebSocketSend(t *testing.T) {
 
 func TestHubIsRegistered(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -602,13 +589,12 @@ func TestHubIsRegistered(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("MFARequired", mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	err = th.Service.Start(nil)
-	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -629,8 +615,7 @@ func TestHubIsRegistered(t *testing.T) {
 
 func TestHubWebConnCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -639,13 +624,12 @@ func TestHubWebConnCount(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("MFARequired", mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	err = th.Service.Start(nil)
-	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
@@ -662,7 +646,6 @@ var globalIter iter.Seq[*WebConn]
 
 func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	th := Setup(b)
-	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
 
@@ -696,9 +679,8 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc2))
 	require.NoError(b, connIndex.Add(wc3))
 
-	b.ResetTimer()
 	b.Run("2 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
@@ -712,9 +694,8 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc4.SetSession(&model.Session{})
 
 	require.NoError(b, connIndex.Add(wc4))
-	b.ResetTimer()
 	b.Run("3 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
@@ -728,17 +709,15 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc5.SetSession(&model.Session{})
 
 	require.NoError(b, connIndex.Add(wc5))
-	b.ResetTimer()
 	b.Run("4 users", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
 }
 
 func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
-	th := Setup(b).InitBasic()
-	defer th.TearDown()
+	th := Setup(b).InitBasic(b)
 
 	_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 		ChannelId:   th.BasicChannel.Id,
@@ -792,8 +771,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc2))
 	require.NoError(b, connIndex.Add(wc3))
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
 	}
 }
@@ -801,8 +779,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 // Always run this with -benchtime=0.1s
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
-	th := Setup(b).InitBasic()
-	defer th.TearDown()
+	th := Setup(b).InitBasic(b)
 	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
 	// User1
@@ -818,14 +795,14 @@ func BenchmarkHubConnIndex(b *testing.B) {
 		Suite:    th.Suite,
 		UserId:   model.NewId(),
 	}
-	b.ResetTimer()
 	b.Run("Add", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			err := connIndex.Add(wc1)
 			require.NoError(b, err)
 			err = connIndex.Add(wc2)
 			require.NoError(b, err)
 
+			// Cleanup
 			b.StopTimer()
 			connIndex.Remove(wc1)
 			connIndex.Remove(wc2)
@@ -834,15 +811,15 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	})
 
 	b.Run("Remove", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
+			// Setup
 			b.StopTimer()
 			err := connIndex.Add(wc1)
 			require.NoError(b, err)
 			err = connIndex.Add(wc2)
 			require.NoError(b, err)
-			b.Error(err)
-			b.StartTimer()
 
+			b.StartTimer()
 			connIndex.Remove(wc1)
 			connIndex.Remove(wc2)
 		}
@@ -852,7 +829,6 @@ func BenchmarkHubConnIndex(b *testing.B) {
 func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
@@ -890,14 +866,12 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 var hubSink *Hub
 
 func BenchmarkGetHubForUserId(b *testing.B) {
-	th := Setup(b).InitBasic()
-	defer th.TearDown()
+	th := Setup(b).InitBasic(b)
 
 	err := th.Service.Start(nil)
 	require.NoError(b, err)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		hubSink = th.Service.GetHubForUserId(th.BasicUser.Id)
 	}
 }
@@ -907,7 +881,6 @@ func TestClusterBroadcast(t *testing.T) {
 	testCluster := &testlib.FakeClusterInterface{}
 
 	th := SetupWithCluster(t, testCluster)
-	defer th.TearDown()
 
 	ev := model.NewWebSocketEvent("test_event", "", "", "", nil, "")
 	broadcast := &model.WebsocketBroadcast{
@@ -937,7 +910,6 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		testCluster := &testlib.FakeClusterInterface{}
 
 		th := SetupWithCluster(t, testCluster)
-		defer th.TearDown()
 
 		hookID := broadcastTest
 		hookArgs := map[string]any{
@@ -961,7 +933,6 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		testCluster := &testlib.FakeClusterInterface{}
 
 		th := SetupWithCluster(t, testCluster)
-		defer th.TearDown()
 
 		hookID := "test_broadcast_hook_with_args"
 		hookArgs := map[string]any{

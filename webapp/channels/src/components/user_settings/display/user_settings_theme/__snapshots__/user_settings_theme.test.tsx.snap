@@ -1,20 +1,39 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/user_settings_theme/user_settings_theme should match snapshot 1`] = `
-<SettingItemMin
-  describe={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Open to manage your theme"
-      id="user.settings.display.theme.describe"
-    />
-  }
-  section="theme"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Theme"
-      id="user.settings.display.theme.title"
-    />
-  }
-  updateSection={[Function]}
-/>
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="themeTitle"
+      >
+        Theme
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="themeTitle themeEdit"
+        class="color--link style--none section-min__edit"
+        id="themeEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="themeDesc"
+    >
+      Open to manage your theme
+    </div>
+  </div>
+</div>
 `;

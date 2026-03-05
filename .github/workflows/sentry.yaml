@@ -4,7 +4,7 @@ name: Sentry Upload
 on:
   workflow_run:
     workflows:
-      - "Server CI Master"
+      - "Server CI"
     types:
       - completed
 

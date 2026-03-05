@@ -16,7 +16,7 @@ import CheckboxWithSelectSettingItem from 'components/widgets/modals/components/
 import ModalHeader from 'components/widgets/modals/components/modal_header';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
-import type {Option} from 'components/widgets/modals/components/react_select_item';
+import type {SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import {focusElement} from 'utils/a11y_utils';
 import {NotificationLevels, DesktopSound, IgnoreChannelMentions} from 'utils/constants';
@@ -138,7 +138,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 }
                 description={formatMessage({
                     id: 'channel_notifications.muteChannelDesc',
-                    defaultMessage: 'Turns off notifications for this channel. You\'ll still see badges if you\'re mentioned.',
+                    defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
                 })}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
@@ -162,11 +162,11 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    const handleChangeForMessageNotificationSoundSelect = (selectedOption: OnChangeValue<Option, boolean>) => {
+    const handleChangeForMessageNotificationSoundSelect = (selectedOption: OnChangeValue<SelectOption, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
-            handleChange({desktop_notification_sound: ((selectedOption as Option).value)});
+            handleChange({desktop_notification_sound: ((selectedOption as SelectOption).value)});
             tryNotificationSound(selectedOption.value);
         }
     };
@@ -193,7 +193,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     inputFieldTitle={
                         <FormattedMessage
                             id='channel_notifications.checkbox.threadsReplyTitle'
-                            defaultMessage="Notify me about replies to threads I\'m following"
+                            defaultMessage='Notify me about replies to threads I’m following'
                         />
                     }
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
@@ -262,7 +262,7 @@ export default function ChannelNotificationsModal(props: Props) {
                             inputFieldTitle={
                                 <FormattedMessage
                                     id='channel_notifications.checkbox.threadsReplyTitle'
-                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                    defaultMessage='Notify me about replies to threads I’m following'
                                 />
                             }
                             inputFieldValue={settings.push_threads === 'all'}

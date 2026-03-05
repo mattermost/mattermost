@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AdminPanelTogglable from './admin_panel_togglable';
 
@@ -20,37 +21,17 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AdminPanelTogglable {...defaultProps}>
                 {'Test'}
             </AdminPanelTogglable>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <AdminPanel
-              button={<AccordionToggleIcon />}
-              className="AdminPanelTogglable test-class-name"
-              id="test-id"
-              onHeaderClick={[MockFunction]}
-              subtitle={
-                Object {
-                  "defaultMessage": "test-subtitle-default",
-                  "id": "test-subtitle-id",
-                }
-              }
-              title={
-                Object {
-                  "defaultMessage": "test-title-default",
-                  "id": "test-title-id",
-                }
-              }
-            >
-              Test
-            </AdminPanel>
-        `);
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot closed', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AdminPanelTogglable
                 {...defaultProps}
                 open={false}
@@ -58,27 +39,7 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
                 {'Test'}
             </AdminPanelTogglable>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <AdminPanel
-              button={<AccordionToggleIcon />}
-              className="AdminPanelTogglable test-class-name closed"
-              id="test-id"
-              onHeaderClick={[MockFunction]}
-              subtitle={
-                Object {
-                  "defaultMessage": "test-subtitle-default",
-                  "id": "test-subtitle-id",
-                }
-              }
-              title={
-                Object {
-                  "defaultMessage": "test-title-default",
-                  "id": "test-title-id",
-                }
-              }
-            >
-              Test
-            </AdminPanel>
-        `);
+
+        expect(container).toMatchSnapshot();
     });
 });

@@ -24,13 +24,13 @@ const (
 	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
-func (a *App) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
+func (a *App) GetSamlMetadata(rctx request.CTX) (string, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
 
-	result, err := a.Saml().GetMetadata(c)
+	result, err := a.Saml().GetMetadata(rctx)
 	if err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "", err.StatusCode).Wrap(err)
 	}
@@ -298,8 +298,8 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 	return
 }
 
-func (a *App) CreateSamlRelayToken(extra string) (*model.Token, *model.AppError) {
-	token := model.NewToken(model.TokenTypeSaml, extra)
+func (a *App) CreateSamlRelayToken(tokenType string, extra string) (*model.Token, *model.AppError) {
+	token := model.NewToken(tokenType, extra)
 
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError

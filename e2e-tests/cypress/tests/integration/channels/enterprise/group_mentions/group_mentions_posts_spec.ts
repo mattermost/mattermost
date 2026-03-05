@@ -10,12 +10,13 @@
 // Group: @channels @enterprise @system_console @group_mentions
 
 import {UserProfile} from '@mattermost/types/users';
+import {Team} from '@mattermost/types/teams';
+import {Group} from '@mattermost/types/groups';
+
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 import {enableGroupMention} from './helpers';
-import {Team} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
 
 describe('Group Mentions', () => {
     let groupID1: string;

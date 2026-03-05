@@ -15,7 +15,7 @@ export default function StatusDndIcon(props: React.HTMLAttributes<HTMLSpanElemen
                 viewBox='0 0 20 20'
                 style={style}
                 role='img'
-                aria-label={formatMessage({id: 'mobile.set_status.dnd.icon', defaultMessage: 'Do Not Disturb Icon'})}
+                aria-label={formatMessage({id: 'mobile.set_status.dnd.icon', defaultMessage: 'Do Not Disturb'})}
             >
                 <path
                     className='dnd--icon'

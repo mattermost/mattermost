@@ -3,12 +3,12 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import GetLinkModal from 'components/get_link_modal';
 import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 
 describe('components/GetPublicLinkModal', () => {
     const baseProps = {

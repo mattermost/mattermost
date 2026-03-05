@@ -147,4 +147,17 @@ describe('TextFormatting.AtMentions', () => {
             it(test.label, () => expect(test.actual).toBe(test.expected));
         });
     });
+
+    test('MM-62744 should recognize remote mentions', () => {
+        expect(TextFormatting.formatText(
+            '@user1:org1 @user2:org2/@user3:org3/@user4:org4 (@user5:org5) @user6:org6',
+            {atMentions: true},
+            emptyEmojiMap,
+        )).toEqual(
+            '<p><span data-mention="user1:org1">@user1:org1</span> ' +
+            '<span data-mention="user2:org2">@user2:org2</span>/<span data-mention="user3:org3">@user3:org3</span>/<span data-mention="user4:org4">@user4:org4</span> ' +
+            '(<span data-mention="user5:org5">@user5:org5</span>) ' +
+            '<span data-mention="user6:org6">@user6:org6</span></p>',
+        );
+    });
 });

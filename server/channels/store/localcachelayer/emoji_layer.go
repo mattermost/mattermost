@@ -44,7 +44,7 @@ func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiIdByName(msg *model.
 	}
 }
 
-func (es *LocalCacheEmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+func (es *LocalCacheEmojiStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 	if allowFromCache {
 		if emoji, ok := es.getFromCacheById(id); ok {
 			return emoji, nil
@@ -55,12 +55,12 @@ func (es *LocalCacheEmojiStore) Get(c request.CTX, id string, allowFromCache boo
 	es.emojiByIdMut.Lock()
 	if es.emojiByIdInvalidations[id] {
 		// And then remove the key from the map.
-		c = sqlstore.RequestContextWithMaster(c)
+		rctx = sqlstore.RequestContextWithMaster(rctx)
 		delete(es.emojiByIdInvalidations, id)
 	}
 	es.emojiByIdMut.Unlock()
 
-	emoji, err := es.EmojiStore.Get(c, id, allowFromCache)
+	emoji, err := es.EmojiStore.Get(rctx, id, allowFromCache)
 
 	if allowFromCache && err == nil {
 		es.addToCache(emoji)
@@ -69,9 +69,9 @@ func (es *LocalCacheEmojiStore) Get(c request.CTX, id string, allowFromCache boo
 	return emoji, err
 }
 
-func (es *LocalCacheEmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+func (es *LocalCacheEmojiStore) GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 	if id, ok := model.GetSystemEmojiId(name); ok {
-		return es.Get(c, id, allowFromCache)
+		return es.Get(rctx, id, allowFromCache)
 	}
 
 	if allowFromCache {
@@ -83,13 +83,13 @@ func (es *LocalCacheEmojiStore) GetByName(c request.CTX, name string, allowFromC
 	// If it was invalidated, then we need to query master.
 	es.emojiByNameMut.Lock()
 	if es.emojiByNameInvalidations[name] {
-		c = sqlstore.RequestContextWithMaster(c)
+		rctx = sqlstore.RequestContextWithMaster(rctx)
 		// And then remove the key from the map.
 		delete(es.emojiByNameInvalidations, name)
 	}
 	es.emojiByNameMut.Unlock()
 
-	emoji, err := es.EmojiStore.GetByName(c, name, allowFromCache)
+	emoji, err := es.EmojiStore.GetByName(rctx, name, allowFromCache)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (es *LocalCacheEmojiStore) GetByName(c request.CTX, name string, allowFromC
 	return emoji, nil
 }
 
-func (es *LocalCacheEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
+func (es *LocalCacheEmojiStore) GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error) {
 	emojis := []*model.Emoji{}
 	remainingEmojiNames := make([]string, 0)
 
@@ -112,7 +112,7 @@ func (es *LocalCacheEmojiStore) GetMultipleByName(c request.CTX, names []string)
 			// If it was invalidated, then we need to query master.
 			es.emojiByNameMut.Lock()
 			if es.emojiByNameInvalidations[name] {
-				c = sqlstore.RequestContextWithMaster(c)
+				rctx = sqlstore.RequestContextWithMaster(rctx)
 				// And then remove the key from the map.
 				delete(es.emojiByNameInvalidations, name)
 			}
@@ -123,7 +123,7 @@ func (es *LocalCacheEmojiStore) GetMultipleByName(c request.CTX, names []string)
 	}
 
 	if len(remainingEmojiNames) > 0 {
-		remainingEmojis, err := es.EmojiStore.GetMultipleByName(c, remainingEmojiNames)
+		remainingEmojis, err := es.EmojiStore.GetMultipleByName(rctx, remainingEmojiNames)
 		if err != nil {
 			return nil, err
 		}

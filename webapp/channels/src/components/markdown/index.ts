@@ -6,7 +6,7 @@ import {connect, type ConnectedProps} from 'react-redux';
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelNameToDisplayNameMap} from 'mattermost-redux/selectors/entities/channels';
-import {getAutolinkedUrlSchemes, getConfig, getManagedResourcePaths} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getManagedResourcePaths} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
@@ -24,10 +24,14 @@ function makeGetChannelNamesMap() {
     return createSelector(
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
-        (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
+        (state: GlobalState, props: OwnProps) => (props.postId ? getPost(state, props.postId)?.props?.channel_mentions : undefined),
         (channelNamesMap, channelMentions) => {
+            // Use channel_mentions from post.props when available (server-provided data)
+            // Falls back to channelNamesMap from Redux for legacy posts without channel_mentions
             if (channelMentions) {
-                return Object.assign({}, channelMentions, channelNamesMap);
+                // Server data (channelMentions) takes precedence over Redux data (channelNamesMap)
+                // This fixes bugs with DM channel links but means channel renames update after cache refresh
+                return Object.assign({}, channelNamesMap, channelMentions);
             }
 
             return channelNamesMap;
@@ -47,7 +51,6 @@ function makeMapStateToProps() {
         }
 
         return {
-            autolinkedUrlSchemes: getAutolinkedUrlSchemes(state),
             channelNamesMap: getChannelNamesMap(state, ownProps),
             enableFormatting: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             managedResourcePaths: getManagedResourcePaths(state),

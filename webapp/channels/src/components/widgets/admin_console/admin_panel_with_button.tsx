@@ -10,7 +10,7 @@ import AdminPanel from './admin_panel';
 
 type Props = {
     children?: React.ReactNode;
-    className: string;
+    className?: string;
     id?: string;
     title: MessageDescriptor;
     subtitle: MessageDescriptor;
@@ -20,7 +20,7 @@ type Props = {
 }
 
 const AdminPanelWithButton = ({
-    className,
+    className = '',
     subtitle,
     title,
     buttonText,
@@ -56,10 +56,6 @@ const AdminPanelWithButton = ({
             {children}
         </AdminPanel>
     );
-};
-
-AdminPanelWithButton.defaultProps = {
-    className: '',
 };
 
 export default AdminPanelWithButton;

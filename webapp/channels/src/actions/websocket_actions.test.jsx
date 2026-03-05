@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WebSocketEvents} from '@mattermost/client';
+
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
@@ -24,7 +26,7 @@ import store from 'stores/redux_store';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -230,7 +232,7 @@ jest.mock('actions/views/rhs', () => ({
 
 describe('handleEvent', () => {
     test('should dispatch channel updated event properly', () => {
-        const msg = {event: SocketEvents.CHANNEL_UPDATED};
+        const msg = {event: WebSocketEvents.ChannelUpdated};
 
         handleEvent(msg);
 
@@ -711,6 +713,9 @@ describe('reconnect', () => {
 describe('handleChannelUpdatedEvent', () => {
     const initialState = {
         entities: {
+            general: {
+                config: {},
+            },
             channels: {
                 currentChannelId: 'channel',
                 channels: {
@@ -718,6 +723,7 @@ describe('handleChannelUpdatedEvent', () => {
                         id: 'channel',
                     },
                 },
+                myMembers: {},
             },
             teams: {
                 currentTeamId: 'team',
@@ -861,7 +867,7 @@ describe('handleCloudSubscriptionChanged', () => {
             id: 'newsub',
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
                 subscription: newSubscription,
@@ -900,7 +906,7 @@ describe('handleCloudSubscriptionChanged', () => {
             },
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
             },
@@ -934,7 +940,7 @@ describe('handleCloudSubscriptionChanged', () => {
         };
 
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 subscription: newSubscription,
             },
@@ -951,14 +957,12 @@ describe('handleCloudSubscriptionChanged', () => {
 });
 
 describe('handlePluginEnabled/handlePluginDisabled', () => {
-    const origLog = console.log;
     const origError = console.error;
     const origCreateElement = document.createElement;
     const origGetElementsByTagName = document.getElementsByTagName;
     const origWindowPlugins = window.plugins;
 
     afterEach(() => {
-        console.log = origLog;
         console.error = origError;
         document.createElement = origCreateElement;
         document.getElementsByTagName = origGetElementsByTagName;
@@ -984,8 +988,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         };
 
         beforeEach(async () => {
-            console.log = jest.fn();
-            console.error = jest.fn();
+            console.error = jest.fn((...args) => origError(...args));
 
             document.createElement = jest.fn();
             document.getElementsByTagName = jest.fn();
@@ -994,59 +997,35 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             }]);
         });
 
-        test('when a plugin is enabled', () => {
+        test('when a plugin is enabled', async () => {
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-plugin',
-            };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
             };
 
             const mockScript = {};
             document.createElement.mockReturnValue(mockScript);
 
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
             expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
 
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registery = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registery.registerRootComponent(mockComponent);
+            expect(store.dispatch).toHaveBeenCalledTimes(1);
 
             let dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            dispatchArg = store.dispatch.mock.calls[1][0];
-
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
+            // Assert handlePluginEnabled is idempotent
+            handlePluginEnabled({data: {manifest}});
 
             expect(store.dispatch).toHaveBeenCalledTimes(2);
 
-            // Assert handlePluginEnabled is idempotent
-            mockScript.onload = undefined;
-            handlePluginEnabled({data: {manifest}});
-            expect(mockScript.onload).toBeUndefined();
-
-            dispatchArg = store.dispatch.mock.calls[2][0];
+            dispatchArg = store.dispatch.mock.calls[1][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
@@ -1055,12 +1034,6 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-2-plugin',
-            };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
             };
 
             const manifestv2 = {
@@ -1074,69 +1047,39 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             const mockScript = {};
             document.createElement.mockReturnValue(mockScript);
 
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
             expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
-
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registry = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registry.registerRootComponent(mockComponent);
 
             let dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            dispatchArg = store.dispatch.mock.calls[1][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
-
             // Upgrade plugin
-            mockScript.onload = undefined;
             handlePluginEnabled({data: {manifest: manifestv2}});
 
             // Assert upgrade is idempotent
             handlePluginEnabled({data: {manifest: manifestv2}});
 
-            expect(mockScript.onload).toBeInstanceOf(Function);
             expect(document.createElement).toHaveBeenCalledTimes(2);
 
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            expect(initialize).toHaveBeenCalledTimes(2);
-            const registry2 = initialize.mock.calls[0][0];
-            const mockComponent2 = 'mockRootComponent2';
-            registry2.registerRootComponent(mockComponent2);
+            dispatchArg = store.dispatch.mock.calls[1][0];
+            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
+            expect(dispatchArg.data).toBe(manifestv2);
 
-            dispatchArg = store.dispatch.mock.calls[2][0];
+            expect(store.dispatch).toHaveBeenCalledTimes(4);
+            const dispatchRemovedArg = store.dispatch.mock.calls[2][0];
+            expect(typeof dispatchRemovedArg).toBe('function');
+            dispatchRemovedArg(store.dispatch);
+
+            dispatchArg = store.dispatch.mock.calls[3][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifestv2);
 
             expect(store.dispatch).toHaveBeenCalledTimes(6);
-            const dispatchRemovedArg = store.dispatch.mock.calls[3][0];
-            expect(typeof dispatchRemovedArg).toBe('function');
-            dispatchRemovedArg(store.dispatch);
-
-            dispatchArg = store.dispatch.mock.calls[4][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
-            expect(dispatchArg.data).toBe(manifestv2);
-
-            const dispatchReceivedArg2 = store.dispatch.mock.calls[5][0];
-            expect(dispatchReceivedArg2.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchReceivedArg2.name).toBe('Root');
-            expect(dispatchReceivedArg2.data.component).toBe(mockComponent2);
-            expect(dispatchReceivedArg2.data.pluginId).toBe(manifest.id);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(8);
-            const dispatchReceivedArg4 = store.dispatch.mock.calls[7][0];
+            const dispatchReceivedArg4 = store.dispatch.mock.calls[5][0];
 
             expect(dispatchReceivedArg4.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
             expect(dispatchReceivedArg4.data).toBe(manifestv2);
@@ -1164,7 +1107,6 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         };
 
         beforeEach(async () => {
-            console.log = jest.fn();
             console.error = jest.fn();
 
             document.createElement = jest.fn();
@@ -1294,7 +1236,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.AWAY,
@@ -1304,7 +1246,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.AWAY);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.ONLINE,
@@ -1314,7 +1256,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.OFFLINE,
@@ -1346,7 +1288,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'value1', field2: 'value2'},
@@ -1359,7 +1301,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
 
         // update one field, add new field
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'valueChanged', field3: 'new field'},
@@ -1378,7 +1320,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: 'nonExistantUser',
                 values: {field1: 'value1', field2: 'value2'},
@@ -1408,7 +1350,7 @@ describe('handleCustomAttributeCRUD', () => {
         const testStore = realConfigureStore(makeInitialState());
 
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field1,
             },
@@ -1422,7 +1364,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // create second field
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field2,
             },
@@ -1436,7 +1378,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // update field
         testStore.dispatch(handleCustomAttributesUpdated({
-            event: SocketEvents.CPA_FIELD_UPDATED,
+            event: WebSocketEvents.CPAFieldUpdated,
             data: {
                 field: {...field1, name: 'Updated Name'},
             },
@@ -1450,7 +1392,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // delete field
         testStore.dispatch(handleCustomAttributesDeleted({
-            event: SocketEvents.CPA_FIELD_DELETED,
+            event: WebSocketEvents.CPAFieldDeleted,
             data: {
                 field_id: field1.id,
             },
@@ -1468,7 +1410,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1482,7 +1424,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field
             const updatedField = {...field1, name: 'Updated Field Name'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                 },
@@ -1514,7 +1456,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1523,7 +1465,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field with delete_values flag
             const updatedField = {...field1, type: 'select'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: true,
@@ -1561,7 +1503,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1570,7 +1512,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field but with delete_values flag set to false
             const updatedField = {...field1, name: 'Updated Field Name', type: 'text'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: false,
@@ -1609,7 +1551,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1618,7 +1560,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field without specifying delete_values
             const updatedField = {...field1, type: 'number'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
 

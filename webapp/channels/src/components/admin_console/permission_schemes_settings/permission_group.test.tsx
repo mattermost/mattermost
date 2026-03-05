@@ -152,7 +152,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             />,
         );
         wrapper.find('.permission-group-row').first().simulate('click');
-        expect(onChange).toBeCalledWith(['invite_user', 'add_user_to_team']);
+        expect(onChange).toHaveBeenCalledWith(['invite_user', 'add_user_to_team']);
     });
 
     test('should call correctly onChange function on click with some permissions', () => {
@@ -165,7 +165,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             />,
         );
         wrapper.find('.permission-group-row').first().simulate('click');
-        expect(onChange).toBeCalledWith(['add_user_to_team']);
+        expect(onChange).toHaveBeenCalledWith(['add_user_to_team']);
     });
 
     test('should call correctly onChange function on click with all permissions', () => {
@@ -178,7 +178,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             />,
         );
         wrapper.find('.permission-group-row').first().simulate('click');
-        expect(onChange).toBeCalledWith(['invite_user', 'add_user_to_team']);
+        expect(onChange).toHaveBeenCalledWith(['invite_user', 'add_user_to_team']);
     });
 
     test('shouldn\'t call onChange function on click when is read-only', () => {
@@ -191,7 +191,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             />,
         );
         wrapper.find('.permission-group-row').first().simulate('click');
-        expect(onChange).not.toBeCalled();
+        expect(onChange).not.toHaveBeenCalled();
     });
 
     test('shouldn\'t call onChange function on click when is read-only', () => {
@@ -204,7 +204,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             />,
         );
         wrapper.find('.permission-group-row').first().simulate('click');
-        expect(onChange).not.toBeCalled();
+        expect(onChange).not.toHaveBeenCalled();
     });
 
     test('should collapse when toggle to all permissions and expand otherwise', () => {
@@ -250,7 +250,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         );
         wrapper.setState({prevPermissions: ['invite_user']});
         wrapper.instance().toggleSelectGroup();
-        expect(onChange).toBeCalledWith(['add_user_to_team']);
+        expect(onChange).toHaveBeenCalledWith(['add_user_to_team']);
 
         onChange = jest.fn();
         wrapper = shallow(
@@ -262,7 +262,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         );
         wrapper.setState({prevPermissions: ['invite_user']});
         wrapper.instance().toggleSelectGroup();
-        expect(onChange).toBeCalledWith(['invite_user', 'add_user_to_team']);
+        expect(onChange).toHaveBeenCalledWith(['invite_user', 'add_user_to_team']);
 
         onChange = jest.fn();
         wrapper = shallow(
@@ -274,6 +274,6 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         );
         wrapper.setState({prevPermissions: ['invite_user']});
         wrapper.instance().toggleSelectGroup();
-        expect(onChange).toBeCalledWith(['invite_user']);
+        expect(onChange).toHaveBeenCalledWith(['invite_user']);
     });
 });

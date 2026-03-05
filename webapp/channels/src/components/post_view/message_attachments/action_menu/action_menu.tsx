@@ -99,6 +99,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
 
     render() {
         const {action, disabled} = this.props;
+        const name = action.name || action.id || '';
 
         return (
             <PostContext.Consumer>
@@ -106,7 +107,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
                     <AutocompleteSelector
                         providers={this.providers}
                         onSelected={this.handleSelected}
-                        placeholder={action.name}
+                        placeholder={name}
                         inputClassName='post-attachment-dropdown'
                         value={this.state.value}
                         toggleFocus={handlePopupOpened}

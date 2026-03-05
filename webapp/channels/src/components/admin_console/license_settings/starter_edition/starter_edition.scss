@@ -43,21 +43,6 @@
         justify-content: center;
         margin-top: 20px;
 
-        button {
-            width: 120px;
-            padding: 14px 12px !important;
-            border-radius: 4px;
-
-            span {
-                font-size: 16px !important;
-            }
-
-            &.contact-us {
-                width: 130px;
-                margin-left: 0px !important;
-            }
-        }
-
         @media screen and (max-width: 1130px) {
             flex-direction: column;
 
@@ -85,10 +70,6 @@
         right: 10px;
         display: block;
         margin-left: auto;
-
-        &.btn {
-            @include mixins.tertiary-button;
-        }
     }
 
     .pre-title {
@@ -135,11 +116,6 @@
 
             input {
                 display: hidden;
-            }
-
-            button {
-                height: 48px;
-                border-radius: 4px;
             }
 
             .help-text {

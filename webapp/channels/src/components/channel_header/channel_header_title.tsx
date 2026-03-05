@@ -12,9 +12,9 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import ChannelHeaderTitleDirect from './channel_header_title_direct';
@@ -26,11 +26,13 @@ import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
 type Props = {
     dmUser?: UserProfile;
     gmMembers?: UserProfile[];
+    remoteNames?: string[];
 }
 
 const ChannelHeaderTitle = ({
     dmUser,
     gmMembers,
+    remoteNames,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
 
@@ -44,7 +46,13 @@ const ChannelHeaderTitle = ({
 
     let archivedIcon;
     if (channelIsArchived) {
-        archivedIcon = <ArchiveIcon className='icon icon__archive icon channel-header-archived-icon svg-text-color'/>;
+        const ArchiveIcon = getArchiveIconComponent(channel.type);
+        archivedIcon = (
+            <ArchiveIcon
+                className='icon icon__archive channel-header-archived-icon svg-text-color'
+                data-testid='channel-header-archive-icon'
+            />
+        );
     }
 
     let sharedIcon;
@@ -53,6 +61,7 @@ const ChannelHeaderTitle = ({
             <SharedChannelIndicator
                 className='shared-channel-icon'
                 withTooltip={true}
+                remoteNames={remoteNames}
             />
         );
     }

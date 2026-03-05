@@ -88,7 +88,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 header={
                     <FormattedMessage
                         id='installed_commands.header'
-                        defaultMessage='Installed Slash Commands'
+                        defaultMessage='Slash Commands'
                     />
                 }
                 addText={
@@ -102,15 +102,16 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 emptyText={
                     <FormattedMessage
                         id='installed_commands.empty'
-                        defaultMessage='No slash commands found'
+                        defaultMessage='No commands found'
                     />
                 }
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_commands.search.empty'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
                         defaultMessage='No slash commands match <b>{searchTerm}</b>'
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 }

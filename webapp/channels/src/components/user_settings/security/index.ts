@@ -56,6 +56,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         experimentalEnableAuthenticationTransfer,
         passwordConfig: getPasswordConfig(state),
         militaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
+        deleteAccountLink: config.DeleteAccountLink,
     };
 }
 

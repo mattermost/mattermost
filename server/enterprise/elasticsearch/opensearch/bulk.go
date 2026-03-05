@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
@@ -21,9 +20,10 @@ type Bulk struct {
 	mut sync.Mutex
 	buf *bytes.Buffer
 
-	logger   mlog.LoggerIFace
-	client   *opensearchapi.Client
-	settings model.ElasticsearchSettings
+	client       *opensearchapi.Client
+	bulkSettings common.BulkSettings
+	reqTimeout   time.Duration
+	logger       mlog.LoggerIFace
 
 	quitFlusher   chan struct{}
 	quitFlusherWg sync.WaitGroup
@@ -31,19 +31,25 @@ type Bulk struct {
 	pendingRequests int
 }
 
-func NewBulk(settings model.ElasticsearchSettings,
+func NewBulk(bulkSettings common.BulkSettings,
+	client *opensearchapi.Client,
+	reqTimeout time.Duration,
 	logger mlog.LoggerIFace,
-	client *opensearchapi.Client) *Bulk {
+) *Bulk {
 	b := &Bulk{
-		settings:    settings,
-		logger:      logger,
-		client:      client,
-		quitFlusher: make(chan struct{}),
-		buf:         &bytes.Buffer{},
+		bulkSettings: bulkSettings,
+		reqTimeout:   reqTimeout,
+		logger:       logger,
+		client:       client,
+		quitFlusher:  make(chan struct{}),
+		buf:          &bytes.Buffer{},
 	}
 
-	b.quitFlusherWg.Add(1)
-	go b.periodicFlusher()
+	// Start the timer only if a flush interval was specified
+	if bulkSettings.FlushInterval > 0 {
+		b.quitFlusherWg.Add(1)
+		go b.periodicFlusher()
+	}
 
 	return b
 }
@@ -101,10 +107,20 @@ func (r *Bulk) DeleteOp(op *types.DeleteOperation) error {
 // flushIfNecessary flushes the pending buffer if needed.
 // It MUST be called with an already acquired mutex.
 func (r *Bulk) flushIfNecessary() error {
+	// Check data threshold, only if specified
+	if r.bulkSettings.FlushBytes > 0 {
+		if r.buf.Len() >= r.bulkSettings.FlushBytes {
+			return r._flush()
+		}
+	}
+
 	r.pendingRequests++
 
-	if r.pendingRequests > *r.settings.LiveIndexingBatchSize {
-		return r._flush()
+	// Check number of requests threshold, only if specified
+	if r.bulkSettings.FlushNumReqs > 0 {
+		if r.pendingRequests > r.bulkSettings.FlushNumReqs {
+			return r._flush()
+		}
 	}
 
 	return nil
@@ -119,8 +135,11 @@ func (r *Bulk) Stop() error {
 		return r._flush()
 	}
 
-	close(r.quitFlusher)
-	r.quitFlusherWg.Wait()
+	// Cleanup the timer if the flush interval was specified
+	if r.bulkSettings.FlushInterval > 0 {
+		close(r.quitFlusher)
+		r.quitFlusherWg.Wait()
+	}
 
 	return nil
 }
@@ -130,7 +149,7 @@ func (r *Bulk) periodicFlusher() {
 
 	for {
 		select {
-		case <-time.After(common.BulkFlushInterval):
+		case <-time.After(r.bulkSettings.FlushInterval):
 			r.mut.Lock()
 			if r.pendingRequests > 0 {
 				if err := r._flush(); err != nil {
@@ -146,7 +165,11 @@ func (r *Bulk) periodicFlusher() {
 
 // _flush MUST be called with an acquired lock.
 func (r *Bulk) _flush() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*r.settings.RequestTimeoutSeconds)*time.Second)
+	if r.pendingRequests == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), r.reqTimeout)
 	defer cancel()
 
 	_, err := r.client.Bulk(ctx, opensearchapi.BulkReq{
@@ -159,4 +182,10 @@ func (r *Bulk) _flush() error {
 	r.pendingRequests = 0
 
 	return nil
+}
+
+func (r *Bulk) Flush() error {
+	r.mut.Lock()
+	defer r.mut.Unlock()
+	return r._flush()
 }

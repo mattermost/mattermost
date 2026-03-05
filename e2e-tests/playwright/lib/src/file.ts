@@ -6,8 +6,10 @@ import fs from 'node:fs';
 
 import mime from 'mime-types';
 
+import {resolvePlaywrightPath} from './util';
+
 const commonAssetPath = path.resolve(__dirname, 'asset');
-export const assetPath = path.resolve(process.cwd(), 'asset');
+export const assetPath = resolvePlaywrightPath('asset');
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const availableFiles = ['mattermost-icon_128x128.png'] as const;

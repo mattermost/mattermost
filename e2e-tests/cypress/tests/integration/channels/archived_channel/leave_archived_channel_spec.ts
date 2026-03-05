@@ -14,12 +14,6 @@ describe('Leaving archived channels', () => {
     let testTeam;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {
             testTeam = team;
         });

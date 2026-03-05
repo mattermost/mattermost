@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
@@ -100,8 +99,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptMessage, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -115,7 +114,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster", rc)
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -125,6 +124,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
+	auditRec.Success()
 
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -150,8 +151,8 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptInvite, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -165,7 +166,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster", rc)
 
 	// check if the invitation has expired
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
@@ -201,9 +202,9 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uploadRemoteData", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadRemoteData, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
+	model.AddEventParameterToAuditRec(auditRec, "upload_id", c.Params.UploadId)
 
 	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)
@@ -215,6 +216,13 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	if us.RemoteId != c.GetRemoteID(r) {
 		c.Err = model.NewAppError("uploadRemoteData", "api.context.remote_id_mismatch.app_error",
 			nil, "", http.StatusUnauthorized)
+		return
+	}
+
+	// Apply same security restrictions as normal upload API
+	if us.Type == model.UploadTypeImport {
+		c.Err = model.NewAppError("uploadRemoteData", "api.remote_cluster.import_not_allowed.app_error",
+			nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -275,10 +283,10 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteUploadProfileImage", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteUploadProfileImage, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
-		audit.AddEventParameter(auditRec, "filename", imageArray[0].Filename)
+		model.AddEventParameterToAuditRec(auditRec, "filename", imageArray[0].Filename)
 	}
 
 	user, err := c.App.GetUser(c.Params.UserId)
@@ -295,7 +303,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "user", user)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
@@ -367,7 +375,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createRemoteCluster", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateRemoteCluster, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var rcWithTeamAndPassword model.RemoteClusterWithPassword
@@ -401,7 +409,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		CreatorId:     c.AppContext.Session().UserId,
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "remotecluster", rc)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remotecluster", rc)
 
 	rcSaved, appErr := c.App.AddRemoteCluster(rc)
 	if appErr != nil {
@@ -455,7 +463,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptInvite, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var rcAcceptInvite model.RemoteClusterAcceptInvite
@@ -474,8 +482,8 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "name", rcAcceptInvite.Name)
-	audit.AddEventParameter(auditRec, "display_name", rcAcceptInvite.DisplayName)
+	model.AddEventParameterToAuditRec(auditRec, "name", rcAcceptInvite.Name)
+	model.AddEventParameterToAuditRec(auditRec, "display_name", rcAcceptInvite.DisplayName)
 
 	if rcAcceptInvite.DisplayName == "" {
 		rcAcceptInvite.DisplayName = rcAcceptInvite.Name
@@ -487,7 +495,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "site_url", invite.SiteURL)
+	model.AddEventParameterToAuditRec(auditRec, "site_url", invite.SiteURL)
 
 	url := c.App.GetSiteURL()
 	if url == "" {
@@ -538,9 +546,9 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("generateRemoteClusterInvite", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateRemoteClusterInvite, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 
 	props := model.MapFromJSON(r.Body)
 	password := props["password"]
@@ -569,7 +577,10 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	inviteCode, invErr := c.App.CreateRemoteClusterInvite(rc.RemoteId, url, rc.Token, password)
 	if invErr != nil {
 		c.Err = invErr
+		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
@@ -629,9 +640,9 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchRemoteCluster", audit.Fail)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
-	audit.AddEventParameterAuditable(auditRec, "remotecluster_patch", &patch)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchRemoteCluster, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "remotecluster_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)
@@ -674,8 +685,8 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteRemoteCluster", audit.Fail)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteRemoteCluster, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 	defer c.LogAuditRec(auditRec)
 
 	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings should match snapshot on edit with permissions 1`] = `
 <div
@@ -345,7 +345,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -751,7 +752,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1159,7 +1161,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1569,7 +1572,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -2045,7 +2049,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage

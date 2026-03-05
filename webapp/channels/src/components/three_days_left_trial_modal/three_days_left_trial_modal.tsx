@@ -50,7 +50,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
 
     const handleOpenPricingModal = async () => {
         await dispatch(closeModal(ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
-        openPricingModal({trackingLocation: 'three_days_left_trial_modal'});
+        openPricingModal();
     };
 
     const buttonLabel = formatMessage({id: 'three_days_left_trial_modal.learnMore', defaultMessage: 'Learn more'});
@@ -58,8 +58,8 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
     const steps: ThreeDaysLeftTrialCardProps[] = useMemo(() => [
         {
             id: 'useSso',
-            title: formatMessage({id: 'three_days_left_trial.modal.useSsoTitle', defaultMessage: 'Single Sign on (with OpenID, SAML, Google, 0365)'}),
-            description: formatMessage({id: 'three_days_left_trial.modal.useSsoDescription', defaultMessage: 'Collaborate with users outside of your organization while tightly controlling their access to channels and team members.'}),
+            title: formatMessage({id: 'three_days_left_trial.modal.useSsoTitle', defaultMessage: 'Use SSO (with OpenID, SAML, Google, O365)'}),
+            description: formatMessage({id: 'three_days_left_trial.modal.useSsoDescription', defaultMessage: 'Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.'}),
             svgWrapperClassName: 'guestAccessSvg',
             svgElement: (
                 <GuestAccessSvg

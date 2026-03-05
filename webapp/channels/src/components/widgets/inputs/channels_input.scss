@@ -11,7 +11,7 @@
 
     .channels-input__control {
         min-height: 48px;
-        padding: 3px;
+        padding: 0 16px;
         border-color: rgba(var(--center-channel-color-rgb), 0.2);
         background: var(--center-channel-bg);
         box-shadow: none;
@@ -29,7 +29,7 @@
                 border-color: var(--button-bg);
             }
 
-            padding: 2px;
+            padding: 0 15px;
             border-width: 2px;
             border-color: var(--button-bg);
             transition: none;
@@ -56,7 +56,6 @@
     }
 
     .channels-input__placeholder {
-        margin-left: 8px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
@@ -81,7 +80,12 @@
     }
 
     .channels-input__menu-list {
-        padding: 0;
+        padding: 8px 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        &:empty {
+            display: none;
+        }
     }
 
     .channels-input__menu-notice {
@@ -99,7 +103,7 @@
         align-items: center;
         padding: 12px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 14px;
 
         &--no-matches {
             color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -170,13 +174,9 @@
         align-items: center;
         padding: 4px;
         border-radius: 16px;
-        margin: 4px;
+        margin: 4px 12px 4px -4px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: var(--center-channel-color);
-
-        &:nth-last-child(2) {
-            margin: 4px 0 4px 4px;
-        }
     }
 
     .channels-input__multi-value__label {
@@ -184,7 +184,7 @@
         align-items: center;
         padding: 0;
         color: var(--center-channel-color);
-        font-size: 1.6rem;
+        font-size: 1.2rem;
 
         .public-channel-icon,
         .private-channel-icon {
@@ -224,13 +224,16 @@
     }
 
     .channels-input__multi-value__remove {
-        padding: 0 4px 0 8px;
+        display: flex;
+        height: 20px;
+        align-items: center;
+        padding: 0px 4px 2px 6px;
         cursor: pointer;
 
         span {
             display: flex;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
 
         &:hover {
@@ -244,7 +247,7 @@
             opacity: 0.73;
 
             &:hover {
-                fill: rgba(var(--center-channel-color-rgb), 0.8);
+                fill: rgba(var(--center-channel-color-rgb), 1);
             }
         }
     }

@@ -48,7 +48,7 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 	return info, nil
 }
 
-func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
+func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
@@ -61,7 +61,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		defer close(errChan)
 		var rejErr *model.AppError
 		var once sync.Once
-		pluginContext := pluginContext(c)
+		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
@@ -91,7 +91,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
+			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		r.CloseWithError(err) // always returns nil
 		return err
@@ -99,10 +99,10 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 
 	if err = <-errChan; err != nil {
 		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
+			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
+			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
@@ -115,14 +115,14 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
+			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
 	return nil
 }
 
-func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+func (a *App) CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
@@ -136,7 +136,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	}
 
 	if us.Type == model.UploadTypeAttachment {
-		channel, err := a.GetChannel(c, us.ChannelId)
+		channel, err := a.GetChannel(rctx, us.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
 				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
@@ -144,6 +144,15 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 		if channel.DeleteAt != 0 {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
 				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+		}
+		restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+		if err != nil {
+			return nil, err
+		}
+
+		if restrictDM {
+			err := model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_restricted_dm.error", nil, "", http.StatusBadRequest)
+			return nil, err
 		}
 	}
 
@@ -155,8 +164,8 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	return us, nil
 }
 
-func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(c, uploadId)
+func (a *App) GetUploadSession(rctx request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
+	us, err := a.Srv().Store().UploadSession().Get(rctx, uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -180,7 +189,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.ch.uploadLockMapMut.Lock()
@@ -203,8 +212,8 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	c = c.With(RequestContextWithMaster)
-	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
+	rctx = rctx.With(RequestContextWithMaster)
+	if storedSession, err := a.GetUploadSession(rctx, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
@@ -231,7 +240,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 		}
 		if written < minFirstPartSize && written != us.FileSize {
 			if fileErr := a.RemoveFile(uploadPath); fileErr != nil {
-				c.Logger().Warn("Failed to remove initial upload chunk that was too small",
+				rctx.Logger().Warn("Failed to remove initial upload chunk that was too small",
 					mlog.Err(fileErr),
 					mlog.String("upload_path", uploadPath),
 					mlog.String("upload_id", us.Id),
@@ -288,7 +297,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	// run plugins upload hook
-	if err := a.runPluginsHook(c, info, file); err != nil {
+	if err := a.runPluginsHook(rctx, info, file); err != nil {
 		return nil, err
 	}
 
@@ -306,7 +315,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 		if fileErr != nil {
 			return nil, fileErr
 		}
-		a.HandleImages(c, []string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
+		a.HandleImages(rctx, []string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
 	}
 
 	if us.Type == model.UploadTypeImport {
@@ -316,7 +325,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store().FileInfo().Save(c, info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(rctx, info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):
@@ -329,16 +338,16 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(c, &infoCopy)
+			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
 
 	// delete upload session
 	if storeErr := a.Srv().Store().UploadSession().Delete(us.Id); storeErr != nil {
-		c.Logger().Warn("Failed to delete UploadSession", mlog.Err(storeErr))
+		rctx.Logger().Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil

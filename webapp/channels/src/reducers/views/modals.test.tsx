@@ -24,7 +24,7 @@ describe('Reducers.Modals', () => {
     test('Initial state', () => {
         const nextState = modalStateReducer(
             {},
-            {type: undefined},
+            {type: 'testinit'},
         );
 
         const expectedState = {};

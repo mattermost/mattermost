@@ -248,7 +248,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	}
 
 	toPass := allocateCacheTargets[*model.Channel](len(ids))
-	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
+	errs := s.rootStore.doMultiReadCache(s.rootStore.channelByIdCache, ids, toPass)
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
@@ -281,7 +281,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	return append(foundChannels, channels...), nil
 }
 
-func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+func (s LocalCacheChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	cache_key := userId
 	if includeDeleted {
 		cache_key += "_deleted"
@@ -293,7 +293,7 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, use
 		}
 	}
 
-	ids, err := s.ChannelStore.GetAllChannelMembersForUser(ctx, userId, allowFromCache, includeDeleted)
+	ids, err := s.ChannelStore.GetAllChannelMembersForUser(rctx, userId, allowFromCache, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 		}
 
 		toPass := allocateCacheTargets[*model.Channel](len(newKeys))
-		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
+		errs := s.rootStore.doMultiReadCache(s.rootStore.channelByNameCache, newKeys, toPass)
 		for i, err := range errs {
 			if err != nil {
 				if err != cache.ErrKeyNotFound {
@@ -466,7 +466,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	remainingChannels := make([]string, 0)
 
 	toPass := allocateCacheTargets[int64](len(channelIDs))
-	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
+	errs := s.rootStore.doMultiReadCache(s.rootStore.channelMemberCountsCache, channelIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {

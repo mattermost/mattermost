@@ -12,6 +12,7 @@ export interface TableRow {
     attribute: string;
     operator: string;
     values: string[];
+    attribute_type: string;
 }
 
 export interface ValueSelectorMenuProps {

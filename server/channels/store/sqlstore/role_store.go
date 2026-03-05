@@ -46,11 +46,11 @@ type channelRolesPermissions struct {
 
 func NewRoleFromModel(role *model.Role) *Role {
 	permissionsMap := make(map[string]bool)
-	permissions := ""
+	var permissions strings.Builder
 
 	for _, permission := range role.Permissions {
 		if !permissionsMap[permission] {
-			permissions += fmt.Sprintf(" %v", permission)
+			permissions.WriteString(fmt.Sprintf(" %v", permission))
 			permissionsMap[permission] = true
 		}
 	}
@@ -63,7 +63,7 @@ func NewRoleFromModel(role *model.Role) *Role {
 		CreateAt:      role.CreateAt,
 		UpdateAt:      role.UpdateAt,
 		DeleteAt:      role.DeleteAt,
-		Permissions:   permissions,
+		Permissions:   permissions.String(),
 		SchemeManaged: role.SchemeManaged,
 		BuiltIn:       role.BuiltIn,
 	}
@@ -383,7 +383,18 @@ func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[s
 
 func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	query := s.getQueryBuilder().
-		Select("Roles.*").
+		Select(
+			"Roles.Id",
+			"Roles.Name",
+			"Roles.DisplayName",
+			"Roles.Description",
+			"Roles.CreateAt",
+			"Roles.UpdateAt",
+			"Roles.DeleteAt",
+			"Roles.Permissions",
+			"Roles.SchemeManaged",
+			"Roles.BuiltIn",
+		).
 		From("Schemes").
 		Join("Roles ON Schemes.DefaultChannelGuestRole = Roles.Name OR Schemes.DefaultChannelUserRole = Roles.Name OR Schemes.DefaultChannelAdminRole = Roles.Name").
 		Where(sq.Eq{"Schemes.Scope": model.SchemeScopeChannel}).
@@ -411,7 +422,18 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 // ChannelRolesUnderTeamRole finds all of the channel-scheme roles under the team of the given team-scheme role.
 func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 	query := s.getQueryBuilder().
-		Select("ChannelSchemeRoles.*").
+		Select(
+			"ChannelSchemeRoles.Id",
+			"ChannelSchemeRoles.Name",
+			"ChannelSchemeRoles.DisplayName",
+			"ChannelSchemeRoles.Description",
+			"ChannelSchemeRoles.CreateAt",
+			"ChannelSchemeRoles.UpdateAt",
+			"ChannelSchemeRoles.DeleteAt",
+			"ChannelSchemeRoles.Permissions",
+			"ChannelSchemeRoles.SchemeManaged",
+			"ChannelSchemeRoles.BuiltIn",
+		).
 		From("Roles AS HigherScopedRoles").
 		Join("Schemes AS HigherScopedSchemes ON (HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelGuestRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelUserRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelAdminRole)").
 		Join("Teams ON Teams.SchemeId = HigherScopedSchemes.Id").

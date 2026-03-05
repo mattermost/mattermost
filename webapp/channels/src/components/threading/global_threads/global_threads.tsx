@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
@@ -23,15 +22,16 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
+import {getRhsState} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
+import ChatIllustration from 'components/common/svg_images_components/chat_illustration_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
-import {PreviousViewedTypes} from 'utils/constants';
+import {PreviousViewedTypes, RHSStates} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store/index';
@@ -60,9 +60,18 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
+    const rhsState = useSelector(getRhsState);
 
     useEffect(() => {
-        dispatch(suppressRHS);
+        // If RHS is not any one of the below then suppress it when navigating to global threads
+        if (!(
+            rhsState === RHSStates.MENTION ||
+            rhsState === RHSStates.SEARCH ||
+            rhsState === RHSStates.FLAG)
+        ) {
+            dispatch(suppressRHS);
+        }
+
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));
         dispatch(clearLastUnreadChannel);
         loadProfilesForSidebar();
@@ -194,7 +203,7 @@ const GlobalThreads = () => {
                                 id: 'globalThreads.threadPane.unselectedTitle',
                                 defaultMessage: '{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}',
                             }, {numUnread})}
-                            subtitle={formatMessage<ReactNode>({
+                            subtitle={formatMessage({
                                 id: 'globalThreads.threadPane.unreadMessageLink',
                                 defaultMessage: 'You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}',
                             }, {

@@ -75,6 +75,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
                     id={'mobileChannelHeaderItem' + plug.id}
                     onClick={handlePluginButtonClick}
                     labels={<span>{plug.dropdownText}</span>}
+                    leadingElement={plug.icon}
                 />
             );
         }

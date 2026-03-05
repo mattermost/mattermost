@@ -22,7 +22,10 @@ const GenericChannelSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps
     const purpose = item.purpose;
 
     const icon = (
-        <span className='suggestion-list__icon suggestion-list__icon--large'>
+        <span
+            className='suggestion-list__icon suggestion-list__icon--large'
+            aria-hidden={true}
+        >
             <i className='icon icon--standard icon--no-spacing icon-globe'/>
         </span>
     );

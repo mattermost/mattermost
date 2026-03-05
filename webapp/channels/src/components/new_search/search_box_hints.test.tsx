@@ -6,7 +6,7 @@ import React from 'react';
 import {
     renderWithContext,
     screen,
-    fireEvent,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import SearchBoxHints from './search_box_hints';
@@ -40,15 +40,14 @@ describe('components/new_search/SearchBoxHints', () => {
         searchType: 'messages',
         searchTerms: '',
         searchTeam: 'teamId',
-        showFilterHaveBeenReset: false,
         setSearchTerms: jest.fn(),
         focus: jest.fn(),
-        selectedOption: -1,
-        providerResults: {
+        selectedTerm: '',
+        results: {
             matchedPretext: '',
             terms: ['user1', 'user2'],
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            component: TestProviderResultComponent,
+            components: [TestProviderResultComponent, TestProviderResultComponent],
         },
     };
 
@@ -57,15 +56,15 @@ describe('components/new_search/SearchBoxHints', () => {
         expect(screen.getByText('From:')).toBeInTheDocument();
     });
 
-    test('should change the search term and focus on click', () => {
+    test('should change the search term and focus on click', async () => {
         renderWithContext(<SearchBoxHints {...baseProps}/>);
-        fireEvent.click(screen.getByText('From:'));
+        await userEvent.click(screen.getByText('From:'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('From:');
         expect(baseProps.focus).toHaveBeenCalledWith(5);
     });
 
     test('should set the selected option if it is passed from the parent', () => {
-        const props = {...baseProps, selectedOption: 1};
+        const props = {...baseProps, selectedTerm: 'user1'};
         renderWithContext(<SearchBoxHints {...props}/>);
         expect(screen.getByText('Press Enter to select')).toBeInTheDocument();
     });

@@ -191,6 +191,12 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
 	}
 
+	// validate upload type for shared channels - only allow attachments
+	if us.Type != model.UploadTypeAttachment {
+		return model.NewAppError("onReceiveUploadCreate", "api.upload.invalid_type_for_shared_channel.app_error",
+			nil, "", http.StatusBadRequest)
+	}
+
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
 	// create upload session.

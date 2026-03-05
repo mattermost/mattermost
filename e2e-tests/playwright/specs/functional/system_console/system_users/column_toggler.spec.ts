@@ -18,15 +18,14 @@ test('MM-T5523-3 Should list the column names with checkboxes in the correct ord
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Open the column toggle menu
-    await systemConsolePage.systemUsers.openColumnToggleMenu();
-    await systemConsolePage.systemUsersColumnToggleMenu.toBeVisible();
+    const columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
 
     // # Get all the menu items
-    const menuItems = await systemConsolePage.systemUsersColumnToggleMenu.getAllMenuItems();
+    const menuItems = columnToggleMenu.getAllMenuItems();
     const menuItemsTexts = await menuItems.allInnerTexts();
 
     // * Verify menu items exists in the correct order
@@ -59,23 +58,22 @@ test('MM-T5523-4 Should allow certain columns to be checked and others to be dis
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Open the column toggle menu
-    await systemConsolePage.systemUsers.openColumnToggleMenu();
-    await systemConsolePage.systemUsersColumnToggleMenu.toBeVisible();
+    const columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
 
     // * Verify that 'Display Name' is disabled
-    const displayNameMenuItem = await systemConsolePage.systemUsersColumnToggleMenu.getMenuItem('User details');
+    const displayNameMenuItem = await columnToggleMenu.getMenuItem('User details');
     expect(displayNameMenuItem).toBeDisabled();
 
     // * Verify that 'Actions' is disabled
-    const actionsMenuItem = await systemConsolePage.systemUsersColumnToggleMenu.getMenuItem('Actions');
+    const actionsMenuItem = await columnToggleMenu.getMenuItem('Actions');
     expect(actionsMenuItem).toBeDisabled();
 
     // * Verify that 'Email' however is enabled
-    const emailMenuItem = await systemConsolePage.systemUsersColumnToggleMenu.getMenuItem('Email');
+    const emailMenuItem = await columnToggleMenu.getMenuItem('Email');
     expect(emailMenuItem).not.toBeDisabled();
 });
 
@@ -94,36 +92,35 @@ test('MM-T5523-5 Should show/hide the columns which are toggled on/off', async (
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Open the column toggle menu
-    await systemConsolePage.systemUsers.openColumnToggleMenu();
-    await systemConsolePage.systemUsersColumnToggleMenu.toBeVisible();
+    let columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
 
     // # Uncheck the Email and Last login columns to hide them
-    await systemConsolePage.systemUsersColumnToggleMenu.clickMenuItem('Email');
-    await systemConsolePage.systemUsersColumnToggleMenu.clickMenuItem('Last login');
+    await columnToggleMenu.clickMenuItem('Email');
+    await columnToggleMenu.clickMenuItem('Last login');
 
     // * Close the column toggle menu
-    await systemConsolePage.systemUsersColumnToggleMenu.close();
+    await columnToggleMenu.close();
 
     // * Verify that Email column and Last login column are hidden
-    expect(await systemConsolePage.systemUsers.doesColumnExist('Email')).toBe(false);
-    expect(await systemConsolePage.systemUsers.doesColumnExist('Last login')).toBe(false);
+    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Email'})).not.toBeVisible();
+    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Last login'})).not.toBeVisible();
 
     // # Now open the column toggle menu again
-    await systemConsolePage.systemUsers.openColumnToggleMenu();
+    columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
 
     // # Check the Email column to show it
-    await systemConsolePage.systemUsersColumnToggleMenu.clickMenuItem('Email');
+    await columnToggleMenu.clickMenuItem('Email');
 
     // * Close the column toggle menu
-    await systemConsolePage.systemUsersColumnToggleMenu.close();
+    await columnToggleMenu.close();
 
     // * Verify that Email column is now shown
-    expect(await systemConsolePage.systemUsers.doesColumnExist('Email')).toBe(true);
+    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Email'})).toBeVisible();
 
     // * Verify that however Last login column is still hidden as we did not check it on
-    expect(await systemConsolePage.systemUsers.doesColumnExist('Last login')).toBe(false);
+    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Last login'})).not.toBeVisible();
 });

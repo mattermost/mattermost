@@ -31,7 +31,6 @@ func configureMetrics(th *api4.TestHelper) {
 
 func TestMetrics(t *testing.T) {
 	th := api4.SetupEnterpriseWithStoreMock(t, app.StartMetrics)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Platform().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -92,7 +91,6 @@ func TestMetrics(t *testing.T) {
 
 func TestPluginMetrics(t *testing.T) {
 	th := api4.SetupEnterprise(t, app.StartMetrics)
-	defer th.TearDown()
 
 	configureMetrics(th)
 	mi := th.App.Metrics()
@@ -178,7 +176,6 @@ func TestPluginMetrics(t *testing.T) {
 
 func TestMobileMetrics(t *testing.T) {
 	th := api4.SetupEnterprise(t, app.StartMetrics)
-	defer th.TearDown()
 
 	configureMetrics(th)
 	mi := th.App.Metrics()
@@ -249,18 +246,6 @@ func TestExtractDBCluster(t *testing.T) {
 			driver:              "postgres",
 			connectionStr:       "postgres://rds-cluster-multitenant-1234-postgres.cluster-abcd.us-east-1.rds.amazonaws.com:5432/cloud?connect_timeout=10",
 			expectedClusterName: "rds-cluster-multitenant-1234-postgres",
-		},
-		{
-			description:         "mysql full",
-			driver:              "mysql",
-			connectionStr:       "mysql://user1234:password1234@tcp(rds-cluster-multitenant-1234-mysql.cluster-abcd.us-east-1.rds.amazonaws.com:3306)/cloud?charset=utf8mb4%2Cutf8&readTimeout=30s&writeTimeout=30s&tls=skip-verify",
-			expectedClusterName: "rds-cluster-multitenant-1234-mysql",
-		},
-		{
-			description:         "mysql no credentials",
-			driver:              "mysql",
-			connectionStr:       "mysql://tcp(rds-cluster-multitenant-1234-mysql.cluster-abcd.us-east-1.rds.amazonaws.com:3306)/cloud?charset=utf8mb4%2Cutf8&readTimeout=30s&writeTimeout=30s&tls=skip-verify",
-			expectedClusterName: "rds-cluster-multitenant-1234-mysql",
 		},
 	}
 

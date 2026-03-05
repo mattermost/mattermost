@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel @rhs
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -134,7 +133,7 @@ describe('Channel RHS', () => {
 
         // # Enter the search terms and hit enter to start the search
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().first().clear().type(MESSAGES.TINY).type('{enter}');
+        cy.uiGetSearchBox().clear().type(MESSAGES.TINY).type('{enter}');
 
         // * Verify that the search results is opened in RHS
         verifyRHSisOpenAndHasTitle('Search Results');

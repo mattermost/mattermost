@@ -50,7 +50,6 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 
 	defer finalizeTransactionX(transaction, &err)
 	for _, preference := range preferences {
-		preference := preference
 		if upsertErr := s.saveTx(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}
@@ -73,15 +72,8 @@ func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.P
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -104,15 +96,8 @@ func (s SqlPreferenceStore) saveTx(transaction *sqlxTxWrapper, preference *model
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -239,15 +224,12 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 // DeleteOrphanedRows removes entries from Preferences (flagged post) when a
 // corresponding post no longer exists.
 func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
-	DELETE FROM Preferences WHERE Name IN (
-		SELECT Name FROM (
-			SELECT Preferences.Name FROM Preferences
-			LEFT JOIN Posts ON Preferences.Name = Posts.Id
-			WHERE Posts.Id IS NULL AND Category = ?
-			LIMIT ?
-		) AS A
+	DELETE FROM Preferences WHERE ctid IN (
+		SELECT Preferences.ctid FROM Preferences
+		LEFT JOIN Posts ON Preferences.Name = Posts.Id
+		WHERE Posts.Id IS NULL AND Category = $1
+		LIMIT $2
 	)`
 
 	result, err := s.GetMaster().Exec(query, model.PreferenceCategoryFlaggedPost, limit)
@@ -299,12 +281,8 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 // Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
 func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
-	var queryString string
-	var args []any
-	var err error
-
 	// We need to pad the value field with zeros when doing comparison's because the value is stored as a string.
-	// Having them the same length allows Postgres/MySQL to compare them correctly.
+	// Having them the same length allows Postgres to compare them correctly.
 	whereClause := sq.And{
 		sq.Eq{"Category": model.PreferenceCategorySidebarSettings},
 		sq.Eq{"Name": model.PreferenceLimitVisibleDmsGms},
@@ -313,28 +291,17 @@ func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 			sq.Lt{"SUBSTRING(CONCAT('000000000000000', Value), LENGTH(Value) + 1, 15)": "000000000000001"},
 		},
 	}
-	if s.DriverName() == "postgres" {
-		subQuery := s.getQueryBuilder().
-			Select("UserId, Category, Name").
-			From("Preferences").
-			Where(whereClause).
-			Limit(100)
-		queryString, args, err = s.getQueryBuilder().
-			Delete("Preferences").
-			Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
-			ToSql()
-		if err != nil {
-			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
-		}
-	} else {
-		queryString, args, err = s.getQueryBuilder().
-			Delete("Preferences").
-			Where(whereClause).
-			Limit(100).
-			ToSql()
-		if err != nil {
-			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
-		}
+	subQuery := s.getQueryBuilder().
+		Select("UserId, Category, Name").
+		From("Preferences").
+		Where(whereClause).
+		Limit(100)
+	queryString, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
+		ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
 	}
 
 	result, err := s.GetMaster().Exec(queryString, args...)

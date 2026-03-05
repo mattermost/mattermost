@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-await-in-loop, no-console */
+/* eslint-disable no-console */
 
 /*
  * This command, which is normally used in CI, runs Cypress test in full or partial
@@ -24,8 +24,6 @@
  *      - will run all the specs available from the Automation dashboard
  */
 
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const chalk = require('chalk');
 const cypress = require('cypress');
 
@@ -39,10 +37,6 @@ const {writeJsonToFile} = require('./utils/report');
 const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
 
 require('dotenv').config();
-axiosRetry(axios, {
-    retries: 5,
-    retryDelay: axiosRetry.exponentialDelay,
-});
 
 const {
     BRANCH,

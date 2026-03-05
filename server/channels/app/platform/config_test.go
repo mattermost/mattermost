@@ -20,7 +20,6 @@ import (
 func TestConfigListener(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	originalSiteName := th.Service.Config().TeamSettings.SiteName
 
@@ -58,7 +57,6 @@ func TestConfigSave(t *testing.T) {
 	cm := &mocks.ClusterInterface{}
 	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
 	th := SetupWithCluster(t, cm)
-	defer th.TearDown()
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
@@ -78,7 +76,6 @@ func TestConfigSave(t *testing.T) {
 
 	t.Run("do not restart the metrics server on a different type of config change", func(t *testing.T) {
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		metricsMock := &mocks.MetricsInterface{}
 		metricsMock.On("IncrementWebsocketEvent", model.WebsocketEventConfigChanged).Return()
@@ -110,7 +107,6 @@ func TestConfigSave(t *testing.T) {
 func TestIsFirstUserAccount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)
 	userStoreMock := &smocks.UserStore{}
 	storeMock.On("User").Return(userStoreMock)
@@ -153,7 +149,6 @@ func TestIsFirstUserAccount(t *testing.T) {
 func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)
 	userStoreMock := &smocks.UserStore{}
 	storeMock.On("User").Return(userStoreMock)

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -72,8 +73,8 @@ func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *
 	return role, nil
 }
 
-func (a *App) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
-	return a.Srv().GetRoleByName(ctx, name)
+func (a *App) GetRoleByName(rctx request.CTX, name string) (*model.Role, *model.AppError) {
+	return a.Srv().GetRoleByName(rctx.Context(), name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
@@ -290,13 +291,7 @@ func removeRoles(rolesToRemove []string, roles string) string {
 	newRoles := make([]string, 0)
 
 	for _, role := range roleList {
-		shouldRemove := false
-		for _, roleToRemove := range rolesToRemove {
-			if role == roleToRemove {
-				shouldRemove = true
-				break
-			}
-		}
+		shouldRemove := slices.Contains(rolesToRemove, role)
 		if !shouldRemove {
 			newRoles = append(newRoles, role)
 		}

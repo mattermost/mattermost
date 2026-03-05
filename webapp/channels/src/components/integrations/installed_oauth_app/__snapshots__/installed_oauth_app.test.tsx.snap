@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOAuthApp should filter out OAuthApp 1`] = `""`;
 
@@ -51,6 +51,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
         </button>
          - 
         <Link
+          key="edit"
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
@@ -60,6 +61,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
         </Link>
          - 
         <Connect(DeleteIntegrationLink)
+          key="delete"
           modalMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
@@ -276,6 +278,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         </button>
          - 
         <Link
+          key="edit"
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
@@ -285,6 +288,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         </Link>
          - 
         <Connect(DeleteIntegrationLink)
+          key="delete"
           modalMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
@@ -455,6 +459,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
         </button>
          - 
         <Link
+          key="edit"
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
@@ -464,6 +469,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
         </Link>
          - 
         <Connect(DeleteIntegrationLink)
+          key="delete"
           modalMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"

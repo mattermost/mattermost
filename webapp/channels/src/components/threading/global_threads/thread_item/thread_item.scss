@@ -105,7 +105,7 @@
         place-content: center;
     }
 
-    > header {
+    > .thread-item-header {
         position: relative;
         display: grid;
         margin: 0 0 6px;
@@ -154,5 +154,18 @@
 
     .Avatars {
         margin-right: 10px;
+    }
+}
+
+.no-results__wrapper {
+    .thread-no-results-subtitle-shortcut {
+        .shortcut-key{
+            padding: 2px 5px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+        }
     }
 }

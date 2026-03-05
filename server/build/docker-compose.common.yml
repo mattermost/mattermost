@@ -1,47 +1,12 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    tag: "{{.Name}}"
+
 services:
-  mysql:
-    image: "mysql/mysql-server:8.0.32"
-    restart: always
-    networks:
-      - mm-test
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: mostest
-      MYSQL_PASSWORD: mostest
-      MYSQL_USER: mmuser
-      MYSQL_DATABASE: mattermost_test
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
-  mysql-read-replica:
-    image: "mysql/mysql-server:8.0.32"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - target: 3306
-        published: 3307
-        protocol: tcp
-        mode: host
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: mostest
-      MYSQL_PASSWORD: mostest
-      MYSQL_USER: mmuser
-      MYSQL_DATABASE: mattermost_test
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
-    image: "postgres:13"
+    image: "postgres:14"
+    logging: *default-logging
     restart: always
     networks:
       - mm-test
@@ -49,10 +14,11 @@ services:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
-     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
-     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
+     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf:Z"
+     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql:Z"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
       interval: 5s
@@ -60,6 +26,7 @@ services:
       retries: 3
   minio:
     image: "minio/minio:RELEASE.2024-06-22T05-26-45Z"
+    logging: *default-logging
     command: "server /data --console-address :9002"
     networks:
       - mm-test
@@ -69,6 +36,7 @@ services:
       MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
   inbucket:
     image: "inbucket/inbucket:stable"
+    logging: *default-logging
     restart: always
     environment:
       INBUCKET_WEB_ADDR: "0.0.0.0:9001"
@@ -78,6 +46,7 @@ services:
       - mm-test
   openldap:
     image: "osixia/openldap:1.4.0"
+    logging: *default-logging
     restart: always
     networks:
       - mm-test
@@ -87,7 +56,9 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "mattermostdevelopment/mattermost-elasticsearch:8.9.0"
+    build:
+      context: .
+      dockerfile: ./Dockerfile.elasticsearch
     networks:
       - mm-test
     environment:
@@ -120,14 +91,17 @@ services:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
   redis:
     image: "redis:7.4.0"
+    logging: *default-logging
     networks:
       - mm-test
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
+    logging: *default-logging
     networks:
       - mm-test
   keycloak:
     image: "quay.io/keycloak/keycloak:23.0.7"
+    logging: *default-logging
     restart: always
     entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
@@ -139,12 +113,13 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: 'false'
       KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
+     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:Z"
   prometheus:
     image: "prom/prometheus:v2.46.0"
+    logging: *default-logging
     user: root
     volumes:
-      - "./docker/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./docker/prometheus.yml:/etc/prometheus/prometheus.yml:Z"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
@@ -152,23 +127,29 @@ services:
       - "host.docker.internal:host-gateway"
   grafana:
     image: "grafana/grafana:10.4.2"
+    logging: *default-logging
     volumes:
-      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
-      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
-      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini:Z"
+      - "./docker/grafana/provisioning:/etc/grafana/provisioning:Z"
+      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards:Z"
     networks:
       - mm-test
   loki:
     image: "grafana/loki:3.0.0"
+    logging: *default-logging
+    volumes:
+      - "./docker/loki/loki-config.yaml:/etc/loki/local-config.yaml:Z"
     networks:
       - mm-test
-  promtail:
-    image: "grafana/promtail:3.0.0"
+  otel-collector:
+    image: "otel/opentelemetry-collector-contrib:0.145.0"
+    logging: *default-logging
+    user: "0:0"
     volumes:
-      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml"
+      - "./docker/otel-collector/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:Z"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "../logs:/logs"
-    command: -config.file=/etc/promtail/docker-config.yaml
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "../logs:/logs:ro,Z"
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
     networks:
       - mm-test

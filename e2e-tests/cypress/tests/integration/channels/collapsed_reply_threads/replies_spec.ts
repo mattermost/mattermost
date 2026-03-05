@@ -14,6 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {PostMessageResp} from 'tests/support/task_commands';
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
@@ -71,7 +72,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(rootPost.id).should('not.exist');
 
         // # Post a reply post as current user
-        cy.postMessageAs({sender: testUser, message: 'reply!', channelId: testChannel.id, rootId: rootPost.id});
+        cy.postMessageAs({sender: testUser, message: 'reply to root post', channelId: testChannel.id, rootId: rootPost.id});
 
         // # Get thread footer of last post
         cy.uiGetPostThreadFooter(rootPost.id).within(() => {
@@ -170,7 +171,7 @@ describe('Collapsed Reply Threads', () => {
             // * Thumbs-up reaction displays as reaction on post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('be.visible');
-                cy.findByLabelText('remove reaction +1').should('be.visible');
+                cy.findByRole('button', {name: /reacted with :\+1:/i}).should('be.visible');
             });
 
             // * Reacting to a root post should not create a thread (thread footer should not exist)

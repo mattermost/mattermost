@@ -17,15 +17,18 @@ import PostAddChannelMember from './post_add_channel_member';
 
 type OwnProps = {
     postId: string;
+    userIds: string[];
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const post = getPost(state, ownProps.postId) || {};
     let channelType = '';
+    let isPolicyEnforced = false;
     if (post && post.channel_id) {
         const channel = getChannel(state, post.channel_id);
         if (channel && channel.type) {
             channelType = channel.type;
+            isPolicyEnforced = Boolean(channel.policy_enforced);
         }
     }
 
@@ -33,6 +36,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         channelType,
         currentUser: getCurrentUser(state),
         post,
+        isPolicyEnforced,
     };
 }
 

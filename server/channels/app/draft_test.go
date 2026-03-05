@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -16,8 +17,7 @@ import (
 
 func TestGetDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -57,8 +57,7 @@ func TestGetDraft(t *testing.T) {
 
 func TestUpsertDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -116,8 +115,7 @@ func TestUpsertDraft(t *testing.T) {
 
 func TestCreateDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -126,8 +124,8 @@ func TestCreateDraft(t *testing.T) {
 
 	user := th.BasicUser
 	channel := th.BasicChannel
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(user, channel2)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, user, channel2)
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
@@ -175,8 +173,7 @@ func TestCreateDraft(t *testing.T) {
 
 func TestUpdateDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -217,12 +214,58 @@ func TestUpdateDraft(t *testing.T) {
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
 		assert.ElementsMatch(t, draftWithFiles.FileIds, draftResp.FileIds)
 	})
+
+	t.Run("cannot upsert draft in restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
+
+		draft := &model.Draft{
+			CreateAt:  00001,
+			UpdateAt:  00001,
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "draft message",
+		}
+
+		_, err = th.App.UpsertDraft(th.Context, draft, "")
+		require.NotNil(t, err)
+		require.Equal(t, "api.draft.create_draft.can_not_draft_to_restricted_dm.error", err.Id)
+		require.Equal(t, http.StatusBadRequest, err.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
 }
 
 func TestGetDraftsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -231,8 +274,8 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	user := th.BasicUser
 	channel := th.BasicChannel
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(user, channel2)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, user, channel2)
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
@@ -345,8 +388,7 @@ func TestGetDraftsForUser(t *testing.T) {
 
 func TestDeleteDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)

@@ -4,8 +4,8 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {useCurrentProduct} from 'utils/products';
 
@@ -14,8 +14,6 @@ const ProductBrandingContainer = styled.span`
     align-items: center;
 `;
 
-// Every style here except for 'margin-left' and 'font-family'is from the deprecated 'Heading' element.
-// https://github.com/mattermost/compass-components/blob/362e96a4eb3489efc8c1852652859ef14a51eb64/src/components/heading/Heading.mixins.ts#L9-L74
 const ProductBrandingHeading = styled.span`
     font-family: 'Metropolis';
     font-size: 16px;
@@ -30,22 +28,32 @@ const ProductBrandingHeading = styled.span`
 const ProductBranding = (): JSX.Element => {
     const currentProduct = useCurrentProduct();
 
-    const Icon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
+    // Handle both string icon names and React elements
+    const renderIcon = () => {
+        if (!currentProduct?.switcherIcon) {
+            return <ProductChannelsIcon size={24}/>;
+        }
+
+        if (typeof currentProduct.switcherIcon === 'string') {
+            const Icon = glyphMap[currentProduct.switcherIcon as IconGlyphTypes];
+            if (Icon) {
+                return <Icon size={24}/>;
+            }
+
+            // Fallback if icon name not found in glyphMap
+            return <ProductChannelsIcon size={24}/>;
+        }
+
+        // React element - render directly
+        return <>{currentProduct.switcherIcon}</>;
+    };
 
     return (
         <ProductBrandingContainer tabIndex={-1}>
-            <Icon size={24}/>
-
-            {/* Heading for screen readers since an h1 shouldn't be inside a button */}
-            <Heading
-                element='h1'
-                size={200}
-                margin='none'
-                className='sr-only'
-            >
+            {renderIcon()}
+            <h1 className='sr-only'>
                 {currentProduct ? currentProduct.switcherText : 'Channels'}
-            </Heading>
-
+            </h1>
             <ProductBrandingHeading>
                 {currentProduct ? currentProduct.switcherText : 'Channels'}
             </ProductBrandingHeading>

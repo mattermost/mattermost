@@ -60,7 +60,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
         expect(wrapper).toMatchSnapshot();
         expect(getIncomingHook).toHaveBeenCalledTimes(1);
-        expect(getIncomingHook).toBeCalledWith(props.hookId);
+        expect(getIncomingHook).toHaveBeenCalledWith(props.hookId);
     });
 
     test('should show AbstractIncomingWebhook', () => {
@@ -89,7 +89,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
         await instance.editIncomingHook(asyncHook);
         expect(wrapper).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newActions.updateIncomingHook).toBeCalledWith(asyncHook);
+        expect(newActions.updateIncomingHook).toHaveBeenCalledWith(asyncHook);
         expect(wrapper.state('serverError')).toEqual('');
     });
 
@@ -105,7 +105,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
         expect(wrapper).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newActions.updateIncomingHook).toBeCalledWith(asyncHook);
+        expect(newActions.updateIncomingHook).toHaveBeenCalledWith(asyncHook);
     });
 
     test('should have called submitHook when editIncomingHook is initiated (with data)', async () => {
@@ -120,7 +120,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
         expect(wrapper).toMatchSnapshot();
         expect(newUpdateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newUpdateIncomingHook).toBeCalledWith(asyncHook);
+        expect(newUpdateIncomingHook).toHaveBeenCalledWith(asyncHook);
         expect(wrapper.state('serverError')).toEqual('');
         expect(getHistory().push).toHaveBeenCalledWith(`/${requiredProps.team.name}/integrations/incoming_webhooks`);
     });

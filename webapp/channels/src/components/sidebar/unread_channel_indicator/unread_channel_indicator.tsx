@@ -36,25 +36,25 @@ type Props = {
     name?: string;
 }
 
-function UnreadChannelIndicator(props: Props) {
+function UnreadChannelIndicator({
+    onClick,
+    show = false,
+    extraClass = '',
+    content = '',
+    name,
+}: Props) {
     return (
         <div
-            id={'unreadIndicator' + props.name}
+            id={'unreadIndicator' + name}
             className={classNames('nav-pills__unread-indicator', {
-                'nav-pills__unread-indicator--visible': props.show,
-            }, props.extraClass)}
-            onClick={props.onClick}
+                'nav-pills__unread-indicator--visible': show,
+            }, extraClass)}
+            onClick={onClick}
         >
             <UnreadBelowIcon className='icon icon__unread'/>
-            {props.content}
+            {content}
         </div>
     );
 }
-
-UnreadChannelIndicator.defaultProps = {
-    show: false,
-    extraClass: '',
-    content: '',
-};
 
 export default UnreadChannelIndicator;

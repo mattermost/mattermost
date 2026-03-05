@@ -41,9 +41,9 @@
 
         h3 {
             padding: 0;
-            margin: 0;
+            margin: 4px 0 !important;
             font-size: 18px;
-            font-weight: normal;
+            font-weight: 600;
         }
 
         .button {
@@ -66,5 +66,23 @@
                 }
             }
         }
+    }
+}
+
+.AdminPanelTogglable {
+    .AdminPanelTogglableContent {
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: all 0.4s ease-in-out 0s;
+    }
+
+    &.closed {
+        .AdminPanelTogglableContent {
+            grid-template-rows: 0fr;
+        }
+    }
+
+    .AdminPanelTogglableContent .AdminPanelTogglableContentInner {
+        overflow: hidden;
     }
 }

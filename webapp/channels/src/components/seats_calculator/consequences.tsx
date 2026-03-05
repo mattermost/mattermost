@@ -4,12 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ExternalLink from 'components/external_link';
 
 import {
-    TELEMETRY_CATEGORIES,
     HostedCustomerLinks,
     CloudLinks,
     LicenseLinks,
@@ -21,20 +18,6 @@ type Props = {
 }
 
 export default function Consequences(props: Props) {
-    let telemetryHandler = () => {};
-    if (props.isCloud) {
-        telemetryHandler = () =>
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_PURCHASING,
-                'click_see_how_billing_works',
-            );
-    } else {
-        telemetryHandler = () =>
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_PURCHASING,
-                'click_see_how_billing_works',
-            );
-    }
     let text = (
         <FormattedMessage
             defaultMessage={
@@ -44,7 +27,6 @@ export default function Consequences(props: Props) {
             values={{
                 a: (chunks: React.ReactNode) => (
                     <ExternalLink
-                        onClick={telemetryHandler}
                         href={
                             props.isCloud ? CloudLinks.BILLING_DOCS : HostedCustomerLinks.BILLING_DOCS
                         }
@@ -87,7 +69,6 @@ export default function Consequences(props: Props) {
                     a: (chunks: React.ReactNode) => (
                         <ExternalLink
                             location='seats_calculator_consequences'
-                            onClick={telemetryHandler}
                             href={props.isCloud ? CloudLinks.BILLING_DOCS : HostedCustomerLinks.BILLING_DOCS}
                         >
                             {chunks}

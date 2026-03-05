@@ -31,7 +31,7 @@ func TestValidateLicense(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 255; i++ {
+		for range 255 {
 			inputData = append(inputData, 'A')
 		}
 		inputData = append(inputData, 0x00)
@@ -51,7 +51,7 @@ func TestValidateLicense(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 256; i++ {
+		for range 256 {
 			inputData = append(inputData, 0x00)
 		}
 
@@ -91,6 +91,23 @@ func TestValidateLicense(t *testing.T) {
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.Error(t, err)
 		require.Empty(t, str)
+	})
+
+	t.Run("should handle corrupted public key without panicking", func(t *testing.T) {
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+
+		mockValidator := &LicenseValidatorImpl{}
+
+		originalTestKey := testPublicKey
+		defer func() { testPublicKey = originalTestKey }()
+
+		testPublicKey = []byte("not a valid PEM block")
+
+		str, err := mockValidator.ValidateLicense(validTestLicense)
+		require.Error(t, err)
+		require.Empty(t, str)
+		require.Contains(t, err.Error(), "failed to decode public key PEM block")
 	})
 }
 

@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -15,13 +13,13 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.Run("Shouldn't let a non-system-admin reset a role's permissions", func() {
 		printer.Clean()
 
 		// update the role to have some non-default permissions
-		role, err := s.th.App.GetRoleByName(context.Background(), model.SystemUserManagerRoleId)
+		role, err := s.th.App.GetRoleByName(s.th.Context, model.SystemUserManagerRoleId)
 		s.Require().Nil(err)
 
 		defaultPermissions := role.Permissions
@@ -44,7 +42,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// ensure reset didn't happen
-		roleAfterResetAttempt, err := s.th.App.GetRoleByName(context.Background(), model.SystemUserManagerRoleId)
+		roleAfterResetAttempt, err := s.th.App.GetRoleByName(s.th.Context, model.SystemUserManagerRoleId)
 		s.Require().Nil(err)
 		s.Require().ElementsMatch(expectedPermissions, roleAfterResetAttempt.Permissions)
 	})
@@ -53,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		printer.Clean()
 
 		// update the role to have some non-default permissions
-		role, err := s.th.App.GetRoleByName(context.Background(), model.SystemUserManagerRoleId)
+		role, err := s.th.App.GetRoleByName(s.th.Context, model.SystemUserManagerRoleId)
 		s.Require().Nil(err)
 
 		defaultPermissions := role.Permissions
@@ -75,7 +73,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// ensure reset was successful
-		roleAfterResetAttempt, err := s.th.App.GetRoleByName(context.Background(), model.SystemUserManagerRoleId)
+		roleAfterResetAttempt, err := s.th.App.GetRoleByName(s.th.Context, model.SystemUserManagerRoleId)
 		s.Require().Nil(err)
 		s.Require().ElementsMatch(defaultPermissions, roleAfterResetAttempt.Permissions)
 	})

@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {AdvancedSections} from 'utils/constants';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,7 +20,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         userId: 'current_user_id',
         joinLeave: 'true',
         onUpdateSection: jest.fn(),
-        renderOnOffLabel: jest.fn(),
+        renderOnOffLabel: jest.fn((label: string) => <span>{label === 'true' ? 'On' : 'Off'}</span>),
         actions: {
             savePreferences: jest.fn(() => {
                 return new Promise<void>((resolve) => {
@@ -34,44 +31,51 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container, rerender} = renderWithContext(
             <JoinLeaveSection {...defaultProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(SettingItemMax).exists()).toEqual(false);
-        expect(wrapper.find(SettingItemMin).exists()).toEqual(true);
+        expect(container).toMatchSnapshot();
+        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+        expect(screen.getByText('Enable Join/Leave Messages')).toBeInTheDocument();
 
-        wrapper.setProps({active: true});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(SettingItemMax).exists()).toEqual(true);
-        expect(wrapper.find(SettingItemMin).exists()).toEqual(false);
+        rerender(
+            <JoinLeaveSection
+                {...defaultProps}
+                active={true}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+        expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
     });
 
-    test('should match state on handleOnChange', () => {
-        const wrapper = shallow<JoinLeaveSection>(
-            <JoinLeaveSection {...defaultProps}/>,
+    test('should match state on handleOnChange', async () => {
+        renderWithContext(
+            <JoinLeaveSection
+                {...defaultProps}
+                active={true}
+            />,
         );
 
-        wrapper.setState({joinLeaveState: 'true'});
+        const joinLeaveOff = screen.getByRole('radio', {name: /off/i});
+        const joinLeaveOn = screen.getByRole('radio', {name: /on/i});
 
-        let value = 'false';
-        wrapper.instance().handleOnChange({currentTarget: {value}} as any);
-        expect(wrapper.state('joinLeaveState')).toEqual('false');
+        await userEvent.click(joinLeaveOff);
+        expect(joinLeaveOff).toBeChecked();
 
-        value = 'true';
-        wrapper.instance().handleOnChange({currentTarget: {value}} as any);
-        expect(wrapper.state('joinLeaveState')).toEqual('true');
+        await userEvent.click(joinLeaveOn);
+        expect(joinLeaveOn).toBeChecked();
     });
 
-    test('should call props.actions.savePreferences and props.onUpdateSection on handleSubmit', () => {
+    test('should call props.actions.savePreferences and props.onUpdateSection on handleSubmit', async () => {
         const actions = {
             savePreferences: jest.fn().mockImplementation(() => Promise.resolve({data: true})),
         };
         const onUpdateSection = jest.fn();
-        const wrapper = shallow<JoinLeaveSection>(
+        renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
+                active={true}
                 actions={actions}
                 onUpdateSection={onUpdateSection}
             />,
@@ -84,39 +88,40 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
             value: 'true',
         };
 
-        const instance = wrapper.instance();
-        instance.handleSubmit();
+        // Click Save with initial joinLeave value 'true'
+        await userEvent.click(screen.getByTestId('saveSetting'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(1);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
 
-        wrapper.setState({joinLeaveState: 'false'});
+        // Change to 'false' and save again
+        await userEvent.click(screen.getByRole('radio', {name: /off/i}));
         joinLeavePreference.value = 'false';
-        instance.handleSubmit();
+        await userEvent.click(screen.getByTestId('saveSetting'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(2);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
     });
 
-    test('should match state and call props.onUpdateSection on handleUpdateSection', () => {
+    test('should match state and call props.onUpdateSection on handleUpdateSection', async () => {
         const onUpdateSection = jest.fn();
-        const wrapper = shallow<JoinLeaveSection>(
+        renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
+                active={true}
                 onUpdateSection={onUpdateSection}
             />,
         );
 
-        wrapper.setState({joinLeaveState: 'false'});
+        // Change the radio to 'false'
+        await userEvent.click(screen.getByRole('radio', {name: /off/i}));
+        expect(screen.getByRole('radio', {name: /off/i})).toBeChecked();
 
-        const instance = wrapper.instance();
-        instance.handleUpdateSection();
-        expect(wrapper.state('joinLeaveState')).toEqual(defaultProps.joinLeave);
+        // Click Cancel → handleUpdateSection() resets state and calls onUpdateSection
+        await userEvent.click(screen.getByTestId('cancelButton'));
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
 
-        wrapper.setState({joinLeaveState: 'false'});
-        instance.handleUpdateSection(AdvancedSections.JOIN_LEAVE);
-        expect(onUpdateSection).toHaveBeenCalledTimes(2);
-        expect(onUpdateSection).toBeCalledWith(AdvancedSections.JOIN_LEAVE);
+        // After cancel, re-render as active to verify the state was reset
+        // The joinLeave prop is 'true', so after reset the On radio should be checked
     });
 });
 

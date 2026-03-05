@@ -47,6 +47,7 @@ export type Subscription = {
     cancel_at?: number;
     will_renew?: string;
     simulated_current_time_ms?: number;
+    is_cloud_preview?: boolean;
 }
 
 export type Product = {
@@ -190,11 +191,6 @@ export type ValidBusinessEmail = {
     is_valid: boolean;
 }
 
-export interface NewsletterRequestBody {
-    email: string;
-    subscribed_content: string;
-}
-
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {
     if (!address) {
         return false;
@@ -205,3 +201,18 @@ export type Feedback = {
     reason: string;
     comments: string;
 }
+
+export type MessageDescriptor = {
+    id: string;
+    defaultMessage: string;
+    values?: Record<string, any>;
+};
+
+export type PreviewModalContentData = {
+    skuLabel: MessageDescriptor;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
+    videoUrl: string;
+    videoPoster?: string;
+    useCase: string;
+};

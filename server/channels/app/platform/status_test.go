@@ -5,6 +5,7 @@ package platform
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,8 +14,7 @@ import (
 )
 
 func TestSaveStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -53,9 +53,86 @@ func TestTruncateDNDEndTime(t *testing.T) {
 	assert.Equal(t, int64(1737331200), truncateDNDEndTime(1737331200))
 }
 
+func TestQueueSetStatusOffline(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Create multiple user IDs
+	userIDs := []string{
+		th.BasicUser.Id,
+		model.NewId(),
+		model.NewId(),
+		model.NewId(),
+	}
+
+	// Add duplicate user IDs to test duplicate handling
+	// The second occurrence should override the first
+	userIDs = append(userIDs, userIDs[0], userIDs[1])
+
+	// Initially set all users to online
+	for _, userID := range userIDs {
+		th.Service.SetStatusOnline(userID, false)
+		status, err := th.Service.GetStatus(userID)
+		require.Nil(t, err, "Failed to get initial status")
+		require.Equal(t, model.StatusOnline, status.Status, "User should be online initially")
+	}
+
+	// Queue status updates to offline
+	for i, userID := range userIDs {
+		// Set every other status as manual to test both cases
+		manual := i%2 == 0
+		th.Service.QueueSetStatusOffline(userID, manual)
+	}
+
+	// Wait for the background processor to handle the updates
+	// Use eventually consistent approach with retries
+	for idx, userID := range userIDs {
+		var status *model.Status
+		var err *model.AppError
+
+		// Use poll-wait pattern to account for async processing
+		require.Eventually(t, func() bool {
+			status, err = th.Service.GetStatus(userID)
+			return err == nil && status.Status == model.StatusOffline
+		}, 5*time.Second, 100*time.Millisecond, "Status wasn't updated to offline")
+
+		// For the duplicated user IDs, check that manual setting is based on the last call
+		// User[0] and User[1] are duplicated at the end of the slice
+		switch idx {
+		case 0, 4: // first duplicated user
+			// Last update for userIDs[0] was at index 4 (i%2 == 0, so manual = true)
+			require.True(t, status.Manual, "User should have manual status (duplicate case)")
+		case 1, 5:
+			// Last update for userIDs[1] was at index 5 (i%2 == 1, so manual = false)
+			require.False(t, status.Manual, "User should have automatic status (duplicate case)")
+		default:
+			require.Equal(t, idx%2 == 0, status.Manual, "Manual flag incorrect")
+		}
+	}
+
+	// Verify all relevant status fields
+	for _, userID := range model.RemoveDuplicateStrings(userIDs) {
+		status, err := th.Service.GetStatus(userID)
+		require.Nil(t, err, "Failed to get status")
+		require.Equal(t, model.StatusOffline, status.Status, "User should be offline")
+		require.Equal(t, "", status.ActiveChannel, "ActiveChannel should be empty")
+	}
+
+	// First shut down the test environment
+	th.Shutdown(t)
+
+	// Then verify that the status update processor has properly shut down
+	// by checking that the done signal channel is closed
+	select {
+	case _, ok := <-th.Service.statusUpdateDoneSignal:
+		// If channel is closed, ok will be false
+		assert.False(t, ok, "statusUpdateDoneSignal channel should be closed after teardown")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "Timed out waiting for status update processor to shut down")
+	}
+}
+
 func TestSetStatusOffline(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 

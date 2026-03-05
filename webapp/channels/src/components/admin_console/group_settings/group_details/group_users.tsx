@@ -165,7 +165,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                         'AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>'
                     }
                     values={{
-                        a: (chunks: string) => (
+                        a: (chunks) => (
                             <Link to='/admin_console/authentication/ldap'>
                                 {chunks}
                             </Link>

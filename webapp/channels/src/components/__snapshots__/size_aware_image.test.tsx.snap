@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SizeAwareImage should load download and copy link buttons when an image is mounted 1`] = `
 <Fragment>

@@ -221,29 +221,6 @@ h6.markdown__heading {
     }
 }
 
-.post-code__context-menu {
-    &.react-contextmenu {
-        background-color: variables.$white;
-    }
-
-    .react-contextmenu-item {
-        .span {
-            display: inline-block;
-            padding: 3px 0;
-        }
-
-        &.react-contextmenu-item--divider {
-            border-top: 1px solid rgba(63, 67, 80, 0.16);
-            margin: 5px 15px;
-        }
-
-        &.react-contextmenu-item--divider:hover {
-            background: unset;
-            color: unset;
-        }
-    }
-}
-
 .post-code__overlay {
     position: absolute;
     z-index: 5;
@@ -419,7 +396,7 @@ blockquote {
     &:first-child {
         margin-top: 0;
     }
-    
+
     +p {
         margin-top: 6px;
 

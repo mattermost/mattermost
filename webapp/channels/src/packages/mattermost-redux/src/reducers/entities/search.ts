@@ -268,6 +268,32 @@ function isLimitedResults(state = -1, action: MMReduxAction): number {
     }
 }
 
+function truncationInfo(state = {posts: 0, files: 0}, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO: {
+        const {firstInaccessiblePostTime, searchType} = action.data;
+        return {
+            ...state,
+            [searchType]: firstInaccessiblePostTime,
+        };
+    }
+    case SearchTypes.REMOVE_SEARCH_POSTS:
+        return {
+            ...state,
+            posts: 0,
+        };
+    case SearchTypes.REMOVE_SEARCH_FILES:
+        return {
+            ...state,
+            files: 0,
+        };
+    case UserTypes.LOGOUT_SUCCESS:
+        return {posts: 0, files: 0};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // An ordered array with posts ids of flagged posts
@@ -297,4 +323,7 @@ export default combineReducers({
     // Boolean true if the search returns results inaccessible because
     // they are beyond a cloud workspace's message limits.
     isLimitedResults,
+
+    // Object tracking truncation info for posts and files separately
+    truncationInfo,
 });

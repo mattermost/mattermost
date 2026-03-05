@@ -86,6 +86,7 @@ button {
 
             &.btn-compact {
                 width: 20px;
+                min-width: 20px;
                 height: 20px;
             }
 
@@ -104,6 +105,7 @@ button {
 
             &.btn-compact {
                 width: 28px;
+                min-width: 28px;
                 height: 28px;
             }
 
@@ -119,6 +121,7 @@ button {
 
             &.btn-compact {
                 width: 36px;
+                min-width: 36px;
                 height: 36px;
             }
 
@@ -157,7 +160,7 @@ button {
     &.btn-xs {
         height: 24px;
         padding: 0 10px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
 
         i {
@@ -267,6 +270,14 @@ button {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
         }
 
         &:hover {

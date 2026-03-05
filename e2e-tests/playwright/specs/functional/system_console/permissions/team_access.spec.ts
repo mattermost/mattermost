@@ -3,175 +3,133 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import {expect, PlaywrightExtended, test} from '@mattermost/playwright-lib';
+import {expect, PlaywrightExtended, SystemConsolePage, test} from '@mattermost/playwright-lib';
 
-// setupSystemManagerRole configures the system manager with the given permission ("Can Edit", "Read only", "No access")
-// for the given section and subsection (e.g. "permission_section_reporting_site_statistics" and "permission_section_reporting_team_statistics").
+test(
+    'MM-63378 System Manager without team access permissions cannot view team details',
+    {tag: ['@smoke', '@system_console']},
+    async ({pw}) => {
+        const {
+            adminUser,
+            adminClient,
+            user: systemManagerUser,
+            userClient: systemManagerClient,
+            team,
+        } = await pw.initSetup();
+
+        // Update user with system_manager role
+        await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
+
+        // Create another team of which the user is not a member.
+        const otherTeam = await adminClient.createTeam(await pw.random.team());
+
+        // Configure the system manager with the default permissions (as admin).
+        await setupSystemManagerPermission(pw, adminUser, 'reporting', 'team_statistics', 'Can edit');
+        await setupSystemManagerPermission(pw, adminUser, 'userManagement', 'teams', 'Can edit');
+
+        // Re-login as the system manager (the admin login above replaced the page context)
+        const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
+
+        // Verify the system manager has access to the site statistics for all teams
+        await systemConsolePage.goto();
+
+        // Navigate to Team Statistics and verify access to user's team
+        await verifyTeamStatisticsAccess(systemConsolePage, team.id, team.display_name);
+
+        // Select the other team by value and verify access
+        await systemConsolePage.teamStatistics.selectTeamById(otherTeam.id);
+        await systemConsolePage.teamStatistics.toHaveTeamHeader(otherTeam.display_name);
+
+        // Verify the user has API access to the otherTeam.
+        const fetchedOtherTeam = await systemManagerClient.getTeam(otherTeam.id);
+        expect(fetchedOtherTeam.id).toEqual(otherTeam.id);
+
+        // Configure the system manager without access to team user management
+        await setupSystemManagerPermission(pw, adminUser, 'userManagement', 'teams', 'No access');
+
+        // Re-login as the system manager again after permission change
+        const {systemConsolePage: systemConsolePage2} = await pw.testBrowser.login(systemManagerUser);
+
+        // Verify the system manager only has access to the site statistics for the team they belong to
+        await systemConsolePage2.goto();
+
+        // Navigate to Team Statistics and verify access to user's team
+        await verifyTeamStatisticsAccess(systemConsolePage2, team.id, team.display_name);
+
+        // Verify the user has no API access to the otherTeam.
+        let apiError: Error | null = null;
+        try {
+            await systemManagerClient.getTeam(otherTeam.id);
+        } catch (error) {
+            apiError = error as Error;
+        }
+        expect(apiError).not.toBeNull();
+        expect(apiError?.message).toContain('You do not have the appropriate permissions');
+    },
+);
+
+// Helper function to navigate to Team Statistics and verify team access
+const verifyTeamStatisticsAccess = async (
+    systemConsolePage: SystemConsolePage,
+    teamId: string,
+    teamDisplayName: string,
+) => {
+    // Navigate to Team Statistics
+    await systemConsolePage.sidebar.reporting.teamStatistics.click();
+    await systemConsolePage.teamStatistics.toBeVisible();
+
+    // Select the team by value
+    await systemConsolePage.teamStatistics.selectTeamById(teamId);
+
+    // Verify the text shows "Team Statistics for <team name>"
+    await systemConsolePage.teamStatistics.toHaveTeamHeader(teamDisplayName);
+};
+
+type PermissionValue = 'Can edit' | 'Read only' | 'No access';
+
+// setupSystemManagerRole configures the system manager with the given permission ("Can edit", "Read only", "No access")
+// for the given section and subsection.
 //
 // We do this via the system console and not the API because this page has multiple queries to build up the
 // final API call that are all ultimately part of the spec, and we want to test the effects of those, not
 // merely a hand-created version of the same.
-const setupDefaultSystemManagerRole = async (
+const setupSystemManagerPermission = async (
     pw: PlaywrightExtended,
     adminUser: UserProfile,
-    sectionTestId: string,
-    subsectionTestId: string,
-    permissionText: string,
+    sectionName: 'reporting' | 'userManagement',
+    subsectionName: string,
+    permission: PermissionValue,
 ) => {
     // Login as admin and navigate to System Console
-    const {systemConsolePage: adminConsolePage} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // Go to System Console
-    await adminConsolePage.goto();
-
-    // Login to the System Console and navigate to Delegated Granular Administration
-    await adminConsolePage.sidebar.goToItem('Delegated Granular Administration');
-
-    // Find the System Manager row in the table
-    const systemManagerText = adminConsolePage.page.getByText('System Manager', {exact: true}).first();
-    await expect(systemManagerText).toBeVisible();
-
-    // Click on the System Manager text to go to its settings page
-    await systemManagerText.click();
-
-    // Expand the section
-    const sectionReporting = adminConsolePage.page.locator(`data-testid=${sectionTestId}`);
-    const hideSubsectionsLink = sectionReporting.getByRole('button').filter({hasText: 'Hide'}).first();
-    const showSubsectionsLink = sectionReporting.getByRole('button').filter({hasText: 'Show'}).first();
-
-    // Check which one is visible and click if needed
-    const isHideVisible = await hideSubsectionsLink.isVisible();
-    const isShowVisible = !isHideVisible && (await showSubsectionsLink.isVisible());
-
-    if (isShowVisible) {
-        // Need to expand
-        await showSubsectionsLink.click();
-    }
-
-    // Get the whole row
-    const rowReporting = adminConsolePage.page.locator('.PermissionRow').filter({has: sectionReporting});
-    await rowReporting.click();
-
-    // Find the sub section
-    const subsectionTeamStatistics = rowReporting.locator(`data-testid=${subsectionTestId}`);
-
-    await subsectionTeamStatistics.click();
-
-    // Look for dropdown button
-    const dropdownButton = subsectionTeamStatistics.locator('button').first();
-
-    // Click the button to open the dropdown menu
-    await dropdownButton.click();
-
-    // Click on the desired option in the dropdown
-    const permissionOption = subsectionTeamStatistics.locator('.dropdown-menu').getByText(permissionText).first();
-    await permissionOption.click();
-
-    // Click Save button
-    const saveButton = adminConsolePage.page.getByRole('button', {name: 'Save'}).first();
-    await saveButton.click();
-
-    // Wait for save operation to complete
-    await adminConsolePage.page.waitForLoadState('networkidle');
-
-    // Go back to the main console
-    await adminConsolePage.goto();
-    await adminConsolePage.page.waitForLoadState('networkidle');
-};
-
-test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw}) => {
-    const {
-        adminUser,
-        adminClient,
-        user: systemManagerUser,
-        userClient: systemManagerClient,
-        team,
-    } = await pw.initSetup();
-
-    // Update user with system_manager role
-    await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
-
-    // Create another team of which the user is not a member.
-    const otherTeam = await adminClient.createTeam(pw.random.team());
-
-    // Login as the user
-    const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
-
-    // Configure the system manager with the default permissions.
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_reporting',
-        'permission_section_reporting_team_statistics',
-        'Can edit',
-    );
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_user_management',
-        'permission_section_user_management_teams',
-        'Can edit',
-    );
-
-    // Verify the system manager has access to the site statistics for all teams
     await systemConsolePage.goto();
 
-    // Navigate to Team Statistics
-    await systemConsolePage.sidebar.goToItem('Team Statistics');
+    // Navigate to Delegated Granular Administration
+    await systemConsolePage.sidebar.delegatedGranularAdministration.click();
+    await systemConsolePage.delegatedGranularAdministration.toBeVisible();
 
-    // Wait for page to fully load
+    // Click on the System Manager row to go to its settings page
+    await systemConsolePage.delegatedGranularAdministration.adminRolesPanel.systemManager.clickEdit();
+    await systemConsolePage.delegatedGranularAdministration.systemRoles.toBeVisible();
+
+    // Get the section from privileges panel
+    const section = systemConsolePage.delegatedGranularAdministration.systemRoles.privilegesPanel[sectionName];
+
+    // Expand subsections if needed
+    await section.expandSubsections();
+
+    // Get the subsection and set permission
+    const subsection = section.getSubsection(subsectionName);
+    await subsection.setPermission(permission);
+
+    // Save
+    await systemConsolePage.delegatedGranularAdministration.systemRoles.save();
+
+    // Wait for save to complete - successful save redirects to system_roles list
+    await systemConsolePage.page.waitForURL('**/admin_console/user_management/system_roles');
+
+    // Wait for the page to fully load
     await systemConsolePage.page.waitForLoadState('networkidle');
-
-    // Find the team filter dropdown
-    let teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
-    await expect(teamFilterSelect).toBeVisible();
-
-    // Select the team by value
-    await teamFilterSelect.selectOption({value: team.id});
-
-    // Verify the text shows "Team Statistics for <team name>"
-    let teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
-    await expect(teamStatsHeading).toBeVisible();
-
-    // Select the other team by value
-    await teamFilterSelect.selectOption({value: otherTeam.id});
-
-    // Verify the text shows "Team Statistics for <team name>"
-    const otherTeamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${otherTeam.display_name}`, {
-        exact: true,
-    });
-    await expect(otherTeamStatsHeading).toBeVisible();
-
-    // Verify the user has API access to the otherTeam.
-    const fetchedOtherTeam = await systemManagerClient.getTeam(otherTeam.id);
-    expect(fetchedOtherTeam.id).toEqual(otherTeam.id);
-
-    // Configure the system manager without access to team user management
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_user_management',
-        'permission_section_user_management_teams',
-        'No access',
-    );
-
-    // Verify the system manager only has access to the site statistics for the team they belong to
-    await systemConsolePage.goto();
-
-    // Navigate to Team Statistics
-    await systemConsolePage.sidebar.goToItem('Team Statistics');
-
-    // Find the team filter dropdown
-    teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
-    await expect(teamFilterSelect).toBeVisible();
-
-    // Select the team by value
-    await teamFilterSelect.selectOption({value: team.id});
-
-    // Verify the text shows "Team Statistics for <team name>"
-    teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
-    await expect(teamStatsHeading).toBeVisible();
-
-    // Verify the user has no API access to the otherTeam.
-    await expect(systemManagerClient.getTeam(otherTeam.id)).rejects.toThrow();
-});
+};

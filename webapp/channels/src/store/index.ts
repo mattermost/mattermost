@@ -20,10 +20,6 @@ import {getBasePath} from 'selectors/general';
 
 import type {GlobalState} from 'types/store';
 
-function getAppReducers() {
-    return require('../reducers'); // eslint-disable-line global-require
-}
-
 declare global {
     interface Window {
         Observable: typeof Observable;
@@ -38,7 +34,6 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
         appReducers: reducers,
-        getAppReducers,
         preloadedState,
     });
 

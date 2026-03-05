@@ -4,11 +4,14 @@
 package opensearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/suite"
 
@@ -41,7 +44,7 @@ func (s *OpensearchInterfaceTestSuite) SetupSuite() {
 		os.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", "opensearch")
 	}
 
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.CommonTestSuite.TH = s.th
 	s.CommonTestSuite.GetDocumentFn = func(index, documentID string) (bool, json.RawMessage, error) {
 		resp, err := s.client.Document.Get(s.ctx, opensearchapi.DocumentGetReq{
@@ -113,6 +116,16 @@ func (s *OpensearchInterfaceTestSuite) TearDownSuite() {
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupTest() {
+	if strings.Contains(s.T().Name(), "CJK") {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+		})
+	} else {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+		})
+	}
+
 	s.CommonTestSuite.ESImpl = s.th.App.SearchEngine().ElasticsearchEngine
 
 	if s.CommonTestSuite.ESImpl.IsActive() {
@@ -123,4 +136,118 @@ func (s *OpensearchInterfaceTestSuite) SetupTest() {
 	s.Require().Nil(s.CommonTestSuite.ESImpl.Start())
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
+}
+
+func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
+	s.Run("Should index multiple channels successfully", func() {
+		// Create test channels
+		channel1 := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "test-channel-1",
+			DisplayName: "Test Channel 1",
+		}
+		channel1.PreSave()
+
+		channel2 := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypePrivate,
+			Name:        "test-channel-2",
+			DisplayName: "Test Channel 2",
+		}
+		channel2.PreSave()
+
+		channels := []*model.Channel{channel1, channel2}
+
+		// Mock getUserIDsForChannel function
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return []string{s.th.BasicUser.Id, s.th.BasicUser2.Id}, nil
+		}
+
+		teamMemberIDs := []string{s.th.BasicUser.Id, s.th.BasicUser2.Id}
+
+		// Test the bulk indexing
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, channels, getUserIDsForChannel, teamMemberIDs)
+		s.Require().Nil(appErr)
+
+		// Refresh the index to ensure data is searchable
+		s.Require().NoError(s.CommonTestSuite.RefreshIndexFn())
+
+		// Verify both channels are indexed
+		found, _, err := s.CommonTestSuite.GetDocumentFn("channels", channel1.Id)
+		s.Require().NoError(err)
+		s.Require().True(found)
+
+		found, _, err = s.CommonTestSuite.GetDocumentFn("channels", channel2.Id)
+		s.Require().NoError(err)
+		s.Require().True(found)
+	})
+
+	s.Run("Should handle empty channels list", func() {
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return []string{}, nil
+		}
+
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{}, getUserIDsForChannel, []string{})
+		s.Require().Nil(appErr)
+	})
+
+	s.Run("Should handle getUserIDsForChannel error", func() {
+		channel := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "test-channel-error",
+			DisplayName: "Test Channel Error",
+		}
+		channel.PreSave()
+
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return nil, model.NewAppError("TestError", "test.error", nil, "", 500)
+		}
+
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{channel}, getUserIDsForChannel, []string{})
+		s.Require().NotNil(appErr)
+		s.Require().Contains(appErr.Error(), "test.error")
+	})
+}
+
+func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
+	s.Run("Should handle error with CausedBy information from opensearch", func() {
+		// Invalid template request that will trigger an error with caused_by
+		invalidTemplateBody := map[string]any{
+			"index_patterns": []string{"test-invalid-*"},
+			"template": map[string]any{
+				"settings": map[string]any{
+					"analysis": map[string]any{
+						"analyzer": map[string]any{
+							"my_analyzer": map[string]any{
+								"type":      "custom",
+								"tokenizer": "nonexistent_tokenizer",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		templateBytes, err := json.Marshal(invalidTemplateBody)
+		s.Require().NoError(err)
+
+		_, err = s.client.IndexTemplate.Create(s.ctx, opensearchapi.IndexTemplateCreateReq{
+			IndexTemplate: "test-invalid-template",
+			Body:          bytes.NewReader(templateBytes),
+		})
+
+		var osErr *opensearch.StructError
+		s.Require().ErrorAs(err, &osErr)
+
+		s.Require().NotNil(osErr.Err.CausedBy, "Expected CausedBy to be present")
+		s.Require().NotEmpty(osErr.Err.CausedBy.Type)
+		s.Require().NotEmpty(osErr.Err.CausedBy.Reason)
+
+		// clean up after test
+		_, _ = s.client.IndexTemplate.Delete(s.ctx, opensearchapi.IndexTemplateDeleteReq{
+			IndexTemplate: "test-invalid-template",
+		})
+	})
 }

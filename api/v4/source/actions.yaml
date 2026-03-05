@@ -131,3 +131,73 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/actions/dialogs/lookup:
+    post:
+      tags:
+        - integration_actions
+      summary: Lookup dialog elements
+      description: >
+        Endpoint used by the Mattermost clients to lookup dynamic dialog
+        elements. See https://docs.mattermost.com/developer/interactive-dialogs.html
+        for more information on interactive dialogs.
+
+        __Minimum server version: 11.0__
+      operationId: LookupInteractiveDialog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - submission
+                - channel_id
+                - team_id
+              properties:
+                url:
+                  type: string
+                  description: The URL to send the lookup request to
+                channel_id:
+                  type: string
+                  description: Channel ID the user is performing the lookup from
+                team_id:
+                  type: string
+                  description: Team ID the user is performing the lookup from
+                submission:
+                  type: object
+                  description: String map where keys are element names and values are the
+                    element input values
+                callback_id:
+                  type: string
+                  description: Callback ID sent when the dialog was opened
+                state:
+                  type: string
+                  description: State sent when the dialog was opened
+        description: Dialog lookup request data
+        required: true
+      responses:
+        "200":
+          description: Dialog lookup successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: array
+                    description: List of options returned from the lookup
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                          description: Display text for the option
+                        value:
+                          type: string
+                          description: Value for the option
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

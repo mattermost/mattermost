@@ -42,7 +42,7 @@ const NoInternetConnection: React.FC<NoInternetConnectionProps> = (props: NoInte
                         id='announcement_bar.warn.contact_support_email'
                         defaultMessage='<a>Contact support</a>.'
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <ExternalLink
                                     href='mailto:support@mattermost.com'
                                     location='announcement_bar'

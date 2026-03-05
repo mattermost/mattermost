@@ -20,6 +20,9 @@ import ThreadPane from './thread_pane';
 jest.mock('mattermost-redux/actions/threads');
 
 const mockRouting = {
+    params: {
+        team: 'team',
+    },
     currentUserId: 'uid',
     currentTeamId: 'tid',
     goToInChannel: jest.fn(),

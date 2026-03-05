@@ -7,7 +7,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {openModal} from 'actions/views/modals';
 import {editPost} from 'actions/views/posts';
@@ -20,10 +19,8 @@ import EditedPostItem from './edited_post_item';
 
 function mapStateToProps(state: GlobalState) {
     const selectedPostId = getSelectedPostId(state) || '';
-    const theme = getTheme(state);
 
     return {
-        theme,
         postCurrentVersion: getPost(state, selectedPostId),
     };
 }

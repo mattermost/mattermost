@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 import {useControlScreeningInProgressModal} from 'components/common/hooks/useControlModal';
-import AccessDeniedHappySvg from 'components/common/svg_images_components/access_denied_happy_svg';
+import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
 
 import './content.scss';
 
@@ -32,9 +32,9 @@ export default function ScreeningInProgressModal() {
         >
             <div className='ScreeningInProgressModal__content'>
                 <div className='ScreeningInProgressModal__illustration'>
-                    <AccessDeniedHappySvg
-                        height={350}
-                        width={350}
+                    <AccessProblemSVG
+                        width={320}
+                        height={190}
                     />
                 </div>
                 <div className='ScreeningInProgressModal__title'>

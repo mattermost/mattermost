@@ -51,7 +51,7 @@ export default function DeleteCategoryModal(props: Props) {
                     defaultMessage="Channels in <b>{category_name}</b> will move back to the Channels and Direct messages categories. You're not removed from any channels."
                     values={{
                         category_name: props.category.display_name,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             </span>

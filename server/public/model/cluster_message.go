@@ -36,11 +36,18 @@ const (
 	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
+	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
+	ClusterEventInvalidateCacheForAutoTranslation           ClusterEvent = "inv_autotranslation"
+	ClusterEventInvalidateCacheForReadReceipts              ClusterEvent = "inv_read_receipts"
+	ClusterEventInvalidateCacheForTemporaryPosts            ClusterEvent = "inv_temporary_posts"
 	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
 	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
 	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
+	ClusterEventInvalidateCacheForUserAutoTranslation       ClusterEvent = "inv_user_autotranslation"
+	ClusterEventInvalidateCacheForPostTranslationEtag       ClusterEvent = "inv_post_translation_etag"
+	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.

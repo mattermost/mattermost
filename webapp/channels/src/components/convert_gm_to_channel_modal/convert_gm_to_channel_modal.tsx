@@ -17,7 +17,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -134,7 +133,6 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         setConversionError(undefined);
-        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.onExited();
     }, [selectedTeamId, props, channelName, formatMessage]);
 

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/TextBox should match snapshot with additional, optional props 1`] = `
 <div
@@ -100,6 +100,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "channelId": "channelId",
           "currentUserId": "currentUserId",
           "data": null,
+          "defaultAgent": undefined,
           "disableDispatches": false,
           "forceDispatch": false,
           "getProfilesInChannel": [Function],
@@ -110,7 +111,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -135,11 +135,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -248,6 +243,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "channelId": "channelId",
           "currentUserId": "currentUserId",
           "data": null,
+          "defaultAgent": undefined,
           "disableDispatches": false,
           "forceDispatch": false,
           "getProfilesInChannel": [Function],
@@ -258,7 +254,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -283,11 +278,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -396,6 +386,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "channelId": "channelId",
           "currentUserId": "currentUserId",
           "data": null,
+          "defaultAgent": undefined,
           "disableDispatches": false,
           "forceDispatch": false,
           "getProfilesInChannel": [Function],
@@ -406,7 +397,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -431,11 +421,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -544,6 +529,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "channelId": "channelId",
           "currentUserId": "currentUserId",
           "data": null,
+          "defaultAgent": undefined,
           "disableDispatches": false,
           "forceDispatch": false,
           "getProfilesInChannel": [Function],
@@ -554,7 +540,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -579,11 +564,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"

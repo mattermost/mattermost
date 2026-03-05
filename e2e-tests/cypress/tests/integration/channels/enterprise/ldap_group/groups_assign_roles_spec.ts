@@ -93,7 +93,7 @@ describe('LDAP Group Sync', () => {
         });
 
         // # Wait until the groups retrieved and show up
-        cy.wait(TIMEOUTS.HALF_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(TIMEOUTS.HALF_SEC);
 
         // # Add the first team in the group list then save
         cy.get('#add_team_or_channel').click();
@@ -108,7 +108,7 @@ describe('LDAP Group Sync', () => {
         cy.uiGetButton('Add').click();
 
         // # Wait until the groups retrieved and show up
-        cy.wait(TIMEOUTS.HALF_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(TIMEOUTS.HALF_SEC);
 
         cy.get('#team_and_channel_membership_table').then((el) => {
             // * Ensure that the text in the roles column is Member as default text for each row

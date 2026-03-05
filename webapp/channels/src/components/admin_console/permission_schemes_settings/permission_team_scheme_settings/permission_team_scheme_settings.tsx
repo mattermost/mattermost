@@ -588,7 +588,6 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         modalID={ModalIdentifiers.ADD_TEAMS_TO_SCHEME}
                         onModalDismissed={this.closeAddTeam}
                         onTeamsSelected={this.addTeams}
-                        currentSchemeId={this.props.schemeId}
                         alreadySelected={teams.map((team) => team.id)}
                     />
                 }
@@ -816,8 +815,9 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         }
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
+                        data-testid='permission-scheme-cancel-button'
                     >
                         <FormattedMessage
                             id='admin.permissions.permissionSchemes.cancel'

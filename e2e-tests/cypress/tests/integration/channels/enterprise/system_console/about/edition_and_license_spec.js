@@ -7,12 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @not_cloud @system_console @license_removal
 
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
-
 import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
 
 describe('System console', () => {
@@ -71,7 +69,7 @@ describe('System console', () => {
                 cy.findByText('High availability');
                 cy.findByText('Advanced compliance');
                 cy.findByText('And more...');
-                cy.findByRole('button', {name: 'Contact sales'});
+                cy.findByRole('button', {name: 'Contact Sales'});
             });
 
         // Validate Compare plans link is not present for Enterprise licenses

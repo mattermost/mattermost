@@ -139,7 +139,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         );
         const instance = wrapper.instance();
         instance.onRemoveItem('11111111111111111111111111', 'public-team');
-        expect(onRemoveItem).toBeCalledWith(
+        expect(onRemoveItem).toHaveBeenCalledWith(
             '11111111111111111111111111',
             'public-team',
         );
@@ -160,7 +160,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
             'public-team',
             true,
         );
-        expect(onChangeRoles).toBeCalledWith(
+        expect(onChangeRoles).toHaveBeenCalledWith(
             '11111111111111111111111111',
             'public-team',
             true,

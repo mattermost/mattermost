@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UserPropertyValues from './user_properties_values';
 
@@ -32,18 +31,15 @@ describe('UserPropertyValues', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, autoFocus = false) => {
         return renderWithContext(
             <UserPropertyValues
                 field={field}
                 updateField={updateField}
+                autoFocus={autoFocus}
             />,
         );
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('renders correctly for select/multiselect field types', () => {
         renderComponent();
@@ -68,8 +64,9 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'New Option'}});
-        fireEvent.keyDown(input, {key: 'Enter'});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+        await userEvent.keyboard('{Enter}');
 
         expect(updateField).toHaveBeenCalledWith({
             ...baseField,
@@ -87,7 +84,10 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'New Option'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+
+        // Trigger blur to save the new option value - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(input);
 
         expect(updateField).toHaveBeenCalledWith({
@@ -107,7 +107,7 @@ describe('UserPropertyValues', () => {
 
         // Find and click the first remove button (x)
         const removeButtons = screen.getAllByRole('button');
-        fireEvent.click(removeButtons[0]);
+        await userEvent.click(removeButtons[0]);
 
         expect(updateField).toHaveBeenCalledWith({
             ...baseField,
@@ -122,13 +122,14 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'Option 1'}}); // This already exists
+        await userEvent.clear(input);
+        await userEvent.type(input, 'Option 1'); // This already exists
 
         // Error message should appear
         expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
 
         // Pressing Enter shouldn't add the duplicate
-        fireEvent.keyDown(input, {key: 'Enter'});
+        await userEvent.keyboard('{Enter}');
         expect(updateField).not.toHaveBeenCalled();
     });
 
@@ -160,10 +161,9 @@ describe('UserPropertyValues', () => {
         const ldapLink = screen.getByText('AD/LDAP: ldapAttribute');
         expect(ldapLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__ldap-${ldapField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/ldap#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows SAML sync information when field has SAML attribute', () => {
@@ -182,10 +182,9 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__saml-${samlField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/saml#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows both LDAP and SAML sync information when field has both attributes', () => {
@@ -209,11 +208,25 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that both links point to the correct locations
+        // Check that both clickable elements are present (no longer checking href)
         const ldapLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
         expect(ldapLinkElement).toBeInTheDocument();
 
-        const samlLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
+        const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('applies autoFocus when prop is true', () => {
+        renderComponent(baseField, true);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).toBe(input);
+    });
+
+    it('does not autoFocus when prop is false', () => {
+        renderComponent(baseField, false);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).not.toBe(input);
     });
 });

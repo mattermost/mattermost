@@ -12,6 +12,7 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 const getStatusColors = (theme: Theme) => {
     return {
@@ -26,7 +27,6 @@ const getStatusColors = (theme: Theme) => {
 const markdownOptions = {
     mentionHighlight: false,
     markdown: false,
-    autolinkedUrlSchemes: [],
 };
 
 type Props = {
@@ -46,7 +46,7 @@ const ActionButton = ({
     actionExecuting,
     actionExecutingMessage,
 }: Props) => {
-    const handleActionClick = useCallback((e) => handleAction(e, action.options), [action.options, handleAction]);
+    const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
 
     if (action.style) {
@@ -57,26 +57,33 @@ const ActionButton = ({
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
 
+    const name = action.name || action.id || '';
+
     return (
-        <ActionBtn
-            data-action-id={action.id}
-            data-action-cookie={action.cookie}
-            disabled={disabled}
-            key={action.id}
-            onClick={handleActionClick}
-            className='btn btn-sm'
-            hexColor={hexColor}
+        <WithTooltip
+            title={action.tooltip}
+            disabled={!action.tooltip}
         >
-            <LoadingWrapper
-                loading={actionExecuting}
-                text={actionExecutingMessage}
+            <ActionBtn
+                data-action-id={action.id}
+                data-action-cookie={action.cookie}
+                disabled={disabled}
+                key={action.id}
+                onClick={handleActionClick}
+                className='btn btn-sm'
+                hexColor={hexColor}
             >
-                <Markdown
-                    message={action.name}
-                    options={markdownOptions}
-                />
-            </LoadingWrapper>
-        </ActionBtn>
+                <LoadingWrapper
+                    loading={actionExecuting}
+                    text={actionExecutingMessage}
+                >
+                    <Markdown
+                        message={name}
+                        options={markdownOptions}
+                    />
+                </LoadingWrapper>
+            </ActionBtn>
+        </WithTooltip>
     );
 };
 

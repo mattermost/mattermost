@@ -50,8 +50,6 @@ func TestNoticeValidation(t *testing.T) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 	})
 
-	defer th.TearDown()
-
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
@@ -473,63 +471,10 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with deprecating an external dependency",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.6",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-		{
-			name: "notice with deprecating an external dependency, on a future version",
-			args: args{
-				dbmsName:      "mysql",
-				dbmsVer:       "5.6",
-				serverVersion: "5.32.1",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{">=v5.33"},
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
 			name: "notice on a deprecating dependency, server is all good",
 			args: args{
 				dbmsName: "postgres",
 				dbmsVer:  "10",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "postgres",
-							MinimumVersion: "10",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
-			name: "notice on a deprecating dependency, server has different dbms",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.7",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						DeprecatingDependency: &model.ExternalDependency{
@@ -601,8 +546,7 @@ func TestNoticeValidation(t *testing.T) {
 
 func TestNoticeFetch(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},

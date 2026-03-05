@@ -26,12 +26,12 @@ func MakeMigrationsList() []string {
 	}
 }
 
-func GetMigrationState(c request.CTX, migration string, store store.Store) (string, *model.Job, *model.AppError) {
+func GetMigrationState(rctx request.CTX, migration string, store store.Store) (string, *model.Job, *model.AppError) {
 	if _, err := store.System().GetByName(migration); err == nil {
 		return MigrationStateCompleted, nil, nil
 	}
 
-	jobs, err := store.Job().GetAllByType(c, model.JobTypeMigrations)
+	jobs, err := store.Job().GetAllByType(rctx, model.JobTypeMigrations)
 	if err != nil {
 		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -13,8 +13,8 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
 
 const channelType = {
@@ -52,19 +52,28 @@ describe('Channels', () => {
         });
     });
 
-    it('MM-19337 Verify UI of Browse channels modal with archived selection', () => {
-        verifyBrowseChannelsModalWithArchivedSelection(false, testUser, testTeam);
-        verifyBrowseChannelsModalWithArchivedSelection(true, testUser, testTeam);
+    it('MM-19337 Verify UI of Browse channels modal with archived selection as admin', () => {
+        // * Verify browse channels modal as admin shows archived channels option
+        cy.visit(`/${testTeam.name}/channels/town-square`);
+        cy.uiBrowseOrCreateChannel('Browse channels');
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
+            cy.get('#menuWrapper').should('be.visible').and('have.text', channelType.all);
+        });
+        cy.get('body').typeWithForce('{esc}');
+    });
+
+    it('MM-19337 Verify UI of Browse channels modal with archived selection as regular user', () => {
+        // # Login as regular user and verify browse channels modal shows archived channels option
+        cy.apiLogin(testUser);
+        cy.visit(`/${testTeam.name}/channels/town-square`);
+        cy.uiBrowseOrCreateChannel('Browse channels');
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
+            cy.get('#menuWrapper').should('be.visible').and('have.text', channelType.all);
+        });
+        cy.get('body').typeWithForce('{esc}');
     });
 
     it('MM-19337 Enable users to view archived channels', () => {
-        cy.apiAdminLogin();
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as new user and go to "/"
         cy.apiLogin(otherUser);
         cy.visit(`/${testTeam.name}/channels/town-square`);
@@ -183,11 +192,6 @@ describe('Channels', () => {
 
     it('MM-T1702 Search works when changing public/all options in the dropdown', () => {
         cy.apiAdminLogin();
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
         let newChannel: Channel;
         let testArchivedChannel: Channel;
         let testPrivateArchivedChannel: Channel;
@@ -267,36 +271,3 @@ describe('Channels', () => {
     });
 });
 
-function verifyBrowseChannelsModalWithArchivedSelection(isEnabled, testUser, testTeam) {
-    // # Login as sysadmin and Update config to enable/disable viewing of archived channels
-    cy.apiAdminLogin();
-    cy.apiUpdateConfig({
-        TeamSettings: {
-            ExperimentalViewArchivedChannels: isEnabled,
-        },
-    });
-
-    // * Verify browse channels modal
-    cy.visit(`/${testTeam.name}/channels/town-square`);
-    verifyBrowseChannelsModal(isEnabled);
-
-    // # Login as regular user and verify browse channels modal
-    cy.apiLogin(testUser);
-    cy.visit(`/${testTeam.name}/channels/town-square`);
-    verifyBrowseChannelsModal(isEnabled);
-}
-
-function verifyBrowseChannelsModal(isEnabled) {
-    // # Go to LHS and click 'Browse channels'
-    cy.uiBrowseOrCreateChannel('Browse channels');
-
-    // * Verify that the browse channels modal is open and with or without option to view archived channels
-    cy.get('#browseChannelsModal').should('be.visible').within(() => {
-        if (isEnabled) {
-            cy.get('#menuWrapper').should('be.visible').and('have.text', channelType.all);
-        } else {
-            cy.get('#menuWrapper').click();
-            cy.findByText('Archived channels').should('not.exist');
-        }
-    });
-}

@@ -13,7 +13,6 @@ func TestVersion(t *testing.T) {
 	}
 
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	th.CheckCommand(t, "version")
 }

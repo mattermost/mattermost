@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
 import {createIntl} from 'react-intl';
 import {Provider} from 'react-redux';
@@ -14,6 +13,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import OAuthConnectionAudienceInput from 'components/integrations/outgoing_oauth_connections/oauth_connection_audience_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {waitForEnzymeSnapshot} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
@@ -89,54 +89,53 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         const props = {...baseProps};
         const state = stateFromOAuthConnections({});
         const store = mockStore(state);
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <OAuthConnectionAudienceInput {...props}/>
-                    </Provider>
-                </Router>,
-                {intl},
-            );
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+            {intl},
+        );
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot with existing connections', async () => {
         const props = {...baseProps};
         const state = stateFromOAuthConnections({[connection.id]: connection});
         const store = mockStore(state);
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <OAuthConnectionAudienceInput {...props}/>
-                    </Provider>
-                </Router>,
-                {intl},
-            );
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+            {intl},
+        );
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when typed in value matches a configured audience', async () => {
         const props = {...baseProps, value: 'https://aud.com/api'};
         const state = stateFromOAuthConnections({[connection.id]: connection});
         const store = mockStore(state);
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <OAuthConnectionAudienceInput {...props}/>
-                    </Provider>
-                </Router>,
-                {intl},
-            );
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+            {intl},
+        );
+
+        await waitForEnzymeSnapshot();
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when typed in value does not have an exact match', async () => {
@@ -144,17 +143,18 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         const state = stateFromOAuthConnections({[connection.id]: connection});
         const store = mockStore(state);
 
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <OAuthConnectionAudienceInput {...props}/>
-                    </Provider>
-                </Router>,
-                {intl},
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+            {intl},
+        );
+
+        await waitForEnzymeSnapshot();
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when an audience url with a wildcard is configured, and typed in value starts with configured audience url', async () => {
@@ -162,16 +162,17 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         const state = stateFromOAuthConnections({[connection.id]: {...connection, audiences: ['https://aud.com/api/*']}});
         const store = mockStore(state);
 
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <OAuthConnectionAudienceInput {...props}/>
-                    </Provider>
-                </Router>,
-                {intl},
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+            {intl},
+        );
+
+        await waitForEnzymeSnapshot();
+
+        expect(wrapper).toMatchSnapshot();
     });
 });

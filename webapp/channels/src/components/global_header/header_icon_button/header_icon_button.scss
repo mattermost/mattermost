@@ -1,0 +1,84 @@
+/* stylelint-disable no-duplicate-selectors */
+
+.HeaderIconButton {
+    display: flex;
+    overflow: visible;
+    width: auto;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    margin: 0;
+
+    background: rgba(var(--bg-color), var(--bg-opacity));
+    color: rgba(var(--text-color), var(--text-opacity));
+    font: inherit;
+    outline: none;
+    text-align: inherit;
+
+    --bg-color: var(--sidebar-header-text-color-rgb);
+    --text-color: var(--sidebar-header-text-color-rgb);
+    &--toggled:not(:disabled) {
+        --text-color: var(--sidebar-header-bg-rgb);
+    }
+
+    &:not(:disabled) {
+        --bg-opacity: 0;
+        --text-opacity: 0.56;
+
+        &:hover {
+            --bg-opacity: 0.08;
+            --text-opacity: 0.72;
+        }
+
+        &.HeaderIconButton--toggled {
+            --bg-opacity: 1;
+            --text-opacity: 1;
+
+            &:hover {
+                --bg-opacity: 0.92;
+                --text-opacity: 1;
+            }
+        }
+
+        &.HeaderIconButton--active, &:active {
+            --bg-opacity: 0.16;
+            --text-opacity: 1;
+        }
+    }
+    &:disabled {
+        cursor: no-allowed;
+
+        --bg-opacity: 0;
+        --text-opacity: 0.32;
+    }
+
+    &:focus-visible {
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.32),
+            inset 0 0 0 2px var(--sidebar-header-bg);
+    }
+
+    & > i {
+        position: relative;
+        display: inline-flex;
+
+        width: 16px;
+        height: 16px;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 0;
+
+        color: inherit;
+
+        &::before {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: 18px;
+            line-height: 1;
+        }
+    }
+}

@@ -229,7 +229,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
 		From("ChannelMemberHistory")
@@ -239,24 +239,21 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 		TimeColumn:          "LeaveTime",
 		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
 		ChannelIDTable:      "ChannelMemberHistory",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
 func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
-	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (
-		SELECT ChannelId, UserId, JoinTime FROM (
-			SELECT ChannelId, UserId, JoinTime FROM ChannelMemberHistory
-			LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
+	DELETE FROM ChannelMemberHistory WHERE ctid IN (
+		SELECT ChannelMemberHistory.ctid FROM ChannelMemberHistory
+		LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
+		WHERE Channels.Id IS NULL
+		LIMIT $1
 	)`
 	result, err := s.GetMaster().Exec(query, limit)
 	if err != nil {
@@ -267,39 +264,22 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var (
-		query string
-		args  []any
-		err   error
-	)
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		var innerSelect string
-		innerSelect, args, err = s.getQueryBuilder().
-			Select("ctid").
-			From("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).Limit(uint64(limit)).
-			ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, "channel_member_history_to_sql")
-		}
-		query, _, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(fmt.Sprintf(
-				"ctid IN (%s)", innerSelect,
-			)).ToSql()
-	} else {
-		query, args, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).
-			Limit(uint64(limit)).ToSql()
+	innerSelect, args, err := s.getQueryBuilder().
+		Select("ctid").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.NotEq{"LeaveTime": nil},
+			sq.LtOrEq{"LeaveTime": endTime},
+		}).Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}
+	query, _, err := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(fmt.Sprintf(
+			"ctid IN (%s)", innerSelect,
+		)).ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}

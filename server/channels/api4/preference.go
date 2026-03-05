@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 const maxUpdatePreferences = 100
@@ -94,7 +93,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updatePreferences", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePreferences, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -132,7 +131,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+			if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
 			}
@@ -156,7 +155,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deletePreferences", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePreferences, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {

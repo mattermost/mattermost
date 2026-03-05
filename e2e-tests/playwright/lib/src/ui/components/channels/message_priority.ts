@@ -20,12 +20,12 @@ export default class MessagePriority {
         // Priority menu that opens when clicking the icon
         this.priorityMenu = container.locator('[role="menu"]');
 
-        // Standard priority option in the menu (id comes from webapp implementation)
-        this.standardPriorityOption = this.priorityMenu.locator('#menu-item-priority-standard');
-
         // Priority dialog elements
         this.priorityDialog = container.page().getByRole('menu');
         this.dialogHeader = container.page().locator('h4.modal-title');
+
+        // Standard priority option in the menu
+        this.standardPriorityOption = this.priorityDialog.getByRole('menuitemradio', {name: 'Standard'});
     }
 
     async clickPriorityIcon() {
@@ -66,11 +66,5 @@ export default class MessagePriority {
     async verifyPriorityDialog() {
         await expect(this.priorityDialog).toBeVisible();
         await expect(this.dialogHeader).toHaveText('Message priority');
-    }
-
-    async verifyStandardOptionSelected() {
-        const standardOption = this.priorityDialog.getByRole('menuitemradio', {name: 'Standard'});
-        await expect(standardOption).toBeVisible();
-        await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
     }
 }

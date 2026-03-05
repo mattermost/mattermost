@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ActionsMenu from 'components/actions_menu/actions_menu';
 import type {Props} from 'components/actions_menu/actions_menu';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('utils/utils', () => {
@@ -29,6 +29,8 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
         const baseProps: Omit<Props, 'intl'> = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             teamId: 'team_id_1',
+            handleDropdownOpened: jest.fn(),
+            isMenuOpen: true,
             actions: {
                 openModal: jest.fn(),
                 openAppsModal: jest.fn(),
@@ -44,10 +46,10 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
             pluginMenuItemComponents: [],
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

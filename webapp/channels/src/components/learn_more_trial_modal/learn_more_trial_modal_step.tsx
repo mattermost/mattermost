@@ -47,12 +47,10 @@ const LearnMoreTrialModalStep = (
             </div>
             {(pageURL && buttonLabel) && (
                 <TrialBenefitsModalStepMore
-                    id={id}
                     route={pageURL}
                     message={buttonLabel}
                     onClick={handleOnClose}
                     styleLink={true}
-                    telemetryId={'learn_more_trial_modal'}
                 />
             )}
             {bottomLeftMessage && (

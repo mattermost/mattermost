@@ -68,7 +68,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
     const bodyRef = useRef<HTMLDivElement>();
 
-    const measuredRef = useCallback((node) => {
+    const measuredRef = useCallback((node: HTMLDivElement) => {
         if (node !== null) {
             bodyRef.current = node;
             setBodyHeight(node.getBoundingClientRect().height);
@@ -162,7 +162,6 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                     defaultMessage='This message is from a private conversation and can only be shared with {participants}'
                     values={{
                         participants: <FormattedList value={participants}/>,
-                        strong: (x: React.ReactNode) => <strong>{x}</strong>,
                     }}
                 />
             );

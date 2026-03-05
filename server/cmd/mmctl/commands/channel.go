@@ -45,25 +45,6 @@ var ChannelRenameCmd = &cobra.Command{
 	RunE: withClient(renameChannelCmdF),
 }
 
-var RemoveChannelUsersCmd = &cobra.Command{
-	Use:   "remove [channel] [users]",
-	Short: "Remove users from channel",
-	Long:  "Remove some users from channel",
-	Example: `  channel remove myteam:mychannel user@example.com username
-  channel remove myteam:mychannel --all-users`,
-	Deprecated: "please use \"mmctl channel users remove\" instead",
-	RunE:       withClient(channelUsersRemoveCmdF),
-}
-
-var AddChannelUsersCmd = &cobra.Command{
-	Use:        "add [channel] [users]",
-	Short:      "Add users to channel",
-	Long:       "Add some users to channel",
-	Example:    "  channel add myteam:mychannel user@example.com username",
-	Deprecated: "please use \"mmctl channel users add\" instead",
-	RunE:       withClient(channelUsersAddCmdF),
-}
-
 var ArchiveChannelsCmd = &cobra.Command{
 	Use:   "archive [channels]",
 	Short: "Archive channels",
@@ -107,16 +88,6 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 	RunE: withClient(modifyChannelCmdF),
 }
 
-var RestoreChannelsCmd = &cobra.Command{
-	Use:   "restore [channels]",
-	Short: "Restore some channels",
-	Long: `Restore a previously deleted channel
-Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example:    "  channel restore myteam:mychannel",
-	Deprecated: "please use \"mmctl channel unarchive\" instead",
-	RunE:       withClient(unarchiveChannelsCmdF),
-}
-
 var UnarchiveChannelCmd = &cobra.Command{
 	Use:   "unarchive [channels]",
 	Short: "Unarchive some channels",
@@ -124,17 +95,6 @@ var UnarchiveChannelCmd = &cobra.Command{
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel unarchive myteam:mychannel",
 	RunE:    withClient(unarchiveChannelsCmdF),
-}
-
-var MakeChannelPrivateCmd = &cobra.Command{
-	Use:     "make-private [channel]",
-	Aliases: []string{"make_private"},
-	Short:   "Set a channel's type to private",
-	Long: `Set the type of a channel from Public to Private.
-Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example:    "  channel make-private myteam:mychannel",
-	Deprecated: "please use \"mmctl channel modify --private\" instead",
-	RunE:       withClient(makeChannelPrivateCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
@@ -162,8 +122,6 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display-name", "", "Channel Display Name")
-	ChannelCreateCmd.Flags().String("display_name", "", "")
-	_ = ChannelCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	ChannelCreateCmd.Flags().String("team", "", "Team name or ID")
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
@@ -174,10 +132,6 @@ func init() {
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
-	ChannelRenameCmd.Flags().String("display_name", "", "")
-	_ = ChannelRenameCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
-
-	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
@@ -187,13 +141,9 @@ func init() {
 
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
-		RemoveChannelUsersCmd,
-		AddChannelUsersCmd,
 		ArchiveChannelsCmd,
 		ListChannelsCmd,
-		RestoreChannelsCmd,
 		UnarchiveChannelCmd,
-		MakeChannelPrivateCmd,
 		ModifyChannelCmd,
 		ChannelRenameCmd,
 		SearchChannelCmd,
@@ -213,10 +163,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		displayname, errdn = cmd.Flags().GetString("display_name")
-		if errdn != nil || displayname == "" {
-			return errors.New("display Name is required")
-		}
+		return errors.New("display-name is required")
 	}
 	teamArg, errteam := cmd.Flags().GetString("team")
 	if errteam != nil || teamArg == "" {
@@ -388,27 +335,6 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	return errs.ErrorOrNil()
 }
 
-func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return errors.New("enter one channel to modify")
-	}
-
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
-	}
-
-	if !(channel.Type == model.ChannelTypeOpen) {
-		return errors.New("you can only change the type of public channels")
-	}
-
-	if _, _, err := c.UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	public, _ := cmd.Flags().GetBool("public")
 	private, _ := cmd.Flags().GetBool("private")
@@ -447,11 +373,8 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	newDisplayName, err := cmd.Flags().GetString("display-name")
-	if err != nil || newDisplayName == "" {
-		newDisplayName, err = cmd.Flags().GetString("display_name")
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
 	// At least one of display name or name flag must be present

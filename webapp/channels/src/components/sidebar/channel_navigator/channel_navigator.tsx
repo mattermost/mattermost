@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import QuickSwitchModal from 'components/quick_switch_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -40,8 +38,6 @@ class ChannelNavigator extends React.PureComponent<Props> {
 
     openQuickSwitcher = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-
-        trackEvent('ui', 'ui_sidebar_open_channel_switcher_v2');
 
         this.props.actions.openModal({
             modalId: ModalIdentifiers.QUICK_SWITCH,
@@ -95,7 +91,7 @@ class ChannelNavigator extends React.PureComponent<Props> {
                 <button
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
-                    aria-label={this.props.intl.formatMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
+                    aria-label={this.props.intl.formatMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Find Channels'})}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
                     id='SidebarChannelNavigatorButton'

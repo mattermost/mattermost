@@ -1,4 +1,0 @@
-[mysqld]
-
-server-id = 1
-log-bin = mysql-bin

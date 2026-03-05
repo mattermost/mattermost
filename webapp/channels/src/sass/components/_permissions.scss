@@ -29,14 +29,6 @@
         text-decoration: none;
     }
 
-    &.closed {
-        .permissions-tree {
-            max-height: 0;
-            padding: 0 1.5rem;
-            overflow-y: hidden;
-        }
-    }
-
     .no-team-schemes {
         padding: 20px;
         margin: 20px;
@@ -80,9 +72,7 @@
 }
 
 .permissions-tree {
-    max-height: 2000px;
     padding: 0.8em 1.5rem;
-    transition: all 0.4s ease-in-out 0s;
 
     &.guest {
         .permission-row {
