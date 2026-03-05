@@ -1,0 +1,17 @@
+name: dev-docs-preview-env-setup-update
+
+on:
+  pull_request:
+    types: [assigned, opened, reopened, synchronize]
+    paths:
+      - 'docs/developer/**'
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/dev-docs-preview-env-template.yml
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    secrets: inherit
+    with:
+      PR_NUMBER: ${{ github.event.number }}
+      TRIGGERING_ACTOR: ${{ github.event.pull_request.head.user.login }}
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha }}

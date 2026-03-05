@@ -1,0 +1,42 @@
+name: Developer Docs Build
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/developer/**'
+  pull_request:
+    paths:
+      - 'docs/developer/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: docs/developer
+    steps:
+      - name: ci/checkout-code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: ci/setup-go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: docs/developer/go.mod
+
+      - name: ci/run-build
+        run: make dist
+
+      - name: ci/check-html
+        run: make test
+
+      - name: ci/persist-artifacts
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: dev-docs
+          path: docs/developer/dist/html
+          retention-days: 1
