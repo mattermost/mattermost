@@ -1,7 +1,18 @@
+export GOBIN ?= $(PWD)/bin
+GO ?= go
+
+HUGO_VERSION := v0.157.0
+
+all: dist
+
+.PHONY: hugo
+hugo:
+	$(GO) install github.com/gohugoio/hugo@$(HUGO_VERSION)
+
 .PHONY: dist
-dist: plugin-data
+dist: hugo plugin-data
 	rm -rf ./dist
-	hugo -s site --destination ../dist/html
+	$(GOBIN)/hugo -s site --destination ../dist/html
 
 .PHONY: plugin-data
 plugin-data: backend-plugin-data frontend-plugin-data
@@ -9,8 +20,8 @@ plugin-data: backend-plugin-data frontend-plugin-data
 .PHONY: backend-plugin-data
 backend-plugin-data:
 	mkdir -p site/data
-	go run ./cmd/plugin-godocs > site/data/PluginGoDocs.json
-	go run ./cmd/plugin-manifest-docs > site/data/PluginManifestDocs.json
+	$(GO) run ./cmd/plugin-godocs > site/data/PluginGoDocs.json
+	$(GO) run ./cmd/plugin-manifest-docs > site/data/PluginManifestDocs.json
 
 .PHONY: frontend-plugin-data
 frontend-plugin-data:
@@ -20,13 +31,13 @@ frontend-plugin-data:
 	node scripts/plugin-jsdocs.js > site/data/PluginJSDocs.json
 
 .PHONY: run
-run:
-	hugo server --buildDrafts --disableFastRender -F -s site
+run: hugo
+	$(GOBIN)/hugo server --buildDrafts --disableFastRender -F -s site
 
 .PHONY: build
-build:
+build: hugo
 	rm -rf ./dist
-	hugo -s site --verbose --destination ../dist/html --printUnusedTemplates --printPathWarnings --gc
+	$(GOBIN)/hugo -s site --verbose --destination ../dist/html --printUnusedTemplates --printPathWarnings --gc
 
 .PHONY: test
 test:

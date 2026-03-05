@@ -1,4 +1,5 @@
 # build artifacts
+/bin
 /dist
 /site/.hugo_build.lock
 /site/data/PluginGoDocs.json
