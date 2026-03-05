@@ -20,18 +20,19 @@ func (api *API) InitContentFlagging() {
 		return
 	}
 
-	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(getFlaggingConfiguration)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostFlaggingFeatureStatus)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(flagPost)).Methods(http.MethodPost)
-	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(getContentFlaggingFields)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(getPostPropertyValues)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(contentFlaggingRequired(getFlaggingConfiguration))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(contentFlaggingRequired(getTeamPostFlaggingFeatureStatus))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(contentFlaggingRequired(flagPost))).Methods(http.MethodPost)
+	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(contentFlaggingRequired(getContentFlaggingFields))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(contentFlaggingRequired(getPostPropertyValues))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(getFlaggedPost))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(contentFlaggingRequired(removeFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(contentFlaggingRequired(keepFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(contentFlaggingRequired(searchReviewers))).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(assignFlaggedPostReviewer))).Methods(http.MethodPost)
+
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
 }
 
 func requireContentFlaggingAvailable(c *Context) {
@@ -54,6 +55,17 @@ func requireContentFlaggingEnabled(c *Context) {
 	}
 }
 
+func contentFlaggingRequired(h handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
+
+		h(c, w, r)
+	}
+}
+
 func requireTeamContentReviewer(c *Context, userId, teamId string) {
 	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
 	if appErr != nil {
@@ -73,7 +85,7 @@ func requireFlaggedPost(c *Context, postId string) {
 		return
 	}
 
-	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	_, appErr := c.App.GetPostContentFlaggingPropertyValue(postId, app.ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -81,7 +93,6 @@ func requireFlaggedPost(c *Context, postId string) {
 }
 
 func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -112,7 +123,6 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -145,7 +155,6 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 }
 
 func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -169,9 +178,14 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
 
-	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	post, appErr, _ := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkPostTypeFlaggable(c, post)
+	if c.Err != nil {
 		return
 	}
 
@@ -221,7 +235,6 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, as
 }
 
 func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -245,7 +258,6 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -289,7 +301,6 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -336,7 +347,7 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true, IncludeDeleted: true})
-	post, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+	post, isMemberForPreviews, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -345,6 +356,14 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := post.EncodeJSON(w); err != nil {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if !isMemberForPreviews {
+		previewPost := post.GetPreviewPost()
+		if previewPost != nil {
+			model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+		}
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	auditRec.Success()
@@ -393,7 +412,6 @@ func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagContentActionRequest, string, *model.Post) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return nil, "", nil
 	}
@@ -512,7 +530,6 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -544,7 +561,6 @@ func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -597,4 +613,10 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec.Success()
 	writeOKResponse(w)
+}
+
+func checkPostTypeFlaggable(c *Context, post *model.Post) {
+	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
 }

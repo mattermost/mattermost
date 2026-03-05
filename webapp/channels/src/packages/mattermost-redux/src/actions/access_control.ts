@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlTestResult} from '@mattermost/types/access_control';
+import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -125,16 +125,6 @@ export function getAccessControlFields(after: string, limit: number, channelId?:
     });
 }
 
-export function updateAccessControlPolicyActive(policyId: string, active: boolean) {
-    return bindClientFunc({
-        clientFunc: Client4.updateAccessControlPolicyActive,
-        params: [
-            policyId,
-            active,
-        ],
-    });
-}
-
 export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string): ActionFuncAsync<AccessControlTestResult> {
     return async (dispatch, getState) => {
         let data;
@@ -184,4 +174,11 @@ export function createAccessControlSyncJob(jobData: {policy_id: string}): Action
         }
         return {data};
     };
+}
+
+export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[]) {
+    return bindClientFunc({
+        clientFunc: Client4.updateAccessControlPoliciesActive,
+        params: [states],
+    });
 }

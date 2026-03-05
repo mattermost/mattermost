@@ -15,30 +15,29 @@ import (
 
 func TestRestrictedViewMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).DeleteBots(t)
 
-	user1 := th.CreateUser()
+	user1 := th.CreateUser(t)
 	user1.Nickname = "test user1"
 	user1.Username = "test-user-1"
 	_, appErr := th.App.UpdateUser(th.Context, user1, false)
 	require.Nil(t, appErr)
-	user2 := th.CreateUser()
+	user2 := th.CreateUser(t)
 	user2.Username = "test-user-2"
 	user2.Nickname = "test user2"
 	_, appErr = th.App.UpdateUser(th.Context, user2, false)
 	require.Nil(t, appErr)
-	user3 := th.CreateUser()
+	user3 := th.CreateUser(t)
 	user3.Username = "test-user-3"
 	user3.Nickname = "test user3"
 	_, appErr = th.App.UpdateUser(th.Context, user3, false)
 	require.Nil(t, appErr)
-	user4 := th.CreateUser()
+	user4 := th.CreateUser(t)
 	user4.Username = "test-user-4"
 	user4.Nickname = "test user4"
 	_, appErr = th.App.UpdateUser(th.Context, user4, false)
 	require.Nil(t, appErr)
-	user5 := th.CreateUser()
+	user5 := th.CreateUser(t)
 	user5.Username = "test-user-5"
 	user5.Nickname = "test user5"
 	_, appErr = th.App.UpdateUser(th.Context, user5, false)
@@ -47,24 +46,24 @@ func TestRestrictedViewMembers(t *testing.T) {
 	// user1 is member of all the channels and teams because is the creator
 	th.BasicUser = user1
 
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
 
-	channel1 := th.CreateChannel(th.Context, team1)
-	channel2 := th.CreateChannel(th.Context, team1)
-	channel3 := th.CreateChannel(th.Context, team2)
+	channel1 := th.CreateChannel(t, team1)
+	channel2 := th.CreateChannel(t, team1)
+	channel3 := th.CreateChannel(t, team2)
 
-	th.LinkUserToTeam(user1, team1)
-	th.LinkUserToTeam(user2, team1)
-	th.LinkUserToTeam(user3, team2)
-	th.LinkUserToTeam(user4, team1)
-	th.LinkUserToTeam(user4, team2)
+	th.LinkUserToTeam(t, user1, team1)
+	th.LinkUserToTeam(t, user2, team1)
+	th.LinkUserToTeam(t, user3, team2)
+	th.LinkUserToTeam(t, user4, team1)
+	th.LinkUserToTeam(t, user4, team2)
 
-	th.AddUserToChannel(user1, channel1)
-	th.AddUserToChannel(user2, channel2)
-	th.AddUserToChannel(user3, channel3)
-	th.AddUserToChannel(user4, channel1)
-	th.AddUserToChannel(user4, channel3)
+	th.AddUserToChannel(t, user1, channel1)
+	th.AddUserToChannel(t, user2, channel2)
+	th.AddUserToChannel(t, user3, channel3)
+	th.AddUserToChannel(t, user4, channel1)
+	th.AddUserToChannel(t, user4, channel3)
 
 	th.App.SetStatusOnline(user1.Id, true)
 	th.App.SetStatusOnline(user2.Id, true)

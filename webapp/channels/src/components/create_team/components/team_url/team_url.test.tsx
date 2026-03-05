@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import TeamUrl from 'components/create_team/components/team_url/team_url';
@@ -26,8 +25,8 @@ describe('/components/create_team/components/display_name', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<TeamUrl {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<TeamUrl {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should return to display_name.jsx page', async () => {
@@ -67,9 +66,9 @@ describe('/components/create_team/components/display_name', () => {
         await waitFor(() => {
             expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
             expect(actions.createTeam).toHaveBeenCalledTimes(1);
-            expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
+            expect(actions.createTeam).toHaveBeenCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
             expect(props.history.push).toHaveBeenCalledTimes(1);
-            expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+            expect(props.history.push).toHaveBeenCalledWith('/test-team/channels/town-square');
         });
     });
 

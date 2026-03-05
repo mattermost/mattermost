@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ShowMore from 'components/post_view/show_more/show_more';
+
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/post_view/ShowMore', () => {
     const children = (<div><p>{'text'}</p></div>);
@@ -19,84 +20,166 @@ describe('components/post_view/ShowMore', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}>{children}</ShowMore>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, PostMessageView on collapsed view', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        wrapper.setState({isOverflow: true, isCollapsed: true});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: true});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, PostMessageView on expanded view', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: false});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, PostAttachment on collapsed view', () => {
-        const wrapper = shallow(
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
             <ShowMore
                 {...baseProps}
                 isAttachmentText={true}
+                ref={ref}
             />,
         );
-        wrapper.setState({isOverflow: true, isCollapsed: true});
-        expect(wrapper).toMatchSnapshot();
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: true});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, PostAttachment on expanded view', () => {
-        const wrapper = shallow(
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
             <ShowMore
                 {...baseProps}
                 isAttachmentText={true}
+                ref={ref}
             />,
         );
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: false});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, PostMessageView on expanded view with compactDisplay', () => {
-        const wrapper = shallow(
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
             <ShowMore
                 {...baseProps}
                 compactDisplay={true}
+                ref={ref}
             />,
         );
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: false});
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should call checkTextOverflow', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        const instance = wrapper.instance() as ShowMore;
-        instance.checkTextOverflow = jest.fn();
+        const ref = React.createRef<ShowMore>();
+        const {rerender} = renderWithContext(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+        const instance = ref.current as ShowMore;
+        jest.spyOn(instance, 'checkTextOverflow');
 
-        expect(instance.checkTextOverflow).not.toBeCalled();
+        expect(instance.checkTextOverflow).not.toHaveBeenCalled();
 
-        wrapper.setProps({isRHSExpanded: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(1);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                isRHSExpanded={true}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(1);
 
-        wrapper.setProps({isRHSExpanded: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(2);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                isRHSExpanded={false}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(2);
 
-        wrapper.setProps({isRHSOpen: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(3);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                isRHSOpen={true}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(3);
 
-        wrapper.setProps({isRHSOpen: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(4);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                isRHSOpen={false}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(4);
 
-        wrapper.setProps({text: 'text change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(5);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                text={'text change'}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(5);
 
-        wrapper.setProps({text: 'text another change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(6);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                text={'text another change'}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(6);
 
-        wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                checkOverflow={1}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(7);
 
-        wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
+        rerender(
+            <ShowMore
+                {...baseProps}
+                ref={ref}
+                checkOverflow={1}
+            />,
+        );
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(7);
     });
 });

@@ -792,10 +792,6 @@
     "translation": "Impossible de trouver le canal spécifié. Veuillez utiliser l'[identifiant de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Impossible de mettre en sourdine le canal {{.Channel}}, car vous n'êtes pas membre de celui-ci."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Vous ne recevrez pas de notifications pour le canal {{.Channel}} jusqu'à ce que vous désactiviez le mode sourdine."
   },
@@ -1186,10 +1182,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request : Mauvais client_id"
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request : client_secret manquant"
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",

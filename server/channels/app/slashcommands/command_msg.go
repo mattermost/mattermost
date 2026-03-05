@@ -100,7 +100,7 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelID
 		post.UserId = args.UserId
-		if _, err = a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
+		if _, _, err = a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}

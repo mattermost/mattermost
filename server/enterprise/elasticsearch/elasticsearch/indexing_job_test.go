@@ -16,7 +16,6 @@ import (
 func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 	t.Run("ElasticSearch feature is enabled then job is enabled", func(t *testing.T) {
 		th := api4.SetupEnterpriseWithStoreMock(t)
-		defer th.TearDown()
 
 		th.Server.SetLicense(model.NewTestLicense("elastic_search"))
 
@@ -38,7 +37,6 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 
 	t.Run("there is NO license then job is disabled", func(t *testing.T) {
 		th := api4.SetupEnterpriseWithStoreMock(t)
-		defer th.TearDown()
 
 		th.Server.SetLicense(nil)
 
@@ -60,8 +58,7 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 }
 
 func TestElasticSearchIndexerPending(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 
 	// Set up the state for the tests.
 	th.App.UpdateConfig(func(cfg *model.Config) {

@@ -53,6 +53,7 @@ export type Props = {
             users: UserProfile[],
             emails: string[],
             message: string,
+            guestMagicLink: boolean,
         ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvites: (
             teamId: string,
@@ -76,6 +77,7 @@ export type Props = {
     isCloud: boolean;
     canAddUsers: boolean;
     canInviteGuests: boolean;
+    canInviteGuestsWithMagicLink: boolean;
     onExited: () => void;
     channelToInvite?: Channel;
     initialValue?: string;
@@ -96,15 +98,17 @@ type State = {
     result: ResultState;
     termWithoutResults: string | null;
     show: boolean;
+    useGuestMagicLink: boolean;
 };
 
 export default class InvitationModal extends React.PureComponent<Props, State> {
     defaultState: State = deepFreeze({
         view: View.INVITE,
         termWithoutResults: null,
-        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest),
+        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest, this.props.canInviteGuestsWithMagicLink),
         result: defaultResultState,
         show: true,
+        useGuestMagicLink: false,
     });
     constructor(props: Props) {
         super(props);
@@ -173,6 +177,13 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
     };
 
+    toggleGuestMagicLink = () => {
+        this.setState((state) => ({
+            ...state,
+            useGuestMagicLink: !state.useGuestMagicLink,
+        }));
+    };
+
     invite = async () => {
         if (!this.props.currentTeam) {
             return;
@@ -211,6 +222,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 users,
                 emails,
                 this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
+                this.state.useGuestMagicLink,
             );
             invites = result.data!;
         }
@@ -417,6 +429,8 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 footerClass='InvitationModal__footer'
                 onClose={this.handleHide}
                 channelToInvite={this.props.channelToInvite}
+                useGuestMagicLink={this.state.useGuestMagicLink}
+                toggleGuestMagicLink={this.toggleGuestMagicLink}
                 {...this.state.invite}
             />
         );

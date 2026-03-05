@@ -7,9 +7,15 @@ import type {ComponentProps, RefObject} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {components} from 'react-select';
-import type {InputActionMeta, SelectInstance, MultiValue, GroupBase, MultiValueRemoveProps} from 'react-select';
+import type {
+    InputActionMeta,
+    SelectInstance,
+    MultiValue,
+    GroupBase,
+    MultiValueRemoveProps,
+    SelectComponentsConfig,
+} from 'react-select';
 import AsyncSelect from 'react-select/async';
-import type {SelectComponents} from 'react-select/dist/declarations/src/components';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -152,7 +158,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         </div>);
     };
 
-    components: Partial<SelectComponents<T, true, GroupBase<T>>> = {
+    components: Partial<SelectComponentsConfig<T, true, GroupBase<T>>> = {
         NoOptionsMessage: this.NoOptionsMessage,
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,

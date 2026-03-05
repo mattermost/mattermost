@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 
 import Setting from './setting';
+
+import './radio_setting.scss';
 
 interface Props {
     id: string;
@@ -15,6 +18,7 @@ interface Props {
     helpText?: React.ReactNode;
     onChange(id: string, value: any): void;
 }
+
 const RadioSetting = ({
     id,
     label,
@@ -29,24 +33,33 @@ const RadioSetting = ({
         onChange(id, e.target.value);
     };
 
-    const options = values.map(({value: optionValue, text}) => (
-        <div
-            className='radio'
-            key={optionValue}
-        >
-            <label>
+    const isDisabled = disabled || setByEnv;
+
+    const options = values.map(({value: optionValue, text}) => {
+        const labelClasses = classNames('RadioSetting__label', {
+            'RadioSetting__label--disabled': isDisabled,
+        });
+
+        return (
+            <label
+                key={optionValue}
+                className={labelClasses}
+            >
                 <input
                     type='radio'
+                    className='RadioSetting__input'
                     value={optionValue}
                     name={id}
                     checked={optionValue === value}
                     onChange={handleChange}
-                    disabled={disabled || setByEnv}
+                    disabled={isDisabled}
                 />
-                {text}
+                <span className='RadioSetting__text'>
+                    {text}
+                </span>
             </label>
-        </div>
-    ));
+        );
+    });
 
     return (
         <Setting

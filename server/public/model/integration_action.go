@@ -78,6 +78,9 @@ type PostAction struct {
 	// The text on the button, or in the select placeholder.
 	Name string `json:"name,omitempty"`
 
+	// Tooltip text displayed on hover.
+	Tooltip string `json:"tooltip,omitempty"`
+
 	// If the action is disabled.
 	Disabled bool `json:"disabled,omitempty"`
 
@@ -335,6 +338,16 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
+// DialogDateTimeConfig groups date/datetime specific configuration
+type DialogDateTimeConfig struct {
+	// TimeInterval: Minutes between time options in dropdown (default: 60)
+	TimeInterval int `json:"time_interval,omitempty"`
+	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+	LocationTimezone string `json:"location_timezone,omitempty"`
+	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -351,7 +364,11 @@ type DialogElement struct {
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
-	// Date/datetime field specific properties
+
+	// Date/datetime field configuration
+	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+
+	// Simple date/datetime configuration (fallback when datetime_config not provided)
 	MinDate      string `json:"min_date,omitempty"`
 	MaxDate      string `json:"max_date,omitempty"`
 	TimeInterval int    `json:"time_interval,omitempty"`
@@ -430,6 +447,19 @@ type LookupDialogResponse struct {
 	Items []DialogSelectOption `json:"items"`
 }
 
+// signForGenerateTriggerId wraps the signing operation with panic recovery
+// to handle invalid signers that may cause panics in the crypto package
+func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			signature = nil
+			err = fmt.Errorf("invalid signing key: %v", r)
+		}
+	}()
+
+	return s.Sign(rand.Reader, digest, opts)
+}
+
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
@@ -437,7 +467,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 	h := crypto.SHA256
 	sum := h.New()
 	sum.Write([]byte(triggerData))
-	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
+	signature, err := signForGenerateTriggerId(s, sum.Sum(nil), h)
 	if err != nil {
 		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

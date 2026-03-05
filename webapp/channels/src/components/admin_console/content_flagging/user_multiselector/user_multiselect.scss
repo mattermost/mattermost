@@ -20,3 +20,10 @@
         }
     }
 }
+
+// Menu is portaled to body, so we need global selector
+.UserMultiSelector__menu {
+    width: max-content !important;
+    // Force the menu to match the control width
+    min-width: 100% !important;
+}

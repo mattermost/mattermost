@@ -9,7 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 
 import {
     flagPost as savePost,
@@ -17,12 +18,13 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import {focusPost} from 'components/permalink_view/actions';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
-import DesktopApp from 'utils/desktop_api';
-import {popoutThread} from 'utils/popouts/popout_windows';
+import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -60,6 +62,8 @@ function ThreadMenu({
     } = useThreadRouting();
 
     const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
+    const post = useSelector((state: GlobalState) => getPost(state, threadId));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const readAloud = useReadout();
 
     const handleReadUnread = useCallback(() => {
@@ -87,11 +91,15 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
-    // TODO: This should be in a reusable component but since this menu hasn't been
-    // migrated to the new menu component yet, we'll leave it here for now.
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team);
-    }, [threadId, team, intl]);
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
+    }, [threadId, team, intl, dispatch, currentUserId, channel]);
 
     return (
         <MenuWrapper
@@ -105,7 +113,7 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
-                {DesktopApp.canPopout() && (
+                {canPopout() && (
                     <Menu.ItemAction
                         buttonClass='PopoutMenuItem'
                         text={formatMessage({

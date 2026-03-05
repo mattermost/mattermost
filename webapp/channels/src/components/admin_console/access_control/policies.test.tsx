@@ -91,7 +91,6 @@ describe('components/admin_console/access_control/PolicyList', () => {
         wrapper.update();
 
         expect(mockSearchPolicies).not.toHaveBeenCalled();
-        expect(wrapper.find('DataGrid').prop('page')).toBe(0);
     });
 
     test('should get columns correctly', () => {

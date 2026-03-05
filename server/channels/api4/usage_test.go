@@ -18,7 +18,6 @@ func TestGetPostsUsage(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
@@ -30,11 +29,10 @@ func TestGetPostsUsage(t *testing.T) {
 	})
 
 	t.Run("good request returns response", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		for range 14 {
-			th.CreatePost()
+			th.CreatePost(t)
 		}
 
 		total, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
@@ -58,7 +56,6 @@ func TestGetStorageUsage(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("unauthenticated users cannot access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
@@ -74,7 +71,6 @@ func TestGetTeamsUsage(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
@@ -87,10 +83,9 @@ func TestGetTeamsUsage(t *testing.T) {
 
 	t.Run("good request returns response", func(t *testing.T) {
 		// Following calls create a total of 3 teams
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.CreateTeam()
-		th.CreateTeam()
+		th := Setup(t).InitBasic(t)
+		th.CreateTeam(t)
+		th.CreateTeam(t)
 
 		usage, r, err := th.Client.GetTeamsUsage(context.Background())
 		assert.NoError(t, err)

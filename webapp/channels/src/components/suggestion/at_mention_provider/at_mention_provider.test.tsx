@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import AtMentionProvider, {groupsGroup, membersGroup, nonMembersGroup, otherMembersGroup, specialMentionsGroup, type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
+import AtMentionProvider, {groupsGroup, membersGroup, nonMembersGroup, otherMembersGroup, specialMentionsGroup, defaultAgentGroup, type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -30,6 +30,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         useChannelMentions: true,
         searchAssociatedGroupsForReference: jest.fn().mockResolvedValue(false),
         priorityProfiles: [],
+        defaultAgent: undefined,
     };
 
     it('should ignore pretexts that are not at-mentions', () => {
@@ -80,7 +81,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -145,6 +146,164 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         });
     });
 
+    it('should suggest default agent for "@" when configured', async () => {
+        const pretext = '@';
+        const matchedPretext = '@';
+        const agentUser = TestHelper.getUserMock({id: 'agentId', username: 'ai-agent', first_name: 'AI', last_name: 'Agent', is_bot: true});
+        const defaultAgent = {
+            id: 'agentId',
+            displayName: 'AI Agent',
+            username: 'ai-agent',
+            service_id: 'serviceId',
+            service_type: 'type',
+            is_default: true,
+        };
+
+        const itemsCall = [
+            defaultAgentGroup({...agentUser, isAgent: true, isDefaultAgent: true}),
+            membersGroup([
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
+        ];
+
+        const params = {
+            ...baseParams,
+            defaultAgent,
+            autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({data: {
+                    users: [userid4],
+                    out_of_channel: [userid5, userid6],
+                    agents: [agentUser],
+                }});
+            })),
+            searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({
+                    data: [groupid1, groupid2, groupid3],
+                });
+                provider.updateMatches(resultCallback, itemsCall, matchedPretext);
+            })),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        await Promise.resolve().then(() => {
+            expect(resultCallback).toHaveBeenLastCalledWith({
+                matchedPretext,
+                groups: itemsCall,
+            });
+        });
+    });
+
+    it('should keep pinned default agent out of members and agents when agent is also a member or priority profile', async () => {
+        const pretext = '@';
+        const defaultAgentUser = TestHelper.getUserMock({id: 'defaultAgentId', username: 'default-agent', first_name: 'Default', last_name: 'Agent', is_bot: true});
+        const otherAgentUser = TestHelper.getUserMock({id: 'otherAgentId', username: 'other-agent', first_name: 'Other', last_name: 'Agent', is_bot: true});
+
+        const defaultAgent = {
+            id: 'defaultAgentId',
+            displayName: 'Default Agent',
+            username: 'default-agent',
+            service_id: 'serviceId',
+            service_type: 'type',
+            is_default: true,
+        };
+
+        const params = {
+            ...baseParams,
+            defaultAgent,
+            priorityProfiles: [defaultAgentUser],
+            autocompleteUsersInChannel: jest.fn().mockResolvedValue({data: {
+                users: [defaultAgentUser, userid4],
+                out_of_channel: [userid5, userid6],
+                agents: [defaultAgentUser, otherAgentUser],
+            }}),
+            searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({
+                data: [groupid1, groupid2, groupid3],
+            }),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [defaultAgentUser, userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const lastResult = resultCallback.mock.lastCall?.[0];
+        expect(lastResult).toBeDefined();
+
+        const groups = lastResult.groups;
+        expect(groups[0].key).toBe('defaultAgent');
+
+        const pinnedDefaultAgent = groups.find((group: {key: string}) => group.key === 'defaultAgent');
+        const members = groups.find((group: {key: string}) => group.key === 'members');
+        const agents = groups.find((group: {key: string}) => group.key === 'agents');
+
+        expect(pinnedDefaultAgent?.items[0].username).toBe(defaultAgentUser.username);
+        expect(members?.items.map((item: {username: string}) => item.username)).not.toContain(defaultAgentUser.username);
+        expect(agents?.items.map((item: {username: string}) => item.username)).not.toContain(defaultAgentUser.username);
+    });
+
+    it('should keep non-default agents out of channel members when they are also in channel', async () => {
+        const pretext = '@';
+        const agentUser = TestHelper.getUserMock({id: 'agentId', username: 'member-agent', first_name: 'Member', last_name: 'Agent', is_bot: true});
+
+        const params = {
+            ...baseParams,
+            autocompleteUsersInChannel: jest.fn().mockResolvedValue({data: {
+                users: [agentUser, userid4],
+                out_of_channel: [userid5, userid6],
+                agents: [agentUser],
+            }}),
+            searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({
+                data: [groupid1, groupid2, groupid3],
+            }),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [agentUser, userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const lastResult = resultCallback.mock.lastCall?.[0];
+        expect(lastResult).toBeDefined();
+
+        const groups = lastResult.groups;
+        const members = groups.find((group: {key: string}) => group.key === 'members');
+        const agents = groups.find((group: {key: string}) => group.key === 'agents');
+
+        expect(agents?.items.map((item: {username: string}) => item.username)).toContain(agentUser.username);
+        expect(members?.items.map((item: {username: string}) => item.username)).not.toContain(agentUser.username);
+    });
+
     it('should have priorityProfiles at the top', async () => {
         const userid11 = TestHelper.getUserMock({id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'});
         const userid12 = TestHelper.getUserMock({id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'});
@@ -189,7 +348,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -306,7 +465,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -423,7 +582,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -527,7 +686,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall2)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall2, matchedPretext);
             })),
         };
 
@@ -589,7 +748,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -654,7 +813,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -714,7 +873,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -766,7 +925,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -818,7 +977,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -869,7 +1028,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -922,7 +1081,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -982,7 +1141,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1043,7 +1202,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1110,7 +1269,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1173,7 +1332,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1236,7 +1395,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1295,7 +1454,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1383,7 +1542,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1400,6 +1559,220 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     groupid3,
                 ]),
             ],
+        });
+    });
+
+    describe('full-width at symbol (＠) support', () => {
+        describe('basic full-width suggestions', () => {
+            it('should handle full-width ＠ character for autocomplete', async () => {
+                const inputText = '＠';
+                const expectedMatched = '＠';
+                const finalGroups = [
+                    membersGroup([userid10, userid3, userid1, userid2, userid4]),
+                    groupsGroup([groupid1, groupid2, groupid3]),
+                    specialMentionsGroup([{username: 'here'}, {username: 'channel'}, {username: 'all'}]),
+                    nonMembersGroup([userid5, userid6]),
+                ];
+
+                const callback = jest.fn();
+
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                        resolve({data: {
+                            users: [userid4],
+                            out_of_channel: [userid5, userid6],
+                        }});
+                    })),
+                    searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                        resolve({
+                            data: [groupid1, groupid2, groupid3],
+                        });
+                        mentionProvider.updateMatches(callback, finalGroups, expectedMatched);
+                    })),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid10, userid3, userid1, userid2]);
+                const handled = mentionProvider.handlePretextChanged(inputText, callback);
+
+                expect(handled).toBe(true);
+
+                // First call: local profiles, groups and special mentions
+                expect(callback).toHaveBeenNthCalledWith(1, {
+                    matchedPretext: expectedMatched,
+                    groups: [
+                        membersGroup([userid10, userid3, userid1, userid2]),
+                        groupsGroup([groupid1, groupid2, groupid3]),
+                        specialMentionsGroup([{username: 'here'}, {username: 'channel'}, {username: 'all'}]),
+                    ],
+                });
+
+                jest.runOnlyPendingTimers();
+
+                // Second call: with loading indicator
+                expect(callback).toHaveBeenNthCalledWith(2, {
+                    matchedPretext: expectedMatched,
+                    groups: expect.arrayContaining([
+                        expect.objectContaining({key: 'members'}),
+                        expect.objectContaining({key: 'groups'}),
+                        expect.objectContaining({key: 'specialMentions'}),
+                        expect.objectContaining({key: 'otherMembers'}),
+                    ]),
+                });
+
+                // Wait for async operations to complete
+                await Promise.resolve();
+
+                // Third call: complete results including non-members
+                expect(callback).toHaveBeenNthCalledWith(3, {
+                    matchedPretext: expectedMatched,
+                    groups: finalGroups,
+                });
+            });
+
+            it('should extract username prefix correctly with full-width ＠', async () => {
+                const inputText = '＠us';
+
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid4], out_of_channel: [userid5, userid6]},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid10, userid3, userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                expect(testParams.autocompleteUsersInChannel).toHaveBeenCalledWith('us');
+            });
+        });
+
+        describe('matchedPretext consistency', () => {
+            it('should preserve full-width ＠ in matchedPretext', async () => {
+                const inputText = '＠user';
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                await Promise.resolve();
+
+                callback.mock.calls.forEach((call) => {
+                    expect(call[0].matchedPretext).toBe('＠user');
+                });
+            });
+
+            it('should preserve half-width @ in matchedPretext', async () => {
+                const inputText = '@user';
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                await Promise.resolve();
+
+                callback.mock.calls.forEach((call) => {
+                    expect(call[0].matchedPretext).toBe('@user');
+                });
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should handle empty string after full-width ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('＠', callback);
+
+                expect(handled).toBe(true);
+                expect(callback).toHaveBeenCalled();
+            });
+
+            it('should handle whitespace before full-width ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('hello ＠user', callback);
+
+                expect(handled).toBe(true);
+            });
+
+            it('should not trigger when ＠ is within a word', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('email＠example.com', callback);
+
+                expect(handled).toBe(false);
+                expect(callback).not.toHaveBeenCalled();
+            });
+
+            it('should handle special characters in username with ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid6]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('＠user-name', callback);
+
+                expect(handled).toBe(true);
+            });
+        });
+
+        describe('complete workflow integration', () => {
+            it('should maintain consistency through type → suggest → select', async () => {
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1]);
+
+                const callback = jest.fn();
+
+                // User types full-width
+                mentionProvider.handlePretextChanged('＠use', callback);
+
+                await Promise.resolve();
+
+                // Verify suggestion maintains full-width
+                const firstCall = callback.mock.calls[0][0];
+                expect(firstCall.matchedPretext).toBe('＠use');
+
+                // User selects completion
+                mentionProvider.handleCompleteWord('＠user');
+
+                // Verify completion was recorded (without the @ symbol)
+                expect(mentionProvider.lastCompletedWord).toBe('user');
+            });
         });
     });
 });

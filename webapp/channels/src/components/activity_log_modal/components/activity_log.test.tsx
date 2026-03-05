@@ -48,9 +48,9 @@ describe('components/activity_log_modal/ActivityLog', () => {
 
         const event = {preventDefault: jest.fn()};
         wrapper.instance().submitRevoke(event as unknown as React.MouseEvent);
-        expect(baseProps.submitRevoke).toBeCalled();
+        expect(baseProps.submitRevoke).toHaveBeenCalled();
         expect(baseProps.submitRevoke).toHaveBeenCalledTimes(1);
-        expect(baseProps.submitRevoke).toBeCalledWith('sessionId', event);
+        expect(baseProps.submitRevoke).toHaveBeenCalledWith('sessionId', event);
     });
 
     test('handleMoreInfo updates state correctly', () => {

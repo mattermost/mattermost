@@ -106,7 +106,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Validate that the user is with SAML and all that
+	// Validate that the user is with SAML and all that
 	encodedXML := r.FormValue("SAMLResponse")
 	relayState := r.FormValue("RelayState")
 
@@ -161,7 +161,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
+	err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, "")
+	if err != nil {
 		handleError(err)
 		return
 	}
@@ -250,14 +251,17 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			"code_challenge":        samlChallenge,
 			"code_challenge_method": samlMethod,
 		})
-		code := model.NewToken(model.TokenTypeSaml, extra)
-		if err := c.App.Srv().Store().Token().Save(code); err != nil {
+
+		var code *model.Token
+		code, err = c.App.CreateSamlRelayToken(model.TokenTypeSSOCodeExchange, extra)
+		if err != nil {
 			handleError(model.NewAppError("completeSaml", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 			return
 		}
 
 		redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 			"login_code": code.Token,
+			"srv":        c.App.GetSiteURL(), // Server URL for mobile client verification
 		})
 		utils.RenderMobileAuthComplete(w, redirectURL)
 		return
@@ -278,13 +282,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
-			// Legacy mobile path: return tokens only when SAML code exchange was not requested
-			if samlChallenge == "" {
-				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-					model.SessionCookieToken: c.AppContext.Session().Token,
-					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-				})
-			}
+			// Always add tokens for mobile in legacy path (we only reach here if code-exchange was skipped)
+			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+				model.SessionCookieToken: c.AppContext.Session().Token,
+				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				"srv":                    c.App.GetSiteURL(), // Server URL for mobile client verification (config-based, not request Host)
+			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
 			http.Redirect(w, r, redirectURL, http.StatusFound)

@@ -28,18 +28,19 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v3"
+	contentFlaggingMigrationVersion                = "v5"
 
-	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
-	contentFlaggingPropertyNameStatus           = "status"
-	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
-	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
-	contentFlaggingPropertyNameReportingComment = "reporting_comment"
-	contentFlaggingPropertyNameReportingTime    = "reporting_time"
-	contentFlaggingPropertyNameReviewerUserID   = "reviewer_user_id"
-	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
-	contentFlaggingPropertyNameActorComment     = "actor_comment"
-	contentFlaggingPropertyNameActionTime       = "action_time"
+	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
+	ContentFlaggingPropertyNameStatus              = "status"
+	contentFlaggingPropertyNameReportingUserID     = "reporting_user_id"
+	contentFlaggingPropertyNameReportingReason     = "reporting_reason"
+	contentFlaggingPropertyNameReportingComment    = "reporting_comment"
+	contentFlaggingPropertyNameReportingTime       = "reporting_time"
+	contentFlaggingPropertyNameReviewerUserID      = "reviewer_user_id"
+	contentFlaggingPropertyNameActorUserID         = "actor_user_id"
+	contentFlaggingPropertyNameActorComment        = "actor_comment"
+	contentFlaggingPropertyNameActionTime          = "action_time"
+	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
@@ -602,7 +603,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
 	// When a new property needs to be added, add it to the expectedPropertiesMap map and
-	// update the contentFlaggingMigrationVersion to a new value..
+	// update the contentFlaggingMigrationVersion to a new value.
 
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
@@ -616,14 +617,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyAccessService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}
@@ -639,9 +640,9 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
 			Type:    model.PropertyFieldTypeText,
 		},
-		contentFlaggingPropertyNameStatus: {
+		ContentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
-			Name:    contentFlaggingPropertyNameStatus,
+			Name:    ContentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
 				"options": []map[string]string{
@@ -693,6 +694,12 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
+		},
+		contentFlaggingPropertyManageByContentFlagging: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyManageByContentFlagging,
+			Type:    model.PropertyFieldTypeText,
 		},
 	}
 
@@ -711,13 +718,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+		if _, err := s.propertyAccessService.CreatePropertyField(anonymousCallerId, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyAccessService.UpdatePropertyFields(anonymousCallerId, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}

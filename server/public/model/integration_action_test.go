@@ -4,10 +4,13 @@
 package model
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"io"
+	"math/big"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +18,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// failingSigner is a test implementation of crypto.Signer that always returns an error
+type failingSigner struct {
+	err error
+}
+
+func (f *failingSigner) Public() crypto.PublicKey {
+	return nil
+}
+
+func (f *failingSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	return nil, f.err
+}
 
 func TestPostAction_IsValid(t *testing.T) {
 	tests := map[string]struct {
@@ -254,6 +270,64 @@ func TestPostAction_IsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateTriggerId(t *testing.T) {
+	t.Run("should succeed with valid key", func(t *testing.T) {
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		userId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		assert.Nil(t, appErr)
+		assert.NotEmpty(t, clientTriggerId)
+		assert.NotEmpty(t, triggerId)
+	})
+
+	t.Run("should handle signer that returns error", func(t *testing.T) {
+		// Create a signer that always returns an error
+		badSigner := &failingSigner{err: assert.AnError}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+		assert.NotEmpty(t, appErr.Error())
+	})
+
+	t.Run("should handle invalid ECDSA key with nil D value", func(t *testing.T) {
+		// Create an invalid ECDSA key with nil D (private key component)
+		// This would normally panic in crypto/ecdsa, but our recover handler catches it
+		invalidKey := &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: elliptic.P256(),
+				X:     nil,
+				Y:     nil,
+			},
+			D: nil,
+		}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+		assert.Contains(t, appErr.Error(), "invalid signing key")
+	})
+
+	t.Run("should handle ECDSA key with zero D value", func(t *testing.T) {
+		// Create an ECDSA key with D set to zero (invalid private key)
+		invalidKey := &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: elliptic.P256(),
+			},
+			D: big.NewInt(0),
+		}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+	})
 }
 
 func TestTriggerIdDecodeAndVerification(t *testing.T) {

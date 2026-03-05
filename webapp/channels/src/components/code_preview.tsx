@@ -16,7 +16,6 @@ import type {LinkInfo} from './file_preview_modal/types';
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
-    className: string;
     getContent?: (code: string) => void;
 };
 
@@ -35,7 +34,7 @@ const CodePreview = ({
         highlighted: '',
     });
 
-    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('success');
+    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('loading');
     const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
 
     useEffect(() => {
@@ -63,12 +62,19 @@ const CodePreview = ({
     const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
     useEffect(() => {
+        const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+
+        if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+            setCodeInfo({code: '', lang: '', highlighted: ''});
+            setStatus('fail');
+        }
+
         const handleReceivedCode = async (data: string | Node) => {
             let code = data as string;
-            const Data = data as Node;
+            const dataAsNode = data as Node;
 
-            if (Data.nodeName === '#document') {
-                code = new XMLSerializer().serializeToString(Data);
+            if (dataAsNode.nodeName === '#document') {
+                code = new XMLSerializer().serializeToString(dataAsNode);
             }
 
             getContent?.(code);
@@ -92,6 +98,11 @@ const CodePreview = ({
             }
             try {
                 const data = await fetch(fileUrl);
+                if (!data.ok) {
+                    // Handle HTTP error responses (including 403 Forbidden from plugin rejection)
+                    handleReceivedError();
+                    return;
+                }
                 const text = await data.text();
                 handleReceivedCode(text);
             } catch (e) {
@@ -99,10 +110,11 @@ const CodePreview = ({
             }
         };
 
-        if (fileUrl !== prevFileUrl) {
+        // Only fetch if status is loading and we have a language
+        if (status === 'loading' && codeInfo.lang && !shouldNotGetCode) {
             getCode();
         }
-    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode]);
+    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode, status]);
 
     if (status === 'loading') {
         return (

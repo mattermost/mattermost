@@ -54,11 +54,11 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
 
     const label = formatMessage({id: 'flag_message_modal.heading', defaultMessage: 'Flag message'});
-    const subHeading = formatMessage({id: 'flag_message_modal.subheading', defaultMessage: 'Flagged messages will be sent to Content Reviewers for review'});
+    const subHeading = formatMessage({id: 'flag_message_modal.subheading', defaultMessage: 'Flagged messages will be sent to Content Reviewers for review.'});
     const submitButtonText = formatMessage({id: 'generic.submit', defaultMessage: 'Submit'});
     const requiredCommentSectionTitle = formatMessage({id: 'flag_message_modal.required_comment.title', defaultMessage: 'Comment (required)'});
     const optionalCommentSectionTitle = formatMessage({id: 'flag_message_modal.optional_comment.title', defaultMessage: 'Comment (optional)'});
-    const reasonSelectPlaceholder = formatMessage({id: 'flag_message_modal.reason_select.placeholder', defaultMessage: 'Select a reason for flagging'});
+    const reasonSelectPlaceholder = formatMessage({id: 'flag_message_modal.reason_select.placeholder', defaultMessage: 'Select a reason'});
     const commentPlaceholder = formatMessage({id: 'flag_message_modal.comment.placeholder', defaultMessage: 'Describe your concern...'});
 
     const post = useSelector((state: GlobalState) => getPost(state, postId));

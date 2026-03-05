@@ -18,8 +18,7 @@ import (
 )
 
 func TestGetSharedChannelRemotes(t *testing.T) {
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	// Create remote clusters
 	remote1 := &model.RemoteCluster{
@@ -45,7 +44,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Create shared channel
-	channel1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	channel1 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc1 := &model.SharedChannel{
 		ChannelId:        channel1.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -111,7 +110,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	assert.NotZero(t, result[1].LastPingAt)
 
 	// Test access control - user without permissions should not be able to access
-	user2 := th.CreateUser()
+	user2 := th.CreateUser(t)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	_, _, err = th.Client.Login(context.Background(), user2.Email, user2.Password)

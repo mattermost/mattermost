@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 1`] = `
 <Provider

@@ -101,6 +101,8 @@ type Routes struct {
 
 	Jobs *mux.Router // 'api/v4/jobs'
 
+	Recaps *mux.Router // 'api/v4/recaps'
+
 	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
@@ -162,6 +164,9 @@ type Routes struct {
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+
+	Agents      *mux.Router // 'api/v4/agents'
+	LLMServices *mux.Router // 'api/v4/llmservices'
 }
 
 type API struct {
@@ -253,6 +258,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Public = api.BaseRoutes.APIRoot.PathPrefix("/public").Subrouter()
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
+	api.BaseRoutes.Recaps = api.BaseRoutes.APIRoot.PathPrefix("/recaps").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
@@ -311,6 +317,9 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
+	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
+	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -331,6 +340,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDataRetention()
 	api.InitBrand()
 	api.InitJob()
+	api.InitRecap()
 	api.InitCommand()
 	api.InitStatus()
 	api.InitWebSocket()
@@ -364,6 +374,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitAgents()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

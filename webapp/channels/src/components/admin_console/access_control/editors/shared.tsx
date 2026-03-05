@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import Markdown from 'components/markdown';
 import WithTooltip from 'components/with_tooltip';
 
@@ -50,6 +52,24 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.CONTAINS]: {type: 'method', celOp: CELOperator.CONTAINS},
     [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
 };
+
+// Checks if there are any usable attributes for ABAC policies.
+// An attribute is usable if:
+// 1. It doesn't contain spaces (CEL incompatible)
+// 2. It's either synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR user-managed attributes are enabled
+export function hasUsableAttributes(
+    userAttributes: UserPropertyField[],
+    enableUserManagedAttributes: boolean,
+): boolean {
+    return userAttributes.some((attr) => {
+        const hasSpaces = attr.name.includes(' ');
+        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+        const isAdminManaged = attr.attrs?.managed === 'admin';
+        const isProtected = attr.attrs?.protected;
+        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        return !hasSpaces && allowed;
+    });
+}
 
 interface TestButtonProps {
     onClick: () => void;

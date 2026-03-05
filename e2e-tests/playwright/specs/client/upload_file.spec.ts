@@ -27,7 +27,7 @@ test.beforeEach(async ({pw}) => {
 
 test('should succeed with File', async ({pw}) => {
     // # Prepare data with File
-    const clientId = pw.random.id();
+    const clientId = await pw.random.id();
     const formData = new FormData();
     formData.set('channel_id', townSquareChannel.id);
     formData.set('client_ids', clientId);
@@ -40,7 +40,7 @@ test('should succeed with File', async ({pw}) => {
 
 test('should succeed with Blob', async ({pw}) => {
     // # Prepare data with Blob
-    const clientId = pw.random.id();
+    const clientId = await pw.random.id();
     const formData = new FormData();
     formData.set('channel_id', townSquareChannel.id);
     formData.set('client_ids', clientId);
@@ -69,7 +69,7 @@ test('should succeed even with channel_id only', async () => {
 });
 
 test('should fail on invalid channel ID', async ({pw}) => {
-    const clientId = pw.random.id();
+    const clientId = await pw.random.id();
 
     // # Set with invalid channel ID
     let formData = new FormData();
@@ -92,7 +92,7 @@ test('should fail on invalid channel ID', async ({pw}) => {
 });
 
 test('should fail on missing files', async ({pw}) => {
-    const clientId = pw.random.id();
+    const clientId = await pw.random.id();
 
     // # Set with invalid channel ID
     const formData = new FormData();
@@ -105,7 +105,7 @@ test('should fail on missing files', async ({pw}) => {
 });
 
 test('should fail on incorrect order setting up FormData', async ({pw}) => {
-    const clientId = pw.random.id();
+    const clientId = await pw.random.id();
 
     // # Set with files before client_ids
     const formData = new FormData();

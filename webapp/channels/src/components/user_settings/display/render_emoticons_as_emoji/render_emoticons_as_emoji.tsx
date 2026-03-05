@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -18,8 +18,6 @@ export type Actions = {
 export type OwnProps = {
     user: UserProfile;
     updateSection: (section: string) => void;
-    adminMode?: boolean;
-    userPreferences?: PreferencesType;
 }
 
 type Props = OwnProps & {
@@ -107,7 +105,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
             <div className='mt-5'>
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiDesc'
-                    defaultMessage='When enabled, text emoticons in messages will be rendered as emojis (For example :D as 😄)'
+                    defaultMessage='When enabled, text emoticons in messages will automatically be rendered as emojis (For example :D as 😄)'
                 />
             </div>
         </fieldset>

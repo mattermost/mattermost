@@ -9,22 +9,16 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * Two users must be members of the same team
  */
-test('displays multiple mentions correctly in Recent Mentions panel', {tag: '@mentions'}, async ({pw}) => {
+test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@smoke', '@mentions']}, async ({pw}) => {
     // # Define the number of mentions to create
     const MENTION_COUNT = 20;
 
     // # Initialize the first user who will create the mentions
-    const {
-        team,
-        user: mentioningUser,
-        userClient,
-    } = await pw.initSetup({
-        userPrefix: 'mentioner',
-    });
+    const {team, user: mentioningUser, userClient} = await pw.initSetup({userOptions: {prefix: 'mentioner'}});
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();
-    const mentionedUser = pw.random.user('mentioned');
+    const mentionedUser = await pw.random.user('mentioned');
     const {id: mentionedUserID} = await adminClient.createUser(mentionedUser, '', '');
 
     // # Add the mentioned user to the team

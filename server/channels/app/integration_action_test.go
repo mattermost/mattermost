@@ -24,8 +24,7 @@ import (
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -61,7 +60,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -75,8 +74,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 
 func TestPostActionEmptyResponse(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -115,7 +113,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -159,7 +157,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -175,6 +173,118 @@ func TestPostActionEmptyResponse(t *testing.T) {
 	})
 }
 
+// infiniteReader generates unlimited data for testing response size limits
+type infiniteReader struct{}
+
+func (r infiniteReader) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = 'a'
+	}
+	return len(p), nil
+}
+
+// MM-67074: TestPostActionResponseSizeLimit verifies that DoPostActionWithCookie
+// properly limits response sizes to prevent OOM attacks
+func TestPostActionResponseSizeLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.BasicChannel
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("large valid JSON response is truncated", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Send response larger than MaxIntegrationResponseSize (1MB)
+			// Response starts as valid JSON but becomes truncated
+			_, _ = io.Copy(w, io.MultiReader(
+				strings.NewReader(`{"update":{"message":"`),
+				infiniteReader{},
+				strings.NewReader(`"}}`),
+			))
+		}))
+		defer server.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		// Should return error due to truncated JSON, but NOT crash or OOM
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+		require.NotNil(t, err)
+		// Truncated JSON causes unmarshal error
+		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+	})
+
+	t.Run("large invalid response is truncated", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Send infinite non-JSON data
+			_, _ = io.Copy(w, infiniteReader{})
+		}))
+		defer server.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		// Should return error due to invalid JSON, but NOT crash or OOM
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+	})
+}
+
 func TestPostAction(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCases := []struct {
@@ -185,22 +295,21 @@ func TestPostAction(t *testing.T) {
 			return th.BasicChannel
 		}},
 		{"direct channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
+			user1 := th.CreateUser(t)
 
-			return th.CreateDmChannel(user1)
+			return th.CreateDmChannel(t, user1)
 		}},
 		{"group channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
-			user2 := th.CreateUser()
+			user1 := th.CreateUser(t)
+			user2 := th.CreateUser(t)
 
-			return th.CreateGroupChannel(th.Context, user1, user2)
+			return th.CreateGroupChannel(t, user1, user2)
 		}},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			channel := testCase.Channel(th)
 
@@ -270,7 +379,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+			post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 			require.Nil(t, err)
 
 			attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -307,7 +416,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post2, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
+			post2, _, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
 			require.Nil(t, err)
 
 			attachments2, ok := post2.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -365,7 +474,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postplugin, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
+			postplugin, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
 			attachmentsPlugin, ok := postplugin.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -413,7 +522,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSiteURL, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
+			postSiteURL, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
 			attachmentsSiteURL, ok := postSiteURL.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -455,7 +564,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSubpath, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
+			postSubpath, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
 			attachmentsSubpath, ok := postSubpath.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
@@ -469,8 +578,7 @@ func TestPostAction(t *testing.T) {
 
 func TestPostActionProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -531,7 +639,7 @@ func TestPostActionProps(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -554,8 +662,7 @@ func TestPostActionProps(t *testing.T) {
 
 func TestSubmitInteractiveDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -677,8 +784,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 
 func TestPostActionRelativeURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.PostActionIntegrationRequest
@@ -717,7 +823,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -757,7 +863,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -797,7 +903,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -837,7 +943,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -877,7 +983,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -891,8 +997,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 func TestPostActionRelativePluginURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	setupPluginAPITest(t,
 		`
@@ -955,7 +1060,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -995,7 +1100,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -1035,7 +1140,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -1075,7 +1180,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -1089,8 +1194,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 func TestLookupInteractiveDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1244,7 +1348,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 			func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 				var request model.SubmitDialogRequest
 				json.NewDecoder(r.Body).Decode(&request)
-				
+
 				response := &model.LookupDialogResponse{
 					Items: []model.DialogSelectOption{
 						{Text: "Plugin Option 1", Value: "plugin_value1"},
@@ -1327,8 +1431,7 @@ func TestLookupInteractiveDialog(t *testing.T) {
 
 func TestOpenInteractiveDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
 		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
@@ -1426,8 +1529,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 
 func TestDoActionRequest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1521,8 +1623,7 @@ func TestDoActionRequest(t *testing.T) {
 
 func TestDoLocalRequest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should delegate to doPluginRequest", func(t *testing.T) {
 		requestBody := []byte(`{"test": "data"}`)
@@ -1535,8 +1636,7 @@ func TestDoLocalRequest(t *testing.T) {
 
 func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1615,7 +1715,6 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 func TestDoPluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("URL with trailing slash", func() {
 		// loginCmdf doesn't return an error in this case. It prints to stderr instead.

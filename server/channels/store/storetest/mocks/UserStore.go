@@ -49,22 +49,22 @@ func (_m *UserStore) AnalyticsActiveCount(timestamp int64, options model.UserCou
 }
 
 // AnalyticsActiveCountForPeriod provides a mock function with given fields: startTime, endTime, options
-func (_m *UserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (_m *UserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	ret := _m.Called(startTime, endTime, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AnalyticsActiveCountForPeriod")
 	}
 
-	var r0 int64
+	var r0 int32
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int64, model.UserCountOptions) (int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(int64, int64, model.UserCountOptions) (int32, error)); ok {
 		return rf(startTime, endTime, options)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int64, model.UserCountOptions) int64); ok {
+	if rf, ok := ret.Get(0).(func(int64, int64, model.UserCountOptions) int32); ok {
 		r0 = rf(startTime, endTime, options)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(int32)
 	}
 
 	if rf, ok := ret.Get(1).(func(int64, int64, model.UserCountOptions) error); ok {
@@ -275,6 +275,36 @@ func (_m *UserStore) DeactivateGuests() ([]string, error) {
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeactivateGuests")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeactivateMagicLinkGuests provides a mock function with no fields
+func (_m *UserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeactivateMagicLinkGuests")
 	}
 
 	var r0 []string

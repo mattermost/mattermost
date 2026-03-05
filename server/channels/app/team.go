@@ -375,6 +375,7 @@ func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *m
 	return nil
 }
 
+// GetSchemeRolesForTeam Gets the scheme roles for a team, they may be empty, default or custom permissions based on the scheme.
 func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
@@ -392,7 +393,22 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
 }
 
+// UpdateTeamMemberRoles updates the roles for a team member.
+// This is the public API used by REST endpoints and plugins.
+// It enforces strict validation requiring either SchemeUser or SchemeGuest to be true.
 func (a *App) UpdateTeamMemberRoles(rctx request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
+	return a.updateTeamMemberRolesInternal(rctx, teamID, userID, newRoles, false)
+}
+
+// updateTeamMemberRolesInternal is the internal implementation of UpdateTeamMemberRoles.
+// The allowSchemeUserUnset parameter controls whether to enforce the requirement that members
+// must have either SchemeUser or SchemeGuest set to true.
+//
+// When allowSchemeUserUnset is false (default for API/plugin calls), the function enforces
+// that members must have a base scheme role. When true (bulk import only), this validation
+// is skipped to support the two-phase import pattern where explicit roles are set first,
+// then scheme roles are set via UpdateTeamMemberSchemeRoles immediately after.
+func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, userID string, newRoles string, allowSchemeUserUnset bool) (*model.TeamMember, *model.AppError) {
 	member, nErr := a.Srv().Store().Team().GetMember(rctx, teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -452,6 +468,13 @@ func (a *App) UpdateTeamMemberRoles(rctx request.CTX, teamID string, userID stri
 
 	if prevSchemeGuestValue != member.SchemeGuest {
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate that the member has a base scheme role (SchemeUser or SchemeGuest).
+	// This ensures members always have the minimum required permissions.
+	// Bulk import operations may skip this validation temporarily.
+	if !allowSchemeUserUnset && !member.SchemeGuest && !member.SchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
@@ -604,12 +627,15 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 	if err != nil {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+	return a.AddUserToTeamWithToken(rctx, userID, token)
+}
 
-	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
+func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *model.Token) (*model.Team, *model.TeamMember, *model.AppError) {
+	if !token.IsInvitationToken() {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
+	if token.IsExpired() {
 		if err := a.DeleteToken(token); err != nil {
 			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
 		}
@@ -660,10 +686,10 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 	}
 	user := userChanResult.Data
 
-	if user.IsGuest() && token.Type == TokenTypeTeamInvitation {
+	if user.IsGuest() && token.Type == model.TokenTypeTeamInvitation {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
-	if !user.IsGuest() && token.Type == TokenTypeGuestInvitation {
+	if !user.IsGuest() && (token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation) {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -672,7 +698,7 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 		return nil, nil, appErr
 	}
 
-	if token.Type == TokenTypeGuestInvitation {
+	if token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation {
 		channels, err := a.Srv().Store().Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1287,7 +1313,7 @@ func (a *App) postLeaveTeamMessage(rctx request.CTX, user *model.User, channel *
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1305,7 +1331,7 @@ func (a *App) postRemoveFromTeamMessage(rctx request.CTX, user *model.User, chan
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1513,7 +1539,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 	return user, team, channels, nil
 }
 
-func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string, guestMagicLink bool) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1545,7 +1571,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 			rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
 
-		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
+		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user), guestMagicLink)
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.SendMailError):
@@ -1616,7 +1642,7 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 	return nil
 }
 
-func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string, guestMagicLink bool) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1644,7 +1670,7 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 	}
 
-	eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
+	eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user), guestMagicLink)
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
@@ -1887,11 +1913,11 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
+		if !token.IsInvitationToken() {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
+		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
 				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
 			}
@@ -2050,10 +2076,10 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 }
 
 func (a *App) InvalidateAllEmailInvites(rctx request.CTX) *model.AppError {
-	if err := a.Srv().Store().Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeTeamInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if err := a.Srv().Store().Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.InvalidateAllResendInviteEmailJobs(rctx); err != nil {

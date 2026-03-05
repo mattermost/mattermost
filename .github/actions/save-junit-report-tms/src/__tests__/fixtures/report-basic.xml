@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="1" errors="0" skipped="1" time="10.5">
+  <testsuite name="Test Suite 1" tests="5" failures="1" errors="0" skipped="1" time="10.5" timestamp="2024-01-15T10:00:00Z">
+    <testcase name="MM-T1001 User can login" classname="auth" time="2.5"/>
+    <testcase name="MM-T1002 User can logout" classname="auth" time="1.5"/>
+    <testcase name="MM-T1003 User can reset password" classname="auth" time="3.0">
+      <failure message="Password reset failed">Expected password to be reset but it wasn't</failure>
+    </testcase>
+    <testcase name="MM-T1004 User can view profile" classname="profile" time="2.0">
+      <skipped message="Test skipped"/>
+    </testcase>
+    <testcase name="MM-T1005 User can update profile" classname="profile" time="1.5"/>
+  </testsuite>
+</testsuites>

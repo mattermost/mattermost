@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -142,6 +142,8 @@ DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
 DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
 DIST_PATH_OSX_AMD64=$(DIST_ROOT)/darwin_amd64/mattermost
 DIST_PATH_OSX_ARM64=$(DIST_ROOT)/darwin_arm64/mattermost
+DIST_PATH_FREEBSD_AMD64=$(DIST_ROOT)/freebsd_amd64/mattermost
+DIST_PATH_FREEBSD_ARM64=$(DIST_ROOT)/freebsd_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
@@ -152,29 +154,29 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
-PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.1
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.6.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.7.0
+PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.2%2B4a22550-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1%2B6e1b6eb-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6%2B2b0e66a-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.7.0%2B1031c5e-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -250,6 +252,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 	@echo Using pgvector PostgreSQL image
 endif
 
+	mkdir -p logs
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
@@ -322,20 +325,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
 	$(GOBIN)/golangci-lint run ./... ./public/...
-endif
-
-modernize: ## Run modernize linter on codebase
-## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
-## We need to invoke it directly.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
-else
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -427,11 +421,11 @@ ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	$(GO) work use .
 	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) work use ../../enterprise
+	$(GO) work use $(BUILD_ENTERPRISE_DIR)
 endif
 endif
 
-check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0
@@ -461,9 +455,9 @@ test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=3h
 else
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=3h
 endif
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -798,7 +792,18 @@ endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
+		-structuredLogging \
+		-inconsistentReceiverName \
+		-emptyStrCmp \
+		-tFatal \
+		-configtelemetry \
+		-errorAssertions \
+		-requestCtxNaming \
+		-license \
+		-inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go \
+		-noSelectStar \
+		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...

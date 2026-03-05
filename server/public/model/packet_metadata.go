@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/blang/semver/v4"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 type PacketType string

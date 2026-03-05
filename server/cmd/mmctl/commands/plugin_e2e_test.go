@@ -20,7 +20,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	pluginPath := filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz")
 
@@ -163,7 +163,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
@@ -284,7 +284,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	const (
 		jiraURL       = "https://plugins.releases.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
@@ -377,5 +377,88 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 0)
 		s.Require().Len(plugins.Inactive, 1)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.Run("Error when appropriate permissions are not available", func() {
+		printer.Clean()
+
+		enablePlugin := *s.th.App.Config().PluginSettings.Enable
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
+
+		cmd := &cobra.Command{}
+
+		err := pluginListCmdF(s.th.Client, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Equal("Unable to list plugins. Error: You do not have the appropriate permissions.", err.Error())
+	})
+
+	s.RunForSystemAdminAndLocal("Error when plugins are disabled", func(c client.Client) {
+		printer.Clean()
+
+		enablePlugin := *s.th.App.Config().PluginSettings.Enable
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
+
+		cmd := &cobra.Command{}
+
+		err := pluginListCmdF(c, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Equal("Unable to list plugins. Error: Plugins have been disabled. Please check your logs for details.", err.Error())
+	})
+
+	s.RunForSystemAdminAndLocal("Success when appropriate permissions are available", func(c client.Client) {
+		printer.Clean()
+
+		enablePlugin := *s.th.App.Config().PluginSettings.Enable
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
+
+		cmd := &cobra.Command{}
+
+		err := pluginListCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 3)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Success when appropriate permissions are available but prints json plugins", func(c client.Client) {
+		printer.Clean()
+
+		enablePlugin := *s.th.App.Config().PluginSettings.Enable
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugin
+		})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("format", "json", "")
+
+		err := pluginListCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }

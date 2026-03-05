@@ -3,6 +3,8 @@
 
 import {connect} from 'react-redux';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {
     shouldShowUnreadsCategory,
@@ -11,8 +13,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import type {OwnProps} from './show_unreads_category';
 import ShowUnreadsCategory from './show_unreads_category';
+
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
+}
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreferences = props.adminMode && props.userPreferences ? props.userPreferences : undefined;

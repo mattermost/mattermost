@@ -75,8 +75,12 @@ describe('Move Thread', () => {
     });
 
     afterEach(() => {
-        // # Go to 1. public channel
-        cy.visit(`/${testTeam.name}/channels/${dmChannel.name}`);
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
     });
 
     it('MM-T5512_1 Move root post from DM', () => {

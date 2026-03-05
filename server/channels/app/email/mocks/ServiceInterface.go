@@ -254,17 +254,17 @@ func (_m *ServiceInterface) SendEmailChangeVerifyEmail(newUserEmail string, loca
 	return r0
 }
 
-// SendGuestInviteEmails provides a mock function with given fields: team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin
-func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error {
-	ret := _m.Called(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+// SendGuestInviteEmails provides a mock function with given fields: team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin, isGuestMagicLink
+func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isGuestMagicLink bool) error {
+	ret := _m.Called(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin, isGuestMagicLink)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendGuestInviteEmails")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, string, bool, bool, bool) error); ok {
-		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, string, bool, bool, bool, bool) error); ok {
+		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin, isGuestMagicLink)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -349,6 +349,24 @@ func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, string, int) error); ok {
 		r0 = rf(_a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendMagicLinkEmailSelfService provides a mock function with given fields: invite, siteURL
+func (_m *ServiceInterface) SendMagicLinkEmailSelfService(invite string, siteURL string) error {
+	ret := _m.Called(invite, siteURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendMagicLinkEmailSelfService")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(invite, siteURL)
 	} else {
 		r0 = ret.Error(0)
 	}

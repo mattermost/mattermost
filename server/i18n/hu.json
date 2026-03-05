@@ -7117,10 +7117,6 @@
     "translation": "invalid_request: Hibás grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Hiányzó client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Hibás client_id."
   },
@@ -7367,10 +7363,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Nem fog kapni értesítéseket a {{.Channel}} csatornán, amíg a csatorna el van némítva."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nem tudta elnémítani a {{.Channel}} csatornát, mivel Ön nem tagja annak."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -8424,7 +8416,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Egy archivált csatornán nem lehet visszaigazolni."
+    "translation": "Az archivált csatornában nem lehet visszaigazolást menteni."
   },
   {
     "id": "api.admin.syncables_error",

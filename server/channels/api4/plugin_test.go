@@ -34,7 +34,6 @@ import (
 func TestPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
@@ -42,6 +41,7 @@ func TestPlugin(t *testing.T) {
 		states := map[string]*model.PluginState{}
 		err = json.Unmarshal(statesJson, &states)
 		require.NoError(t, err)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -286,10 +286,103 @@ func TestPlugin(t *testing.T) {
 	})
 }
 
+func TestPluginInstallDirectoryConflict(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("plugin directory is subdirectory of import directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		importDir := "/nonexistent/conflict-test/data"
+		pluginDir := "/nonexistent/conflict-test/data/plugins"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ImportSettings.Directory = importDir
+			*cfg.PluginSettings.Directory = pluginDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("import directory is subdirectory of plugin directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		pluginDir := "/nonexistent/conflict-test/plugins"
+		importDir := "/nonexistent/conflict-test/plugins/imports"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.ImportSettings.Directory = importDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("same directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent path to test conflict detection without filesystem dependencies
+		sharedDir := "/nonexistent/conflict-test/shared"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = sharedDir
+			*cfg.ImportSettings.Directory = sharedDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("separate directories should succeed", func(t *testing.T) {
+		manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.NoError(t, err)
+		assert.Equal(t, "testplugin", manifest.Id)
+
+		_, err = th.SystemAdminClient.RemovePlugin(context.Background(), manifest.Id)
+		require.NoError(t, err)
+	})
+}
+
 func TestNotifyClusterPluginEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
 	th.Server.Platform().SetCluster(testCluster)
@@ -399,8 +492,7 @@ func TestDisableOnRemove(t *testing.T) {
 		},
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
@@ -483,7 +575,6 @@ func TestDisableOnRemove(t *testing.T) {
 
 func TestGetMarketplacePlugins(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -739,7 +830,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
@@ -801,7 +891,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 	t.Run("marketplace client returns installed plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
@@ -885,8 +974,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
 
 	t.Run("search installed plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
@@ -981,7 +1069,6 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
@@ -1144,7 +1231,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 func TestGetRemotePluginInMarketplace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
@@ -1201,7 +1287,6 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	marketplacePlugins := []*model.MarketplacePlugin{
 		{
@@ -1341,8 +1426,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 			filepath.Join(path, "development-private-key.asc"),
 		}
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
@@ -1754,8 +1838,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 				filepath.Join(path, "development-private-key.asc"),
 			}
-		}).InitBasic()
-		defer th.TearDown()
+		}).InitBasic(t)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			expectedSignaturePath := filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig")
@@ -1924,8 +2007,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
 				filepath.Join(path, "development-private-key.asc"),
 			}
-		}).InitBasic()
-		defer th.TearDown()
+		}).InitBasic(t)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1997,8 +2079,7 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 
 func TestPluginWebSocketSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	pluginID := "com.mattermost.websocket_session_test"
 
@@ -2050,8 +2131,7 @@ func TestPluginWebSocketSession(t *testing.T) {
 
 func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	pluginID := "com.mattermost.websocket_remote_address_test"
 

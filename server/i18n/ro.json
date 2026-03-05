@@ -788,10 +788,6 @@
     "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Ar putea dezactiva canalul {{.Channel}} ca nu sunteti membru."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Nu veți primi notificări pentru {{.Channel}} până când opțiunea de a muți canalului este dezactivată."
   },
@@ -1182,10 +1178,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Invalid client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Lipsește client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",

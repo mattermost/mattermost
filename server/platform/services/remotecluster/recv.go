@@ -72,6 +72,10 @@ func (rcs *Service) ReceiveInviteConfirmation(confirm model.RemoteClusterInvite)
 	// If the accepting cluster sent a RefreshedToken (its RemoteToken), set it as our Token
 	if confirm.Version >= 2 && confirm.RefreshedToken != "" {
 		rc.Token = confirm.RefreshedToken
+	} else {
+		// For older versions or if no RefreshedToken was provided, generate a new token
+		// to invalidate the original invite token and prevent reuse
+		rc.Token = model.NewId()
 	}
 
 	rcUpdated, err := store.Update(rc)

@@ -5,7 +5,7 @@ import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {useFocusTrap} from '@mattermost/components/src/hooks/useFocusTrap';
+import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -118,6 +118,7 @@ const AddUsersToGroupModal = (props: Props) => {
                         >
                             <FormattedMessage
                                 id='user_groups_modal.addPeopleTitle'
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- group provided via titleValue memoized value
                                 defaultMessage='Add people to {group}'
                                 values={titleValue}
                             />

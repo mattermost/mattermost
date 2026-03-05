@@ -15,7 +15,6 @@ import (
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	status := &model.Job{
 		Id:     model.NewId(),
@@ -37,7 +36,6 @@ func TestGetJob(t *testing.T) {
 func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobs := []model.Job{
 		{
@@ -109,11 +107,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a private channel and make BasicUser a channel admin
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
 	require.Nil(t, err)
 
@@ -162,7 +159,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 
 	t.Run("channel admin cannot create access control sync job for other channel", func(t *testing.T) {
 		// Create another private channel that BasicUser is NOT admin of
-		otherChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		otherChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		// EXPLICITLY remove channel admin role from BasicUser for otherChannel
 		// (CreatePrivateChannel might auto-add admin roles)
@@ -197,7 +194,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	})
 
 	t.Run("regular user cannot create access control sync job", func(t *testing.T) {
-		regularUser := th.CreateUser()
+		regularUser := th.CreateUser(t)
 		regularUserSession := model.Session{
 			UserId: regularUser.Id,
 			Roles:  model.SystemUserRoleId,
@@ -221,8 +218,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 
 func TestCreateAccessControlSyncJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("cancels pending job and creates new one", func(t *testing.T) {
 		// Create an existing pending job manually in the store
@@ -395,7 +391,6 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobs := []model.Job{
 		{
@@ -480,7 +475,6 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 func TestGetJobByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.NewId()
 
@@ -526,7 +520,6 @@ func TestGetJobByType(t *testing.T) {
 func TestGetJobsByTypes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.NewId()
 	jobType1 := model.NewId()

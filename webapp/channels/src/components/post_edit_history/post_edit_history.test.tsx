@@ -21,6 +21,7 @@ describe('components/post_edit_history', () => {
             id: 'post_id',
             message: 'post message',
         }),
+        isChannelAutotranslated: false,
         dispatch: jest.fn(),
     };
     const mock = jest.spyOn(Client4, 'getPostEditHistory');
@@ -43,7 +44,7 @@ describe('components/post_edit_history', () => {
         await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 
     test('should display error screen if errors are present', async () => {
@@ -55,6 +56,6 @@ describe('components/post_edit_history', () => {
         await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 });

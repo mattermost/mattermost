@@ -3,7 +3,6 @@
 
 import {combineReducers} from 'redux';
 
-import addChannelCtaDropdown from './add_channel_cta_dropdown';
 import admin from './admin';
 import announcementBar from './announcement_bar';
 import browser from './browser';
@@ -49,7 +48,6 @@ export default combineReducers({
     marketplace,
     textbox,
     channelSidebar,
-    addChannelCtaDropdown,
     onboardingTasks,
     threads,
     productMenu,

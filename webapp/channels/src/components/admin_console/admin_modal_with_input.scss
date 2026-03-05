@@ -1,0 +1,57 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Shared styles for admin console modals that use the Input component
+// Used by: ResetPasswordModal, ResetEmailModal
+
+.ResetPasswordModal,
+.ResetEmailModal {
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    // Override Input component styles to work properly in admin console modal
+    // The Input component uses a fieldset for the border, so we need to remove
+    // the default form-control border styling that GenericModal applies
+    .Input_container {
+        .Input_fieldset {
+            background-color: var(--center-channel-bg);
+        }
+
+        .Input_legend {
+            background-color: var(--center-channel-bg);
+        }
+
+        .Input_wrapper {
+            background-color: transparent;
+        }
+
+        // Remove the GenericModal form-control border styling since Input uses fieldset for border
+        // Also remove any background color that might be inherited
+        .Input.form-control,
+        .form-control,
+        input.form-control,
+        input {
+            height: auto;
+            border: none !important;
+            background: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+
+            &:focus {
+                border: none !important;
+                background: none !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+            }
+
+            &:hover {
+                background: none !important;
+                background-color: transparent !important;
+            }
+        }
+    }
+}
+

@@ -828,7 +828,7 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 			// and therefore the signature sent from the bifrost client
 			// will contain the encoded path, whereas the original path is sent
 			// un-encoded.
-			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
+			// More info at: https://github.com/aws/aws-sdk-go-v2/blob/1e4148ac334a4ea7abe31bd984a31dc761bb289d/aws/signer/v4/v4.go#L20
 			s = s3utils.EncodePath(s)
 		}
 	}

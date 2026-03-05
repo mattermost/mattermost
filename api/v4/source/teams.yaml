@@ -1366,6 +1366,18 @@
           required: true
           schema:
             type: string
+        - name: graceful
+          in: query
+          description: If true, returns an array with both successful invites and errors instead of aborting on first error.
+          required: false
+          schema:
+            type: boolean
+        - name: guest_magic_link
+          in: query
+          description: If true, invites guests with magic link (passwordless) authentication. Requires guest magic link feature to be enabled.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:

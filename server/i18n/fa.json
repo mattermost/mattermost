@@ -6941,10 +6941,6 @@
     "translation": "ارتباط امن"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "کانال {{.Channel}} بیصدا نمی شود زیرا عضو آن نیستید."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
@@ -7175,10 +7171,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: بد grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
   },
   {
     "id": "api.command_invite.channel.app_error",

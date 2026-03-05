@@ -91,4 +91,78 @@ describe('components/TeamSidebar/TeamButton', () => {
         expect(screen.queryByTestId('team-badge-')).not.toBeInTheDocument();
         expect(screen.getByTestId('team-container-')).not.toHaveClass('unread');
     });
+
+    describe('aria-label accessibility', () => {
+        it('should use displayName as aria-label for create team button', () => {
+            const props = {
+                ...baseProps,
+                url: '/create_team',
+                displayName: 'Create a Team',
+            };
+
+            renderWithContext(
+                <TeamButton {...props}/>,
+            );
+
+            expect(screen.getByRole('link')).toHaveAccessibleName('Create a Team');
+        });
+
+        it('should use displayName as aria-label for join team button', () => {
+            const props = {
+                ...baseProps,
+                url: '/select_team',
+                displayName: 'Other teams you can join',
+            };
+
+            renderWithContext(
+                <TeamButton {...props}/>,
+            );
+
+            expect(screen.getByRole('link')).toHaveAccessibleName('Other teams you can join');
+        });
+
+        it('should use team name with "team" for regular team buttons', () => {
+            const props = {
+                ...baseProps,
+                url: '/team1',
+                displayName: 'My Team',
+            };
+
+            renderWithContext(
+                <TeamButton {...props}/>,
+            );
+
+            expect(screen.getByRole('link')).toHaveAccessibleName('my team team');
+        });
+
+        it('should use "team unread" aria-label for unread team buttons, not create/join buttons', () => {
+            const props = {
+                ...baseProps,
+                url: '/team1',
+                displayName: 'My Team',
+                unread: true,
+            };
+
+            renderWithContext(
+                <TeamButton {...props}/>,
+            );
+
+            expect(screen.getByRole('link')).toHaveAccessibleName('my team team unread');
+        });
+
+        it('should use "team mentions" aria-label for team buttons with mentions', () => {
+            const props = {
+                ...baseProps,
+                url: '/team1',
+                displayName: 'My Team',
+                mentions: 5,
+            };
+
+            renderWithContext(
+                <TeamButton {...props}/>,
+            );
+
+            expect(screen.getByRole('link')).toHaveAccessibleName('my team team, 5 mentions');
+        });
+    });
 });

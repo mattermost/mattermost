@@ -13,7 +13,6 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {Client4} from 'mattermost-redux/client';
 
-import BlockableLink from 'components/admin_console/blockable_link';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ContentFlaggingAdditionalSettingsSection
     from 'components/admin_console/content_flagging/additional_settings/additional_settings';
@@ -99,12 +98,8 @@ export default function ContentFlaggingSettings() {
 
     return (
         <div className='wrapper--fixed ContentFlaggingSettings'>
-            <AdminHeader withBackButton={true}>
+            <AdminHeader>
                 <div>
-                    <BlockableLink
-                        to='/admin_console/system_attributes/attribute_based_access_control'
-                        className='fa fa-angle-left back'
-                    />
                     <FormattedMessage
                         id='admin.contentFlagging.title'
                         defaultMessage='Content Flagging'
@@ -133,16 +128,19 @@ export default function ContentFlaggingSettings() {
                         id='ReviewerSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.ReviewerSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                     <ContentFlaggingNotificationSettingsSection
                         id='NotificationSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.NotificationSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                     <ContentFlaggingAdditionalSettingsSection
                         id='AdditionalSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.AdditionalSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                 </div>
             </div>

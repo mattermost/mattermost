@@ -129,6 +129,8 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	os.version = major
 	os.fullVersion = version
 
+	ctx := context.Background()
+
 	esSettings := os.Platform.Config().ElasticsearchSettings
 	if *esSettings.LiveIndexingBatchSize > 1 {
 		os.bulkProcessor = NewBulk(
@@ -151,70 +153,77 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
 		os.Platform.Log())
 
-	appErr = os.setupTemplates()
-	if appErr != nil {
-		mlog.Error("Failed to initialize opensearch templates, allowing degraded startup", mlog.Err(appErr))
+	opts := []func(*types.IndexTemplateMapping){}
+	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
+	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
+		if slices.Contains(os.plugins, "analysis-nori") {
+			opts = append(opts, common.WithNoriAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-kuromoji") {
+			opts = append(opts, common.WithKuromojiAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-smartcn") {
+			opts = append(opts, common.WithSmartCNAnalyzer())
+		}
+
+		if len(opts) == 0 {
+			os.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings.")
+		}
 	}
 
-	atomic.StoreInt32(&os.ready, 1)
-
-	return nil
-}
-
-func (os *OpensearchInterfaceImpl) setupTemplates() *model.AppError {
-	ctx := context.Background()
-
 	// Set up posts index template.
-	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
+	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config(), opts...))
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
 		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts,
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up channels index template.
 	templateBuf, err = json.Marshal(common.GetChannelTemplate(os.Platform.Config()))
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
 		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels,
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up users index template.
 	templateBuf, err = json.Marshal(common.GetUserTemplate(os.Platform.Config()))
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
 		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers,
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up files index template.
 	templateBuf, err = json.Marshal(common.GetFileInfoTemplate(os.Platform.Config()))
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
 		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles,
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	atomic.StoreInt32(&os.ready, 1)
 
 	return nil
 }
@@ -321,6 +330,30 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		}
 	}
 	return postIndexes, nil
+}
+
+func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
+	variants := []string{fieldName}
+
+	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
+		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
+		!model.ContainsCJK(query) {
+		return variants
+	}
+
+	if slices.Contains(os.plugins, "analysis-nori") {
+		variants = append(variants, fieldName+".nori")
+	}
+
+	if slices.Contains(os.plugins, "analysis-kuromoji") {
+		variants = append(variants, fieldName+".kuromoji")
+	}
+
+	if slices.Contains(os.plugins, "analysis-smartcn") {
+		variants = append(variants, fieldName+".smartcn")
+	}
+
+	return variants
 }
 
 func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
@@ -474,13 +507,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 					{
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"message"},
+							Fields:          os.getFieldVariants("message", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"attachments"},
+							Fields:          os.getFieldVariants("attachments", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
@@ -520,13 +553,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						{
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"message"},
+								Fields:          os.getFieldVariants("message", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"attachments"},
+								Fields:          os.getFieldVariants("attachments", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
@@ -581,6 +614,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		},
 	)
 
+	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{
 		HighlightQuery: &types.Query{
 			Bool: fullHighlightsQuery,

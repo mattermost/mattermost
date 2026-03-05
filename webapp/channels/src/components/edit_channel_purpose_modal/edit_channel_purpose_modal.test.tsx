@@ -202,7 +202,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
 
         wrapper.find('.btn-primary').simulate('click');
 
-        expect(patchChannel).toBeCalledWith('channel_id', {purpose: 'testPurpose'});
+        expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
 
     it('submit on ctrl + enter', () => {
@@ -225,7 +225,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             ctrlKey: true,
         });
 
-        expect(patchChannel).toBeCalledWith('channel_id', {purpose: 'testPurpose'});
+        expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
 
     it('submit on enter', () => {
@@ -248,7 +248,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             ctrlKey: false,
         });
 
-        expect(patchChannel).toBeCalledWith('channel_id', {purpose: 'testPurpose'});
+        expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
 
     testComponentForLineBreak((value: string) => (

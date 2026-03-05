@@ -298,8 +298,8 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 	return
 }
 
-func (a *App) CreateSamlRelayToken(extra string) (*model.Token, *model.AppError) {
-	token := model.NewToken(model.TokenTypeSaml, extra)
+func (a *App) CreateSamlRelayToken(tokenType string, extra string) (*model.Token, *model.AppError) {
+	token := model.NewToken(tokenType, extra)
 
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError

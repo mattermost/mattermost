@@ -403,6 +403,10 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 			*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix+IndexBasePosts,
 			*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix+IndexBasePosts_MONTH, progress.Now, post.CreateAt)
 
+		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
+
 		if post.DeleteAt == 0 {
 			searchPost := ESPostFromPostForIndexing(post)
 
