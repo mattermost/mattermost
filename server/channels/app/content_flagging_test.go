@@ -1948,7 +1948,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -2011,7 +2011,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2030,7 +2030,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2050,7 +2050,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
@@ -2083,7 +2083,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -2141,7 +2141,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2160,7 +2160,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2180,7 +2180,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2200,7 +2200,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }

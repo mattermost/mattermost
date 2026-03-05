@@ -112,7 +112,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
         setComment(e.target.value);
 
         if (contentFlaggingSettings?.reporter_comment_required && e.target.value.trim() === '') {
-            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re flagging this message.'}));
+            setCommentError(formatMessage({id: 'quarantine_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re quarantining this message.'}));
         } else {
             setCommentError('');
         }
@@ -126,14 +126,14 @@ export default function FlagPostModal({postId, onExited}: Props) {
         let hasError = false;
 
         if (contentFlaggingSettings?.reporter_comment_required && comment.trim() === '') {
-            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re flagging this message.'}));
+            setCommentError(formatMessage({id: 'quarantine_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re quarantining this message.'}));
             hasError = true;
         } else {
             setCommentError('');
         }
 
         if (reason === '') {
-            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'Please select a reason for flagging this message.'}));
+            setReasonError(formatMessage({id: 'quarantine_message_modal.reason_required_error', defaultMessage: 'Please select a reason for quarantining this message.'}));
             hasError = true;
         } else {
             setReasonError('');

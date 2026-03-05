@@ -335,7 +335,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 		return appErr
 	}
 
-	message := fmt.Sprintf("@%s quarantined a message for review.\n\nReason: %s\nChannel: ~%s\nTeam: %s\nPost Author: @%s\n\nOpen on a web browser or the Desktop app to view the full report and take action.",
+	message := fmt.Sprintf("@%s submitted a message for review.\n\nReason: %s\nChannel: ~%s\nTeam: %s\nPost Author: @%s\n\nOpen on a web browser or the Desktop app to view the full report and take action.",
 		reportingUser.Username,
 		reportingReason,
 		flaggedPostChannel.Name,
@@ -1076,7 +1076,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The flagged message was removed by @%s", actorUser.Username)
+	message := fmt.Sprintf("The quarantined message was removed by @%s", actorUser.Username)
 	if comment != "" {
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
@@ -1090,7 +1090,7 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The flagged message was retained by @%s", actorUser.Username)
+	message := fmt.Sprintf("The quarantined message was retained by @%s", actorUser.Username)
 	if comment != "" {
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}

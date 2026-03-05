@@ -813,7 +813,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         id={`flag_post_${this.props.post.id}`}
                         className='flag_post_menu_item'
                         data-testid={`flag_post_${this.props.post.id}`}
-                        leadingElement={<i className='icon icon-flag-outline'/>}
+                        leadingElement={<i className='icon icon-alert-outline'/>}
                         labels={
                             <FormattedMessage
                                 id='post_info.quarantine'
