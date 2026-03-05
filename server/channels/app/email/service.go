@@ -115,11 +115,6 @@ func (es *Service) setUpRateLimiters() error {
 		MaxBurst: emailRateLimitingMaxBurst,
 	}
 
-	perDayQuota := throttled.RateQuota{
-		MaxRate:  throttled.PerDay(1),
-		MaxBurst: 0,
-	}
-
 	perMinuteRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perMinuteQuota)
 	if err != nil || perMinuteRateLimiter == nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
