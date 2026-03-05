@@ -372,6 +372,8 @@ var PermissionSysconsoleWriteExperimentalFeatureFlags *Permission
 
 var PermissionSysconsoleReadExperimentalBleve *Permission
 var PermissionSysconsoleWriteExperimentalBleve *Permission
+var PermissionSysconsoleReadAiRecaps *Permission
+var PermissionSysconsoleWriteAiRecaps *Permission
 
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
