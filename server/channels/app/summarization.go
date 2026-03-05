@@ -18,21 +18,21 @@ import (
 
 // summarizePostsJSONSchema is the structured output schema for the LLM summarization response.
 // Defined at package level to avoid re-allocating on every call.
-var summarizePostsJSONSchema = map[string]interface{}{
+var summarizePostsJSONSchema = map[string]any{
 	"type": "object",
-	"properties": map[string]interface{}{
-		"highlights": map[string]interface{}{
+	"properties": map[string]any{
+		"highlights": map[string]any{
 			"type":        "array",
-			"items":       map[string]interface{}{"type": "string"},
+			"items":       map[string]any{"type": "string"},
 			"description": "Key discussion points, decisions, or important information",
 		},
-		"action_items": map[string]interface{}{
+		"action_items": map[string]any{
 			"type":        "array",
-			"items":       map[string]interface{}{"type": "string"},
+			"items":       map[string]any{"type": "string"},
 			"description": "Tasks, todos, or action items mentioned",
 		},
 	},
-	"required":             []interface{}{"highlights", "action_items"},
+	"required":             []any{"highlights", "action_items"},
 	"additionalProperties": false,
 }
 
