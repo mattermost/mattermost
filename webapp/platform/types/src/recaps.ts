@@ -116,4 +116,3 @@ export type CooldownStatus = {
     available_at: number; // Unix timestamp ms
     retry_after_seconds: number;
 };
-
