@@ -2665,6 +2665,9 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	cmd2.Trigger = "anotherNewTriggerAgain"
 	_, appErr = api.UpdateCommand(cmd2.Id, cmd2)
 	require.Error(t, appErr)
+	var appError *model.AppError
+	require.ErrorAs(t, appErr, &appError)
+	require.Equal(t, "api.command.duplicate_trigger.app_error", appError.Id)
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {

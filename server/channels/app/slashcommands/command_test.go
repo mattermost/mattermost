@@ -76,7 +76,9 @@ func TestMoveCommand(t *testing.T) {
 	command2, err = th.App.CreateCommand(command2)
 	assert.Nil(t, err)
 
-	assert.NotNil(t, th.App.MoveCommand(targetTeam, command2))
+	moveErr := th.App.MoveCommand(targetTeam, command2)
+	assert.NotNil(t, moveErr)
+	assert.Equal(t, "api.command.duplicate_trigger.app_error", moveErr.Id)
 }
 
 func TestCreateCommandPost(t *testing.T) {
