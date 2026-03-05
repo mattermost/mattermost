@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-test-server playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -72,7 +72,7 @@ services:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
     # Skip creating the dependency for containers that don't need a healthcheck
-    if grep -qE "^(cypress|webhook-interactions|playwright)" <<<"$service"; then
+    if grep -qE "^(cypress|webhook-test-server|playwright)" <<<"$service"; then
       continue
     fi
     echo "      $service:"
@@ -235,7 +235,7 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       CYPRESS_chromeWebSecurity: "false"
       CYPRESS_firstTest: "true"
       CYPRESS_resetBeforeTest: "true"
-      CYPRESS_allowedUntrustedInternalConnections: "localhost webhook-interactions"
+      CYPRESS_allowedUntrustedInternalConnections: "localhost"
       TM4J_ENABLE: "false"
       # disable shared memory X11 affecting Cypress v4 and Chrome
       # https://github.com/cypress-io/cypress-docker-images/issues/270
@@ -257,14 +257,14 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       - "../../e2e-tests/cypress/:/cypress"'
   fi)
 
-$(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; then
+$(if mme2e_is_token_in_list "webhook-test-server" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
-  webhook-interactions:
-    image: node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm init -y > /dev/null && npm install express@5.1.0 axios@1.11.0 client-oauth2@github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
+  webhook-test-server:
+    image: node:${NODE_VERSION_REQUIRED}-slim
+    command: node server.js
     healthcheck:
-      test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
+      test: ["CMD", "node", "-e", "fetch(\"http://127.0.0.1:3000\").then(r=>{process.exit(r.ok?0:1)}).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 15s
       retries: 12
@@ -272,9 +272,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     network_mode: host
     restart: on-failure
     volumes:
-      - "../../e2e-tests/cypress/webhook_serve.js:/webhook/webhook_serve.js:ro"
-      - "../../e2e-tests/cypress/utils/:/webhook/utils:ro"
-      - "../../e2e-tests/cypress/tests/plugins/post_message_as.js:/webhook/tests/plugins/post_message_as.js:ro"'
+      - "../../e2e-tests/webhook-server:/webhook:ro"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
@@ -310,6 +308,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_WORKERS: 1
       PW_SNAPSHOT_ENABLE: "false"
       PW_PERCY_ENABLE: "false"
+      PW_WEBHOOK_BASE_URL: "http://localhost:3000"
     ulimits:
       nofile:
         soft: 8096
@@ -442,10 +441,11 @@ esac
 case $TEST in
 cypress)
   enable_docker_service cypress
-  enable_docker_service webhook-interactions
+  enable_docker_service webhook-test-server
   ;;
 playwright)
   enable_docker_service playwright
+  enable_docker_service webhook-test-server
   ;;
 esac
 

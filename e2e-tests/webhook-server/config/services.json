@@ -1,0 +1,150 @@
+{
+    "services": [
+        {
+            "path": "/",
+            "method": "GET",
+            "type": "ping",
+            "description": "Health check. Returns server status and full service catalog."
+        },
+        {
+            "path": "/setup",
+            "method": "POST",
+            "type": "setup",
+            "description": "Initialize the server with Mattermost connection details. Must be called before any endpoint that interacts with Mattermost."
+        },
+        {
+            "path": "/message-menus",
+            "method": "POST",
+            "type": "message-menu",
+            "description": "Responds to interactive message menu actions. When action is 'do_something', returns an ephemeral message with the selected option."
+        },
+        {
+            "path": "/dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "full",
+            "description": "Opens the full interactive dialog (all element types: text, email, number, password, textarea, user/channel/option selectors, radio, boolean)."
+        },
+        {
+            "path": "/simple-dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "simple",
+            "description": "Opens a dialog with no form elements — just title, icon, and submit button."
+        },
+        {
+            "path": "/user-and-channel-dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "userAndChannel",
+            "description": "Opens a dialog with user selector and channel selector elements."
+        },
+        {
+            "path": "/boolean-dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "boolean",
+            "description": "Opens a dialog with a single boolean (checkbox) element."
+        },
+        {
+            "path": "/multiselect-dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "multiselect",
+            "description": "Opens a dialog with multiselect option selector, multiselect user selector, and single select for comparison. Pass ?includeDefaults=true to pre-select default values."
+        },
+        {
+            "path": "/dynamic-select-dialog-request",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "dynamicSelect",
+            "description": "Opens a dialog with dynamic select elements that load options from /dynamic-select-source."
+        },
+        {
+            "path": "/dynamic-select-source",
+            "method": "POST",
+            "type": "dynamic-select-source",
+            "description": "Returns filtered options for dynamic select elements. Provides a list of engineering roles, filtered by the search query."
+        },
+        {
+            "path": "/dialog/field-refresh",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "fieldRefresh",
+            "description": "Opens a dialog that demonstrates field refresh — selecting a project type dynamically adds relevant fields (framework, platform, or language)."
+        },
+        {
+            "path": "/dialog/multistep",
+            "method": "POST",
+            "type": "open-dialog",
+            "dialog": "multistepStep1",
+            "description": "Opens a 3-step dialog wizard. Step 1: personal info. Submission advances to step 2 (work info), then step 3 (final details)."
+        },
+        {
+            "path": "/field-refresh-source",
+            "method": "POST",
+            "type": "field-refresh-source",
+            "description": "Returns an updated form definition based on project type selection. Used as the source_url for field refresh dialogs."
+        },
+        {
+            "path": "/dialog-submit",
+            "method": "POST",
+            "type": "dialog-submit",
+            "description": "Handles all dialog form submissions. For multistep dialogs, returns the next step form. For regular/field-refresh dialogs, posts a confirmation message to the channel via sysadmin."
+        },
+        {
+            "path": "/datetime-dialog-request",
+            "method": "POST",
+            "type": "datetime-dialog-request",
+            "description": "Opens a datetime dialog. The subcommand in body.text selects the variant: 'basic', 'mindate', 'interval', 'relative', 'timezone-manual', or default (date + datetime)."
+        },
+        {
+            "path": "/datetime-dialog-submit",
+            "method": "POST",
+            "type": "datetime-dialog-submit",
+            "description": "Handles datetime dialog submissions. Posts a confirmation message to the channel with submitted datetime values."
+        },
+        {
+            "path": "/slack-compatible-message-response",
+            "method": "POST",
+            "type": "slack-compatible-response",
+            "description": "Returns a Slack-compatible ephemeral response with optional skip_slack_parsing flag."
+        },
+        {
+            "path": "/send-message-to-channel",
+            "method": "POST",
+            "type": "send-to-channel",
+            "description": "Sends a message with extra_responses to a specific channel. Optionally sets a custom message type via ?type= query param."
+        },
+        {
+            "path": "/post-outgoing-webhook",
+            "method": "POST",
+            "type": "outgoing-webhook-response",
+            "description": "Responds to an outgoing webhook trigger. Returns a formatted message showing the received payload and any overrides."
+        },
+        {
+            "path": "/send-oauth-credentials",
+            "method": "POST",
+            "type": "oauth-credentials",
+            "description": "Stores OAuth2 app credentials for subsequent OAuth flow. Must be called before /start-oauth."
+        },
+        {
+            "path": "/start-oauth",
+            "method": "GET",
+            "type": "oauth-start",
+            "description": "Redirects to the Mattermost OAuth2 authorization page. Requires /send-oauth-credentials to be called first."
+        },
+        {
+            "path": "/complete-oauth",
+            "method": "GET",
+            "type": "oauth-complete",
+            "description": "OAuth2 callback. Exchanges the authorization code for an access token and stores it for /post-oauth-message."
+        },
+        {
+            "path": "/post-oauth-message",
+            "method": "POST",
+            "type": "oauth-message",
+            "description": "Posts a message to Mattermost using the OAuth2 access token obtained from the /start-oauth -> /complete-oauth flow."
+        }
+    ]
+}

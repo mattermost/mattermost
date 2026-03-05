@@ -16,6 +16,7 @@ export class TestConfig {
     haClusterNodeCount: number;
     haClusterName: string;
     pushNotificationServer: string;
+    webhookBaseUrl: string;
     resetBeforeTest: boolean;
     isCI: boolean;
     headless: boolean;
@@ -38,6 +39,7 @@ export class TestConfig {
         this.haClusterNodeCount = parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2);
         this.haClusterName = process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster';
         this.pushNotificationServer = process.env.PW_PUSH_NOTIFICATION_SERVER || 'https://push-test.mattermost.com';
+        this.webhookBaseUrl = process.env.PW_WEBHOOK_BASE_URL || 'http://localhost:3000';
         this.resetBeforeTest = parseBool(process.env.PW_RESET_BEFORE_TEST, false);
         // CI
         this.isCI = !!process.env.CI;
