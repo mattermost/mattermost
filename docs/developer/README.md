@@ -1,55 +1,55 @@
-# Mattermost developer documentation ![Mattermost dev docs status badge](https://github.com/mattermost/mattermost-developer-documentation/actions/workflows/build.yml/badge.svg)
+# Mattermost developer documentation
 
 Website for Mattermost developer documentation, built using [Hugo](https://gohugo.io/). The `master` branch is continuously deployed to [developers.mattermost.com](https://developers.mattermost.com/).
+
+This documentation lives within the [Mattermost monorepo](https://github.com/mattermost/mattermost) under `docs/developer/`.
 
 ## Contribute
 
 ### Prerequisites
 
-- Golang v1.19+ [(_download_)](https://go.dev/dl)
-- NodeJS v14+ [(_download_)](https://nodejs.org/en/download/)
-- cURL [(_download_)](https://curl.se/download.html)
-  - (_optional_) Used to update Compass Icons
+- Go (version specified in `go.mod`) [(_download_)](https://go.dev/dl)
+- Node.js v14+ [(_download_)](https://nodejs.org/en/download/)
+
+Hugo is installed automatically via `go install` when running `make`.
 
 ### Set up your environment
 
-1. Follow the [Hugo documentation](https://gohugo.io/getting-started/installing/) to install Hugo. This repo uses Hugo v0.101.0 to build the docs.
+1. Clone the monorepo and change to the developer docs directory.
 
     ```shell
-    # For example, on macOS:
-    brew install hugo
-    
-    # Snapcraft on Linux:
-    snap install hugo
-   
-    # or using golang directly:
-    go install github.com/gohugoio/hugo@v0.101.0
+    git clone git@github.com:mattermost/mattermost.git
+    cd mattermost/docs/developer
     ```
 
-2. Fork the repository and clone the fork to your machine. Change directories to the cloned repo when it has finished.
-
-    ```shell
-    git clone git@github.com:<yourgithubname>/mattermost-developer-documentation.git
-    cd mattermost-developer-documentation
-    ```
-
-3. Generate JSON plugin docs; this must be done at least once.
+2. Generate JSON plugin docs; this must be done at least once.
 
     ```shell
     make plugin-data
     ```
 
-4. Start the Hugo development server.
+3. Start the Hugo development server.
 
     ```shell
     make run
     ```
 
-5. Open [http://localhost:1313](http://localhost:1313) in a new browser tab to see the docs
+4. Open [http://localhost:1313](http://localhost:1313) in a new browser tab to see the docs.
 
 You're all set! You can start making changes as desired; the development server will automatically re-render affected docs pages.
 
-**Note:** Before pushing changes to your fork, run a full build of the docs using `make dist` to make sure there are no build errors. 
+**Note:** Before pushing changes, run a full build using `make` to make sure there are no build errors.
+
+### Makefile targets
+
+| Target | Description |
+|---|---|
+| `make` | Build the full site (default target, alias for `dist`) |
+| `make run` | Start the Hugo development server with drafts enabled |
+| `make build` | Build with verbose output and unused template checks |
+| `make plugin-data` | Generate plugin documentation JSON (backend + frontend) |
+| `make test` | Run HTML validation on the built site |
+| `make compass-icons` | Download Compass Icon fonts and CSS |
 
 ## Best practices
 
@@ -121,7 +121,7 @@ All Apps should define a manifest ({{<newtabref title="godoc" href="https://pkg.
 The `note` shortcode displays a styled message box suitable for a note. The shortcode accepts 3 arguments: the title of the node, an optional Compass Icon ID, and an optional description for the Compass Icon.
 
 ```gotemplate
-{{<note "Mandatory values" "icon-star" "Mandatory Value">}} 
+{{<note "Mandatory values" "icon-star" "Mandatory Value">}}
 - The `app_id` and `homepage_url` values must be specified.
 - At least one deployment method - `aws_lambda`, `open_faas`, or `http` - must be specified.
 {{</note>}}
@@ -135,7 +135,7 @@ A combination of the `tabs` and `tab` shortcodes create a section of tabbed cont
 The `tabs` shortcode defines the list of available tabs in the tab "selection bar", each with a unique ID and name.
 The `tab` shortcode defines the content for an individual tab.
 
-Example of using tabbed content shortcodes: 
+Example of using tabbed content shortcodes:
 
 ```gotemplate
 {{<tabs "tab_group_name" "tabid1,tabname1;tabid2,tabname2;..." "initial_tab_id">}}
