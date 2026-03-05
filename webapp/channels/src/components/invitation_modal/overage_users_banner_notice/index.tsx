@@ -46,7 +46,8 @@ const OverageUsersBannerNotice = () => {
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector(getOverageBannerPreferences);
     const serverLimits = useSelector(getServerLimits);
-    const activeUsers = serverLimits?.activeUserCount ?? (((stats || {})[StatTypes.TOTAL_USERS]) as number) ?? 0;
+    const statsTotalUsers = ((stats ?? {})[StatTypes.TOTAL_USERS]) as number | undefined;
+    const activeUsers = serverLimits?.activeUserCount ?? statsTotalUsers ?? 0;
 
     const {
         isBetween5PercerntAnd10PercentPurchasedSeats,

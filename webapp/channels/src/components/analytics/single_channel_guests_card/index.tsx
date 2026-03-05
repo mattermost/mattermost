@@ -39,6 +39,7 @@ const Title = ({isOverLimit}: TitleProps) => {
         <WithTooltip
             title={defineMessage({id: 'analytics.system.singleChannelGuests.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
             hint={defineMessage({id: 'analytics.system.singleChannelGuests.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+            className='single-channel-guest-tooltip'
         >
             <span className='single-channel-guest-title'>
                 {text}

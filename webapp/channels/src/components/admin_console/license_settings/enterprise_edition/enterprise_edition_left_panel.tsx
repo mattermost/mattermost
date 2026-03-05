@@ -276,13 +276,17 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
     if (legend === 'SINGLE-CHANNEL GUESTS:') {
         const isGuestLimitExceeded = singleChannelGuestLimit > 0 && singleChannelGuestCount > singleChannelGuestLimit;
 
-        const warningIcon = isGuestLimitExceeded ? (
+        const warningContent = isGuestLimitExceeded ? (
             <WithTooltip
                 title={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
                 hint={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
             >
-                <span style={{cursor: 'pointer', verticalAlign: 'middle', marginLeft: '4px'}}>
-                    <AlertOutlineIcon size={16}/>
+                <span style={{cursor: 'pointer', verticalAlign: 'middle'}}>
+                    <FormattedMessage
+                        id='admin.license.singleChannelGuests.limitReached'
+                        defaultMessage=' (Limit reached)'
+                    />
+                    <span style={{marginLeft: '4px', verticalAlign: 'middle', display: 'inline-flex'}}><AlertOutlineIcon size={16}/></span>
                 </span>
             </WithTooltip>
         ) : null;
@@ -295,13 +299,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
                 <span className={classNames({legend: true, 'legend--over-seats-purchased': isGuestLimitExceeded})}>{legend}</span>
                 <span className={classNames({value: true, 'value--over-seats-purchased': isGuestLimitExceeded})}>
                     {value}
-                    {isGuestLimitExceeded && (
-                        <FormattedMessage
-                            id='admin.license.singleChannelGuests.limitReached'
-                            defaultMessage=' (Limit reached)'
-                        />
-                    )}
-                    {warningIcon}
+                    {warningContent}
                 </span>
             </div>
         );
@@ -385,6 +383,7 @@ const renderLicenseContent = (
 
     const users = <FormattedNumber value={parseInt(license.Users, 10)}/>;
     const activeUsers = <FormattedNumber value={statsActiveUsers}/>;
+    const singleChannelGuestsValue = <FormattedNumber value={singleChannelGuestCount}/>;
     const startsAt = <FormattedDate value={new Date(parseInt(license.StartsAt, 10))}/>;
     const expiresAt = <FormattedDate value={new Date(parseInt(license.ExpiresAt, 10))}/>;
 
@@ -407,7 +406,7 @@ const renderLicenseContent = (
         {legend: 'EXPIRES:', value: expiresAt},
         {legend: 'LICENSED SEATS:', value: users},
         {legend: 'ACTIVE USERS:', value: activeUsers},
-        ...(singleChannelGuestLimit > 0 ? [{legend: 'SINGLE-CHANNEL GUESTS:' as LegendValues, value: <FormattedNumber value={singleChannelGuestCount}/>}] : []),
+        ...(singleChannelGuestLimit > 0 ? [{legend: 'SINGLE-CHANNEL GUESTS:' as const, value: singleChannelGuestsValue}] : []),
         {legend: 'EDITION:', value: sku},
         {legend: 'LICENSE ISSUED:', value: issued},
         {legend: 'NAME:', value: license.Name},
