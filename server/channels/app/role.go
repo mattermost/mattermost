@@ -276,13 +276,65 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("role", string(roleJSON))
-	a.Publish(message)
+
+	publishEvent := func(teamID, channelID string) {
+		message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, teamID, channelID, "", nil, "")
+		message.Add("role", string(roleJSON))
+		a.Publish(message)
+	}
+
+	// Built-in system roles apply to all users; broadcast globally without a DB lookup.
+	if role.BuiltIn {
+		publishEvent("", "")
+		return nil
+	}
+
+	// Scheme-managed roles: use SchemeId to look up the owning scheme.
+	if role.SchemeId == nil {
+		// No owning scheme — treat as global (e.g. custom non-scheme role).
+		publishEvent("", "")
+		return nil
+	}
+	scheme, err := a.Srv().Store().Scheme().Get(*role.SchemeId)
+	if err != nil {
+		return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	const pageSize = 1000
+	switch scheme.Scope {
+	case model.SchemeScopeTeam:
+		for offset := 0; ; offset += pageSize {
+			teams, storeErr := a.Srv().Store().Team().GetTeamsByScheme(scheme.Id, offset, pageSize)
+			if storeErr != nil {
+				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			}
+			for _, team := range teams {
+				publishEvent(team.Id, "")
+			}
+			if len(teams) < pageSize {
+				break
+			}
+		}
+	case model.SchemeScopeChannel:
+		for offset := 0; ; offset += pageSize {
+			channels, storeErr := a.Srv().Store().Channel().GetChannelsByScheme(scheme.Id, offset, pageSize)
+			if storeErr != nil {
+				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			}
+			for _, channel := range channels {
+				publishEvent("", channel.Id)
+			}
+			if len(channels) < pageSize {
+				break
+			}
+		}
+	default:
+		publishEvent("", "")
+	}
 	return nil
 }
 

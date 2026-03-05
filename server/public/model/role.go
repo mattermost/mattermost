@@ -418,6 +418,7 @@ type Role struct {
 	Permissions   []string `json:"permissions"`
 	SchemeManaged bool     `json:"scheme_managed"`
 	BuiltIn       bool     `json:"built_in"`
+	SchemeId      *string  `json:"scheme_id"`
 }
 
 func (r *Role) Auditable() map[string]any {

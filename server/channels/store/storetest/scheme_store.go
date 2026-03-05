@@ -174,6 +174,12 @@ func testSchemeStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
+	// Every role created for a scheme must carry the scheme's ID.
+	for _, role := range []*model.Role{role1, role2, role3, role4, role5, role6} {
+		require.NotNil(t, role.SchemeId)
+		assert.Equal(t, d1.Id, *role.SchemeId)
+	}
+
 	// Change the scheme description and update.
 	d1.Description = model.NewId()
 
