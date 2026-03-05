@@ -43,6 +43,11 @@ func addRecapChannelIDsToAuditRec(auditRec *model.AuditRecord, recap *model.Reca
 }
 
 func getRecapLimitStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	userID := c.AppContext.Session().UserId
 
 	status, err := c.App.GetRecapLimitStatus(userID)

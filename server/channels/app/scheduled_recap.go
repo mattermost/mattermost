@@ -4,12 +4,15 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // CreateScheduledRecap creates a new scheduled recap with validated inputs.
@@ -82,7 +85,11 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 func (a *App) GetScheduledRecap(rctx request.CTX, id string) (*model.ScheduledRecap, *model.AppError) {
 	recap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
-		return nil, model.NewAppError("GetScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("GetScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return recap, nil
@@ -109,6 +116,21 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	// Validate configuration
 	if err := recap.IsValid(); err != nil {
 		return nil, err
+	}
+
+	// ENF-02: Check max channels per recap limit
+	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(recap.ChannelIds) > limits.MaxChannelsPerRecap {
+		return nil, model.NewAppError("UpdateScheduledRecap",
+			"app.scheduled_recap.max_channels_exceeded.app_error",
+			map[string]any{
+				"Limit":     limits.MaxChannelsPerRecap,
+				"Requested": len(recap.ChannelIds),
+			},
+			"", http.StatusBadRequest)
 	}
 
 	// If enabled, recompute NextRunAt
@@ -139,10 +161,9 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 	if sr.ChannelMode == model.ChannelModeSpecific {
 		channelIDs = sr.ChannelIds
 	} else {
-		// all_unreads mode: get user's channels with unread messages
-		// For now, use the specified channel IDs as fallback
-		// TODO: Implement GetChannelsWithUnreadForUser when all_unreads mode is needed
-		channelIDs = sr.ChannelIds
+		return nil, model.NewAppError("CreateRecapFromSchedule",
+			"app.scheduled_recap.all_unreads_not_supported.app_error",
+			nil, "", http.StatusBadRequest)
 	}
 
 	if len(channelIDs) == 0 {
@@ -183,6 +204,12 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		Data: jobData,
 	})
 	if jobErr != nil {
+		if deleteErr := a.Srv().Store().Recap().DeleteRecap(savedRecap.Id); deleteErr != nil {
+			rctx.Logger().Warn("Failed to clean up orphaned recap after job creation failure",
+				mlog.String("recap_id", savedRecap.Id),
+				mlog.Err(deleteErr),
+			)
+		}
 		return nil, jobErr
 	}
 
@@ -208,6 +235,10 @@ func (a *App) PauseScheduledRecap(rctx request.CTX, id string) (*model.Scheduled
 	// Fetch and return updated recap
 	updatedRecap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -220,7 +251,11 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 	// Get existing recap to compute next run
 	recap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
-		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Compute new NextRunAt

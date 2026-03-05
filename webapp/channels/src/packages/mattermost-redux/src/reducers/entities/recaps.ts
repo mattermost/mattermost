@@ -76,7 +76,7 @@ export default function recapsReducer(state = initialState, action: MMReduxActio
 
     case RecapTypes.RECEIVED_SCHEDULED_RECAPS: {
         const recaps = action.data as ScheduledRecap[];
-        const newScheduledRecaps = {...state.scheduledRecaps};
+        const newScheduledRecaps: Record<string, ScheduledRecap> = {};
         for (const recap of recaps) {
             newScheduledRecaps[recap.id] = recap;
         }

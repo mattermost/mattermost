@@ -134,7 +134,7 @@ func (s *SqlScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*mo
 // Get retrieves a ScheduledRecap by ID.
 func (s *SqlScheduledRecapStore) Get(id string) (*model.ScheduledRecap, error) {
 	var dbSR dbScheduledRecap
-	query := s.selectQuery.Where(sq.Eq{"Id": id})
+	query := s.selectQuery.Where(sq.Eq{"Id": id, "DeleteAt": 0})
 
 	if err := s.GetReplica().GetBuilder(&dbSR, query); err != nil {
 		if err == sql.ErrNoRows {

@@ -343,10 +343,9 @@ func TestTruncatePostsProportionally(t *testing.T) {
 		assert.Equal(t, 20, len(result["ch2"]))
 	})
 
-	t.Run("minimum 1 post per channel", func(t *testing.T) {
+	t.Run("channels with small proportions may receive zero posts", func(t *testing.T) {
 		// 3 channels: 1, 2, 100 posts, limit 10
-		// Without minimum: ch1 = 0.1, ch2 = 0.2, ch3 = 9.7
-		// With minimum: ch1 = 1, ch2 = 1, ch3 = 8
+		// Proportional floor: ch1 = floor(1/103*10) = 0, ch2 = floor(2/103*10) = 0, ch3 = floor(100/103*10) = 9
 		postsByChannel := map[string][]*model.Post{
 			"ch1": makePosts(1, "ch1"),
 			"ch2": makePosts(2, "ch2"),
@@ -355,9 +354,27 @@ func TestTruncatePostsProportionally(t *testing.T) {
 
 		result, wasTruncated := truncatePostsProportionally(postsByChannel, 10)
 		assert.True(t, wasTruncated)
-		assert.Equal(t, 1, len(result["ch1"]), "ch1 should have minimum 1 post")
-		assert.Equal(t, 1, len(result["ch2"]), "ch2 should have minimum 1 post (rounded from ~0.2)")
-		assert.Equal(t, 9, len(result["ch3"]), "ch3 should get the bulk of posts")
+		assert.Equal(t, 0, len(result["ch1"]), "ch1 gets 0 posts from floor division")
+		assert.Equal(t, 0, len(result["ch2"]), "ch2 gets 0 posts from floor division")
+		assert.Equal(t, 9, len(result["ch3"]), "ch3 gets the bulk of posts")
+	})
+
+	t.Run("more channels than maxPosts enforces cap", func(t *testing.T) {
+		postsByChannel := map[string][]*model.Post{
+			"ch1": makePosts(10, "ch1"),
+			"ch2": makePosts(10, "ch2"),
+			"ch3": makePosts(10, "ch3"),
+			"ch4": makePosts(10, "ch4"),
+			"ch5": makePosts(10, "ch5"),
+		}
+
+		result, wasTruncated := truncatePostsProportionally(postsByChannel, 3)
+		assert.True(t, wasTruncated)
+		total := 0
+		for _, posts := range result {
+			total += len(posts)
+		}
+		assert.LessOrEqual(t, total, 3, "total allocated posts must not exceed maxPosts")
 	})
 
 	t.Run("handles empty channels", func(t *testing.T) {

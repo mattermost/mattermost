@@ -44,22 +44,22 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
         setIsToggling(true);
 
         try {
-            if (scheduledRecap.enabled) {
-                await dispatch(pauseScheduledRecap(scheduledRecap.id));
+            const action = scheduledRecap.enabled ?
+                pauseScheduledRecap(scheduledRecap.id) :
+                resumeScheduledRecap(scheduledRecap.id);
+            await dispatch(action);
 
-                // TODO: Show toast "Schedule paused"
-            } else {
-                await dispatch(resumeScheduledRecap(scheduledRecap.id));
-
-                // TODO: Show toast "Schedule resumed"
-            }
+            // TODO: Show toast "Schedule paused" / "Schedule resumed"
         } finally {
             setIsToggling(false);
         }
     }, [dispatch, scheduledRecap.id, scheduledRecap.enabled, isToggling]);
 
     const handleDelete = useCallback(async () => {
-        await dispatch(deleteScheduledRecap(scheduledRecap.id));
+        const result = await dispatch(deleteScheduledRecap(scheduledRecap.id)) as unknown as {error?: unknown};
+        if (result?.error) {
+            return;
+        }
         setShowDeleteConfirm(false);
 
         // TODO: Show toast "Schedule deleted"
@@ -109,9 +109,9 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                             disabled={isToggling}
                             size='btn-sm'
                             toggleClassName='btn-toggle-primary'
-                            ariaLabel={scheduledRecap.enabled
-                                ? formatMessage({id: 'recaps.scheduled.toggle.active', defaultMessage: 'Active - click to pause'})
-                                : formatMessage({id: 'recaps.scheduled.toggle.paused', defaultMessage: 'Paused - click to resume'})
+                            ariaLabel={scheduledRecap.enabled ?
+                                formatMessage({id: 'recaps.scheduled.toggle.active', defaultMessage: 'Active - click to pause'}) :
+                                formatMessage({id: 'recaps.scheduled.toggle.paused', defaultMessage: 'Paused - click to resume'})
                             }
                         />
                     </div>

@@ -72,7 +72,9 @@ export function useScheduleDisplay() {
 
         const nextDate = new Date(nextRunAt);
         const now = new Date();
-        const diffDays = Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfNextRun = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+        const diffDays = Math.round((startOfNextRun.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24));
 
         const timeStr = formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
         let dateStr: string;

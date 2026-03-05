@@ -340,43 +340,60 @@ func extractPostIDs(posts []*model.Post) []string {
 
 // truncatePostsProportionally distributes maxPosts across channels proportionally.
 // Busier channels get more posts. Returns truncated map and whether truncation occurred.
+// Channels may receive 0 posts when maxPosts is lower than the number of active channels.
 func truncatePostsProportionally(postsByChannel map[string][]*model.Post, maxPosts int) (map[string][]*model.Post, bool) {
-	// Count total posts
 	totalPosts := 0
 	for _, posts := range postsByChannel {
 		totalPosts += len(posts)
 	}
 
-	// No truncation needed
 	if totalPosts <= maxPosts {
 		return postsByChannel, false
 	}
 
-	result := make(map[string][]*model.Post)
-
-	// Calculate proportional allocation for each channel
+	// First pass: compute proportional shares using floor division.
+	shares := make(map[string]int, len(postsByChannel))
 	for channelID, posts := range postsByChannel {
 		channelCount := len(posts)
 		if channelCount == 0 {
-			result[channelID] = posts
 			continue
 		}
-
-		// Proportional share: (channelCount / totalPosts) * maxPosts
-		// Use float64 for precision, round down to ensure we don't exceed
 		share := int(float64(channelCount) / float64(totalPosts) * float64(maxPosts))
-
-		// Ensure at least 1 post per channel with posts
-		if share < 1 {
-			share = 1
-		}
-
-		// Don't exceed actual channel post count
 		if share > channelCount {
 			share = channelCount
 		}
+		shares[channelID] = share
+	}
 
-		// Take most recent posts (assuming posts are ordered newest first)
+	// Enforce the cap: if floating-point rounding caused totalAllocated > maxPosts,
+	// reduce shares iteratively from channels with the largest allocations.
+	totalAllocated := 0
+	for _, s := range shares {
+		totalAllocated += s
+	}
+	for totalAllocated > maxPosts {
+		largestID := ""
+		largestShare := 0
+		for id, s := range shares {
+			if s > largestShare {
+				largestID = id
+				largestShare = s
+			}
+		}
+		if largestID == "" || largestShare == 0 {
+			break
+		}
+		shares[largestID]--
+		totalAllocated--
+	}
+
+	// Build result: take most recent posts (assuming newest-first ordering)
+	result := make(map[string][]*model.Post, len(postsByChannel))
+	for channelID, posts := range postsByChannel {
+		share := shares[channelID]
+		if share <= 0 {
+			continue
+		}
 		result[channelID] = posts[:share]
 	}
 

@@ -329,7 +329,7 @@ func (s *SqlRecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap
 	query := s.recapSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Status": model.RecapStatusCompleted}).
-		Where(sq.Eq{"ScheduledRecapId": ""}). // Manual = no scheduled recap ID
+		Where(sq.Or{sq.Eq{"ScheduledRecapId": ""}, sq.Expr("ScheduledRecapId IS NULL")}). // Manual = no scheduled recap ID (NULL for pre-migration rows)
 		Where(sq.Eq{"DeleteAt": 0}).
 		OrderBy("CreateAt DESC").
 		Limit(1)
