@@ -1669,7 +1669,7 @@
   "admin.license.renewalCard.usersNumbers_active": "Active Users: ",
   "admin.license.renewalCard.usersNumbers_licensed": "Licensed Users: ",
   "admin.license.setByEnvVar": "License location is set by environment variable",
-  "admin.license.singleChannelGuests.limitReached": " (Limit reached)",
+  "admin.license.singleChannelGuests.limitReached": "(Limit reached)",
   "admin.license.singleChannelGuests.limitReached.tooltip.hint": "The number of single-channel guests cannot exceed the total number of licensed seats",
   "admin.license.singleChannelGuests.limitReached.tooltip.title": "Limit reached for single-channel guests",
   "admin.license.title": "Edition and License",

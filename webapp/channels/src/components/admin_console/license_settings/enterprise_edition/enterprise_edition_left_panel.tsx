@@ -285,7 +285,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
                 <span className='single-channel-guest-limit-reached'>
                     <FormattedMessage
                         id='admin.license.singleChannelGuests.limitReached'
-                        defaultMessage=' (Limit reached)'
+                        defaultMessage='(Limit reached)'
                     />
                     <AlertOutlineIcon size={16}/>
                 </span>
