@@ -184,6 +184,7 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		TotalMessageCount: 0,
 		Status:            model.RecapStatusPending,
 		BotID:             sr.AgentId,
+		ScheduledRecapId:  sr.Id,
 	}
 
 	savedRecap, err := a.Srv().Store().Recap().SaveRecap(recap)

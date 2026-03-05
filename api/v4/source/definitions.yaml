@@ -4719,6 +4719,76 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap channel was created
+    RecapLimitStatus:
+      type: object
+      description: The current user's recap limit status including usage and cooldown information
+      properties:
+        effective_limits:
+          $ref: "#/components/schemas/EffectiveRecapLimits"
+        daily:
+          $ref: "#/components/schemas/DailyUsageStatus"
+        cooldown:
+          $ref: "#/components/schemas/CooldownStatus"
+    EffectiveRecapLimits:
+      type: object
+      description: Resolved recap limit values for a user. A value of -1 means the limit is disabled/unlimited.
+      properties:
+        max_recaps_per_day:
+          type: integer
+          description: Maximum number of recaps the user can create per day (-1 = unlimited)
+        max_scheduled_recaps:
+          type: integer
+          description: Maximum number of scheduled recaps (-1 = unlimited)
+        max_channels_per_recap:
+          type: integer
+          description: Maximum number of channels per recap (-1 = unlimited)
+        max_posts_per_recap:
+          type: integer
+          description: Maximum number of posts per recap (-1 = unlimited)
+        max_tokens_per_recap:
+          type: integer
+          description: Maximum number of tokens per recap (-1 = unlimited)
+        max_posts_per_day:
+          type: integer
+          description: Maximum number of posts that can be processed per day (-1 = unlimited)
+        cooldown_minutes:
+          type: integer
+          description: Cooldown period in minutes between recap creations (-1 = no cooldown)
+        source:
+          type: string
+          enum: [system, group, user]
+          description: Where the effective limits originated from
+        source_id:
+          type: string
+          description: Group ID or User ID if overridden, empty for system defaults
+    DailyUsageStatus:
+      type: object
+      description: Daily recap usage tracking
+      properties:
+        used:
+          type: integer
+          description: Number of recaps used today
+        limit:
+          type: integer
+          description: Maximum recaps allowed per day
+        reset_at:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds when daily usage resets
+    CooldownStatus:
+      type: object
+      description: Cooldown state for recap creation
+      properties:
+        is_active:
+          type: boolean
+          description: Whether the cooldown is currently active
+        available_at:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds when cooldown ends
+        retry_after_seconds:
+          type: integer
+          description: Seconds until recap creation is available again
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
