@@ -365,7 +365,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         // validate title
         const title = screen.queryByTestId('property-card-title');
         expect(title).toBeVisible();
-        expect(title).toHaveTextContent('@reporting_user flagged a message for review');
+        expect(title).toHaveTextContent('@reporting_user submitted a message for review');
 
         expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
 
