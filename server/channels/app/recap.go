@@ -45,7 +45,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 			if now < cooldownEndTime {
 				remainingMs := cooldownEndTime - now
 				remainingMinutes := int(remainingMs / 60000)
-			remainingMinutes = max(remainingMinutes, 1) // Show at least 1 minute
+				remainingMinutes = max(remainingMinutes, 1) // Show at least 1 minute
 
 				return nil, model.NewAppError("CreateRecap",
 					"app.recap.cooldown_active.app_error",
