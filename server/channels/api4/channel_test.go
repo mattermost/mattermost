@@ -204,8 +204,8 @@ func TestCreateChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("should override channel name with server-generated ID when UseSecureURLs is enabled and not otherwise", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+	t.Run("should override channel name with server-generated ID when UseAnonymousURLs is enabled and not otherwise", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
@@ -214,17 +214,17 @@ func TestCreateChannel(t *testing.T) {
 		}()
 
 		originalName := GenerateTestChannelName()
-		ch := &model.Channel{DisplayName: "Secure URL Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
+		ch := &model.Channel{DisplayName: "Anonymous URL Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
 		createdChannel, response, err := th.SystemAdminClient.CreateChannel(context.Background(), ch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 
 		require.NotEqual(t, originalName, createdChannel.Name, "channel name should be overridden by server")
 		require.True(t, model.IsValidId(createdChannel.Name))
-		require.Equal(t, "Secure URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+		require.Equal(t, "Anonymous URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
 
-		// setting UseSecureURLs to false should preserve names
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+		// setting UseAnonymousURLs to false should preserve names
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
 
 		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}
 		createdChannel, response, err = th.SystemAdminClient.CreateChannel(context.Background(), ch)
@@ -234,7 +234,7 @@ func TestCreateChannel(t *testing.T) {
 
 		// setting license to something other than Enterprise Advanced should also preserve team name
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
 
 		originalName = GenerateTestChannelName()
 		ch = &model.Channel{DisplayName: "Regular Channel", Name: originalName, Type: model.ChannelTypeOpen, TeamId: team.Id}

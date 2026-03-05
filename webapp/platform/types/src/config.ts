@@ -228,7 +228,7 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
-    UseSecureURLs: string;
+    UseAnonymousURLs: string;
 
     // Burn on Read Settings
     EnableBurnOnRead: string;
@@ -638,7 +638,7 @@ export type RateLimitSettings = {
 export type PrivacySettings = {
     ShowEmailAddress: boolean;
     ShowFullName: boolean;
-    UseSecureURLs: boolean;
+    UseAnonymousURLs: boolean;
 };
 
 export type SupportSettings = {

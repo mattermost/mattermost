@@ -10,7 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {isSecureURLEnabled} from 'selectors/config';
+import {isAnonymousURLEnabled} from 'selectors/config';
 
 import ExternalLink from 'components/external_link';
 
@@ -40,7 +40,7 @@ type Props = {
 
 export default function CreateTeamForm({step, state: parentState, updateParent, actions, history}: Props) {
     const teamURLInput = useRef<HTMLInputElement>(null);
-    const useSecureURLs = useSelector(isSecureURLEnabled);
+    const UseAnonymousURLs = useSelector(isAnonymousURLEnabled);
 
     const [teamDisplayName, setTeamDisplayName] = useState<string>(parentState.team?.display_name || '');
     const [teamURL, setTeamURL] = useState<string>(parentState.team?.name || '');
@@ -100,7 +100,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             return;
         }
 
-        if (useSecureURLs) {
+        if (UseAnonymousURLs) {
             doCreateTeam();
             return;
         }
@@ -113,7 +113,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         setTeamURL(newState.team!.name);
 
         updateParent(newState);
-    }, [isValidTeamName, useSecureURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
+    }, [isValidTeamName, UseAnonymousURLs, teamDisplayName, parentState, updateParent, doCreateTeam]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setTeamDisplayName(e.target.value);
@@ -268,12 +268,12 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             </>
         );
 
-        if (useSecureURLs || step === 'team_url') {
+        if (UseAnonymousURLs || step === 'team_url') {
             return isLoading ? loadingMessage : finishMessage;
         }
 
         return nextMessage;
-    }, [useSecureURLs, isLoading, step]);
+    }, [UseAnonymousURLs, isLoading, step]);
 
     if (step === 'team_url') {
         return (

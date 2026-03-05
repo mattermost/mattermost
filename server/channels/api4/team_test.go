@@ -153,8 +153,8 @@ func TestCreateTeam(t *testing.T) {
 		}
 	})
 
-	t.Run("should override team name with server-generated ID when UseSecureURLs is enabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+	t.Run("should override team name with server-generated ID when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
@@ -165,17 +165,17 @@ func TestCreateTeam(t *testing.T) {
 		th.LoginBasic(t)
 
 		originalName := "originalname"
-		team := &model.Team{Name: originalName, DisplayName: "Secure URL Team", Type: model.TeamOpen}
+		team := &model.Team{Name: originalName, DisplayName: "Anonymous URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
 		require.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
 		require.True(t, model.IsValidId(createdTeam.Name))
-		require.Equal(t, "Secure URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+		require.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
 
-		// setting UseSecureURl to false should preserve team name
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = false })
+		// setting UseAnonymousURLs to false should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
 		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
 		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestCreateTeam(t *testing.T) {
 		require.Equal(t, originalName, createdTeam.Name)
 
 		// setting license to something other than Enterprise Advanced should preserve team name
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseSecureURLs = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 		originalName = "original-name-2"

@@ -43,14 +43,22 @@ describe('component/ConvertGmToChannelModal', () => {
         entities: {
             teams: {
                 teams: {
-                    team_id_1: {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'} as Team,
-                    team_id_2: {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'} as Team,
+                    team_id_1: {
+                        id: 'team_id_1',
+                        display_name: 'Team 1',
+                        name: 'team_1',
+                    } as Team,
+                    team_id_2: {
+                        id: 'team_id_2',
+                        display_name: 'Team 2',
+                        name: 'team_2',
+                    } as Team,
                 },
                 currentTeamId: 'team_id_1',
             },
             general: {
                 config: {
-                    UseSecureURLs: 'false',
+                    UseAnonymousURLs: 'false',
                 },
                 license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
             },
@@ -180,7 +188,7 @@ describe('component/ConvertGmToChannelModal', () => {
         await userEvent.click(confirmButton!);
     });
 
-    test('when UseSecureURLs is enabled, user cannot specify a channel URL', async () => {
+    test('when UseAnonymousURLs is enabled, user cannot specify a channel URL', async () => {
         TestHelper.initBasic(Client4);
         nock(Client4.getBaseRoute()).
             get('/channels/channel_id_1/common_teams').
@@ -195,7 +203,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 general: {
                     ...baseState.entities?.general,
                     config: {
-                        UseSecureURLs: 'true',
+                        UseAnonymousURLs: 'true',
                     },
                 },
             },
@@ -207,7 +215,12 @@ describe('component/ConvertGmToChannelModal', () => {
         );
 
         await waitFor(
-            () => expect(screen.queryByText('Conversation history will be visible to any channel members')).toBeInTheDocument(),
+            () =>
+                expect(
+                    screen.queryByText(
+                        'Conversation history will be visible to any channel members',
+                    ),
+                ).toBeInTheDocument(),
             {timeout: 1500},
         );
 

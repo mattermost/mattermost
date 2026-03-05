@@ -85,7 +85,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 
-	if *c.App.Config().PrivacySettings.UseSecureURLs && model.MinimumEnterpriseAdvancedLicense(license) {
+	if *c.App.Config().PrivacySettings.UseAnonymousURLs && model.MinimumEnterpriseAdvancedLicense(license) {
 		team.Name = model.NewId()
 	}
 

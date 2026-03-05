@@ -14,7 +14,7 @@ const defaultState = {
     entities: {
         general: {
             config: {
-                UseSecureURLs: 'false',
+                UseAnonymousURLs: 'false',
             },
         },
     },
@@ -90,12 +90,12 @@ describe('CreateTeamForm - display_name step', () => {
         }));
     });
 
-    describe('with UseSecureURLs enabled', () => {
+    describe('with UseAnonymousURLs enabled', () => {
         const secureURLState = {
             entities: {
                 general: {
                     config: {
-                        UseSecureURLs: 'true',
+                        UseAnonymousURLs: 'true',
                     },
                     license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
                 },

@@ -16,25 +16,29 @@ const baseProps = {
     onURLChange: jest.fn(),
 };
 
-const makeState = (useSecureURLs: string) => ({
+const makeState = (UseAnonymousURLs: string) => ({
     entities: {
         general: {
             config: {
-                UseSecureURLs: useSecureURLs,
+                UseAnonymousURLs,
             },
             license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
         },
         teams: {
             currentTeamId: 'team-id',
             teams: {
-                'team-id': {id: 'team-id', name: 'test-team', display_name: 'Test Team'},
+                'team-id': {
+                    id: 'team-id',
+                    name: 'test-team',
+                    display_name: 'Test Team',
+                },
             },
         },
     },
 });
 
 describe('ChannelNameFormField - URL editor visibility', () => {
-    test('should show URL editor when UseSecureURLs is false and creating a new channel', () => {
+    test('should show URL editor when UseAnonymousURLs is false and creating a new channel', () => {
         renderWithContext(
             <ChannelNameFormField {...baseProps}/>,
             makeState('false'),
@@ -43,7 +47,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.getByTestId('urlInputLabel')).toBeVisible();
     });
 
-    test('should show URL editor when UseSecureURLs is false and editing an existing channel', () => {
+    test('should show URL editor when UseAnonymousURLs is false and editing an existing channel', () => {
         renderWithContext(
             <ChannelNameFormField
                 {...baseProps}
@@ -55,7 +59,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.getByTestId('urlInputLabel')).toBeVisible();
     });
 
-    test('should not show URL editor when UseSecureURLs is true and creating a new channel', () => {
+    test('should not show URL editor when UseAnonymousURLs is true and creating a new channel', () => {
         renderWithContext(
             <ChannelNameFormField {...baseProps}/>,
             makeState('true'),
@@ -64,7 +68,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.queryByTestId('urlInputLabel')).not.toBeInTheDocument();
     });
 
-    test('should show URL editor when UseSecureURLs is true and editing an existing channel', () => {
+    test('should show URL editor when UseAnonymousURLs is true and editing an existing channel', () => {
         renderWithContext(
             <ChannelNameFormField
                 {...baseProps}

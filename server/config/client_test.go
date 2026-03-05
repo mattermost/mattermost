@@ -151,16 +151,16 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"enable UseSecureURLs prop",
+			"enable UseAnonymousURLs prop",
 			&model.Config{
 				PrivacySettings: model.PrivacySettings{
-					UseSecureURLs: model.NewPointer(true),
+					UseAnonymousURLs: model.NewPointer(true),
 				},
 			},
 			"tag1",
 			nil,
 			map[string]string{
-				"UseSecureURLs": "true",
+				"UseAnonymousURLs": "true",
 			},
 		},
 		{

@@ -8,7 +8,7 @@ import {getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {isSecureURLEnabled} from 'selectors/config';
+import {isAnonymousURLEnabled} from 'selectors/config';
 
 import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
 
@@ -32,7 +32,7 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = isCloudLicense(license);
     const isFreeTrial = subscription?.is_free_trial === 'true';
 
-    const useSecureURLs = isSecureURLEnabled(state);
+    const useAnonymousURLs = isAnonymousURLEnabled(state);
 
     return {
         currentChannel,
@@ -41,7 +41,7 @@ function mapStateToProps(state: GlobalState) {
         siteName,
         isCloud,
         isFreeTrial,
-        useSecureURLs,
+        useAnonymousURLs,
     };
 }
 

@@ -10,7 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {isSecureURLEnabled} from 'selectors/config';
+import {isAnonymousURLEnabled} from 'selectors/config';
 
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';
@@ -58,7 +58,7 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const useSecureURLs = useSelector(isSecureURLEnabled);
+    const useAnonymousURLs = useSelector(isAnonymousURLEnabled);
 
     // Track if the field has been interacted with
     const [hasInteracted, setHasInteracted] = useState(false);
@@ -187,7 +187,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.currentUrl]);
 
-    const showURLEditor = props.isEditingExistingChannel || !useSecureURLs;
+    const showURLEditor = props.isEditingExistingChannel || !useAnonymousURLs;
 
     return (
         <>

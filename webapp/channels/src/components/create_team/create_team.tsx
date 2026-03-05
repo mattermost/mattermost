@@ -48,7 +48,7 @@ export type Props = {
     isFreeTrial: boolean;
     usageDeltas: CloudUsage;
     intl: IntlShape;
-    useSecureURLs?: boolean;
+    useAnonymousURLs?: boolean;
 };
 
 type State = {
@@ -150,7 +150,7 @@ export class CreateTeam extends React.PureComponent<Props & RouteComponentProps,
                                     />
 
                                     {
-                                        !this.props.useSecureURLs &&
+                                        !this.props.useAnonymousURLs &&
                                         <Route
                                             path={`${this.props.match.url}/team_url`}
                                             render={(props) => (
