@@ -136,7 +136,7 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
     >
       <div
         class="post-image normal"
-        style="background-image: url(thumbnail_id); background-size: cover;"
+        style="background-image: url(\\"thumbnail_id\\"); background-size: cover;"
       />
     </a>
     <div

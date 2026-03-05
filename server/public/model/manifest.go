@@ -254,7 +254,7 @@ func (m *Manifest) HasClient() bool {
 func (m *Manifest) ClientManifest() *Manifest {
 	cm := new(Manifest)
 	*cm = *m
-	cm.Name = ""
+	cm.Name = m.Name
 	cm.Description = ""
 	cm.Server = nil
 	if cm.Webapp != nil {

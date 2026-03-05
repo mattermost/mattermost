@@ -335,7 +335,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     <div className='form__help'>
                                         <FormattedMessage
                                             id='add_incoming_webhook.username.help'
-                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \"-\", \"_\", and \".\". If left blank, the name specified by the webhook creator is used.'
+                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols "-", "_", and ".". If left blank, the name specified by the webhook creator is used.'
                                         />
                                     </div>
                                 </div>

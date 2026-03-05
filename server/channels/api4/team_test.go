@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -232,6 +231,29 @@ func TestCreateTeamSanitization(t *testing.T) {
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	}, "system admin")
+}
+
+func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
+	th := Setup(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	// Remove PermissionInviteUser from the default team user role
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+	// Regular user creates a team - InviteId should be hidden
+	// since the team user role lacks invite permission
+	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
+		DisplayName:    "Team Without Invite Permission",
+		Name:           GenerateTestTeamName(),
+		Email:          th.GenerateTestEmail(),
+		Type:           model.TeamOpen,
+		AllowedDomains: "simulator.amazonses.com,localhost",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+	require.Empty(t, rteam.InviteId, "should have hidden invite_id when user lacks invite permission")
 }
 
 func TestGetTeam(t *testing.T) {
@@ -541,6 +563,114 @@ func TestUpdateTeam(t *testing.T) {
 		team.Name = "new-name"
 		_, _, err = client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
+	})
+}
+
+func TestUpdateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Create a team with AllowOpenInvite=false
+	team := &model.Team{
+		DisplayName:     "Test Team",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: false,
+	}
+	team, _, err := th.Client.CreateTeam(context.Background(), team)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	t.Run("user with InviteUser permission can change AllowOpenInvite", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
+
+		// Reset for next test
+		team.AllowOpenInvite = false
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.False(t, updatedTeam.AllowOpenInvite)
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowOpenInvite", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowOpenInvite to true
+		team.AllowOpenInvite = true
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowOpenInvite didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.False(t, fetchedTeam.AllowOpenInvite, "AllowOpenInvite should still be false")
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowedDomains", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowedDomains
+		team.AllowedDomains = "example.com"
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowedDomains didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Empty(t, fetchedTeam.AllowedDomains, "AllowedDomains should still be empty")
+	})
+
+	t.Run("user without InviteUser permission can change other fields", func(t *testing.T) {
+		// Remove InviteUser permission
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team to get clean state
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// Change DisplayName and Description (should succeed)
+		team.DisplayName = "Updated Display Name"
+		team.Description = "Updated Description"
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.Equal(t, "Updated Display Name", updatedTeam.DisplayName)
+		require.Equal(t, "Updated Description", updatedTeam.Description)
+	})
+
+	t.Run("system admin can change AllowOpenInvite regardless of permissions", func(t *testing.T) {
+		// Remove InviteUser permission for regular roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// System admin should be able to change AllowOpenInvite
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.SystemAdminClient.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
 	})
 }
 
@@ -2627,7 +2757,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	token := model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2651,7 +2781,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TokenTypeTeamInvitation, "")
+	token = model.NewToken(model.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
@@ -2664,7 +2794,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestID()
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2711,7 +2841,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -3999,23 +4129,23 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
 
 	t.Run("team domain restrictions should not affect inviting guests", func(t *testing.T) {
-		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err, "guest user invites should not be affected by team restrictions")
 	})
 
 	t.Run("guest restrictions should affect guest users", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
 
-		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err)
 		require.Len(t, res, 2)
 		require.NotNil(t, res[0].Error)
 		require.Nil(t, res[1].Error)
 
-		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
 	})
 
@@ -4041,12 +4171,12 @@ func TestInviteGuestsToTeam(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id},
 			Message:  "test message",
 		}
-		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id)
+		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, err)
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
-		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id)
+		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)

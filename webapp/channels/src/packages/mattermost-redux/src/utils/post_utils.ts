@@ -57,6 +57,10 @@ export function canEditPost(state: GlobalState, config: any, license: any, teamI
         return false;
     }
 
+    if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
+        return false;
+    }
+
     const isOwner = isPostOwner(userId, post);
     let canEdit = true;
 

@@ -29,7 +29,6 @@ type Props = {
     onFileChange?: (e: ChangeEvent<HTMLInputElement>) => void;
     updateSection?: (e: MouseEvent<HTMLButtonElement>) => void;
     imageContext?: string;
-    maxFileSize?: number;
     helpText?: ReactNode;
 }
 

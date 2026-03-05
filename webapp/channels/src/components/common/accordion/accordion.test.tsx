@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import Accordion from 'components/common/accordion/accordion';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('/components/common/Accordion', () => {
     const texts = ['First List Item', 'Second List Item', 'Third List Item'];
@@ -54,87 +53,73 @@ describe('/components/common/Accordion', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<Accordion {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('test accordion items length is 2 as specified in items property in baseProps', () => {
-        const wrapper = shallow(<Accordion {...baseProps}/>);
-        const accordionItems = wrapper.find('AccordionCard');
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
+        const accordionItems = container.querySelectorAll('.accordion-card');
 
         expect(accordionItems.length).toBe(2);
     });
 
-    test('test accordion opens first accordion item when clicked', () => {
-        const wrapper = mountWithIntl(<Accordion {...baseProps}/>);
-        const firstAccordionCard = wrapper.find('ul AccordionCard:first-child');
-        const header = firstAccordionCard.find('div.accordion-card-header');
-        header.simulate('click');
+    test('test accordion opens first accordion item when clicked', async () => {
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
+        const firstAccordionCard = container.querySelector('ul li.accordion-card');
+        const header = firstAccordionCard!.querySelector('.accordion-card-header') as HTMLElement;
+        await userEvent.click(header);
 
-        const firstChildItem = firstAccordionCard.find('div.accordion-card-container p.accordion-item-content-el:first-child');
-        const slide1Text = firstChildItem.text();
+        const firstChildItem = container.querySelector('.accordion-card.active .accordion-card-container .accordion-item-content-el');
+        const slide1Text = firstChildItem!.textContent;
         expect(slide1Text).toEqual('First List Item');
     });
 
-    test('test accordion opens ONLY one accordion item at a time if NO openMultiple prop is set or set to FALSE', () => {
-        const wrapper = mountWithIntl(<Accordion {...baseProps}/>);
-        const firstAccordionCard = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCard = wrapper.find('ul AccordionCard:last-child');
+    test('test accordion opens ONLY one accordion item at a time if NO openMultiple prop is set or set to FALSE', async () => {
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
+        const accordionCards = container.querySelectorAll('ul li.accordion-card');
+        const firstAccordionCard = accordionCards[0];
+        const secondAccordionCard = accordionCards[1];
 
-        const header1 = firstAccordionCard.find('div.accordion-card-header');
-        const header2 = secondAccordionCard.find('div.accordion-card-header');
+        const header1 = firstAccordionCard.querySelector('.accordion-card-header') as HTMLElement;
+        const header2 = secondAccordionCard.querySelector('.accordion-card-header') as HTMLElement;
 
-        header1.simulate('click');
-
-        // refind the element after making changes so those gets reflected
-        const firstAccordionCardAfterEvent = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCardAfterEvent = wrapper.find('ul AccordionCard:last-child');
+        await userEvent.click(header1);
 
         // clicking first list element should only apply the active class to the first one and not to the last
-        expect(firstAccordionCardAfterEvent.find('li.accordion-card').hasClass('active')).toEqual(true);
-        expect(secondAccordionCardAfterEvent.find('li.accordion-card').hasClass('active')).toEqual(false);
+        expect(firstAccordionCard.classList.contains('active')).toEqual(true);
+        expect(secondAccordionCard.classList.contains('active')).toEqual(false);
 
-        header2.simulate('click');
-
-        // refind the element after making changes so those gets reflected
-        const firstAccordionCardAfterEvent1 = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCardAfterEvent1 = wrapper.find('ul AccordionCard:last-child');
+        await userEvent.click(header2);
 
         // clicking last list element should only apply the active class to the last one and not to the first
-        expect(firstAccordionCardAfterEvent1.find('li.accordion-card').hasClass('active')).toEqual(false);
-        expect(secondAccordionCardAfterEvent1.find('li.accordion-card').hasClass('active')).toEqual(true);
+        expect(firstAccordionCard.classList.contains('active')).toEqual(false);
+        expect(secondAccordionCard.classList.contains('active')).toEqual(true);
     });
 
-    test('test accordion opens MORE THAN one accordion item at a time if openMultiple prop IS set to TRUE', () => {
-        const wrapper = mountWithIntl(
+    test('test accordion opens MORE THAN one accordion item at a time if openMultiple prop IS set to TRUE', async () => {
+        const {container} = renderWithContext(
             <Accordion
                 {...baseProps}
                 expandMultiple={true}
             />);
-        const firstAccordionCard = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCard = wrapper.find('ul AccordionCard:last-child');
+        const accordionCards = container.querySelectorAll('ul li.accordion-card');
+        const firstAccordionCard = accordionCards[0];
+        const secondAccordionCard = accordionCards[1];
 
-        const header1 = firstAccordionCard.find('div.accordion-card-header');
-        const header2 = secondAccordionCard.find('div.accordion-card-header');
+        const header1 = firstAccordionCard.querySelector('.accordion-card-header') as HTMLElement;
+        const header2 = secondAccordionCard.querySelector('.accordion-card-header') as HTMLElement;
 
-        header1.simulate('click');
-
-        // refind the element after making changes so those gets reflected
-        const firstAccordionCardAfterEvent = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCardAfterEvent = wrapper.find('ul AccordionCard:last-child');
+        await userEvent.click(header1);
 
         // clicking first list element should only apply the active class to the first one and not to the last
-        expect(firstAccordionCardAfterEvent.find('li.accordion-card').hasClass('active')).toEqual(true);
-        expect(secondAccordionCardAfterEvent.find('li.accordion-card').hasClass('active')).toEqual(false);
+        expect(firstAccordionCard.classList.contains('active')).toEqual(true);
+        expect(secondAccordionCard.classList.contains('active')).toEqual(false);
 
-        header2.simulate('click');
-
-        // refind the element after making changes so those gets reflected
-        const firstAccordionCardAfterEvent1 = wrapper.find('ul AccordionCard:first-child');
-        const secondAccordionCardAfterEvent1 = wrapper.find('ul AccordionCard:last-child');
+        await userEvent.click(header2);
 
         // clicking last list element should apply active class to both
-        expect(firstAccordionCardAfterEvent1.find('li.accordion-card').hasClass('active')).toEqual(true);
-        expect(secondAccordionCardAfterEvent1.find('li.accordion-card').hasClass('active')).toEqual(true);
+        expect(firstAccordionCard.classList.contains('active')).toEqual(true);
+        expect(secondAccordionCard.classList.contains('active')).toEqual(true);
     });
 });

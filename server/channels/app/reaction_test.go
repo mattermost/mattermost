@@ -131,7 +131,7 @@ func TestSaveReactionForPost(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "test post",
 		}
-		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		post, _, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		reaction := &model.Reaction{
@@ -191,7 +191,7 @@ func TestDeleteReactionForPostWithRestrictedDM(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "test post",
 		}
-		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		post, _, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		reaction := &model.Reaction{
@@ -226,7 +226,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -258,7 +258,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",

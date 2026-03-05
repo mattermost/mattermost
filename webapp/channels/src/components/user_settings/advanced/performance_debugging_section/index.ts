@@ -12,8 +12,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import type {OwnProps} from './performance_debugging_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+}
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreferences = props.adminMode && props.userId ? getUserPreferences(state, props.userId) : undefined;

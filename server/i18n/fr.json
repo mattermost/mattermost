@@ -792,10 +792,6 @@
     "translation": "Impossible de trouver le canal spécifié. Veuillez utiliser l'[identifiant de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Impossible de mettre en sourdine le canal {{.Channel}}, car vous n'êtes pas membre de celui-ci."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Vous ne recevrez pas de notifications pour le canal {{.Channel}} jusqu'à ce que vous désactiviez le mode sourdine."
   },

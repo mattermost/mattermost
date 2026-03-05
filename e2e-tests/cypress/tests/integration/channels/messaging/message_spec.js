@@ -28,6 +28,15 @@ describe('Message', () => {
         });
     });
 
+    beforeEach(() => {
+        // # Close any open modals from previous tests (e.g., move-thread-modal)
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
+    });
+
     it('MM-T77 Consecutive message does not repeat profile info', () => {
         // # Wait for posts to load
         cy.get('#postListContent').should('be.visible');
@@ -69,7 +78,14 @@ describe('Message', () => {
 
             // # Open the "..." menu on a post in the main to move the focus out of the main input box
             cy.clickPostDotMenu(postId);
-            cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
+            cy.get(`#CENTER_dropdown_${postId}`).should('be.visible');
+
+            // # Press ESC on body to close the menu (more reliable than typing on dropdown)
+            cy.get('body').type('{esc}');
+
+            // # Wait for menu to close and ensure no modals are open
+            cy.get(`#CENTER_dropdown_${postId}`).should('not.exist');
+            cy.get('.modal.in').should('not.exist');
 
             // # Push a character key such as "A"
             cy.uiGetPostTextBox().type('A');

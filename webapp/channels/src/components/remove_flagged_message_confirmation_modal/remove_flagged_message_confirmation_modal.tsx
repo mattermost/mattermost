@@ -63,7 +63,6 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         id: 'keep_remove_flag_content_modal.action_remove.body',
         defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
-        br: <br/>,
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
@@ -72,7 +71,6 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         id: 'keep_remove_flag_content_modal.action_keep.body',
         defaultMessage: 'You are about to keep a flagged message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
-        br: <br/>,
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
@@ -184,16 +182,20 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             isConfirmDisabled={submitting}
         >
             <div className='body'>
-                <div className='section'>
+                <div
+                    className='section'
+                    data-testid='keep-remove-flagged-message-body'
+                >
                     {body}
                     <br/>
                     <br/>
-                    {subtext}
+                    <span data-testid='keep-remove-flagged-message-subtext'>{subtext}</span>
                 </div>
 
                 <div className='section comment_section'>
                     <div
                         className='section_title'
+                        data-testid='keep-remove-flagged-message-comment-title'
                     >
                         {contentFlaggingConfig?.reviewer_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
                     </div>
@@ -214,7 +216,10 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
                     />
                 </div>
                 {requestError &&
-                    <div className='request_error'>
+                    <div
+                        className='request_error'
+                        data-testid='keep-remove-flagged-message-request-error'
+                    >
                         <i className='icon icon-alert-outline'/>
                         <span>{requestError}</span>
                     </div>

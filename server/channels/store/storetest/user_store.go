@@ -4464,22 +4464,22 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, rctx request.CTX, 
 	// Two months to two days (without bots)
 	count, nerr := ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 	require.NoError(t, nerr)
-	assert.Equal(t, int64(2), count)
+	assert.Equal(t, int32(2), count)
 
 	// Two months to two days (without bots)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
 	require.NoError(t, nerr)
-	assert.Equal(t, int64(2), count)
+	assert.Equal(t, int32(2), count)
 
 	// Two days to present - (with bots)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
 	require.NoError(t, nerr)
-	assert.Equal(t, int64(2), count)
+	assert.Equal(t, int32(2), count)
 
 	// Two days to present - (with bots, excluding deleted)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
 	require.NoError(t, nerr)
-	assert.Equal(t, int64(2), count)
+	assert.Equal(t, int32(2), count)
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX, ss store.Store) {

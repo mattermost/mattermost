@@ -1,0 +1,54 @@
+  /api/v4/ai/agents:
+    get:
+      tags:
+        - ai
+      summary: Get available AI agents
+      description: >
+        Retrieve all available AI agents from the AI plugin's bridge API.
+        If a user ID is provided, only agents accessible to that user are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetAIAgents
+      responses:
+        "200":
+          description: AI agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/ai/services:
+    get:
+      tags:
+        - ai
+      summary: Get available AI services
+      description: >
+        Retrieve all available AI services from the AI plugin's bridge API.
+        If a user ID is provided, only services accessible to that user
+        (via their permitted bots) are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetAIServices
+      responses:
+        "200":
+          description: AI services retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+

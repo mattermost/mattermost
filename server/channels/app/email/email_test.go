@@ -118,6 +118,7 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -148,6 +149,7 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -161,6 +163,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			true,
+			false,
 			false,
 			false,
 		)
@@ -181,6 +184,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			message,
+			false,
 			false,
 			false,
 			false,

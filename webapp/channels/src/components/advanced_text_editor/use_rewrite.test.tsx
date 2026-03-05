@@ -85,7 +85,6 @@ describe('useRewrite', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         MockedRewriteMenu.mockClear();
         document.body.innerHTML = '';
         try {
@@ -159,7 +158,7 @@ describe('useRewrite', () => {
         it('should successfully rewrite message', async () => {
             const {result} = renderHookWithProps();
             render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -169,6 +168,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.SHORTEN,
                     undefined,
+                    '',
                 );
             });
 
@@ -199,6 +199,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -210,6 +211,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
         });
@@ -367,6 +369,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.SHORTEN,
                     undefined,
+                    '',
                 );
             });
         });
@@ -382,6 +385,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -404,6 +408,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
         });
@@ -470,6 +475,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -482,8 +488,30 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
+        });
+
+        it('should not trigger rewrite on Enter key during IME composition', () => {
+            const {result, rerender} = renderHookWithProps();
+            render(result.current.additionalControl);
+            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props.setPrompt('Custom prompt');
+
+            rerender();
+            render(result.current.additionalControl);
+            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            const mockEvent = {
+                key: 'Enter',
+                nativeEvent: {isComposing: true},
+                stopPropagation: jest.fn(),
+            } as unknown as React.KeyboardEvent<HTMLInputElement>;
+
+            props.onCustomPromptKeyDown(mockEvent);
+
+            expect(mockEvent.stopPropagation).not.toHaveBeenCalled();
+            expect(Client4.getAIRewrittenMessage).not.toHaveBeenCalled();
         });
     });
 
@@ -501,6 +529,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.IMPROVE_WRITING,
                     undefined,
+                    '',
                 );
             });
         });

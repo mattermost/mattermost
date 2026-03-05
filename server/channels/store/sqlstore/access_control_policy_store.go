@@ -19,6 +19,7 @@ import (
 )
 
 const MaxPerPage = 1000
+const DefaultPerPage = 10
 
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
@@ -358,12 +359,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 
 	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
 		// if the policy is a parent, we need to update the child policies
-		var expr sq.Sqlizer
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
-		} else {
-			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
-		}
+		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
@@ -540,11 +536,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 	query := s.selectQueryBuilder
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
-		} else {
-			query = query.Where(sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID)))
-		}
+		query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
 	}
 
 	if opts.Type != "" {
@@ -561,7 +553,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
@@ -598,9 +590,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var query sq.SelectBuilder
 	if opts.IncludeChildren && opts.ParentID == "" {
 		columns := accessControlPolicySliceColumns("p")
-		childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+		childIDs := `COALESCE((SELECT JSON_AGG(c.ID)
      FROM AccessControlPolicies c
-	 WHERE c.Type != 'parent' 
+	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
 		columns = append(columns, childIDs)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
@@ -647,7 +639,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}

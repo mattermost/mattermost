@@ -42,9 +42,6 @@ linters:
           - misspell
         path: platform/shared/markdown/html_entities.go
       - linters:
-          - unqueryvet
-        path: channels/store/sqlstore/post_store.go
-      - linters:
           - staticcheck
         text: SA1019
       - linters:
@@ -92,6 +89,7 @@ linters:
       - linters:
           - errcheck
         path: "\
+          channels/store/localcachelayer/autotranslation_layer.go|\
           channels/store/localcachelayer/channel_layer.go|\
           channels/store/localcachelayer/channel_layer_test.go|\
           channels/store/localcachelayer/emoji_layer.go|\
@@ -114,6 +112,7 @@ linters:
           channels/store/localcachelayer/webhook_layer_test.go|\
           channels/store/retrylayer/retrylayer_test.go|\
           channels/store/searchtest/channel_layer.go|\
+          channels/store/searchtest/cjk_plugins.go|\
           channels/store/searchtest/file_info_layer.go|\
           channels/store/searchtest/helper.go|\
           channels/store/searchtest/post_layer.go|\

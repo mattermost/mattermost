@@ -257,7 +257,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
+			opts := append(ps.storeOptions, sqlstore.WithFeatureFlags(func() *model.FeatureFlags {
+				return ps.Config().FeatureFlags
+			}))
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -635,7 +638,7 @@ func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface 
 	return ps.ldapDiagnostic
 }
 
-// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+// DatabaseTypeAndSchemaVersion returns the database type and current version of the schema
 func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
 	schemaVersion, err := ps.Store.GetDBSchemaVersion()
 	if err != nil {

@@ -570,6 +570,10 @@ func (wc *WebConn) writePump() {
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
+			if evtOk && evt.IsRejected() {
+				continue
+			}
+
 			buf.Reset()
 			var err error
 			if evtOk {

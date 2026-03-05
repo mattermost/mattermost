@@ -10,7 +10,6 @@ import './start_trial_btn.scss';
 
 export type StartTrialBtnProps = {
     onClick?: () => void;
-    handleEmbargoError?: () => void;
     btnClass?: string;
     renderAsButton?: boolean;
     disabled?: boolean;

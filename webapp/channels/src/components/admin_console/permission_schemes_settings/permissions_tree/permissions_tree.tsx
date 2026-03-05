@@ -320,7 +320,9 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
         if (isMinimumEnterpriseAdvancedLicense(license)) {
             publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_BANNER);
+            publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION);
             privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_BANNER);
+            privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION);
             privateChannelsGroup.permissions.push(Permissions.MANAGE_CHANNEL_ACCESS_RULES);
         }
 

@@ -32,7 +32,7 @@ const FeatureList = (props: FeatureListProps) => {
         intl.formatMessage(
             {
                 id: 'admin.billing.subscription.planDetails.features.limitedFileStorage',
-                defaultMessage: 'Limited to {limit} File Storage',
+                defaultMessage: 'Limited to {limit} file storage',
             },
             {
 

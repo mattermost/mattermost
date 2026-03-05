@@ -28,8 +28,46 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// Plugin RPC Architecture
+//
+// Mattermost plugins run as separate OS processes for isolation and safety, using
+// HashiCorp's go-plugin library. Communication between the server and plugins is
+// bidirectional via RPC:
+//
+//	┌─────────────────────────┐                    ┌─────────────────────────┐
+//	│   Mattermost Server     │                    │     Plugin Process      │
+//	│                         │                    │                         │
+//	│  ┌───────────────────┐  │   hooks (calls)    │  ┌───────────────────┐  │
+//	│  │ hooksRPCClient    │──┼───────────────────►│  │ hooksRPCServer    │  │
+//	│  └───────────────────┘  │                    │  └───────────────────┘  │
+//	│                         │                    │                         │
+//	│  ┌───────────────────┐  │   API (callbacks)  │  ┌───────────────────┐  │
+//	│  │ apiRPCServer      │◄─┼────────────────────┼──│ apiRPCClient      │  │
+//	│  └───────────────────┘  │                    │  └───────────────────┘  │
+//	└─────────────────────────┘                    └─────────────────────────┘
+//
+// - Server → Plugin (Hooks): hooksRPCClient serializes hook calls and sends them
+//   to hooksRPCServer in the plugin process, which delegates to the plugin implementation.
+//
+// - Plugin → Server (API): apiRPCClient in the plugin serializes API calls and sends
+//   them to apiRPCServer in the server, which delegates to the Mattermost API.
+//
+// The MuxBroker enables multiplexed streaming connections over a single RPC connection,
+// which is essential for efficiently streaming HTTP bodies, file uploads, and other
+// large data transfers without buffering everything in memory.
+
 var hookNameToId = make(map[string]int)
 
+// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to to the [hooksRPCServer] on the plugin side.
+// It implements the Hooks interface and forwards hook invocations to plugins running in
+// separate processes via RPC.
+//
+// When Mattermost needs to call a plugin hook (e.g., MessageWillBePosted), it calls the
+// corresponding method on hooksRPCClient, which serializes the arguments and makes an
+// RPC call to the plugin process where hooksRPCServer receives and handles it.
+//
+// The struct also holds references to the API and Driver implementations that will be
+// exposed to the plugin via apiRPCServer when the plugin is activated.
 type hooksRPCClient struct {
 	client      *rpc.Client
 	log         *mlog.Logger
@@ -40,6 +78,13 @@ type hooksRPCClient struct {
 	doneWg      sync.WaitGroup
 }
 
+// hooksRPCServer is the server-side RPC handler that runs in the plugin process and receives requests from [hooksRPCClient].
+// It receives hook invocations from hooksRPCClient (in the Mattermost server) and
+// delegates them to the actual plugin implementation.
+//
+// During plugin activation (OnActivate), it establishes a reverse RPC connection
+// back to the server, creating an apiRPCClient that the plugin uses to call
+// Mattermost APIs.
 type hooksRPCServer struct {
 	impl         any
 	muxBroker    *plugin.MuxBroker
@@ -68,11 +113,22 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, erro
 	}, nil
 }
 
+// apiRPCClient is the client-side RPC proxy that runs in the plugin process and connects to the [apiRPCServer] on the Mattermost server side.
+// It implements the API interface and allows plugins to call Mattermost server
+// APIs (e.g., GetUser, CreatePost) by forwarding requests via RPC to apiRPCServer.
+//
+// This is created during plugin activation and injected into the plugin via SetAPI().
 type apiRPCClient struct {
 	client    *rpc.Client
 	muxBroker *plugin.MuxBroker
 }
 
+// apiRPCServer is the server-side RPC handler that runs in the Mattermost server process and receives requests from [apiRPCClient].
+// It receives API calls from plugins (via apiRPCClient) and delegates them to the actual
+// Mattermost API implementation.
+//
+// This enables plugins to interact with Mattermost functionality like users, posts,
+// channels, and configuration through a well-defined API boundary.
 type apiRPCServer struct {
 	impl      API
 	muxBroker *plugin.MuxBroker
@@ -668,7 +724,6 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
-	defer r.Body.Close()
 
 	httpReq := r.GetHTTPRequest()
 
@@ -683,6 +738,7 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 
 			// Connect to response body stream and stream the response body
 			go func() {
+				defer r.Body.Close()
 				if response.Body != nil {
 					// Stream the response body through the connection
 					if _, err := io.Copy(responseConnection, response.Body); err != nil {
@@ -692,8 +748,11 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 				}
 				responseConnection.Close()
 			}()
+		} else {
+			r.Body.Close()
 		}
 	} else {
+		r.Body.Close()
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
 	}
 

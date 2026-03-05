@@ -31,8 +31,10 @@ type Props = {
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
     excludeAccessControlPolicyEnforced?: boolean;
+    excludeGroupConstrained?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
+    customNoOptionsMessage?: React.ReactNode;
 }
 
 type State = {
@@ -220,6 +222,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         if (this.props.excludePolicyConstrained) {
             options = options.filter((channel) => channel.policy_id === null);
         }
+        if (this.props.excludeGroupConstrained) {
+            options = options.filter((channel) => !channel.group_constrained);
+        }
         if (this.props.excludeTeamIds) {
             options = options.filter((channel) => this.props.excludeTeamIds?.indexOf(channel.team_id) === -1);
         }
@@ -227,6 +232,13 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             options = options.filter((channel) => this.props.excludeTypes?.indexOf(channel.type) === -1);
         }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
+
+        // Only show custom message when there are no options and user hasn't started searching
+        // If user is searching (searchTerm exists), show the default "No results found matching..." message
+        let customNoOptionsMessage;
+        if (this.props.customNoOptionsMessage && !this.props.searchTerm) {
+            customNoOptionsMessage = this.props.customNoOptionsMessage;
+        }
 
         return (
             <Modal
@@ -271,6 +283,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         saving={false}
                         loading={this.state.loadingChannels}
                         placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
+                        customNoOptionsMessage={customNoOptionsMessage}
                     />
                 </Modal.Body>
             </Modal>

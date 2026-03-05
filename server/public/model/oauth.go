@@ -19,6 +19,15 @@ const (
 	OAuthActionMobile     = "mobile"
 )
 
+// IntuneLoginRequest represents a login request using an MSAL access_token from Azure AD/Entra
+// for Intune MAM authentication. The access_token is used instead of id_token to validate
+// the audience claim against the customer's tenant-specific IntuneScope, ensuring proper
+// tenant isolation.
+type IntuneLoginRequest struct {
+	AccessToken string `json:"access_token"`
+	DeviceId    string `json:"device_id"`
+}
+
 type OAuthApp struct {
 	Id              string      `json:"id"`
 	CreatorId       string      `json:"creator_id"`

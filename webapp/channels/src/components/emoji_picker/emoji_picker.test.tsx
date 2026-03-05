@@ -64,7 +64,7 @@ describe('components/emoji_picker/EmojiPicker', () => {
             <EmojiPicker {...props}/>,
         );
 
-        expect(screen.queryByLabelText('Recent')).not.toBeNull();
+        expect(screen.queryByLabelText('Recently Used')).not.toBeNull();
     });
 
     test('First emoji should be selected on search', () => {

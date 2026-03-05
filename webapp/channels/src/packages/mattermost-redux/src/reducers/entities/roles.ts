@@ -32,15 +32,6 @@ function roles(state: Record<string, Role> = {}, action: MMReduxAction) {
 
         return state;
     }
-    case RoleTypes.ROLE_DELETED: {
-        if (action.data) {
-            const nextState = {...state};
-            Reflect.deleteProperty(nextState, action.data.name);
-            return nextState;
-        }
-
-        return state;
-    }
     case RoleTypes.RECEIVED_ROLE: {
         if (action.data) {
             const nextState = {...state};

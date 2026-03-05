@@ -116,8 +116,23 @@ func RegisterPushProxyInterface(f func(*App) einterfaces.PushProxyInterface) {
 	pushProxyInterface = f
 }
 
+var autoTranslationInterface func(*Server) einterfaces.AutoTranslationInterface
+
+func RegisterAutoTranslationInterface(f func(*Server) einterfaces.AutoTranslationInterface) {
+	autoTranslationInterface = f
+}
+
+var intuneInterface func(*App) einterfaces.IntuneInterface
+
+func RegisterIntuneInterface(f func(*App) einterfaces.IntuneInterface) {
+	intuneInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
+	}
+	if autoTranslationInterface != nil {
+		s.AutoTranslation = autoTranslationInterface(s)
 	}
 }

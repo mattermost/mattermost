@@ -205,7 +205,7 @@ func TestGetPostsForReporting(t *testing.T) {
 			CreateAt:  baseTime + (int64(i) * 1000), // 1 second apart
 			UpdateAt:  baseTime + (int64(i) * 1000),
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		testPosts = append(testPosts, createdPost)
 	}
@@ -596,7 +596,7 @@ func TestGetPostsForReporting(t *testing.T) {
 				CreateAt:  baseTime + (int64(20+i) * 1000), // After all test posts
 				UpdateAt:  baseTime + (int64(20+i) * 1000),
 			}
-			_, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
+			_, _, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
 			require.Nil(t, appErr)
 		}
 

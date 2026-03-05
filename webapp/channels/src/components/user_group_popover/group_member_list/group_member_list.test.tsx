@@ -27,10 +27,6 @@ jest.mock('react-redux', () => ({
     useDispatch: jest.fn().mockReturnValue(() => {}),
 }));
 
-jest.mock('react-virtualized-auto-sizer', () =>
-    ({children}: {children: any}) => children({height: 100, width: 100}),
-);
-
 const actImmediate = (wrapper: ReactWrapper) =>
     act(
         () =>
