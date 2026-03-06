@@ -61,7 +61,6 @@ func createTestPolicyHierarchy(
 		mockACS.AssertExpectations(t)
 	})
 
-	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).Return(parentPolicy, nil)
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
 	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
@@ -319,7 +318,6 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).Return(parentPolicy, nil)
 	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
 	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
