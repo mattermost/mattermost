@@ -125,9 +125,10 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	dbRole.UpdateAt = model.GetMillis()
 
 	res, err := s.GetMaster().NamedExec(`UPDATE Roles
-		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt,  Name=:Name, DisplayName=:DisplayName,
-		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn
-		 WHERE Id=:Id`, &dbRole)
+		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt, Name=:Name, DisplayName=:DisplayName,
+		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn,
+		SchemeId=:SchemeId
+		WHERE Id=:Id`, &dbRole)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Role")

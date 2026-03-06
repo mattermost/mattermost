@@ -333,6 +333,9 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 				break
 			}
 		}
+	case model.SchemeScopePlaybook, model.SchemeScopeRun:
+		// Playbook/run schemes don't map to teams or channels; broadcast globally.
+		publishEvent("", "")
 	default:
 		return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.unknown_scope", nil, fmt.Sprintf("unknown scheme scope: %s", scheme.Scope), http.StatusInternalServerError)
 	}
