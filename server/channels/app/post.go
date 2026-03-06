@@ -3232,6 +3232,9 @@ func (a *App) RewriteMessage(
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		UserID:           rctx.Session().UserId,
+		Operation:        "message_rewrite",
+		OperationSubType: string(action),
 	}
 
 	completion, err := client.AgentCompletion(agentID, completionRequest)
