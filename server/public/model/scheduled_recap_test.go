@@ -276,6 +276,7 @@ func TestScheduledRecapIsValid(t *testing.T) {
 			TimePeriod:  TimePeriodLast24h,
 			ChannelMode: ChannelModeSpecific,
 			ChannelIds:  []string{NewId()},
+			AgentId:     "test-agent",
 			IsRecurring: true,
 			Enabled:     true,
 		}
@@ -379,11 +380,24 @@ func TestScheduledRecapIsValid(t *testing.T) {
 		assert.NotNil(t, sr.IsValid())
 	})
 
+	t.Run("specific mode with invalid channel id fails", func(t *testing.T) {
+		sr := validRecap()
+		sr.ChannelMode = ChannelModeSpecific
+		sr.ChannelIds = []string{NewId(), "invalid"}
+		assert.NotNil(t, sr.IsValid())
+	})
+
 	t.Run("all unreads mode with empty channel ids passes", func(t *testing.T) {
 		sr := validRecap()
 		sr.ChannelMode = ChannelModeAllUnreads
 		sr.ChannelIds = []string{}
 		assert.Nil(t, sr.IsValid())
+	})
+
+	t.Run("empty agent id fails", func(t *testing.T) {
+		sr := validRecap()
+		sr.AgentId = ""
+		assert.NotNil(t, sr.IsValid())
 	})
 }
 

@@ -73,6 +73,10 @@ const RecapUsageBadge = () => {
     const badgeText = isUnlimited ?
         `${daily.used}` :
         `${daily.used}/${daily.limit}`;
+    const unlimitedLabel = formatMessage({
+        id: 'recaps.usageBadge.unlimited',
+        defaultMessage: 'unlimited',
+    });
 
     // Format reset time (midnight in user timezone)
     const resetTime = new Date(daily.reset_at);
@@ -97,13 +101,14 @@ const RecapUsageBadge = () => {
     return (
         <>
             <button
+                type='button'
                 ref={refs.setReference}
                 className={`RecapUsageBadge RecapUsageBadge--${badgeState}`}
                 {...getReferenceProps()}
                 aria-label={formatMessage({
                     id: 'recaps.usageBadge.ariaLabel',
                     defaultMessage: 'Daily recap usage: {used} of {limit}',
-                }, {used: daily.used, limit: isUnlimited ? 'unlimited' : daily.limit})}
+                }, {used: daily.used, limit: isUnlimited ? unlimitedLabel : daily.limit})}
             >
                 <i className='icon icon-clock-outline'/>
                 <span className='RecapUsageBadge__text'>{badgeText}</span>

@@ -75,6 +75,27 @@
                 is_recurring:
                   type: boolean
                   description: Whether the recap runs on a recurring schedule or just once
+              oneOf:
+                - properties:
+                    channel_mode:
+                      type: string
+                      enum:
+                        - specific
+                    channel_ids:
+                      type: array
+                      items:
+                        type: string
+                      minItems: 1
+                  required:
+                    - channel_mode
+                    - channel_ids
+                - properties:
+                    channel_mode:
+                      type: string
+                      enum:
+                        - all_unreads
+                  required:
+                    - channel_mode
         description: Scheduled recap configuration
         required: true
       responses:
@@ -247,6 +268,27 @@
                 enabled:
                   type: boolean
                   description: Whether the scheduled recap is active
+              oneOf:
+                - properties:
+                    channel_mode:
+                      type: string
+                      enum:
+                        - specific
+                    channel_ids:
+                      type: array
+                      items:
+                        type: string
+                      minItems: 1
+                  required:
+                    - channel_mode
+                    - channel_ids
+                - properties:
+                    channel_mode:
+                      type: string
+                      enum:
+                        - all_unreads
+                  required:
+                    - channel_mode
         description: Updated scheduled recap configuration
         required: true
       responses:

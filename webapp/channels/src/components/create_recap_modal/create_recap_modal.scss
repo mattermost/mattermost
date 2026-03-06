@@ -446,6 +446,12 @@
                 background-color: rgba(var(--center-channel-color-rgb), 0.04);
             }
 
+            &:focus-visible {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.12);
+                outline: none;
+            }
+
             &.selected {
                 border-color: var(--button-bg);
                 background-color: var(--button-bg);

@@ -44,8 +44,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 			if now < cooldownEndTime {
 				remainingMs := cooldownEndTime - now
-				remainingMinutes := int(remainingMs / 60000)
-				remainingMinutes = max(remainingMinutes, 1) // Show at least 1 minute
+				remainingMinutes := int((remainingMs + 60000 - 1) / 60000)
 
 				return nil, model.NewAppError("CreateRecap",
 					"app.recap.cooldown_active.app_error",
@@ -480,10 +479,13 @@ func (a *App) FetchAndTruncatePostsForRecap(rctx request.CTX, channelIDs []strin
 
 	// Fetch posts for all channels
 	postsByChannel := make(map[string][]*model.Post)
+	successfulFetches := 0
+	hadFetchFailure := false
 	for _, channelID := range channelIDs {
 		// Get user's last viewed timestamp
 		lastViewedAt, lastViewedErr := a.Srv().Store().Channel().GetMemberLastViewedAt(rctx, channelID, userID)
 		if lastViewedErr != nil {
+			hadFetchFailure = true
 			rctx.Logger().Warn("Failed to get last viewed timestamp",
 				mlog.String("channel_id", channelID),
 				mlog.Err(lastViewedErr))
@@ -492,15 +494,25 @@ func (a *App) FetchAndTruncatePostsForRecap(rctx request.CTX, channelIDs []strin
 
 		posts, err := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 1000) // Fetch more, truncate later
 		if err != nil {
+			hadFetchFailure = true
 			rctx.Logger().Warn("Failed to fetch posts for channel",
 				mlog.String("channel_id", channelID),
 				mlog.Err(err))
 			continue
 		}
+		successfulFetches++
 
 		if len(posts) > 0 {
 			postsByChannel[channelID] = posts
 		}
+	}
+
+	if len(channelIDs) > 0 && successfulFetches == 0 && hadFetchFailure {
+		return nil, model.NewAppError(
+			"FetchAndTruncatePostsForRecap",
+			"app.recap.fetch_posts.app_error",
+			nil, "", http.StatusInternalServerError,
+		)
 	}
 
 	// ENF-05: Apply max posts limit

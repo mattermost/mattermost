@@ -129,6 +129,33 @@ func TestScheduledRecapStore(t *testing.T) {
 			assert.Len(t, retrievedSR.ChannelIds, 1)
 		})
 
+		t.Run("UpdateNotFound", func(t *testing.T) {
+			sr := createTestScheduledRecap(model.NewId())
+
+			_, err := ss.ScheduledRecap().Update(sr)
+			require.Error(t, err)
+
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
+		})
+
+		t.Run("UpdateSoftDeletedReturnsNotFound", func(t *testing.T) {
+			userId := model.NewId()
+			sr := createTestScheduledRecap(userId)
+			_, err := ss.ScheduledRecap().Save(sr)
+			require.NoError(t, err)
+
+			err = ss.ScheduledRecap().Delete(sr.Id)
+			require.NoError(t, err)
+
+			sr.Title = "Should Not Update"
+			_, err = ss.ScheduledRecap().Update(sr)
+			require.Error(t, err)
+
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
+		})
+
 		t.Run("DeleteSoftDelete", func(t *testing.T) {
 			userId := model.NewId()
 			sr := createTestScheduledRecap(userId)

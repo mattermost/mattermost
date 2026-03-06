@@ -119,7 +119,8 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	}
 
 	// ENF-02: Check max channels per recap limit
-	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
+	sessionUserID := rctx.Session().UserId
+	limits, limitsErr := a.GetEffectiveLimits(sessionUserID)
 	if limitsErr != nil {
 		return nil, limitsErr
 	}

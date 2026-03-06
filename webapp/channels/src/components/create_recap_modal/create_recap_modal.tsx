@@ -43,6 +43,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const dispatch = useDispatch();
     const history = useHistory();
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const normalizedTeamUrl = teamUrl === '/' ? '' : teamUrl;
     const currentUserId = useSelector(getCurrentUserId);
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
@@ -211,7 +212,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             dispatch(fetchRecapLimitStatus());
 
             onExited();
-            history.push(`${teamUrl}/recaps`);
+            history.push(`${normalizedTeamUrl}/recaps`);
         } else {
             // Create or update scheduled recap
             const input: ScheduledRecapInput = {
@@ -238,7 +239,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             }
 
             onExited();
-            history.push(`${teamUrl}/recaps?tab=scheduled`);
+            history.push(`${normalizedTeamUrl}/recaps?tab=scheduled`);
         }
     }, [
         selectedChannelIds,
@@ -257,7 +258,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         dispatch,
         onExited,
         history,
-        teamUrl,
+        normalizedTeamUrl,
         formatMessage,
     ]);
 
@@ -284,32 +285,14 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     };
 
     const getTotalSteps = () => {
-        if (runOnce) {
-            // Run once: same as current behavior
-            return recapType === 'all_unreads' ? 2 : 3;
-        }
-
-        // Scheduled: always 3 steps (config -> channels/confirmation -> schedule)
-        return 3;
+        return recapType === 'all_unreads' ? 2 : 3;
     };
 
     const getActualStep = () => {
-        if (runOnce) {
-            // Run once uses existing step mapping
-            if (recapType === 'all_unreads') {
-                return currentStep === 1 ? 1 : 2;
-            }
-            return currentStep;
+        if (recapType === 'all_unreads') {
+            return currentStep === 1 ? 1 : 2;
         }
 
-        // Scheduled: always shows 3 steps
-        // For all_unreads, step 3 shows schedule (not channel selector)
-        if (recapType === 'all_unreads') {
-            if (currentStep === 1) {
-                return 1;
-            }
-            return currentStep === 3 ? 2 : currentStep;
-        }
         return currentStep;
     };
 

@@ -171,10 +171,18 @@ func (s *SqlScheduledRecapStore) Update(scheduledRecap *model.ScheduledRecap) (*
 			"Enabled":            scheduledRecap.Enabled,
 			"UpdateAt":           scheduledRecap.UpdateAt,
 		}).
-		Where(sq.Eq{"Id": scheduledRecap.Id})
+		Where(sq.Eq{"Id": scheduledRecap.Id, "DeleteAt": 0})
 
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update ScheduledRecap with id=%s", scheduledRecap.Id)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve affected rows for ScheduledRecap update")
+	}
+	if rowsAffected == 0 {
+		return nil, store.NewErrNotFound("ScheduledRecap", scheduledRecap.Id)
 	}
 
 	return scheduledRecap, nil

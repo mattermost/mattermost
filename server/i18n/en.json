@@ -7507,6 +7507,10 @@
     "translation": "Failed to delete recap channels."
   },
   {
+    "id": "app.recap.fetch_posts.app_error",
+    "translation": "Failed to fetch posts for any channel in the recap."
+  },
+  {
     "id": "app.recap.get.app_error",
     "translation": "Failed to get recap."
   },
@@ -11411,6 +11415,14 @@
   {
     "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
     "translation": "Invalid scheduled recap timezone."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Scheduled recap must have an agent ID."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Invalid scheduled recap channel ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",

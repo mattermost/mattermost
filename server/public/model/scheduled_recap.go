@@ -178,8 +178,20 @@ func (sr *ScheduledRecap) IsValid() *AppError {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_mode.app_error", nil, "channel_mode="+sr.ChannelMode, http.StatusBadRequest)
 	}
 
-	if sr.ChannelMode == ChannelModeSpecific && len(sr.ChannelIds) == 0 {
-		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_ids_empty.app_error", nil, "", http.StatusBadRequest)
+	if sr.ChannelMode == ChannelModeSpecific {
+		if len(sr.ChannelIds) == 0 {
+			return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_ids_empty.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		for _, channelID := range sr.ChannelIds {
+			if !IsValidId(channelID) {
+				return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_id.app_error", nil, "channel_id="+channelID, http.StatusBadRequest)
+			}
+		}
+	}
+
+	if sr.AgentId == "" {
+		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.agent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

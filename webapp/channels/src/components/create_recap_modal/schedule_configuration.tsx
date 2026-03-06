@@ -4,6 +4,7 @@
 import React, {useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+import moment from 'moment-timezone';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
@@ -59,7 +60,7 @@ const ScheduleConfiguration = ({
 
     // Time period options - must match server model constants
     const timePeriodOptions = useMemo(() => [
-        {value: 'last_24h', label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Previous day'})},
+        {value: 'last_24h', label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Last 24 hours'})},
         {value: 'last_week', label: formatMessage({id: 'recaps.timePeriod.lastWeek', defaultMessage: 'Last 7 days'})},
         {value: 'since_last_read', label: formatMessage({id: 'recaps.timePeriod.sinceLastRead', defaultMessage: 'Since last read'})},
     ], [formatMessage]);
@@ -84,61 +85,73 @@ const ScheduleConfiguration = ({
         }
 
         const [hours, minutes] = timeOfDay.split(':').map(Number);
-        const now = new Date();
+        const previewTimeZone = moment.tz.zone(userTimezone) ? userTimezone : undefined;
+        const now = previewTimeZone ? moment.tz(previewTimeZone) : moment();
+        const startOfToday = now.clone().startOf('day');
 
         // Find the next occurrence
         // Start from today and check each day
         for (let daysAhead = 0; daysAhead < 8; daysAhead++) {
-            const checkDate = new Date(now);
-            checkDate.setDate(now.getDate() + daysAhead);
-            checkDate.setHours(hours, minutes, 0, 0);
+            const checkMoment = startOfToday.clone().add(daysAhead, 'days').set({
+                hour: hours,
+                minute: minutes,
+                second: 0,
+                millisecond: 0,
+            });
 
             // Get day of week (0 = Sunday, 1 = Monday, etc.)
-            const dayOfWeek = checkDate.getDay();
+            const dayOfWeek = checkMoment.day();
             const dayBit = 1 << dayOfWeek;
 
             // Check if this day is selected
             if ((daysOfWeek & dayBit) !== 0) {
                 // Check if the time hasn't passed yet (or it's a future day)
-                if (daysAhead > 0 || checkDate > now) {
+                if (daysAhead > 0 || checkMoment.isAfter(now)) {
                     // Format the preview
-                    const diffDays = daysAhead;
+                    const checkDate = checkMoment.toDate();
+                    const formattedTime = previewTimeZone ?
+                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit', timeZone: previewTimeZone}) :
+                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit'});
                     let dateStr: string;
 
-                    if (diffDays === 0) {
+                    if (daysAhead === 0) {
                         dateStr = formatMessage(
                             {id: 'recaps.nextRun.today', defaultMessage: 'Today at {time}'},
-                            {time: formatTime(checkDate, {hour: 'numeric', minute: '2-digit'})},
+                            {time: formattedTime},
                         );
-                    } else if (diffDays === 1) {
+                    } else if (daysAhead === 1) {
                         dateStr = formatMessage(
                             {id: 'recaps.nextRun.tomorrow', defaultMessage: 'Tomorrow at {time}'},
-                            {time: formatTime(checkDate, {hour: 'numeric', minute: '2-digit'})},
+                            {time: formattedTime},
                         );
-                    } else if (diffDays <= 7) {
+                    } else if (daysAhead <= 7) {
                         dateStr = formatMessage(
                             {id: 'recaps.nextRun.dayAt', defaultMessage: '{day} at {time}'},
                             {
-                                day: formatDate(checkDate, {weekday: 'long'}),
-                                time: formatTime(checkDate, {hour: 'numeric', minute: '2-digit'}),
+                                day: previewTimeZone ?
+                                    formatDate(checkDate, {weekday: 'long', timeZone: previewTimeZone}) :
+                                    formatDate(checkDate, {weekday: 'long'}),
+                                time: formattedTime,
                             },
                         );
                     } else {
                         dateStr = formatMessage(
                             {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
                             {
-                                date: formatDate(checkDate, {month: 'short', day: 'numeric'}),
-                                time: formatTime(checkDate, {hour: 'numeric', minute: '2-digit'}),
+                                date: previewTimeZone ?
+                                    formatDate(checkDate, {month: 'short', day: 'numeric', timeZone: previewTimeZone}) :
+                                    formatDate(checkDate, {month: 'short', day: 'numeric'}),
+                                time: formattedTime,
                             },
                         );
                     }
 
                     // Add timezone abbreviation (e.g., EST, PST, EDT)
-                    if (userTimezone) {
+                    if (previewTimeZone) {
                         try {
                             // Get the short timezone abbreviation using Intl.DateTimeFormat
                             const tzAbbrev = new Intl.DateTimeFormat('en-US', {
-                                timeZone: userTimezone,
+                                timeZone: previewTimeZone,
                                 timeZoneName: 'short',
                             }).formatToParts(checkDate).find((part) => part.type === 'timeZoneName')?.value || '';
 

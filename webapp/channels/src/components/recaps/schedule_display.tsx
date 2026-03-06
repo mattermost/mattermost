@@ -72,23 +72,17 @@ export function useScheduleDisplay() {
 
         const nextDate = new Date(nextRunAt);
         const now = new Date();
+        if (nextDate.getTime() <= now.getTime()) {
+            return null;
+        }
+
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startOfNextRun = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
         const diffDays = Math.round((startOfNextRun.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24));
 
         const timeStr = formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
         let dateStr: string;
-        if (diffDays < -1) {
-            dateStr = formatMessage(
-                {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
-                {date: formatDate(nextDate, {month: 'short', day: 'numeric'}), time: timeStr},
-            );
-        } else if (diffDays === -1) {
-            dateStr = formatMessage(
-                {id: 'recaps.nextRun.yesterday', defaultMessage: 'Yesterday at {time}'},
-                {time: timeStr},
-            );
-        } else if (diffDays === 0) {
+        if (diffDays === 0) {
             dateStr = timeStr;
         } else if (diffDays === 1) {
             dateStr = formatMessage(

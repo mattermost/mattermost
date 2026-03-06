@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,6 +48,36 @@ func TestCreateRecap(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Nil(t, recap)
 		assert.Equal(t, "app.recap.permission_denied", err.Id)
+	})
+
+	t.Run("cooldown error rounds up remaining minutes", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
+			cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(2)
+		})
+
+		lastCreateAt := model.GetMillis() - int64(30*1000)
+		lastManualRecap := &model.Recap{
+			Id:                model.NewId(),
+			UserId:            th.BasicUser.Id,
+			Title:             "Completed Recap",
+			CreateAt:          lastCreateAt,
+			UpdateAt:          lastCreateAt,
+			DeleteAt:          0,
+			ReadAt:            0,
+			TotalMessageCount: 1,
+			Status:            model.RecapStatusCompleted,
+			BotID:             "test-agent-id",
+		}
+		_, saveErr := th.App.Srv().Store().Recap().SaveRecap(lastManualRecap)
+		require.NoError(t, saveErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recap, err := th.App.CreateRecap(ctx, "Cooldown Recap", []string{th.BasicChannel.Id}, "test-agent-id")
+		require.NotNil(t, err)
+		require.Nil(t, recap)
+		assert.Equal(t, "app.recap.cooldown_active.app_error", err.Id)
+		assert.Contains(t, err.SystemMessage(i18n.GetUserTranslations("en")), "another recap in 2 minutes")
 	})
 }
 
@@ -281,6 +312,32 @@ func TestProcessRecapChannel(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, "app.ai.summarize.agent_call_failed", err.Id)
 		assert.False(t, result.Success)
+	})
+}
+
+func TestFetchAndTruncatePostsForRecap(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+
+	t.Run("returns error when every channel fetch fails", func(t *testing.T) {
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+		postsByChannel, err := th.App.FetchAndTruncatePostsForRecap(ctx, []string{model.NewId(), model.NewId()}, th.BasicUser.Id)
+		require.NotNil(t, err)
+		assert.Nil(t, postsByChannel)
+		assert.Equal(t, "app.recap.fetch_posts.app_error", err.Id)
+	})
+
+	t.Run("returns empty success when at least one fetch succeeds", func(t *testing.T) {
+		emptyChannel := th.CreateChannel(t, th.BasicTeam)
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+		postsByChannel, err := th.App.FetchAndTruncatePostsForRecap(ctx, []string{model.NewId(), emptyChannel.Id}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, postsByChannel)
+		assert.Empty(t, postsByChannel)
 	})
 }
 
