@@ -96,7 +96,6 @@
     font-size: 12px;
     font-weight: 600;
     gap: 1px;
-    transition: background-color 150ms ease;
 
     &.withLabel {
         padding: 4px 12px 4px 6px;
@@ -176,7 +175,6 @@
         flex-shrink: 0;
         margin-inline-start: 8px;
         opacity: 0;
-        transition: opacity 150ms ease;
     }
 
     &:hover,
