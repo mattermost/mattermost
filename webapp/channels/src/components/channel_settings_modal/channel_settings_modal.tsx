@@ -86,8 +86,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
     const canManageSharedChannels = useSelector((state: GlobalState) => {
         const config = getConfig(state);
-        const connectedWorkspacesEnabled = config?.ExperimentalSharedChannels === 'true' &&
-            config?.ExperimentalRemoteClusterService === 'true';
+        const connectedWorkspacesEnabled = config?.ExperimentalSharedChannels === 'true';
         if (!connectedWorkspacesEnabled) {
             return false;
         }

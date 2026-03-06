@@ -342,7 +342,6 @@ describe('ChannelSettingsModal', () => {
 
         const testState = makeTestState();
         testState.entities.general.config.ExperimentalSharedChannels = 'true';
-        testState.entities.general.config.ExperimentalRemoteClusterService = 'true';
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
