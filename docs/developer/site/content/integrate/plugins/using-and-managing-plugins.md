@@ -68,7 +68,7 @@ In v5.16 and v5.17 the Marketplace only supports the installation of new plugins
 
 There are two settings in **System Console > Plugin Management**:
 
-![](https://user-images.githubusercontent.com/915956/66892854-94660d80-efa1-11e9-805c-a85223d43a07.png)
+![](/img/plugins/plugin-marketplace-search.png)
 
 - **Enable Marketplace:** Turns the Marketplace user interface on or off for System Admins (end users cannot see the Marketplace).
 - **Marketplace URL:** The location of the Marketplace server to query for new plugins. Mattermost hosts a Marketplace for the community and this is the default value for this field. You can also set up your own Marketplace server.
