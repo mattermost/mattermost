@@ -8,10 +8,10 @@
     flex-direction: column;
     gap: 16px;
 
-    .channel_banner_header, .channel_translation_header {
+    .channel_banner_header, .channel_translation_header, .channel_shared_with_workspaces_header {
         display: flex;
 
-        .channel_banner_header__text, .channel_translation_header__text {
+        .channel_banner_header__text, .channel_translation_header__text, .channel_shared_with_workspaces_header__text {
             display: flex;
             flex: 1;
             flex-direction: column;
@@ -31,7 +31,7 @@
         }
     }
 
-    .channel_banner_section_body {
+    .channel_banner_section_body, .channel_shared_with_workspaces_section_body {
         @include animations.fade-in;
 
         display: flex;

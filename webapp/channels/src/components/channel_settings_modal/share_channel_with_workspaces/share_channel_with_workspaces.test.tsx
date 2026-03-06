@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
 
@@ -16,14 +15,6 @@ jest.mock('mattermost-redux/client', () => ({
         ]),
     },
 }));
-
-const mockChannel = TestHelper.getChannelMock({
-    id: 'channel1',
-    team_id: 'team1',
-    display_name: 'Test Channel',
-    name: 'test-channel',
-    type: 'O',
-});
 
 const mockRemotes = [
     {
@@ -59,14 +50,13 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={[]}
                 onRemotesChange={onRemotesChange}
             />,
         );
 
-        expect(screen.getByText('Share channel with connected workspaces')).toBeInTheDocument();
-        expect(screen.getByText(/Choose the connected workspace/)).toBeInTheDocument();
+        expect(screen.getByText('Share with connected workspaces')).toBeInTheDocument();
+        expect(screen.getByText('Collaborate with trusted organizations in this channel. Connections must first be defined by a system administrator.')).toBeInTheDocument();
         const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
         expect(toggle).not.toHaveClass('active');
     });
@@ -75,7 +65,6 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={mockRemotes}
                 onRemotesChange={onRemotesChange}
             />,
@@ -90,7 +79,6 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={[]}
                 onRemotesChange={onRemotesChange}
             />,
@@ -99,15 +87,14 @@ describe('ShareChannelWithWorkspaces', () => {
         const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
         await userEvent.click(toggle);
 
-        expect(screen.getByText('Workspaces to share with')).toBeInTheDocument();
-        expect(screen.getByText('+ Add workspace')).toBeInTheDocument();
+        expect(screen.getByText('No workspaces sharing this channel yet.')).toBeInTheDocument();
+        expect(screen.getByText('Add workspace')).toBeInTheDocument();
     });
 
     it('should open Add workspace dropdown when Add workspace is clicked', async () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={[]}
                 onRemotesChange={onRemotesChange}
             />,
@@ -125,7 +112,6 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={[]}
                 onRemotesChange={onRemotesChange}
             />,
@@ -149,7 +135,6 @@ describe('ShareChannelWithWorkspaces', () => {
     it('should show Connected status for existing remotes', () => {
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={mockRemotes}
                 onRemotesChange={jest.fn()}
             />,
@@ -163,7 +148,6 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={mockRemotes}
                 initialRemotes={mockRemotes}
                 onRemotesChange={onRemotesChange}
@@ -187,7 +171,6 @@ describe('ShareChannelWithWorkspaces', () => {
         const onRemotesChange = jest.fn();
         renderWithContext(
             <ShareChannelWithWorkspaces
-                channel={mockChannel}
                 remotes={mockRemotes}
                 onRemotesChange={onRemotesChange}
             />,

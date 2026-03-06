@@ -2,80 +2,49 @@
 // See LICENSE.txt for license information.
 
 .ShareChannelWithWorkspaces {
-    &__header {
+    &__listHeader {
         display: flex;
-
-        .ShareChannelWithWorkspaces__headerText {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            gap: 8px;
-
-            .Input_legend {
-                color: rgb(var(--center-channel-color-rgb));
-                font-size: 16px;
-            }
-
-            .Input_subheading {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 12px;
-            }
-        }
-
-        .ShareChannelWithWorkspaces__toggle {
-            flex-shrink: 0;
-        }
-    }
-
-    &__body {
-        display: flex;
-        flex-direction: column;
-        padding-left: 0;
-        gap: 12px;
-    }
-
-    &__subheading {
-        display: block;
-        color: rgb(var(--center-channel-color-rgb));
+        color: var(--center-channel-color);
         font-size: 14px;
         font-weight: 600;
+        line-height: 20px;
     }
 
     &__list {
         display: flex;
-        overflow: hidden;
         flex-direction: column;
         padding: 0;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
         margin: 0;
-        gap: 0;
-        list-style: none;
     }
 
     &__item {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
+        padding: 12px 0px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: var(--center-channel-bg);
         gap: 12px;
 
-        &:last-child {
-            border-bottom: none;
+        &:first-child {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 
     &__itemName {
+        overflow: hidden;
         flex: 1;
+        color: var(--center-channel-color);
         font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__itemStatus {
-        display: flex;
-        align-items: center;
+        flex: 1;
         font-size: 12px;
-        gap: 6px;
+        font-weight: 600;
+        line-height: 16px;
     }
 
     &__statusPending {
@@ -117,5 +86,12 @@
 
     &__addBtn {
         align-self: flex-start;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__dropdown {
+        flex: 1;
     }
 }

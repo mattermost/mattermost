@@ -168,6 +168,7 @@ describe('ChannelSettingsModal', () => {
                     license: {
                         SkuShortName: '',
                     },
+                    config: {},
                 },
             },
         };
@@ -186,7 +187,11 @@ describe('ChannelSettingsModal', () => {
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
-        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        // Use wait for to ensure the component is completely loaded and avoid
+        // act related errors during test.
+        await waitFor(() => {
+            expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        });
     });
 
     it('should render Info tab by default', async () => {

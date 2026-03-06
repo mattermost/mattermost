@@ -186,12 +186,13 @@ function ChannelSettingsConfigurationTab({
         const removeSharingModalMessage = formatMessage(
             {
                 id: 'channel_settings.remove_sharing_confirm.message',
-                defaultMessage: 'This will unshare the channel {channelName} with the {workspaceNames} connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
+                defaultMessage: 'This will unshare the channel <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
             },
             {
                 count: removeCount,
                 channelName: channelDisplayName,
                 workspaceNames: workspaceNamesFormatted,
+                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
             },
         );
 
@@ -416,7 +417,6 @@ function ChannelSettingsConfigurationTab({
                     />
                     <ShareChannelWithWorkspaces
                         key={shareChannelKey}
-                        channel={channel}
                         remotes={workspaceRemotes}
                         initialRemotes={initialRemotes}
                         onRemotesChange={setWorkspaceRemotes}

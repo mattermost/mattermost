@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
@@ -14,7 +14,6 @@ import * as Menu from 'components/menu';
 export type RemoteToAdd = {remote_id: string; display_name: string};
 
 type Props = {
-    channelId: string;
     currentRemoteIds: Set<string>;
     onAdd: (remotes: RemoteToAdd[]) => void;
 };
@@ -22,7 +21,6 @@ type Props = {
 const MENU_ID = 'add_workspace_to_channel_menu';
 
 export default function AddWorkspaceDropdown({
-    channelId,
     currentRemoteIds,
     onAdd,
 }: Props) {
@@ -42,7 +40,6 @@ export default function AddWorkspaceDropdown({
         try {
             const data = await Client4.getRemoteClusters({
                 excludePlugins: true,
-                notInChannel: channelId,
                 onlyConfirmed: true,
             });
             setRemotes(data || []);
@@ -55,7 +52,7 @@ export default function AddWorkspaceDropdown({
             setLoading(false);
             isFetchingRef.current = false;
         }
-    }, [channelId, formatMessage]);
+    }, [formatMessage]);
 
     const handleToggle = useCallback((isOpen: boolean) => {
         if (isOpen) {
@@ -72,32 +69,40 @@ export default function AddWorkspaceDropdown({
 
     const available = remotes.filter((r) => !currentRemoteIds.has(r.remote_id));
 
+    const menuButton = useMemo(() => ({
+        id: `${MENU_ID}-button`,
+        class: classNames('btn', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
+        children: (
+            <>
+                <i
+                    aria-hidden='true'
+                    className='icon icon-plus'
+                />
+                <FormattedMessage
+                    id='channel_settings.share_channel_with_workspaces.add'
+                    defaultMessage='Add workspace'
+                />
+                <i
+                    aria-hidden='true'
+                    className='icon icon-chevron-down'
+                />
+            </>
+        ),
+    }), []);
+    const menu = useMemo(() => ({
+        id: MENU_ID,
+        className: 'ShareChannelWithWorkspaces__dropdown',
+        'aria-label': formatMessage({
+            id: 'channel_settings.share_channel_with_workspaces.add_aria',
+            defaultMessage: 'Add workspace',
+        }),
+        onToggle: handleToggle,
+    }), [formatMessage, handleToggle]);
+
     return (
         <Menu.Container
-            menuButton={{
-                id: `${MENU_ID}-button`,
-                class: classNames('btn', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
-                children: (
-                    <>
-                        <FormattedMessage
-                            id='channel_settings.share_channel_with_workspaces.add'
-                            defaultMessage='+ Add workspace'
-                        />
-                        <i
-                            aria-hidden='true'
-                            className='icon icon-chevron-down'
-                        />
-                    </>
-                ),
-            }}
-            menu={{
-                id: MENU_ID,
-                'aria-label': formatMessage({
-                    id: 'channel_settings.share_channel_with_workspaces.add_aria',
-                    defaultMessage: 'Add workspace',
-                }),
-                onToggle: handleToggle,
-            }}
+            menuButton={menuButton}
+            menu={menu}
         >
             {loading && (
                 <Menu.Item

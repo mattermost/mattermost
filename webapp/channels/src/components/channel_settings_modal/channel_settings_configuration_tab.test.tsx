@@ -450,7 +450,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByText('Share channel with connected workspaces')).toBeInTheDocument();
+            expect(screen.getByText('Share with connected workspaces')).toBeInTheDocument();
         });
 
         it('should not render ShareChannelWithWorkspaces section when canManageSharedChannels is false', () => {
@@ -461,7 +461,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.queryByText('Share channel with connected workspaces')).not.toBeInTheDocument();
+            expect(screen.queryByText('Share with connected workspaces')).not.toBeInTheDocument();
         });
 
         it('should show Add workspace button when toggle is enabled', async () => {
@@ -475,7 +475,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
             await userEvent.click(toggle);
 
-            expect(screen.getByText('+ Add workspace')).toBeInTheDocument();
+            expect(screen.getByText('Add workspace')).toBeInTheDocument();
         });
 
         it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {
