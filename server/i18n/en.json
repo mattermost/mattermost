@@ -5415,6 +5415,10 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "The specified trigger keyword already exists."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
