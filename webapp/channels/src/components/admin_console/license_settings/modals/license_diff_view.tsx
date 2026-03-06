@@ -339,7 +339,11 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
         );
     }
 
-    // Helper to check if a value changed
+    // isChanged normalizes both sides to strings before comparing because
+    // currentVal comes from ClientLicense (always string-typed, e.g. "1517714643650")
+    // while newVal comes from License (may be number/boolean, e.g. 1517714643650).
+    // We use `currentVal ?? ''` and `String(newVal ?? '')` so the comparison is
+    // stable across these differing source types.
     const isChanged = (currentVal: string | undefined, newVal: string | number | boolean | undefined): boolean => {
         const currentStr = currentVal ?? '';
         const newStr = String(newVal ?? '');
