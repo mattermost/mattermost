@@ -74,7 +74,7 @@ export function searchTeamAccessControlPolicies(teamId: string, term: string, ty
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.searchTeamAccessControlPolicies(teamId, term, type, after, limit);
+            data = await Client4.searchAccessControlPolicies(term, type, after, limit, teamId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};

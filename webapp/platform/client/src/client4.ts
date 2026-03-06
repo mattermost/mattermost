@@ -4696,17 +4696,10 @@ export default class Client4 {
         );
     };
 
-    searchAccessControlPolicies = (term: string, type: string, after: string, limit: number) => {
+    searchAccessControlPolicies = (term: string, type: string, after: string, limit: number, teamId?: string) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true})},
-        );
-    };
-
-    searchTeamAccessControlPolicies = (teamId: string, term: string, type: string, after: string, limit: number) => {
-        return this.doFetch<AccessControlPoliciesResult>(
-            `${this.getTeamRoute(teamId)}/access_policies/search`,
-            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true})},
+            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true, ...(teamId && {team_id: teamId})})},
         );
     };
 

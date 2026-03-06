@@ -106,7 +106,11 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        const otherTeam = await adminClient.createTeam({name: `other-${Date.now()}`, display_name: 'Other Team', type: 'O'} as any);
+        const otherTeam = await adminClient.createTeam({
+            name: `other-${Date.now()}`,
+            display_name: 'Other Team',
+            type: 'O',
+        } as any);
         const channel1 = await createPrivateChannel(adminClient, team.id);
         const channel2 = await createPrivateChannel(adminClient, otherTeam.id);
 
@@ -165,7 +169,11 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        const otherTeam = await adminClient.createTeam({name: `other-${Date.now()}`, display_name: 'Other Team', type: 'O'} as any);
+        const otherTeam = await adminClient.createTeam({
+            name: `other-${Date.now()}`,
+            display_name: 'Other Team',
+            type: 'O',
+        } as any);
         const channel1 = await createPrivateChannel(adminClient, team.id);
         const channel2 = await createPrivateChannel(adminClient, otherTeam.id);
 

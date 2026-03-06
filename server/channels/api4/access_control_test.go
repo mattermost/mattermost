@@ -614,6 +614,8 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
+	teamSearch := model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id}
+
 	setupLicenseAndABAC := func(t *testing.T) {
 		t.Helper()
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -630,7 +632,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 	t.Run("without license returns not implemented", func(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = nil
 
-		_, resp, err := th.SystemAdminClient.SearchTeamAccessControlPolicies(context.Background(), th.BasicTeam.Id, model.AccessControlPolicySearch{})
+		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
@@ -638,7 +640,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 	t.Run("regular user without manage_team_access_rules permission gets forbidden", func(t *testing.T) {
 		setupLicenseAndABAC(t)
 
-		_, resp, err := th.Client.SearchTeamAccessControlPolicies(context.Background(), th.BasicTeam.Id, model.AccessControlPolicySearch{})
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -649,7 +651,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		th.LoginTeamAdmin(t)
 		defer th.LoginBasic(t)
 
-		policiesResp, resp, err := th.Client.SearchTeamAccessControlPolicies(context.Background(), th.BasicTeam.Id, model.AccessControlPolicySearch{})
+		policiesResp, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, policiesResp)
@@ -667,7 +669,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		th.LoginTeamAdmin(t)
 		defer th.LoginBasic(t)
 
-		_, resp, err := th.Client.SearchTeamAccessControlPolicies(context.Background(), th.BasicTeam.Id, model.AccessControlPolicySearch{})
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -675,7 +677,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		setupLicenseAndABAC(t)
 
-		policiesResp, resp, err := client.SearchTeamAccessControlPolicies(context.Background(), th.BasicTeam.Id, model.AccessControlPolicySearch{})
+		policiesResp, resp, err := client.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, policiesResp)

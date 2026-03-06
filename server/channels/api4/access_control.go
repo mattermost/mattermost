@@ -36,7 +36,6 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Team.Handle("/access_policies/search", api.APISessionRequired(searchTeamAccessControlPolicies)).Methods(http.MethodPost)
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -351,11 +350,6 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 }
 
 func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	var props *model.AccessControlPolicySearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
@@ -363,7 +357,31 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	policies, total, appErr := c.App.SearchAccessControlPolicies(c.AppContext, *props)
+	var policies []*model.AccessControlPolicy
+	var total int64
+	var appErr *model.AppError
+
+	if props.TeamID != "" {
+		// Team-scoped search: requires team permission
+		if !model.IsValidId(props.TeamID) {
+			c.SetInvalidParam("team_id")
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules) {
+			c.SetPermissionError(model.PermissionManageTeamAccessRules)
+			return
+		}
+		requesterID := c.AppContext.Session().UserId
+		policies, total, appErr = c.App.SearchTeamAccessPolicies(c.AppContext, props.TeamID, requesterID, *props)
+	} else {
+		// System-wide search: requires system permission
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		policies, total, appErr = c.App.SearchAccessControlPolicies(c.AppContext, *props)
+	}
+
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -377,47 +395,6 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	js, err := json.Marshal(result)
 	if err != nil {
 		c.Err = model.NewAppError("searchAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func searchTeamAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamAccessRules) {
-		c.SetPermissionError(model.PermissionManageTeamAccessRules)
-		return
-	}
-
-	var props *model.AccessControlPolicySearch
-	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil || props == nil {
-		c.SetInvalidParamWithErr("access_control_policy_search", err)
-		return
-	}
-
-	requesterID := c.AppContext.Session().UserId
-	policies, total, appErr := c.App.SearchTeamAccessPolicies(c.AppContext, c.Params.TeamId, requesterID, *props)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	result := model.AccessControlPoliciesWithCount{
-		Policies: policies,
-		Total:    total,
-	}
-
-	js, err := json.Marshal(result)
-	if err != nil {
-		c.Err = model.NewAppError("searchTeamAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
