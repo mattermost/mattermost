@@ -478,7 +478,8 @@ func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
 		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
 		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(existingScr, nil)
 		mockSharedChannelStore.On("UpdateRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
-			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.DeleteAt == 0 && scr.CreatorId == userID
+			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.DeleteAt == 0 && scr.CreatorId == userID &&
+				scr.IsInviteAccepted && !scr.IsInviteConfirmed && scr.LastMembersSyncAt == 0
 		})).Return(nil, nil).Once()
 		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 		mockServer.On("GetStore").Return(mockStore)

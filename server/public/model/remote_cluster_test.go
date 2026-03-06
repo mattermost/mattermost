@@ -220,6 +220,7 @@ func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
 		CreateAt:    now,
 		DeleteAt:    0,
 		LastPingAt:  now,
+		SiteURL:     "https://example.com:8065",
 	}
 
 	info := rc.ToRemoteClusterInfo()
@@ -230,6 +231,7 @@ func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
 	assert.Equal(t, rc.CreateAt, info.CreateAt)
 	assert.Equal(t, rc.DeleteAt, info.DeleteAt)
 	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
+	assert.Equal(t, rc.SiteURL, info.SiteURL)
 }
 
 func TestNewIDFromBytes(t *testing.T) {

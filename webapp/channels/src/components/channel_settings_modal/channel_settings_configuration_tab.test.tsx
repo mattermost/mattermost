@@ -492,6 +492,8 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
@@ -506,7 +508,8 @@ describe('ChannelSettingsConfigurationTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(Client4.sharedChannelRemoteInvite).toHaveBeenCalledWith('remote1', 'channel1');
-            expect(fetchChannelRemotes).toHaveBeenCalledWith('channel1', true);
+            expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
+            expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
         });
 
         it('when shared channel changes include removing a connection, confirm modal is shown before save', async () => {
@@ -569,13 +572,16 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
             await userEvent.click(screen.getByRole('button', {name: /Remove Nebula Networks/i}));
             await new Promise((resolve) => setTimeout(resolve, 0));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             await userEvent.click(screen.getByRole('button', {name: /Yes, unshare/}));
 
             expect(Client4.sharedChannelRemoteUninvite).toHaveBeenCalledWith('remote1', 'channel1');
-            expect(fetchChannelRemotes).toHaveBeenCalledWith('channel1', true);
+            expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
+            expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
         });
 
         it('when user cancels remove modal, uninvite is not called', async () => {
