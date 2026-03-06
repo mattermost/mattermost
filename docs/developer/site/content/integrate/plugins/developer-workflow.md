@@ -151,9 +151,9 @@ This starts a headless `delve` process for your IDE to connect to. The process l
 
 Run the debugger in VSCode by navigating to the "Run and Debug" tab on the left side of the IDE, selecting your launch configuration, and clicking the green play button. This should bring up a debugging widget that looks like this:
 
-![image](https://github.com/mattermost/mattermost-developer-documentation/assets/6913320/9419ce8b-c803-40b7-82bb-9ccd64971676)
+![image](/img/plugins/developer-workflow-plugin-marketplace.png)
 
-![image](https://github.com/mattermost/mattermost-developer-documentation/assets/6913320/f28681c3-c256-41a1-b1f4-835f96628d6a)
+![image](/img/plugins/developer-workflow-plugin-installed.png)
 
 Your IDE's debugger is now running and ready to pause your plugin's execution at any breakpoints you set in the IDE.
 
