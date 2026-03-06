@@ -22,6 +22,10 @@ import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
+function momentToLocalDate(m: Moment): Date {
+    return new Date(m.year(), m.month(), m.date());
+}
+
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
     const diff = value.minute() % roundedTo;
     if (diff === 0) {
@@ -404,12 +408,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const disabledDays = (() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
         if (minDateTime) {
-            matchers.push({before: minDateTime.clone().startOf('day').toDate()});
+            matchers.push({before: momentToLocalDate(minDateTime)});
         } else if (!allowPastDates) {
-            matchers.push({before: currentTime.toDate()});
+            matchers.push({before: momentToLocalDate(currentTime)});
         }
         if (maxDateTime) {
-            matchers.push({after: maxDateTime.clone().startOf('day').toDate()});
+            matchers.push({after: momentToLocalDate(maxDateTime)});
         }
         return matchers.length > 0 ? matchers : undefined;
     })();
@@ -417,8 +421,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: displayTime?.toDate(),
-        defaultMonth: displayTime?.toDate() || new Date(),
+        selected: displayTime ? momentToLocalDate(displayTime) : undefined,
+        defaultMonth: displayTime ? momentToLocalDate(displayTime) : new Date(),
         onDayClick: handleDayChange,
         disabled: disabledDays,
         showOutsideDays: true,
