@@ -687,7 +687,7 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MinDate))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.MaxDate))
-		// Validate time_interval (check both top-level and nested config)
+		// Validate time_interval for datetime fields
 		timeInterval := e.TimeInterval
 		if e.DateTimeConfig != nil && e.DateTimeConfig.TimeInterval != 0 {
 			timeInterval = e.DateTimeConfig.TimeInterval
@@ -815,6 +815,13 @@ func validateDateTimeFormat(dateTimeStr string) error {
 	}
 
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ), date format (YYYY-MM-DD), or relative format", dateTimeStr)
+}
+
+func validateDateOrDateTimeFormat(value string) error {
+	if validateDateFormat(value) == nil {
+		return nil
+	}
+	return validateDateTimeFormat(value)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {

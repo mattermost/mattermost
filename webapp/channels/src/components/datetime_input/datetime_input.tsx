@@ -15,7 +15,7 @@ import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
-import {formatDateForDisplay, getRoundedTime, momentToLocalDate} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
@@ -24,6 +24,10 @@ const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
 // Re-exported from date_utils for backward compatibility
 export {getRoundedTime} from 'utils/date_utils';
+function momentToLocalDate(m: Moment): Date {
+    return new Date(m.year(), m.month(), m.date());
+}
+
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
     let time = moment(startTime);
@@ -307,7 +311,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         const timeForOptions = displayTime || currentTime;
 
         // Use clone() to preserve timezone information
-        let startTime = timeForOptions.clone().startOf('day');
+        const startTime = timeForOptions.clone().startOf('day');
 
         let options = getTimeInIntervals(startTime, timePickerInterval);
 
@@ -385,8 +389,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     const disabledDays = (() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
-        const minDate = momentToLocalDate(minDateTime?.clone().startOf('day'));
-        const maxDate = momentToLocalDate(maxDateTime?.clone().startOf('day'));
+        const minDate = minDateTime ? momentToLocalDate(minDateTime?.clone().startOf('day')) : undefined;
+        const maxDate = maxDateTime ? momentToLocalDate(maxDateTime?.clone().startOf('day')) : undefined;
         if (minDate) {
             matchers.push({before: minDate});
         }
@@ -399,8 +403,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: momentToLocalDate(displayTime),
-        defaultMonth: momentToLocalDate(displayTime) || new Date(),
+        selected: displayTime ? momentToLocalDate(displayTime) : undefined,
+        defaultMonth: displayTime ? momentToLocalDate(displayTime) : new Date(),
         onDayClick: handleDayChange,
         disabled: disabledDays,
         showOutsideDays: true,

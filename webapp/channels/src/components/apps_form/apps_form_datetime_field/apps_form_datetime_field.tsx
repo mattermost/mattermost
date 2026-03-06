@@ -13,6 +13,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString} from 'utils/date_utils';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
