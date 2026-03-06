@@ -9,6 +9,9 @@ on:
     branches:
       - master
 
+permissions:
+  actions: read
+
 jobs:
   s3-release-prod:
     runs-on: ubuntu-latest

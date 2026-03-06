@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [labeled]
 
+permissions: {}
+
 jobs:
   check-label-preview-env:
     runs-on: ubuntu-latest

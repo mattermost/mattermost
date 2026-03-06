@@ -1,5 +1,10 @@
 name: dev-docs-preview-env-fork-setup-update
 
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
 on:
   workflow_dispatch:
     inputs:

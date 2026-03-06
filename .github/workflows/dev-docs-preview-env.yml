@@ -6,6 +6,10 @@ on:
     paths:
       - 'docs/developer/**'
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   deploy:
     uses: ./.github/workflows/dev-docs-preview-env-template.yml
