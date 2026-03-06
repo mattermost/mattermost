@@ -151,15 +151,29 @@ export type ThreadFollowedChanged = BaseWebSocketMessage<WebSocketEvents.ThreadF
     reply_count: number;
 }>;
 
-export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, {
-    thread_id?: string;
-    timestamp: number;
-    unread_mentions?: number;
-    unread_replies?: number;
-    previous_unread_mentions?: number;
-    previous_unread_replies?: number;
-    channel_id?: string;
-}>;
+export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, (
+
+    // App.UpdateThreadsReadForUser
+    Record<string, never>
+) | (
+
+    // App.MarkChannelsAsViewed
+    {
+        timestamp: number;
+    }
+) | (
+
+    // App.UpdateThreadReadForUser
+    {
+        thread_id: string;
+        timestamp: number;
+        unread_mentions: number;
+        unread_replies: number;
+        previous_unread_mentions: number;
+        previous_unread_replies: number;
+        channel_id: string;
+    }
+)>;
 
 // Channel and channel member messages
 
@@ -423,11 +437,13 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
 // Post translation messages
 
 export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
-    language: string;
     object_id: string;
-    src_lang: string;
-    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
-    translation: string;
+    translations: Record<string, {
+        state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+        translation?: string;
+        translation_type?: string;
+        src_lang?: string;
+    }>;
 }>;
 
 // Plugin and integration messages

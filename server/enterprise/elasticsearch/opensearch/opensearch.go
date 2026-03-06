@@ -90,6 +90,31 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 	return *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
+// fetchServerInfo retrieves and stores the server version and plugins from the given client.
+func (os *OpensearchInterfaceImpl) fetchServerInfo(client *opensearchapi.Client) *model.AppError {
+	version, major, appErr := checkMaxVersion(client)
+	if appErr != nil {
+		return appErr
+	}
+
+	os.version = major
+	os.fullVersion = version
+
+	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
+	// Instead, we will log it and move forward
+	resp, err := client.Cat.Plugins(context.Background(), nil)
+	if err != nil {
+		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
+	} else {
+		os.plugins = nil
+		for _, p := range resp.Plugins {
+			os.plugins = append(os.plugins, p.Component)
+		}
+	}
+
+	return nil
+}
+
 func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	if license := os.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*os.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
@@ -110,24 +135,9 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	version, major, appErr := checkMaxVersion(os.client)
-	if appErr != nil {
+	if appErr = os.fetchServerInfo(os.client); appErr != nil {
 		return appErr
 	}
-
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := os.client.Cat.Plugins(context.Background(), nil)
-	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
-	} else {
-		for _, p := range resp.Plugins {
-			os.plugins = append(os.plugins, p.Component)
-		}
-	}
-
-	os.version = major
-	os.fullVersion = version
 
 	ctx := context.Background()
 
@@ -337,7 +347,7 @@ func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query stri
 
 	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
 		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
-		!common.ContainsCJK(query) {
+		!model.ContainsCJK(query) {
 		return variants
 	}
 
@@ -1457,8 +1467,7 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	_, _, appErr = checkMaxVersion(client)
-	if appErr != nil {
+	if appErr = os.fetchServerInfo(client); appErr != nil {
 		return appErr
 	}
 

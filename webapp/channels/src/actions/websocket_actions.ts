@@ -142,6 +142,7 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
+import {getCurrentLocale} from 'selectors/i18n';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
@@ -1766,7 +1767,7 @@ function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessa
 
 function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
+        if ('thread_id' in msg.data && msg.data.thread_id) {
             const state = doGetState();
             const thread = getThreads(state)?.[msg.data.thread_id];
 
@@ -2043,10 +2044,22 @@ export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.C
     };
 }
 
-export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated) {
-    return {
-        type: PostTypes.POST_TRANSLATION_UPDATED,
-        data: msg.data,
+export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const locale = getCurrentLocale(getState());
+        const t = msg.data.translations[locale];
+        if (!t) {
+            return;
+        }
+
+        dispatch({
+            type: PostTypes.POST_TRANSLATION_UPDATED,
+            data: {
+                object_id: msg.data.object_id,
+                language: locale,
+                ...t,
+            },
+        });
     };
 }
 

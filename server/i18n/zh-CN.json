@@ -5483,11 +5483,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 17.4+"
+    "translation": "版本 26.2 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5495,11 +5495,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 142 及以上"
+    "translation": "版本 144 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 142 及以上"
+    "translation": "版本 144 及以上"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10018,10 +10018,6 @@
     "translation": "无法过滤配置。"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "用户角色和访客状态不一致。"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "无法注册自定义个人资料属性组"
   },
@@ -11796,5 +11792,93 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "翻译类型无效。必须为 'string' 或 'object'。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "此频道不允许自动翻译。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "自动翻译功能不可用。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "补丁中无改动。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "发送自动翻译更新消息失败。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s 为此频道禁用了自动翻译。所有新消息将显示为原文。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s 为此频道启用了自动翻译。所有新消息以您的偏好语言显示。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "更新自动翻译状态时获取用户失败"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "此频道未启用自动翻译。"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "自动翻译不可用。"
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "此端点不允许基于 cookie 的认证。请使用基于请求头的认证。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "与机器人或 AI 助理的私信内不允许阅后即焚消息。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "为该频道验证阅后即焚消息时出错。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "给自己发送消息时不允许阅后即焚消息。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "为该用户验证阅后即焚消息时出错。"
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "此端点已弃用并禁用。请更新您的移动端 app。"
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "获取 {{.Service}} 设置失败"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "用户有频道访客角色但不是系统访客。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "用户是系统访客但在所有频道中都没有频道访客角色。频道访客数量：{{.ChannelGuestCount}}，总频道：{{.TotalChannels}}。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "用户是系统访客但在所有团队中都没有团队访客角色。团队访客数量：{{.TeamGuestCount}}，总团队：{{.TotalTeams}}。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "用户有团队访客角色但不是系统访客。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "工作者必须在 1 至 32 之间。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "当 {{.EnableCJKAnalyzers}} 设为是时，{{.Searching}} 设置必须设为是"
   }
 ]

@@ -94,8 +94,8 @@ function NotificationFromMembersModal(props: Props) {
         history.push(teamUrl + '/messages/@' + user.username);
     }, [openDirectChannelToUserId, history, teamUrl]);
 
-    const handleFetchRemoteClusterInfo = useCallback((remoteId: string, forceRefresh?: boolean) => {
-        dispatch(fetchRemoteClusterInfo(remoteId, forceRefresh));
+    const handleFetchRemoteClusterInfo = useCallback((remoteId: string, includeDeleted?: boolean, forceRefresh?: boolean) => {
+        dispatch(fetchRemoteClusterInfo(remoteId, includeDeleted, forceRefresh));
     }, [dispatch]);
 
     const handleOnClose = () => {

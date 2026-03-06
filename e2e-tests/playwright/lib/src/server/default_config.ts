@@ -111,6 +111,7 @@ const defaultServerConfig: AdminConfig = {
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
         EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -213,6 +214,7 @@ const defaultServerConfig: AdminConfig = {
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
         DeleteAccountLink: '',
+        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -280,11 +282,6 @@ const defaultServerConfig: AdminConfig = {
     ExperimentalAuditSettings: {
         FileEnabled: false,
         FileName: '',
-        FileMaxSizeMB: 100,
-        FileMaxAgeDays: 0,
-        FileMaxBackups: 0,
-        FileCompress: false,
-        FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
         Certificate: '',
     },

@@ -6,6 +6,7 @@
 import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
+import semver from 'semver';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 
@@ -2199,7 +2200,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     featureName: 'intune_mam',
                                     title: defineMessage({id: 'admin.intune_feature_discovery.title', defaultMessage: 'Protect mobile data with Microsoft Intune App Protection Policies (MAM) and Entra ID authentication'}),
                                     description: defineMessage({id: 'admin.intune_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to enforce App Protection Policies (APP) on Mattermost Mobile. Users sign in with Microsoft Entra ID (Azure AD), and Intune MAM applies data protection, selective wipe, and compliance policies on supported iOS devices.'}),
-                                    learnMoreURL: 'https://docs.mattermost.com/deployment/intune-mam.html',
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment-guide/mobile/configure-microsoft-intune-mam.html',
                                     svgImage: IntuneMAMSvg,
                                 },
                             },
@@ -2524,6 +2525,33 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
                             help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.MinimumDesktopAppVersion',
+                            label: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionTitle',
+                                defaultMessage: 'Minimum desktop app version:',
+                            }),
+                            placeholder: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionPlaceholder',
+                                defaultMessage: 'Input a version number (e.g. 5.0.0)',
+                            }),
+                            help_text: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionDesc',
+                                defaultMessage: 'Specify the minimum version of the Mattermost Desktop App required to connect to this server (e.g., 5.10.0). Users connecting with a Desktop App version below this minimum will be shown an update required page and will not be able to use the application until they update. Leave this field blank to allow all Desktop App versions to connect without restriction.',
+                            }),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            validate: (value) => {
+                                const trimmed = typeof value === 'string' ? value.trim() : value;
+                                if (trimmed && !semver.valid(trimmed)) {
+                                    return new ValidationResult(false, defineMessage({
+                                        id: 'admin.customization.minimumDesktopAppVersionError',
+                                        defaultMessage: 'Invalid version number. Must be a valid semantic version (e.g. 5.0.0).',
+                                    }));
+                                }
+                                return new ValidationResult(true, '');
+                            },
                         },
                     ],
                 },
@@ -3006,7 +3034,7 @@ const AdminDefinition: AdminDefinitionType = {
                     sections: [
                         {
                             key: 'PostSettings.Threads',
-                            title: 'Threads',
+                            title: defineMessage({id: 'admin.posts.sections.threads.title', defaultMessage: 'Threads'}),
                             description: defineMessage({id: 'admin.posts.sections.threads.description', defaultMessage: 'Configure threaded discussions and auto-follow defaults.'}),
                             settings: [
                                 {
@@ -3066,7 +3094,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Drafts',
-                            title: 'Drafts and Scheduled Posts',
+                            title: defineMessage({id: 'admin.posts.sections.drafts.title', defaultMessage: 'Drafts and Scheduled Posts'}),
                             description: defineMessage({id: 'admin.posts.sections.drafts.description', defaultMessage: 'Control draft syncing and scheduled sending.'}),
                             settings: [
                                 {
@@ -3089,7 +3117,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Priority',
-                            title: 'Priority & Urgent Notifications',
+                            title: defineMessage({id: 'admin.posts.sections.priority.title', defaultMessage: 'Priority & Urgent Notifications'}),
                             description: defineMessage({id: 'admin.posts.sections.priority.description', defaultMessage: 'Set message priority and repeating notifications for urgent delivery.'}),
                             settings: [
                                 {
@@ -3223,8 +3251,8 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.BurnOnRead',
-                            title: 'Self-Deleting Messages',
-                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being sent or read.'}),
+                            title: defineMessage({id: 'admin.posts.sections.burnOnRead.title', defaultMessage: 'Burn-on-Read Messages'}),
+                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being read.'}),
                             license_sku: LicenseSkus.EnterpriseAdvanced,
                             component: LicensedSectionContainer,
                             componentProps: {
@@ -3333,7 +3361,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Previews',
-                            title: 'Content & Previews',
+                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Previews'}),
                             description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
                             settings: [
                                 {
@@ -3437,7 +3465,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Performance',
-                            title: 'Performance & Limits',
+                            title: defineMessage({id: 'admin.posts.sections.performance.title', defaultMessage: 'Performance & Limits'}),
                             description: defineMessage({id: 'admin.posts.sections.performance.description', defaultMessage: 'Configure limits that protect client performance and rendering.'}),
                             settings: [
                                 {
@@ -5396,6 +5424,21 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'text',
+                            key: 'ServiceSettings.DCRRedirectURIAllowlist',
+                            multiple: true,
+                            label: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistTitle', defaultMessage: 'DCR Redirect URI Allowlist:'}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated glob patterns (e.g. https://*.example.com/**). If empty, all valid redirect URIs are allowed. Patterns support * (single path segment) and ** (multi-segment path).'}),
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                                it.stateIsFalse('ServiceSettings.EnableDynamicClientRegistration'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
                             type: 'number',
                             key: 'ServiceSettings.OutgoingIntegrationRequestsTimeout',
                             label: defineMessage({id: 'admin.service.integrationRequestTitle', defaultMessage: 'Integration request timeout: '}),
@@ -5835,61 +5878,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalAuditSettings.FileName',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'Maximum size, in megabytes (MB), the log file can grow before it gets rotated.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'Maximum number of days to retain old log files. 0 disables the removal of old log files.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxBackups',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'Maximum number of old log files to retain. 0 retains all old log files. Note: Configuring Max File Age can result in old log files being deleted regardless of this configuration value.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalAuditSettings.FileCompress',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
