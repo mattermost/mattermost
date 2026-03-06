@@ -47,9 +47,5 @@ test:
 compass-icons:
 	mkdir -p site/static/css
 	mkdir -p site/static/font
-	http --download -o site/static/css/compass-icons.css https://mattermost.github.io/compass-icons/css/compass-icons.css
-	http --download -o "site/static/font/compass-icons.eot" "https://mattermost.github.io/compass-icons/font/compass-icons.eot"
-	http --download -o "site/static/font/compass-icons.woff2" "https://mattermost.github.io/compass-icons/font/compass-icons.woff2"
-	http --download -o "site/static/font/compass-icons.woff" "https://mattermost.github.io/compass-icons/font/compass-icons.woff"
-	http --download -o "site/static/font/compass-icons.ttf" "https://mattermost.github.io/compass-icons/font/compass-icons.ttf"
-	http --download -o "site/static/font/compass-icons.svg" "https://mattermost.github.io/compass-icons/font/compass-icons.svg"
+	curl --no-progress-meter -o site/static/css/compass-icons.css https://mattermost.github.io/compass-icons/css/compass-icons.css
+	curl --no-progress-meter -o "site/static/font/compass-icons.#1" "https://mattermost.github.io/compass-icons/font/compass-icons.{eot,woff2,woff,ttf,svg}"
