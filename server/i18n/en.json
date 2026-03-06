@@ -4367,10 +4367,6 @@
     "translation": "Invalid invitation link."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Invalid invitation link type."
-  },
-  {
     "id": "api.user.guest_magic_link.missing_token.app_error",
     "translation": "Missing invitation token."
   },
