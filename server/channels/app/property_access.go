@@ -75,6 +75,12 @@ func (pas *PropertyAccessService) GetPropertyGroup(name string) (*model.Property
 	return pas.propertyService.GetPropertyGroup(name)
 }
 
+// Group returns the cached PropertyGroup for a given name. If the
+// group is not in the cache, it falls back to a database lookup.
+func (pas *PropertyAccessService) Group(name string) (*model.PropertyGroup, error) {
+	return pas.propertyService.Group(name)
+}
+
 // Property Field Methods
 
 // CreatePropertyField creates a new property field.
@@ -1300,9 +1306,9 @@ func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.Pr
 }
 
 func (pas *PropertyAccessService) groupHasAccessRestrictions(groupId string) (bool, error) {
-	cpaID, err := getCpaGroupID(pas)
+	cpaGroup, err := pas.Group(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
 		return false, err
 	}
-	return groupId == cpaID, nil
+	return groupId == cpaGroup.ID, nil
 }

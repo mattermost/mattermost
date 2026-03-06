@@ -5548,7 +5548,7 @@
   },
   {
     "id": "app.content_flagging.get_group.error",
-    "translation": "Failed to get Content Flagging bot."
+    "translation": "Unable to retrieve the content flagging property group."
   },
   {
     "id": "app.content_flagging.get_reviewer_settings.app_error",
@@ -5676,7 +5676,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Cannot register Custom Profile Attributes property group"
+    "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
