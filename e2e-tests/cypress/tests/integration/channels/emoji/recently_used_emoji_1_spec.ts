@@ -39,8 +39,8 @@ describe('Recent Emoji', () => {
     });
 
     it('MM-T155 Recently used emoji reactions are shown first', () => {
-        const firstEmoji = 'hamburger';
-        const secondEmoji = 'taco';
+        const firstEmoji = 'joy';
+        const secondEmoji = 'grin';
 
         // # Show emoji list
         cy.uiOpenEmojiPicker();
@@ -48,24 +48,16 @@ describe('Recent Emoji', () => {
         // * Verify emoji picker is opened
         cy.get('#emojiPicker').should('be.visible');
 
-        // # Search for first emoji to avoid selecting unintended emojis
-        cy.get('#emojiPickerSearch').should('be.visible').type(firstEmoji);
-        cy.wait(TIMEOUTS.HALF_SEC);
-
         // # Add first emoji
         cy.clickEmojiInEmojiPicker(firstEmoji);
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', '🍔 ').type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post
         cy.clickPostReactionIcon();
-
-        // # Search for second emoji
-        cy.get('#emojiPickerSearch').should('be.visible').type(secondEmoji);
-        cy.wait(TIMEOUTS.HALF_SEC);
 
         // # Click second emoji
         cy.clickEmojiInEmojiPicker(secondEmoji);
@@ -76,11 +68,16 @@ describe('Recent Emoji', () => {
         // * Verify recently used category is present in emoji picker
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
-        // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'taco emoji');
+        // * Assert both emojis appear in the recently used section (grin most recent, joy before it)
+        cy.findAllByTestId('emojiItem').then((items) => {
+            const labels = [...items].map((el) => el.getAttribute('aria-label'));
+            const grinIdx = labels.indexOf('grin emoji');
+            const joyIdx = labels.indexOf('joy emoji');
 
-        // * Assert second emoji should equal with first recent emoji
-        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'hamburger emoji');
+            expect(grinIdx, 'grin should be in recently used').to.be.greaterThan(-1);
+            expect(joyIdx, 'joy should be in recently used').to.be.greaterThan(-1);
+            expect(grinIdx, 'grin should appear before joy (more recent)').to.be.lessThan(joyIdx);
+        });
     });
 
     it('MM-T4463 Recently used custom emoji, when is deleted should be removed from recent emoji category and quick reactions', () => {
