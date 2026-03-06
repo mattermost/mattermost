@@ -47,14 +47,15 @@ jobs:
       - name: Run tests
         run: make test
 
-      - uses: shallwefootball/s3-upload-action@4350529f410221787ccf424e50133cbc1b52704e # v1.3.3
-        name: Upload Preview Env
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
-          aws_key_id: ${{ secrets.AWS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_bucket: mattermost-dev-docs-preview-pulls
-          source_dir: docs/developer/dist/html
-          destination_dir: ${{ env.PR_NUMBER }}
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Upload Preview Env
+        run: aws s3 sync dist/html s3://mattermost-dev-docs-preview-pulls/${{ env.PR_NUMBER }} --delete --acl public-read --no-progress
 
       - name: Add comment to PR
         uses: peter-evans/create-or-update-comment@7dfe4b0aa0c4bbd06d172692ff8a9e18381d6979 # v3.0.1
