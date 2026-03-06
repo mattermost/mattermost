@@ -73,7 +73,7 @@ export default class FlagPostConfirmationDialog {
     async requireCommentsForFlaggingPost() {
         await expect(this.requireCommentsErrorMessage).toBeVisible();
         await expect(this.requireCommentsErrorMessage).toHaveText(
-            'Please add a comment explaining why you’re flagging this message.',
+            'Please add a comment explaining why you’re quarantining this message.',
         );
     }
 
