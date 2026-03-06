@@ -26,25 +26,14 @@
             type: integer
             default: 60
             maximum: 200
-        - name: cursor_view_id
+        - name: page
           in: query
-          description: The view ID from a previous page's `next_cursor` to continue pagination
-          required: false
-          schema:
-            type: string
-        - name: cursor_create_at
-          in: query
-          description: The create_at value from a previous page's `next_cursor`
+          description: The 0-based page number for pagination (default 0)
           required: false
           schema:
             type: integer
-            format: int64
-        - name: cursor_sort_order
-          in: query
-          description: The sort_order value from a previous page's `next_cursor`
-          required: false
-          schema:
-            type: integer
+            default: 0
+            minimum: 0
         - name: include_deleted
           in: query
           description: Whether to include soft-deleted views

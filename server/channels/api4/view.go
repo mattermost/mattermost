@@ -103,32 +103,16 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		PerPage: c.Params.PerPage,
 	}
 	opts.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
-	if cursorViewID := query.Get("cursor_view_id"); cursorViewID != "" {
-		if !model.IsValidId(cursorViewID) {
-			c.SetInvalidParam("cursor_view_id")
+	if pageStr := query.Get("page"); pageStr != "" {
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 0 {
+			c.SetInvalidParam("page")
 			return
 		}
-		cursorCreateAt, err := strconv.ParseInt(query.Get("cursor_create_at"), 10, 64)
-		if err != nil || cursorCreateAt <= 0 {
-			c.SetInvalidParam("cursor_create_at")
-			return
-		}
-		var cursorSortOrder int
-		if s := query.Get("cursor_sort_order"); s != "" {
-			cursorSortOrder, err = strconv.Atoi(s)
-			if err != nil {
-				c.SetInvalidParam("cursor_sort_order")
-				return
-			}
-		}
-		opts.Cursor = model.ViewQueryCursor{
-			ViewID:    cursorViewID,
-			CreateAt:  cursorCreateAt,
-			SortOrder: cursorSortOrder,
-		}
+		opts.Page = page
 	}
 
-	views, nextCursor, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, opts)
+	views, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -136,10 +120,7 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp := model.ViewListResponse{
 		Views:   views,
-		HasMore: !nextCursor.IsEmpty(),
-	}
-	if resp.HasMore {
-		resp.NextCursor = &nextCursor
+		HasMore: len(views) == c.Params.PerPage,
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

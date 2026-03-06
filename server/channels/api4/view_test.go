@@ -172,7 +172,6 @@ func TestGetViewsForChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Len(t, result.Views, 2)
 		require.False(t, result.HasMore)
-		require.Nil(t, result.NextCursor)
 	})
 
 	t.Run("empty channel returns empty list", func(t *testing.T) {
@@ -195,7 +194,7 @@ func TestGetViewsForChannel(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("pagination with HasMore and cursor continuation", func(t *testing.T) {
+	t.Run("pagination with HasMore", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// Create 3 views
@@ -207,40 +206,35 @@ func TestGetViewsForChannel(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// Page 1: request per_page=2
+		// Page 0: request per_page=2
 		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, result.Views, 2)
 		require.True(t, result.HasMore)
-		require.NotNil(t, result.NextCursor)
 
-		// Page 2: use cursor from page 1
-		result2, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{
-			PerPage: 2,
-			Cursor:  *result.NextCursor,
-		})
+		// Page 1: next page
+		result2, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2, Page: 1})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, result2.Views, 1)
 		require.False(t, result2.HasMore)
-		require.Nil(t, result2.NextCursor)
 
 		// Ensure no overlap between pages
-		require.NotEqual(t, result.Views[0].Id, result2.Views[0].Id)
-		require.NotEqual(t, result.Views[1].Id, result2.Views[0].Id)
+		page1IDs := map[string]bool{result.Views[0].Id: true, result.Views[1].Id: true}
+		require.False(t, page1IDs[result2.Views[0].Id])
 	})
 
-	t.Run("invalid cursor_view_id returns 400", func(t *testing.T) {
+	t.Run("out-of-bounds page returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		_, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{
-			Cursor: model.ViewQueryCursor{
-				ViewID:   "invalid",
-				CreateAt: 1000,
-			},
-		})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
+		require.NoError(t, err)
+
+		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 1, Page: 999})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, result.Views)
+		require.False(t, result.HasMore)
 	})
 }
 
