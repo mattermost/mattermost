@@ -263,7 +263,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	for _, status := range syncMsg.Statuses {
-		if err := scs.upsertSyncUserStatus(rctx, status, rc); err != nil {
+		if err := scs.upsertSyncUserStatus(c, status, rc); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user status",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", status.UserId),
