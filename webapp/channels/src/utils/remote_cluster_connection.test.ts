@@ -47,7 +47,8 @@ describe('remote_cluster_connection', () => {
         });
 
         it('returns true when last_ping_at is very recent', () => {
-            const now = DateTime.now().toMillis();
+            // Add a small delay to ensure the test is not flaky
+            const now = DateTime.now().minus({milliseconds: 100}).toMillis();
             expect(isRemoteClusterConnected({last_ping_at: now})).toBe(true);
         });
     });

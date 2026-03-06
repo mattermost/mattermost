@@ -36,7 +36,7 @@ type stubRemoteClusterService struct{}
 
 func (s *stubRemoteClusterService) Shutdown() error { return nil }
 func (s *stubRemoteClusterService) Start() error    { return nil }
-func (s *stubRemoteClusterService) Active() bool   { return false }
+func (s *stubRemoteClusterService) Active() bool    { return false }
 func (s *stubRemoteClusterService) AddTopicListener(topic string, listener remotecluster.TopicListener) string {
 	return ""
 }
