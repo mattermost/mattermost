@@ -125,12 +125,12 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
-	platform              *platform.PlatformService
-	platformOptions       []platform.Option
-	telemetryService      *telemetry.TelemetryService
-	userService           *users.UserService
-	teamService           *teams.TeamService
-	propertyAccessService *PropertyAccessService
+	platform         *platform.PlatformService
+	platformOptions  []platform.Option
+	telemetryService *telemetry.TelemetryService
+	userService      *users.UserService
+	teamService      *teams.TeamService
+	propertyService  *properties.PropertyService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -158,6 +158,10 @@ func (s *Server) Store() store.Store {
 	}
 
 	return nil
+}
+
+func (s *Server) PropertyService() *properties.PropertyService {
+	return s.propertyService
 }
 
 func (s *Server) SetStore(st store.Store) {
@@ -234,20 +238,27 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	propertyService, err := properties.New(properties.ServiceConfig{
+	s.propertyService, err = properties.New(properties.ServiceConfig{
 		PropertyGroupStore: s.Store().PropertyGroup(),
 		PropertyFieldStore: s.Store().PropertyField(),
 		PropertyValueStore: s.Store().PropertyValue(),
+		CallerIDExtractor: func(rctx request.CTX) string {
+			callerID, _ := CallerIDFromRequestContext(rctx)
+			return callerID
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")
 	}
 
-	// Wrap PropertyService with access control layer to enforce caller-based permissions
-	s.propertyAccessService = NewPropertyAccessService(propertyService, func(pluginID string) bool {
+	propertyAccessService := properties.NewPropertyAccessService(s.propertyService, func(pluginID string) bool {
+		if s.ch == nil {
+			return false
+		}
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
 	})
+	s.propertyService.SetPropertyAccessService(propertyAccessService)
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.

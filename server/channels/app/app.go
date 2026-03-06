@@ -157,10 +157,6 @@ func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
 }
 
-func (a *App) PropertyAccessService() *PropertyAccessService {
-	return a.Srv().propertyAccessService
-}
-
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store().Status().UpdateExpiredDNDStatuses()
 }
