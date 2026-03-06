@@ -214,6 +214,7 @@ const defaultServerConfig: AdminConfig = {
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
         DeleteAccountLink: '',
+        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
