@@ -89,7 +89,8 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     await flagPostFlow(post, channelsPage, message, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT);
 
     // Verify the message is flagged
-    await channelsPage.centerView.messageDeletedVisible(true, postId, message);
+    const flaggedPost = await channelsPage.centerView.getPostById(postId);
+    await flaggedPost.toContainText('(message deleted)');
     const systemMessage = await channelsPage.getLastPost();
     await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
 });

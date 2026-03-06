@@ -8,7 +8,6 @@ import {
     navigateToABACPage,
     verifyUserInChannel,
     verifyUserNotInChannel,
-    runSyncJob,
 } from '@mattermost/playwright-lib';
 
 import {
@@ -327,7 +326,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     // Ignore deletion errors
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
         } catch {
             // Ignore if no fields exist
         }
@@ -335,12 +334,25 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Office with admin-managed attrs
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
-            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
-        ];
-        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
+        // create attributes using direct API
+        const attributeFieldsMap: Record<string, any> = {};
+
+        const departmentField = await adminClient.createCustomProfileAttributeField({
+            name: 'Department',
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
+        } as any);
+        attributeFieldsMap[departmentField.id] = departmentField;
+
+        const officeField = await adminClient.createCustomProfileAttributeField({
+            name: 'Office',
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
+        } as any);
+        attributeFieldsMap[officeField.id] = officeField;
+
+        // Wait for attributes to be indexed
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
@@ -497,20 +509,15 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Navigate to ABAC page
+        // Navigate to ABAC page and wait for auto-triggered sync job
         await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000);
 
-        // Manually trigger a sync job to apply the policy changes
-        await runSyncJob(page, false);
-        await waitForLatestSyncJob(page);
-
-        // Trigger a SECOND sync job - sometimes the first sync only processes additions
-        await runSyncJob(page, false);
+        // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
         await waitForLatestSyncJob(page);
 
         // Additional wait for membership changes to propagate
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
@@ -576,7 +583,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     // Ignore deletion errors
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
         } catch {
             // Ignore if no fields exist
         }
@@ -584,12 +591,25 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // Set up TWO attribute fields: Department AND Office with admin-managed attrs
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
-            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'} as any},
-        ];
-        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
+        // create attributes using direct API
+        const attributeFieldsMap: Record<string, any> = {};
+
+        const departmentField = await adminClient.createCustomProfileAttributeField({
+            name: 'Department',
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
+        } as any);
+        attributeFieldsMap[departmentField.id] = departmentField;
+
+        const officeField = await adminClient.createCustomProfileAttributeField({
+            name: 'Office',
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
+        } as any);
+        attributeFieldsMap[officeField.id] = officeField;
+
+        // Wait for attributes to be indexed
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)

@@ -619,7 +619,7 @@ func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMa
 			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionManageSecureConnections},
 		},
-		// remote the deprecated permission from system admin
+		// remove the deprecated permission from system admin
 		permissionTransformation{
 			On:     isExactRole(model.SystemAdminRoleId),
 			Remove: []string{PermissionManageRemoteClusters},
@@ -1266,6 +1266,24 @@ func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddSharedChannelManagerPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SharedChannelManagerRoleId),
+			Add: []string{PermissionManageSharedChannels},
+		},
+	}, nil
+}
+
+func (a *App) getAddSecureConnectionManagerPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SecureConnectionManagerRoleId),
+			Add: []string{PermissionManageSecureConnections},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1323,6 +1341,8 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAutoTranslationPermissions, Migration: a.getAddChannelAutoTranslationPermissionMigration},
+		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
+		{Key: model.MigrationKeyAddSecureConnectionManagerPermissions, Migration: a.getAddSecureConnectionManagerPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
