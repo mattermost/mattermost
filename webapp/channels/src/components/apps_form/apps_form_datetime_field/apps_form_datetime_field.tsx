@@ -82,11 +82,13 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    const minDateTime = useMemo(() => {
+    const {minDateTime, allowPastDates} = useMemo(() => {
         if (!field.min_date) {
-            return undefined;
+            return {minDateTime: undefined, allowPastDates: true};
         }
-        return stringToMoment(field.min_date, timezone) ?? undefined;
+        const min = stringToMoment(field.min_date, timezone) ?? undefined;
+        const now = getCurrentMomentForTimezone(timezone);
+        return {minDateTime: min, allowPastDates: !min || min.isBefore(now, 'minute')};
     }, [field.min_date, timezone]);
 
     const maxDateTime = useMemo(() => {
@@ -95,9 +97,6 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         }
         return stringToMoment(field.max_date, timezone) ?? undefined;
     }, [field.max_date, timezone]);
-
-    const now = getCurrentMomentForTimezone(timezone);
-    const allowPastDates = !minDateTime || minDateTime.isBefore(now, 'minute');
 
     return (
         <div className='apps-form-datetime-input'>
