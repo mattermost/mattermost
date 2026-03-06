@@ -173,13 +173,11 @@ const createSanitizedField = (field: AppField): AppField => {
             mergedConfig.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         }
 
-        // Sanitize date values
-        if (mergedConfig.min_date) {
-            mergedConfig.min_date = getSafeDateValue(mergedConfig.min_date);
-        }
-        if (mergedConfig.max_date) {
-            mergedConfig.max_date = getSafeDateValue(mergedConfig.max_date);
-        }
+        // Note: min_date/max_date are NOT run through getSafeDateValue here.
+        // getSafeDateValue strips time components (via resolveRelativeDate and .split('T')[0]),
+        // which destroys sub-day relative patterns (+2H, +30M) and absolute datetime values
+        // (2025-01-15T14:30:00Z). These values are validated server-side and resolved with
+        // full precision by stringToMoment in AppsFormDateTimeField.
 
         sanitized.datetime_config = mergedConfig;
     }
