@@ -3234,7 +3234,7 @@ func (a *App) RewriteMessage(
 		},
 		UserID:           rctx.Session().UserId,
 		Operation:        "message_rewrite",
-		OperationSubType: string(action),
+		OperationSubType: normalizeRewriteAction(action),
 	}
 
 	completion, err := client.AgentCompletion(agentID, completionRequest)
@@ -3348,6 +3348,23 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	return contextBuilder.String(), nil
+}
+
+// normalizeRewriteAction maps a RewriteAction to a known subtype string for
+// operation tracking. Unknown actions are mapped to "unknown".
+func normalizeRewriteAction(action model.RewriteAction) string {
+	switch action {
+	case model.RewriteActionCustom,
+		model.RewriteActionShorten,
+		model.RewriteActionElaborate,
+		model.RewriteActionImproveWriting,
+		model.RewriteActionFixSpelling,
+		model.RewriteActionSimplify,
+		model.RewriteActionSummarize:
+		return string(action)
+	default:
+		return "unknown"
+	}
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action

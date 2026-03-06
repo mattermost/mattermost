@@ -86,7 +86,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 			{Role: "user", Message: userPrompt},
 		},
 		JSONOutputFormat: summarizePostsJSONSchema,
-		UserID:           userID,
+		UserID:           sessionUserID,
 		Operation:        "recaps",
 		OperationSubType: "summarize_channel",
 	}
