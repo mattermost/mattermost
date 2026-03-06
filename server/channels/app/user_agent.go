@@ -107,11 +107,28 @@ func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+const desktopAppVersionPrefix = "Mattermost/"
+
 var versionPrefixes = []string{
 	"Mattermost Mobile/",
-	"Mattermost/",
+	desktopAppVersionPrefix,
 	"mmctl/",
 	"Franz/",
+}
+
+func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
+	idx := strings.Index(userAgentString, desktopAppVersionPrefix)
+	if idx == -1 {
+		return "", false
+	}
+	if idx > 0 && userAgentString[idx-1] != ' ' {
+		return "", false
+	}
+	after := userAgentString[idx+len(desktopAppVersionPrefix):]
+	if fields := strings.Fields(after); len(fields) > 0 {
+		return limitStringLength(fields[0], maxUserAgentVersionLength), true
+	}
+	return "", false
 }
 
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {

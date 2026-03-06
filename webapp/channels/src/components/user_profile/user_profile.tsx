@@ -37,7 +37,7 @@ export default function UserProfile({
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
         if (user?.remote_id) {
-            actions.fetchRemoteClusterInfo(user.remote_id);
+            actions.fetchRemoteClusterInfo(user.remote_id, true);
         }
     }, [user?.remote_id]);
     let name: ReactNode;
