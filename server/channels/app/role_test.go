@@ -367,7 +367,7 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		mockChannelStore.AssertNotCalled(t, "GetChannelsByScheme", mock.Anything, mock.Anything, mock.Anything)
 	})
 
-	t.Run("Scheme store error propagates as AppError", func(t *testing.T) {
+	t.Run("Scheme store error is logged and skips broadcast", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := SetupWithStoreMock(t)
 
@@ -380,7 +380,7 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 
 		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
 		appErr := th.App.sendUpdatedRoleEvent(role)
-		require.NotNil(t, appErr)
+		require.Nil(t, appErr)
 	})
 
 	t.Run("GetTeamsByScheme store error propagates as AppError", func(t *testing.T) {

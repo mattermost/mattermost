@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -302,7 +303,11 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	}
 	scheme, err := a.Srv().Store().Scheme().Get(*role.SchemeId)
 	if err != nil {
-		return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		a.Log().Error("Failed to look up scheme for role event; skipping broadcast",
+			mlog.String("role_id", role.Id),
+			mlog.String("scheme_id", *role.SchemeId),
+			mlog.Err(err))
+		return nil
 	}
 
 	const pageSize = 1000
