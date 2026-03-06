@@ -13827,10 +13827,10 @@ func (s *TimerLayerViewStore) Get(id string) (*model.View, error) {
 	return result, err
 }
 
-func (s *TimerLayerViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error) {
+func (s *TimerLayerViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error) {
 	start := time.Now()
 
-	result, cursor, err := s.ViewStore.GetForChannel(channelID, opts)
+	result, err := s.ViewStore.GetForChannel(channelID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13840,7 +13840,7 @@ func (s *TimerLayerViewStore) GetForChannel(channelID string, opts model.ViewQue
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ViewStore.GetForChannel", success, elapsed)
 	}
-	return result, cursor, err
+	return result, err
 }
 
 func (s *TimerLayerViewStore) Save(view *model.View) (*model.View, error) {

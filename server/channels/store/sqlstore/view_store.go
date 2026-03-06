@@ -137,9 +137,9 @@ func (s *SqlViewStore) Get(id string) (*model.View, error) {
 	return row.toModel()
 }
 
-func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error) {
+func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error) {
 	if channelID == "" {
-		return nil, model.ViewQueryCursor{}, store.NewErrInvalidInput("View", "channelID", channelID)
+		return nil, store.NewErrInvalidInput("View", "channelID", channelID)
 	}
 
 	if opts.PerPage <= 0 {
@@ -148,59 +148,35 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 		opts.PerPage = model.ViewQueryMaxPerPage
 	}
 
-	if err := opts.Cursor.IsValid(); err != nil {
-		return nil, model.ViewQueryCursor{}, store.NewErrInvalidInput("View", "cursor", err.Error())
+	if opts.Page < 0 {
+		opts.Page = 0
 	}
 
 	builder := s.viewSelect.
 		Where(sq.Eq{"ChannelId": channelID}).
 		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC").
-		Limit(uint64(opts.PerPage))
+		Limit(uint64(opts.PerPage)).
+		Offset(uint64(opts.Page * opts.PerPage))
 
 	if !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	if !opts.Cursor.IsEmpty() {
-		builder = builder.Where(sq.Or{
-			sq.Gt{"SortOrder": opts.Cursor.SortOrder},
-			sq.And{
-				sq.Eq{"SortOrder": opts.Cursor.SortOrder},
-				sq.Gt{"CreateAt": opts.Cursor.CreateAt},
-			},
-			sq.And{
-				sq.Eq{"SortOrder": opts.Cursor.SortOrder},
-				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
-				sq.Gt{"Id": opts.Cursor.ViewID},
-			},
-		})
-	}
-
 	var rows []dbView
 	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
-		return nil, model.ViewQueryCursor{}, errors.Wrapf(err, "failed to get views for channel %s", channelID)
+		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
 	}
 
 	views := make([]*model.View, 0, len(rows))
 	for i := range rows {
 		v, err := rows[i].toModel()
 		if err != nil {
-			return nil, model.ViewQueryCursor{}, errors.Wrapf(err, "failed to convert view id=%s for channel %s", rows[i].Id, channelID)
+			return nil, errors.Wrapf(err, "failed to convert view id=%s for channel %s", rows[i].Id, channelID)
 		}
 		views = append(views, v)
 	}
 
-	var nextCursor model.ViewQueryCursor
-	if len(views) > 0 {
-		last := views[len(views)-1]
-		nextCursor = model.ViewQueryCursor{
-			ViewID:    last.Id,
-			CreateAt:  last.CreateAt,
-			SortOrder: last.SortOrder,
-		}
-	}
-
-	return views, nextCursor, nil
+	return views, nil
 }
 
 func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
