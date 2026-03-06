@@ -3,6 +3,11 @@ name: dev-docs-check-label-preview-env
 on:
   pull_request:
     types: [labeled]
+    paths:
+      - 'docs/developer/**'
+      - 'server/public/plugin/**'
+      - 'server/public/model/**'
+      - 'webapp/channels/src/plugins/registry.ts'
 
 permissions: {}
 

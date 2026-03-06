@@ -6,9 +6,15 @@ on:
       - master
     paths:
       - 'docs/developer/**'
+      - 'server/public/plugin/**'
+      - 'server/public/model/**'
+      - 'webapp/channels/src/plugins/registry.ts'
   pull_request:
     paths:
       - 'docs/developer/**'
+      - 'server/public/plugin/**'
+      - 'server/public/model/**'
+      - 'webapp/channels/src/plugins/registry.ts'
 
 permissions:
   contents: read
