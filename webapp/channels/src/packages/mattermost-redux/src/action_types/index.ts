@@ -26,6 +26,7 @@ import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
 import PreferenceTypes from './preferences';
+import PropertyTypes from './properties';
 import RecapTypes from './recaps';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
@@ -69,6 +70,7 @@ export {
     ScheduledPostTypes,
     SharedChannelTypes,
     ContentFlaggingTypes,
+    PropertyTypes,
     AgentTypes,
     WebSocketTypes,
 };
