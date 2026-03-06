@@ -8,7 +8,7 @@ const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
 const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
 const FLAG_COMMENT: string = 'This message contains misclassified data';
 const SYSTEM_MESSAGE = (username: string): string =>
-    `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
+    `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
@@ -317,7 +317,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Spam');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
 });
 
 /**
@@ -348,7 +348,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Spam');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.requireCommentsForFlaggingPost();

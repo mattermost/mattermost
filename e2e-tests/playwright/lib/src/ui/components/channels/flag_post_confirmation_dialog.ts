@@ -67,7 +67,9 @@ export default class FlagPostConfirmationDialog {
 
     async cannotFlagAlreadyFlaggedPostToBeVisible() {
         await expect(this.cannotFlagPostErrorMessage).toBeVisible();
-        await expect(this.cannotFlagPostErrorMessage).toHaveText('Cannot flag this post as it is already flagged.');
+        await expect(this.cannotFlagPostErrorMessage).toHaveText(
+            'Cannot quarantine this post as it is already quarantined for review.',
+        );
     }
 
     async requireCommentsForFlaggingPost() {
@@ -80,7 +82,7 @@ export default class FlagPostConfirmationDialog {
     async cannotFlagPreviouslyRetainedPostToBeVisible() {
         await expect(this.cannotFlagPostErrorMessage).toBeVisible();
         await expect(this.cannotFlagPostErrorMessage).toHaveText(
-            'Cannot flag this post as it was retained in a previous flagging request.',
+            'Cannot quarantine this post as it was retained in a previous review.',
         );
     }
 }
