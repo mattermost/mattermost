@@ -33,6 +33,60 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 	return th
 }
 
+func TestGetAllSharedChannelsWithSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a shared channel that the test user is NOT a member of
+	otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: otherChannel.Id,
+		TeamId:    otherChannel.TeamId,
+		Home:      true,
+		ShareName: "test_share_other",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	// Create a user with the shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, scmUser, th.BasicTeam)
+
+	scmClient := th.CreateClient()
+	_, _, loginErr := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, loginErr)
+
+	t.Run("regular user only sees shared channels they are a member of", func(t *testing.T) {
+		// BasicUser is not a member of otherChannel
+		channels, _, err := th.Client.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, 0, 100)
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, otherChannel.Id, ch.ChannelId,
+				"regular user should not see shared channels they are not a member of")
+		}
+	})
+
+	t.Run("shared_channel_manager user sees all shared channels", func(t *testing.T) {
+		// scmUser is NOT a member of otherChannel, but has manage_shared_channels
+		channels, _, err := scmClient.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, 0, 100)
+		require.NoError(t, err)
+
+		found := false
+		for _, ch := range channels {
+			if ch.ChannelId == otherChannel.Id {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found,
+			"shared_channel_manager user should see all shared channels, including ones they are not a member of")
+	})
+}
+
 func TestGetAllSharedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic(t)

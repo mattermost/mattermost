@@ -176,7 +176,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
@@ -217,7 +217,7 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/download-shard-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/playwright/shard-results/
@@ -236,7 +236,7 @@ jobs:
         with:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
       - name: ci/upload-merged-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
@@ -292,7 +292,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-retest-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
@@ -332,7 +332,7 @@ jobs:
 
       # Download merged results (uploaded by calculate-results)
       - name: ci/download-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
@@ -340,7 +340,7 @@ jobs:
       # Download retest results (only if retest ran)
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: e2e-tests/playwright/retest-results/
@@ -354,7 +354,7 @@ jobs:
           retest-results-path: ${{ needs.run-failed-tests.result != 'skipped' && 'e2e-tests/playwright/retest-results/results/reporter/results.json' || '' }}
 
       - name: ci/aws-configure
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
