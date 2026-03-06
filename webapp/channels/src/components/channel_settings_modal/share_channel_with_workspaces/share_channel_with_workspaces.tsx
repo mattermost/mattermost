@@ -23,7 +23,6 @@ type Props = {
     remotes: RemoteClusterInfo[];
     initialRemotes?: RemoteClusterInfo[];
     onRemotesChange: (remotes: WorkspaceWithStatus[]) => void;
-    disabled?: boolean;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -33,7 +32,6 @@ export default function ShareChannelWithWorkspaces({
     remotes,
     initialRemotes = emptyRemotes,
     onRemotesChange,
-    disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -122,7 +120,6 @@ export default function ShareChannelWithWorkspaces({
                             defaultMessage: 'Share channel with connected workspaces',
                         })}
                         size='btn-md'
-                        disabled={disabled}
                         onToggle={handleToggle}
                         toggled={enabled}
                         tabIndex={0}
@@ -143,14 +140,12 @@ export default function ShareChannelWithWorkspaces({
                     <WorkspaceList
                         workspaces={workspaces}
                         onRemove={handleRemove}
-                        disabled={disabled}
                     />
 
                     <AddWorkspaceDropdown
                         channelId={channel.id}
                         currentRemoteIds={new Set(workspaces.map((w) => w.remote_id || w.name))}
                         onAdd={handleAdd}
-                        disabled={disabled}
                     />
                 </div>
             )}

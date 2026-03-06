@@ -17,7 +17,6 @@ type Props = {
     channelId: string;
     currentRemoteIds: Set<string>;
     onAdd: (remotes: RemoteToAdd[]) => void;
-    disabled?: boolean;
 };
 
 const MENU_ID = 'add_workspace_to_channel_menu';
@@ -26,7 +25,6 @@ export default function AddWorkspaceDropdown({
     channelId,
     currentRemoteIds,
     onAdd,
-    disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
     const [remotes, setRemotes] = useState<RemoteCluster[]>([]);
@@ -78,20 +76,17 @@ export default function AddWorkspaceDropdown({
         <Menu.Container
             menuButton={{
                 id: `${MENU_ID}-button`,
-                class: classNames('btn', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn', {disabled}),
-                disabled,
+                class: classNames('btn', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
                 children: (
                     <>
                         <FormattedMessage
                             id='channel_settings.share_channel_with_workspaces.add'
                             defaultMessage='+ Add workspace'
                         />
-                        {!disabled && (
-                            <i
-                                aria-hidden='true'
-                                className='icon icon-chevron-down'
-                            />
-                        )}
+                        <i
+                            aria-hidden='true'
+                            className='icon icon-chevron-down'
+                        />
                     </>
                 ),
             }}

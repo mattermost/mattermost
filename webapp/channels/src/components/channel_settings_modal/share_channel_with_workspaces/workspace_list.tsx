@@ -20,7 +20,6 @@ function getConnectionStatus(w: WorkspaceWithStatus): 'pending_save' | 'connecti
 type Props = {
     workspaces: WorkspaceWithStatus[];
     onRemove: (remoteId: string) => void;
-    disabled?: boolean;
 };
 
 function getRemoteId(w: WorkspaceWithStatus) {
@@ -71,7 +70,7 @@ function WorkspaceStatus({workspace}: {workspace: WorkspaceWithStatus}) {
     );
 }
 
-export default function WorkspaceList({workspaces, onRemove, disabled = false}: Props) {
+export default function WorkspaceList({workspaces, onRemove}: Props) {
     const {formatMessage} = useIntl();
 
     if (workspaces.length === 0) {
@@ -95,7 +94,6 @@ export default function WorkspaceList({workspaces, onRemove, disabled = false}: 
                         type='button'
                         className='ShareChannelWithWorkspaces__remove'
                         onClick={() => onRemove(getRemoteId(w))}
-                        disabled={disabled}
                         aria-label={formatMessage(
                             {id: 'channel_settings.share_channel_with_workspaces.remove_aria', defaultMessage: 'Remove {name}'},
                             {name: w.display_name || w.name},
