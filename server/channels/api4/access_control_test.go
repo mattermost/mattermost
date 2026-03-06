@@ -627,10 +627,14 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
+
+		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
 	}
 
 	t.Run("without license returns not implemented", func(t *testing.T) {
+		originalACS := th.App.Srv().Channels().AccessControl
 		th.App.Srv().Channels().AccessControl = nil
+		defer func() { th.App.Srv().Channels().AccessControl = originalACS }()
 
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), teamSearch)
 		require.Error(t, err)

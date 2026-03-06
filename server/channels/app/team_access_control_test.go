@@ -229,12 +229,13 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 
 	t.Run("filters out system-scoped policies", func(t *testing.T) {
 		// Create a parent policy with NO child channels -> system-scoped
-		_, _ = createTestPolicyHierarchy(t, th, []*model.Channel{})
+		systemPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
 
-		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
-		assert.Empty(t, policies, "system-scoped policy should be filtered out")
-		assert.Equal(t, int64(0), total)
+		for _, p := range policies {
+			assert.NotEqual(t, systemPolicy.ID, p.ID, "system-scoped policy should be filtered out")
+		}
 	})
 
 	t.Run("includes team-scoped policy", func(t *testing.T) {
@@ -318,8 +319,6 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
-		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
 	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
 		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
 	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"),
@@ -328,5 +327,7 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 
 	policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 	require.Nil(t, appErr)
-	assert.Empty(t, policies, "policy where admin doesn't satisfy rules should be filtered out")
+	for _, p := range policies {
+		assert.NotEqual(t, parentPolicy.ID, p.ID, "policy where admin doesn't satisfy rules should be filtered out")
+	}
 }

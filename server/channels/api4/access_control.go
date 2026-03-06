@@ -362,12 +362,14 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	var appErr *model.AppError
 
 	if props.TeamID != "" {
-		// Team-scoped search: requires team permission
+		// Team-scoped search: requires manage_system OR team-level manage_team_access_rules
 		if !model.IsValidId(props.TeamID) {
 			c.SetInvalidParam("team_id")
 			return
 		}
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules) {
+		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		hasTeamPermission := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules)
+		if !hasSystemPermission && !hasTeamPermission {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
