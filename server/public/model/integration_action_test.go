@@ -1425,7 +1425,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should reject datetime DialogElement with date-only min/max", func(t *testing.T) {
+	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
 		element := DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
@@ -1436,8 +1436,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			Optional:     false,
 		}
 		err := element.IsValid()
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid datetime format")
+		assert.NoError(t, err)
 	})
 
 	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {
