@@ -20,11 +20,23 @@ The update script handles: git auth, repo cloning, npm install, Go workspace set
 
 After the update script has run:
 
-1. **Start Docker daemon** (if not already running): `sudo dockerd &>/tmp/dockerd.log &` — wait a few seconds, then verify with `docker info`.
-2. **Start PostgreSQL:** `cd /workspace/server && make start-docker`
-3. **Build enterprise server:** `cd /workspace/server && go build -tags 'enterprise sourceavailable' -ldflags '-X "github.com/mattermost/mattermost/server/public/model.BuildNumber=dev" -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=true"' -o ./bin/mattermost ./cmd/mattermost`
-4. **Run enterprise server:** `cd /workspace/server && MM_PLUGINSETTINGS_ENABLEUPLOADS=true MM_PLUGINSETTINGS_ENABLE=true MM_SERVICESETTINGS_SITEURL=http://localhost:8065 ./bin/mattermost` — add `&` to background. Listens on `:8065`.
-5. **Webapp:** `cd /workspace/webapp && make run` (webpack build+watch) or `make dev` (HMR dev server).
+1. **Start Docker daemon** (if not already running): `sudo dockerd &>/tmp/dockerd.log &` — wait a few seconds, verify with `docker info`.
+2. **Start server + webapp together:**
+   ```
+   cd /workspace/server && \
+     MM_PLUGINSETTINGS_ENABLEUPLOADS=true \
+     MM_PLUGINSETTINGS_ENABLE=true \
+     MM_SERVICESETTINGS_SITEURL=http://localhost:8065 \
+     make BUILD_ENTERPRISE_DIR="$HOME/enterprise" run
+   ```
+   This single command starts Docker (postgres), builds mmctl, sets up the `go.work` and client symlink, compiles the Go server with enterprise tags, runs it in the background, then starts the webpack watcher for the webapp. The server listens on `:8065`.
+3. **Restart server after code changes:**
+   ```
+   cd /workspace/server && make BUILD_ENTERPRISE_DIR="$HOME/enterprise" restart-server
+   ```
+   This stops the running server and re-runs it with enterprise. Webapp changes are picked up by webpack automatically (browser refresh needed).
+
+**You MUST pass `BUILD_ENTERPRISE_DIR="$HOME/enterprise"` to every `make` command** — `run`, `restart-server`, `run-server`, `test-server`, `check-style`, etc. Without it, the Makefile defaults to `../../enterprise` (which doesn't exist), and the build silently falls back to team edition.
 
 ### Agents plugin configuration
 
@@ -81,21 +93,22 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 
 ### Key gotchas
 
+- **"TEAM EDITION" in the UI is about licensing, not the build.** Even with enterprise code compiled in (`BuildEnterpriseReady=true`), the webapp shows "TEAM EDITION" when no license is installed. This is correct behavior. To verify enterprise code is loaded, check: (1) server logs for `"Enterprise Build", enterprise_build: true`, (2) the API at `/api/v4/config/client?format=old` for `BuildEnterpriseReady: true`, or (3) the System Console "Edition and License" page which shows "Enterprise Advanced trial" option only when enterprise code is present.
 - The server auto-generates `server/config/config.json` on first run; default SQL points to `postgres://mmuser:mostest@localhost/mattermost_test` matching Docker Compose.
 - The first user created via `/api/v4/users` gets `system_admin` role automatically.
 - SMTP errors and plugin directory warnings on startup are expected in dev — non-blocking.
-- When running `make` commands that involve enterprise, always pass `BUILD_ENTERPRISE_DIR="$HOME/enterprise"`.
 - License errors in logs ("Failed to read license set in environment") are normal — enterprise features requiring a license won't be available but the server runs fine.
 - The enterprise repo must be on a compatible branch with the main repo.
 - The VM's global gitconfig may have `url.*.insteadOf` rules embedding the default Cursor agent token, which only has access to `mattermost/mattermost`. The update script cleans these and sets up `gh auth` with `CURSOR_GH_TOKEN` instead.
 
 ### Lint, test, and build
 
-**Server (with enterprise):** run from `/workspace/server/`
-- **Build:** `go build -tags 'enterprise sourceavailable' -o ./bin/mattermost ./cmd/mattermost/`
-- **Vet:** `go vet -tags 'enterprise sourceavailable' ./cmd/mattermost/...`
+**Server (with enterprise):** all commands from `/workspace/server/`, always include `BUILD_ENTERPRISE_DIR="$HOME/enterprise"`:
+- **Run:** `make BUILD_ENTERPRISE_DIR="$HOME/enterprise" run`
+- **Restart:** `make BUILD_ENTERPRISE_DIR="$HOME/enterprise" restart-server`
 - **Lint:** `make BUILD_ENTERPRISE_DIR="$HOME/enterprise" check-style`
 - **Tests:** `make BUILD_ENTERPRISE_DIR="$HOME/enterprise" test-server` (needs Docker). Quick: `go test ./public/model/...`
+- **Standalone build:** `make BUILD_ENTERPRISE_DIR="$HOME/enterprise" build-linux` (or use `go build -tags 'enterprise sourceavailable' ...` directly)
 
 **Webapp:** run from `/workspace/webapp/`
 - **Lint:** `npm run check`
