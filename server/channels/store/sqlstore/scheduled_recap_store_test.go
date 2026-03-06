@@ -144,10 +144,11 @@ func TestScheduledRecapStore(t *testing.T) {
 			require.NoError(t, err)
 			assert.Len(t, recaps, 0)
 
-			// Direct Get should still return the record with DeleteAt set
-			retrievedSR, err := ss.ScheduledRecap().Get(sr.Id)
-			require.NoError(t, err)
-			assert.NotZero(t, retrievedSR.DeleteAt)
+			// Direct Get should not return soft-deleted records
+			_, err = ss.ScheduledRecap().Get(sr.Id)
+			require.Error(t, err)
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
 		})
 
 		t.Run("GetDueBefore", func(t *testing.T) {
