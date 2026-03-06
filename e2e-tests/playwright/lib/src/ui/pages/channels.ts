@@ -7,6 +7,8 @@ import {waitUntil} from 'async-wait-until';
 import {
     ChannelsPost,
     ChannelSettingsModal,
+    CreateTeamForm,
+    NewChannelModal,
     SettingsModal,
     TeamSettingsModal,
     components,
@@ -30,8 +32,10 @@ export default class ChannelsPage {
     readonly messagePriority;
 
     readonly channelSettingsModal;
+    readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
+    readonly newChannelModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -64,8 +68,10 @@ export default class ChannelsPage {
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
+        this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+        this.newChannelModal = new NewChannelModal(page.locator('#new-channel-modal'));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
