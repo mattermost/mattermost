@@ -24,14 +24,14 @@
 
     &__refresh-btn {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 32px;
         height: 32px;
+        align-items: center;
+        justify-content: center;
         border-radius: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 18px;
         cursor: pointer;
+        font-size: 18px;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -46,17 +46,17 @@
     &__add-btn {
         display: flex;
         align-items: center;
-        gap: 4px;
         padding: 6px 16px;
         font-size: 13px;
+        gap: 4px;
 
         .icon {
             font-size: 16px;
         }
 
         &:disabled {
-            opacity: 0.5;
             cursor: not-allowed;
+            opacity: 0.5;
         }
     }
 }
