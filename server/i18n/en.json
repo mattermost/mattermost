@@ -4447,10 +4447,6 @@
     "translation": "Invalid invitation link."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Invalid invitation link type."
-  },
-  {
     "id": "api.user.guest_magic_link.missing_token.app_error",
     "translation": "Missing invitation token."
   },
@@ -5457,6 +5453,10 @@
   {
     "id": "app.command.updatecommand.internal_error",
     "translation": "Unable to update the command."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "The specified trigger keyword already exists."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
@@ -10062,7 +10062,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Workers must be between 1 and 32."
+    "translation": "Workers must be between 1 and 64."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
@@ -10459,6 +10459,10 @@
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
     "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
@@ -11899,6 +11903,38 @@
   {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "or"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Contact your system administrator if you need further assistance."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Download Updated App"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "About"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Privacy Policy"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Terms"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Your {{.SiteName}} Desktop App version ({{.CurrentVersion}}) is below the minimum required version ({{.MinimumVersion}}). Please update your app or open {{.SiteName}} in a web browser to continue."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Update Required"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

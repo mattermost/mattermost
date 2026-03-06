@@ -6,6 +6,7 @@
 import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
+import semver from 'semver';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 
@@ -2524,6 +2525,33 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
                             help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.MinimumDesktopAppVersion',
+                            label: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionTitle',
+                                defaultMessage: 'Minimum desktop app version:',
+                            }),
+                            placeholder: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionPlaceholder',
+                                defaultMessage: 'Input a version number (e.g. 5.0.0)',
+                            }),
+                            help_text: defineMessage({
+                                id: 'admin.customization.minimumDesktopAppVersionDesc',
+                                defaultMessage: 'Specify the minimum version of the Mattermost Desktop App required to connect to this server (e.g., 5.10.0). Users connecting with a Desktop App version below this minimum will be shown an update required page and will not be able to use the application until they update. Leave this field blank to allow all Desktop App versions to connect without restriction.',
+                            }),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            validate: (value) => {
+                                const trimmed = typeof value === 'string' ? value.trim() : value;
+                                if (trimmed && !semver.valid(trimmed)) {
+                                    return new ValidationResult(false, defineMessage({
+                                        id: 'admin.customization.minimumDesktopAppVersionError',
+                                        defaultMessage: 'Invalid version number. Must be a valid semantic version (e.g. 5.0.0).',
+                                    }));
+                                }
+                                return new ValidationResult(true, '');
+                            },
                         },
                     ],
                 },

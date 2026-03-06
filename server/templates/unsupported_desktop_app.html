@@ -1,0 +1,172 @@
+{{define "unsupported_desktop_app"}}
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <base href="{{.Props.Subpath}}">
+            <title>{{.Props.Title}}</title>
+            <style>
+                @font-face {
+                    font-family: 'Metropolis';
+                    src: url("static/fonts/Metropolis-SemiBold.woff") format('woff');
+                    font-weight: 600;
+                    font-style: normal;
+                }
+                * {
+                    box-sizing: border-box;
+                }
+                body {
+                    margin: 0;
+                    min-height: 100vh;
+                    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    -webkit-font-smoothing: antialiased;
+                    display: flex;
+                    flex-direction: column;
+                    background-color: #F0F0F0;
+                    background-image: url("static/images/admin-onboarding-background.jpg");
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                }
+                .header {
+                    padding: 36px 0 0 40px;
+                }
+                .logo {
+                    display: block;
+                    width: 170px;
+                    height: 30px;
+                }
+                .main {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px 40px 80px;
+                }
+                .content {
+                    text-align: center;
+                    max-width: 560px;
+                }
+                .warning-icon {
+                    display: block;
+                    width: 189.133px;
+                    height: 150px;
+                    margin: 0 auto 24px;
+                }
+                .title {
+                    margin: 0 0 16px;
+                    font-family: 'Metropolis', sans-serif;
+                    font-size: 40px;
+                    font-weight: 600;
+                    line-height: 48px;
+                    letter-spacing: -0.8px;
+                    color: #1E325C;
+                }
+                .message {
+                    margin: 0 0 24px;
+                    font-size: 16px;
+                    line-height: 1.5;
+                    color: rgba(63, 67, 80, 0.72);
+                }
+                .message a {
+                    color: #2389D7;
+                    text-decoration: underline;
+                }
+                .message a:hover {
+                    color: #1C6FBC;
+                }
+                .download-container {
+                    margin: 43px 0;
+                }
+                .download-button {
+                    display: inline-block;
+                    padding: 12px 28px;
+                    border: 0;
+                    border-radius: 4px;
+                    background-color: #2962FF;
+                    color: #FFFFFF;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                .download-button:hover {
+                    background-color: #1E53E6;
+                }
+                .assistance {
+                    margin: 0;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    color: rgba(63, 67, 80, 0.64);
+                }
+                .footer,
+                .footer-links {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 24px;
+                }
+                .footer {
+                    padding: 16px 40px;
+                    font-size: 11px;
+                    line-height: 16px;
+                    letter-spacing: 0.22px;
+                    color: rgba(63, 67, 80, 0.56);
+                }
+                .footer-links a {
+                    color: inherit;
+                    text-decoration: none;
+                }
+                .footer-links a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+            <style>
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 400;
+                    src:
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff") format('woff');
+                }
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 600;
+                    src:
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff") format('woff');
+                }
+            </style>
+        </head>
+        <body>
+            <header class="header">
+                <img class="logo" src="static/images/logo.svg" alt="{{.Props.SiteName}}" />
+            </header>
+            <main class="main">
+                <div class="content">
+                    <img class="warning-icon" src="static/images/alert.svg" alt="" />
+                    <h1 class="title">{{.Props.Title}}</h1>
+                    <div class="message">{{.Props.MessageString}}</div>
+                    <div class="download-container">
+                        <a class="download-button" href="{{.Props.DownloadLink}}" target="_blank" rel="noopener noreferrer">{{.Props.DownloadButtonLabel}}</a>
+                    </div>
+                    <p class="assistance">{{.Props.AssistanceString}}</p>
+                </div>
+            </main>
+            <footer class="footer">
+                <span>© {{.Props.CopyrightYear}} Mattermost Inc.</span>
+                <span class="footer-links">
+                    {{if .Props.AboutLink}}<a href="{{.Props.AboutLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterAboutLabel}}</a>{{end}}
+                    {{if .Props.PrivacyPolicyLink}}<a href="{{.Props.PrivacyPolicyLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterPrivacyLabel}}</a>{{end}}
+                    {{if .Props.TermsOfServiceLink}}<a href="{{.Props.TermsOfServiceLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterTermsLabel}}</a>{{end}}
+                    {{if .Props.HelpLink}}<a href="{{.Props.HelpLink}}" target="_blank" rel="noopener noreferrer">{{.Props.FooterHelpLabel}}</a>{{end}}
+                </span>
+            </footer>
+        </body>
+    </html>
+{{end}}
