@@ -38,7 +38,7 @@ To get started:
 2. To contribute to documentation, you should be able to edit any page and get to the source file in the documentation repository by selecting the **Edit on GitHub** button in the top right of its respective published page. You can read more about this process on the [why and how to contribute page]({{< ref "/contribute/why-contribute/#you-want-to-help-with-content" >}}). You can contribute to the following Mattermost documentation sites:
 
     - {{< newtabref href="https://github.com/mattermost/docs" title="Product documentation" >}}
-    - {{< newtabref href="https://github.com/mattermost/mattermost-developer-documentation" title="Developer documentation" >}}
+    - {{< newtabref href="https://github.com/mattermost/mattermost/tree/master/docs/developer" title="Developer documentation" >}}
     - {{< newtabref href="https://github.com/mattermost/mattermost-api-reference" title="API reference documentation" >}}
     - {{< newtabref href="https://github.com/mattermost/mattermost-handbook" title="Handbook documentation" >}}
 

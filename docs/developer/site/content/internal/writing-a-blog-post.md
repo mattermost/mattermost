@@ -46,15 +46,15 @@ Some popular blogs that are worth reading include:
 - https://www.freecodecamp.org/news/
 - https://alistapart.com/
 
-The [/site/content/blog/](https://github.com/mattermost/mattermost-developer-documentation/tree/master/site/content/blog) folder also has some good examples.
+The [/site/content/blog/](https://github.com/mattermost/mattermost/tree/master/docs/developer/site/content/blog) folder also has some good examples.
 
 Writing Your Blog Post
 ----------------------
 
 The steps below outline the process involved in creating the blog post file from a cloned repo, and then submitting the PR.  
 
-1. Clone https://github.com/mattermost/mattermost-developer-documentation.
-2. Create a new .md file in the [/site/content/blog/](https://github.com/mattermost/mattermost-developer-documentation/tree/master/site/content/blog) folder.
+1. Clone https://github.com/mattermost/mattermost.
+2. Create a new .md file in the [/docs/developer/site/content/blog/](https://github.com/mattermost/mattermost/tree/master/docs/developer/site/content/blog) folder.
   - Use `YYYY-MM-DD-<your-blog-post-title>.md` as the filename.
 
 3. Paste this template into your file
@@ -82,5 +82,5 @@ The steps below outline the process involved in creating the blog post file from
 
 4. Write your blog post.
 5. (Optional) If you wrote the blog post with someone else, you can also add a second author by adding `author_2`, `github_2` and `community_2` to the [front matter](https://gohugo.io/content-management/front-matter).
-6. Submit a pull request to https://github.com/mattermost/mattermost-developer-documentation and assign two dev reviews and an editor review from @amyblais or @justinegeffen.
+6. Submit a pull request to https://github.com/mattermost/mattermost and assign two dev reviews and an editor review from @amyblais or @justinegeffen.
 7. Once merged it should show up on [developers.mattermost.com/blog](https://developers.mattermost.com/blog) within 10-15 minutes. When it shows up, post about it in the Developers channel on community.mattermost.com.
