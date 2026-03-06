@@ -16,6 +16,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
+func TestIsRootJsonlFile(t *testing.T) {
+	assert.True(t, IsRootJsonlFile("import.jsonl"))
+	assert.True(t, IsRootJsonlFile("export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/attachments/report.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/deep/nested/file.jsonl"))
+	assert.False(t, IsRootJsonlFile("import.json"))
+	assert.False(t, IsRootJsonlFile("import.zip"))
+	assert.False(t, IsRootJsonlFile("data/photo.jpg"))
+	assert.False(t, IsRootJsonlFile(""))
+}
+
 func TestImportValidateSchemeImportData(t *testing.T) {
 	// Test with minimum required valid properties and team scope.
 	data := SchemeImportData{

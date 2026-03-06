@@ -24,8 +24,12 @@ var mainHelper *testlib.MainHelper
 
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
-	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	// Each NewCache call returns a fresh LRU so that caches are isolated
+	// from each other, matching production behaviour.
+	call := mockCacheProvider.On("NewCache", mock.Anything)
+	call.Run(func(args mock.Arguments) {
+		call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+	})
 	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
