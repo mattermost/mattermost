@@ -8,7 +8,7 @@ const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
 const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
 const FLAG_COMMENT: string = 'This message contains misclassified data';
 const SYSTEM_MESSAGE = (username: string): string =>
-    `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Content Reviewer. `;
+    `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
