@@ -50,10 +50,10 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     const {formatMessage} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
 
-    // Extract datetime config with fallback to top-level fields
+    // datetime_config is pre-merged with deprecated top-level fields by createSanitizedField
     const config = field.datetime_config || {};
     const locationTimezone = config.location_timezone;
-    const timePickerInterval = config.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const timePickerInterval = config.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
     const allowManualTimeEntry = config.allow_manual_time_entry ?? false;
 
     // Use location_timezone if specified, otherwise fall back to user's timezone
@@ -85,20 +85,18 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     }, [field.name, onChange]);
 
     const minDateTime = useMemo(() => {
-        const minDate = config.min_date ?? field.min_date;
-        if (!minDate) {
+        if (!config.min_date) {
             return undefined;
         }
-        return stringToMoment(minDate, timezone) ?? undefined;
-    }, [config.min_date, field.min_date, timezone]);
+        return stringToMoment(config.min_date, timezone) ?? undefined;
+    }, [config.min_date, timezone]);
 
     const maxDateTime = useMemo(() => {
-        const maxDate = config.max_date ?? field.max_date;
-        if (!maxDate) {
+        if (!config.max_date) {
             return undefined;
         }
-        return stringToMoment(maxDate, timezone) ?? undefined;
-    }, [config.max_date, field.max_date, timezone]);
+        return stringToMoment(config.max_date, timezone) ?? undefined;
+    }, [config.max_date, timezone]);
 
     return (
         <div className='apps-form-datetime-input'>

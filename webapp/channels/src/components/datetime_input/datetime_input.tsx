@@ -15,7 +15,7 @@ import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
-import {formatDateForDisplay, getRoundedTime} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime, momentToLocalDate} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
@@ -24,10 +24,6 @@ const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
 // Re-exported from date_utils for backward compatibility
 export {getRoundedTime} from 'utils/date_utils';
-function momentToLocalDate(m: Moment): Date {
-    return new Date(m.year(), m.month(), m.date());
-}
-
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
     let time = moment(startTime);
@@ -341,19 +337,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
 
+        let result: Moment;
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
             if (minDateTime && isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
-            const roundedTime = getRoundedTime(baseTime, timePickerInterval);
-            handleChange(roundedTime);
+            result = getRoundedTime(baseTime, timePickerInterval);
         } else if (timezone) {
             // Use moment.tz array syntax to create moment directly in timezone
             // This is the same pattern used by manual entry (which works correctly)
             const dayMoment = moment(day);
-            const targetDate = moment.tz([
+            result = moment.tz([
                 dayMoment.year(),
                 dayMoment.month(),
                 dayMoment.date(),
@@ -362,12 +358,20 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 0,
                 0,
             ], timezone);
-
-            handleChange(targetDate);
         } else {
             day.setHours(effectiveTime.hour(), effectiveTime.minute());
-            handleChange(moment(day));
+            result = moment(day);
         }
+
+        // Clamp to min/max bounds
+        if (minDateTime && result.isBefore(minDateTime, 'minute')) {
+            result = minDateTime.clone();
+        }
+        if (maxDateTime && result.isAfter(maxDateTime, 'minute')) {
+            result = maxDateTime.clone();
+        }
+
+        handleChange(result);
         handlePopperOpenState(false);
     };
 
@@ -389,8 +393,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     const disabledDays = (() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
-        const minDate = minDateTime ? momentToLocalDate(minDateTime?.clone().startOf('day')) : undefined;
-        const maxDate = maxDateTime ? momentToLocalDate(maxDateTime?.clone().startOf('day')) : undefined;
+        const minDate = minDateTime ? momentToLocalDate(minDateTime.clone().startOf('day')) : undefined;
+        const maxDate = maxDateTime ? momentToLocalDate(maxDateTime.clone().startOf('day')) : undefined;
         if (minDate) {
             matchers.push({before: minDate});
         }

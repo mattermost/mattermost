@@ -156,34 +156,43 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
-    // Sanitize time_interval for datetime fields (both top-level and nested config)
+    // For datetime fields, merge deprecated top-level fields into datetime_config
+    // so downstream components only need to read from datetime_config.
     if (field.type === AppFieldTypes.DATETIME) {
-        if (field.time_interval !== undefined) {
-            const interval = field.time_interval;
-            if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
-                sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
-            }
+        const config = field.datetime_config || {};
+        const mergedConfig = {
+            ...config,
+            time_interval: config.time_interval ?? field.time_interval,
+            min_date: config.min_date ?? field.min_date,
+            max_date: config.max_date ?? field.max_date,
+        };
+
+        // Sanitize time_interval
+        const interval = mergedConfig.time_interval;
+        if (interval === undefined || typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
+            mergedConfig.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         }
-        if (field.datetime_config?.time_interval !== undefined) {
-            const interval = field.datetime_config.time_interval;
-            if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
-                sanitized.datetime_config = {
-                    ...sanitized.datetime_config,
-                    time_interval: DEFAULT_TIME_INTERVAL_MINUTES,
-                };
-            }
+
+        // Sanitize date values
+        if (mergedConfig.min_date) {
+            mergedConfig.min_date = getSafeDateValue(mergedConfig.min_date);
         }
+        if (mergedConfig.max_date) {
+            mergedConfig.max_date = getSafeDateValue(mergedConfig.max_date);
+        }
+
+        sanitized.datetime_config = mergedConfig;
     }
 
-    // Sanitize date values for date/datetime fields
-    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
+    // Sanitize date values for date-only fields
+    if (field.type === AppFieldTypes.DATE) {
         if (field.min_date) {
             sanitized.min_date = getSafeDateValue(field.min_date);
         }
         if (field.max_date) {
             sanitized.max_date = getSafeDateValue(field.max_date);
         }
-        if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
+        if (field.value && typeof field.value === 'string') {
             sanitized.value = getSafeDateValue(field.value);
         }
     }
@@ -782,6 +791,9 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         subtype: f.subtype,
         optional: !f.is_required,
         datetime_config: f.datetime_config,
+        min_date: f.min_date,
+        max_date: f.max_date,
+        time_interval: f.time_interval,
     })) as DialogElement[];
 }
 

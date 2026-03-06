@@ -692,12 +692,12 @@ func (e *DialogElement) IsValid() error {
 		if e.DateTimeConfig != nil && e.DateTimeConfig.TimeInterval != 0 {
 			timeInterval = e.DateTimeConfig.TimeInterval
 		}
-		if timeInterval == 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval of 0 will be reset to default, %d minutes", DefaultTimeIntervalMinutes))
-		} else if timeInterval < 1 || timeInterval > 1440 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
-		} else if 1440%timeInterval != 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		if timeInterval != 0 {
+			if timeInterval < 1 || timeInterval > 1440 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
+			} else if 1440%timeInterval != 0 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+			}
 		}
 		// Validate DateTimeConfig min/max dates if provided
 		if e.DateTimeConfig != nil {
@@ -815,13 +815,6 @@ func validateDateTimeFormat(dateTimeStr string) error {
 	}
 
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ), date format (YYYY-MM-DD), or relative format", dateTimeStr)
-}
-
-func validateDateOrDateTimeFormat(value string) error {
-	if validateDateFormat(value) == nil {
-		return nil
-	}
-	return validateDateTimeFormat(value)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {

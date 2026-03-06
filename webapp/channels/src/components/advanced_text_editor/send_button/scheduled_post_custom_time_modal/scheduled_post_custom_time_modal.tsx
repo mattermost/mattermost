@@ -32,7 +32,8 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
-    const now = moment().tz(userTimezone);
+    const currentTime = moment().tz(userTimezone);
+    const now = currentTime.clone();
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
@@ -113,6 +114,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             onCancel={onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            minDateTime={currentTime}
         />
     );
 }
