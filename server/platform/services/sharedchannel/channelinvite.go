@@ -94,6 +94,11 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		if existingScr != nil {
+			// If the record is not soft deleted, the remote is already connected — error out
+			if existingScr.DeleteAt == 0 {
+				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, model.ErrChannelAlreadyShared))
+				return model.ErrChannelAlreadyShared
+			}
 			// restore previously uninvited (soft-deleted) record instead of inserting
 			curTime := model.GetMillis()
 			existingScr.DeleteAt = 0
