@@ -88,7 +88,7 @@ describe('components/team_settings_modal', () => {
         );
         const infoButton = screen.getByRole('tab', {name: 'info'});
         expect(infoButton).toBeDefined();
-        const accessButton = screen.getByRole('tab', {name: 'access'});
+        const accessButton = screen.getByRole('tab', {name: 'Membership'});
         expect(accessButton).toBeDefined();
     });
 

@@ -72,6 +72,10 @@ export function searchAccessControlPolicies(term: string, type: string, after: s
 
 export function searchTeamAccessControlPolicies(teamId: string, term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {
     return async (dispatch, getState) => {
+        if (!teamId) {
+            return {error: new Error('teamId is required for team-scoped policy search')};
+        }
+
         let data;
         try {
             data = await Client4.searchAccessControlPolicies(term, type, after, limit, teamId);
