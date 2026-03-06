@@ -35,9 +35,7 @@ jest.mock('./browser_popouts', () => {
     };
 });
 
-const mockDesktopApp = DesktopApp as jest.Mocked<typeof DesktopApp>;
-const mockIsDesktopApp = isDesktopApp as jest.MockedFunction<typeof isDesktopApp>;
-const mockGetBasePath = getBasePath as jest.MockedFunction<typeof getBasePath>;
+const mockDesktopApp = jest.mocked(DesktopApp);
 
 const getMockSetupBrowserPopout = () => {
     return (globalThis as typeof globalThis & {mockSetupBrowserPopout: jest.MockedFunction<() => unknown>}).mockSetupBrowserPopout;
@@ -50,20 +48,20 @@ const mockListeners = {
 };
 
 function setupDesktop() {
-    mockIsDesktopApp.mockReturnValue(true);
+    jest.mocked(isDesktopApp).mockReturnValue(true);
     mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 }
 
 function setupBrowser(basePath = '') {
-    mockIsDesktopApp.mockReturnValue(false);
-    mockGetBasePath.mockReturnValue(basePath);
+    jest.mocked(isDesktopApp).mockReturnValue(false);
+    jest.mocked(getBasePath).mockReturnValue(basePath);
     getMockSetupBrowserPopout().mockReturnValue(mockListeners);
 }
 
 describe('popout_windows', () => {
     beforeEach(() => {
         getMockSetupBrowserPopout().mockClear();
-        mockGetBasePath.mockReturnValue('');
+        jest.mocked(getBasePath).mockReturnValue('');
     });
 
     describe('popoutThread', () => {

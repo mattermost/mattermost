@@ -23,7 +23,7 @@ import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
-import {getSearchPopoutTitle} from 'components/rhs_search_popout/rhs_search_popout';
+import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';

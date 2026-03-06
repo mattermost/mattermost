@@ -45,16 +45,6 @@ jest.mock('actions/views/rhs', () => ({
     filterFilesSearchByExt: jest.fn(() => MOCK_ACTION),
 }));
 
-const mockShowChannelFiles = showChannelFiles as jest.MockedFunction<typeof showChannelFiles>;
-const mockShowFlaggedPosts = showFlaggedPosts as jest.MockedFunction<typeof showFlaggedPosts>;
-const mockShowMentions = showMentions as jest.MockedFunction<typeof showMentions>;
-const mockShowPinnedPosts = showPinnedPosts as jest.MockedFunction<typeof showPinnedPosts>;
-const mockShowSearchResults = showSearchResults as jest.MockedFunction<typeof showSearchResults>;
-const mockUpdateRhsState = updateRhsState as jest.MockedFunction<typeof updateRhsState>;
-const mockUpdateSearchTeam = updateSearchTeam as jest.MockedFunction<typeof updateSearchTeam>;
-const mockUpdateSearchTerms = updateSearchTerms as jest.MockedFunction<typeof updateSearchTerms>;
-const mockUpdateSearchType = updateSearchType as jest.MockedFunction<typeof updateSearchType>;
-
 describe('RhsSearchPopout', () => {
     const team = TestHelper.getTeamMock({id: 'team1', name: 'test-team'});
     const channel = TestHelper.getChannelMock({
@@ -119,10 +109,10 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=hello+world&type=messages&mode=search');
 
         await waitFor(() => {
-            expect(mockUpdateSearchType).toHaveBeenCalledWith('messages');
-            expect(mockUpdateSearchTerms).toHaveBeenCalledWith('hello world');
-            expect(mockUpdateSearchTeam).toHaveBeenCalledWith(team.id);
-            expect(mockShowSearchResults).toHaveBeenCalledWith(false);
+            expect(jest.mocked(updateSearchType)).toHaveBeenCalledWith('messages');
+            expect(jest.mocked(updateSearchTerms)).toHaveBeenCalledWith('hello world');
+            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(team.id);
+            expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(false);
         });
     });
 
@@ -130,7 +120,7 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=&type=messages&mode=mention', 'mention');
 
         await waitFor(() => {
-            expect(mockShowMentions).toHaveBeenCalled();
+            expect(jest.mocked(showMentions)).toHaveBeenCalled();
         });
     });
 
@@ -138,7 +128,7 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=from:user&type=messages&mode=mention', 'mention');
 
         await waitFor(() => {
-            expect(mockShowSearchResults).toHaveBeenCalledWith(true);
+            expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(true);
         });
     });
 
@@ -146,7 +136,7 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=&type=messages&mode=flag', 'flag');
 
         await waitFor(() => {
-            expect(mockShowFlaggedPosts).toHaveBeenCalled();
+            expect(jest.mocked(showFlaggedPosts)).toHaveBeenCalled();
         });
     });
 
@@ -154,7 +144,7 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=&type=messages&mode=pin&channel=test-channel', 'pin');
 
         await waitFor(() => {
-            expect(mockShowPinnedPosts).toHaveBeenCalledWith(channel.id);
+            expect(jest.mocked(showPinnedPosts)).toHaveBeenCalledWith(channel.id);
         });
     });
 
@@ -162,37 +152,37 @@ describe('RhsSearchPopout', () => {
         renderPopout('?q=&type=messages&mode=pin', 'pin');
 
         await waitFor(() => {
-            expect(mockUpdateSearchType).toHaveBeenCalled();
+            expect(jest.mocked(updateSearchType)).toHaveBeenCalled();
         });
 
-        expect(mockShowPinnedPosts).not.toHaveBeenCalled();
-        expect(mockUpdateRhsState).toHaveBeenCalledWith('pin', undefined);
+        expect(jest.mocked(showPinnedPosts)).not.toHaveBeenCalled();
+        expect(jest.mocked(updateRhsState)).toHaveBeenCalledWith('pin', undefined);
     });
 
     test('should dispatch showChannelFiles for channel_files mode when channelId is available', async () => {
         renderPopout('?q=&type=messages&mode=channel-files&channel=test-channel', 'channel-files');
 
         await waitFor(() => {
-            expect(mockShowChannelFiles).toHaveBeenCalledWith(channel.id);
+            expect(jest.mocked(showChannelFiles)).toHaveBeenCalledWith(channel.id);
         });
     });
 
     test('should resolve searchTeamId from query params with fallback to current team', async () => {
         renderPopout('?q=test&type=messages&mode=search&searchTeamId=other-team');
         await waitFor(() => {
-            expect(mockUpdateSearchTeam).toHaveBeenCalledWith('other-team');
+            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith('other-team');
         });
 
         jest.clearAllMocks();
         renderPopout('?q=test&type=messages&mode=search&searchTeamId=');
         await waitFor(() => {
-            expect(mockUpdateSearchTeam).toHaveBeenCalledWith('');
+            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith('');
         });
 
         jest.clearAllMocks();
         renderPopout('?q=test&type=messages&mode=search');
         await waitFor(() => {
-            expect(mockUpdateSearchTeam).toHaveBeenCalledWith(team.id);
+            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(team.id);
         });
     });
 
@@ -215,17 +205,17 @@ describe('RhsSearchPopout', () => {
             noTeamState,
         );
 
-        expect(mockUpdateSearchType).not.toHaveBeenCalled();
-        expect(mockUpdateSearchTerms).not.toHaveBeenCalled();
+        expect(jest.mocked(updateSearchType)).not.toHaveBeenCalled();
+        expect(jest.mocked(updateSearchTerms)).not.toHaveBeenCalled();
     });
 
     test('should fallback to updateRhsState for search mode with no search terms', async () => {
         renderPopout('?q=&type=messages&mode=search');
 
         await waitFor(() => {
-            expect(mockUpdateRhsState).toHaveBeenCalledWith('search', undefined);
+            expect(jest.mocked(updateRhsState)).toHaveBeenCalledWith('search', undefined);
         });
 
-        expect(mockShowSearchResults).not.toHaveBeenCalled();
+        expect(jest.mocked(showSearchResults)).not.toHaveBeenCalled();
     });
 });

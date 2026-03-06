@@ -117,12 +117,9 @@ describe('components/SearchResults', () => {
         updateSearchTerms: jest.fn(),
     };
 
-    const mockPopoutRhsSearch = popoutRhsSearch as jest.MockedFunction<typeof popoutRhsSearch>;
-    const mockGetHistory = getHistory as jest.MockedFunction<typeof getHistory>;
-
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetHistory.mockReturnValue({push: jest.fn()} as any);
+        jest.mocked(getHistory).mockReturnValue({push: jest.fn()} as any);
     });
 
     function renderSearchResults(propOverrides?: Partial<Props>) {
@@ -141,31 +138,31 @@ describe('components/SearchResults', () => {
 
         test('should resolve mode from boolean props and pass channel only when needed', () => {
             clickPopout({isMentionSearch: true});
-            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id,
             );
 
             jest.clearAllMocks();
             clickPopout({isFlaggedPosts: true});
-            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id,
             );
 
             jest.clearAllMocks();
             clickPopout({isPinnedPosts: true});
-            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'pin', 'messages', channel.name, team.id,
             );
 
             jest.clearAllMocks();
             clickPopout({isChannelFiles: true});
-            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'channel-files', 'messages', channel.name, team.id,
             );
 
             jest.clearAllMocks();
             clickPopout();
-            expect(mockPopoutRhsSearch).toHaveBeenCalledWith(
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
             );
         });
@@ -174,7 +171,7 @@ describe('components/SearchResults', () => {
     describe('handleChannelNameClick', () => {
         test('should navigate to channel URL when channel display name is clicked', () => {
             const pushMock = jest.fn();
-            mockGetHistory.mockReturnValue({push: pushMock} as any);
+            jest.mocked(getHistory).mockReturnValue({push: pushMock} as any);
 
             renderSearchResults({channelDisplayName: 'Test Channel'});
             screen.getByText('Test Channel').click();

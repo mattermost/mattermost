@@ -43,12 +43,6 @@ jest.mock('components/rhs_search_popout', () => ({
     default: () => <div data-testid='rhs-search-popout'>{'RHS Search Popout'}</div>,
 }));
 
-const mockSelectChannel = selectChannel as jest.MockedFunction<typeof selectChannel>;
-const mockGetChannelMembers = getChannelMembers as jest.MockedFunction<typeof getChannelMembers>;
-const mockSelectTeam = selectTeam as jest.MockedFunction<typeof selectTeam>;
-const mockFetchChannelsAndMembers = fetchChannelsAndMembers as jest.MockedFunction<typeof fetchChannelsAndMembers>;
-const mockUseTeamByName = useTeamByName as jest.MockedFunction<typeof useTeamByName>;
-
 describe('RhsPopout', () => {
     const team1 = TestHelper.getTeamMock({id: 'team1', name: 'team1'});
     const channel1 = TestHelper.getChannelMock({id: 'channel1', name: 'channel1'});
@@ -67,7 +61,7 @@ describe('RhsPopout', () => {
     };
 
     beforeEach(() => {
-        mockUseTeamByName.mockReturnValue(team1);
+        jest.mocked(useTeamByName).mockReturnValue(team1);
     });
 
     afterEach(() => {
@@ -90,8 +84,8 @@ describe('RhsPopout', () => {
         renderPopout('/_popout/rhs/team1/search?q=test');
 
         await waitFor(() => {
-            expect(mockSelectTeam).toHaveBeenCalledWith(team1.id);
-            expect(mockFetchChannelsAndMembers).toHaveBeenCalledWith(team1.id);
+            expect(jest.mocked(selectTeam)).toHaveBeenCalledWith(team1.id);
+            expect(jest.mocked(fetchChannelsAndMembers)).toHaveBeenCalledWith(team1.id);
         });
     });
 
@@ -99,8 +93,8 @@ describe('RhsPopout', () => {
         renderPopout('/_popout/rhs/team1/search?channel=channel1');
 
         await waitFor(() => {
-            expect(mockSelectChannel).toHaveBeenCalledWith(channel1.id);
-            expect(mockGetChannelMembers).toHaveBeenCalledWith(channel1.id);
+            expect(jest.mocked(selectChannel)).toHaveBeenCalledWith(channel1.id);
+            expect(jest.mocked(getChannelMembers)).toHaveBeenCalledWith(channel1.id);
         });
     });
 
@@ -127,10 +121,10 @@ describe('RhsPopout', () => {
         renderPopout('/_popout/rhs/team1/search?q=test');
 
         await waitFor(() => {
-            expect(mockSelectTeam).toHaveBeenCalledWith(team1.id);
+            expect(jest.mocked(selectTeam)).toHaveBeenCalledWith(team1.id);
         });
 
-        expect(mockSelectChannel).not.toHaveBeenCalled();
-        expect(mockGetChannelMembers).not.toHaveBeenCalled();
+        expect(jest.mocked(selectChannel)).not.toHaveBeenCalled();
+        expect(jest.mocked(getChannelMembers)).not.toHaveBeenCalled();
     });
 });
