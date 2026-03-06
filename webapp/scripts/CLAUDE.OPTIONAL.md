@@ -9,7 +9,6 @@
 - `run.mjs`, `build.mjs`, `dist` helpers – orchestrate multi-workspace builds and env wiring.
 - `gen_lang_imports.mjs` – regenerates locale import lists.
 - `update-versions.sh` - updates version of published platform packages.
-- `utils.mjs` – release automation bits.
 
 ## Guidelines
 - Scripts should be idempotent and safe to run on CI and macOS/Linux dev machines.
