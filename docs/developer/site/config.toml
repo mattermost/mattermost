@@ -18,7 +18,7 @@ enableEmoji = true
   author = ""
   description = "Your one-stop shop for all of your Mattermost contribution, integration, and extension needs."
   email = ""
-  ghrepo = "https://github.com/mattermost/mattermost-developer-documentation/"
+  ghrepo = "https://github.com/mattermost/mattermost/"
 
   # Parameters controlling collapsable blocks
   [params.collapse]
