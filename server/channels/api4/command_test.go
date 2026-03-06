@@ -162,6 +162,136 @@ func TestUpdateCommand(t *testing.T) {
 	_, resp, err := th.SystemAdminClient.UpdateCommand(context.Background(), cmd2)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// Permission tests
+	th.LoginBasic(t)
+
+	// Give BasicUser permission to manage their own commands
+	th.AddPermissionToRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+
+	t.Run("UserCanUpdateTheirOwnCommand", func(t *testing.T) {
+		// Create a command owned by BasicUser
+		cmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_own",
+		}
+		createdCmd, _ := th.App.CreateCommand(cmd)
+
+		// Update the command
+		createdCmd.URL = "http://newurl.com"
+		updatedCmd, _, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.NoError(t, err)
+		require.Equal(t, "http://newurl.com", updatedCmd.URL)
+	})
+
+	t.Run("UserWithoutManageOthersCannotUpdateOthersCommand", func(t *testing.T) {
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_other",
+		}
+		createdCmd, _ := th.App.CreateCommand(cmd)
+
+		// Try to update the command
+		createdCmd.URL = "http://newurl.com"
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("UserWithManageOthersCanUpdateOthersCommand", func(t *testing.T) {
+		// Give BasicUser permission to manage others' commands
+		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_other2",
+		}
+		createdCmd, _ := th.App.CreateCommand(cmd)
+
+		// Update the command
+		createdCmd.URL = "http://newurl.com"
+		updatedCmd, _, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.NoError(t, err)
+		require.Equal(t, "http://newurl.com", updatedCmd.URL)
+	})
+
+	t.Run("UserWithOnlyManageOwnCannotUpdateOthersCommand", func(t *testing.T) {
+		// BasicUser should only have ManageOwn permission (already set up in the test)
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_other3",
+		}
+		createdCmd, _ := th.App.CreateCommand(cmd)
+
+		// Try to update the command
+		createdCmd.URL = "http://newurl.com"
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CannotUpdateCommandToDuplicateCustomTrigger", func(t *testing.T) {
+		cmdA := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/a",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_a",
+		}
+		createdCmdA, appErr := th.App.CreateCommand(cmdA)
+		require.Nil(t, appErr)
+
+		cmdB := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/b",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_b",
+		}
+		createdCmdB, appErr := th.App.CreateCommand(cmdB)
+		require.Nil(t, appErr)
+
+		createdCmdB.Trigger = createdCmdA.Trigger
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmdB)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
+
+	t.Run("CannotUpdateCommandToBuiltInTrigger", func(t *testing.T) {
+		cmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/c",
+			Method:    model.CommandMethodPost,
+			Trigger:   "custom_for_builtin_collision",
+		}
+		createdCmd, appErr := th.App.CreateCommand(cmd)
+		require.Nil(t, appErr)
+
+		createdCmd.Trigger = "join"
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
 }
 
 func TestMoveCommand(t *testing.T) {
@@ -222,6 +352,165 @@ func TestMoveCommand(t *testing.T) {
 	resp, err = th.SystemAdminClient.MoveCommand(context.Background(), newTeam.Id, rcmd2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// Set up for permission tests
+	th.LoginBasic(t)
+	th.LinkUserToTeam(t, th.BasicUser, newTeam)
+	th.LinkUserToTeam(t, th.BasicUser2, newTeam)
+
+	// Give BasicUser permission to manage their own commands on both teams
+	th.AddPermissionToRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+
+	t.Run("UserWithoutManageOthersPermissionCannotMoveOthersCommand", func(t *testing.T) {
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger3",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// BasicUser should not be able to move BasicUser2's command
+		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the command was not moved
+		movedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, movedCmd.TeamId)
+	})
+
+	t.Run("UserWithManageOthersPermissionCanMoveOthersCommand", func(t *testing.T) {
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger4",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// Give BasicUser the permission to manage others' commands
+		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		// Now BasicUser should be able to move BasicUser2's command
+		_, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
+		require.NoError(t, err)
+
+		// Verify the command was moved
+		movedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, newTeam.Id, movedCmd.TeamId)
+	})
+
+	t.Run("CreatorCanMoveTheirOwnCommand", func(t *testing.T) {
+		// Create a command owned by BasicUser
+		cmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger5",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// BasicUser should be able to move their own command
+		_, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
+		require.NoError(t, err)
+
+		// Verify the command was moved
+		movedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, newTeam.Id, movedCmd.TeamId)
+	})
+
+	t.Run("UserWithOnlyManageOwnCannotMoveOthersCommand", func(t *testing.T) {
+		// BasicUser should only have ManageOwn permission (already set up in the test)
+		// Create a command owned by BasicUser2
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger6",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// BasicUser should not be able to move BasicUser2's command
+		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the command was not moved
+		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
+
+	t.Run("CannotMoveCommandWhenCreatorHasNoPermissionToNewTeam", func(t *testing.T) {
+		// Create a third team that the command creator (BasicUser2) is NOT a member of
+		thirdTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, thirdTeam)
+
+		// Give BasicUser permission to manage others' commands
+		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		// Create a command owned by BasicUser2
+		// Note: BasicUser2 is NOT a member of thirdTeam (only member of team and newTeam)
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger7",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// BasicUser attempts to move BasicUser2's command to thirdTeam
+		// This should fail because BasicUser2 doesn't have permission to thirdTeam
+		resp, err := th.Client.MoveCommand(context.Background(), thirdTeam.Id, rcmd.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Verify the command was not moved
+		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
+
+	t.Run("CannotMoveCommandToTeamWithDuplicateTrigger", func(t *testing.T) {
+		trigger := "move_duplicate_trigger"
+
+		sourceCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/source",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		sourceCreatedCmd, appErr := th.App.CreateCommand(sourceCmd)
+		require.Nil(t, appErr)
+
+		targetCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    newTeam.Id,
+			URL:       "http://nowhere.com/target",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		_, appErr = th.App.CreateCommand(targetCmd)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, sourceCreatedCmd.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+
+		notMovedCmd, _ := th.App.GetCommand(sourceCreatedCmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
 }
 
 func TestDeleteCommand(t *testing.T) {
