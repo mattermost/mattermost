@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment-timezone';
+import type moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -13,7 +13,6 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString} from 'utils/date_utils';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
