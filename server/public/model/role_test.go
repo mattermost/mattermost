@@ -4,9 +4,11 @@
 package model
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
@@ -304,4 +306,39 @@ func TestAddAncillaryPermissions(t *testing.T) {
 			assert.Equal(t, permissions, tc.Expected)
 		})
 	}
+}
+
+func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	t.Run("shared_channel_manager role exists with correct permissions", func(t *testing.T) {
+		role, ok := roles[SharedChannelManagerRoleId]
+		require.True(t, ok, "shared_channel_manager role should exist in MakeDefaultRoles")
+		assert.Equal(t, "shared_channel_manager", role.Name)
+		assert.True(t, role.BuiltIn, "role should be built-in")
+		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
+		assert.True(t, slices.Contains(role.Permissions, PermissionManageSharedChannels.Id),
+			"role should have manage_shared_channels permission")
+		assert.False(t, slices.Contains(role.Permissions, PermissionManageSecureConnections.Id),
+			"role should NOT have manage_secure_connections permission")
+	})
+
+	t.Run("secure_connection_manager role exists with correct permissions", func(t *testing.T) {
+		role, ok := roles[SecureConnectionManagerRoleId]
+		require.True(t, ok, "secure_connection_manager role should exist in MakeDefaultRoles")
+		assert.Equal(t, "secure_connection_manager", role.Name)
+		assert.True(t, role.BuiltIn, "role should be built-in")
+		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
+		assert.True(t, slices.Contains(role.Permissions, PermissionManageSecureConnections.Id),
+			"role should have manage_secure_connections permission")
+		assert.False(t, slices.Contains(role.Permissions, PermissionManageSharedChannels.Id),
+			"role should NOT have manage_shared_channels permission")
+	})
+
+	t.Run("roles are included in NewSystemRoleIDs", func(t *testing.T) {
+		assert.True(t, slices.Contains(NewSystemRoleIDs, SharedChannelManagerRoleId),
+			"shared_channel_manager should be in NewSystemRoleIDs")
+		assert.True(t, slices.Contains(NewSystemRoleIDs, SecureConnectionManagerRoleId),
+			"secure_connection_manager should be in NewSystemRoleIDs")
+	})
 }
