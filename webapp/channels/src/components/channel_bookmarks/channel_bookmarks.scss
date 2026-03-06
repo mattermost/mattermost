@@ -95,17 +95,13 @@
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    gap: 4px;
+    gap: 1px;
     transition: background-color 150ms ease;
 
     &.withLabel {
         padding: 4px 12px 4px 6px;
         border-radius: 12px;
-    }
-
-    &.hasOverflow {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        gap: 4px;
     }
 
     &:hover:not(:disabled) {
@@ -113,6 +109,7 @@
         color: rgba(var(--center-channel-color-rgb), 0.88);
     }
 
+    &:active:not(:disabled),
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));

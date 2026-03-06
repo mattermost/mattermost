@@ -107,7 +107,7 @@ function ChannelBookmarks({channelId}: Props) {
             data-testid='channel-bookmarks-container'
             className='channel-bookmarks-container'
         >
-            <BookmarksBarContent $hasOverflow={overflowItems.length > 0}>
+            <BookmarksBarContent>
                 {/* Hidden measure components for ALL items */}
                 {order.map((id) => {
                     const bookmark = bookmarks[id];
@@ -142,22 +142,22 @@ function ChannelBookmarks({channelId}: Props) {
                         />
                     );
                 })}
-            </BookmarksBarContent>
 
-            <BookmarksBarMenu
-                channelId={channelId}
-                overflowItems={overflowItems}
-                bookmarks={bookmarks}
-                hasBookmarks={hasBookmarks}
-                limitReached={limitReached}
-                canUploadFiles={canUploadFiles}
-                canReorder={canReorder}
-                isDragging={isDragging}
-                canAdd={canAdd}
-                forceOpen={showDragOverlay || (reorderState.isReordering ? autoOpenOverflow : undefined)}
-                reorderState={reorderState}
-                getItemProps={canReorder ? getItemProps : undefined}
-            />
+                <BookmarksBarMenu
+                    channelId={channelId}
+                    overflowItems={overflowItems}
+                    bookmarks={bookmarks}
+                    hasBookmarks={hasBookmarks}
+                    limitReached={limitReached}
+                    canUploadFiles={canUploadFiles}
+                    canReorder={canReorder}
+                    isDragging={isDragging}
+                    canAdd={canAdd}
+                    forceOpen={showDragOverlay || (reorderState.isReordering ? autoOpenOverflow : undefined)}
+                    reorderState={reorderState}
+                    getItemProps={canReorder ? getItemProps : undefined}
+                />
+            </BookmarksBarContent>
         </Container>
     );
 }
@@ -175,12 +175,10 @@ const Container = styled.div`
     gap: 2px;
 `;
 
-const BookmarksBarContent = styled.div<{$hasOverflow: boolean}>`
+const BookmarksBarContent = styled.div`
     display: flex;
     align-items: center;
-    ${({$hasOverflow}) => $hasOverflow && 'flex: 1;'}
     min-width: 0;
-    overflow: hidden;
     position: relative;
     padding-left: 2px;
 `;

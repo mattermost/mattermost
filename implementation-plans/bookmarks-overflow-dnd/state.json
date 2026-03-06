@@ -15,7 +15,7 @@
     "2-plan": {"status": "complete", "timestamp": "2026-02-12T00:00:00Z", "artifact": "docs/specs/bookmarks-pragmatic-dnd-plan.md"},
     "3-implement": {"status": "complete", "timestamp": "2026-03-04T00:00:00Z", "commits": 33},
     "4-test": {"status": "partial", "notes": "Playwright exploratory testing done. No unit/E2E test files written."},
-    "5-quality": {"status": "partial", "notes": "tsc, eslint, stylelint pass. i18n extraction not re-verified after latest changes."},
+    "5-quality": {"status": "complete", "timestamp": "2026-03-06T00:00:00Z", "notes": "tsc, eslint, stylelint pass. i18n extracted. Removed unused @atlaskit/pragmatic-drag-and-drop-live-region."},
     "6-review": {"status": "complete", "timestamp": "2026-03-04T00:00:00Z", "notes": "PR review feedback from hmhealey, jgheithcock, asaadmahmood fully addressed."},
     "7-ship": {"status": "in_progress", "notes": "PR exists. 3 unpushed commits remaining."},
     "8-post-ship": {"status": "pending"}

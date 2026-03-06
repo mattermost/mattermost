@@ -4,10 +4,9 @@
 import {dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import styled, {css} from 'styled-components';
+import styled from 'styled-components';
 
 import {
-    DotsHorizontalIcon,
     LinkVariantIcon,
     PaperclipIcon,
     PlusIcon,
@@ -102,12 +101,11 @@ function BookmarksBarMenu({
     let buttonClass = 'channelBookmarksBarMenuButton';
 
     if (hasOverflow) {
-        buttonClass += ' hasOverflow';
         buttonContent = (
-            <ButtonContent>
-                <DotsHorizontalIcon size={18}/>
+            <>
+                <PlusIcon size={16}/>
                 <OverflowCount>{overflowItems.length}</OverflowCount>
-            </ButtonContent>
+            </>
         );
     } else if (hasBookmarks) {
         buttonContent = <PlusIcon size={18}/>;
@@ -178,10 +176,7 @@ function BookmarksBarMenu({
     }
 
     return (
-        <MenuContainer
-            ref={triggerRef}
-            $hasOverflow={hasOverflow}
-        >
+        <MenuContainer ref={triggerRef}>
             <Menu.Container
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
@@ -214,16 +209,11 @@ function BookmarksBarMenu({
 
 export default memo(BookmarksBarMenu);
 
-const MenuContainer = styled.div<{$hasOverflow: boolean}>`
+const MenuContainer = styled.div`
     display: flex;
     align-items: center;
     flex-shrink: 0;
     padding: 0 8px;
-
-    ${({$hasOverflow}) => $hasOverflow && css`
-        background: linear-gradient(to right, transparent, var(--center-channel-bg) 16px);
-        padding-left: 16px;
-    `}
 `;
 
 const ButtonContent = styled.div`
