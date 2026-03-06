@@ -142,6 +142,7 @@ type SqlStore struct {
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
 	disableMorphLogging       bool
+	featureFlagsFn            func() *model.FeatureFlags
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -159,6 +160,25 @@ func DisableMorphLogging() Option {
 		s.disableMorphLogging = true
 		return nil
 	}
+}
+
+// WithFeatureFlags provides a callback that returns the current feature flags.
+// This allows the store layer to read feature flags without depending on the full config.
+func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
+	return func(s *SqlStore) error {
+		s.featureFlagsFn = fn
+		return nil
+	}
+}
+
+// getFeatureFlags returns the current feature flags, or defaults if no function was configured.
+func (ss *SqlStore) getFeatureFlags() *model.FeatureFlags {
+	if ss.featureFlagsFn != nil {
+		return ss.featureFlagsFn()
+	}
+	ff := &model.FeatureFlags{}
+	ff.SetDefaults()
+	return ff
 }
 
 func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
