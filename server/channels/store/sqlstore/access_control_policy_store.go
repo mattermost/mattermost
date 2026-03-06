@@ -631,7 +631,19 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
+	// TeamID filters to parent policies whose assigned channels ALL belong to the
+	// specified team. Policies with channels spanning multiple teams will NOT match
+	// even if one channel is in the requested team (COUNT(DISTINCT TeamId) = 1
+	// enforces single-team scope). This only applies to parent policies since team
+	// scope is derived from parent→channel import relationships; the type is forced
+	// to 'parent' when TeamID is set.
 	if opts.TeamID != "" {
+		if opts.Type == "" {
+			parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
+			query = query.Where(parentCondition)
+			count = count.Where(parentCondition)
+		}
+
 		condition := sq.Expr(`Id IN (
 			SELECT parent_id FROM (
 				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id

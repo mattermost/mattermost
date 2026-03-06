@@ -69,31 +69,31 @@ func createTestPolicyHierarchy(
 	return parentPolicy, mockACS
 }
 
-func TestValidateTeamPolicyChannelAssignment(t *testing.T) {
+func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("empty channel list returns error", func(t *testing.T) {
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.team.access_policies.channels_required.app_error", appErr.Id)
 	})
 
 	t.Run("nonexistent channel returns error", func(t *testing.T) {
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{model.NewId()})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{model.NewId()})
 		require.NotNil(t, appErr)
 	})
 
 	t.Run("public channel returns error", func(t *testing.T) {
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{th.BasicChannel.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{th.BasicChannel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.channel_not_private.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.channel_not_private.app_error", appErr.Id)
 	})
 
 	t.Run("channel from wrong team returns error", func(t *testing.T) {
 		otherTeam := th.CreateTeam(t)
 		otherChannel := th.CreatePrivateChannel(t, otherTeam)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{otherChannel.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{otherChannel.Id})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.team.access_policies.channel_wrong_team.app_error", appErr.Id)
 	})
@@ -104,9 +104,9 @@ func TestValidateTeamPolicyChannelAssignment(t *testing.T) {
 		_, err := th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, err)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.channel_shared.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.channel_shared.app_error", appErr.Id)
 	})
 
 	t.Run("group-constrained channel returns error", func(t *testing.T) {
@@ -115,15 +115,15 @@ func TestValidateTeamPolicyChannelAssignment(t *testing.T) {
 		_, err := th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, err)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.channel_group_synced.app_error", appErr.Id)
+		assert.Equal(t, "app.access_control.channel_group_constrained.app_error", appErr.Id)
 	})
 
 	t.Run("valid private channel in team succeeds", func(t *testing.T) {
 		channel := th.CreatePrivateChannel(t, th.BasicTeam)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
 		require.Nil(t, appErr)
 	})
 
@@ -131,14 +131,14 @@ func TestValidateTeamPolicyChannelAssignment(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{ch1.Id, ch2.Id})
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)
 	})
 
 	t.Run("mix of valid and invalid channels returns error", func(t *testing.T) {
 		validChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
-		appErr := th.App.ValidateTeamPolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{
+		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{
 			validChannel.Id,
 			th.BasicChannel.Id, // public — invalid
 		})

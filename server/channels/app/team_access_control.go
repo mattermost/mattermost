@@ -51,7 +51,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	return filtered, int64(len(filtered)), nil
 }
 
-// ValidateTeamPolicyChannelAssignment validates that all channels are eligible
+// ValidateTeamScopePolicyChannelAssignment validates that all channels are eligible
 // for team policy assignment, is the gate that run before channels are attached to a 'team' policy:
 //   - At least one channel provided
 //   - All channels exist
@@ -59,9 +59,9 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 //   - All channels are private
 //   - No group-constrained channels
 //   - No shared channels
-func (a *App) ValidateTeamPolicyChannelAssignment(rctx request.CTX, teamID string, channelIDs []string) *model.AppError {
+func (a *App) ValidateTeamScopePolicyChannelAssignment(rctx request.CTX, teamID string, channelIDs []string) *model.AppError {
 	if len(channelIDs) == 0 {
-		return model.NewAppError("ValidateTeamPolicyChannelAssignment",
+		return model.NewAppError("ValidateTeamScopePolicyChannelAssignment",
 			"app.team.access_policies.channels_required.app_error",
 			nil, "at least one channel is required", http.StatusBadRequest)
 	}
@@ -72,38 +72,21 @@ func (a *App) ValidateTeamPolicyChannelAssignment(rctx request.CTX, teamID strin
 	}
 
 	if len(channels) != len(channelIDs) {
-		return model.NewAppError("ValidateTeamPolicyChannelAssignment",
+		return model.NewAppError("ValidateTeamScopePolicyChannelAssignment",
 			"app.team.access_policies.channel_not_found.app_error",
 			nil, "one or more channels not found", http.StatusBadRequest)
 	}
 
 	for _, channel := range channels {
 		if channel.TeamId != teamID {
-			return model.NewAppError("ValidateTeamPolicyChannelAssignment",
+			return model.NewAppError("ValidateTeamScopePolicyChannelAssignment",
 				"app.team.access_policies.channel_wrong_team.app_error",
 				map[string]any{"ChannelId": channel.Id},
 				"channel does not belong to this team", http.StatusBadRequest)
 		}
 
-		if channel.Type != model.ChannelTypePrivate {
-			return model.NewAppError("ValidateTeamPolicyChannelAssignment",
-				"app.team.access_policies.channel_not_private.app_error",
-				map[string]any{"ChannelId": channel.Id},
-				"only private channels can have access policies", http.StatusBadRequest)
-		}
-
-		if channel.IsGroupConstrained() {
-			return model.NewAppError("ValidateTeamPolicyChannelAssignment",
-				"app.team.access_policies.channel_group_synced.app_error",
-				map[string]any{"ChannelId": channel.Id},
-				"group-synced channels cannot have access policies", http.StatusBadRequest)
-		}
-
-		if channel.IsShared() {
-			return model.NewAppError("ValidateTeamPolicyChannelAssignment",
-				"app.team.access_policies.channel_shared.app_error",
-				map[string]any{"ChannelId": channel.Id},
-				"shared channels cannot have access policies", http.StatusBadRequest)
+		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+			return appErr
 		}
 	}
 
