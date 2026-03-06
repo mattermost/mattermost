@@ -88,20 +88,20 @@ func TestAppGetViewsForChannel(t *testing.T) {
 		_, appErr = th.App.CreateView(th.Context, makeTestView(channel.Id, th.BasicUser.Id))
 		require.Nil(t, appErr)
 
-		views, _, appErr := th.App.GetViewsForChannel(th.Context, channel.Id, model.ViewQueryOpts{})
+		views, appErr := th.App.GetViewsForChannel(th.Context, channel.Id, model.ViewQueryOpts{})
 		require.Nil(t, appErr)
 		assert.Len(t, views, 2)
 	})
 
 	t.Run("empty channel returns empty list", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
-		views, _, appErr := th.App.GetViewsForChannel(th.Context, channel.Id, model.ViewQueryOpts{})
+		views, appErr := th.App.GetViewsForChannel(th.Context, channel.Id, model.ViewQueryOpts{})
 		require.Nil(t, appErr)
 		assert.Empty(t, views)
 	})
 
 	t.Run("returns 400 for empty channelID", func(t *testing.T) {
-		_, _, appErr := th.App.GetViewsForChannel(th.Context, "", model.ViewQueryOpts{})
+		_, appErr := th.App.GetViewsForChannel(th.Context, "", model.ViewQueryOpts{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})

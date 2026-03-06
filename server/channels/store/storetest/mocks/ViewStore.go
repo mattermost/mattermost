@@ -63,7 +63,7 @@ func (_m *ViewStore) Get(id string) (*model.View, error) {
 }
 
 // GetForChannel provides a mock function with given fields: channelID, opts
-func (_m *ViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error) {
+func (_m *ViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error) {
 	ret := _m.Called(channelID, opts)
 
 	if len(ret) == 0 {
@@ -71,9 +71,8 @@ func (_m *ViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) (
 	}
 
 	var r0 []*model.View
-	var r1 model.ViewQueryCursor
-	var r2 error
-	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) ([]*model.View, error)); ok {
 		return rf(channelID, opts)
 	}
 	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) []*model.View); ok {
@@ -84,19 +83,13 @@ func (_m *ViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) (
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, model.ViewQueryOpts) model.ViewQueryCursor); ok {
+	if rf, ok := ret.Get(1).(func(string, model.ViewQueryOpts) error); ok {
 		r1 = rf(channelID, opts)
 	} else {
-		r1 = ret.Get(1).(model.ViewQueryCursor)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(string, model.ViewQueryOpts) error); ok {
-		r2 = rf(channelID, opts)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // Save provides a mock function with given fields: view

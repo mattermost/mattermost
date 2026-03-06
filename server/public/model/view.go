@@ -4,7 +4,6 @@
 package model
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -87,45 +86,19 @@ type ViewPatch struct {
 	Props       *ViewBoardProps `json:"props"`
 }
 
-type ViewQueryCursor struct {
-	ViewID    string `json:"view_id"`
-	CreateAt  int64  `json:"create_at"`
-	SortOrder int    `json:"sort_order"`
-}
-
 type ViewListResponse struct {
-	Views      []*View          `json:"views"`
-	HasMore    bool             `json:"has_more"`
-	NextCursor *ViewQueryCursor `json:"next_cursor,omitempty"`
+	Views   []*View `json:"views"`
+	HasMore bool    `json:"has_more"`
 }
 
-func (c ViewQueryCursor) IsEmpty() bool {
-	return c.ViewID == ""
-}
-
-func (c ViewQueryCursor) IsValid() error {
-	if c.ViewID == "" {
-		return nil
-	}
-	if !IsValidId(c.ViewID) {
-		return errors.New("view id is invalid")
-	}
-	if c.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
-	}
-	if c.SortOrder < 0 {
-		return errors.New("sort order cannot be negative")
-	}
-	return nil
-}
-
-const ViewQueryDefaultPerPage = 60
+const ViewQueryDefaultPerPage = 20
 const ViewQueryMaxPerPage = 200
 
 type ViewQueryOpts struct {
 	IncludeDeleted bool
-	Cursor         ViewQueryCursor
-	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (60).
+	// Page is the 0-based page number for limit/offset pagination.
+	Page int
+	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (20).
 	// Values above ViewQueryMaxPerPage (200) are clamped to ViewQueryMaxPerPage.
 	PerPage int
 }

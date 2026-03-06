@@ -17487,21 +17487,21 @@ func (s *RetryLayerViewStore) Get(id string) (*model.View, error) {
 
 }
 
-func (s *RetryLayerViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, model.ViewQueryCursor, error) {
+func (s *RetryLayerViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error) {
 
 	tries := 0
 	for {
-		result, cursor, err := s.ViewStore.GetForChannel(channelID, opts)
+		result, err := s.ViewStore.GetForChannel(channelID, opts)
 		if err == nil {
-			return result, cursor, nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return result, cursor, err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, cursor, err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
