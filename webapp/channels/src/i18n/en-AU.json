@@ -5730,7 +5730,7 @@
   "recaps.messageCount": "Recapped {count} {count, plural, one {message} other {messages}}",
   "recaps.modal.allChannels": "ALL CHANNELS",
   "recaps.modal.allUnreads": "Recap all my unreads",
-  "recaps.modal.allUnreadsDesc": "Copilot will create a recap of all unreads across your channels.",
+  "recaps.modal.allUnreadsDesc": "Create a recap of all unread messages across your channels.",
   "recaps.modal.error.createFailed": "Failed to create recap. Please try again.",
   "recaps.modal.error.noBot": "Please select an AI agent.",
   "recaps.modal.error.noChannels": "Please select at least one channel.",
