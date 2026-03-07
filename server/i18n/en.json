@@ -7897,20 +7897,8 @@
     "translation": "Failed to parse installation date."
   },
   {
-    "id": "app.team.access_policies.channel_group_synced.app_error",
-    "translation": "Channel {{.ChannelId}} is group-synced and cannot have access policies."
-  },
-  {
     "id": "app.team.access_policies.channel_not_found.app_error",
     "translation": "One or more channels were not found."
-  },
-  {
-    "id": "app.team.access_policies.channel_not_private.app_error",
-    "translation": "Channel {{.ChannelId}} is not private. Only private channels can have access policies."
-  },
-  {
-    "id": "app.team.access_policies.channel_shared.app_error",
-    "translation": "Channel {{.ChannelId}} is shared and cannot have access policies."
   },
   {
     "id": "app.team.access_policies.channel_wrong_team.app_error",
