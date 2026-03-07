@@ -262,17 +262,19 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     echo '
   webhook-interactions:
     image: node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
+    command: sh -c "npm init -y > /dev/null && npm install express@5.1.0 axios@1.11.0 client-oauth2@github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
       interval: 10s
       timeout: 15s
       retries: 12
-    working_dir: /cypress
+    working_dir: /webhook
     network_mode: host
     restart: on-failure
     volumes:
-      - "../../e2e-tests/cypress/:/cypress:ro"'
+      - "../../e2e-tests/cypress/webhook_serve.js:/webhook/webhook_serve.js:ro"
+      - "../../e2e-tests/cypress/utils/:/webhook/utils:ro"
+      - "../../e2e-tests/cypress/tests/plugins/post_message_as.js:/webhook/tests/plugins/post_message_as.js:ro"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then

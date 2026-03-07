@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 import {TestHelper} from 'utils/test_helper';
 
 import AddEmoji from './add_emoji';
 import type {AddEmojiProps} from './add_emoji';
 
-const context = {router: {}};
 const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAB3R' +
     'JTUUH4AcXEyomBnhW6AAAAm9JREFUeNrtnL9vEmEcxj9cCDUSIVhNgGjaTUppOmjrX1BNajs61n+hC5MMrQNOLE7d27GjPxLs0JmSDk2VYNLBCw0yCA0mOBATHXghVu4wYeHCPc' +
     '94711y30/e732f54Y3sLBbxEUxYAtYA5aB+0yXasAZcAQcAFdON1kuD+eBBvAG2JhCOJiaNkyNDVPzfwGlgBPgJRDCPwqZmk8MA0dAKeAjsIJ/tWIYpJwA7U9pK43Tevv/Asr7f' +
@@ -22,7 +21,26 @@ const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bN
     '/TxxSBNvsecP74215htA83fCrmv9lvM1oJsh9y4PzwQFqFJvj7XmG0AfzhtjrfkGUMlusXd8gd3sDK7ZzQ57xxeU7NbEAQUWdou/ZQflpAVIgPycxR7P3WbdZLHwTJBKvc3h6aU' +
     'nspjlBTjZpw9IJ6MDY5hORtnZXCSTiAjQ+lJcWWyU0smostjYJi2gKTYyb3393hGgUXnr8PRSgEp2i0LxC5V6m5/dX4Nd5YW/iZ7xQSW75YlgKictQAKkLKYspiymLKYspiymLK' +
     'YspiymLCYnraghQAIkCZAACZAACZDHAdWEwVU1i94RMZKzzix65+dIzjqy6B0u1BWLIXWBA4veyUsF8RhSAbjqT7EcUBaTgcqGybUx/0ITrTe5DIshH1QFnvh8J5UNg6qbUawCq' +
-    '8Brn324u6bm1b/hjHLSOSAObAPvprT1aqa2bVNrzummPw4OwJf+E7QCAAAAAElFTkSuQmCC';
+    '8Brn324u6bm1b/hjHLSOSAObAPvprT1aqa2bVNrzemmPw4OwJf+E7QCAAAAAElFTkSuQmCC';
+
+let mockFileReaderInstance: any;
+function setupFileReaderMock(result: string | ArrayBuffer | null) {
+    Object.defineProperty(global, 'FileReader', {
+        writable: true,
+        value: jest.fn().mockImplementation(() => {
+            mockFileReaderInstance = {
+                readAsDataURL: jest.fn(function() {
+                    if (mockFileReaderInstance.onload) {
+                        mockFileReaderInstance.onload();
+                    }
+                }),
+                result,
+                onload: null,
+            };
+            return mockFileReaderInstance;
+        }),
+    });
+}
 
 describe('components/emoji/components/AddEmoji', () => {
     const baseProps: AddEmojiProps = {
@@ -32,185 +50,164 @@ describe('components/emoji/components/AddEmoji', () => {
         } as Team,
         user: {
             id: 'current-user-id',
-
         } as UserProfile,
         actions: {
             createCustomEmoji: jest.fn().mockImplementation((emoji: CustomEmoji) => ({data: {name: emoji.name}})),
         },
     };
 
-    const assertErrorIsElementWithMatchingId = (error: React.ReactNode, expectedId: string) => {
-        const errorElement = error as JSX.Element;
-        expect(errorElement).not.toBeUndefined();
-        expect(errorElement.props.id).toEqual(expectedId);
-    };
+    beforeEach(() => {
+        (baseProps.actions.createCustomEmoji as jest.Mock).mockClear();
+    });
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state('image')).toBeNull();
-        expect(wrapper.state('imageUrl')).toEqual('');
-        expect(wrapper.state('name')).toEqual('');
+        const nameInput = screen.getByRole('textbox');
+        expect(nameInput).toHaveValue('');
+
+        // No preview should be shown when imageUrl is empty
+        expect(screen.queryByText('Preview')).not.toBeInTheDocument();
+
+        // No file selected
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        expect(fileInput).toBeInTheDocument();
     });
 
-    test('should update emoji name and match snapshot', () => {
-        const wrapper = shallow(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should update emoji name and match snapshot', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const nameInput = wrapper.find('#name');
-        nameInput.simulate('change', {target: {name: 'name', value: 'emojiName'}});
-        expect(wrapper.state('name')).toEqual('emojiName');
-        expect(wrapper).toMatchSnapshot();
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'emojiName');
+        expect(nameInput).toHaveValue('emojiName');
+        expect(container).toMatchSnapshot();
     });
 
-    test('should select a file and match snapshot', () => {
-        const wrapper = shallow(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should select a file and match snapshot', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        const onload = jest.fn(() => {
-            wrapper.setState({image: file, imageUrl: image});
-        });
-        const readAsDataURL = jest.fn(() => onload());
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        Object.defineProperty(global, 'FileReader', {
-            writable: true,
-            value: jest.fn().mockImplementation(() => ({
-                readAsDataURL,
-                onload,
-            })),
-        });
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
 
-        const fileInput = wrapper.find('#select-emoji');
-        fileInput.simulate('change', {target: {files: []}});
+        // Empty file change should not trigger FileReader
+        fireEvent.change(fileInput, {target: {files: []}});
         expect(FileReader).not.toHaveBeenCalled();
-        expect(wrapper.state('image')).toEqual(null);
-        expect(wrapper.state('imageUrl')).toEqual('');
+        expect(screen.queryByText('Preview')).not.toBeInTheDocument();
 
-        fileInput.simulate('change', {target: {files: [file]}});
+        // File change with a file should trigger FileReader
+        await userEvent.upload(fileInput, file);
         expect(FileReader).toHaveBeenCalled();
-        expect(readAsDataURL).toHaveBeenCalledWith(file);
-        expect(onload).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('image')).toEqual(file);
-        expect(wrapper.state('imageUrl')).toEqual(image);
-        expect(wrapper).toMatchSnapshot();
+        expect(mockFileReaderInstance.readAsDataURL).toHaveBeenCalledWith(file);
+
+        // Preview should now be visible
+        expect(screen.getByText('Preview')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should submit the new added emoji', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should submit the new added emoji', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        const onload = jest.fn(() => {
-            wrapper.setState({image: file as File, imageUrl: image});
-        });
-        const readAsDataURL = jest.fn(() => onload());
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
-        const fileInput = wrapper.find('#select-emoji');
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        Object.defineProperty(global, 'FileReader', {
-            writable: true,
-            value: jest.fn().mockImplementation(() => ({
-                readAsDataURL,
-                onload,
-                result: image,
-            })),
-        });
+        const nameInput = screen.getByRole('textbox');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'emojiName'}});
-        fileInput.simulate('change', {target: {files: [file]}});
-        form.simulate('submit', {preventDefault: jest.fn()});
-        Promise.resolve();
+        await userEvent.type(nameInput, 'emojiName');
+        await userEvent.upload(fileInput, file);
 
-        expect(wrapper.state('saving')).toEqual(true);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
-        expect(wrapper.state().error).toBeNull();
+
+        // No error should be shown
+        expect(screen.queryByText('A name is required for the emoji')).not.toBeInTheDocument();
+        expect(screen.queryByText(/An emoji's name can only contain/)).not.toBeInTheDocument();
     });
 
-    test('should not submit when already saving', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should not submit when already saving', async () => {
+        const neverResolvingMock = jest.fn().mockImplementation(() => new Promise(() => {}));
+        const props: AddEmojiProps = {
+            ...baseProps,
+            actions: {
+                createCustomEmoji: neverResolvingMock,
+            },
+        };
 
-        wrapper.setState({saving: true});
-        const form = wrapper.find('form').first();
+        const {container} = renderWithContext(<AddEmoji {...props}/>);
 
-        form.simulate('submit', {preventDefault: jest.fn()});
-        Promise.resolve();
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).toBeNull();
+        const nameInput = screen.getByRole('textbox');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+
+        await userEvent.type(nameInput, 'emojiName');
+        await userEvent.upload(fileInput, file);
+
+        const saveButton = screen.getByTestId('save-button');
+
+        // First submit - this will set saving=true and remain so (never-resolving promise)
+        await userEvent.click(saveButton);
+        expect(neverResolvingMock).toHaveBeenCalledTimes(1);
+
+        // Second submit - should not call createCustomEmoji again because saving is already true
+        await userEvent.click(saveButton);
+        expect(neverResolvingMock).toHaveBeenCalledTimes(1);
+
+        // No error should be shown
+        expect(screen.queryByText('A name is required for the emoji')).not.toBeInTheDocument();
     });
 
-    test('should show error if emoji name unset', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should show error if emoji name unset', async () => {
+        renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const form = wrapper.find('form').first();
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
 
-        form.simulate('submit', {preventDefault: jest.fn()});
-
-        expect(wrapper.state('saving')).toEqual(false);
+        expect(screen.getByText('A name is required for the emoji')).toBeInTheDocument();
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameRequired');
     });
 
-    test('should show error if image unset', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should show error if image unset', async () => {
+        renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'emojiName');
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'emojiName'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
 
-        expect(wrapper.state('saving')).toEqual(false);
+        expect(screen.getByText('An image is required for the emoji')).toBeInTheDocument();
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.imageRequired');
     });
 
     test.each([
         'hyphens-are-allowed',
         'underscores_are_allowed',
         'numb3rsar3all0w3d',
-    ])('%s should be a valid emoji name', (emojiName) => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    ])('%s should be a valid emoji name', async (emojiName) => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const saveButton = wrapper.find({'data-testid': 'save-button'}).first();
-        const nameInput = wrapper.find('#name');
-        nameInput.simulate('change', {target: {name: 'name', value: emojiName}});
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        saveButton.simulate('click', {preventDefault: jest.fn()});
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, emojiName);
 
-        expect(wrapper.state().saving).toEqual(true);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
-        expect(wrapper.state().error).toBeNull();
+        expect(screen.queryByText('A name is required for the emoji')).not.toBeInTheDocument();
+        expect(screen.queryByText(/An emoji's name can only contain/)).not.toBeInTheDocument();
     });
 
     test.each([
@@ -224,170 +221,162 @@ describe('components/emoji/components/AddEmoji', () => {
         'symbols"notallowed',
         "symbols'notallowed",
         'symbols.not.allowed',
-    ])("'%s' should not be a valid emoji name", (emojiName) => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    ])("'%s' should not be a valid emoji name", async (emojiName) => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
-        nameInput.simulate('change', {target: {name: 'name', value: emojiName}});
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, emojiName);
 
-        expect(wrapper.state().saving).toEqual(false);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameInvalid');
+        expect(screen.getByText("An emoji's name can only contain lowercase letters, numbers, and the symbols '-', '+' and '_'.")).toBeInTheDocument();
     });
 
     test.each([
         ['UPPERCASE', 'uppercase'],
         [' trimmed ', 'trimmed'],
         [':colonstrimmed:', 'colonstrimmed'],
-    ])("emoji name '%s' should be corrected as '%s'", (emojiName, expectedName) => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    ])("emoji name '%s' should be corrected as '%s'", async (emojiName, expectedName) => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
-        nameInput.simulate('change', {target: {name: 'name', value: emojiName}});
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, emojiName);
 
-        expect(wrapper.state().saving).toEqual(true);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalledWith({creator_id: baseProps.user.id, name: expectedName}, file);
-        expect(wrapper.state().error).toBeNull();
     });
 
-    test('should show an error when emoji name is taken by a system emoji', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should show an error when emoji name is taken by a system emoji', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'smiley'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'smiley');
 
-        expect(wrapper.state().saving).toEqual(false);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameTaken');
+        expect(screen.getByText('This name is already in use by a system emoji. Please choose another name.')).toBeInTheDocument();
     });
 
-    test('should show error when emoji name is taken by an existing custom emoji', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should show error when emoji name is taken by an existing custom emoji', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'mycustomemoji'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'mycustomemoji');
 
-        expect(wrapper.state().saving).toEqual(false);
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.customNameTaken');
+        expect(screen.getByText('This name is already in use by a custom emoji. Please choose another name.')).toBeInTheDocument();
     });
 
-    test('should show error when image is too large', () => {
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...baseProps}/>,
-            {context},
-        );
+    test('should show error when image is too large', async () => {
+        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const file = {
-            type: 'image/png',
-            size: (1024 * 1024) + 1,
-        } as Blob;
+        // Create a mock file with size > 1MB
+        const largeFile = new File(['x'], 'large.png', {type: 'image/png'});
+        Object.defineProperty(largeFile, 'size', {value: (1024 * 1024) + 1});
+        setupFileReaderMock(image);
 
-        wrapper.setState({image: file as File, imageUrl: image});
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, largeFile);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'newcustomemoji');
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'newcustomemoji'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
 
-        expect(wrapper.state().saving).toEqual(false);
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.imageTooLarge');
+        expect(screen.getByText('Unable to create emoji. Image must be less than 512 KiB in size.')).toBeInTheDocument();
     });
 
     test('should show generic error when action response cannot be parsed', async () => {
-        const props = {...baseProps};
-        props.actions = {
-            createCustomEmoji: jest.fn().mockImplementation(async (): Promise<unknown> => ({})),
+        const props: AddEmojiProps = {
+            ...baseProps,
+            actions: {
+                createCustomEmoji: jest.fn().mockImplementation(async (): Promise<unknown> => ({})),
+            },
         };
 
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...props}/>,
-            {context},
-        );
+        const {container} = renderWithContext(<AddEmoji {...props}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'newemoji'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
-        await Promise.resolve();
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'newemoji');
 
-        expect(wrapper.state().error).not.toBeNull();
-        assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.failedToAdd');
-        expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('Something went wrong when adding the custom emoji.')).toBeInTheDocument();
+        });
+
+        expect(props.actions.createCustomEmoji).toHaveBeenCalled();
     });
 
     test('should show response error message when action response is error', async () => {
-        const props = {...baseProps};
         const serverError = 'The server does not like the emoji.';
-        props.actions = {
-            createCustomEmoji: jest.fn().mockImplementation(async (): Promise<unknown> => ({error: {message: serverError}})),
+        const props: AddEmojiProps = {
+            ...baseProps,
+            actions: {
+                createCustomEmoji: jest.fn().mockImplementation(async (): Promise<unknown> => ({error: {message: serverError}})),
+            },
         };
 
-        const wrapper = shallow<AddEmoji>(
-            <AddEmoji {...props}/>,
-            {context},
-        );
+        const {container} = renderWithContext(<AddEmoji {...props}/>);
 
-        const file = new Blob([image], {type: 'image/png'});
-        wrapper.setState({image: file as File, imageUrl: image});
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
 
-        const form = wrapper.find('form').first();
-        const nameInput = wrapper.find('#name');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
 
-        nameInput.simulate('change', {target: {name: 'name', value: 'newemoji'}});
-        form.simulate('submit', {preventDefault: jest.fn()});
-        await Promise.resolve();
+        const nameInput = screen.getByRole('textbox');
+        await userEvent.type(nameInput, 'newemoji');
 
-        expect(wrapper.state().error).not.toBeNull();
-        expect(wrapper.state().error).toEqual(serverError);
-        expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
+        const saveButton = screen.getByTestId('save-button');
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(serverError)).toBeInTheDocument();
+        });
+
+        expect(props.actions.createCustomEmoji).toHaveBeenCalled();
     });
 });
