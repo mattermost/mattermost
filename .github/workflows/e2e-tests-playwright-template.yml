@@ -21,7 +21,7 @@ on:
         description: "Space-separated list of docker services to enable"
         type: string
         required: false
-        default: "postgres inbucket libretranslate"
+        default: "postgres inbucket"
 
       # Common build variables
       commit_sha:

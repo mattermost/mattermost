@@ -137,7 +137,7 @@ jobs:
       test_type: full
       test_filter: '--grep-invert "@visual"'
       workers: 4
-      enabled_docker_services: "postgres inbucket libretranslate minio openldap elasticsearch keycloak"
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}

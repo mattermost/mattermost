@@ -219,7 +219,6 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
       retries: 12'
   fi)
 
-
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
@@ -321,9 +320,6 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       - "../../:/mattermost"'
   fi)
 
-networks:
-  mm-test:
-    driver: bridge
 EOL
 
   mme2e_log "docker-compose file generated."
