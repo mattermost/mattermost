@@ -50,7 +50,13 @@ export class ColumnToggleMenu {
     }
 }
 
-type RoleFilter = 'Any' | 'System Admin' | 'Member' | 'Guest';
+type RoleFilter =
+    | 'Any'
+    | 'System Admin'
+    | 'Member'
+    | 'Guests (all)'
+    | 'Guests in single channel'
+    | 'Guests in multiple channels';
 type StatusFilter = 'Any' | 'Activated users' | 'Deactivated users';
 
 /**

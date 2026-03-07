@@ -6336,6 +6336,65 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		require.NoError(t, ss.Team().PermanentDelete(team.Id))
 	}()
 
+	// Create channels for guest membership tests
+	guestChannel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Guest Channel 1",
+		Name:        "guest_channel_1_" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, 100)
+	require.NoError(t, err)
+	guestChannel2, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Guest Channel 2",
+		Name:        "guest_channel_2_" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, 100)
+	require.NoError(t, err)
+
+	// Create guest users
+	guestNoChannels := &model.User{Username: "zguest_nochannel", Email: MakeEmail(), Roles: "system_guest"}
+	guestNoChannels, err = ss.User().Save(rctx, guestNoChannels)
+	require.NoError(t, err)
+
+	guestOneChannel := &model.User{Username: "zguest_onechannel", Email: MakeEmail(), Roles: "system_guest"}
+	guestOneChannel, err = ss.User().Save(rctx, guestOneChannel)
+	require.NoError(t, err)
+
+	guestTwoChannels := &model.User{Username: "zguest_twochannels", Email: MakeEmail(), Roles: "system_guest"}
+	guestTwoChannels, err = ss.User().Save(rctx, guestTwoChannels)
+	require.NoError(t, err)
+
+	// Add channel memberships for guests
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   guestChannel1.Id,
+		UserId:      guestOneChannel.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   guestChannel1.Id,
+		UserId:      guestTwoChannels.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   guestChannel2.Id,
+		UserId:      guestTwoChannels.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, ss.User().PermanentDelete(rctx, guestNoChannels.Id))
+		require.NoError(t, ss.User().PermanentDelete(rctx, guestOneChannel.Id))
+		require.NoError(t, ss.User().PermanentDelete(rctx, guestTwoChannels.Id))
+		require.NoError(t, ss.Channel().PermanentDelete(rctx, guestChannel1.Id))
+		require.NoError(t, ss.Channel().PermanentDelete(rctx, guestChannel2.Id))
+	}()
+
 	err = ss.User().RefreshPostStatsForUsers()
 	require.NoError(t, err)
 
@@ -6656,6 +6715,130 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		})
 		require.NoError(t, err)
 		require.Len(t, userReport, 11)
+	})
+
+	t.Run("should return channel count for users", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		for _, report := range userReport {
+			if report.Username == guestOneChannel.Username {
+				require.NotNil(t, report.ChannelCount)
+				require.Equal(t, 1, *report.ChannelCount)
+			}
+			if report.Username == guestTwoChannels.Username {
+				require.NotNil(t, report.ChannelCount)
+				require.Equal(t, 2, *report.ChannelCount)
+			}
+			if report.Username == guestNoChannels.Username {
+				require.NotNil(t, report.ChannelCount)
+				require.Equal(t, 0, *report.ChannelCount)
+			}
+		}
+	})
+
+	t.Run("guest filter all should return all guests", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+			GuestFilter: model.GuestFilterAll,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		for _, report := range userReport {
+			require.Contains(t, report.Roles, "system_guest")
+		}
+		require.GreaterOrEqual(t, len(userReport), 3)
+	})
+
+	t.Run("guest filter single_channel should return guests with exactly 1 channel", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+			GuestFilter: model.GuestFilterSingleChannel,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		found := false
+		for _, report := range userReport {
+			require.Contains(t, report.Roles, "system_guest")
+			if report.Username == guestOneChannel.Username {
+				found = true
+				require.NotNil(t, report.ChannelCount)
+				require.Equal(t, 1, *report.ChannelCount)
+			}
+			require.NotEqual(t, guestNoChannels.Username, report.Username)
+			require.NotEqual(t, guestTwoChannels.Username, report.Username)
+		}
+		require.True(t, found, "single-channel guest not found in results")
+	})
+
+	t.Run("guest filter multi_channel should return guests with more than 1 channel", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+			GuestFilter: model.GuestFilterMultipleChannel,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		found := false
+		for _, report := range userReport {
+			require.Contains(t, report.Roles, "system_guest")
+			if report.Username == guestTwoChannels.Username {
+				found = true
+				require.NotNil(t, report.ChannelCount)
+				require.Equal(t, 2, *report.ChannelCount)
+			}
+			require.NotEqual(t, guestNoChannels.Username, report.Username)
+			require.NotEqual(t, guestOneChannel.Username, report.Username)
+		}
+		require.True(t, found, "multi-channel guest not found in results")
+	})
+
+	t.Run("guest filter count query should match", func(t *testing.T) {
+		allCount, err := ss.User().GetUserCountForReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+			},
+			GuestFilter: model.GuestFilterAll,
+		})
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, allCount, int64(3))
+
+		singleCount, err := ss.User().GetUserCountForReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+			},
+			GuestFilter: model.GuestFilterSingleChannel,
+		})
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, singleCount, int64(1))
+
+		multiCount, err := ss.User().GetUserCountForReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+			},
+			GuestFilter: model.GuestFilterMultipleChannel,
+		})
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, multiCount, int64(1))
+
+		require.LessOrEqual(t, singleCount+multiCount, allCount)
 	})
 }
 

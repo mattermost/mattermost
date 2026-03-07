@@ -17,6 +17,10 @@ const (
 	ReportDurationLast6Months   = "last_6_months"
 
 	ReportingMaxPageSize = 100
+
+	GuestFilterAll            = "all"
+	GuestFilterSingleChannel  = "single_channel"
+	GuestFilterMultipleChannel = "multi_channel"
 )
 
 var (
@@ -76,11 +80,13 @@ func (options *ReportingBaseOptions) IsValid() *AppError {
 type UserReportQuery struct {
 	User
 	UserPostStats
+	ChannelCount *int
 }
 
 type UserReport struct {
 	User
 	UserPostStats
+	ChannelCount *int `json:"channel_count,omitempty"`
 }
 
 func (u *UserReport) ToReport() []string {
@@ -99,6 +105,10 @@ func (u *UserReport) ToReport() []string {
 	totalPosts := ""
 	if u.TotalPosts != nil {
 		totalPosts = strconv.Itoa(*u.TotalPosts)
+	}
+	channelCount := ""
+	if u.ChannelCount != nil {
+		channelCount = strconv.Itoa(*u.ChannelCount)
 	}
 	lastLogin := ""
 	if u.LastLogin > 0 {
@@ -122,6 +132,7 @@ func (u *UserReport) ToReport() []string {
 		lastPostDate,
 		daysActive,
 		totalPosts,
+		channelCount,
 		deleteAt,
 	}
 }
@@ -134,6 +145,7 @@ type UserReportOptions struct {
 	HideActive   bool
 	HideInactive bool
 	SearchTerm   string
+	GuestFilter  string
 }
 
 func (u *UserReportOptions) IsValid() *AppError {
@@ -154,6 +166,7 @@ func (u *UserReportQuery) ToReport() *UserReport {
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,
+		ChannelCount:  u.ChannelCount,
 	}
 }
 
