@@ -124,6 +124,34 @@ func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
 	})
 }
 
+func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a user with only the shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("shared_channel_manager should be denied create", func(t *testing.T) {
+		rcPayload := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:          "test-from-scm",
+				DefaultTeamId: th.BasicTeam.Id,
+			},
+			Password: "mysupersecret",
+		}
+		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
 func TestGetRemoteClusters(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
