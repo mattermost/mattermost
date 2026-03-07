@@ -21,7 +21,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import type {GlobalState} from 'types/store';
 
 import GroupMemberList from './group_member_list';
-import type {GroupMember} from './group_member_list';
+import type {GroupMember} from './group_member_list_item';
 
 type OwnProps = {
     group: Group;
