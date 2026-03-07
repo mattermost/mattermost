@@ -154,7 +154,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -238,7 +238,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -319,7 +319,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
