@@ -157,13 +157,15 @@ test.describe('System Console - Autotranslation (Localization)', () => {
 
             // Select multiple languages (Spanish and French)
             const multiSelect = systemConsolePage.localization.targetLanguagesMultiSelect;
-            await multiSelect.click();
-
-            // Select Spanish
+            const multiSelectInput = multiSelect.locator('input');
             const languageOptions = multiSelect.getByRole('option');
+
+            // Open dropdown and select Spanish
+            await multiSelectInput.click();
             await languageOptions.filter({hasText: /Español/}).click();
 
-            // Select French (keep multiselect open)
+            // Dropdown closes after each selection — reopen it, then select French
+            await multiSelectInput.click();
             await languageOptions.filter({hasText: /Français/}).click();
 
             // Close multiselect

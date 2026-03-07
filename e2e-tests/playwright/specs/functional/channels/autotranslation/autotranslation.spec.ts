@@ -904,11 +904,16 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Find post with message text and open dot menu (mock appends "[translated to en]", no real translation)
+        // * Find post with message text and wait for translation before opening dot menu
         const messagePost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
         await messagePost.waitFor({state: 'visible', timeout: 15000});
+
+        // Wait for mock translation to be applied before opening the menu
+        // (mock appends "[translated to en]"; Show translation only appears after translation)
+        await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
+
         await messagePost.hover();
         // Click the "more" (three dots) button to open the action menu
         await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
@@ -917,8 +922,7 @@ test(
         // Check for Show translation menu item - should be present since translation happened
         const showTranslationItem = messageActionMenu.getByRole('menuitem', {name: 'Show translation'});
 
-        // Translation should have happened - menu item should be visible
-        await expect(showTranslationItem).toBeVisible({timeout: 15000});
+        await expect(showTranslationItem).toBeVisible({timeout: 5000});
     },
 );
 
