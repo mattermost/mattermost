@@ -51,6 +51,32 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	return filtered, int64(len(filtered)), nil
 }
 
+// ValidateTeamAdminPolicyOwnership verifies that a policy is team-scoped to the
+// given team. Returns an error if the policy doesn't exist, spans multiple teams,
+// or belongs to a different team.
+func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) *model.AppError {
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		IDs:    []string{policyID},
+		Type:   model.AccessControlPolicyTypeParent,
+		TeamID: teamID,
+		Limit:  1,
+	})
+	if err != nil {
+		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(policies) == 0 {
+		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
+			"app.team.access_policies.policy_not_in_team.app_error",
+			map[string]any{"PolicyId": policyID, "TeamId": teamID},
+			"policy is not scoped to this team", http.StatusForbidden)
+	}
+
+	return nil
+}
+
 // ValidateTeamScopePolicyChannelAssignment validates that all channels are eligible
 // for team policy assignment, is the gate that run before channels are attached to a 'team' policy:
 //   - At least one channel provided

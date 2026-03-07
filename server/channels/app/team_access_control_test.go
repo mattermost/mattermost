@@ -330,3 +330,50 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Empty(t, policies, "policy where admin doesn't satisfy rules should be filtered out")
 }
+
+func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("policy scoped to team passes", func(t *testing.T) {
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+		teamPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
+
+		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, teamPolicy.ID)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("policy scoped to different team fails", func(t *testing.T) {
+		otherTeam := th.CreateTeam(t)
+		ch1 := th.CreatePrivateChannel(t, otherTeam)
+		otherTeamPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
+
+		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, otherTeamPolicy.ID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+	})
+
+	t.Run("cross-team policy fails", func(t *testing.T) {
+		otherTeam := th.CreateTeam(t)
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+		ch2 := th.CreatePrivateChannel(t, otherTeam)
+		crossPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
+
+		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, crossPolicy.ID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+	})
+
+	t.Run("policy with no channels fails", func(t *testing.T) {
+		noChannelPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
+
+		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, noChannelPolicy.ID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+	})
+
+	t.Run("nonexistent policy fails", func(t *testing.T) {
+		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, model.NewId())
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+	})
+}
