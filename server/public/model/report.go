@@ -18,8 +18,8 @@ const (
 
 	ReportingMaxPageSize = 100
 
-	GuestFilterAll            = "all"
-	GuestFilterSingleChannel  = "single_channel"
+	GuestFilterAll             = "all"
+	GuestFilterSingleChannel   = "single_channel"
 	GuestFilterMultipleChannel = "multi_channel"
 )
 
