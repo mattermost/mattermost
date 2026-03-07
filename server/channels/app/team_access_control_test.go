@@ -86,7 +86,7 @@ func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 	t.Run("public channel returns error", func(t *testing.T) {
 		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{th.BasicChannel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.access_control.channel_not_private.app_error", appErr.Id)
+		assert.Equal(t, "app.pap.access_control.channel_not_private", appErr.Id)
 	})
 
 	t.Run("channel from wrong team returns error", func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 
 		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.access_control.channel_shared.app_error", appErr.Id)
+		assert.Equal(t, "app.pap.access_control.channel_shared", appErr.Id)
 	})
 
 	t.Run("group-constrained channel returns error", func(t *testing.T) {
@@ -117,7 +117,7 @@ func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 
 		appErr := th.App.ValidateTeamScopePolicyChannelAssignment(th.Context, th.BasicTeam.Id, []string{channel.Id})
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.access_control.channel_group_constrained.app_error", appErr.Id)
+		assert.Equal(t, "app.pap.access_control.channel_group_constrained", appErr.Id)
 	})
 
 	t.Run("valid private channel in team succeeds", func(t *testing.T) {

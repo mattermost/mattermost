@@ -332,23 +332,20 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.AppError {
 	if channel.Type != model.ChannelTypePrivate {
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
-			"app.access_control.channel_not_private.app_error",
-			map[string]any{"ChannelId": channel.Id},
-			"only private channels can have access policies", http.StatusBadRequest)
+			"app.pap.access_control.channel_not_private",
+			nil, "Channel is not of type private", http.StatusBadRequest)
 	}
 
 	if channel.IsGroupConstrained() {
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
-			"app.access_control.channel_group_constrained.app_error",
-			map[string]any{"ChannelId": channel.Id},
-			"group-synced channels cannot have access policies", http.StatusBadRequest)
+			"app.pap.access_control.channel_group_constrained",
+			nil, "Channel is group constrained", http.StatusBadRequest)
 	}
 
 	if channel.IsShared() {
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
-			"app.access_control.channel_shared.app_error",
-			map[string]any{"ChannelId": channel.Id},
-			"shared channels cannot have access policies", http.StatusBadRequest)
+			"app.pap.access_control.channel_shared",
+			nil, "Channel is shared", http.StatusBadRequest)
 	}
 
 	return nil
