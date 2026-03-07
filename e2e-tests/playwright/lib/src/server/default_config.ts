@@ -820,11 +820,13 @@ const defaultServerConfig: AdminConfig = {
         },
         AdditionalSettings: {
             Reasons: [
-                'Inappropriate content',
-                'Sensitive data',
-                'Security concern',
-                'Harassment or abuse',
-                'Spam or phishing',
+                'Classification mismatch',
+                'Need-to-know violation',
+                'Personally identifiable information (PII) exposure',
+                'Operational security (OPSEC) concern',
+                'Controlled Unclassified Information (CUI) violation',
+                'Unauthorized disclosure',
+                'Other',
             ],
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
