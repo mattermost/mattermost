@@ -356,19 +356,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
 
+        let result: Moment;
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
             if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
-            const roundedTime = getRoundedTime(baseTime, timePickerInterval);
-            handleChange(roundedTime);
+            result = getRoundedTime(baseTime, timePickerInterval);
         } else if (timezone) {
             // Use moment.tz array syntax to create moment directly in timezone
             // This is the same pattern used by manual entry (which works correctly)
             const dayMoment = moment(day);
-            const targetDate = moment.tz([
+            result = moment.tz([
                 dayMoment.year(),
                 dayMoment.month(),
                 dayMoment.date(),
@@ -377,12 +377,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 0,
                 0,
             ], timezone);
-
-            handleChange(targetDate);
         } else {
             day.setHours(effectiveTime.hour(), effectiveTime.minute());
-            handleChange(moment(day));
+            result = moment(day);
         }
+
+        if (minDateTime) {
+            result = moment.max(result, minDateTime);
+        }
+        if (maxDateTime) {
+            result = moment.min(result, maxDateTime);
+        }
+
+        handleChange(result);
         handlePopperOpenState(false);
     };
 
