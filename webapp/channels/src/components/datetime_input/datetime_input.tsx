@@ -3,7 +3,7 @@
 
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react';
 import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -405,7 +405,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
-    const disabledDays = (() => {
+    const disabledDays = useMemo(() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
         if (minDateTime) {
             matchers.push({before: momentToLocalDate(minDateTime)});
@@ -416,7 +416,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
             matchers.push({after: momentToLocalDate(maxDateTime)});
         }
         return matchers.length > 0 ? matchers : undefined;
-    })();
+    }, [minDateTime, maxDateTime, allowPastDates, currentTime]);
 
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
