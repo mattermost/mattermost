@@ -146,7 +146,16 @@ All PRs should follow the template in `.github/PULL_REQUEST_TEMPLATE.md` (Summar
 
 When changes span both repos, create branches and PRs independently. Use `gh pr create --repo mattermost/mattermost ...` and `gh pr create --repo mattermost/enterprise ...`. Link companion PRs in the body and state merge order.
 
+### Headless Chrome
+
+Chrome is pre-installed at `/usr/local/bin/google-chrome`. For headless usage:
+```
+google-chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-headless <url>
+```
+Useful for automated screenshots, Playwright/Puppeteer testing, or rendering verification.
+
 ### Versions
 
 - Node.js: see `.nvmrc` (currently `24.11`); `nvm use` from workspace root.
 - Go: see `server/go.mod` (currently `1.24.13`).
+- Chrome: `google-chrome --version` (currently 145).
