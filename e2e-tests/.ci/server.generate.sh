@@ -52,7 +52,7 @@ generate_docker_compose_file() {
 
 services:
 $(if [ "$SERVER" != "local" ]; then
-    cat <<'INNEREOL'
+    cat <<INNEREOL
   server:
     image: \${SERVER_IMAGE}
     platform: linux/amd64
