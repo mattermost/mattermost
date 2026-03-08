@@ -153,8 +153,6 @@ jobs:
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
-      LIBRETRANSLATE_URL: "http://localhost:5000"
-      CI: "true"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

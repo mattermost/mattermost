@@ -319,7 +319,6 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     volumes:
       - "../../:/mattermost"'
   fi)
-
 EOL
 
   mme2e_log "docker-compose file generated."
