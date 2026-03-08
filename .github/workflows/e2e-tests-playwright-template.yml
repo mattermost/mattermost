@@ -77,6 +77,21 @@ on:
         description: "GitHub commit status context name"
         type: string
         required: true
+      llm_provider:
+        description: "LLM provider for Mattermost AI impact flow"
+        type: string
+        required: false
+        default: auto
+      impact_enabled:
+        description: "Enable AI-first impact analysis, generation, and heal orchestration"
+        type: boolean
+        required: false
+        default: true
+      impact_auto_apply_heal:
+        description: "Allow heal step to write patches instead of dry-run only"
+        type: boolean
+        required: false
+        default: false
 
     outputs:
       passed:
@@ -153,6 +168,7 @@ jobs:
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
+      LLM_PROVIDER: "${{ inputs.llm_provider }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -165,13 +181,125 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/install-playwright-host-deps
+        if: inputs.impact_enabled
+        working-directory: e2e-tests/playwright
+        run: npm install --cache /tmp/npm-cache
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
+      - name: ci/impact-plan
+        if: inputs.impact_enabled
+        id: impact-plan
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p .e2e-ai-agents
+          npm run impact:plan -- --llm-provider "${LLM_PROVIDER}" --github-output "$GITHUB_OUTPUT" --ci-comment-path ./.e2e-ai-agents/ci-summary.md
+      - name: ci/impact-generate
+        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        id: impact-generate
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        run: |
+          if [ "${{ steps.impact-plan.outputs.required_new_tests_count }}" = "0" ]; then
+            echo "No missing tests detected."
+            exit 0
+          fi
+          npm run impact:generate -- --llm-provider "${LLM_PROVIDER}"
+      - name: ci/derive-impact-specs
+        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        id: derive-impact-specs
+        working-directory: e2e-tests/playwright
+        run: |
+          mkdir -p .e2e-ai-agents
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const outPath = path.join('.e2e-ai-agents', 'spec-files.txt');
+          const tests = new Set();
+          const planPath = path.join('.e2e-ai-agents', 'plan.json');
+          if (fs.existsSync(planPath)) {
+              const plan = JSON.parse(fs.readFileSync(planPath, 'utf-8'));
+              for (const entry of plan.recommendedTests || []) {
+                  const normalized = String(entry).replace(/\s+\(flags:.*\)$/, '').trim();
+                  if (normalized) {
+                      tests.add(normalized);
+                  }
+              }
+          }
+
+          const generatedRoot = path.join('specs', 'functional', 'ai-assisted');
+          if (fs.existsSync(generatedRoot)) {
+              const stack = [generatedRoot];
+              while (stack.length > 0) {
+                  const current = stack.pop();
+                  for (const entry of fs.readdirSync(current, {withFileTypes: true})) {
+                      const fullPath = path.join(current, entry.name);
+                      if (entry.isDirectory()) {
+                          stack.push(fullPath);
+                      } else if (entry.isFile() && /\.(spec|test)\.[tj]sx?$/.test(entry.name)) {
+                          tests.add(fullPath.replace(/\\/g, '/'));
+                      }
+                  }
+              }
+          }
+
+          const values = Array.from(tests).sort();
+          fs.writeFileSync(outPath, values.join('\n') + (values.length > 0 ? '\n' : ''), 'utf-8');
+          console.log(`Derived ${values.length} targeted specs`);
+          NODE
+          echo "count=$(wc -l < .e2e-ai-agents/spec-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
       - name: ci/run-tests
         run: |
           make cloud-init
-          make
+          if [ -s playwright/.e2e-ai-agents/spec-files.txt ]; then
+            SPEC_FILES="$(paste -sd, playwright/.e2e-ai-agents/spec-files.txt)"
+            echo "Running targeted specs: ${SPEC_FILES}"
+            export SPEC_FILES
+            make start-server run-specs
+          else
+            make
+          fi
+          if [ -f playwright/results/reporter/results.json ]; then
+            cp playwright/results/reporter/results.json playwright/.e2e-ai-agents/playwright-report.json
+          fi
+      - name: ci/impact-heal
+        if: always() && inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        id: impact-heal
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        run: |
+          if [ ! -f ./.e2e-ai-agents/playwright-report.json ]; then
+            echo "Playwright report not found, skipping heal."
+            exit 0
+          fi
+          if [ "${{ inputs.impact_auto_apply_heal }}" = "true" ]; then
+            npm run impact:heal -- --llm-provider "${LLM_PROVIDER}"
+          else
+            npm run impact:heal -- --llm-provider "${LLM_PROVIDER}" --pipeline-dry-run
+          fi
+      - name: ci/impact-policy-gate
+        if: always() && inputs.impact_enabled
+        working-directory: e2e-tests/playwright
+        run: |
+          if [ "${{ steps.impact-plan.outcome }}" != "success" ]; then
+            echo "::error::AI impact analysis failed. Mattermost profile does not allow heuristic fallback."
+            exit 1
+          fi
+          if [ "${{ steps.impact-generate.outcome }}" = "failure" ]; then
+            echo "::error::AI test generation failed. Review .e2e-ai-agents artifacts."
+            exit 1
+          fi
+          if [ "${{ steps.impact-heal.outcome }}" = "failure" ]; then
+            echo "::error::AI heal failed. Review .e2e-ai-agents artifacts."
+            exit 1
+          fi
+          if [ "${{ steps.impact-plan.outputs.enforcement_should_fail }}" = "true" ]; then
+            echo "::error::Impact policy gate blocked this run. Confidence or evidence thresholds were not met."
+            exit 1
+          fi
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
@@ -183,6 +311,7 @@ jobs:
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
+            e2e-tests/playwright/.e2e-ai-agents/
           retention-days: 5
 
   calculate-results:

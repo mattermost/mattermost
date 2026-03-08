@@ -4,6 +4,10 @@
   "testsRoot": ".",
   "framework": "playwright",
   "mode": "impact",
+  "llm": {
+    "provider": "auto",
+    "fallback": "ollama"
+  },
   "git": {
     "since": "origin/master",
     "includeUncommitted": false
@@ -38,5 +42,23 @@
         "**/*.test.*"
       ]
     }
+  },
+  "pipeline": {
+    "enabled": true,
+    "outputDir": "specs/functional/ai-assisted",
+    "heal": true,
+    "mcp": true,
+    "mcpOnly": true,
+    "mcpAllowFallback": false,
+    "mcpRetries": 1
+  },
+  "policy": {
+    "minConfidenceForTargeted": 75,
+    "safeMergeMinConfidence": 90,
+    "forceFullOnWarningsAtOrAbove": 1,
+    "enforcementMode": "block",
+    "blockOnActions": [
+      "must-add-tests"
+    ]
   }
 }

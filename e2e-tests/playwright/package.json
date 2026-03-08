@@ -25,12 +25,15 @@
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
-    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces",
-    "impact:suggest": "e2e-ai-agents suggest --config ./e2e-ai-agents.config.json",
-    "impact:generate": "e2e-ai-agents approve-and-generate --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp",
-    "impact:heal": "e2e-ai-agents heal --config ./e2e-ai-agents.config.json --traceability-report ./.e2e-ai-agents/playwright-report.json --pipeline --pipeline-mcp",
+    "impact:analyze": "e2e-ai-agents impact --config ./e2e-ai-agents.config.json",
+    "impact:plan": "e2e-ai-agents suggest --config ./e2e-ai-agents.config.json",
+    "impact:suggest": "npm run impact:plan",
+    "impact:generate": "e2e-ai-agents approve-and-generate --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-only",
+    "impact:heal": "e2e-ai-agents heal --config ./e2e-ai-agents.config.json --traceability-report ./.e2e-ai-agents/playwright-report.json --pipeline --pipeline-mcp --pipeline-mcp-only",
     "impact:traceability:capture": "e2e-ai-agents traceability-capture --config ./e2e-ai-agents.config.json --traceability-report ./.e2e-ai-agents/playwright-report.json",
-    "impact:traceability:ingest": "e2e-ai-agents traceability-ingest --config ./e2e-ai-agents.config.json --traceability-input ./.e2e-ai-agents/traceability-input.json --traceability-min-hits 2"
+    "impact:traceability:ingest": "e2e-ai-agents traceability-ingest --config ./e2e-ai-agents.config.json --traceability-input ./.e2e-ai-agents/traceability-input.json --traceability-min-hits 2",
+    "start:libretranslate-mock": "node mock_libre_translate.js",
+    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
@@ -41,6 +44,7 @@
     "@playwright/test": "1.58.1",
     "@types/luxon": "3.7.1",
     "@typescript-eslint/eslint-plugin": "8.54.0",
+    "@yasserkhanorg/e2e-agents": "^0.3.7",
     "cross-env": "10.1.0",
     "dayjs": "1.11.19",
     "eslint": "9.39.2",
@@ -51,7 +55,6 @@
     "luxon": "3.7.2",
     "prettier": "3.8.1",
     "typescript": "5.9.3",
-    "zod": "4.3.6",
-    "@yasserkhanorg/e2e-agents": "file:../../../e2e-agents"
+    "zod": "4.3.6"
   }
 }
