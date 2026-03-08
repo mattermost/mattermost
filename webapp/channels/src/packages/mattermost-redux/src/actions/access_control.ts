@@ -13,22 +13,19 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function getAccessControlPolicy(id: string, channelId?: string) {
+export function getAccessControlPolicy(id: string, channelId?: string, teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.getAccessControlPolicy,
+        clientFunc: () => Client4.getAccessControlPolicy(id, channelId, teamId),
         onSuccess: [AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY],
-        params: [
-            id,
-            channelId,
-        ],
+        params: [],
     });
 }
 
-export function createAccessControlPolicy(policy: AccessControlPolicy): ActionFuncAsync<AccessControlPolicy> {
+export function createAccessControlPolicy(policy: AccessControlPolicy, teamId?: string): ActionFuncAsync<AccessControlPolicy> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.updateOrCreateAccessControlPolicy(policy);
+            data = await Client4.updateOrCreateAccessControlPolicy(policy, teamId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
@@ -42,13 +39,11 @@ export function createAccessControlPolicy(policy: AccessControlPolicy): ActionFu
     };
 }
 
-export function deleteAccessControlPolicy(id: string) {
+export function deleteAccessControlPolicy(id: string, teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.deleteAccessControlPolicy,
+        clientFunc: () => Client4.deleteAccessControlPolicy(id, teamId),
         onSuccess: [AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS],
-        params: [
-            id,
-        ],
+        params: [],
     });
 }
 
@@ -92,11 +87,11 @@ export function searchTeamAccessControlPolicies(teamId: string, term: string, ty
     };
 }
 
-export function searchAccessControlPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount> {
+export function searchAccessControlPolicyChannels(id: string, term: string, opts: ChannelSearchOpts, teamId?: string): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.searchChildAccessControlPolicyChannels(id, term, opts);
+            data = await Client4.searchChildAccessControlPolicyChannels(id, term, opts, teamId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
@@ -114,25 +109,19 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
     };
 }
 
-export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[]) {
+export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[], teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.assignChannelsToAccessControlPolicy,
+        clientFunc: () => Client4.assignChannelsToAccessControlPolicy(policyId, channelIds, teamId),
         onSuccess: [AdminTypes.ASSIGN_CHANNELS_TO_ACCESS_CONTROL_POLICY_SUCCESS],
-        params: [
-            policyId,
-            channelIds,
-        ],
+        params: [],
     });
 }
 
-export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[]) {
+export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[], teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.unassignChannelsFromAccessControlPolicy,
+        clientFunc: () => Client4.unassignChannelsFromAccessControlPolicy(policyId, channelIds, teamId),
         onSuccess: [AdminTypes.UNASSIGN_CHANNELS_FROM_ACCESS_CONTROL_POLICY_SUCCESS],
-        params: [
-            policyId,
-            channelIds,
-        ],
+        params: [],
     });
 }
 

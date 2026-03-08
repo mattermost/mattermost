@@ -778,18 +778,21 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 }
 
 func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Get channelId from query parameters (required for channel-specific permission check)
 	channelId := r.URL.Query().Get("channelId")
 	if channelId != "" && !model.IsValidId(channelId) {
 		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// Check permissions: system admin OR channel-specific permission
+	teamID := r.URL.Query().Get("team_id")
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		// For channel admins, channelId is required
-		if channelId == "" {
+		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+		if hasTeamPermission {
+			// Team admin has access
+		} else if channelId == "" {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}

@@ -19,6 +19,7 @@ import './policies.scss';
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
     simpleMode?: boolean;
+    hideHeader?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -204,7 +205,11 @@ export default function PolicyList(props: Props): JSX.Element {
                                     <Menu.Item
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
-                                            history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            if (props.onPolicySelected) {
+                                                props.onPolicySelected(policy);
+                                            } else {
+                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
                                         labels={
@@ -314,7 +319,7 @@ export default function PolicyList(props: Props): JSX.Element {
 
     return (
         <div className='PolicyTable'>
-            {!props.simpleMode && (
+            {!props.simpleMode && !props.hideHeader && (
                 <div className='policy-header'>
                     <div className='policy-header-text'>
                         <h1>

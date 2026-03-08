@@ -4650,10 +4650,18 @@ export default class Client4 {
         );
     };
 
-    getAccessControlPolicy = (id: string, channelId?: string) => {
+    getAccessControlPolicy = (id: string, channelId?: string, teamId?: string) => {
         let url = `${this.getBaseRoute()}/access_control_policies/${id}`;
+        const params = new URLSearchParams();
         if (channelId) {
-            url += `?channelId=${encodeURIComponent(channelId)}`;
+            params.set('channelId', channelId);
+        }
+        if (teamId) {
+            params.set('team_id', teamId);
+        }
+        const qs = params.toString();
+        if (qs) {
+            url += `?${qs}`;
         }
         return this.doFetch<AccessControlPolicy>(
             url,
@@ -4661,16 +4669,18 @@ export default class Client4 {
         );
     };
 
-    updateOrCreateAccessControlPolicy = (policy: AccessControlPolicy) => {
+    updateOrCreateAccessControlPolicy = (policy: AccessControlPolicy, teamId?: string) => {
+        const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<AccessControlPolicy>(
-            `${this.getBaseRoute()}/access_control_policies`,
+            `${this.getBaseRoute()}/access_control_policies${teamParam}`,
             {method: 'put', body: JSON.stringify(policy)},
         );
     };
 
-    deleteAccessControlPolicy = (id: string) => {
+    deleteAccessControlPolicy = (id: string, teamId?: string) => {
+        const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<AccessControlPolicy>(
-            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            `${this.getBaseRoute()}/access_control_policies/${id}${teamParam}`,
             {method: 'delete'},
         );
     };
@@ -4689,9 +4699,10 @@ export default class Client4 {
         );
     };
 
-    getChannelsForAccessControlPolicy = (policyId: string, after: string, limit: number) => {
+    getChannelsForAccessControlPolicy = (policyId: string, after: string, limit: number, teamId?: string) => {
+        const teamParam = teamId ? `&team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<AccessControlPolicyChannelsResult>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels?after=${after}&limit=${limit}`,
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels?after=${after}&limit=${limit}${teamParam}`,
             {method: 'get'},
         );
     };
@@ -4703,24 +4714,25 @@ export default class Client4 {
         );
     };
 
-    searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts) => {
+    searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts, teamId?: string) => {
+        const teamParam = teamId ? `&team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<ChannelsWithTotalCount>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}${teamParam}`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
         );
     };
 
-    assignChannelsToAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+    assignChannelsToAccessControlPolicy = (policyId: string, channelIds: string[], teamId?: string) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/assign`,
-            {method: 'post', body: JSON.stringify({channel_ids: channelIds})},
+            {method: 'post', body: JSON.stringify({channel_ids: channelIds, ...(teamId && {team_id: teamId})})},
         );
     };
 
-    unassignChannelsFromAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+    unassignChannelsFromAccessControlPolicy = (policyId: string, channelIds: string[], teamId?: string) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
-            {method: 'delete', body: JSON.stringify({channel_ids: channelIds})},
+            {method: 'delete', body: JSON.stringify({channel_ids: channelIds, ...(teamId && {team_id: teamId})})},
         );
     };
 
@@ -4732,10 +4744,13 @@ export default class Client4 {
         return this.createJob(job);
     };
 
-    getAccessControlFields = (after: string, limit: number, channelId?: string) => {
+    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
             params.append('channelId', channelId);
+        }
+        if (teamId) {
+            params.append('team_id', teamId);
         }
 
         return this.doFetch<UserPropertyField[]>(

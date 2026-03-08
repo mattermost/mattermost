@@ -34,6 +34,7 @@ type Props = {
     excludeGroupConstrained?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
+    teamId?: string;
     customNoOptionsMessage?: React.ReactNode;
 }
 
@@ -60,10 +61,21 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
-            this.setState({channels: response.data!.sort(compareChannels)});
-            this.setChannelsLoadingState(false);
-        });
+        this.loadInitialChannels();
+    }
+
+    loadInitialChannels() {
+        if (this.props.teamId) {
+            this.props.actions.searchAllChannels('', {team_ids: [this.props.teamId], nonAdminSearch: true}).then((response) => {
+                this.setState({channels: (response.data || []).sort(compareChannels)});
+                this.setChannelsLoadingState(false);
+            });
+        } else {
+            this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
+                this.setState({channels: response.data!.sort(compareChannels)});
+                this.setChannelsLoadingState(false);
+            });
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -72,15 +84,17 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
 
             const searchTerm = this.props.searchTerm;
             if (searchTerm === '') {
-                this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
-                    this.setState({channels: response.data!.sort(compareChannels)});
-                    this.setChannelsLoadingState(false);
-                });
+                this.loadInitialChannels();
             } else {
                 this.searchTimeoutId = window.setTimeout(
                     async () => {
                         this.setChannelsLoadingState(true);
-                        const response = await this.props.actions.searchAllChannels(searchTerm, {not_associated_to_group: this.props.groupID});
+                        const opts: ChannelSearchOpts = {not_associated_to_group: this.props.groupID};
+                        if (this.props.teamId) {
+                            opts.team_ids = [this.props.teamId];
+                            opts.nonAdminSearch = true;
+                        }
+                        const response = await this.props.actions.searchAllChannels(searchTerm, opts);
                         this.setState({channels: response.data!});
                         this.setChannelsLoadingState(false);
                     },

@@ -1,0 +1,46 @@
+.TeamPolicyEditor {
+    &__header {
+        margin-bottom: 16px;
+    }
+
+    &__back-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+
+        .fa {
+            font-size: 20px;
+        }
+    }
+
+    &__name-input {
+        margin-bottom: 24px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+
+            &.has-error {
+                border-color: var(--error-text);
+            }
+        }
+    }
+
+    &__name-hint {
+        margin-top: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
