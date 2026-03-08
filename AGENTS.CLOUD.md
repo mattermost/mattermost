@@ -121,6 +121,27 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 - **Type check:** `npm run check-types`
 - **Build:** `npm run build`
 
+### PR screenshots via S3
+
+Before/after screenshots should be uploaded to S3 and linked in PR descriptions. The AWS CLI is installed by the update script. Secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_BUCKET_NAME` must be set.
+
+**Upload:**
+```bash
+BRANCH=$(git branch --show-current)
+aws s3 cp screenshot.webp "s3://$AWS_S3_BUCKET_NAME/$BRANCH/screenshot.webp" --region us-east-1
+```
+
+**Public URL format:** `https://$AWS_S3_BUCKET_NAME.s3.amazonaws.com/$BRANCH/screenshot.webp`
+
+**PR description:** Use the before/after table from `.github/PULL_REQUEST_TEMPLATE.md`:
+```markdown
+| before | after |
+|--------|-------|
+| ![before](https://BUCKET.s3.amazonaws.com/BRANCH/before.webp) | ![after](https://BUCKET.s3.amazonaws.com/BRANCH/after.webp) |
+```
+
+All PRs should follow the template in `.github/PULL_REQUEST_TEMPLATE.md` (Summary, Ticket Link, Screenshots, Release Note). PR titles should be succinct but clearly describe what was accomplished — not vague like "Development environment setup".
+
 ### Cross-repo PR workflow
 
 When changes span both repos, create branches and PRs independently. Use `gh pr create --repo mattermost/mattermost ...` and `gh pr create --repo mattermost/enterprise ...`. Link companion PRs in the body and state merge order.
