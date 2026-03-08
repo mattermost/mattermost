@@ -22,7 +22,7 @@ After the update script has run:
 
 1. **Start Docker daemon** (if not already running): `sudo dockerd &>/tmp/dockerd.log &` — wait a few seconds, verify with `docker info`.
 2. **Start server + webapp together:**
-   ```
+   ```bash
    cd /workspace/server && \
      MM_LICENSE="$TEST_LICENSE" \
      MM_PLUGINSETTINGS_ENABLEUPLOADS=true \
@@ -32,7 +32,7 @@ After the update script has run:
    ```
    This single command starts Docker (postgres), builds mmctl, sets up the `go.work` and client symlink, compiles the Go server with enterprise tags, runs it in the background, then starts the webpack watcher for the webapp. The server listens on `:8065`.
 3. **Restart server after code changes:**
-   ```
+   ```bash
    cd /workspace/server && \
      MM_LICENSE="$TEST_LICENSE" \
      make BUILD_ENTERPRISE_DIR="$HOME/enterprise" restart-server
@@ -46,7 +46,7 @@ The `TEST_LICENSE` secret provides a Mattermost Enterprise Advanced license. Whe
 ### Agents plugin configuration
 
 The plugin is deployed from `$HOME/mattermost-plugin-agents` using:
-```
+```bash
 cd $HOME/mattermost-plugin-agents && MM_SERVICESETTINGS_SITEURL=http://localhost:8065 make deploy
 ```
 
@@ -121,9 +121,14 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 - **Type check:** `npm run check-types`
 - **Build:** `npm run build`
 
-### Cross-repo PR workflow
+### Browser automation
 
-When changes span both repos, create branches and PRs independently. Use `gh pr create --repo mattermost/mattermost ...` and `gh pr create --repo mattermost/enterprise ...`. Link companion PRs in the body and state merge order.
+**Chrome** is pre-installed at `/usr/local/bin/google-chrome`. For raw headless usage:
+```bash
+google-chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-headless <url>
+```
+
+**agent-browser** (Vercel) is installed globally. It provides a higher-level CLI for browser automation — navigation, clicking, typing, screenshots, accessibility snapshots, and visual diffs. Usage: `agent-browser <command>`. See `agent-browser --help` for available commands.
 
 ### Versions
 
