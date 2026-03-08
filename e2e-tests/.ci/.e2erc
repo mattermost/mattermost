@@ -47,6 +47,12 @@ mme2e_wait_command_success () {
     return 1
   fi
 }
+mme2e_wait_url_ok () {
+  URL=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "curl -fsS \"$URL\" >/dev/null" "Waiting for ${URL}" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
 mme2e_wait_service_healthy () {
   DC_COMMAND="${DC_COMMAND:-$MME2E_DC_SERVER}"
   SERVICE_NAME=${1?}
@@ -59,6 +65,16 @@ mme2e_wait_image () {
   RETRIES_LEFT=${2:-1}
   RETRIES_INTERVAL=${3:-10}
   mme2e_wait_command_success "docker pull --platform linux/amd64 $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_use_nvm_node_version() {
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  if ! [ -s "$NVM_DIR/nvm.sh" ]; then
+    mme2e_log "Error: nvm is required but was not found at $NVM_DIR/nvm.sh" >&2
+    return 1
+  fi
+  # shellcheck disable=SC1090
+  . "$NVM_DIR/nvm.sh"
+  nvm use "$NODE_VERSION_REQUIRED" >/dev/null
 }
 mme2e_is_token_in_list() {
   local TOKEN=$1
@@ -78,6 +94,10 @@ export MME2E_UID=$(id -u)
 export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
 export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+export MME2E_ROOT=$(cd .. && pwd)
+export MME2E_LOCAL_SERVER_ROOT=${MME2E_LOCAL_SERVER_ROOT:-$MME2E_ROOT/../server}
+export MME2E_LOCAL_SERVER_LOG=${MME2E_LOCAL_SERVER_LOG:-$MME2E_ROOT/logs/local_source_server.log}
+export MME2E_CYPRESS_WEBHOOK_LOG=${MME2E_CYPRESS_WEBHOOK_LOG:-$MME2E_ROOT/cypress/logs/webhook.log}
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose-mmserver' in your shell
 # NB: this only works in interactive shells
@@ -89,10 +109,15 @@ export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition
 export BROWSER_DEFAULT="chrome"
 export SERVER_DEFAULT="onprem"
 export TEST_DEFAULT="cypress"
-export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
 export BUILD_ID_DEFAULT=$(date +%s)
 export CI_BASE_URL_DEFAULT="localhost"
+export SERVER=${SERVER:-$SERVER_DEFAULT}
+export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
+case "$SERVER" in
+  local )
+    export ENABLED_DOCKER_SERVICES_DEFAULT="inbucket" ;;
+esac
 # Test tool default overrides
 case "${TEST:-$TEST_DEFAULT}" in
   cypress )
@@ -117,7 +142,6 @@ esac
 # Populate the optional variables that are used in the docker-compose file
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
 export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
-export SERVER=${SERVER:-$SERVER_DEFAULT}
 export TEST=${TEST:-$TEST_DEFAULT}
 export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
 export TEST_FILTER=${TEST_FILTER:-$TEST_FILTER_DEFAULT}

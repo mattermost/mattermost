@@ -4,6 +4,47 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
+if [ "$SERVER" = "local" ]; then
+  ./server.ensure_local_webhook.sh
+  mme2e_log "Prepare Cypress: clean and initialize report and logs directory"
+  (
+    cd ../cypress
+    rm -rf logs results
+    mkdir -p logs results/junit
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
+  )
+
+  LOGFILE_SUFFIX="${CI_BASE_URL//\//_}"
+  (
+    cd ../cypress
+    mme2e_use_nvm_node_version
+    if [ -n "${AUTOMATION_DASHBOARD_URL:-}" ]; then
+      mme2e_log "AUTOMATION_DASHBOARD_URL is set. Using run_test_cycle.js for the cypress run"
+      node run_test_cycle.js | tee "logs/${LOGFILE_SUFFIX}_cypress.log"
+    else
+      mme2e_log "AUTOMATION_DASHBOARD_URL is unset. Using run_tests.js for the cypress run"
+      # shellcheck disable=SC2086
+      node run_tests.js $TEST_FILTER | tee "logs/${LOGFILE_SUFFIX}_cypress.log"
+    fi
+  )
+
+  if [ -d ../cypress/results/mochawesome-report/json/tests/ ]; then
+    cat >../cypress/results/summary.json <<EOF
+{
+  "passed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add),
+  "failed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add),
+  "failed_expected": 0
+}
+EOF
+  fi
+
+  if [ -f "$MME2E_LOCAL_SERVER_LOG" ]; then
+    cp "$MME2E_LOCAL_SERVER_LOG" "../cypress/logs/${LOGFILE_SUFFIX}_mattermost.log"
+  fi
+
+  exit 0
+fi
+
 # Print run information
 mme2e_log "Printing Cypress container informations"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress node -p 'module.paths'

@@ -18,7 +18,12 @@ enable_docker_service() {
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
   local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
-  local SERVICES_REQUIRED="postgres inbucket"
+  local SERVICES_REQUIRED=""
+  case "$SERVER" in
+  onprem | cloud)
+    SERVICES_REQUIRED="postgres inbucket"
+    ;;
+  esac
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
       mme2e_log "Error, requested invalid service: $SERVICE_NAME" >&2
@@ -46,6 +51,8 @@ generate_docker_compose_file() {
 # NB:  May include paths relative to the "server/build" directory, which contains the original compose file that this yaml is overriding
 
 services:
+$(if [ "$SERVER" != "local" ]; then
+    cat <<'INNEREOL'
   server:
     image: \${SERVER_IMAGE}
     platform: linux/amd64
@@ -78,6 +85,8 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
     echo "      $service:"
     echo "        condition: service_healthy"
   done)
+INNEREOL
+  fi)
 
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
@@ -410,7 +419,7 @@ generate_env_files() {
 	AUTOMATION_DASHBOARD_URL
 	AUTOMATION_DASHBOARD_TOKEN
 	EOF
-    elif DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
+    elif [ -f ./dashboard/docker/docker-compose.yml ] && DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
       mme2e_log "Detected a running automation dashboard: loading its access variables into the Cypress container"
       cat >>.env.cypress <.env.dashboard
     fi
@@ -441,11 +450,15 @@ esac
 # Perform TEST-specific checks/customizations
 case $TEST in
 cypress)
-  enable_docker_service cypress
-  enable_docker_service webhook-interactions
+  if [ "$SERVER" != "local" ]; then
+    enable_docker_service cypress
+    enable_docker_service webhook-interactions
+  fi
   ;;
 playwright)
-  enable_docker_service playwright
+  if [ "$SERVER" != "local" ]; then
+    enable_docker_service playwright
+  fi
   ;;
 esac
 

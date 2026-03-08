@@ -3,6 +3,40 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
+if [ "$SERVER" = "local" ]; then
+  mme2e_log "Prepare Playwright: clean and initialize report and logs directory"
+  (
+    cd ../playwright
+    rm -rf logs results storage_state
+    mkdir -p logs results
+    touch logs/mattermost.log
+  )
+
+  mme2e_log "Run Playwright against local source server"
+  (
+    cd ../playwright
+    mme2e_use_nvm_node_version
+    # shellcheck disable=SC2086
+    npm run test:ci -- ${TEST_FILTER} ${PW_SHARD:-} | tee logs/playwright.log || true
+  )
+
+  if [ -f ../playwright/results/reporter/results.json ]; then
+    jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
+{
+  passed: .stats.expected,
+  failed: .stats.unexpected,
+  failed_expected: (.stats.skipped + .stats.flaky)
+}
+EOF
+  fi
+
+  if [ -f "$MME2E_LOCAL_SERVER_LOG" ]; then
+    cp "$MME2E_LOCAL_SERVER_LOG" ../playwright/logs/mattermost.log
+  fi
+
+  exit 0
+fi
+
 mme2e_log "Prepare Playwright: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
 cd e2e-tests/playwright

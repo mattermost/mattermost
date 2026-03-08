@@ -1,5 +1,7 @@
 ## Local development
 
+For a one-command local source-backed bootstrap, run `cd ../ && FRAMEWORK=playwright E2E_SCOPE=smoke make run-local` from `e2e-tests/`. That wrapper starts the local Mattermost source server if needed, bootstraps the required dependency containers, installs Playwright dependencies, and then runs the suite.
+
 #### 1. Start local server in a separate terminal.
 
 There are two ways to run the local server:

@@ -3,14 +3,37 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
+if [ "$SERVER" = "local" ]; then
+  ./server.ensure_local_source.sh
+else
+
 # Wait for the required server image
 mme2e_log "Waiting for server image to be available"
 mme2e_wait_image "$SERVER_IMAGE" 4 30
+fi
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} create
 ${MME2E_DC_SERVER} up -d --remove-orphans
+
+if [ "$SERVER" = "local" ]; then
+  for SERVICE in $ENABLED_DOCKER_SERVICES; do
+    mme2e_log "Waiting for local dependency container: $SERVICE"
+    if ! mme2e_wait_service_healthy "$SERVICE" 30 5; then
+      mme2e_log "${SERVICE} container not healthy, retry attempts exhausted. Giving up." >&2
+      exit 1
+    fi
+  done
+
+  if ! mme2e_wait_url_ok "http://localhost:8065/api/v4/system/ping" 30 2; then
+    mme2e_log "Local Mattermost source server is not reachable. Giving up." >&2
+    exit 1
+  fi
+
+  mme2e_log "Local Mattermost source server and E2E dependencies are running"
+  exit 0
+fi
 
 # Postgres check
 if ! mme2e_wait_command_success "${MME2E_DC_SERVER} exec -T -- postgres pg_isready -h localhost" "Waiting for postgres to accept connections" "30" "5"; then

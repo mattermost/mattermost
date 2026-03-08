@@ -1,8 +1,10 @@
 SHELL := /bin/bash
 
-.PHONY: all run stop clean
+.PHONY: all run run-local stop clean
 all: run
 run: generate-server start-server run-test
+run-local:
+	bash ./run_local.sh
 stop: stop-server stop-dashboard clean
 report: collect-report-data publish-report
 clean:
