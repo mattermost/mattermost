@@ -2058,7 +2058,7 @@ func TestGetChannel(t *testing.T) {
 		post := th.CreatePostWithClient(t, contentReviewClient, privateChannel)
 
 		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive content",
 		})
 		require.NoError(t, err)
