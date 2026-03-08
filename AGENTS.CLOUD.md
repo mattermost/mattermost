@@ -123,12 +123,7 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 
 ### Browser automation
 
-**Chrome** is pre-installed at `/usr/local/bin/google-chrome`. For raw headless usage:
-```bash
-google-chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-headless <url>
-```
-
-**agent-browser** (Vercel) is installed globally. It provides a higher-level CLI for browser automation — navigation, clicking, typing, screenshots, accessibility snapshots, and visual diffs. Usage: `agent-browser <command>`. See `agent-browser --help` for available commands.
+**agent-browser** (Vercel) is installed globally. It provides a higher-level CLI for browser automation — navigation, clicking, typing, screenshots, accessibility snapshots, and visual diffs. Usage: `agent-browser <command>`. See the agent-browser skill for more information.
 
 ### Versions
 
