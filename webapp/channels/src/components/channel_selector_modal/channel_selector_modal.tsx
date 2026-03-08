@@ -200,7 +200,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         {option.type === Constants.OPEN_CHANNEL &&
                             <i className='icon icon-globe'/>}
                         <span className='channel-name'>{option.display_name}</span>
-                        <span className='team-name'>{'(' + option.team_display_name + ')'}</span>
+                        {!this.props.teamId && option.team_display_name && (
+                            <span className='team-name'>{'(' + option.team_display_name + ')'}</span>
+                        )}
                     </div>
                 </div>
                 <div className='more-modal__actions'>
@@ -216,7 +218,10 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     };
 
     renderValue(props: {data: ChannelWithTeamDataValue}) {
-        return props.data.display_name + ' (' + props.data.team_display_name + ')';
+        if (props.data.team_display_name) {
+            return props.data.display_name + ' (' + props.data.team_display_name + ')';
+        }
+        return props.data.display_name;
     }
 
     render() {

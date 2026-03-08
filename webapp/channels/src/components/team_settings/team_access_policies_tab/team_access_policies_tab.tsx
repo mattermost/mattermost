@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
@@ -41,8 +41,6 @@ type Props = {
 type ViewState = 'list' | 'create' | 'edit';
 
 const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedChanges, showTabSwitchError, actions}: Props) => {
-    const {formatMessage} = useIntl();
-    const [refreshKey, setRefreshKey] = useState(0);
     const [view, setView] = useState<ViewState>('list');
     const [selectedPolicyId, setSelectedPolicyId] = useState<string | undefined>(undefined);
 
@@ -130,30 +128,20 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                         defaultMessage='Access policies'
                     />
                 </h4>
-                <div className='TeamAccessPoliciesTab__header-actions'>
-                    <button
-                        className='TeamAccessPoliciesTab__refresh-btn style--none'
-                        onClick={() => setRefreshKey((prev) => prev + 1)}
-                        aria-label={formatMessage({id: 'team_settings.access_policies.refresh', defaultMessage: 'Refresh list'})}
-                        title={formatMessage({id: 'team_settings.access_policies.refresh', defaultMessage: 'Refresh list'})}
-                    >
-                        <i className='icon icon-refresh'/>
-                    </button>
-                    <button
-                        className='btn btn-primary TeamAccessPoliciesTab__add-btn'
-                        onClick={handleAddPolicy}
-                    >
-                        <i className='icon icon-plus'/>
-                        <FormattedMessage
-                            id='team_settings.access_policies.add_policy'
-                            defaultMessage='Add policy'
-                        />
-                    </button>
-                </div>
+                <button
+                    className='btn btn-primary TeamAccessPoliciesTab__add-btn'
+                    onClick={handleAddPolicy}
+                >
+                    <i className='icon icon-plus'/>
+                    <FormattedMessage
+                        id='team_settings.access_policies.add_policy'
+                        defaultMessage='Add policy'
+                    />
+                </button>
             </div>
             <PolicyList
-                key={refreshKey}
                 hideHeader={true}
+                showRefreshButton={true}
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}
             />
