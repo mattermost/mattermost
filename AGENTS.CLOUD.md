@@ -146,13 +146,14 @@ All PRs should follow the template in `.github/PULL_REQUEST_TEMPLATE.md` (Summar
 
 When changes span both repos, create branches and PRs independently. Use `gh pr create --repo mattermost/mattermost ...` and `gh pr create --repo mattermost/enterprise ...`. Link companion PRs in the body and state merge order.
 
-### Headless Chrome
+### Browser automation
 
-Chrome is pre-installed at `/usr/local/bin/google-chrome`. For headless usage:
+**Chrome** is pre-installed at `/usr/local/bin/google-chrome`. For raw headless usage:
 ```
 google-chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-headless <url>
 ```
-Useful for automated screenshots, Playwright/Puppeteer testing, or rendering verification.
+
+**agent-browser** (Vercel) is installed globally. It provides a higher-level CLI for browser automation — navigation, clicking, typing, screenshots, accessibility snapshots, and visual diffs. Usage: `agent-browser <command>`. See `agent-browser --help` for available commands.
 
 ### Versions
 
