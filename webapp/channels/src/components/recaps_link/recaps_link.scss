@@ -41,21 +41,28 @@
             display: flex;
             align-items: center;
             padding: 3px;
-            margin-right: 4px;
+            margin-right: 7px;
+            margin-left: -1px;
             font-size: 18px;
             opacity: 0.64;
+
+            svg {
+                fill: rgba(var(--sidebar-text-rgb), 0.64);
+                vertical-align: middle;
+            }
         }
 
         .SidebarChannelLinkLabel_wrapper {
+            display: flex;
             min-width: 0;
             flex: 1;
-            padding: 2px 4px;
         }
 
         .SidebarChannelLinkLabel {
             overflow: hidden;
+            height: 18px;
             font-size: 14px;
-            line-height: 20px;
+            line-height: 18px;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -66,6 +73,10 @@
 
         .icon {
             opacity: 1;
+
+            svg {
+                fill: var(--sidebar-text);
+            }
         }
 
         .SidebarChannelLinkLabel {
