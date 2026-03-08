@@ -15,6 +15,79 @@ fi
 
 mme2e_log "Running spec files: $SPEC_FILES"
 
+if [ "$SERVER" = "local" ]; then
+  case $TEST in
+  cypress)
+    ./server.ensure_local_webhook.sh
+    mme2e_log "Running Cypress with specified specs against local source server"
+    (
+      cd ../cypress
+      rm -rf logs results
+      mkdir -p logs results/junit results/mochawesome-report/json/tests
+      echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
+      LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
+      mme2e_use_nvm_node_version
+      npx cypress run \
+        --browser "$BROWSER" \
+        --spec "$SPEC_FILES" \
+        --reporter cypress-multi-reporters \
+        --reporter-options configFile=reporter-config.json \
+        | tee "logs/${LOGFILE_SUFFIX}_cypress.log"
+    )
+
+    if [ -d ../cypress/results/mochawesome-report/json/tests/ ]; then
+      cat >../cypress/results/summary.json <<EOF
+{
+  "passed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add),
+  "failed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add),
+  "failed_expected": 0
+}
+EOF
+    fi
+
+    if [ -f "$MME2E_LOCAL_SERVER_LOG" ]; then
+      cp "$MME2E_LOCAL_SERVER_LOG" "../cypress/logs/${CI_BASE_URL//\//_}_specs_mattermost.log"
+    fi
+    ;;
+  playwright)
+    mme2e_log "Running Playwright with specified specs against local source server"
+    SPEC_ARGS=$(echo "$SPEC_FILES" | tr ',' ' ')
+    (
+      cd ../playwright
+      rm -rf logs results storage_state
+      mkdir -p logs results
+      touch logs/mattermost.log
+      LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
+      mme2e_use_nvm_node_version
+      # shellcheck disable=SC2086
+      npm run test:ci -- $SPEC_ARGS | tee "logs/${LOGFILE_SUFFIX}_playwright.log" || true
+    )
+
+    if [ -f ../playwright/results/reporter/results.json ]; then
+      jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
+{
+  passed: .stats.expected,
+  failed: .stats.unexpected,
+  failed_expected: (.stats.skipped + .stats.flaky)
+}
+EOF
+    fi
+
+    if [ -f "$MME2E_LOCAL_SERVER_LOG" ]; then
+      cp "$MME2E_LOCAL_SERVER_LOG" "../playwright/logs/${CI_BASE_URL//\//_}_specs_mattermost.log"
+    fi
+    ;;
+  *)
+    mme2e_log "Error, unsupported value for TEST: $TEST" >&2
+    mme2e_log "Aborting" >&2
+    exit 1
+    ;;
+  esac
+
+  mme2e_log "Spec run complete"
+  exit 0
+fi
+
 case $TEST in
 cypress)
   mme2e_log "Running Cypress with specified specs"
