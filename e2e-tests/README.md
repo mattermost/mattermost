@@ -12,11 +12,16 @@ Please refer to the [dedicated developer documentation](https://developers.matte
 
 Use `make run-local` from this directory to run E2E tests against a locally running Mattermost source checkout instead of a prebuilt Docker server image.
 
+For AI-agent usage, prefer `make run-agent`. It defaults to Playwright smoke coverage, supports `SPEC_FILES`, and writes the full runner output to `logs/agent/*.log` while keeping stdout compact.
+
 Examples:
 - `FRAMEWORK=playwright E2E_SCOPE=smoke make run-local`
 - `FRAMEWORK=cypress E2E_SCOPE=smoke make run-local`
 - `FRAMEWORK=all E2E_SCOPE=full make run-local`
 - `FRAMEWORK=cypress E2E_SCOPE=full SPEC_FILES=tests/integration/channels/enterprise/elasticsearch_autocomplete/channels_spec.ts make run-local`
+- `make run-agent`
+- `SPEC_FILES=specs/functional/channels/search/find_channels.spec.ts make run-agent`
+- `SPEC_FILES=tests/integration/channels/team_settings/create_a_team_spec.js make run-agent`
 
 What it does:
 - Starts the Mattermost source server automatically if `http://localhost:8065` is not already healthy.
@@ -34,6 +39,11 @@ Useful variables:
 - `SPEC_FILES`: optional comma-separated spec paths; when set, the wrapper runs only those specs
 - `PLAYWRIGHT_TEST_FILTER` / `CYPRESS_TEST_FILTER`: optional overrides for the default smoke/full filters
 - `ENABLED_DOCKER_SERVICES`: optional override for the default dependency set for the chosen scope
+
+Agent notes:
+- `make run-agent` defaults to `FRAMEWORK=playwright` and `E2E_SCOPE=smoke`.
+- `make run-agent` infers `FRAMEWORK=playwright` for `SPEC_FILES=specs/...` and `FRAMEWORK=cypress` for `SPEC_FILES=tests/integration/...`.
+- `make run-agent` writes the full bootstrap and test output to `logs/agent/*.log` and prints only a short summary to stdout.
 
 Notes:
 - `make run-local` leaves the local Mattermost server and dependency containers running for follow-up debugging. Run `make stop` when you want to tear down the generated dependency containers.
