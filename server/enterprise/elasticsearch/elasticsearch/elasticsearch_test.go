@@ -111,6 +111,7 @@ func (s *ElasticsearchInterfaceTestSuite) SetupTest() {
 	s.Require().Nil(s.CommonTestSuite.ESImpl.Start())
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
+	s.NoError(s.RefreshIndexFn())
 }
 
 func (s *ElasticsearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
