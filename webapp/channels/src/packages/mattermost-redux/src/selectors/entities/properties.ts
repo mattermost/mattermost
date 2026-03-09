@@ -27,16 +27,20 @@ export function getPropertyFieldById(state: GlobalState, fieldId: string): Prope
     return getPropertyFieldsById(state)[fieldId];
 }
 
-export function getPropertyFieldsByIds(state: GlobalState, fieldIds: string[]): PropertyField[] {
-    const byId = getPropertyFieldsById(state);
-    return fieldIds.reduce<PropertyField[]>((acc, id) => {
-        const field = byId[id];
-        if (field) {
-            acc.push(field);
-        }
-        return acc;
-    }, []);
-}
+export const getPropertyFieldsByIds = createSelector(
+    'getPropertyFieldsByIds',
+    getPropertyFieldsById,
+    (state: GlobalState, fieldIds: string[]) => fieldIds,
+    (byId, fieldIds) => {
+        return fieldIds.reduce<PropertyField[]>((acc, id) => {
+            const field = byId[id];
+            if (field) {
+                acc.push(field);
+            }
+            return acc;
+        }, []);
+    },
+);
 
 // Group selectors
 
@@ -69,23 +73,23 @@ export function getPropertyValueForTargetField(
     return state.entities.properties.values.byTargetId[targetId]?.[fieldId];
 }
 
-export function getPropertyValuesForTargetByFieldIds(
-    state: GlobalState,
-    targetId: string,
-    fieldIds: string[],
-): Array<PropertyValue<unknown>> {
-    const targetValues = state.entities.properties.values.byTargetId[targetId];
-    if (!targetValues) {
-        return [];
-    }
-    return fieldIds.reduce<Array<PropertyValue<unknown>>>((acc, fieldId) => {
-        const value = targetValues[fieldId];
-        if (value) {
-            acc.push(value);
+export const getPropertyValuesForTargetByFieldIds = createSelector(
+    'getPropertyValuesForTargetByFieldIds',
+    (state: GlobalState, targetId: string) => state.entities.properties.values.byTargetId[targetId],
+    (state: GlobalState, targetId: string, fieldIds: string[]) => fieldIds,
+    (targetValues, fieldIds) => {
+        if (!targetValues) {
+            return [];
         }
-        return acc;
-    }, []);
-}
+        return fieldIds.reduce<Array<PropertyValue<unknown>>>((acc, fieldId) => {
+            const value = targetValues[fieldId];
+            if (value) {
+                acc.push(value);
+            }
+            return acc;
+        }, []);
+    },
+);
 
 export function getPropertyValuesForField(
     state: GlobalState,
