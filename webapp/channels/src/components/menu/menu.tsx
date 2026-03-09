@@ -183,6 +183,12 @@ export function Menu(props: Props) {
         if (isKeyPressed(event, Constants.KeyCodes.UP) || isKeyPressed(event, Constants.KeyCodes.DOWN)) {
             event.stopPropagation();
         }
+
+        // If a menu item already handled Space/Enter (e.g. keyboard reorder),
+        // stop it from reaching the Popover which would close the menu.
+        if (event.defaultPrevented && (isKeyPressed(event, Constants.KeyCodes.SPACE) || isKeyPressed(event, Constants.KeyCodes.ENTER))) {
+            event.stopPropagation();
+        }
     }
 
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {

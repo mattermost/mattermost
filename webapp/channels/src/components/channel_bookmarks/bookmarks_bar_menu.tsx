@@ -158,6 +158,7 @@ function BookmarksBarMenu({
                 key='channelBookmarksAddLink'
                 id='channelBookmarksAddLink'
                 onClick={handleCreateLink}
+                disabled={limitReached}
                 leadingElement={<LinkVariantIcon size={18}/>}
                 labels={<span>{addLinkLabel}</span>}
             />,
@@ -168,6 +169,7 @@ function BookmarksBarMenu({
                     key='channelBookmarksAttachFile'
                     id='channelBookmarksAttachFile'
                     onClick={handleCreateFile}
+                    disabled={limitReached}
                     leadingElement={<PaperclipIcon size={18}/>}
                     labels={<span>{attachFileLabel}</span>}
                 />,
