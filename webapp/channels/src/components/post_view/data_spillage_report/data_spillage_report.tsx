@@ -101,7 +101,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
     const title = formatMessage({
         id: 'data_spillage_report_post.title',
-        defaultMessage: '{user} flagged a message for review',
+        defaultMessage: '{user} submitted a message for review',
     }, {
         user: (<AtMention mentionName={reportingUser?.username || ''}/>),
     });
