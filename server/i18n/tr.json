@@ -10024,10 +10024,6 @@
     "translation": "Yapılandırma süzülemedi."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Kullanıcı rolleri konuk durumu ile tutarlı değil."
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Özel ifade görselleri için bir klasörler oluşturulamadı"
   },
@@ -10392,10 +10388,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} değeri IndexPrefix {{.IndexPrefix}} değerinin bir ön eki olmalıdır."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Denetim günlükleri için En fazla dosya yaşı değeri eksi olamaz."
-  },
-  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Kanal alma sınırı geçersiz."
   },
@@ -10418,14 +10410,6 @@
   {
     "id": "api.command_share.service_inactive",
     "translation": "Paylaşılan kanallar hizmeti açık ancak etkin değil."
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "İçerik işaretleme özelliği kapalı."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Lisansınızda içerik işaretleme özelliği yok."
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
@@ -10736,18 +10720,6 @@
     "translation": "{{.Setting}} için başta veya sonda boşluk algılandı. \"{{.Value}}\" bulundu."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya yedeği sayısı negatif olmamalıdır."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya kuyruğu sayısı sıfırdan büyük olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Denetim günlüğü yapılandırmasında en büyük dosya boyutu sıfırdan büyük olmalıdır."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "Denetim dosyası günlüğü etkinleştirildiğinde, bir dosya adı belirtilmelidir."
   },
@@ -10786,30 +10758,6 @@
   {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Kısıtlanmış bir doğrudan iletiye gönderim yapılamaz"
-  },
-  {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Lütfen bu iletiyi neden işaretlediğinizi açıklayın."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "İletiyi işaretleme nedeni {{.MaxLength}} karakterden uzun olamaz."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Bu takımda içerik işaretleme özelliği açılmamış."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "İşaretlenmiş iletinin tutulması ya da silinmesi için beklemede veya atanmış olması gerekir."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "İleti işaretlemesi için bilinmeyen bir neden belirtilmiş."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Lütfen bu iletinin işaretlenme nedenini seçin."
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
@@ -10852,94 +10800,6 @@
     "translation": "Kanalın ortak takımları alınırken sorun çıktı"
   },
   {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Bu ileti zaten işaretlenmiş olduğundan işaretlenemez."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Bu ileti önceki bir işaretleme isteğinde silindiği için işaretlenemez."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Bu ileti önceki bir işaretleme isteğinde tutulduğu için işaretlenemez."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Bu iletinin durumu bilinmediğinden işaretlenemez."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "İşaretlenmiş iletinin özellik değerleri kaydedilemiyor."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Kullanıcı yorumunun işaretlenmesi sıraya alınamadı"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Kullanıcının işaretleme nedeni sıraya alınamadı"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "{{.username}} iletisi incelenmek üzere işaretlenmiş. Bir içerik değerlendirici tarafından değerlendirildiğinde size bildirilecek. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "İçerik işaretleme botu alınamadı."
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Durum özellik alanı alınamadı."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Takımın değerlendiricileri aranamadı."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Değerlendiricinin yorumu sıraya alınamadı"
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "WebSocket olayında gönderilecek içerik işaretleme özelliği değerleri sıraya alınamadı."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Değerlendiricinin yorumu sıraya alınamadı"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "İşaretlenmiş ileti geri alınırken işaretlenmiş ileti durumu güncellenemedi "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "İşaretlenmiş ileti ve ilişkili verileri silinmekten geri alınırken veri tabanındaki ileti güncellenemedi."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "İleti işaretlenmediği için işaretlenmiş ileti alınamadı."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken temizlenen iletinin üzerine yazılamadı."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "İçerik işaretleme özellik alanlarında arama yapılamadı."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "İletinin içerik işaretleme özelliği değerleri veri tabanından alınamadı."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "İşaretlenmiş iletinin özellik değerlerinde arama yapılamadı."
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "İletinin veri tabanındaki ileti önceliği verileri kalıcı olarak silinemedi."
   },
@@ -10948,24 +10808,12 @@
     "translation": "Kısıtlanmış bir doğrudan iletide ileti zamanlanamaz"
   },
   {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "İçerik değerlendirme"
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Kısıtlanmış bir doğrudan iletiye dosya yüklenemez."
   },
   {
     "id": "api.encoding_error",
     "translation": "API yanıtının JSON kodlamasında bir sorunla karşılaşıldı"
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "İçerik değerlendirici ayarları veri tabanından alınamadı"
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "İçerik değerlendirici ayarları veri tabanına kaydedilemedi."
   },
   {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
@@ -10988,56 +10836,8 @@
     "translation": "Takım veya sistem izin şeması tarafından kısıtlanmış bir izin eklenemez."
   },
   {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "Kullanıcı bir içerik değerlendirici değil."
-  },
-  {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
     "translation": "Takım kimliği, işaretlenmiş iletinin takım kimliği ile eşleşmiyor."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "İçerik değerlendirici kimliği özelliği alanı bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "İçerik değerlendirici ayarlandığında Durum özelliğinin değeri güncellenemedi."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "İşaretlenmiş iletinin içerik değerlendiricisi ayarlanamadı."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "İşaretlenmiş ileti kimliği özelliği alanı bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Şikayet edilen kullanıcı alanı bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Şikayet edilen kullanıcı alanının değeri bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "İfade genel içerik değerlendiricilerinde aranamadı."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "İşlaretlenmiş iletinin içerik değerlendiricisi iletileri aranamadı."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Arama ifadesi sistem yöneticisi içerik değerlendiricileri içinde aranamadı."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Arama ifadesi takım yöneticisi içerik değerlendirilerinde aranamadı."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
@@ -11066,21 +10866,5 @@
   {
     "id": "app.agents.get_services.bridge_call_failed",
     "translation": "Köprü çağrısı yapılamadı."
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "İşaretlenmiş iletinin konu yanıtları alınamadı."
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "Yöneten özelliği alanı bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "Durum özellik alanı bulunamadı."
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "İşaretlenmiş ileti için konu yanıtlarında özellik değerleri ayarlanamadı."
   }
 ]

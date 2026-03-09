@@ -1,1402 +1,2988 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match snapshot and contain correct buttons 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r3:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r4:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match snapshot of rendered items when multiselecting channels - DM channels and public channels category 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r1g:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r1h:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match snapshot of rendered items when multiselecting channels - public channels and DM category 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r1b:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r1c:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is DM 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute"
-        id="sidebar_left.sidebar_channel_menu.mute"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "D",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Close Conversation"
-        id="sidebar_left.sidebar_channel_menu.leaveConversation"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r11:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r12:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Close Conversation
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is Town Square 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "town-square",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r16:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r17:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is favorite 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="unfavorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Unfavorite"
-        id="sidebar_left.sidebar_channel_menu.unfavoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":ri:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":rj:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="unfavorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,17.612l5.57,3.361c0.407,0.245,0.907-0.119,0.799-0.58l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939l-6.482-0.559l-2.533-5.969c-0.185-0.436-0.801-0.436-0.987,0L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.186,9.792
+	l4.914,4.265L5.63,20.395c-0.107,0.462,0.394,0.825,0.799,0.579L12,17.612z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Unfavorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is muted 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="unmute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Unmute Channel"
-        id="sidebar_left.sidebar_channel_menu.unmuteChannel"
-      />
-    }
-    leadingElement={
-      <BellOffOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":rn:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":ro:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="unmute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22.11,21.46L2.39,1.73L1.11,3L5.83,7.72C5.29,8.73 5,9.86 5,11V17L3,19V20H18.11L20.84,22.73L22.11,21.46M7,18V11C7,10.39 7.11,9.79 7.34,9.23L16.11,18H7M10,21H14A2,2 0 0,1 12,23A2,2 0 0,1 10,21M8.29,5.09C8.82,4.75 9.4,4.5 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V15.8L17,13.8V11A5,5 0 0,0 12,6C11.22,6 10.45,6.2 9.76,6.56L8.29,5.09Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Unmute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is private 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "P",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":rs:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":rt:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is read 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsUnread-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Unread"
-        id="sidebar_left.sidebar_channel_menu.markAsUnread"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":rd:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":re:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Unread
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is unread 1`] = `
-<Menu
-  menu={
-    Object {
-      "aria-label": "Edit channel menu",
-      "id": "SidebarChannelMenu-MenuList-channel_id",
-      "onToggle": [MockFunction],
-    }
-  }
-  menuButton={
-    Object {
-      "aria-label": "Channel options for {channelName}",
-      "children": <DotsVerticalIcon
-        size={16}
-      />,
-      "class": "SidebarMenu_menuButton",
-      "id": "SidebarChannelMenu-Button-channel_id",
-    }
-  }
-  menuButtonTooltip={
-    Object {
-      "class": "hidden-xs",
-      "text": "Channel options",
-    }
-  }
+<body
+  style="padding-right: 1024px; overflow: hidden;"
 >
-  <MenuItem
-    id="markAsRead-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mark as Read"
-        id="sidebar_left.sidebar_channel_menu.markAsRead"
-      />
-    }
-    leadingElement={
-      <MarkAsUnreadIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="favorite-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Favorite"
-        id="sidebar_left.sidebar_channel_menu.favoriteChannel"
-      />
-    }
-    leadingElement={
-      <StarOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="mute-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Channel"
-        id="sidebar_left.sidebar_channel_menu.muteChannel"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
-    channel={
-      Object {
-        "create_at": 0,
-        "creator_id": "id",
-        "delete_at": 0,
-        "display_name": "name",
-        "group_constrained": false,
-        "header": "header",
-        "id": "channel_id",
-        "last_post_at": 0,
-        "last_root_post_at": 0,
-        "name": "DN",
-        "purpose": "purpose",
-        "scheme_id": "id",
-        "team_id": "team_id",
-        "type": "O",
-        "update_at": 0,
-      }
-    }
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="copyLink-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Copy Link"
-        id="sidebar_left.sidebar_channel_menu.copyLink"
-      />
-    }
-    leadingElement={
-      <LinkVariantIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup="true"
-    id="addMembers-channel_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add Members"
-        id="sidebar_left.sidebar_channel_menu.addMembers"
-      />
-    }
-    leadingElement={
-      <AccountPlusOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="leave-channel_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Leave Channel"
-        id="sidebar_left.sidebar_channel_menu.leaveChannel"
-      />
-    }
-    leadingElement={
-      <ExitToAppIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+  <div
+    aria-hidden="true"
+    id="root-portal"
+  >
+    <div
+      data-floating-ui-portal=""
+      id=":r8:"
+    >
+      <div
+        class="tooltipContainer hidden-xs"
+        role="tooltip"
+        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
+        tabindex="-1"
+      >
+        <div
+          class="tooltipContent"
+        >
+          <span
+            class="tooltipContentTitleContainer"
+          >
+            <span
+              class="tooltipContentTitle"
+            >
+              Channel options
+            </span>
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          height="10"
+          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
+          viewBox="0 0 10 10"
+          width="10"
+        >
+          <path
+            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
+            stroke="none"
+          />
+          <clippath
+            id=":r9:"
+          >
+            <rect
+              height="10"
+              width="10"
+              x="0"
+              y="0"
+            />
+          </clippath>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-channel_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="Channel options for {channelName}"
+      class="SidebarMenu_menuButton"
+      id="SidebarChannelMenu-Button-channel_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root-eddran ljsZwq MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop-kyBuqW kaXbXK MuiModal-backdrop"
+      id="backdropForMenuComponent"
+      style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
+      tabindex="-1"
+    >
+      <ul
+        aria-label="Edit channel menu"
+        class="MuiList-root-fLixwv kPjBep MuiList-root MuiList-padding"
+        id="SidebarChannelMenu-MenuList-channel_id"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsRead-channel_id"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3,5v2h18V5H3z M21,10v4h-2l-2-2l2-2H21z M3,11v2h12v-2H3 M3,17v2h18v-2H3z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mark as Read
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="favorite-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.001,5.642l1.416,3.337l0.411,0.969l1.049,0.091l3.62,0.312l-2.753,2.384l-0.799,0.692l0.24,1.029l0.824,3.533l-3.107-1.875L12,15.568l-0.904,0.546l-3.112,1.879l0.821-3.54l0.238-1.026l-0.796-0.691l-2.748-2.385l3.625-0.313l1.049-0.09
+	l0.411-0.969L12.001,5.642 M12.001,2c-0.2,0-0.401,0.109-0.494,0.327L8.973,8.294L2.49,8.854C2.019,8.895,1.828,9.482,2.185,9.792
+	l4.914,4.265L5.63,20.395c-0.083,0.359,0.201,0.659,0.522,0.659c0.092,0,0.187-0.025,0.277-0.079L12,17.612l5.57,3.361
+	c0.09,0.054,0.185,0.079,0.277,0.079c0.322,0,0.606-0.3,0.522-0.659l-1.478-6.335l4.924-4.264c0.358-0.311,0.167-0.898-0.305-0.939
+	l-6.482-0.559l-2.533-5.969C12.402,2.109,12.202,2,12.001,2L12.001,2z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Favorite
+          </div>
+        </li>
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="mute-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Mute Channel
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="copyLink-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Copy Link
+          </div>
+        </li>
+        <li
+          aria-haspopup="true"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="addMembers-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Add Members
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
+          id="leave-channel_id"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,3H5C3.89,3,3,3.89,3,5v4h2V5h14v14H5v-4H3v4c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.89,20.1,3,19,3 M10.08,15.58L11.5,17l5-5l-5-5l-1.42,1.41L12.67,11H3v2h9.67L10.08,15.58z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Leave Channel
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
 `;

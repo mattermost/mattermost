@@ -10008,10 +10008,6 @@
     "translation": "Не атрымалася стварыць каталог для выяваў нестандартных эмодзі"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Ролі карыстальнікаў не адпавядаюць статусу госця."
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Немагчыма зарэгістраваць групу ўласцівасцей \"Атрыбуты карыстальніцкага профілю\""
   },
@@ -10564,22 +10560,6 @@
     "translation": "Тэст злучэння LDAP не ўдаўся. Сервер: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Памылка: {{.Error}}"
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Максімальны ўзрост файлаў у канфігурацыі часопісаў аўдыту не можа быць адмоўным."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Максімальная колькасць рэзервовых копій файлаў у канфігурацыі часопісаў аўдыту не можа быць адмоўнай."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Максімальны памер чаргі файлаў у канфігурацыі часопісаў аўдыту павінен быць больш за нуль."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Максімальны памер файла ў канфігурацыі часопісаў аўдыту павінен быць больш за нуль."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "Калі рэгістрацыя файлаў аўдыту ўключана, неабходна пазначыць імя файла."
   },
@@ -10658,14 +10638,6 @@
   {
     "id": "app.cloud.preview_modal_data_parse_error",
     "translation": "Не атрымалася прааналізаваць даныя модальнага акна папярэдняга прагляду"
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Функцыя пазначэння кантэнту адключана."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Ваша ліцэнзія не падтрымлівае пазначэнне кантэнту."
   },
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
@@ -10756,30 +10728,6 @@
     "translation": "Нельга пісаць у абмежаваным DM"
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Калі ласка, дадайце каментар, які тлумачыць, чаму вы пазначаеце гэтае паведамленне."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Прычына пазначэння паведамлення не можа перавышаць {{.MaxLength}} сімвалаў."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Функцыя пазначэння кантэнту не ўключана ў гэтай камандзе."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Пазначанае паведамленне павінна мець статус \"чакае\" або \"прызначана\", каб яго можна было захаваць або выдаліць."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Указана невядомая прычына для пазначэння паведамлення."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Калі ласка, выберыце прычыну для пазначэння гэтага паведамлення."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Нельга захаваць чарнавік у абмежаваны канал прамых паведамленняў"
   },
@@ -10820,86 +10768,6 @@
     "translation": "Памылка атрымання агульных каманд для канала"
   },
   {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Нельга пазначыць гэтае паведамленне, бо яно ўжо пазначана."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Нельга пазначыць гэтае паведамленне, бо яно было выдалена ў папярэднім запыце на пазначэнне."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Нельга пазначыць гэтае паведамленне, бо яно было захавана ў папярэднім запыце на пазначэнне."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Нельга пазначыць гэтае паведамленне, бо яно мае невядомы статус."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "Не атрымалася захаваць значэнні ўласцівасцей для пазначанага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Не атрымалася сабраць каментар карыстальніка, які пазначыў паведамленне"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Не атрымалася сабраць прычыну ад карыстальніка, які пазначыў паведамленне"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "Паведамленне ад @{{.username}} было пазначана для праверкі. Вы атрымаеце апавяшчэнне пасля праверкі яго Кантэнт-рэцэнзентам. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "Не атрымалася атрымаць бота для пазначэння кантэнту."
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Не атрымалася атрымаць поле ўласцівасці \"Статус\"."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Не атрымалася знайсці рэцэнзентаў у камандзе."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Не атрымалася сабраць каментар рэцэнзента"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "Не атрымалася абнавіць статус пазначанага паведамлення пры аднаўленні пазначанага паведамлення "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Не атрымалася абнавіць паведамленне ў базе даных пры спробе адмяніць выдаленне пазначанага паведамлення і звязаных з ім даных."
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Не атрымалася сабраць значэнні ўласцівасцей пазначэння кантэнту для адпраўкі ў падзеі WebSocket."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "Нельга атрымаць пазначанае паведамленне, бо яно не пазначана."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Не атрымалася перазапісаць паведамленне ачышчаным паведамленнем пры пастаянным выдаленні пазначанага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Не атрымалася сабраць каментар рэцэнзента"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "Не атрымалася абнавіць статус пазначанага паведамлення пры пастаянным выдаленні пазначанага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "Не атрымалася знайсці значэнні ўласцівасці для маркіраванага паведамлення."
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "Не атрымалася назаўжды выдаліць даныя прыярытэту паведамлення з базы дадзеных."
   },
@@ -10908,24 +10776,12 @@
     "translation": "Нельга запланаваць паведамленне ў абмежаваным асабістым чаце"
   },
   {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Агляд змесціва"
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Нельга загрузіць файл у абмежаваны асабісты чат."
   },
   {
     "id": "api.encoding_error",
     "translation": "Памылка кадавання JSON для адказу API"
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "Не атрымалася атрымаць налады аглядальніка змесціва з базы дадзеных"
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "Не атрымалася захаваць налады аглядальніка змесціва ў базе дадзеных."
   },
   {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
@@ -10948,72 +10804,8 @@
     "translation": "Нельга дадаць дазвол, які абмежаваны схемай дазволаў каманды або сістэмы."
   },
   {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "Карыстальнік не з'яўляецца аглядальнікам змесціва."
-  },
-  {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
     "translation": "Ідэнтыфікатар каманды не супадае з ідэнтыфікатарам каманды маркіраванага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "Поле ўласцівасці ID аглядальніка не знойдзена."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "Не атрымалася абнавіць значэнне ўласцівасці Статус пры прызначэнні аглядальніка."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "Не атрымалася прызначыць аглядальніка для маркіраванага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "Немагчыма знайсці поле ўласцівасці ID маркіраванага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Немагчыма знайсці поле карыстальніка, які паведамляе."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Немагчыма знайсці значэнне для поля карыстальніка, які паведамляе."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "Не атрымалася знайсці тэрмін у Агульных аглядальніках."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "Не атрымалася знайсці паведамленні аглядальнікаў для маркіраванага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Не атрымалася знайсці тэрмін пошуку ў Аглядальніках сістэмных адміністратараў."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Не атрымалася знайсці тэрмін пошуку ў Аглядальніках камандных адміністратараў."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Не атрымалася знайсці тэрмін пошуку ў Камандных аглядальніках."
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "Не атрымалася атрымаць адказы з гілкі для маркіраванага паведамлення."
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "Не атрымалася знайсці поле ўласцівасці Кіруецца."
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "Не атрымалася знайсці поле ўласцівасці Статус."
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "Не атрымалася задаць значэнні ўласцівасці ў адказах гілкі для маркіраванага паведамлення."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
@@ -11280,10 +11072,6 @@
     "translation": "Няслушны спасылкі запрашэння."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Няслушны тып спасылкі запрашэння."
-  },
-  {
     "id": "api.user.guest_magic_link.missing_token.app_error",
     "translation": "Брак токена запрашэння."
   },
@@ -11548,10 +11336,6 @@
     "translation": "Ідэнтыфікатар тэнанта Intune MAM павінен быць сапраўдным UUID."
   },
   {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Маркіроўка паведамлення тыпу '{{.PostType}}' забаронена."
-  },
-  {
     "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
     "translation": "Вы не можаце прымусіць шматфактарную аўтэнтыфікацыю для ўліковых запісаў гасцей, калі ўключана аўтэнтыфікацыя па чароўнай спасылцы."
   },
@@ -11574,14 +11358,6 @@
   {
     "id": "app.import.validate_direct_post_import_data.attachment.error",
     "translation": "Не атрымалася праверыць даныя ўкладанняў прамых паведамленняў."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "Не атрымалася знайсці палі ўласцівасцей Content Flagging."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "Не атрымалася атрымаць значэнні ўласцівасцей flagowania treści posta з базы дадзеных."
   },
   {
     "id": "app.scheduled_post.failed_messages",

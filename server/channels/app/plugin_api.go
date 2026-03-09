@@ -1097,6 +1097,10 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any
 	api.app.Publish(ev)
 }
 
+func (api *PluginAPI) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError {
+	return api.app.SendToastMessage(userID, connectionID, message, options)
+}
+
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
 	return api.app.HasPermissionTo(userID, permission)
 }
@@ -1327,6 +1331,10 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 	updatedCmd.PluginId = api.id
 	if updatedCmd.TeamId == "" {
 		updatedCmd.TeamId = oldCmd.TeamId
+	}
+
+	if appErr := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
+		return nil, appErr
 	}
 
 	return api.app.Srv().Store().Command().Update(updatedCmd)

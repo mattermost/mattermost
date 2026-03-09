@@ -914,27 +914,6 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
-
-	tries := 0
-	for {
-		result, err := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 
 	tries := 0
@@ -998,6 +977,48 @@ func (s *RetryLayerAutoTranslationStore) GetByStateOlderThan(state model.Transla
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetLatestPostUpdateAtForChannel(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetTranslationsSinceForChannel(channelID string, dstLang string, since int64) (map[string]*model.Translation, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetTranslationsSinceForChannel(channelID, dstLang, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 
 	tries := 0
@@ -1016,6 +1037,12 @@ func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelI
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {
+
+	s.AutoTranslationStore.InvalidatePostTranslationEtag(channelID)
 
 }
 
@@ -8114,9 +8141,9 @@ func (s *RetryLayerPostStore) GetEditHistoryForPost(postID string) ([]*model.Pos
 
 }
 
-func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
+func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string {
 
-	return s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
+	return s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads, includeTranslations)
 
 }
 
@@ -8704,6 +8731,27 @@ func (s *RetryLayerPostStore) PermanentDelete(rctx request.CTX, postID string) e
 	tries := 0
 	for {
 		err := s.PostStore.PermanentDelete(rctx, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.PermanentDeleteAssociatedData(postIds)
 		if err == nil {
 			return nil
 		}
@@ -9355,6 +9403,27 @@ func (s *RetryLayerPostPriorityStore) GetForPost(postID string) (*model.PostPrio
 	tries := 0
 	for {
 		result, err := s.PostPriorityStore.GetForPost(postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPriorityStore) GetForPostWithContext(rctx request.CTX, postID string) (*model.PostPriority, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPriorityStore.GetForPostWithContext(rctx, postID)
 		if err == nil {
 			return result, nil
 		}
@@ -12533,11 +12602,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
+func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID)
+		result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -14414,11 +14483,11 @@ func (s *RetryLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 
 }
 
-func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.TemporaryPostStore.Get(rctx, id)
+		result, err := s.TemporaryPostStore.Get(rctx, id, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -14435,11 +14504,11 @@ func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.
 
 }
 
-func (s *RetryLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *RetryLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+		result, err := s.TemporaryPostStore.GetExpiredPosts(rctx, lastPostId, limit)
 		if err == nil {
 			return result, nil
 		}

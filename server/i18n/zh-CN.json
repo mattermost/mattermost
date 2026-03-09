@@ -5483,11 +5483,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 17.4+"
+    "translation": "版本 26.2 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5495,11 +5495,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 142 及以上"
+    "translation": "版本 144 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 142 及以上"
+    "translation": "版本 144 及以上"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10018,10 +10018,6 @@
     "translation": "无法过滤配置。"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "用户角色和访客状态不一致。"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "无法注册自定义个人资料属性组"
   },
@@ -10582,14 +10578,6 @@
     "translation": "无法激活用户。服务器超出最大许可用户数。错误：已超出许可用户数限制。"
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "审计日志配置的最大文件队列必须大于零。"
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "审计日志配置的最大文件大小必须大于零。"
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "启用审计文件日志记录时，必须指定文件名。"
   },
@@ -10604,14 +10592,6 @@
   {
     "id": "ent.ldap.connection.test_failed",
     "translation": "LDAP 连接测试失败。服务器：{{.Server}}:{{.Port}}，连接安全性：{{.ConnectionType}}，私钥文件名：{{.PrivateKeyFilename}}，公共证书文件名：{{.PublicCertFilename}}，绑定用户名：{{.BindUsername}}。错误：{{.Error}}"
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "审计日志配置的最大文件保留期限不能为负数。"
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "审计日志配置的最大文件备份数不能为负数。"
   },
   {
     "id": "api.command_share.service_inactive",
@@ -10680,14 +10660,6 @@
   {
     "id": "app.import.validate_direct_post_import_data.thread_follower.error",
     "translation": "验证直接消息对话关注者数据失败。"
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "内容标记功能已被禁用。"
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "您的许可证不支持内容标记功能。"
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -10786,34 +10758,6 @@
     "translation": "无法在受限的私信中发送消息。"
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "请添加评论，说明您标记此消息的原因。"
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "消息标记原因不能超过 {{.MaxLength}} 个字符。"
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "此团队未启用内容标记功能。"
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "被标记的消息必须处于待处理或已分配状态，才能进行保留或删除。"
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "为消息标记指定的原因未知。"
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "请选择标记此消息的原因。"
-  },
-  {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "该用户不是内容审核员。"
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "无法将草稿保存到受限的私信频道。"
   },
@@ -10890,172 +10834,12 @@
     "translation": "获取频道的常用团队时出错。"
   },
   {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "未找到审核员 ID 属性字段。"
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "设置审核员时更新状态属性值失败。"
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "设置被标记消息的审核员失败。"
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "无法标记此消息，因为它已被标记。"
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "无法标记此消息，该消息已在先前的标记请求中被移除。"
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "无法标记此消息，该消息已在先前的标记请求中被保留。"
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "无法标记此消息，因为其状态未知。"
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "无法为被标记消息保存属性值。"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "序列化标记者评论失败。"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "序列化标记者原因失败。"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "@{{.username}} 的消息已被标记为审核。内容审核员审核完成后，您将收到通知。 "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "获取内容标记机器人失败。"
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "从数据库获取内容审核员设置失败。"
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "获取状态属性字段失败。"
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "获取被标记消息的回复线程失败。"
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "在团队中搜索审核员失败。"
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "序列化审核员评论失败。"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "恢复被标记消息时更新消息状态失败。 "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "尝试恢复被标记消息及相关数据时，更新数据库中的消息失败。"
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "序列化内容标记属性值以在 WebSocket 事件中发送失败。"
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "未找到被标记消息 ID 属性字段。"
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "未找到管理人属性字段。"
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "未找到举报用户字段。"
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "未找到举报用户字段的值。"
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "未找到状态属性字段。"
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "无法获取被标记消息，因为该消息未被标记。"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "永久删除被标记消息时，使用已清理消息覆盖原消息失败。"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "序列化审核员评论失败"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "永久删除被标记消息时，更新被标记消息状态失败。"
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "将内容审核员设置保存到数据库失败。"
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "在常用审核员中搜索该词条失败。"
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "搜索内容标记属性字段失败。"
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "从数据库获取消息的内容标记属性值失败。"
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "搜索被标记消息的审核员消息失败。"
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "搜索被标记消息的属性值失败。"
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "在系统管理员审核员中搜索该词条失败。"
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "在团队管理员审核员中搜索该词条失败。"
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "在团队审核员中搜索该词条失败。"
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "为被标记消息设置回复线程的属性值失败。"
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "从数据库中永久删除消息优先级数据失败。"
   },
   {
     "id": "app.save_scheduled_post.restricted_dm.error",
     "translation": "无法在受限的私信中安排消息发送。"
-  },
-  {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "内容审核"
   },
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
@@ -11192,10 +10976,6 @@
   {
     "id": "api.user.guest_magic_link.invalid_token.app_error",
     "translation": "邀请链接无效。"
-  },
-  {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "邀请链接类型无效。"
   },
   {
     "id": "api.user.guest_magic_link.missing_token.app_error",
@@ -11578,10 +11358,6 @@
     "translation": "无效的时间字段。"
   },
   {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "不允许标记类型为“{{.PostType}}”的消息。"
-  },
-  {
     "id": "api.recap.disabled.app_error",
     "translation": "此功能尚未启用。"
   },
@@ -11800,5 +11576,93 @@
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
     "translation": "翻译类型无效。必须为 'string' 或 'object'。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "此频道不允许自动翻译。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "自动翻译功能不可用。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "补丁中无改动。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "发送自动翻译更新消息失败。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s 为此频道禁用了自动翻译。所有新消息将显示为原文。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s 为此频道启用了自动翻译。所有新消息以您的偏好语言显示。"
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "更新自动翻译状态时获取用户失败"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "此频道未启用自动翻译。"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "自动翻译不可用。"
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "此端点不允许基于 cookie 的认证。请使用基于请求头的认证。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "与机器人或 AI 助理的私信内不允许阅后即焚消息。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "为该频道验证阅后即焚消息时出错。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "给自己发送消息时不允许阅后即焚消息。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "为该用户验证阅后即焚消息时出错。"
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "此端点已弃用并禁用。请更新您的移动端 app。"
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "获取 {{.Service}} 设置失败"
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "用户有频道访客角色但不是系统访客。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "用户是系统访客但在所有频道中都没有频道访客角色。频道访客数量：{{.ChannelGuestCount}}，总频道：{{.TotalChannels}}。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "用户是系统访客但在所有团队中都没有团队访客角色。团队访客数量：{{.TeamGuestCount}}，总团队：{{.TotalTeams}}。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "用户有团队访客角色但不是系统访客。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "工作者必须在 1 至 32 之间。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "当 {{.EnableCJKAnalyzers}} 设为是时，{{.Searching}} 设置必须设为是"
   }
 ]

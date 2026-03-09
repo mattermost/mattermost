@@ -265,6 +265,15 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
     case DialogElementTypes.RADIO: {
         // Handle dynamic selects that use data_source instead of static options
         if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+            if (element.multiselect) {
+                const values = Array.isArray(element.default) ?
+                    element.default :
+                    String(element.default).split(',');
+                const normalizedValues = values.
+                    map((val) => String(val).trim()).
+                    filter((val) => val.length > 0);
+                return normalizedValues.length > 0 ? normalizedValues.map((v) => ({label: v, value: v})) : null;
+            }
             return {
                 label: String(element.default),
                 value: String(element.default),
@@ -438,8 +447,14 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
-    // Add date/datetime specific properties (new features that should pass through)
+    // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
+        // Use datetime_config if provided
+        if (element.datetime_config) {
+            appField.datetime_config = element.datetime_config;
+        }
+
+        // Simple fallback fields (used when datetime_config is not provided)
         if (element.min_date !== undefined) {
             appField.min_date = String(element.min_date);
         }

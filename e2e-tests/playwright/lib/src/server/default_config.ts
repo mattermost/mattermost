@@ -111,6 +111,7 @@ const defaultServerConfig: AdminConfig = {
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
         EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -213,6 +214,7 @@ const defaultServerConfig: AdminConfig = {
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
         DeleteAccountLink: '',
+        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -280,11 +282,6 @@ const defaultServerConfig: AdminConfig = {
     ExperimentalAuditSettings: {
         FileEnabled: false,
         FileName: '',
-        FileMaxSizeMB: 100,
-        FileMaxAgeDays: 0,
-        FileMaxBackups: 0,
-        FileCompress: false,
-        FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
         Certificate: '',
     },
@@ -627,6 +624,7 @@ const defaultServerConfig: AdminConfig = {
         Password: 'changeme',
         EnableIndexing: false,
         EnableSearching: false,
+        EnableCJKAnalyzers: false,
         EnableAutocomplete: false,
         Sniff: true,
         PostIndexReplicas: 1,
@@ -648,6 +646,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
+        EnableSearchPublicChannelsWithoutMembership: false,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
@@ -808,7 +807,6 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: true,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
@@ -823,11 +821,13 @@ const defaultServerConfig: AdminConfig = {
         },
         AdditionalSettings: {
             Reasons: [
-                'Inappropriate content',
-                'Sensitive data',
-                'Security concern',
-                'Harassment or abuse',
-                'Spam or phishing',
+                'Classification mismatch',
+                'Need-to-know violation',
+                'Personally identifiable information (PII) exposure',
+                'Operational security (OPSEC) concern',
+                'Controlled Unclassified Information (CUI) violation',
+                'Unauthorized disclosure',
+                'Other',
             ],
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,

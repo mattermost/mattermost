@@ -1,102 +1,148 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModalHeader should match snapshot the desktop view 1`] = `
-<div
-  className="file-preview-modal-header"
->
-  <Memo(FilePreviewModalInfo)
-    filename="img.png"
-    post={Object {}}
-    showFileName={true}
-  />
-  <Memo(FilePreviewModalMainNav)
-    fileIndex={1}
-    handleNext={[MockFunction]}
-    handlePrev={[MockFunction]}
-    totalFiles={3}
-  />
-  <Memo(FilePreviewModalMainActions)
-    canCopyContent={true}
-    canDownloadFiles={true}
-    content=""
-    enablePublicLink={false}
-    fileInfo={
-      Object {
-        "archived": false,
-        "channel_id": "channel_id",
-        "clientId": "client_id",
-        "create_at": 1,
-        "delete_at": 1,
-        "extension": "jpg",
-        "has_preview_image": true,
-        "height": 200,
-        "id": "file_info_id",
-        "mime_type": "mime_type",
-        "name": "name",
-        "size": 1,
-        "update_at": 1,
-        "user_id": "user_id",
-        "width": 350,
-      }
-    }
-    fileURL="http://example.com/img.png"
-    filename="img.png"
-    handleModalClose={[MockFunction]}
-    handleNext={[MockFunction]}
-    handlePrev={[MockFunction]}
-    isExternalFile={false}
-    isMobileView={false}
-    onGetPublicLink={[MockFunction]}
-    showOnlyClose={false}
-    showPublicLink={false}
-  />
+<div>
+  <div
+    class="file-preview-modal-header"
+  >
+    <div
+      class="file-preview-modal__info"
+    >
+      <div
+        class="file-preview-modal__info-details"
+      >
+        <h5
+          class="file-preview-modal__file-name"
+        >
+          img.png
+        </h5>
+        <span
+          class="file-preview-modal__file-details"
+        >
+          <span
+            class="file-preview-modal__file-details-user-name"
+          >
+            Someone
+          </span>
+          <span
+            class="file-preview-modal__channel"
+          />
+        </span>
+      </div>
+    </div>
+    <div
+      class="file_preview_modal_main_nav"
+    >
+      <button
+        aria-label="Previous file"
+        class="file_preview_modal_main_nav__prev"
+        id="previewArrowLeft"
+      >
+        <i
+          class="icon icon-chevron-left"
+        />
+      </button>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="modal-bar-file-count"
+      >
+        2 of 3
+      </span>
+      <button
+        aria-label="Next file"
+        class="file_preview_modal_main_nav__next"
+        id="previewArrowRight"
+      >
+        <i
+          class="icon icon-chevron-right"
+        />
+      </button>
+    </div>
+    <div
+      class="file-preview-modal-main-actions__actions"
+    >
+      <span
+        aria-label="Copy code"
+        class="post-code__clipboard file-preview-modal-main-actions__action-item"
+        role="button"
+      >
+        <i
+          class="icon icon-content-copy"
+        />
+      </span>
+      <a
+        aria-label="Download"
+        class="file-preview-modal-main-actions__action-item"
+        download="img.png"
+        href="http://example.com/img.png"
+        location="file_preview_modal_main_actions"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+      <button
+        aria-label="Close"
+        class="file-preview-modal-main-actions__action-item"
+      >
+        <i
+          class="icon icon-close"
+        />
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModalHeader should match snapshot the mobile view 1`] = `
-<div
-  className="file-preview-modal-header"
->
-  <Memo(FilePreviewModalMainActions)
-    canCopyContent={true}
-    canDownloadFiles={true}
-    content=""
-    enablePublicLink={false}
-    fileInfo={
-      Object {
-        "archived": false,
-        "channel_id": "channel_id",
-        "clientId": "client_id",
-        "create_at": 1,
-        "delete_at": 1,
-        "extension": "jpg",
-        "has_preview_image": true,
-        "height": 200,
-        "id": "file_info_id",
-        "mime_type": "mime_type",
-        "name": "name",
-        "size": 1,
-        "update_at": 1,
-        "user_id": "user_id",
-        "width": 350,
-      }
-    }
-    fileURL="http://example.com/img.png"
-    filename="img.png"
-    handleModalClose={[MockFunction]}
-    handleNext={[MockFunction]}
-    handlePrev={[MockFunction]}
-    isExternalFile={false}
-    isMobileView={true}
-    onGetPublicLink={[MockFunction]}
-    showOnlyClose={true}
-    showPublicLink={false}
-  />
-  <Memo(FilePreviewModalMainNav)
-    fileIndex={1}
-    handleNext={[MockFunction]}
-    handlePrev={[MockFunction]}
-    totalFiles={3}
-  />
+<div>
+  <div
+    class="file-preview-modal-header"
+  >
+    <div
+      class="file-preview-modal-main-actions__actions"
+    >
+      <button
+        aria-label="Close"
+        class="file-preview-modal-main-actions__action-item"
+      >
+        <i
+          class="icon icon-close"
+        />
+      </button>
+    </div>
+    <div
+      class="file_preview_modal_main_nav"
+    >
+      <button
+        aria-label="Previous file"
+        class="file_preview_modal_main_nav__prev"
+        id="previewArrowLeft"
+      >
+        <i
+          class="icon icon-chevron-left"
+        />
+      </button>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="modal-bar-file-count"
+      >
+        2 of 3
+      </span>
+      <button
+        aria-label="Next file"
+        class="file_preview_modal_main_nav__next"
+        id="previewArrowRight"
+      >
+        <i
+          class="icon icon-chevron-right"
+        />
+      </button>
+    </div>
+  </div>
 </div>
 `;
