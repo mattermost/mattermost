@@ -6,6 +6,7 @@ package storetest
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -510,6 +511,8 @@ func testUpdateViewSortOrder(t *testing.T, ss store.Store) {
 			require.NoError(t, err)
 			created = append(created, s)
 		}
+
+		time.Sleep(2 * time.Millisecond)
 
 		result, err := ss.View().UpdateSortOrder(created[1].Id, ch, 0)
 		require.NoError(t, err)
