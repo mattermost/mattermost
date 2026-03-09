@@ -6989,6 +6989,104 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 			}
 		})
 
+		t.Run("private channels should count but GM channels should not", func(t *testing.T) {
+			privateChannel, chErr := ss.Channel().Save(rctx, &model.Channel{
+				TeamId:      team.Id,
+				DisplayName: "Private Channel",
+				Name:        "private_channel_" + model.NewId(),
+				Type:        model.ChannelTypePrivate,
+			}, 100)
+			require.NoError(t, chErr)
+
+			gmChannel, chErr := ss.Channel().Save(rctx, &model.Channel{
+				DisplayName: "Group Message",
+				Name:        "gm_channel_" + model.NewId(),
+				Type:        model.ChannelTypeGroup,
+			}, -1)
+			require.NoError(t, chErr)
+
+			guestPrivateGM := &model.User{Username: "zguest_privgm_" + model.NewId()[:8], Email: MakeEmail(), Roles: "system_guest"}
+			guestPrivateGM, gErr = ss.User().Save(rctx, guestPrivateGM)
+			require.NoError(t, gErr)
+
+			gmOtherUser := &model.User{Username: "zother_gm_" + model.NewId()[:8], Email: MakeEmail(), Roles: "system_user"}
+			gmOtherUser, gErr = ss.User().Save(rctx, gmOtherUser)
+			require.NoError(t, gErr)
+
+			_, mErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   guestChannel1.Id,
+				UserId:      guestPrivateGM.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, mErr)
+
+			_, mErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   privateChannel.Id,
+				UserId:      guestPrivateGM.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, mErr)
+
+			for _, uid := range []string{guestPrivateGM.Id, gmOtherUser.Id} {
+				_, mErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+					ChannelId:   gmChannel.Id,
+					UserId:      uid,
+					NotifyProps: model.GetDefaultChannelNotifyProps(),
+				})
+				require.NoError(t, mErr)
+			}
+
+			defer func() {
+				require.NoError(t, ss.User().PermanentDelete(rctx, guestPrivateGM.Id))
+				require.NoError(t, ss.User().PermanentDelete(rctx, gmOtherUser.Id))
+				require.NoError(t, ss.Channel().PermanentDelete(rctx, privateChannel.Id))
+				require.NoError(t, ss.Channel().PermanentDelete(rctx, gmChannel.Id))
+			}()
+
+			userReport, rErr := ss.User().GetUserReport(&model.UserReportOptions{
+				ReportingBaseOptions: model.ReportingBaseOptions{
+					SortColumn: "Username",
+					PageSize:   200,
+				},
+			})
+			require.NoError(t, rErr)
+			for _, report := range userReport {
+				if report.Username == guestPrivateGM.Username {
+					require.NotNil(t, report.ChannelCount)
+					require.Equal(t, 2, *report.ChannelCount, "should count open + private, not GM")
+				}
+			}
+
+			multiReport, rErr := ss.User().GetUserReport(&model.UserReportOptions{
+				ReportingBaseOptions: model.ReportingBaseOptions{
+					SortColumn: "Username",
+					PageSize:   200,
+				},
+				GuestFilter: model.GuestFilterMultipleChannel,
+			})
+			require.NoError(t, rErr)
+			found := false
+			for _, report := range multiReport {
+				if report.Username == guestPrivateGM.Username {
+					found = true
+				}
+			}
+			require.True(t, found, "guest with open + private channels should appear in multi-channel filter")
+
+			singleReport, rErr := ss.User().GetUserReport(&model.UserReportOptions{
+				ReportingBaseOptions: model.ReportingBaseOptions{
+					SortColumn: "Username",
+					PageSize:   200,
+				},
+				GuestFilter: model.GuestFilterSingleChannel,
+			})
+			require.NoError(t, rErr)
+			for _, report := range singleReport {
+				require.NotEqual(t, guestPrivateGM.Username, report.Username,
+					"guest with 2 team channels should NOT appear in single-channel filter")
+			}
+		})
+
 		t.Run("guest filter count query should match", func(t *testing.T) {
 			allCount, rErr := ss.User().GetUserCountForReport(&model.UserReportOptions{
 				ReportingBaseOptions: model.ReportingBaseOptions{
