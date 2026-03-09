@@ -42,6 +42,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last1"
@@ -114,6 +115,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="Someone"
@@ -185,6 +187,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="Someone"
@@ -315,6 +318,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last1"
@@ -387,6 +391,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last2"
@@ -459,6 +464,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last3"
@@ -588,6 +594,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last1"
@@ -660,6 +667,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last2"
@@ -732,6 +740,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           onKeyUp={[Function]}
           onMouseDown={[Function]}
           onPointerDown={[Function]}
+          type="button"
         >
           <WithTooltip
             title="first.last3"

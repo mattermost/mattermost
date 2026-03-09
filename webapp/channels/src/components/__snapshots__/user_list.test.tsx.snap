@@ -26,6 +26,7 @@ exports[`components/UserList should match default snapshot when there are users 
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -52,6 +53,7 @@ exports[`components/UserList should match default snapshot when there are users 
               aria-expanded="false"
               aria-haspopup="dialog"
               class="user-popover style--none"
+              type="button"
             >
               Someone
             </button>
@@ -79,6 +81,7 @@ exports[`components/UserList should match default snapshot when there are users 
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -106,6 +109,7 @@ exports[`components/UserList should match default snapshot when there are users 
               aria-expanded="false"
               aria-haspopup="dialog"
               class="user-popover style--none"
+              type="button"
             >
               Someone
             </button>

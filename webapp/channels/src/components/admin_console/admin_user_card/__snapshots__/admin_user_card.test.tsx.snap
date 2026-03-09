@@ -13,6 +13,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
         aria-haspopup="dialog"
         class="status-wrapper style--none admin-user-card"
         style="border-radius: 50%; width: 128px; height: 128px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -71,6 +72,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
         aria-haspopup="dialog"
         class="status-wrapper style--none admin-user-card"
         style="border-radius: 50%; width: 128px; height: 128px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -124,6 +126,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
         aria-haspopup="dialog"
         class="status-wrapper style--none admin-user-card"
         style="border-radius: 50%; width: 128px; height: 128px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -175,6 +178,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
         aria-haspopup="dialog"
         class="status-wrapper style--none admin-user-card"
         style="border-radius: 50%; width: 128px; height: 128px;"
+        type="button"
       >
         <span
           class="profile-icon "
