@@ -6,7 +6,7 @@
       description: |
         Get a list of views for a channel.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have `read_channel_content` permission for the channel.
@@ -66,7 +66,7 @@
       description: |
         Create a new view for a channel.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
@@ -142,7 +142,7 @@
       description: |
         Get a single view by its ID.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have `read_channel_content` permission for the channel.
@@ -186,7 +186,7 @@
         Partially update a channel view by providing only the fields
         you want to update. Omitted fields will not be updated.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
@@ -239,7 +239,7 @@
       description: |
         Soft-deletes a channel view. Sets `delete_at` to current timestamp.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
