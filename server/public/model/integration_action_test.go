@@ -1366,7 +1366,8 @@ func TestValidateDateTimeFormat(t *testing.T) {
 		{"invalid date part", "2025-13-01T10:30:00Z", true},
 		{"invalid time part", "2025-01-15T25:30:00Z", true},
 		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
-		{"date only format", "2025-01-15", false}, // backward compat: accepted, treated as start-of-day
+		// backward compat: date-only strings are accepted, treated as start-of-day
+		{"date only format", "2025-01-15", false},
 		{"empty string", "", false}, // Empty string is valid (no error)
 		{"invalid format with space", "2025-01-15 10:30:00", true},
 	}
