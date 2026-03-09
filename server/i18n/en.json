@@ -4847,6 +4847,10 @@
     "translation": "Cannot update a view in a deleted channel."
   },
   {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Cannot update view sort order in a deleted channel."
+  },
+  {
     "id": "api.view.write.dm_gm.forbidden.app_error",
     "translation": "You do not have permission to manage views in this conversation."
   },
@@ -8566,6 +8570,18 @@
   },
   {
     "id": "app.view.update.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Unable to update the view sort order."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Invalid input for view sort order update."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
     "translation": "View not found."
   },
   {
