@@ -863,8 +863,9 @@ func (es *ElasticsearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX,
 		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
+	requestsPerSecond := "10000"
 	response, err := es.client.UpdateByQuery(strings.Join(postIndexes, ",")).
-		RequestsPerSecond("1000").
+		RequestsPerSecond(requestsPerSecond).
 		Request(&updatebyquery.Request{
 			Query: query,
 			Script: &types.Script{
