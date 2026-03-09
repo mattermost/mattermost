@@ -21,6 +21,8 @@ const (
 	ViewDescriptionMaxRunes = 1024
 	ViewIconMaxRunes        = 256
 	SubviewTitleMaxRunes    = 256
+	ViewMaxSubviews         = 50
+	ViewMaxLinkedProperties = 500
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"
@@ -178,10 +180,10 @@ func (o *View) IsValid() *AppError {
 	}
 
 	if o.Type == ViewTypeBoard {
-		if o.Props == nil || len(o.Props.Subviews) == 0 {
+		if o.Props == nil || len(o.Props.Subviews) == 0 || len(o.Props.Subviews) > ViewMaxSubviews {
 			return NewAppError("View.IsValid", "model.view.is_valid.props.subviews.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 		}
-		if len(o.Props.LinkedProperties) == 0 {
+		if len(o.Props.LinkedProperties) == 0 || len(o.Props.LinkedProperties) > ViewMaxLinkedProperties {
 			return NewAppError("View.IsValid", "model.view.is_valid.props.linked_properties.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 		}
 		for _, linkedProperty := range o.Props.LinkedProperties {

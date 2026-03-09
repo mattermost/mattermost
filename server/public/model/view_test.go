@@ -311,6 +311,64 @@ func TestViewIsValidWithSubviews(t *testing.T) {
 			}(),
 			false,
 		},
+		{
+			"board rejects too many subviews",
+			func() *View {
+				v := validView()
+				subviews := make([]Subview, ViewMaxSubviews+1)
+				for i := range subviews {
+					subviews[i] = Subview{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}
+				}
+				v.Props = &ViewBoardProps{LinkedProperties: []string{NewId()}, Subviews: subviews}
+				return v
+			}(),
+			false,
+		},
+		{
+			"board allows max subviews",
+			func() *View {
+				v := validView()
+				subviews := make([]Subview, ViewMaxSubviews)
+				for i := range subviews {
+					subviews[i] = Subview{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}
+				}
+				v.Props = &ViewBoardProps{LinkedProperties: []string{NewId()}, Subviews: subviews}
+				return v
+			}(),
+			true,
+		},
+		{
+			"board rejects too many linked properties",
+			func() *View {
+				v := validView()
+				props := make([]string, ViewMaxLinkedProperties+1)
+				for i := range props {
+					props[i] = NewId()
+				}
+				v.Props = &ViewBoardProps{
+					LinkedProperties: props,
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+				}
+				return v
+			}(),
+			false,
+		},
+		{
+			"board allows max linked properties",
+			func() *View {
+				v := validView()
+				props := make([]string, ViewMaxLinkedProperties)
+				for i := range props {
+					props[i] = NewId()
+				}
+				v.Props = &ViewBoardProps{
+					LinkedProperties: props,
+					Subviews:         []Subview{{Id: NewId(), Title: "Kanban", Type: SubviewTypeKanban}},
+				}
+				return v
+			}(),
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
