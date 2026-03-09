@@ -1360,7 +1360,7 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 23
+		builtInRoles := 25
 		defaultChannelSchemeRoles := 3
 
 		// Verify the roles count is expected prior to scheme creation.
@@ -1457,7 +1457,7 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 23
+		builtInRoles := 25
 		defaultTeamSchemeRoles := 10
 
 		// Verify the roles count is expected prior to scheme creation.
