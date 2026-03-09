@@ -3980,6 +3980,7 @@
   "channel_settings.share_channel_with_workspaces.title": "Share with connected workspaces",
   "channel_settings.share_channel_with_workspaces.workspaces_label": "Workspaces sharing this channel",
   "channel_settings.share_channel_with_workspaces.workspaces_label_empty": "No workspaces sharing this channel yet.",
+  "channel_settings.sharing_errors": "There has been errors while sharing the channel with some workspaces. Please try again.",
   "channel_settings.tab.access_control": "Access Control",
   "channel_settings.tab.archive": "Archive Channel",
   "channel_settings.tab.configuration": "Configuration",
