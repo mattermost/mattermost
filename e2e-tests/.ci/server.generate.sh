@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions webhook-test-server playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -72,7 +72,7 @@ services:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
     # Skip creating the dependency for containers that don't need a healthcheck
-    if grep -qE "^(cypress|webhook-interactions|playwright)" <<<"$service"; then
+    if grep -qE "^(cypress|webhook-interactions|webhook-test-server|playwright)" <<<"$service"; then
       continue
     fi
     echo "      $service:"
@@ -275,6 +275,25 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
       - "../../e2e-tests/cypress/:/cypress:ro"'
   fi)
 
+$(if mme2e_is_token_in_list "webhook-test-server" "$ENABLED_DOCKER_SERVICES"; then
+    # shellcheck disable=SC2016
+    echo '
+  webhook-test-server:
+    image: node:${NODE_VERSION_REQUIRED}-slim
+    command: sh -c "npm install --omit=dev --ignore-scripts && exec node dist/server.js"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch(\"http://127.0.0.1:3000\").then(r=>{process.exit(r.ok?0:1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 15s
+      retries: 12
+    working_dir: /webhook
+    network_mode: host
+    restart: on-failure
+    volumes:
+      - "../../e2e-tests/webhook-server/dist:/webhook/dist:ro"
+      - "../../e2e-tests/webhook-server/package.json:/webhook/package.json:ro"'
+  fi)
+
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
@@ -308,6 +327,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_WORKERS: 1
       PW_SNAPSHOT_ENABLE: "false"
       PW_PERCY_ENABLE: "false"
+      PW_WEBHOOK_BASE_URL: "http://localhost:3000"
     ulimits:
       nofile:
         soft: 8096
@@ -444,6 +464,7 @@ cypress)
   ;;
 playwright)
   enable_docker_service playwright
+  enable_docker_service webhook-test-server
   ;;
 esac
 

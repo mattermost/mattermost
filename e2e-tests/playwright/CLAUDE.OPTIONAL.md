@@ -252,3 +252,24 @@ Before running tests, a Mattermost server must be available. Two options:
     - The linter checks for proper JSDoc tags, test titles, feature tags, and action/verification comments
     - This is also included in the standard `npm run check` command
     - See the example in `specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts`
+
+9. **Spec File Size**:
+    - **Max 3 tests per spec file.** This limit exists for three reasons:
+        - **Fast retests**: When a test fails, you rerun the file. A file with 10 tests wastes time rerunning 9 passing tests to get to the 1 failure.
+        - **Bounded duration**: Each spec file should complete in under 2 minutes. More tests means longer runs and slower feedback.
+        - **Readability**: A small file is easy to read top-to-bottom. The setup, the tests, and the assertions all fit on one screen. A reader should understand what the file tests without scrolling.
+    - Group by commonality — tests that share setup or test the same feature area go in the same file.
+    - Name files descriptively: `webhook_in_channel.spec.ts`, `webhook_formatting.spec.ts` — not a single `incoming_webhook.spec.ts` with 10 tests.
+    - Use a shared `helpers.ts` in the same directory for common utilities. Do not duplicate helper functions across spec files.
+
+10. **No Hardcoded Timeouts**:
+    - Never use raw numbers like `{timeout: 10000}` or `waitForTimeout(2000)`. Use `pw.duration.*` inside test blocks:
+
+    ```ts
+    await expect(post.container).toContainText('Hello', {timeout: pw.duration.ten_sec});
+    await page.waitForTimeout(pw.duration.two_sec);
+    ```
+
+    - Available values: `pw.duration.half_sec`, `pw.duration.one_sec`, `pw.duration.two_sec`, `pw.duration.four_sec`, `pw.duration.ten_sec`, `pw.duration.half_min`, `pw.duration.one_min`, `pw.duration.two_min`, `pw.duration.four_min`.
+    - **Start with `pw.duration.one_sec`**, then gradually increase only if the test is flaky at that duration. Most UI elements should appear within 1-2 seconds. A 10-second timeout should be rare and justified — if a test needs it, the app may have a performance issue that the timeout is hiding.
+    - **Avoid `waitForTimeout` entirely** when possible. Prefer assertion-based waits (`expect(...).toBeVisible()`) which resolve as soon as the condition is met. Only use `waitForTimeout` when there is genuinely no condition to wait on (e.g., confirming something does NOT appear after a delay).

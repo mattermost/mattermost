@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ES2024",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "declaration": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,29 @@
+{
+    "name": "webhook-server",
+    "version": "1.0.0",
+    "description": "Config-driven webhook test server for Mattermost E2E tests (Cypress and Playwright)",
+    "type": "module",
+    "main": "dist/server.js",
+    "scripts": {
+        "dev": "npx tsx src/server.ts",
+        "build": "vite build",
+        "start": "npm run build && node dist/server.js",
+        "fmt": "npx oxfmt --write src/",
+        "fmt:check": "npx oxfmt --check src/",
+        "lint": "npx oxlint src/",
+        "lint:fix": "npx oxlint --fix src/",
+        "check": "tsc --noEmit && npx oxfmt --check src/ && npx oxlint src/"
+    },
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "dependencies": {
+        "express": "5.2.1"
+    },
+    "devDependencies": {
+        "@types/express": "5.0.6",
+        "@types/node": "25.3.5",
+        "typescript": "5.9.3",
+        "vite": "7.3.1"
+    }
+}

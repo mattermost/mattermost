@@ -73,6 +73,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         ServiceSettings: {
             SiteURL: testConfig.baseURL,
+            AllowedUntrustedInternalConnections: 'localhost',
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',

@@ -63,6 +63,17 @@ export {
 
 export {TestArgs, ScreenshotOptions} from './types';
 
+// Server setup helpers
+export {initSetup} from './server';
+
+// Webhook helpers
+export {
+    requireWebhookServer,
+    registerDialog as registerWebhookDialog,
+    registerOutgoingResponse,
+    registerRoute,
+} from './webhook';
+
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,

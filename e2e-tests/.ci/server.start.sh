@@ -45,3 +45,25 @@ for MIGRATION in migration_advanced_permissions_phase_2; do
   mme2e_log "${MIGRATION}: completed."
 done
 mme2e_log "Mattermost container is running and healthy"
+
+# Wait for webhook-interactions container if running cypress tests
+if [ "$TEST" = "cypress" ]; then
+  mme2e_log "Checking webhook-interactions container health"
+  ${MME2E_DC_SERVER} logs --no-log-prefix -- webhook-interactions 2>&1 | tail -5
+  if ! mme2e_wait_service_healthy webhook-interactions 2 10; then
+    mme2e_log "Webhook interactions container not healthy, retry attempts exhausted. Giving up." >&2
+    exit 1
+  fi
+  mme2e_log "Webhook interactions container is running and healthy"
+fi
+
+# Wait for webhook-test-server container if running playwright tests
+if [ "$TEST" = "playwright" ]; then
+  mme2e_log "Checking webhook-test-server container health"
+  ${MME2E_DC_SERVER} logs --no-log-prefix -- webhook-test-server 2>&1 | tail -5
+  if ! mme2e_wait_service_healthy webhook-test-server 2 10; then
+    mme2e_log "Webhook test server container not healthy, retry attempts exhausted. Giving up." >&2
+    exit 1
+  fi
+  mme2e_log "Webhook test server container is running and healthy"
+fi

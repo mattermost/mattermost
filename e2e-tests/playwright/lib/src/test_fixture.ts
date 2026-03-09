@@ -43,6 +43,7 @@ import {
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
+import {requireWebhookServer, registerDialog as registerWebhookDialog, registerOutgoingResponse} from './webhook';
 import {duration, getRandomId, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
@@ -123,6 +124,11 @@ export class PlaywrightExtended {
     // random
     readonly random;
 
+    // ./webhook
+    readonly requireWebhookServer;
+    readonly registerWebhookDialog;
+    readonly registerOutgoingResponse;
+
     // unauthenticated page
     readonly loginPage;
     readonly landingLoginPage;
@@ -163,6 +169,11 @@ export class PlaywrightExtended {
         this.waitForAnimationEnd = waitForAnimationEnd;
         this.waitUntil = waitUntil;
         this.logFocusedElement = logFocusedElement;
+
+        // ./webhook
+        this.requireWebhookServer = requireWebhookServer;
+        this.registerWebhookDialog = registerWebhookDialog;
+        this.registerOutgoingResponse = registerOutgoingResponse;
 
         // unauthenticated page
         this.loginPage = new pages.LoginPage(page);

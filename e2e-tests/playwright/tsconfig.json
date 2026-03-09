@@ -14,7 +14,10 @@
         "strictNullChecks": true,
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": "."
+        "baseUrl": ".",
+        "paths": {
+            "@utils/*": ["utils/*"]
+        }
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "playwright-report", "lib"]

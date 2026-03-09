@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 
 if [ -z "${SPEC_FILES:-}" ]; then
   mme2e_log "Error: SPEC_FILES environment variable is required"
-  mme2e_log "Usage: SPEC_FILES=\"path/to/spec.ts\" make start-server run-specs"
+  mme2e_log 'Usage: SPEC_FILES="path/to/spec.ts" make start-server run-specs'
   exit 1
 fi
 
@@ -33,8 +33,8 @@ EOF
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npx cypress run \
     --spec "$SPEC_FILES" \
     --reporter cypress-multi-reporters \
-    --reporter-options configFile=reporter-config.json \
-    | tee "../cypress/logs/${LOGFILE_SUFFIX}_cypress.log" || true
+    --reporter-options configFile=reporter-config.json |
+    tee "../cypress/logs/${LOGFILE_SUFFIX}_cypress.log" || true
 
   # Collect run results
   if [ -d ../cypress/results/mochawesome-report/json/tests/ ]; then
