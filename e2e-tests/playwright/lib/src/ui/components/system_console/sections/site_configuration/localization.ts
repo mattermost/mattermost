@@ -30,7 +30,9 @@ export default class Localization {
         this.autoTranslationSection = container.locator('.autotranslation-section-header');
         this.autoTranslationToggle = container.locator('.autotranslation-section-toggle').locator('button');
         this.providerDropdown = container.getByTestId('Providerdropdown');
-        this.mattermostAgentsInactiveNotice = container.getByText('LLMs must first be configured in the Agents plugin.');
+        this.mattermostAgentsInactiveNotice = container.getByText(
+            'LLMs must first be configured in the Agents plugin.',
+        );
         this.mattermostAgentsConfigLink = container.getByRole('link', {name: /Go to Agents plugin config/i});
         this.libreTranslateUrlInput = container.locator('input[id="URL"]');
         this.libreTranslateApiKeyInput = container.locator('input[id="APIKey"]');
