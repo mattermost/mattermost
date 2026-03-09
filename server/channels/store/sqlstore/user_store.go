@@ -2359,10 +2359,10 @@ func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptio
 		query = applyRoleFilter(query, "system_guest")
 	case model.GuestFilterSingleChannel:
 		query = applyRoleFilter(query, "system_guest")
-		query = query.Where(sq.Expr("Users.Id IN (SELECT UserId FROM ChannelMembers GROUP BY UserId HAVING COUNT(*) = 1)"))
+		query = query.Where(sq.Expr("Users.Id IN (SELECT cm.UserId FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 GROUP BY cm.UserId HAVING COUNT(*) = 1)"))
 	case model.GuestFilterMultipleChannel:
 		query = applyRoleFilter(query, "system_guest")
-		query = query.Where(sq.Expr("Users.Id IN (SELECT UserId FROM ChannelMembers GROUP BY UserId HAVING COUNT(*) > 1)"))
+		query = query.Where(sq.Expr("Users.Id IN (SELECT cm.UserId FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 GROUP BY cm.UserId HAVING COUNT(*) > 1)"))
 	default:
 		query = applyRoleFilter(query, filter.Role)
 	}
@@ -2413,7 +2413,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		"MAX(ps.LastPostDate) AS LastPostDate",
 		"COUNT(ps.Day) AS DaysActive",
 		"SUM(ps.NumPosts) AS TotalPosts",
-		"(SELECT COUNT(*) FROM ChannelMembers WHERE UserId = Users.Id) AS ChannelCount",
+		"(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 WHERE cm.UserId = Users.Id) AS ChannelCount",
 	)
 
 	sortDirection := "ASC"
