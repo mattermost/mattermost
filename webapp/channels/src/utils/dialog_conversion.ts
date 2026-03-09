@@ -265,6 +265,15 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
     case DialogElementTypes.RADIO: {
         // Handle dynamic selects that use data_source instead of static options
         if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+            if (element.multiselect) {
+                const values = Array.isArray(element.default) ?
+                    element.default :
+                    String(element.default).split(',');
+                const normalizedValues = values.
+                    map((val) => String(val).trim()).
+                    filter((val) => val.length > 0);
+                return normalizedValues.length > 0 ? normalizedValues.map((v) => ({label: v, value: v})) : null;
+            }
             return {
                 label: String(element.default),
                 value: String(element.default),
