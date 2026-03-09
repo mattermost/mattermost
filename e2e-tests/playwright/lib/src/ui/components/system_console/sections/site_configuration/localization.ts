@@ -15,6 +15,8 @@ export default class Localization {
     readonly autoTranslationSection: Locator;
     readonly autoTranslationToggle: Locator;
     readonly providerDropdown: Locator;
+    readonly mattermostAgentsInactiveNotice: Locator;
+    readonly mattermostAgentsConfigLink: Locator;
     readonly libreTranslateUrlInput: Locator;
     readonly libreTranslateApiKeyInput: Locator;
     readonly targetLanguagesMultiSelect: Locator;
@@ -28,6 +30,8 @@ export default class Localization {
         this.autoTranslationSection = container.locator('.autotranslation-section-header');
         this.autoTranslationToggle = container.locator('.autotranslation-section-toggle').locator('button');
         this.providerDropdown = container.getByTestId('Providerdropdown');
+        this.mattermostAgentsInactiveNotice = container.getByText('Mattermost Agents plugin is not active.');
+        this.mattermostAgentsConfigLink = container.getByRole('link', {name: /Go to Agents plugin config/i});
         this.libreTranslateUrlInput = container.locator('input[id="URL"]');
         this.libreTranslateApiKeyInput = container.locator('input[id="APIKey"]');
         this.targetLanguagesMultiSelect = container.getByTestId('TargetLanguages');
@@ -37,14 +41,6 @@ export default class Localization {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await expect(this.header).toBeVisible();
-    }
-
-    async isFeatureDiscoveryVisible(): Promise<boolean> {
-        return this.featureDiscoveryBlock.isVisible();
-    }
-
-    async isAutoTranslationToggleVisible(): Promise<boolean> {
-        return this.autoTranslationSection.isVisible();
     }
 
     async isToggleOn(): Promise<boolean> {
@@ -59,6 +55,10 @@ export default class Localization {
         if (!on) {
             await this.autoTranslationToggle.click();
         }
+    }
+
+    async selectTranslationProvider(label: string) {
+        await this.providerDropdown.selectOption({label});
     }
 
     async save() {

@@ -18,6 +18,7 @@ export default class ConfigurationSettings {
         const saveButton = this.container.getByTestId('SaveChangesPanel__save-btn');
         await expect(saveButton).toBeVisible();
         await saveButton.click();
+        await expect(saveButton).not.toBeVisible();
     }
 
     async enableChannelBanner() {

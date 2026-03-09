@@ -119,11 +119,51 @@ test.describe('System Console - Autotranslation (Localization)', () => {
 
             await systemConsolePage.localization.turnOnAutoTranslation();
 
-            await systemConsolePage.localization.providerDropdown.selectOption('libretranslate');
+            await systemConsolePage.localization.selectTranslationProvider('LibreTranslate');
 
             await expect(systemConsolePage.localization.libreTranslateUrlInput).toBeVisible();
             await expect(systemConsolePage.localization.libreTranslateApiKeyInput).toBeVisible();
             await expect(systemConsolePage.localization.container.getByText(/LibreTranslate docs/i)).toBeVisible();
+        },
+    );
+
+    test(
+        'selecting Mattermost Agents hides LibreTranslate fields and shows plugin guidance',
+        {
+            tag: ['@autotranslation', '@system_console'],
+        },
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.goto();
+            await systemConsolePage.toBeVisible();
+
+            // # Open Localization settings in the System Console
+            await systemConsolePage.sidebar.siteConfiguration.localization.click();
+            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+
+            // # Enable auto-translation and switch the provider to Mattermost Agents
+            await systemConsolePage.localization.turnOnAutoTranslation();
+            await systemConsolePage.localization.selectTranslationProvider('Mattermost Agents');
+
+            // * Verify Mattermost Agents guidance is shown for the inactive plugin
+            await expect(systemConsolePage.localization.mattermostAgentsInactiveNotice).toBeVisible();
+            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toBeVisible();
+            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toHaveAttribute(
+                'href',
+                '/admin_console/plugins/plugin_mattermost-ai',
+            );
+
+            // * Verify LibreTranslate-specific inputs are hidden for the Mattermost Agents provider
+            await expect(systemConsolePage.localization.libreTranslateUrlInput).not.toBeVisible();
+            await expect(systemConsolePage.localization.libreTranslateApiKeyInput).not.toBeVisible();
         },
     );
 
@@ -171,10 +211,9 @@ test.describe('System Console - Autotranslation (Localization)', () => {
             // Close multiselect
             await multiSelect.press('Escape');
 
-            // Verify both languages are selected (check for selected chips or tags)
-            const selectedChips = systemConsolePage.localization.container.locator('[class*="chip"], [class*="tag"]');
-            const spanishChip = selectedChips.filter({hasText: /Español/});
-            const frenchChip = selectedChips.filter({hasText: /Français/});
+            // Verify both languages are selected by checking for their remove buttons in the multiselect
+            const spanishChip = multiSelect.getByRole('button', {name: /Remove Español/});
+            const frenchChip = multiSelect.getByRole('button', {name: /Remove Français/});
 
             await expect(spanishChip).toBeVisible();
             await expect(frenchChip).toBeVisible();
