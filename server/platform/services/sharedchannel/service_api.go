@@ -182,7 +182,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 // non-deleted remotes for the channel and unshares the channel if
 // there are none. Returns true if the channel was unshared.
 func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, error) {
-	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID}
+	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID, IncludeUnconfirmed: true}
 	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1, opts)
 	if err != nil {
 		return false, fmt.Errorf("failed to check remaining remotes: %w", err)
