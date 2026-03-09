@@ -52,11 +52,10 @@
     "componentsDir": "lib/src/ui/components"
   },
   "pipeline": {
-    "enabled": true,
+    "enabled": false,
     "outputDir": "specs/functional/ai-assisted",
     "heal": true,
     "mcp": true,
-    "mcpOnly": true,
     "mcpAllowFallback": false,
     "mcpRetries": 1
   },
