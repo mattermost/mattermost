@@ -208,8 +208,10 @@ export type DialogElement = {
 
     /** @deprecated Use datetime_config.min_date instead */
     min_date?: string;
+
     /** @deprecated Use datetime_config.max_date instead */
     max_date?: string;
+
     /** @deprecated Use datetime_config.time_interval instead */
     time_interval?: number;
 };
