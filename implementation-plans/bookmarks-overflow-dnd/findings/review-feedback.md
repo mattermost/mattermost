@@ -24,28 +24,37 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | 12 | Default `href` to `'#'` instead of `undefined` when links disabled | `bookmark_item_content.tsx` |
 
 ### Styling fixes
-| # | Change | Files |
-|---|---|---|
-| 14 | Right-align overflow menu popup (right-edge anchored to trigger button) | `bookmarks_bar_menu.tsx` |
-| 15 | Fix overflow item label vertical clipping with `line-height: 20px` | `channel_bookmarks.scss` |
-| — | Fix drag preview text truncation (`inline-block` so `text-overflow: ellipsis` works) | `channel_bookmarks.scss` |
-| — | Drag cursor: `effectAllowed='move'` + `preventUnhandled` for consistent `cursor:default` during drag (native DnD limitation prevents `cursor:grabbing`) | `use_bookmark_drag_drop.ts` |
-| — | Bar item `:focus-visible` indicator matching standard `a11y--focused` style | `bookmark_item_content.tsx` |
-| — | Overflow item `.Mui-focusVisible` for trailing-elements visibility (replaces `:focus-within` to fix dot menu showing on programmatic focus) | `channel_bookmarks.scss` |
-| — | Keyboard-reorder outline thickened to 3px (vs 2px focus indicator) on bar + overflow items | `bookmarks_bar_item.tsx`, `channel_bookmarks.scss` |
+| Change | Files |
+|---|---|
+| Right-align overflow menu popup (right-edge anchored to trigger button) | `bookmarks_bar_menu.tsx` |
+| Fix overflow item label vertical clipping with `line-height: 20px` | `channel_bookmarks.scss` |
+| Fix drag preview text truncation (`inline-block` so `text-overflow: ellipsis` works) | `channel_bookmarks.scss` |
+| Drag cursor: `effectAllowed='move'` + `preventUnhandled` for consistent `cursor:default` during drag | `use_bookmark_drag_drop.ts` |
+| Bar item `:focus-visible` indicator (inset box-shadow with border-radius) | `bookmark_item_content.tsx` |
+| Overflow item `.Mui-focusVisible` for trailing-elements visibility (replaces `:focus-within` to fix dot menu showing on programmatic focus) | `channel_bookmarks.scss` |
+| Keyboard-reorder outline thickened to 3px (vs 2px focus indicator) on bar + overflow items | `bookmarks_bar_item.tsx`, `channel_bookmarks.scss` |
+| Dot menu button `opacity:0` instead of `visibility:hidden` so it can receive focus after Escape | `bookmark_item_content.tsx` |
+| Dot menu button `:focus-visible` indicator (inset box-shadow) | `channel_bookmarks.scss` |
+| Move overflow menu button inline after last visible bookmark (not pinned right) | `channel_bookmarks.tsx`, `bookmarks_bar_menu.tsx` |
+| Replace DotsHorizontalIcon with PlusIcon for overflow button consistency | `bookmarks_bar_menu.tsx` |
+| Remove `hasOverflow` button variant — same transparent style for both | `channel_bookmarks.scss`, `bookmarks_bar_menu.tsx` |
+| Reduce gap between plus icon and overflow count (1px vs 4px) | `channel_bookmarks.scss`, `bookmarks_bar_menu.tsx` |
+| Fix `:active` specificity on menu button for blue click feedback | `channel_bookmarks.scss` |
+| Remove opacity/background transitions for instant feedback | `channel_bookmarks.scss` |
 
 ### Extractions / refactors
-| # | Change | Files |
-|---|---|---|
-| 16 | Extract overflow detection logic into `useBookmarksOverflow` hook | `use_bookmarks_overflow.ts` (new), `channel_bookmarks.tsx` |
-| 17 | Extract shared DnD logic into `useBookmarkDragDrop` hook | `use_bookmark_drag_drop.ts` (new), `bookmarks_bar_item.tsx`, `overflow_bookmark_item.tsx` |
-| 18 | Move drag preview inline styles to CSS class (`.bookmarkDragPreview`) | `drag_preview.ts`, `channel_bookmarks.scss` |
-| — | Add `forwardRef` to `Menu.Item` — eliminates sentinel ref + `.closest('li')` hack | `menu_item.tsx`, `overflow_bookmark_item.tsx` |
+| Change | Files |
+|---|---|
+| Extract overflow detection logic into `useBookmarksOverflow` hook | `use_bookmarks_overflow.ts` (new), `channel_bookmarks.tsx` |
+| Extract shared DnD logic into `useBookmarkDragDrop` hook | `use_bookmark_drag_drop.ts` (new), `bookmarks_bar_item.tsx`, `overflow_bookmark_item.tsx` |
+| Move drag preview inline styles to CSS class (`.bookmarkDragPreview`) | `drag_preview.ts`, `channel_bookmarks.scss` |
+| Add `forwardRef` to `Menu.Item` — eliminates sentinel ref + `.closest('li')` hack | `menu_item.tsx`, `overflow_bookmark_item.tsx` |
+| Remove unused `@atlaskit/pragmatic-drag-and-drop-live-region` dependency | `channels/package.json` |
 
 ### Keyboard accessibility
 | Change | Files |
 |---|---|
-| Wire `getItemProps` (tabIndex + onKeyDown) to overflow items for keyboard reorder support | `bookmarks_bar_menu.tsx`, `overflow_bookmark_item.tsx`, `channel_bookmarks.tsx` |
+| Wire `getItemProps` (onKeyDown) to overflow items for keyboard reorder support | `bookmarks_bar_menu.tsx`, `overflow_bookmark_item.tsx`, `channel_bookmarks.tsx` |
 | Direction-aware arrow keys: bar items use Left/Right, overflow items use Up/Down — switches on cross-container moves | `use_keyboard_reorder.ts` |
 | Force-open overflow menu on bar→overflow keyboard transition; close on overflow→bar | `channel_bookmarks.tsx`, `use_keyboard_reorder.ts` |
 | Fix `forceOpen` to emit `false` (not `undefined`) so Menu's `isMenuOpen` effect properly closes the menu | `channel_bookmarks.tsx` |
@@ -53,9 +62,28 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | Fix focus fallback for overflow items (fall back to `<li>` element itself when no inner `a[tabindex]` found) | `use_keyboard_reorder.ts` |
 | Confirm reorder placement on click-anywhere via new `useClickOutside` hook | `useClickOutside.ts` (new), `use_keyboard_reorder.ts` |
 | Remove `[key: string]: unknown` index signature from overflow item props in favor of typed `keyboardReorderProps` | `overflow_bookmark_item.tsx` |
-| Anchor overflow dropdown right-edge to right-edge of trigger button | `bookmarks_bar_menu.tsx` |
 | Add `autoFocusItem` option to `Menu.tsx`; overflow menu disables it so no item is auto-focused on open — ArrowDown from Popover container focuses first item, then MUI handles cycling | `menu.tsx`, `bookmarks_bar_menu.tsx` |
 | Block all conflicting keys during keyboard reorder (Tab, Shift+Tab, Home, End, letter keys, etc.) — only reorder controls allowed | `use_keyboard_reorder.ts` |
+| Overflow item dot menu keyboard access: ArrowRight opens, ArrowLeft closes | `overflow_bookmark_item.tsx`, `bookmark_dot_menu.tsx` |
+| Fix double-movement on ArrowDown/Up: stop arrow propagation in MenuList onKeyDown | `menu.tsx` |
+| Stop Space/Enter propagation in MenuList when already handled (prevents menu close during reorder) | `menu.tsx` |
+
+### Menu component improvements
+| Change | Files |
+|---|---|
+| Auto-close menu on controlled→uncontrolled transition (`true` → `undefined`) | `menu.tsx` |
+| `disableRestoreFocus` prop — passed through to MUI Popover | `menu.tsx` |
+| `autoFocusItem` prop — controls MUI MenuList autoFocusItem behavior | `menu.tsx` |
+| `handleMenuListKeyDown` — stops arrow/Space/Enter propagation after MenuList processes it | `menu.tsx` |
+| Disable add menu items when bookmark limit reached | `bookmarks_bar_menu.tsx` |
+
+### E2E test fixes
+| Change | Files |
+|---|---|
+| Fix all 18 existing bookmark e2e tests for overflow and keyboard reorder | `channel_bookmarks_spec.ts` |
+| Handle bar-or-overflow for bookmark assertions and dot menu access | `channel_bookmarks_spec.ts` |
+| Fix modal timing, emoji scoping, reorder chain detachment | `channel_bookmarks_spec.ts` |
+| Use fresh channel for reorder test to avoid overflow interference | `channel_bookmarks_spec.ts` |
 
 ---
 
@@ -63,32 +91,58 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 
 | # | Change | Reason |
 |---|---|---|
-| 7 | `useTextOverflow` callback ref pattern | Caused runtime error — needs investigation |
-| 13 | `:focus-within` → `:has(:focus-visible)` for bar item dot menu | Reverted — replaced with `.Mui-focusVisible` approach for overflow items only (see styling fixes above) |
+| 7 | `useTextOverflow` callback ref pattern | Lifecycle mismatch — ResizeObserver on callback refs can't guarantee cleanup. Not worth pursuing. |
+| 13 | `:focus-within` → `:has(:focus-visible)` for bar item dot menu | Reverted — replaced with `.Mui-focusVisible` approach for overflow items and `opacity:0` + `:focus-within` for bar items |
+| — | Menubar arrow navigation (roving tabindex) | Stashed — fragile, needs rework. Deferred. |
+
+---
+
+## Proposed E2E Test Cases (to be added)
+
+### `describe('overflow and reorder')` — fresh channel with 15 bookmarks
+
+| # | Test Name | Description |
+|---|---|---|
+| 1 | `shows overflow count badge` | Verify overflow button visible with count, visible + overflow = total |
+| 2 | `opens overflow menu and shows items` | Click button, verify items as menuitems, add actions below separator |
+| 3 | `keyboard reorder within overflow` | Space → ArrowDown → Space on overflow item, verify swap |
+| 4 | `keyboard reorder: Escape cancels` | Space → ArrowRight → Escape, verify original order restored |
+| 5 | `keyboard reorder: click-away confirms` | Space → ArrowRight → click elsewhere, verify new position kept |
+| 6 | `keyboard reorder: bar to overflow` | Move last bar item right into overflow, verify it appears in menu |
+| 7 | `keyboard reorder: overflow to bar` | Move first overflow item up into bar, verify it appears in bar |
+
+### `describe('overflow dot menu')` — fresh channel with overflow
+
+| # | Test Name | Description |
+|---|---|---|
+| 8 | `edit from overflow dot menu` | Open dot menu from overflow item, edit, verify change persists |
+| 9 | `delete from overflow dot menu` | Open dot menu, delete, verify item removed |
+
+### `describe('visual feedback')` — fresh channel
+
+| # | Test Name | Description |
+|---|---|---|
+| 10 | `truncated label tooltip` | Create bookmark with 200-char name, hover, verify tooltip |
+| 11 | `focus-visible indicator on Tab` | Tab to bookmark, verify box-shadow focus ring |
 
 ---
 
 ## Remaining Work
 
-### Accessibility (PR TODOs)
-- [ ] **Fix overflow bookmark item dotmenu keyboard access** — when item focused, `Right` arrow should open dot menu
-- [ ] **Fix anchor/links in overflow menu** — semantic anchor UX: proper native `Copy Link Address`, `Open Link in New Tab`, etc. Redesign `useBookmarkLink().openBookmark` to reduce complexity
+### Accessibility
+- [ ] Fix anchor/links in overflow menu — semantic anchor UX (deferred — MUI `<li>` structure, consider base-ui)
 
-### Styling (PR TODOs)
-- [ ] **Fix plus menu label padding/menu width** — alignment fixed (step 14), but padding and width still need adjustment
-
-### Technical/patterns (PR TODOs)
-- [ ] **`useTextOverflow` callback ref** — step 7 reverted; debug runtime error and re-apply
-- [ ] **`BookmarkMeasureItem` replacement** — currently uses hidden components to measure widths. Consider IntersectionObserver or measuring real items
-- [ ] **Menu.tsx `hideBackdrop` → key handler** — hmhealey suggested replacing the `hideBackdrop` prop with a proper key/event handler approach (medium-term)
+### Technical/patterns
+- [ ] `BookmarkMeasureItem` replacement — IntersectionObserver or measure real items
+- [ ] `Menu.tsx hideBackdrop` → key handler approach (medium-term)
 
 ### Potential enhancements
-- [ ] **Register bookmarks bar as A11yController region** — add `a11y__region` class + `data-a11y-sort-order` (between channel header 8 and search bar 9) so F6/Ctrl+` focus cycling includes the bookmarks bar. Individual bookmarks would be `a11y__section` children.
+- [ ] Register bookmarks bar as A11yController region for F6/Ctrl+` cycling
+- [ ] Menubar arrow navigation (roving tabindex) — stashed, needs rework
 
-### Deferred reviewer comments (design questions)
-- [ ] **Keep overflow open during drag** — hmhealey asked about overflow menu behavior when dragging over it. Needs design input
-- [ ] **Auto-close overflow behavior** — when/how should overflow menu auto-close after drag operations
-- [ ] **`openBookmark` code smell** — hmhealey noted the imperative navigation approach; relates to anchor/links TODO above
+### Deferred
+- [ ] Drag-away close overflow behavior (decided: close on drag-away, not yet implemented)
+- [ ] `openBookmark` imperative navigation code smell
 
-### Separate fix (not part of this PR)
-- [ ] **`ScheduledPostIndicator` selector memoization** — `showChannelOrThreadScheduledPostIndicator` returns a new object every call. Convert to `createSelector` to prevent unnecessary rerenders
+### Separate PR
+- [ ] `ScheduledPostIndicator` selector memoization
