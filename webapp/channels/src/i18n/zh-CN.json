@@ -5730,7 +5730,7 @@
   "recaps.messageCount": "已回顾 {count} 条消息",
   "recaps.modal.allChannels": "所有频道",
   "recaps.modal.allUnreads": "汇总我所有未读内容",
-  "recaps.modal.allUnreadsDesc": "Copilot 将为你所有频道的未读内容生成回顾。",
+  "recaps.modal.allUnreadsDesc": "为你的所有频道中的未读消息生成回顾。",
   "recaps.modal.error.createFailed": "创建回顾失败，请重试。",
   "recaps.modal.error.noBot": "请选择一个 AI 代理。",
   "recaps.modal.error.noChannels": "请至少选择一个频道。",
