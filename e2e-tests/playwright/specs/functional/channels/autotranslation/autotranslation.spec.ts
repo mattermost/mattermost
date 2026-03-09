@@ -918,9 +918,12 @@ test(
         // Click the "more" (three dots) button to open the action menu
         await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
 
-        // Check for Show translation menu item - should be present since translation happened
-        const showTranslationItem = page.getByRole('menuitem', {name: 'Show translation'});
+        // Scope to the post actions menu so an expanded Remind submenu does not
+        // restrict the ARIA role search to the wrong menu context.
+        const postActionsMenu = page.getByRole('menu').first();
+        await expect(postActionsMenu).toBeVisible({timeout: 5000});
 
+        const showTranslationItem = postActionsMenu.getByRole('menuitem', {name: 'Show translation'});
         await expect(showTranslationItem).toBeVisible({timeout: 10000});
     },
 );
