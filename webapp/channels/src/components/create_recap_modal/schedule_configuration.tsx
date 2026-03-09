@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
 import React, {useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-import moment from 'moment-timezone';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
