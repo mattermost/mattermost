@@ -14,6 +14,13 @@ import (
 
 type PropertyFieldType string
 
+// PropertyFieldTargetLevel represents the hierarchy level of a property field.
+// Used both for TargetType field values and for conflict detection results.
+type PropertyFieldTargetLevel string
+
+// PermissionLevel represents the access level for property field operations
+type PermissionLevel string
+
 const (
 	PropertyFieldTypeText        PropertyFieldType = "text"
 	PropertyFieldTypeSelect      PropertyFieldType = "select"
@@ -26,16 +33,14 @@ const (
 	PropertyFieldTargetIDMaxRunes   = 255
 	PropertyFieldTargetTypeMaxRunes = 255
 	PropertyFieldObjectTypeMaxRunes = 255
-)
 
-// PropertyFieldTargetLevel represents the hierarchy level of a property field.
-// Used both for TargetType field values and for conflict detection results.
-type PropertyFieldTargetLevel string
-
-const (
 	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
 	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
 	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
+
+	PermissionLevelNone     PermissionLevel = "none"
+	PermissionLevelSysadmin PermissionLevel = "sysadmin"
+	PermissionLevelMember   PermissionLevel = "member"
 )
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
@@ -46,36 +51,44 @@ var validPSAv2TargetTypes = []string{
 }
 
 type PropertyField struct {
-	ID         string            `json:"id"`
-	GroupID    string            `json:"group_id"`
-	Name       string            `json:"name"`
-	Type       PropertyFieldType `json:"type"`
-	Attrs      StringInterface   `json:"attrs"`
-	TargetID   string            `json:"target_id"`
-	TargetType string            `json:"target_type"`
-	ObjectType string            `json:"object_type"`
-	CreateAt   int64             `json:"create_at"`
-	UpdateAt   int64             `json:"update_at"`
-	DeleteAt   int64             `json:"delete_at"`
-	CreatedBy  string            `json:"created_by"`
-	UpdatedBy  string            `json:"updated_by"`
+	ID                string            `json:"id"`
+	GroupID           string            `json:"group_id"`
+	Name              string            `json:"name"`
+	Type              PropertyFieldType `json:"type"`
+	Attrs             StringInterface   `json:"attrs"`
+	TargetID          string            `json:"target_id"`
+	TargetType        string            `json:"target_type"`
+	ObjectType        string            `json:"object_type"`
+	Protected         bool              `json:"protected"`
+	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
+	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
+	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	CreateAt          int64             `json:"create_at"`
+	UpdateAt          int64             `json:"update_at"`
+	DeleteAt          int64             `json:"delete_at"`
+	CreatedBy         string            `json:"created_by"`
+	UpdatedBy         string            `json:"updated_by"`
 }
 
 func (pf *PropertyField) Auditable() map[string]any {
 	return map[string]any{
-		"id":          pf.ID,
-		"group_id":    pf.GroupID,
-		"name":        pf.Name,
-		"type":        pf.Type,
-		"attrs":       pf.Attrs,
-		"target_id":   pf.TargetID,
-		"target_type": pf.TargetType,
-		"object_type": pf.ObjectType,
-		"create_at":   pf.CreateAt,
-		"update_at":   pf.UpdateAt,
-		"delete_at":   pf.DeleteAt,
-		"created_by":  pf.CreatedBy,
-		"updated_by":  pf.UpdatedBy,
+		"id":                 pf.ID,
+		"group_id":           pf.GroupID,
+		"name":               pf.Name,
+		"type":               pf.Type,
+		"attrs":              pf.Attrs,
+		"target_id":          pf.TargetID,
+		"target_type":        pf.TargetType,
+		"object_type":        pf.ObjectType,
+		"protected":          pf.Protected,
+		"permission_field":   pf.PermissionField,
+		"permission_values":  pf.PermissionValues,
+		"permission_options": pf.PermissionOptions,
+		"create_at":          pf.CreateAt,
+		"update_at":          pf.UpdateAt,
+		"delete_at":          pf.DeleteAt,
+		"created_by":         pf.CreatedBy,
+		"updated_by":         pf.UpdatedBy,
 	}
 }
 
@@ -184,6 +197,21 @@ func (pf *PropertyField) IsValid() error {
 
 	if pf.UpdateAt == 0 {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// Cross-validation: protected fields must have field permission set to "none"
+	if pf.Protected {
+		if pf.PermissionField == nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "protected fields must have explicit permissions with field set to none"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+		if *pf.PermissionField != PermissionLevelNone {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "protected fields must have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+	}
+
+	// Cross-validation: non-protected fields cannot have field permission set to "none"
+	if !pf.Protected && pf.PermissionField != nil && *pf.PermissionField == PermissionLevelNone {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	return nil

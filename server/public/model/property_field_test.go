@@ -366,6 +366,80 @@ func TestPropertyField_IsValid(t *testing.T) {
 		}
 		require.NoError(t, pf.IsValid())
 	})
+
+	t.Run("protected field validation", func(t *testing.T) {
+		baseField := func() *PropertyField {
+			return &PropertyField{
+				ID:       NewId(),
+				GroupID:  NewId(),
+				Name:     "test field",
+				Type:     PropertyFieldTypeText,
+				CreateAt: GetMillis(),
+				UpdateAt: GetMillis(),
+			}
+		}
+
+		t.Run("non-protected field without permissions is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.PermissionField = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+				pf := baseField()
+				pf.Protected = false
+				pf.PermissionField = NewPointer(level)
+				pf.PermissionValues = NewPointer(PermissionLevelMember)
+				pf.PermissionOptions = NewPointer(PermissionLevelMember)
+				require.NoError(t, pf.IsValid(), "should be valid with field permission %s", level)
+			}
+		})
+
+		t.Run("non-protected field with field=none is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.PermissionField = NewPointer(PermissionLevelNone)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=none is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelNone)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelSysadmin)
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("protected field with nil permissions is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = nil
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelSysadmin)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=member is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelMember)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
