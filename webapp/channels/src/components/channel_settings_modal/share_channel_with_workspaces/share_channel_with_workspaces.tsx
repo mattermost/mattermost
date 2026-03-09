@@ -20,7 +20,7 @@ import './share_channel_with_workspaces.scss';
 type Props = {
     remotes: RemoteClusterInfo[];
     initialRemotes?: RemoteClusterInfo[];
-    onRemotesChange: (remotes: WorkspaceWithStatus[]) => void;
+    onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -33,30 +33,26 @@ export default function ShareChannelWithWorkspaces({
     const {formatMessage} = useIntl();
 
     const [enabled, setEnabled] = useState(remotes.length > 0);
-    const [workspaces, setWorkspaces] = useState<WorkspaceWithStatus[]>(() =>
-        remotes.map((r) => ({...r})),
-    );
-    const currentRemoteIds = useMemo(() => new Set(workspaces.map((w) => w.remote_id || w.name)), [workspaces]);
+    const currentRemoteIds = useMemo(() => new Set(remotes.map((w) => w.remote_id || w.name)), [remotes]);
 
     useDidUpdate(() => {
-        onRemotesChange(workspaces);
-    }, [workspaces, onRemotesChange]);
+        onRemotesChange(remotes);
+    }, [remotes, onRemotesChange]);
 
     const handleToggle = useCallback(() => {
         const next = !enabled;
         setEnabled(next);
         if (!next) {
-            setWorkspaces([]);
+            onRemotesChange([]);
         }
-    }, [enabled]);
+    }, [enabled, onRemotesChange]);
 
     const handleAdd = useCallback((toAdd: RemoteToAdd[]) => {
         if (toAdd.length === 0) {
             return;
         }
         const initialById = new Map((initialRemotes || []).map((r) => [r.remote_id || r.name, r]));
-        setEnabled(true);
-        setWorkspaces((prev) => {
+        onRemotesChange((prev) => {
             const prevIds = new Set(prev.map((w) => w.remote_id || w.name));
             const added: WorkspaceWithStatus[] = toAdd.filter((r) => !prevIds.has(r.remote_id)).map((r) => {
                 const existing = initialById.get(r.remote_id);
@@ -75,17 +71,17 @@ export default function ShareChannelWithWorkspaces({
             });
             return [...prev, ...added];
         });
-    }, [initialRemotes]);
+    }, [initialRemotes, onRemotesChange]);
 
     const handleRemove = useCallback((remoteId: string) => {
-        setWorkspaces((prev) => {
+        onRemotesChange((prev) => {
             const next = prev.filter((w) => (w.remote_id || w.name) !== remoteId);
             if (next.length === 0) {
                 setEnabled(false);
             }
             return next;
         });
-    }, []);
+    }, [onRemotesChange]);
 
     const heading = formatMessage({
         id: 'channel_settings.share_channel_with_workspaces.title',
@@ -129,7 +125,7 @@ export default function ShareChannelWithWorkspaces({
             {enabled && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__listHeader'>
-                        {workspaces.length > 0 ? (
+                        {remotes.length > 0 ? (
                             <FormattedMessage
                                 id='channel_settings.share_channel_with_workspaces.workspaces_label'
                                 defaultMessage='Workspaces sharing this channel'
@@ -143,7 +139,7 @@ export default function ShareChannelWithWorkspaces({
                     </span>
 
                     <WorkspaceList
-                        workspaces={workspaces}
+                        workspaces={remotes}
                         onRemove={handleRemove}
                     />
 
