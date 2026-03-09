@@ -19,6 +19,7 @@ func (api *API) InitView() {
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(getView)).Methods(http.MethodGet)
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(updateView)).Methods(http.MethodPatch)
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(deleteView)).Methods(http.MethodDelete)
+		api.BaseRoutes.ChannelView.Handle("/sort_order", api.APISessionRequired(updateViewSortOrder)).Methods(http.MethodPost)
 	}
 }
 
@@ -281,6 +282,63 @@ func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	ReturnStatusOK(w)
+}
+
+func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireViewId()
+	if c.Err != nil {
+		return
+	}
+
+	var newSortOrder int64
+	if err := json.NewDecoder(r.Body).Decode(&newSortOrder); err != nil {
+		c.SetInvalidParamWithErr("viewSortOrder", err)
+		return
+	}
+
+	if newSortOrder < 0 {
+		c.SetInvalidParam("viewSortOrder")
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("updateViewSortOrder", "api.view.update_sort_order.deleted_channel.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateViewSortOrder, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+
+	if !checkViewWritePermission(c, channel) {
+		return
+	}
+
+	views, appErr := c.App.UpdateViewSortOrder(c.AppContext, c.Params.ViewId, c.Params.ChannelId, newSortOrder)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for _, v := range views {
+		if v.Id == c.Params.ViewId {
+			auditRec.AddEventResultState(v)
+			auditRec.AddEventObjectType("view")
+			break
+		}
+	}
+	auditRec.Success()
+	c.LogAudit("")
+
+	if err := json.NewEncoder(w).Encode(views); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // checkViewWritePermission checks that the user has permission to write (create/update/delete) views

@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,6 +21,7 @@ func TestViewStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetViewsForChannel", func(t *testing.T) { testGetViewsForChannel(t, ss) })
 	t.Run("UpdateView", func(t *testing.T) { testUpdateView(t, ss) })
 	t.Run("DeleteView", func(t *testing.T) { testDeleteView(t, ss) })
+	t.Run("UpdateSortOrder", func(t *testing.T) { testUpdateViewSortOrder(t, ss) })
 }
 
 func makeView(channelID, creatorID string) *model.View {
@@ -394,5 +396,125 @@ func testDeleteView(t *testing.T, ss store.Store) {
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, err, &nfErr)
+	})
+}
+
+func testUpdateViewSortOrder(t *testing.T, ss store.Store) {
+	channelID := model.NewId()
+	creatorID := model.NewId()
+
+	// Create 3 views with different sort orders
+	var views []*model.View
+	for i := range 3 {
+		v := makeView(channelID, creatorID)
+		v.Title = fmt.Sprintf("View %d", i)
+		v.SortOrder = i
+		saved, err := ss.View().Save(v)
+		require.NoError(t, err)
+		views = append(views, saved)
+	}
+
+	t.Run("moves last to first", func(t *testing.T) {
+		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 0)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, views[2].Id, result[0].Id)
+		assert.Equal(t, views[0].Id, result[1].Id)
+		assert.Equal(t, views[1].Id, result[2].Id)
+		assert.Equal(t, 0, result[0].SortOrder)
+		assert.Equal(t, 1, result[1].SortOrder)
+		assert.Equal(t, 2, result[2].SortOrder)
+	})
+
+	t.Run("moves first to last", func(t *testing.T) {
+		// After the previous test, order is: views[2], views[0], views[1]
+		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 2)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, views[0].Id, result[0].Id)
+		assert.Equal(t, views[1].Id, result[1].Id)
+		assert.Equal(t, views[2].Id, result[2].Id)
+	})
+
+	t.Run("moves to middle", func(t *testing.T) {
+		// Order is: views[0], views[1], views[2]
+		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 1)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, views[0].Id, result[0].Id)
+		assert.Equal(t, views[2].Id, result[1].Id)
+		assert.Equal(t, views[1].Id, result[2].Id)
+	})
+
+	t.Run("negative index returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(views[0].Id, channelID, -1)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("out of bounds index returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(views[0].Id, channelID, 99)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("non-existent view returns not found", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(model.NewId(), channelID, 0)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("empty channel returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(views[0].Id, model.NewId(), 0)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("does not include deleted views", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		var created []*model.View
+		for i := range 3 {
+			v := makeView(ch, creator)
+			v.Title = fmt.Sprintf("Del View %d", i)
+			v.SortOrder = i
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			created = append(created, s)
+		}
+
+		// Delete the middle one
+		err := ss.View().Delete(created[1].Id, model.GetMillis())
+		require.NoError(t, err)
+
+		result, err := ss.View().UpdateSortOrder(created[2].Id, ch, 0)
+		require.NoError(t, err)
+		require.Len(t, result, 2)
+		assert.Equal(t, created[2].Id, result[0].Id)
+		assert.Equal(t, created[0].Id, result[1].Id)
+	})
+
+	t.Run("updates timestamps on all views", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		var created []*model.View
+		for i := range 2 {
+			v := makeView(ch, creator)
+			v.Title = fmt.Sprintf("TS View %d", i)
+			v.SortOrder = i
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			created = append(created, s)
+		}
+
+		result, err := ss.View().UpdateSortOrder(created[1].Id, ch, 0)
+		require.NoError(t, err)
+		for _, v := range result {
+			assert.Greater(t, v.UpdateAt, created[0].UpdateAt)
+		}
 	})
 }

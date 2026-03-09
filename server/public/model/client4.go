@@ -7753,6 +7753,16 @@ func (c *Client4) DeleteView(ctx context.Context, channelId, viewId string) (*Re
 	return BuildResponse(r), nil
 }
 
+// UpdateViewSortOrder moves a view to a new position within its channel.
+func (c *Client4) UpdateViewSortOrder(ctx context.Context, channelId, viewId string, sortOrder int64) ([]*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewRoute(channelId, viewId).Join("sort_order"), sortOrder)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
 	res, err := c.doAPIPostJSON(ctx, c.clientPerfMetricsRoute(), report)
 	if err != nil {

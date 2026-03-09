@@ -17550,6 +17550,27 @@ func (s *RetryLayerViewStore) Update(view *model.View) (*model.View, error) {
 
 }
 
+func (s *RetryLayerViewStore) UpdateSortOrder(viewID string, channelID string, newIndex int64) ([]*model.View, error) {
+
+	tries := 0
+	for {
+		result, err := s.ViewStore.UpdateSortOrder(viewID, channelID, newIndex)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamID string, userID string) (int64, error) {
 
 	tries := 0

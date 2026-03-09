@@ -453,6 +453,129 @@ func TestDeleteView(t *testing.T) {
 	})
 }
 
+func TestUpdateViewSortOrder(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupViewTest(t)
+
+	t.Run("reorders views in a channel", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		var created []*model.View
+		for i := range 3 {
+			v := makeTestViewForAPI()
+			v.Title = "Sort View"
+			v.SortOrder = i
+			c, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+			require.NoError(t, err)
+			created = append(created, c)
+		}
+
+		views, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created[2].Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, views, 3)
+		require.Equal(t, created[2].Id, views[0].Id)
+		require.Equal(t, created[0].Id, views[1].Id)
+		require.Equal(t, created[1].Id, views[2].Id)
+	})
+
+	t.Run("negative sort order returns 400", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, -1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("out of bounds returns 400", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, 99)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-existent view returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, model.NewId(), 0)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("deleted channel returns 403", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("permission denied on public channel", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("permission denied on private channel", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+
+		v := makeTestViewForAPI()
+		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicPrivateChannel.Id, v)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), th.BasicPrivateChannel.Id, created.Id, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("wrong channel returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		v := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		// Create a view in otherChannel so the store has views to search through
+		_, _, err = th.Client.CreateView(context.Background(), otherChannel.Id, makeTestViewForAPI())
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), otherChannel.Id, created.Id, 0)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("unauthenticated returns 401", func(t *testing.T) {
+		client := th.CreateClient()
+		_, resp, err := client.UpdateViewSortOrder(context.Background(), th.BasicChannel.Id, model.NewId(), 0)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
 func TestViewFeatureFlagOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -491,6 +614,12 @@ func TestViewFeatureFlagOff(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("sort order returns 404 when flag is off", func(t *testing.T) {
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), th.BasicChannel.Id, model.NewId(), 0)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestViewInvalidId(t *testing.T) {
@@ -512,6 +641,12 @@ func TestViewInvalidId(t *testing.T) {
 
 	t.Run("delete with invalid view_id returns 400", func(t *testing.T) {
 		resp, err := th.Client.DeleteView(context.Background(), th.BasicChannel.Id, "invalid")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("sort order with invalid view_id returns 400", func(t *testing.T) {
+		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), th.BasicChannel.Id, "invalid", 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

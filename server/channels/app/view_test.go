@@ -189,6 +189,59 @@ func TestAppDeleteView(t *testing.T) {
 	})
 }
 
+func TestAppUpdateViewSortOrder(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("reorders views", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		var created []*model.View
+		for i := range 3 {
+			v := makeTestView(channel.Id, th.BasicUser.Id)
+			v.Title = "Reorder View"
+			v.SortOrder = i
+			saved, appErr := th.App.CreateView(th.Context, v)
+			require.Nil(t, appErr)
+			created = append(created, saved)
+		}
+
+		views, appErr := th.App.UpdateViewSortOrder(th.Context, created[2].Id, channel.Id, 0)
+		require.Nil(t, appErr)
+		require.Len(t, views, 3)
+		assert.Equal(t, created[2].Id, views[0].Id)
+		assert.Equal(t, created[0].Id, views[1].Id)
+		assert.Equal(t, created[1].Id, views[2].Id)
+	})
+
+	t.Run("invalid index returns 400", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		v := makeTestView(channel.Id, th.BasicUser.Id)
+		saved, appErr := th.App.CreateView(th.Context, v)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateViewSortOrder(th.Context, saved.Id, channel.Id, 99)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("non-existent view returns 404", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		v := makeTestView(channel.Id, th.BasicUser.Id)
+		_, appErr := th.App.CreateView(th.Context, v)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateViewSortOrder(th.Context, model.NewId(), channel.Id, 0)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("empty channel returns 400", func(t *testing.T) {
+		_, appErr := th.App.UpdateViewSortOrder(th.Context, model.NewId(), model.NewId(), 0)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
 func TestViewWebsocketEvents(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -197,6 +250,7 @@ func TestViewWebsocketEvents(t *testing.T) {
 		model.WebsocketEventViewCreated,
 		model.WebsocketEventViewUpdated,
 		model.WebsocketEventViewDeleted,
+		model.WebsocketEventViewSorted,
 	}
 	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventFilter)
 	defer closeWS()
@@ -220,6 +274,21 @@ func TestViewWebsocketEvents(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(received.GetData()["view"].(string)), &updatedView))
 	assert.Equal(t, updated.Id, updatedView.Id)
 	assert.Equal(t, newTitle, updatedView.Title)
+
+	// Create a second view for sort-order testing
+	saved2, appErr := th.App.CreateView(th.Context, makeTestView(th.BasicChannel.Id, th.BasicUser.Id))
+	require.Nil(t, appErr)
+	received = <-messages
+	assert.Equal(t, model.WebsocketEventViewCreated, received.EventType())
+
+	sortedViews, appErr := th.App.UpdateViewSortOrder(th.Context, saved2.Id, th.BasicChannel.Id, 0)
+	require.Nil(t, appErr)
+
+	received = <-messages
+	assert.Equal(t, model.WebsocketEventViewSorted, received.EventType())
+	var wsViews []*model.View
+	require.NoError(t, json.Unmarshal([]byte(received.GetData()["views"].(string)), &wsViews))
+	assert.Len(t, wsViews, len(sortedViews))
 
 	appErr = th.App.DeleteView(th.Context, saved)
 	require.Nil(t, appErr)

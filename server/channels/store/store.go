@@ -1108,6 +1108,7 @@ type ViewStore interface {
 	GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error)
 	Update(view *model.View) (*model.View, error)
 	Delete(viewID string, deleteAt int64) error
+	UpdateSortOrder(viewID, channelID string, newIndex int64) ([]*model.View, error)
 }
 
 type ScheduledPostStore interface {

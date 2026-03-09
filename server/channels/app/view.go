@@ -111,6 +111,33 @@ func (a *App) DeleteView(rctx request.CTX, view *model.View) *model.AppError {
 	return nil
 }
 
+func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, newIndex int64) ([]*model.View, *model.AppError) {
+	views, err := a.Srv().Store().View().UpdateSortOrder(viewID, channelID, newIndex)
+	if err != nil {
+		var iiErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &iiErr):
+			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("UpdateViewSortOrder", "app.view.update_sort_order.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	viewsJSON, jsonErr := json.Marshal(views)
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to encode views to JSON for websocket", mlog.Err(jsonErr))
+	} else {
+		message := model.NewWebSocketEvent(model.WebsocketEventViewSorted, "", channelID, "", nil, "")
+		message.Add("views", string(viewsJSON))
+		a.Publish(message)
+	}
+
+	return views, nil
+}
+
 func (a *App) publishViewEvent(rctx request.CTX, eventType model.WebsocketEventType, view *model.View) {
 	if view == nil {
 		return

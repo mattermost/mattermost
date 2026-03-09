@@ -6,12 +6,15 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"slices"
+	"strconv"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type SqlViewStore struct {
@@ -237,4 +240,85 @@ func (s *SqlViewStore) Delete(viewID string, deleteAt int64) error {
 	}
 
 	return nil
+}
+
+func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64) ([]*model.View, error) {
+	if channelID == "" {
+		return nil, store.NewErrInvalidInput("View", "channelID", channelID)
+	}
+	if viewID == "" {
+		return nil, store.NewErrInvalidInput("View", "viewID", viewID)
+	}
+
+	now := model.GetMillis()
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin transaction for UpdateSortOrder")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Fetch all non-deleted views for the channel
+	builder := s.viewSelect.
+		Where(sq.Eq{"ChannelId": channelID, "DeleteAt": 0}).
+		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC")
+
+	var rows []dbView
+	if err = transaction.SelectBuilder(&rows, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
+	}
+
+	views := make([]*model.View, 0, len(rows))
+	for i := range rows {
+		v, convErr := rows[i].toModel()
+		if convErr != nil {
+			return nil, errors.Wrapf(convErr, "failed to convert view id=%s", rows[i].Id)
+		}
+		views = append(views, v)
+	}
+
+	if len(views) == 0 || newIndex < 0 || int(newIndex) > len(views)-1 {
+		return nil, store.NewErrInvalidInput("View", "SortOrder", newIndex)
+	}
+
+	currentIndex := -1
+	var current *model.View
+	for index, v := range views {
+		if v.Id == viewID {
+			currentIndex = index
+			current = v
+			break
+		}
+	}
+
+	if currentIndex == -1 {
+		return nil, store.NewErrNotFound("View", viewID)
+	}
+
+	views = utils.RemoveElementFromSliceAtIndex(views, currentIndex)
+	views = slices.Insert(views, int(newIndex), current)
+
+	caseStmt := sq.Case()
+	query := s.getQueryBuilder().Update("Views")
+	ids := make([]string, 0, len(views))
+	for index, v := range views {
+		v.SortOrder = index
+		v.UpdateAt = now
+		caseStmt = caseStmt.When(sq.Eq{"Id": v.Id}, strconv.FormatInt(int64(index), 10))
+		ids = append(ids, v.Id)
+	}
+	query = query.Set("SortOrder", caseStmt)
+	query = query.Set("UpdateAt", now)
+	query = query.Where(sq.Eq{"Id": ids})
+
+	queryStr, args, queryErr := query.ToSql()
+	if queryErr != nil {
+		return nil, errors.Wrap(queryErr, "failed to build sort order update query for views")
+	}
+
+	if _, execErr := transaction.Exec(queryStr, args...); execErr != nil {
+		return nil, errors.Wrapf(execErr, "failed to update sort order for views in channel %s", channelID)
+	}
+
+	err = transaction.Commit()
+	return views, err
 }

@@ -54,6 +54,7 @@ const (
 	AuditEventUpdateView          = "updateView"          // update view
 	AuditEventDeleteView          = "deleteView"          // delete view
 	AuditEventListViewsForChannel = "listViewsForChannel" // list views for channel
+	AuditEventUpdateViewSortOrder = "updateViewSortOrder" // update view sort order
 )
 
 // Channel Categories
