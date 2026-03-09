@@ -36,32 +36,37 @@ const RecapConfiguration = ({
     const {formatMessage} = useIntl();
     const hasUnreadChannels = unreadChannels.length > 0;
 
-    const allUnreadsButton = (
-        <button
-            type='button'
-            className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''} ${hasUnreadChannels ? '' : 'disabled'}`}
-            onClick={() => hasUnreadChannels && setRecapType('all_unreads')}
-            disabled={!hasUnreadChannels}
-        >
-            <div className='recap-type-card-icon'>
-                <LightningBoltOutlineIcon size={24}/>
-            </div>
-            <div className='recap-type-card-content'>
-                <div className='recap-type-card-title'>
-                    <FormattedMessage
-                        id='recaps.modal.allUnreads'
-                        defaultMessage='Recap all my unreads'
-                    />
-                </div>
-                <div className='recap-type-card-description'>
-                    <FormattedMessage
-                        id='recaps.modal.allUnreadsDesc'
-                        defaultMessage='Copilot will create a recap of all unreads across your channels.'
-                    />
-                </div>
-            </div>
-            {recapType === 'all_unreads' && <CheckCircleIcon className='selected-icon'/>}
-        </button>
+    // Disable "run once" when all_unreads is selected but there are no current unreads,
+    // since there's nothing to recap immediately — scheduling is the only valid option.
+    const runOnceDisabled = recapType === 'all_unreads' && !hasUnreadChannels;
+
+    const handleAllUnreadsClick = () => {
+        setRecapType('all_unreads');
+        if (!hasUnreadChannels && runOnce) {
+            setRunOnce(false);
+        }
+    };
+
+    const runOnceToggle = (
+        <div className='run-once-toggle'>
+            <Toggle
+                id='run-once-toggle'
+                toggled={runOnce}
+                onToggle={() => setRunOnce(!runOnce)}
+                size='btn-sm'
+                toggleClassName='btn-toggle-primary'
+                disabled={runOnceDisabled}
+            />
+            <label
+                htmlFor='run-once-toggle'
+                className='run-once-label'
+            >
+                <FormattedMessage
+                    id='recaps.modal.runOnce'
+                    defaultMessage='Run once'
+                />
+            </label>
+        </div>
     );
 
     return (
@@ -125,38 +130,44 @@ const RecapConfiguration = ({
                         {recapType === 'selected' && <CheckCircleIcon className='selected-icon'/>}
                     </button>
 
-                    {hasUnreadChannels ? allUnreadsButton : (
-                        <WithTooltip
-                            title={formatMessage({id: 'recaps.modal.noUnreadsAvailable', defaultMessage: 'No unread channels available'})}
-                            hint={formatMessage({id: 'recaps.modal.noUnreadsAvailableHint', defaultMessage: 'You currently have no unread messages in any channels'})}
-                        >
-                            {allUnreadsButton}
-                        </WithTooltip>
-                    )}
+                    <button
+                        type='button'
+                        className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''}`}
+                        onClick={handleAllUnreadsClick}
+                    >
+                        <div className='recap-type-card-icon'>
+                            <LightningBoltOutlineIcon size={24}/>
+                        </div>
+                        <div className='recap-type-card-content'>
+                            <div className='recap-type-card-title'>
+                                <FormattedMessage
+                                    id='recaps.modal.allUnreads'
+                                    defaultMessage='Recap all my unreads'
+                                />
+                            </div>
+                            <div className='recap-type-card-description'>
+                                <FormattedMessage
+                                    id='recaps.modal.allUnreadsDesc'
+                                    defaultMessage='Copilot will create a recap of all unreads across your channels.'
+                                />
+                            </div>
+                        </div>
+                        {recapType === 'all_unreads' && <CheckCircleIcon className='selected-icon'/>}
+                    </button>
                 </div>
             </div>
 
             {/* Run once toggle - hidden in edit mode */}
             {!isEditMode && (
                 <div className='form-group run-once-group'>
-                    <div className='run-once-toggle'>
-                        <Toggle
-                            id='run-once-toggle'
-                            toggled={runOnce}
-                            onToggle={() => setRunOnce(!runOnce)}
-                            size='btn-sm'
-                            toggleClassName='btn-toggle-primary'
-                        />
-                        <label
-                            htmlFor='run-once-toggle'
-                            className='run-once-label'
+                    {runOnceDisabled ? (
+                        <WithTooltip
+                            title={formatMessage({id: 'recaps.modal.runOnceDisabledTitle', defaultMessage: 'No unread messages'})}
+                            hint={formatMessage({id: 'recaps.modal.runOnceDisabledHint', defaultMessage: 'You have no unread messages to recap right now. Schedule this recap to run in the future instead.'})}
                         >
-                            <FormattedMessage
-                                id='recaps.modal.runOnce'
-                                defaultMessage='Run once'
-                            />
-                        </label>
-                    </div>
+                            {runOnceToggle}
+                        </WithTooltip>
+                    ) : runOnceToggle}
                     <div className='run-once-description'>
                         <FormattedMessage
                             id='recaps.modal.runOnceDescription'
