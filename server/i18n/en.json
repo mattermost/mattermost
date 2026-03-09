@@ -8485,6 +8485,30 @@
     "translation": "Password is not valid"
   },
   {
+    "id": "app.view.create.app_error",
+    "translation": "Unable to create the view."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Unable to delete the view."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Unable to get the view."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Unable to get views for this channel."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Invalid input when getting views for channel."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Unable to update the view."
+  },
+  {
     "id": "app.webhooks.analytics_incoming_count.app_error",
     "translation": "Unable to count the incoming webhooks."
   },
@@ -11341,6 +11365,18 @@
     "translation": "Invalid UserId field for session."
   },
   {
+    "id": "model.subview.is_valid.id.app_error",
+    "translation": "Invalid subview ID."
+  },
+  {
+    "id": "model.subview.is_valid.title.app_error",
+    "translation": "Subview title is required."
+  },
+  {
+    "id": "model.subview.is_valid.type.app_error",
+    "translation": "Invalid subview type."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -11659,6 +11695,54 @@
   {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Invalid view channel ID."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Invalid view create time."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Invalid view creator ID."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "View description is too long."
+  },
+  {
+    "id": "model.view.is_valid.icon.app_error",
+    "translation": "View icon is too long."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Invalid view ID."
+  },
+  {
+    "id": "model.view.is_valid.props.linked_properties.app_error",
+    "translation": "Board view must have at least one linked property."
+  },
+  {
+    "id": "model.view.is_valid.props.linked_properties.invalid_id.app_error",
+    "translation": "Board view contains an invalid linked property ID."
+  },
+  {
+    "id": "model.view.is_valid.props.subviews.app_error",
+    "translation": "Board view must have at least one subview."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "View title is required and must be less than 256 characters."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Invalid view type."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Invalid view update time."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",

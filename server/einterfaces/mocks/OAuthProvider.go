@@ -78,7 +78,7 @@ func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*
 	return r0, r1
 }
 
-// GetUserFromJSON provides a mock function with given fields: c, data, tokenUser, settings
+// GetUserFromJSON provides a mock function with given fields: rctx, data, tokenUser, settings
 func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	ret := _m.Called(rctx, data, tokenUser, settings)
 

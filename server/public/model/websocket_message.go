@@ -102,6 +102,9 @@ const (
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
+	WebsocketEventViewCreated                         WebsocketEventType = "view_created"
+	WebsocketEventViewUpdated                         WebsocketEventType = "view_updated"
+	WebsocketEventViewDeleted                         WebsocketEventType = "view_deleted"
 	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
 	WebsocketEventShowToast                           WebsocketEventType = "show_toast"
 

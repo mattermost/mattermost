@@ -1466,6 +1466,26 @@ func (_m *Store) UserTermsOfService() store.UserTermsOfServiceStore {
 	return r0
 }
 
+// View provides a mock function with no fields
+func (_m *Store) View() store.ViewStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for View")
+	}
+
+	var r0 store.ViewStore
+	if rf, ok := ret.Get(0).(func() store.ViewStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ViewStore)
+		}
+	}
+
+	return r0
+}
+
 // Webhook provides a mock function with no fields
 func (_m *Store) Webhook() store.WebhookStore {
 	ret := _m.Called()
