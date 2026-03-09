@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment-timezone';
+import type moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
