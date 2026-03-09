@@ -6,7 +6,7 @@
       description: |
         Get a list of views for a channel.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have `read_channel_content` permission for the channel.
@@ -66,7 +66,7 @@
       description: |
         Create a new view for a channel.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
@@ -142,7 +142,7 @@
       description: |
         Get a single view by its ID.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have `read_channel_content` permission for the channel.
@@ -186,7 +186,7 @@
         Partially update a channel view by providing only the fields
         you want to update. Omitted fields will not be updated.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
@@ -239,7 +239,7 @@
       description: |
         Soft-deletes a channel view. Sets `delete_at` to current timestamp.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 11.6
 
         ##### Permissions
         Must have the `manage_public_channel_properties` or
@@ -267,6 +267,64 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/channels/{channel_id}/views/{view_id}/sort_order:
+    post:
+      tags:
+        - views
+      summary: Update a channel view's sort order
+      description: |
+        Updates the sort order of a channel view, setting its new index
+        from the request body and updating the rest of the views in the
+        channel to accommodate the change.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have the `manage_public_channel_properties` or
+        `manage_private_channel_properties` permission depending
+        on the channel type. If the channel is a DM or GM, must
+        be a non-guest member.
+      operationId: UpdateChannelViewSortOrder
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: number
+              format: int64
+              description: The new sort order index for the view
+      responses:
+        "200":
+          description: Channel view sort order update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/View"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

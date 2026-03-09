@@ -24,6 +24,8 @@ func (api *API) InitView() {
 }
 
 func createView(c *Context, w http.ResponseWriter, r *http.Request) {
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -57,7 +59,7 @@ func createView(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	created, appErr := c.App.CreateView(c.AppContext, view)
+	created, appErr := c.App.CreateView(c.AppContext, view, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -174,6 +176,8 @@ func getView(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateView(c *Context, w http.ResponseWriter, r *http.Request) {
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	c.RequireChannelId().RequireViewId()
 	if c.Err != nil {
 		return
@@ -217,7 +221,7 @@ func updateView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(view.Clone())
 
-	updated, appErr := c.App.UpdateView(c.AppContext, view, patch)
+	updated, appErr := c.App.UpdateView(c.AppContext, view, patch, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -234,6 +238,8 @@ func updateView(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	c.RequireChannelId().RequireViewId()
 	if c.Err != nil {
 		return
@@ -271,7 +277,7 @@ func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(view)
 
-	if appErr := c.App.DeleteView(c.AppContext, view); appErr != nil {
+	if appErr := c.App.DeleteView(c.AppContext, view, connectionID); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -285,6 +291,8 @@ func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	c.RequireChannelId().RequireViewId()
 	if c.Err != nil {
 		return
@@ -320,7 +328,7 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views, appErr := c.App.UpdateViewSortOrder(c.AppContext, c.Params.ViewId, c.Params.ChannelId, newSortOrder)
+	views, appErr := c.App.UpdateViewSortOrder(c.AppContext, c.Params.ViewId, c.Params.ChannelId, newSortOrder, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return

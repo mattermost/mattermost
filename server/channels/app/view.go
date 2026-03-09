@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *model.AppError) {
+func (a *App) CreateView(rctx request.CTX, view *model.View, connectionID string) (*model.View, *model.AppError) {
 	if view == nil {
 		return nil, model.NewAppError("CreateView", "app.view.create.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)
 	}
@@ -27,7 +27,7 @@ func (a *App) CreateView(rctx request.CTX, view *model.View) (*model.View, *mode
 		return nil, model.NewAppError("CreateView", "app.view.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.publishViewEvent(rctx, model.WebsocketEventViewCreated, saved)
+	a.publishViewEvent(rctx, model.WebsocketEventViewCreated, saved, connectionID)
 
 	return saved, nil
 }
@@ -64,7 +64,7 @@ func (a *App) GetViewsForChannel(rctx request.CTX, channelID string, opts model.
 	return result, nil
 }
 
-func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPatch) (*model.View, *model.AppError) {
+func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPatch, connectionID string) (*model.View, *model.AppError) {
 	if view == nil {
 		return nil, model.NewAppError("UpdateView", "app.view.update.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)
 	}
@@ -84,12 +84,12 @@ func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPa
 		}
 	}
 
-	a.publishViewEvent(rctx, model.WebsocketEventViewUpdated, updated)
+	a.publishViewEvent(rctx, model.WebsocketEventViewUpdated, updated, connectionID)
 
 	return updated, nil
 }
 
-func (a *App) DeleteView(rctx request.CTX, view *model.View) *model.AppError {
+func (a *App) DeleteView(rctx request.CTX, view *model.View, connectionID string) *model.AppError {
 	if view == nil {
 		return model.NewAppError("DeleteView", "app.view.delete.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)
 	}
@@ -104,14 +104,14 @@ func (a *App) DeleteView(rctx request.CTX, view *model.View) *model.AppError {
 	// Delete events send only the view ID (not the full view JSON) since consumers
 	// only need the ID to remove the view from state. Create/Update use publishViewEvent
 	// to send the full view.
-	message := model.NewWebSocketEvent(model.WebsocketEventViewDeleted, "", view.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventViewDeleted, "", view.ChannelId, "", nil, connectionID)
 	message.Add("view_id", view.Id)
 	a.Publish(message)
 
 	return nil
 }
 
-func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, newIndex int64) ([]*model.View, *model.AppError) {
+func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, newIndex int64, connectionID string) ([]*model.View, *model.AppError) {
 	views, err := a.Srv().Store().View().UpdateSortOrder(viewID, channelID, newIndex)
 	if err != nil {
 		var iiErr *store.ErrInvalidInput
@@ -130,7 +130,7 @@ func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, ne
 	if jsonErr != nil {
 		rctx.Logger().Warn("Failed to encode views to JSON for websocket", mlog.Err(jsonErr))
 	} else {
-		message := model.NewWebSocketEvent(model.WebsocketEventViewSorted, "", channelID, "", nil, "")
+		message := model.NewWebSocketEvent(model.WebsocketEventViewSorted, "", channelID, "", nil, connectionID)
 		message.Add("views", string(viewsJSON))
 		a.Publish(message)
 	}
@@ -138,7 +138,7 @@ func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, ne
 	return views, nil
 }
 
-func (a *App) publishViewEvent(rctx request.CTX, eventType model.WebsocketEventType, view *model.View) {
+func (a *App) publishViewEvent(rctx request.CTX, eventType model.WebsocketEventType, view *model.View, connectionID string) {
 	if view == nil {
 		return
 	}
@@ -147,7 +147,7 @@ func (a *App) publishViewEvent(rctx request.CTX, eventType model.WebsocketEventT
 		rctx.Logger().Warn("Failed to encode view to JSON", mlog.Err(err))
 		return
 	}
-	message := model.NewWebSocketEvent(eventType, "", view.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(eventType, "", view.ChannelId, "", nil, connectionID)
 	message.Add("view", string(viewJSON))
 	a.Publish(message)
 }
