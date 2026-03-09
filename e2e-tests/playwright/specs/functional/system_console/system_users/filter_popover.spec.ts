@@ -182,7 +182,7 @@ test('displays all guest filter variants in the role filter dropdown', {tag: '@s
         'System Admin',
         'Member',
         'Guests (all)',
-        'Guests in single channel',
+        'Guests in a single channel',
         'Guests in multiple channels',
     ]);
 });
@@ -231,7 +231,7 @@ test(
 
         // # Open the filter popover and filter by single-channel guests
         const filterPopover = await systemConsolePage.users.openFilterPopover();
-        await filterPopover.filterByRole('Guests in single channel');
+        await filterPopover.filterByRole('Guests in a single channel');
         await filterPopover.save();
         await systemConsolePage.users.isLoadingComplete();
 

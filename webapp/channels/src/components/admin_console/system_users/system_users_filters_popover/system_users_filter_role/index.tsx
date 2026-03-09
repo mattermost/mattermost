@@ -62,7 +62,7 @@ export function SystemUsersFilterRole(props: Props) {
             value: RoleFilters.GuestSingleChannel,
             label: formatMessage({
                 id: 'admin.system_users.filters.role.guest_single_channel',
-                defaultMessage: 'Guests in single channel',
+                defaultMessage: 'Guests in a single channel',
             }),
         },
         {

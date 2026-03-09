@@ -133,6 +133,21 @@ func TestGetUsersForReporting(t *testing.T) {
 		}
 		require.True(t, foundSingle, "single-channel guest not found in results")
 	})
+
+	t.Run("should reject invalid guest_filter value", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+
+		options := &model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				PageSize: 50,
+			},
+			GuestFilter: "invalid_value",
+		}
+
+		_, resp, err := client.GetUsersForReporting(context.Background(), options)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestFillReportingBaseOptions(t *testing.T) {

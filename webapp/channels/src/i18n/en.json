@@ -3034,7 +3034,7 @@
   "admin.system_users.exportButton.notLicensed.title": "Professional feature",
   "admin.system_users.filters.role.any": "Any",
   "admin.system_users.filters.role.guest_multi_channel": "Guests in multiple channels",
-  "admin.system_users.filters.role.guest_single_channel": "Guests in single channel",
+  "admin.system_users.filters.role.guest_single_channel": "Guests in a single channel",
   "admin.system_users.filters.role.system_admin": "System Admin",
   "admin.system_users.filters.role.system_guest": "Guests (all)",
   "admin.system_users.filters.role.system_user": "Member",

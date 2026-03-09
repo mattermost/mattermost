@@ -27,6 +27,8 @@ var (
 	ReportExportFormats = []string{"csv"}
 
 	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
+
+	AllowedGuestFilters = []string{GuestFilterAll, GuestFilterSingleChannel, GuestFilterMultipleChannel}
 )
 
 type ReportableObject interface {
@@ -156,6 +158,10 @@ func (u *UserReportOptions) IsValid() *AppError {
 	// Validate against the columns we allow sorting for
 	if !slices.Contains(UserReportSortColumns, u.SortColumn) {
 		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_sort_column", nil, "", http.StatusBadRequest)
+	}
+
+	if u.GuestFilter != "" && !slices.Contains(AllowedGuestFilters, u.GuestFilter) {
+		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_guest_filter", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

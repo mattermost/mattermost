@@ -55,7 +55,7 @@ type RoleFilter =
     | 'System Admin'
     | 'Member'
     | 'Guests (all)'
-    | 'Guests in single channel'
+    | 'Guests in a single channel'
     | 'Guests in multiple channels';
 type StatusFilter = 'Any' | 'Activated users' | 'Deactivated users';
 
