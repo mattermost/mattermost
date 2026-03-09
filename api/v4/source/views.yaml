@@ -1,0 +1,240 @@
+  "/api/v4/channels/{channel_id}/views":
+    post:
+      tags:
+        - channels
+        - views
+      summary: Create a view for a channel
+      description: >
+        Create a new view for a channel.
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel.
+      operationId: CreateView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - title
+              properties:
+                type:
+                  type: string
+                  description: The type of view (e.g., 'board')
+                title:
+                  type: string
+                  description: The title of the view
+                description:
+                  type: string
+                  description: A description of the view
+                icon:
+                  type: string
+                  description: The icon identifier for the view
+                sort_order:
+                  type: integer
+                  description: The sort order of the view within the channel
+                props:
+                  type: object
+                  description: Additional properties for the view stored as JSON (includes subviews and type-specific configuration)
+        description: View object to create
+        required: true
+      responses:
+        "201":
+          description: View creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      tags:
+        - channels
+        - views
+      summary: Get views for a channel
+      description: >
+        Get a list of views for a channel.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel.
+      operationId: GetViewsForChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of views per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Views retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/views/{view_id}":
+    get:
+      tags:
+        - channels
+        - views
+      summary: Get a view
+      description: >
+        Get a single view by its ID.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel.
+      operationId: GetView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: View retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - channels
+        - views
+      summary: Update a view
+      description: >
+        Partially update a view by providing only the fields you want to update. Omitted fields will not be updated. The fields that can be updated are defined in the request body.
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel.
+      operationId: UpdateView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewPatch"
+        description: View patch object
+        required: true
+      responses:
+        "200":
+          description: View update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - channels
+        - views
+      summary: Delete a view
+      description: >
+        Deletes a view.
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel.
+      operationId: DeleteView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: View deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

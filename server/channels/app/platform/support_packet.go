@@ -193,14 +193,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
-		d.ElasticSearch.ServerVersion = se.GetFullVersion()
-		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 		if *ps.Config().ElasticsearchSettings.EnableIndexing {
 			appErr := se.TestConfig(rctx, ps.Config())
 			if appErr != nil {
 				d.ElasticSearch.Error = appErr.Error()
 			}
 		}
+		d.ElasticSearch.ServerVersion = se.GetFullVersion()
+		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
 
 	b, err := yaml.Marshal(&d)
