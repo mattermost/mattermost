@@ -30,7 +30,7 @@ import {
     uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
 
-import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
+import ContentFlaggingSettings, {searchableStrings as dataSpillageSearchableStrings} from 'components/admin_console/content_flagging/content_flagging_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -3507,8 +3507,9 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             content_flagging: {
-                url: 'site_config/content_flagging',
-                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                url: 'site_config/data_spillage',
+                title: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
+                searchableStrings: dataSpillageSearchableStrings,
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
