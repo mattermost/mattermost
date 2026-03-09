@@ -72,8 +72,22 @@ type BannerConfig = {
     showPlanDiffLink: boolean;
 };
 
+// Normalize SKU aliases (E10 → enterprise, E20 → advanced) to their canonical values
+// so that legacy SKU names are handled correctly in plan-level and banner logic.
+const normalizeSku = (skuShortName: string | undefined): string | undefined => {
+    const lower = skuShortName?.toLowerCase();
+    switch (lower) {
+    case LicenseSkus.E10.toLowerCase():
+        return LicenseSkus.Professional;
+    case LicenseSkus.E20.toLowerCase():
+        return LicenseSkus.Enterprise;
+    default:
+        return lower;
+    }
+};
+
 const getPlanLevel = (skuShortName: string | undefined): number => {
-    switch (skuShortName?.toLowerCase()) {
+    switch (normalizeSku(skuShortName)) {
     case LicenseSkus.Entry:
         return 0;
     case LicenseSkus.Professional:
@@ -89,7 +103,7 @@ const getPlanLevel = (skuShortName: string | undefined): number => {
 
 // Entry transitions (info-only view)
 const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerConfig | null => {
-    const sku = newSkuShortName?.toLowerCase();
+    const sku = normalizeSku(newSkuShortName);
 
     switch (sku) {
     case LicenseSkus.Professional:
@@ -138,7 +152,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
 
 // Upgrade banners (comparison diff view)
 const getUpgradeBanner = (newSkuShortName: string | undefined): BannerConfig | null => {
-    const newSku = newSkuShortName?.toLowerCase();
+    const newSku = normalizeSku(newSkuShortName);
 
     if (newSku === LicenseSkus.Enterprise) {
         return {
@@ -175,8 +189,8 @@ const getUpgradeBanner = (newSkuShortName: string | undefined): BannerConfig | n
 
 // Downgrade banners (comparison diff view)
 const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShortName: string | undefined): BannerConfig | null => {
-    const currentSku = currentSkuShortName?.toLowerCase();
-    const newSku = newSkuShortName?.toLowerCase();
+    const currentSku = normalizeSku(currentSkuShortName);
+    const newSku = normalizeSku(newSkuShortName);
 
     if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.Professional) {
         return {
@@ -245,7 +259,7 @@ const getTransitionBanner = (currentSkuShortName: string | undefined, newSkuShor
 const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
     const intl = useIntl();
     const hasCurrentLicense = currentLicense && Object.keys(currentLicense).length > 0 && currentLicense.IsLicensed === 'true';
-    const isEntryLicense = hasCurrentLicense && currentLicense.SkuShortName?.toLowerCase() === LicenseSkus.Entry;
+    const isEntryLicense = hasCurrentLicense && normalizeSku(currentLicense.SkuShortName) === LicenseSkus.Entry;
 
     const renderBanner = (config: BannerConfig | null) => {
         if (!config) {
@@ -384,7 +398,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
                             }
                             currentValue={currentLicense.SkuName || '-'}
                             newValue={newLicense.sku_name || '-'}
-                            changed={isChanged(currentLicense.SkuShortName, newLicense.sku_short_name)}
+                            changed={isChanged(currentLicense.SkuName, newLicense.sku_name)}
                             className='diff-row-plan'
                         />
                         <DiffRow
