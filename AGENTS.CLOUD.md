@@ -16,6 +16,10 @@ PostgreSQL 14 is the only required external dependency, run via Docker Compose.
 
 The update script handles: git auth, repo cloning, npm install, Go workspace setup, config.override.mk, and the client symlink. See below for what remains manual.
 
+### Localization/i18n
+
+When editing translation strings, changes must ONLY be made to the relevant en.json. You MUST NOT change any other localization files.
+
 ### Starting services
 
 After the update script has run:
