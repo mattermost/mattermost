@@ -52,30 +52,20 @@ export interface ChannelAccessControlActions {
  * @param channelId - Optional channel ID for channel-specific context. Required for channel admin contexts, optional for system admin contexts.
  * @returns Object containing access control action functions
  */
-export const useChannelAccessControlActions = (channelId?: string): ChannelAccessControlActions => {
+export const useChannelAccessControlActions = (channelId?: string, teamId?: string): ChannelAccessControlActions => {
     const dispatch = useDispatch();
 
     return useMemo(() => ({
-
-        /**
-         * Get available user attribute fields for access control rules
-         */
         getAccessControlFields: (after: string, limit: number) => {
-            return dispatch(getAccessControlFields(after, limit, channelId));
+            return dispatch(getAccessControlFields(after, limit, channelId, teamId));
         },
 
-        /**
-         * Convert a CEL expression to a visual AST for table editor display
-         */
         getVisualAST: (expression: string) => {
-            return dispatch(getVisualAST(expression, channelId));
+            return dispatch(getVisualAST(expression, channelId, teamId));
         },
 
-        /**
-         * Search users that match a given access control expression
-         */
         searchUsers: (expression: string, term: string, after: string, limit: number) => {
-            return dispatch(searchUsersForExpression(expression, term, after, limit, channelId));
+            return dispatch(searchUsersForExpression(expression, term, after, limit, channelId, teamId));
         },
 
         /**
@@ -117,7 +107,7 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          * Validate if the current user (requester) matches an access control expression
          */
         validateExpressionAgainstRequester: (expression: string) => {
-            return dispatch(validateExpressionAgainstRequester(expression, channelId));
+            return dispatch(validateExpressionAgainstRequester(expression, channelId, teamId));
         },
 
         /**
@@ -133,7 +123,7 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
             return dispatch(updateAccessControlPoliciesActive(statuses));
         },
-    }), [dispatch, channelId]);
+    }), [dispatch, channelId, teamId]);
 };
 
 export default useChannelAccessControlActions;

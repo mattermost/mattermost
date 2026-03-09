@@ -4759,10 +4759,13 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string) => {
-        const requestBody: {expression: string; channelId?: string} = {expression};
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
+        }
+        if (teamId) {
+            requestBody.teamId = teamId;
         }
 
         return this.doFetch<CELExpressionError[]>(
@@ -4771,12 +4774,15 @@ export default class Client4 {
         );
     };
 
-    testAccessControlExpression = (expression: string, term: string, after: string, limit: number, channelId?: string) => {
-        const requestBody: {expression: string; term: string; after: string; limit: number; channelId?: string} = {
+    testAccessControlExpression = (expression: string, term: string, after: string, limit: number, channelId?: string, teamId?: string) => {
+        const requestBody: {expression: string; term: string; after: string; limit: number; channelId?: string; teamId?: string} = {
             expression, term, after, limit,
         };
         if (channelId) {
             requestBody.channelId = channelId;
+        }
+        if (teamId) {
+            requestBody.teamId = teamId;
         }
 
         return this.doFetch<AccessControlTestResult>(
@@ -4785,10 +4791,13 @@ export default class Client4 {
         );
     };
 
-    expressionToVisualFormat = (expression: string, channelId?: string) => {
-        const requestBody: {expression: string; channelId?: string} = {expression};
+    expressionToVisualFormat = (expression: string, channelId?: string, teamId?: string) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
+        }
+        if (teamId) {
+            requestBody.teamId = teamId;
         }
 
         return this.doFetch<AccessControlVisualAST>(
@@ -4797,10 +4806,13 @@ export default class Client4 {
         );
     };
 
-    validateExpressionAgainstRequester = (expression: string, channelId?: string) => {
-        const requestBody: {expression: string; channelId?: string} = {expression};
+    validateExpressionAgainstRequester = (expression: string, channelId?: string, teamId?: string) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
         if (channelId !== undefined) {
             requestBody.channelId = channelId;
+        }
+        if (teamId) {
+            requestBody.teamId = teamId;
         }
 
         return this.doFetch<{requester_matches: boolean}>(

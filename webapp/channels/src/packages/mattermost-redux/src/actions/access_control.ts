@@ -125,22 +125,18 @@ export function unassignChannelsFromAccessControlPolicy(policyId: string, channe
     });
 }
 
-export function getAccessControlFields(after: string, limit: number, channelId?: string) {
+export function getAccessControlFields(after: string, limit: number, channelId?: string, teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.getAccessControlFields,
-        params: [
-            after,
-            limit,
-            channelId,
-        ],
+        clientFunc: () => Client4.getAccessControlFields(after, limit, channelId, teamId),
+        params: [],
     });
 }
 
-export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string): ActionFuncAsync<AccessControlTestResult> {
+export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string, teamId?: string): ActionFuncAsync<AccessControlTestResult> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.testAccessControlExpression(expression, term, after, limit, channelId);
+            data = await Client4.testAccessControlExpression(expression, term, after, limit, channelId, teamId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
@@ -154,18 +150,18 @@ export function searchUsersForExpression(expression: string, term: string, after
     };
 }
 
-export function getVisualAST(expression: string, channelId?: string) {
+export function getVisualAST(expression: string, channelId?: string, teamId?: string) {
     return bindClientFunc({
-        clientFunc: Client4.expressionToVisualFormat,
-        params: [expression, channelId],
+        clientFunc: () => Client4.expressionToVisualFormat(expression, channelId, teamId),
+        params: [],
     });
 }
 
-export function validateExpressionAgainstRequester(expression: string, channelId?: string): ActionFuncAsync<{requester_matches: boolean}> {
+export function validateExpressionAgainstRequester(expression: string, channelId?: string, teamId?: string): ActionFuncAsync<{requester_matches: boolean}> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.validateExpressionAgainstRequester(expression, channelId);
+            data = await Client4.validateExpressionAgainstRequester(expression, channelId, teamId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};

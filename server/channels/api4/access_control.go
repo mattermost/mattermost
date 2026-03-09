@@ -206,38 +206,37 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
-	// request type reserved for future expansion
-	// for now, we only support the expression check
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		TeamId     string `json:"teamId,omitempty"`
 	}{}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
-	// Get channelId from request body (required for channel-specific permission check)
 	channelId := checkExpressionRequest.ChannelId
 	if channelId != "" && !model.IsValidId(channelId) {
 		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// Check permissions: system admin OR channel-specific permission
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		// For channel admins, channelId is required
-		if channelId == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// SECURE: Check specific channel permission
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+		teamID := checkExpressionRequest.TeamId
+		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+		if !hasTeamPermission {
+			if channelId == "" {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 		}
 	}
 
@@ -265,27 +264,27 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get channelId from request body (required for channel-specific permission check)
 	channelId := checkExpressionRequest.ChannelId
 	if channelId != "" && !model.IsValidId(channelId) {
 		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// Check permissions: system admin OR channel-specific permission
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		// For channel admins, channelId is required
-		if channelId == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// SECURE: Check specific channel permission
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+		teamID := checkExpressionRequest.TeamId
+		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+		if !hasTeamPermission {
+			if channelId == "" {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 		}
 	}
 
@@ -334,6 +333,7 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 	var request struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		TeamId     string `json:"teamId,omitempty"`
 	}
 
 	if jsonErr := json.NewDecoder(r.Body).Decode(&request); jsonErr != nil {
@@ -341,27 +341,27 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Get channelId from request body (required for channel-specific permission check)
 	channelId := request.ChannelId
 	if channelId != "" && !model.IsValidId(channelId) {
 		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// Check permissions: system admin OR channel-specific permission
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		// For channel admins, channelId is required
-		if channelId == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// SECURE: Check specific channel permission
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+		teamID := request.TeamId
+		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+		if !hasTeamPermission {
+			if channelId == "" {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 		}
 	}
 
@@ -585,9 +585,25 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
-		if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID); appErr != nil {
-			c.Err = appErr
-			return
+		// Ownership check: policy must be team-scoped to this team OR have no channels yet (new policy)
+		ownershipErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
+		if ownershipErr != nil {
+			// Check if policy exists but has no channels (new policy being scoped for the first time)
+			policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+			if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
+				c.Err = ownershipErr
+				return
+			}
+			// Policy exists but isn't team-scoped — allow if it has no children (channelless)
+			childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+				ParentID: policyID,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Limit:    1,
+			})
+			if searchErr != nil || len(childCount) > 0 {
+				c.Err = ownershipErr
+				return
+			}
 		}
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
@@ -790,18 +806,17 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !hasSystemPermission {
 		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
 			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
-		if hasTeamPermission {
-			// Team admin has access
-		} else if channelId == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
+		if !hasTeamPermission {
+			if channelId == "" {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
 
-		// SECURE: Check specific channel permission
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 		}
 	}
 
@@ -849,33 +864,34 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cel struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		TeamId     string `json:"teamId,omitempty"`
 	}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cel); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
-	// Get channelId from request body (required for channel-specific permission check)
 	channelId := cel.ChannelId
 	if channelId != "" && !model.IsValidId(channelId) {
 		c.SetInvalidParam("channelId")
 		return
 	}
 
-	// Check permissions: system admin OR channel-specific permission
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		// For channel admins, channelId is required
-		if channelId == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// SECURE: Check specific channel permission
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+		teamID := cel.TeamId
+		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+		if !hasTeamPermission {
+			if channelId == "" {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 		}
 	}
 	visualAST, appErr := c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)

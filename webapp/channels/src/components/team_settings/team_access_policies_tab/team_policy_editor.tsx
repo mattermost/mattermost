@@ -13,8 +13,6 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {Client4} from 'mattermost-redux/client';
-
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -75,7 +73,7 @@ export default function TeamPolicyEditor({
     actions,
 }: Props) {
     const {formatMessage} = useIntl();
-    const abacActions = useChannelAccessControlActions();
+    const abacActions = useChannelAccessControlActions(undefined, teamId);
 
     // Policy state
     const [policyName, setPolicyName] = useState('');
@@ -107,13 +105,15 @@ export default function TeamPolicyEditor({
 
     // Load attributes on mount
     useEffect(() => {
-        Client4.getAccessControlFields('', 100, undefined, teamId).then((data) => {
-            setAutocompleteResult(data);
+        abacActions.getAccessControlFields('', 100).then((result) => {
+            if (result.data) {
+                setAutocompleteResult(result.data);
+            }
             setAttributesLoaded(true);
         }).catch(() => {
             setAttributesLoaded(true);
         });
-    }, [teamId]);
+    }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
     // Load policy data for edit mode
     useEffect(() => {
@@ -252,7 +252,7 @@ export default function TeamPolicyEditor({
 
             // Trigger sync job if needed
             if (apply) {
-                await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId});
+                await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
             }
 
             // Update originals
@@ -346,7 +346,7 @@ export default function TeamPolicyEditor({
                 <input
                     id='policyName'
                     type='text'
-                    className={`form-control${hasErrors && policyName.length === 0 ? ' has-error' : ''}`}
+                    className={`TeamPolicyEditor__name-field${hasErrors && policyName.length === 0 ? ' has-error' : ''}`}
                     value={policyName}
                     placeholder={formatMessage({id: 'team_settings.policy_editor.name_placeholder', defaultMessage: 'Add a unique policy name'})}
                     onChange={(e) => setPolicyName(e.target.value)}
@@ -393,6 +393,7 @@ export default function TeamPolicyEditor({
                             onChange={setExpression}
                             onValidate={() => {}}
                             disabled={noUsableAttributes}
+                            teamId={teamId}
                             userAttributes={filteredAttributes}
                         />
                     ) : (
@@ -430,6 +431,7 @@ export default function TeamPolicyEditor({
                         policyActiveStatusChanges={policyActiveStatusChanges}
                         onPolicyActiveStatusChange={setPolicyActiveStatusChanges}
                         saving={saving}
+                        hideTeamColumn={true}
                     />
                 </Card.Body>
             </Card>

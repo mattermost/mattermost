@@ -178,7 +178,14 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 			}
 		}
 
-		// Fallback: deny access if no specific channel permission and not system admin
+		// Check team admin permission
+		teamID, hasTeamID := job.Data["team_id"]
+		if hasTeamID && teamID != "" && model.IsValidId(teamID) {
+			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+
 		return false, model.PermissionManageSystem
 	}
 
