@@ -89,7 +89,7 @@ func (p *panel) Print(userID string) {
 		s := p.settings[key]
 		sa, loopErr := s.GetMessageAttachments(userID, p.pluginURL+p.settingHandler, p.isSettingDisabled(userID, s))
 		if loopErr != nil {
-			p.logger.Errorf("error creating the slack attachment, err=" + loopErr.Error())
+			p.logger.Errorf("error creating the message attachment, err=" + loopErr.Error())
 			continue
 		}
 		sas = append(sas, sa)
@@ -114,7 +114,7 @@ func (p *panel) ToPost(userID string) (*model.Post, error) {
 		s := p.settings[key]
 		sa, err := s.GetMessageAttachments(userID, p.pluginURL+p.settingHandler, p.isSettingDisabled(userID, s))
 		if err != nil {
-			p.logger.Errorf("error creating the slack attachment for setting %s, err=%s", s.GetID(), err.Error())
+			p.logger.Errorf("error creating the message attachment for setting %s, err=%s", s.GetID(), err.Error())
 			continue
 		}
 		sas = append(sas, sa)

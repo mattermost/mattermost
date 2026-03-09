@@ -14,6 +14,16 @@ type SlackAttachment = MessageAttachment
 // Deprecated: Use MessageAttachmentField instead.
 type SlackAttachmentField = MessageAttachmentField
 
+// Deprecated: Use ParseMessageAttachment instead.
+func ParseSlackAttachment(post *Post, attachments []*MessageAttachment) {
+	ParseMessageAttachment(post, attachments)
+}
+
+// Deprecated: Use StringifyMessageAttachmentFieldValue instead.
+func StringifySlackFieldValue(a []*MessageAttachment) []*MessageAttachment {
+	return StringifyMessageAttachmentFieldValue(a)
+}
+
 // SlackCompatibleBool is an alias for bool that implements json.Unmarshaler
 type SlackCompatibleBool bool
 
