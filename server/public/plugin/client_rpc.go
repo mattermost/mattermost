@@ -208,7 +208,15 @@ func decodableError(err error) error {
 
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
-	gob.Register([]*model.MessageAttachment{})
+	// Use RegisterName with the old type name to maintain backward compatibility
+	// with plugins compiled against older server versions where SlackAttachment
+	// was the concrete struct type (now renamed to MessageAttachment with
+	// SlackAttachment as a type alias). Without this, gob decoding fails because
+	// old plugins encode the type as "[]*model.SlackAttachment" but the server
+	// would only recognize "[]*model.MessageAttachment". The full type string
+	// including "[]*" prefix is required because gob uses reflect.Type.String()
+	// as the wire format type name.
+	gob.RegisterName("[]*model.SlackAttachment", []*model.MessageAttachment{})
 	gob.Register([]any{})
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
