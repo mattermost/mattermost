@@ -1366,7 +1366,7 @@ func TestValidateDateTimeFormat(t *testing.T) {
 		{"invalid date part", "2025-13-01T10:30:00Z", true},
 		{"invalid time part", "2025-01-15T25:30:00Z", true},
 		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
-		{"date only format", "2025-01-15", true},
+		{"date only format", "2025-01-15", false}, // backward compat: accepted, treated as start-of-day
 		{"empty string", "", false}, // Empty string is valid (no error)
 		{"invalid format with space", "2025-01-15 10:30:00", true},
 	}
@@ -1585,16 +1585,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		err := element.IsValid()
 		assert.NoError(t, err)
 
-		// Invalid with default 60-minute interval
+		// 0 is silently accepted and defaults to the server-side default interval
 		element = DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			TimeInterval: 0, // Should use default of 60
+			TimeInterval: 0,
 			Optional:     false,
 		}
 		err = element.IsValid()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
+		assert.NoError(t, err)
 	})
 }

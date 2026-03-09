@@ -311,10 +311,11 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
         let options = getTimeInIntervals(startTime, timePickerInterval);
 
-        if (minDateTime && timeForOptions.isSame(minDateTime, 'date')) {
+        const tz = timezone || moment.tz.guess();
+        if (minDateTime && timeForOptions.isSame(minDateTime.clone().tz(tz), 'date')) {
             options = options.filter((opt) => !opt.isBefore(minDateTime, 'minute'));
         }
-        if (maxDateTime && timeForOptions.isSame(maxDateTime, 'date')) {
+        if (maxDateTime && timeForOptions.isSame(maxDateTime.clone().tz(tz), 'date')) {
             options = options.filter((opt) => !opt.isAfter(maxDateTime, 'minute'));
         }
 
@@ -334,7 +335,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
             // For dropdown, use rounded time
             effectiveTime = allowManualTimeEntry ?
                 nowInTimezone :
-                getRoundedTime(nowInTimezone, timePickerInterval || 60);
+                getRoundedTime(nowInTimezone, timePickerInterval ?? 60);
         }
 
         let result: Moment;

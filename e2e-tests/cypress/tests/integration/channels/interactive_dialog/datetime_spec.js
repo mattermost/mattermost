@@ -426,6 +426,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         const pastDay = pastDate.getDate().toString();
         cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
             .filter((i, el) => el.textContent.trim() === pastDay)
+            .should('have.length.greaterThan', 0) // guard: day must be found
             .should('have.class', 'rdp-day_disabled').and('be.disabled');
 
         // Navigate back to current month if needed
@@ -460,19 +461,28 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify a date beyond max_date (+7d) is disabled
         // Use +10 days to be safely past the 7-day window
-        const beyondDate = new Date();
-        beyondDate.setDate(beyondDate.getDate() + 10);
-        const needsNextMonth = beyondDate.getMonth() !== new Date().getMonth();
+        // Single `now` reference avoids month-boundary race between two Date() calls
+        const now = new Date();
+        const beyondDate = new Date(now);
+        beyondDate.setDate(now.getDate() + 10);
+        const needsNextMonth = beyondDate.getMonth() !== now.getMonth();
         if (needsNextMonth) {
             cy.get('.rdp .rdp-nav_button_next').click();
         }
         const beyondDay = beyondDate.getDate().toString();
         cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
             .filter((i, el) => el.textContent.trim() === beyondDay)
+            .should('have.length.greaterThan', 0) // guard: day must be found
             .should('have.class', 'rdp-day_disabled').and('be.disabled');
     });
 
     it('MM-T2530K - time dropdown filters past times when min_date uses sub-day offset', () => {
+        // Guard: '+2H' wraps to tomorrow after 10 PM — skip to avoid false failures
+        const currentHour = new Date().getHours();
+        if (currentHour >= 22) {
+            return;
+        }
+
         // # Open minmax dialog — "Time-Filtered DateTime" has min_date: '+2H'
         //   which resolves to 2 hours from now, filtering out early time slots
         openDateTimeDialog('minmax');
@@ -492,16 +502,15 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
 
+        // * Verify the dropdown has options and fewer than 24 (early hours are filtered out)
+        cy.get('[id^="time_option_"]').should('have.length.greaterThan', 0);
+        cy.get('[id^="time_option_"]').should('have.length.lessThan', 24);
+
         // * Verify midnight (00:00 / 12:00 AM) is NOT the first time option —
         //   min_date: '+2H' resolves to 2 hours from now, so early slots are filtered.
-        //   Note: if the test runs between 10 PM and midnight, +2H wraps to tomorrow
-        //   and the filter won't apply to today's slots, making this flaky in that window.
         cy.get('[id^="time_option_"]').first().invoke('text').then((firstOptionText) => {
             expect(firstOptionText).to.not.match(/^(12:00 AM|00:00)$/);
         });
-
-        // * Verify the dropdown has fewer than 24 options (early hours are filtered out)
-        cy.get('[id^="time_option_"]').should('have.length.lessThan', 24);
     });
 
     it('MM-T2530O - Manual time entry (basic functionality)', () => {

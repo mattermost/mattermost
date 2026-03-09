@@ -497,7 +497,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/i,
+        /^[+-]\d{1,3}[dwmHMS]$/,
     ];
 
     for (const pattern of relativePatterns) {

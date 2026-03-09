@@ -49,6 +49,7 @@ const (
 
 // Common datetime formats used by both date and datetime validation
 var commonDateTimeFormats = []string{
+	time.RFC3339Nano,              // RFC3339 with fractional seconds (e.g. 2025-01-15T10:30:00.123Z)
 	ISODateTimeFormat,             // RFC3339 UTC
 	ISODateTimeWithTimezoneFormat, // RFC3339 with timezone
 	ISODateTimeNoTimezoneFormat,   // ISO datetime without timezone

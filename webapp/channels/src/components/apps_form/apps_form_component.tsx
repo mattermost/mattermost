@@ -225,8 +225,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Set default to current time for required datetime fields
                 const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Use sanitized time_interval (guaranteed to be valid)
-                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+                // Use sanitized time_interval from datetime_config (canonical location after sanitization)
+                const timePickerInterval = field.datetime_config?.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
