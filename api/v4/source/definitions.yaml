@@ -412,6 +412,9 @@ components:
           type: string
         type:
           type: string
+        object_type:
+          type: string
+          description: The type of object this property applies to (e.g., 'post', 'channel')
         attrs:
           type: object
         target_id:
@@ -442,10 +445,6 @@ components:
           type: string
         attrs:
           type: object
-        target_id:
-          type: string
-        target_type:
-          type: string
     PropertyValue:
       type: object
       properties:
@@ -4478,6 +4477,66 @@ components:
           items:
             $ref: "#/components/schemas/Condition"
           description: The visual AST for the CEL expression
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the view
+        channel_id:
+          type: string
+          description: The ID of the channel this view belongs to
+        type:
+          type: string
+          description: The type of view
+        creator_id:
+          description: The Id of the user who created the view
+          type: string
+        title:
+          type: string
+          description: The title of the view
+        description:
+          type: string
+          description: A description of the view
+        icon:
+          type: string
+          description: The icon identifier for the view
+        sort_order:
+          type: integer
+          description: The sort order of the view within the channel
+        props:
+          type: object
+          description: Additional properties for the view stored as JSON (includes subviews and other type-specific configuration)
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the view was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the view was last updated
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the view was deleted, 0 if not deleted
+    ViewPatch:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the view
+        description:
+          type: string
+          description: A description of the view
+        icon:
+          type: string
+          description: The icon identifier for the view
+        sort_order:
+          type: integer
+          description: The sort order of the view within the channel
+        props:
+          type: object
+          description: Additional properties for the view stored as JSON
     Condition:
       type: object
       properties:
