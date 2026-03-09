@@ -235,14 +235,14 @@ test('does not show guest limit banner when count is within limit', {tag: '@syst
     await systemConsolePage.toBeVisible();
 
     // * Verify the guest limit banner is not visible (count is within limit)
-    await expect(systemConsolePage.page.locator('#single_channel_guest_limit_banner')).not.toBeVisible();
+    await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
 });
 
 /**
  * @objective Verify error styling appears on the single-channel guests card and dismissible banner shows when single-channel guest count exceeds the limit
  *
  * @precondition
- * Server has a non-Entry license with guest accounts enabled and a small enough seat count to make overage testable
+ * Server has a non-Entry license with guest accounts enabled
  */
 test(
     'shows error styling on guests card and banner when single-channel guest count exceeds limit',
@@ -259,28 +259,13 @@ test(
         config.GuestAccountsSettings.Enable = true;
         await adminClient.updateConfig(config);
 
-        // # Check the current limit to see if overage is feasible
-        const {data: initialLimits} = await adminClient.getServerLimits();
-        const limit = initialLimits.singleChannelGuestLimit ?? 0;
-        const currentCount = initialLimits.singleChannelGuestCount ?? 0;
-        const guestsNeeded = limit - currentCount + 1;
-
-        // # Skip if the limit is too large to make this test practical
-        if (limit === 0 || guestsNeeded > 20) {
-            test.skip(
-                true,
-                `License has ${limit} seats; creating ${guestsNeeded} guests to trigger overage is not practical`,
-            );
-            return;
-        }
-
-        // # Create enough single-channel guests to exceed the limit
-        for (let i = 0; i < guestsNeeded; i++) {
+        // # Create multiple single-channel guests so the analytics count exceeds the mocked limit
+        for (let i = 0; i < 3; i++) {
             const guest = await adminClient.createUser(await pw.random.user(), '', '');
             await adminClient.updateUserRoles(guest.id, 'system_guest');
             await adminClient.addToTeam(team.id, guest.id);
 
-            const channel = await adminClient.createChannel(
+            const ch = await adminClient.createChannel(
                 pw.random.channel({
                     teamId: team.id,
                     name: `scg-overage-${i}`,
@@ -288,11 +273,21 @@ test(
                     unique: true,
                 }),
             );
-            await adminClient.addToChannel(guest.id, channel.id);
+            await adminClient.addToChannel(guest.id, ch.id);
         }
 
-        // # Navigate to site statistics page
+        // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+        // # Mock the server limits API to simulate overage by returning a limit of 1
+        await systemConsolePage.page.route('**/api/v4/limits/server', async (route) => {
+            const response = await route.fetch();
+            const json = await response.json();
+            json.singleChannelGuestLimit = 1;
+            await route.fulfill({response, json});
+        });
+
+        // # Navigate to site statistics page
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
@@ -303,12 +298,8 @@ test(
         await expect(cardTitle).toBeVisible();
         await expect(cardTitle).toHaveClass(/team_statistics--error/);
 
-        // # Navigate back to System Console home to check global banner
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-
         // * Verify the dismissible guest limit banner is visible
-        await expect(systemConsolePage.page.locator('#single_channel_guest_limit_banner')).toBeVisible();
+        await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).toBeVisible();
     },
 );
 

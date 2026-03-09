@@ -1798,6 +1798,7 @@ func (us SqlUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
 		Where(sq.ILike{"u.Roles": "%system_guest%"}).
 		Where(sq.Eq{"u.DeleteAt": 0}).
 		Where(sq.Eq{"c.DeleteAt": 0}).
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
 		GroupBy("cm.UserId").
 		Having("COUNT(cm.ChannelId) = 1")
 
