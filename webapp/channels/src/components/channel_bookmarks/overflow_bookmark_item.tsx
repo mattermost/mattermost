@@ -74,6 +74,9 @@ function OverflowBookmarkItem({
         }
     }, [keyboardReorderProps]);
 
+    const linksDisabled = isDragging || isDragSelf;
+    const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
+
     // ArrowLeft from the open dot menu closes it and returns focus to the item
     const handleDotMenuKeyDown = useCallback((_event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => {
         if (_event.key === 'ArrowLeft') {
@@ -83,9 +86,6 @@ function OverflowBookmarkItem({
             liRef.current?.focus();
         }
     }, []);
-
-    const linksDisabled = isDragging || isDragSelf;
-    const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
     const itemClassName = classNames('overflowBookmarkItem', {
         'is-dragging-self': isDragSelf,

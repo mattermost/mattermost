@@ -153,7 +153,7 @@ function ChannelBookmarks({channelId}: Props) {
                     canReorder={canReorder}
                     isDragging={isDragging}
                     canAdd={canAdd}
-                    forceOpen={showDragOverlay || (reorderState.isReordering ? autoOpenOverflow : undefined)}
+                    forceOpen={showDragOverlay || (reorderState.isReordering && (autoOpenOverflow || overflowItems.includes(reorderState.itemId ?? ''))) || undefined}
                     reorderState={reorderState}
                     getItemProps={canReorder ? getItemProps : undefined}
                 />

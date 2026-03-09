@@ -83,12 +83,6 @@ type MenuProps = {
     hideBackdrop?: boolean;
 
     /**
-     * When true, pressing Escape will not close the menu. Useful during
-     * drag-and-drop so the drag can be cancelled without closing the menu.
-     */
-    disableEscapeKeyDown?: boolean;
-
-    /**
      * When true, MUI will not restore focus to the previously focused
      * element when the menu closes. Useful when the caller manages
      * focus itself (e.g. keyboard reordering).
@@ -144,10 +138,6 @@ export function Menu(props: Props) {
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>, reason?: string) {
-        if (reason === 'escapeKeyDown' && props.menu.disableEscapeKeyDown) {
-            return;
-        }
-
         // When hideBackdrop is active (during DnD), block all MUI-initiated close.
         // The menu is controlled exclusively via isMenuOpen in this mode.
         if (props.menu.hideBackdrop) {
