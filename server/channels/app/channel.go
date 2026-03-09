@@ -329,21 +329,21 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 		if err != nil {
 			return nil, err
 		}
-		var isPluginOwnedBot bool
+		var isBotExempt bool
 		for _, user := range users {
 			if user.IsBot {
-				isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+				exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 				if err != nil {
 					return nil, err
 				}
-				if isOwnedByCurrentUserOrPlugin {
-					isPluginOwnedBot = true
+				if exempt {
+					isBotExempt = true
 					break
 				}
 			}
 		}
-		// if one of the users is a bot, don't restrict to team members
-		if !isPluginOwnedBot {
+		// if one of the users is an exempt bot, don't restrict to team members
+		if !isBotExempt {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 			if err != nil {
 				return nil, err
@@ -3815,11 +3815,11 @@ func (a *App) getDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, reques
 	userIDs := make([]string, 0, len(users))
 	for _, user := range users {
 		if user.IsBot {
-			isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+			exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 			if err != nil {
 				return nil, err
 			}
-			if isOwnedByCurrentUserOrPlugin {
+			if exempt {
 				continue
 			}
 		}
