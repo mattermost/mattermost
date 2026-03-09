@@ -23,6 +23,8 @@ function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
         group_id: 'group-1',
         name: 'test',
         type: 'text',
+        target_id: '',
+        target_type: '',
         object_type: 'post',
         create_at: 1000,
         update_at: 1000,

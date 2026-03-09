@@ -177,6 +177,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -200,6 +203,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -224,6 +230,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -248,6 +257,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -272,6 +284,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -297,6 +312,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -327,6 +345,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -351,6 +372,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -367,6 +391,9 @@ describe('hasUsableAttributes', () => {
                 name: 'location',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',

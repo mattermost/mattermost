@@ -21,9 +21,9 @@ export type PropertyField = {
         subType?: string;
         [key: string]: unknown;
     };
-    target_id?: string;
-    target_type?: string;
-    object_type?: string;
+    target_id: string;
+    target_type: string;
+    object_type: string;
     create_at: number;
     update_at: number;
     delete_at: number;

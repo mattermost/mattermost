@@ -41,7 +41,7 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
             }
 
             changed = true;
-            const objectType = field.object_type!;
+            const objectType = field.object_type;
             const groupId = field.group_id;
 
             nextById[field.id] = field;
@@ -75,7 +75,7 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
             return state;
         }
 
-        const objectType = field.object_type!;
+        const objectType = field.object_type;
         const groupId = field.group_id;
 
         const nextById = {...state.byId};
