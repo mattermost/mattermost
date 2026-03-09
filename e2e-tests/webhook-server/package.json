@@ -1,0 +1,17 @@
+{
+    "name": "webhook-server",
+    "version": "1.0.0",
+    "description": "Config-driven webhook test server for Mattermost E2E tests (Cypress and Playwright)",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "fmt": "npx oxfmt --write .",
+        "fmt:check": "npx oxfmt --check .",
+        "lint": "npx oxlint .",
+        "lint:fix": "npx oxlint --fix .",
+        "check": "npx oxfmt --check . && npx oxlint ."
+    },
+    "engines": {
+        "node": ">=24.0.0"
+    }
+}

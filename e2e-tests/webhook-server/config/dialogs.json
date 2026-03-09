@@ -1,0 +1,529 @@
+{
+    "full": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Full Dialog Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "somestate",
+        "elements": [
+            {
+                "type": "text",
+                "display_name": "Display Name",
+                "name": "realname",
+                "default": "default text",
+                "placeholder": "placeholder",
+                "help_text": "This a regular input in an interactive dialog triggered by a test integration.",
+                "optional": false
+            },
+            {
+                "type": "text",
+                "display_name": "Email",
+                "name": "someemail",
+                "subtype": "email",
+                "placeholder": "placeholder@bladekick.com",
+                "help_text": "This a regular email input in an interactive dialog triggered by a test integration.",
+                "optional": false
+            },
+            {
+                "type": "text",
+                "display_name": "Number",
+                "name": "somenumber",
+                "subtype": "number",
+                "optional": false
+            },
+            {
+                "type": "text",
+                "display_name": "Password",
+                "name": "somepassword",
+                "subtype": "password",
+                "default": "p@ssW0rd",
+                "placeholder": "placeholder",
+                "help_text": "This a password input in an interactive dialog triggered by a test integration.",
+                "optional": true
+            },
+            {
+                "type": "textarea",
+                "display_name": "Display Name Long Text Area",
+                "name": "realnametextarea",
+                "placeholder": "placeholder",
+                "optional": true,
+                "min_length": 5,
+                "max_length": 100
+            },
+            {
+                "type": "select",
+                "display_name": "User Selector",
+                "name": "someuserselector",
+                "placeholder": "Select a user...",
+                "data_source": "users",
+                "optional": false
+            },
+            {
+                "type": "select",
+                "display_name": "Channel Selector",
+                "name": "somechannelselector",
+                "placeholder": "Select a channel...",
+                "help_text": "Choose a channel from the list.",
+                "data_source": "channels",
+                "optional": true
+            },
+            {
+                "type": "select",
+                "display_name": "Option Selector",
+                "name": "someoptionselector",
+                "placeholder": "Select an option...",
+                "optional": false,
+                "options": [
+                    { "text": "Option1", "value": "opt1" },
+                    { "text": "Option2", "value": "opt2" },
+                    { "text": "Option3", "value": "opt3" }
+                ]
+            },
+            {
+                "type": "radio",
+                "display_name": "Radio Option Selector",
+                "name": "someradiooptions",
+                "help_text": "",
+                "optional": false,
+                "options": [
+                    { "text": "Engineering", "value": "engineering" },
+                    { "text": "Sales", "value": "sales" }
+                ]
+            },
+            {
+                "type": "bool",
+                "display_name": "Boolean Selector",
+                "name": "boolean_input",
+                "placeholder": "Was this modal helpful?",
+                "default": "True",
+                "optional": true,
+                "help_text": "This is the help text"
+            }
+        ]
+    },
+
+    "simple": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Dialog Test without elements",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "submit_label": "Submit Test",
+        "state": "somestate",
+        "elements": []
+    },
+
+    "userAndChannel": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Dialog Test with user and channel element",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "submit_label": "Submit Test",
+        "state": "somestate",
+        "elements": [
+            {
+                "type": "select",
+                "display_name": "User Selector",
+                "name": "someuserselector",
+                "placeholder": "Select a user...",
+                "data_source": "users",
+                "optional": false
+            },
+            {
+                "type": "select",
+                "display_name": "Channel Selector",
+                "name": "somechannelselector",
+                "placeholder": "Select a channel...",
+                "help_text": "Choose a channel from the list.",
+                "data_source": "channels",
+                "optional": true
+            }
+        ]
+    },
+
+    "boolean": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Dialog Test with boolean element",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "submit_label": "Submit Test",
+        "state": "somestate",
+        "elements": [
+            {
+                "type": "bool",
+                "display_name": "Boolean Selector",
+                "name": "boolean_input",
+                "placeholder": "Was this modal helpful?",
+                "default": "True",
+                "optional": true,
+                "help_text": "This is the help text"
+            }
+        ]
+    },
+
+    "multiselect": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Dialog Test with multiselect elements",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "submit_label": "Submit Multiselect Test",
+        "state": "somestate",
+        "elements": [
+            {
+                "display_name": "Multi Option Selector",
+                "name": "multiselect_options",
+                "type": "select",
+                "multiselect": true,
+                "default": "",
+                "placeholder": "Select multiple options...",
+                "help_text": "You can select multiple options from this list.",
+                "optional": false,
+                "min_length": 0,
+                "max_length": 0,
+                "data_source": "",
+                "options": [
+                    { "text": "Engineering", "value": "opt1" },
+                    { "text": "Sales", "value": "opt2" },
+                    { "text": "Marketing", "value": "opt3" },
+                    { "text": "Support", "value": "opt4" },
+                    { "text": "Product", "value": "opt5" }
+                ]
+            },
+            {
+                "display_name": "Multi User Selector",
+                "name": "multiselect_users",
+                "type": "select",
+                "multiselect": true,
+                "default": "",
+                "placeholder": "Select multiple users...",
+                "help_text": "Choose multiple users from the team.",
+                "optional": false,
+                "min_length": 0,
+                "max_length": 0,
+                "data_source": "users",
+                "options": null
+            },
+            {
+                "display_name": "Single Option Selector",
+                "name": "single_select_options",
+                "type": "select",
+                "multiselect": false,
+                "default": "",
+                "placeholder": "Select one option...",
+                "help_text": "This is a regular single-select for comparison.",
+                "optional": false,
+                "min_length": 0,
+                "max_length": 0,
+                "data_source": "",
+                "options": [
+                    { "text": "Single Option 1", "value": "single1" },
+                    { "text": "Single Option 2", "value": "single2" },
+                    { "text": "Single Option 3", "value": "single3" }
+                ]
+            }
+        ],
+        "include_defaults_variant": {
+            "multiselect_options": "opt1,opt3",
+            "single_select_options": "single2"
+        }
+    },
+
+    "dynamicSelect": {
+        "callback_id": "somecallbackid",
+        "title": "Title for Dialog Test with dynamic select element",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "submit_label": "Submit Dynamic Select Test",
+        "state": "somestate",
+        "elements": [
+            {
+                "display_name": "Dynamic Role Selector",
+                "name": "dynamic_role_selector",
+                "type": "select",
+                "data_source": "dynamic",
+                "_data_source_url_path": "/dynamic-select-source",
+                "default": "",
+                "placeholder": "Search for a role...",
+                "help_text": "Start typing to search for available roles. Options are loaded dynamically.",
+                "optional": false,
+                "min_length": 0,
+                "max_length": 0
+            },
+            {
+                "display_name": "Optional Dynamic Selector",
+                "name": "optional_dynamic_selector",
+                "type": "select",
+                "data_source": "dynamic",
+                "_data_source_url_path": "/dynamic-select-source",
+                "default": "backend_eng",
+                "placeholder": "Search for another role...",
+                "help_text": "This field is optional and has a default value.",
+                "optional": true,
+                "min_length": 0,
+                "max_length": 0
+            }
+        ]
+    },
+
+    "fieldRefresh": {
+        "callback_id": "field_refresh_callback",
+        "title": "Field Refresh Demo",
+        "introduction_text": "Enter project name then select type to see different fields",
+        "_source_url_path": "/field-refresh-source",
+        "elements": [
+            {
+                "type": "text",
+                "display_name": "Project Name",
+                "name": "project_name",
+                "placeholder": "Enter project name",
+                "optional": false
+            },
+            {
+                "type": "select",
+                "display_name": "Project Type",
+                "name": "project_type",
+                "refresh": true,
+                "placeholder": "Select project type...",
+                "optional": false,
+                "options": [
+                    { "text": "Web Application", "value": "web" },
+                    { "text": "Mobile App", "value": "mobile" },
+                    { "text": "API Service", "value": "api" }
+                ]
+            }
+        ]
+    },
+
+    "multistepStep1": {
+        "callback_id": "multistep_callback",
+        "title": "Step 1 - Personal Info",
+        "introduction_text": "Multi-step registration - Step 1 of 3",
+        "submit_label": "Next Step",
+        "state": "step1",
+        "elements": [
+            {
+                "type": "text",
+                "display_name": "First Name",
+                "name": "first_name",
+                "placeholder": "Enter your first name",
+                "optional": false
+            },
+            {
+                "type": "text",
+                "display_name": "Email",
+                "name": "email",
+                "subtype": "email",
+                "placeholder": "Enter your email address",
+                "optional": false
+            }
+        ]
+    },
+
+    "multistepStep2": {
+        "callback_id": "multistep_callback",
+        "title": "Step 2 - Work Info",
+        "introduction_text": "Multi-step registration - Step 2 of 3",
+        "submit_label": "Next Step",
+        "state": "step2",
+        "_is_form_response": true,
+        "elements": [
+            {
+                "type": "select",
+                "display_name": "Department",
+                "name": "department",
+                "placeholder": "Select department...",
+                "optional": false,
+                "options": [
+                    { "text": "Engineering", "value": "engineering" },
+                    { "text": "Marketing", "value": "marketing" },
+                    { "text": "Sales", "value": "sales" }
+                ]
+            },
+            {
+                "type": "radio",
+                "display_name": "Experience Level",
+                "name": "experience_level",
+                "optional": false,
+                "options": [
+                    { "text": "Junior", "value": "junior" },
+                    { "text": "Mid-level", "value": "mid" },
+                    { "text": "Senior", "value": "senior" }
+                ]
+            }
+        ]
+    },
+
+    "multistepStep3": {
+        "callback_id": "multistep_callback",
+        "title": "Step 3 - Final Details",
+        "introduction_text": "Multi-step registration - Step 3 of 3",
+        "submit_label": "Complete Registration",
+        "state": "step3",
+        "_is_form_response": true,
+        "elements": [
+            {
+                "type": "textarea",
+                "display_name": "Comments",
+                "name": "comments",
+                "placeholder": "Any additional comments...",
+                "optional": true
+            },
+            {
+                "type": "bool",
+                "display_name": "Terms & Conditions",
+                "name": "terms_accepted",
+                "optional": false
+            }
+        ]
+    },
+
+    "basicDate": {
+        "callback_id": "basic_date_callback",
+        "title": "DateTime Fields Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "datetime_state",
+        "_submit_url_path": "/datetime-dialog-submit",
+        "elements": [
+            {
+                "display_name": "Event Date",
+                "name": "event_date",
+                "type": "date",
+                "default": "",
+                "placeholder": "Select a date",
+                "help_text": "Select the date for your event",
+                "optional": false
+            }
+        ]
+    },
+
+    "basicDateTime": {
+        "callback_id": "basic_datetime_callback",
+        "title": "DateTime Fields Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "datetime_state",
+        "_submit_url_path": "/datetime-dialog-submit",
+        "elements": [
+            {
+                "display_name": "Event Date",
+                "name": "event_date",
+                "type": "date",
+                "default": "",
+                "placeholder": "Select a date",
+                "help_text": "Select the date for your event",
+                "optional": false
+            },
+            {
+                "display_name": "Meeting Time",
+                "name": "meeting_time",
+                "type": "datetime",
+                "default": "",
+                "placeholder": "Select date and time",
+                "help_text": "Select the date and time for your meeting",
+                "optional": false,
+                "time_interval": 60
+            }
+        ]
+    },
+
+    "minDateConstraint": {
+        "callback_id": "mindate_callback",
+        "title": "DateTime Fields Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "datetime_state",
+        "_submit_url_path": "/datetime-dialog-submit",
+        "elements": [
+            {
+                "display_name": "Future Date Only",
+                "name": "future_date",
+                "type": "date",
+                "default": "",
+                "placeholder": "Select a future date",
+                "help_text": "Must be today or later",
+                "optional": true,
+                "min_date": "today"
+            }
+        ]
+    },
+
+    "customInterval": {
+        "callback_id": "interval_callback",
+        "title": "DateTime Fields Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "datetime_state",
+        "_submit_url_path": "/datetime-dialog-submit",
+        "elements": [
+            {
+                "display_name": "Custom Interval Time",
+                "name": "interval_time",
+                "type": "datetime",
+                "default": "",
+                "placeholder": "Select time (30min intervals)",
+                "help_text": "Time picker with 30-minute intervals",
+                "optional": true,
+                "time_interval": 30
+            }
+        ]
+    },
+
+    "relativeDate": {
+        "callback_id": "relative_callback",
+        "title": "DateTime Fields Test",
+        "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+        "state": "datetime_state",
+        "_submit_url_path": "/datetime-dialog-submit",
+        "elements": [
+            {
+                "display_name": "Relative Date Example",
+                "name": "relative_date",
+                "type": "date",
+                "default": "today",
+                "placeholder": "Today by default",
+                "help_text": "Defaults to today using relative date",
+                "optional": true
+            },
+            {
+                "display_name": "Relative DateTime Example",
+                "name": "relative_datetime",
+                "type": "datetime",
+                "default": "+1d",
+                "placeholder": "Tomorrow by default",
+                "help_text": "Defaults to tomorrow using relative date",
+                "optional": true
+            }
+        ]
+    },
+
+    "timezoneManual": {
+        "callback_id": "timezone_manual",
+        "title": "Timezone & Manual Entry Demo",
+        "introduction_text": "**Timezone & Manual Entry Demo**\n\nThis dialog demonstrates timezone support and manual time entry features.",
+        "_submit_url_path": "/dialog-submit",
+        "elements": [
+            {
+                "display_name": "Your Local Time (Manual Entry)",
+                "name": "local_manual",
+                "type": "datetime",
+                "help_text": "Type any time: 9am, 14:30, 3:45pm - no rounding",
+                "datetime_config": {
+                    "allow_manual_time_entry": true
+                },
+                "optional": true
+            },
+            {
+                "display_name": "London Office Hours (Dropdown)",
+                "name": "london_dropdown",
+                "type": "datetime",
+                "help_text": "Times shown in GMT - select from 60 min intervals",
+                "datetime_config": {
+                    "location_timezone": "Europe/London",
+                    "time_interval": 60
+                },
+                "optional": true
+            },
+            {
+                "display_name": "London Office Hours (Manual Entry)",
+                "name": "london_manual",
+                "type": "datetime",
+                "help_text": "Type time in GMT: 9am, 14:30, 3:45pm - no rounding",
+                "datetime_config": {
+                    "location_timezone": "Europe/London",
+                    "allow_manual_time_entry": true
+                },
+                "optional": true
+            }
+        ]
+    }
+}
