@@ -290,13 +290,16 @@ function ChannelSettingsConfigurationTab({
             const toAdd = workspaceRemotes.filter((w) => w.pendingSave).map((w) => w.remote_id || w.name);
             const toRemove = Array.from(initialIds).filter((id) => !currentIds.has(id));
 
+            let errorCount = 0;
+            let lastError: ServerError | undefined;
+
             for (const remoteId of toAdd) {
                 try {
                     // eslint-disable-next-line no-await-in-loop
                     await Client4.sharedChannelRemoteInvite(remoteId, channel.id);
                 } catch (err) {
-                    handleServerError(err as ServerError);
-                    return false;
+                    lastError = err;
+                    errorCount++;
                 }
             }
             for (const remoteId of toRemove) {
@@ -304,12 +307,23 @@ function ChannelSettingsConfigurationTab({
                     // eslint-disable-next-line no-await-in-loop
                     await Client4.sharedChannelRemoteUninvite(remoteId, channel.id);
                 } catch (err) {
-                    handleServerError(err as ServerError);
-                    return false;
+                    lastError = err;
+                    errorCount++;
                 }
             }
             await dispatch(fetchChannelRemotes(channel.id, true));
             setShareChannelKey(Date.now());
+
+            if (errorCount === 1) {
+                handleServerError(lastError as ServerError);
+            }
+            if (errorCount > 1) {
+                setFormError(formatMessage({
+                    id: 'channel_settings.sharing_errors',
+                    defaultMessage: 'There has been errors while sharing the channel with some workspaces. Please try again.',
+                }));
+            }
+            return errorCount === 0;
         }
 
         return true;
