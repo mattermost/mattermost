@@ -646,6 +646,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
+        EnableSearchPublicChannelsWithoutMembership: false,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
