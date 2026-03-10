@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,7 +71,7 @@ func TestRateLimitingMiddleware(t *testing.T) {
 
 		body, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)
-		assert.True(t, strings.Contains(string(body), "limit exceeded"))
+		assert.Contains(t, string(body), "limit exceeded")
 	})
 }
 

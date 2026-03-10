@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -156,7 +155,7 @@ func TestRateLimitWriter(t *testing.T) {
 
 		body, readErr := io.ReadAll(w.Body)
 		require.NoError(t, readErr)
-		assert.True(t, strings.Contains(string(body), "limit exceeded"))
+		assert.Contains(t, string(body), "limit exceeded")
 	})
 
 	t.Run("different keys are independent", func(t *testing.T) {
@@ -230,7 +229,8 @@ func TestRateLimitHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, req)
 
-			require.True(t, handlerCalled, "inner handler should be called on request %d", i)
+			called := handlerCalled
+			require.True(t, called, "inner handler should be called on request %d", i)
 			assert.Equal(t, http.StatusOK, w.Code)
 		}
 	})
@@ -242,7 +242,8 @@ func TestRateLimitHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		require.False(t, handlerCalled, "inner handler should not be called when rate limited")
+		called := handlerCalled
+		require.False(t, called, "inner handler should not be called when rate limited")
 		assert.Equal(t, http.StatusTooManyRequests, w.Code)
 	})
 
@@ -253,7 +254,8 @@ func TestRateLimitHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		require.True(t, handlerCalled, "inner handler should be called for a different IP")
+		called := handlerCalled
+		require.True(t, called, "inner handler should be called for a different IP")
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
