@@ -88,7 +88,8 @@ jobs:
         run: |
           npx e2e-ai-agents impact \
             --config ./e2e-ai-agents.config.json \
-            --since origin/${{ github.base_ref }}
+            --since origin/${{ github.base_ref }} \
+            --allow-fallback
 
       - name: ci/e2e-coverage/plan-enforcement
         id: plan
@@ -152,8 +153,9 @@ jobs:
       - name: ci/e2e-coverage/fail-if-gaps
         if: steps.impact.outcome == 'failure' || steps.plan.outcome == 'failure'
         run: |
-          echo "::error::E2E coverage check failed — tests are required for this PR."
-          echo "Add the 'skip-e2e-coverage-check' label or comment '/skip-e2e-check: <reason>' to bypass."
+          echo "::error::E2E coverage check failed — E2E tests are required for flows impacted by this PR."
+          echo "See the PR comment for the list of affected flows and suggested tests to add."
+          echo "To bypass: add the 'skip-e2e-coverage-check' label or comment '/skip-e2e-check: <reason>'."
           exit 2
 
   # ── Job 3: skip-notice (runs when skipped) ──────────────────────────────────
