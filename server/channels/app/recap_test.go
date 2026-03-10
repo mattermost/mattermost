@@ -259,12 +259,29 @@ func TestProcessRecapChannel(t *testing.T) {
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 		recapID := model.NewId()
 		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Empty recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
 
 		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		assert.True(t, result.Success)
 		assert.Equal(t, 0, result.MessageCount)
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, channel.Id, recapChannels[0].ChannelId)
+		assert.Empty(t, recapChannels[0].Highlights)
+		assert.Empty(t, recapChannels[0].ActionItems)
 	})
 
 	t.Run("process channel with posts persists recap channel", func(t *testing.T) {
@@ -323,6 +340,16 @@ func TestProcessRecapChannel(t *testing.T) {
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 		recapID := model.NewId()
 		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Malformed recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
 
 		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
 		require.NotNil(t, err)
@@ -331,7 +358,11 @@ func TestProcessRecapChannel(t *testing.T) {
 
 		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
 		require.NoError(t, storeErr)
-		assert.Empty(t, recapChannels)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, channel.Id, recapChannels[0].ChannelId)
+		assert.Empty(t, recapChannels[0].Highlights)
+		assert.Empty(t, recapChannels[0].ActionItems)
+		assert.Len(t, recapChannels[0].SourcePostIds, 1)
 	})
 }
 
