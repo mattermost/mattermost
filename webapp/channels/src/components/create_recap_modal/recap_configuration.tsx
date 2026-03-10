@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
@@ -17,11 +17,24 @@ type Props = {
     recapType: 'selected' | 'all_unreads' | null;
     setRecapType: (type: 'selected' | 'all_unreads') => void;
     unreadChannels: Channel[];
+    nameError?: boolean;
 };
 
-const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
+const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels, nameError}: Props) => {
     const {formatMessage} = useIntl();
+    const nameInputRef = useRef<HTMLInputElement>(null);
+    const [touched, setTouched] = useState(false);
     const hasUnreadChannels = unreadChannels.length > 0;
+
+    const showError = (touched || nameError) && recapName.trim().length === 0;
+
+    useEffect(() => {
+        nameInputRef.current?.focus();
+    }, []);
+
+    const handleBlur = useCallback(() => {
+        setTouched(true);
+    }, []);
 
     const allUnreadsButton = (
         <button
@@ -63,16 +76,28 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                         defaultMessage='Give your recap a name'
                     />
                 </label>
-                <div className='input-container'>
+                <div className={`input-container${showError ? ' has-error' : ''}`}>
                     <input
+                        ref={nameInputRef}
                         id='recap-name-input'
                         type='text'
-                        className='form-control'
+                        className={`form-control${showError ? ' input-error' : ''}`}
                         placeholder={formatMessage({id: 'recaps.modal.namePlaceholder', defaultMessage: 'Give your recap a name'})}
                         value={recapName}
                         onChange={(e) => setRecapName(e.target.value)}
+                        onBlur={handleBlur}
                         maxLength={RECAP_NAME_MAX_LENGTH}
+                        aria-invalid={showError}
                     />
+                    {showError && (
+                        <div className='input-error-message'>
+                            <i className='icon icon-alert-circle-outline'/>
+                            <FormattedMessage
+                                id='recaps.modal.nameRequired'
+                                defaultMessage='This field is required'
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

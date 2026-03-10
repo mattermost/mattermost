@@ -112,7 +112,12 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-1);
         transition: all 0.2s;
+
+        &:hover {
+            box-shadow: var(--elevation-2);
+        }
 
         &.expanded {
             .recap-item-header {
@@ -211,7 +216,12 @@
                 }
 
                 .recap-icon-button {
-                    padding: 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    padding: 0;
                     border: none;
                     border-radius: var(--radius-s);
                     background: none;
@@ -231,7 +241,6 @@
                         opacity: 0.5;
                     }
 
-                    // Trash icon should be red
                     &.recap-delete-button {
                         color: var(--dnd-indicator);
                     }
@@ -343,16 +352,27 @@
 
     // Recap Channel Card Styles
     .recap-channel-card {
-        padding: 16px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
+
+        &.collapsed {
+            .recap-channel-header {
+                margin-bottom: 0;
+            }
+        }
 
         .recap-channel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
 
             .recap-channel-name-tag {
                 padding: 2px 6px;
@@ -382,25 +402,13 @@
                 align-items: center;
                 gap: 4px;
 
-                .recap-channel-collapse-button {
-                    padding: 6px;
-                    border: none;
-                    border-radius: var(--radius-s);
-                    background: none;
-                    cursor: pointer;
-
-                    .icon {
-                        color: rgba(var(--center-channel-color-rgb), 0.56);
-                        font-size: 16px;
-                    }
-
-                    &:hover {
-                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                    }
-                }
-
                 .recap-icon-button {
-                    padding: 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    padding: 0;
                     border: none;
                     border-radius: var(--radius-s);
                     background: none;
@@ -421,6 +429,7 @@
         .recap-channel-content {
             display: flex;
             flex-direction: column;
+            padding: 0 16px 16px;
             gap: 8px;
 
             .recap-section {

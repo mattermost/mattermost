@@ -138,9 +138,9 @@ describe('RecapChannelCard', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('should toggle collapse state when collapse button clicked', async () => {
+    test('should toggle collapse state when header is clicked', async () => {
         const user = userEvent.setup();
-        renderWithContext(
+        const {container} = renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -148,12 +148,16 @@ describe('RecapChannelCard', () => {
         // Initially expanded, content should be visible
         expect(screen.getByText('Highlights')).toBeInTheDocument();
 
-        // Find and click the collapse button
-        const collapseButton = screen.getByRole('button', {name: ''});
-        await user.click(collapseButton);
+        // Click the header to collapse
+        const header = container.querySelector('.recap-channel-header')!;
+        await user.click(header);
 
         // Content should be hidden after collapse
         expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
+
+        // Click again to expand
+        await user.click(header);
+        expect(screen.getByText('Highlights')).toBeInTheDocument();
     });
 
     test('should dispatch switchToChannel when channel name clicked', async () => {

@@ -102,7 +102,7 @@ const Recaps = () => {
                     <div className='recaps-placeholder'>
                         <AICopilotIntroSvg/>
                         <h2 className='recaps-placeholder-title'>
-                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your first recap'})}
+                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
                         </h2>
                         <p className='recaps-placeholder-description'>
                             {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
