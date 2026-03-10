@@ -64,7 +64,7 @@ const baseStyles = {
     groupHeading: (provided) => ({
         ...provided,
         height: 1,
-        margin: '4px 20px',
+        margin: '4px 0',
         padding: 0,
         fontSize: 0,
         backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
