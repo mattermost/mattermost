@@ -7894,14 +7894,6 @@
     "translation": "채널 인덱스 스키마가 오래되어 채널 자동 완성 기능을 사용할 수 없습니다. 채널 인덱스를 다시 생성하는 것이 좋습니다. 자세한 내용은 Mattermost changelog를 참조하세요."
   },
   {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "콘텐츠 플래그 기능이 비활성화됩니다."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "라이선스는 콘텐츠 플래그를 지원하지 않습니다."
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "세션을 찾을 수 없습니다."
   },
@@ -10332,22 +10324,6 @@
   {
     "id": "model.config.is_valid.empty_redis_address.app_error",
     "translation": "RedisAddress는 redis 캐시 유형에 대해 지정해야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "감사 로그 구성의 최대 파일 보존 기간은 음수가 아니어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "감사 로그 구성의 최대 파일 백업은 음수가 아니어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "감사 로그 구성의 최대 파일 대기열은 0보다 커야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "감사 로그 구성의 최대 파일 크기는 0보다 커야 합니다."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",

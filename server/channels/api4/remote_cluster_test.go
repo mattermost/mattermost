@@ -12,6 +12,80 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetRemoteClustersWithSecureConnectionManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "test-remote",
+		SiteURL:   "http://example.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the secure_connection_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, rcs)
+	})
+}
+
+func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a user with only the secure_connection_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	rcPayload := &model.RemoteClusterWithPassword{
+		RemoteCluster: &model.RemoteCluster{
+			Name:          "test-from-scm",
+			DefaultTeamId: th.BasicTeam.Id,
+		},
+		Password: "mysupersecret",
+	}
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+		rcWithInvite, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, rcWithInvite)
+	})
+}
+
 func TestGetRemoteClusters(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {

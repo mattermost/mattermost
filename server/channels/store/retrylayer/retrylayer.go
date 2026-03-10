@@ -635,6 +635,27 @@ func (s *RetryLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetPoliciesByFieldID(rctx, fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 
 	tries := 0
@@ -12602,11 +12623,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
+func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID)
+		result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -15529,6 +15550,27 @@ func (s *RetryLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 	tries := 0
 	for {
 		result, err := s.UserStore.AnalyticsGetInactiveUsersCount()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.AnalyticsGetSingleChannelGuestCount()
 		if err == nil {
 			return result, nil
 		}
