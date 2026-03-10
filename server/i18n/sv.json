@@ -10576,22 +10576,6 @@
     "translation": "Det går inte att aktivera användaren. Servern överskrider maxantal licensierade användare. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Konfigurationsvärdet för Granskningsloggarnas maxålder får inte vara negativt."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Konfigurationsvärdet för maxantalet backupfiler av audit-loggar får inte vara negativt."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Konfigurationsvärdet för max-antal filköer för audit-loggar måste vara större än noll."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Konfigurationsvärdet för maximal filstorlek på audit-loggar måste vara större än noll."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "När loggning av revisionsfiler är aktiverad måste ett filnamn anges."
   },
@@ -10626,14 +10610,6 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Ogiltig uppdatering av kanalmedlem: En kanalmedlem har alltid ett användarschema."
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Funktionen för flaggning av innehåll är inaktiverad."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Din licens stöder inte funktionen för flaggning av innehåll."
   },
   {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
@@ -10764,30 +10740,6 @@
     "translation": "Det går inte att posta i en begränsad direkmeddelandekanal"
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Lägg till en kommentar som förklarar varför du flaggar det här meddelandet."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Meddelande om anledning till flaggning får inte vara längre än {{.MaxLength}} tecken."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Funktionen för flaggning av innehåll är inte aktiverad i det här teamet."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Det flaggade inlägget måste ha status som väntande eller tilldelat för att behållas eller tas bort."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Okänd orsak angiven för flaggning av meddelande."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Välj en anledning till att flagga detta meddelande."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Det går inte att spara utkast i en begränsad kanal för direktmeddelanden"
   },
@@ -10798,10 +10750,6 @@
   {
     "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
     "translation": "Det går inte att lägga till en behörighet som är begränsad av teamets eller systemets behörighetsschema."
-  },
-  {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "Användaren är inte en innehållsgranskare."
   },
   {
     "id": "api.encoding_error",
@@ -10852,142 +10800,6 @@
     "translation": "Fel på \"get common teams for channel\""
   },
   {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "Inget egenskapsfält för Reviewer ID hittades."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "Misslyckades med att uppdatera Status-egenskapens värde vid inställning av granskare."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "Misslyckades med att sätta flaggad postgranskare."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Det går inte att flagga detta inlägg eftersom det redan är flaggat."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Det går inte att flagga det här inlägget, det togs bort i en tidigare flaggningsbegäran."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Det går inte att flagga det här inlägget eftersom det behölls i en tidigare flaggningsbegäran."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Det går inte att flagga det här inlägget eftersom det har okänd status."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "Det går inte att spara egenskapsvärden för det flaggade inlägget."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Misslyckades med att samla in flaggning av användarens kommentar"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Misslyckades med att samla in den flaggande användarens anledning"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "Meddelandet från @{{.username}} har flaggats för granskning. Du kommer att få ett meddelande när det har granskats av en innehållsgranskare. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "Misslyckades med att hämta bot för innehållsflaggning."
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "Misslyckades med att hämta inställningar för innehållsgranskare från databasen"
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Misslyckades med att hämta egenskapsfältet Status."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Misslyckades med att söka granskare i teamet."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Misslyckades med att samla in kommentaren från granskaren"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "Misslyckades med att uppdatera status för flaggat inlägg när flaggat inlägg återställdes "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggning och tillhörande data skulle tas bort."
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Misslyckades med att samla in värden för Content Flagging-egenskaper för att skicka i WebSocket-händelsen."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "Det går inte att hitta egenskapsfältet Flagged Post ID."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Det går inte att hitta användarfältet för rapportering."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Det går inte att hitta ett värde i användarfältet på rapporteringen."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Misslyckades med att samla in kommentaren från granskaren"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "Misslyckades med att uppdatera statusen för flaggade inlägg när flaggade inlägg raderades permanent."
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "Misslyckades med att spara inställningar för innehållsgranskare i databasen."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "Det gick inte att söka efter termen i Common Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "Misslyckades med att söka i egenskapsfält för innehållsflaggning."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "Misslyckades med att hämta inläggets värden från egenskapsfält content flagging från databasen."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "Misslyckades med att söka efter det flaggade inlägget bland granskarna."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "Misslyckades med att söka Property Values för det flaggade inlägget."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Misslyckades med att söka efter sökordet i System Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Misslyckades med att söka efter sökordet i Team Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Misslyckades med att söka efter sökordet i Team Reviewers."
-  },
-  {
     "id": "app.job.get_existing_jobs.error",
     "translation": "Kan inte hämta befintliga jobb."
   },
@@ -11002,10 +10814,6 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Fick ett ogiltigt svar från den interaktiva dialogrutan."
-  },
-  {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Granskning av innehåll"
   },
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
@@ -11116,10 +10924,6 @@
     "translation": "Tjänstleverantör för OAuth är avstängd."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Ogiltig länk-typ för inbjudningen."
-  },
-  {
     "id": "app.post.rewrite.agent_call_failed",
     "translation": "Misslyckat anrop till AI-agenten."
   },
@@ -11186,10 +10990,6 @@
   {
     "id": "api.post.update_post.burn_on_read.app_error",
     "translation": "Inlägg som bränns vid läsning kan inte redigeras."
-  },
-  {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Att flagga ett inlägg av typen '{{.PostType}}' tillåts inte."
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",

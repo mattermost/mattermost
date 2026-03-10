@@ -13,6 +13,10 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		ps.Go(func() {
 			if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 				ps.Log().Error(err.Error())
+				return
+			}
+			if model.SafeDereference(ps.Config().ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) {
+				ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
 			}
 		})
 	}
@@ -26,21 +30,41 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			ps.Log().Error("Failed to update search engine config", mlog.Err(err))
 		}
 
-		if ps.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+		oldESCfg := oldConfig.ElasticsearchSettings
+		newESCfg := newConfig.ElasticsearchSettings
+		startingES := ps.SearchEngine.ElasticsearchEngine != nil &&
+			!model.SafeDereference(oldESCfg.EnableIndexing) &&
+			model.SafeDereference(newESCfg.EnableIndexing)
+		stoppingES := ps.SearchEngine.ElasticsearchEngine != nil &&
+			model.SafeDereference(oldESCfg.EnableIndexing) &&
+			!model.SafeDereference(newESCfg.EnableIndexing)
+		connectionChanged := ps.SearchEngine.ElasticsearchEngine != nil &&
+			(model.SafeDereference(oldESCfg.ConnectionURL) != model.SafeDereference(newESCfg.ConnectionURL) ||
+				model.SafeDereference(oldESCfg.Username) != model.SafeDereference(newESCfg.Username) ||
+				model.SafeDereference(oldESCfg.Password) != model.SafeDereference(newESCfg.Password) ||
+				model.SafeDereference(oldESCfg.Sniff) != model.SafeDereference(newESCfg.Sniff))
+		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
+			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
+
+		if startingES {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 					ps.Log().Error(err.Error())
+					return
+				}
+				if model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership) {
+					ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
 				}
 			})
-		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+		} else if stoppingES {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 					ps.Log().Error(err.Error())
 				}
 			})
-		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+		} else if connectionChanged {
 			ps.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
+				if model.SafeDereference(oldESCfg.EnableIndexing) {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 						ps.Log().Error(err.Error())
 					}
@@ -48,6 +72,18 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 						ps.Log().Error(err.Error())
 					}
 				}
+			})
+		}
+
+		// Backfill was enabled but ES was already running (not starting fresh).
+		if startingBackfill && !startingES {
+			ps.Go(func() {
+				engine := ps.SearchEngine.ElasticsearchEngine
+				if engine == nil || !engine.IsActive() || !engine.IsIndexingEnabled() {
+					ps.Log().Warn("Elasticsearch not available for channel_type backfill")
+					return
+				}
+				ps.backfillPostsChannelType(engine)
 			})
 		}
 	})

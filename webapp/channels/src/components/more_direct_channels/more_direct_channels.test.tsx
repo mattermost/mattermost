@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -9,10 +8,20 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import MoreDirectChannels from 'components/more_direct_channels/more_direct_channels';
 
+import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-jest.useFakeTimers();
 const mockedUser = TestHelper.getUserMock();
+
+// Multiselect uses requestAnimationFrame to focus react-select, but the ref
+// may be null in the test environment causing errors during async tests.
+const origRAF = window.requestAnimationFrame;
+beforeAll(() => {
+    window.requestAnimationFrame = jest.fn().mockImplementation(() => 0);
+});
+afterAll(() => {
+    window.requestAnimationFrame = origRAF;
+});
 
 describe('components/MoreDirectChannels', () => {
     const baseProps: ComponentProps<typeof MoreDirectChannels> = {
@@ -79,15 +88,21 @@ describe('components/MoreDirectChannels', () => {
 
     test('should match snapshot', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow(<MoreDirectChannels {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {baseElement} = renderWithContext(<MoreDirectChannels {...props}/>);
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should call for modal data on callback of modal onEntered', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        wrapper.instance().loadModalData();
+        ref.current!.loadModalData();
 
         expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
         expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
@@ -98,7 +113,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should call actions.loadProfilesMissingStatus on componentDidUpdate when users prop changes length', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow(<MoreDirectChannels {...props}/>);
+        const {rerender} = renderWithContext(<MoreDirectChannels {...props}/>);
         const newUsers = [{
             id: 'user_id_1',
             label: 'user_id_1',
@@ -106,50 +121,97 @@ describe('components/MoreDirectChannels', () => {
             delete_at: 0,
         }];
 
-        wrapper.setProps({users: newUsers});
+        rerender(
+            <MoreDirectChannels
+                {...props}
+                users={newUsers as any}
+            />,
+        );
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(newUsers);
     });
 
     test('should call actions.setModalSearchTerm and match state on handleHide', () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        wrapper.setState({show: true});
+        act(() => {
+            ref.current!.setState({show: true});
+        });
 
-        wrapper.instance().handleHide();
+        act(() => {
+            ref.current!.handleHide();
+        });
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('');
-        expect(wrapper.state('show')).toEqual(false);
+        expect(ref.current!.state.show).toEqual(false);
     });
 
     test('should match state on setUsersLoadingState', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const props = {...baseProps, users: []};
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        wrapper.setState({loadingUsers: true});
-        wrapper.instance().setUsersLoadingState(false);
-        expect(wrapper.state('loadingUsers')).toEqual(false);
+        act(() => {
+            ref.current!.setState({loadingUsers: true});
+        });
+        act(() => {
+            ref.current!.setUsersLoadingState(false);
+        });
+        expect(ref.current!.state.loadingUsers).toEqual(false);
 
-        wrapper.setState({loadingUsers: false});
-        wrapper.instance().setUsersLoadingState(true);
-        expect(wrapper.state('loadingUsers')).toEqual(true);
+        act(() => {
+            ref.current!.setState({loadingUsers: false});
+        });
+        act(() => {
+            ref.current!.setUsersLoadingState(true);
+        });
+        expect(ref.current!.state.loadingUsers).toEqual(true);
     });
 
     test('should call on search', () => {
         jest.useFakeTimers();
-        const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        wrapper.instance().search('user_search');
-        expect(props.actions.setModalSearchTerm).not.toHaveBeenCalled();
-        jest.runAllTimers();
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
+        try {
+            const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
+            const ref = React.createRef<MoreDirectChannels>();
+            renderWithContext(
+                <MoreDirectChannels
+                    ref={ref}
+                    {...props}
+                />,
+            );
+            ref.current!.search('user_search');
+            expect(props.actions.setModalSearchTerm).not.toHaveBeenCalled();
+            act(() => {
+                jest.runAllTimers();
+            });
+            expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
+            expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('should match state on handleDelete', () => {
         const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
 
         const user1 = {
             ...mockedUser,
@@ -165,63 +227,86 @@ describe('components/MoreDirectChannels', () => {
             value: 'user_id_1',
         };
 
-        wrapper.setState({values: [user1]});
-        wrapper.instance().handleDelete([user2]);
-        expect(wrapper.state('values')).toEqual([user2]);
+        act(() => {
+            ref.current!.setState({values: [user1] as any});
+        });
+        act(() => {
+            ref.current!.handleDelete([user2] as any);
+        });
+        expect(ref.current!.state.values).toEqual([user2]);
     });
 
     test('should not open a DM or GM if no user Ids', () => {
         const props = {...baseProps, currentChannelMembers: []};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(false);
+        ref.current!.handleSubmit();
+        expect(ref.current!.state.saving).toEqual(false);
         expect(baseProps.actions.openDirectChannelToUserId).not.toHaveBeenCalled();
     });
 
-    test('should open a DM', (done) => {
-        jest.useFakeTimers({legacyFakeTimers: true});
+    test('should open a DM', async () => {
+        const rafSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
         const user: UserProfile = {
             ...mockedUser,
             id: 'user_id_1',
         };
         const props = {...baseProps, currentChannelMembers: [user]};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...props}
+            />,
+        );
         const handleHide = jest.fn();
-        const exitToChannel = '';
 
-        wrapper.instance().handleHide = handleHide;
-        wrapper.instance().exitToChannel = exitToChannel;
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(true);
+        ref.current!.handleHide = handleHide;
+        ref.current!.exitToChannel = '';
+        await act(async () => {
+            ref.current!.handleSubmit();
+        });
         expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(1);
         expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('user_id_1');
-        process.nextTick(() => {
-            expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toHaveBeenCalled();
-            expect(wrapper.instance().exitToChannel).toEqual(`/${props.currentTeamName}/channels/dm`);
-            done();
+
+        await waitFor(() => {
+            expect(ref.current!.state.saving).toEqual(false);
         });
+        expect(handleHide).toHaveBeenCalled();
+        expect(ref.current!.exitToChannel).toEqual(`/${props.currentTeamName}/channels/dm`);
+        rafSpy.mockRestore();
     });
 
-    test('should open a GM', (done) => {
-        jest.useFakeTimers({legacyFakeTimers: true});
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...baseProps}/>);
+    test('should open a GM', async () => {
+        const ref = React.createRef<MoreDirectChannels>();
+        renderWithContext(
+            <MoreDirectChannels
+                ref={ref}
+                {...baseProps}
+            />,
+        );
         const handleHide = jest.fn();
         const exitToChannel = '';
 
-        wrapper.instance().handleHide = handleHide;
-        wrapper.instance().exitToChannel = exitToChannel;
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(true);
+        ref.current!.handleHide = handleHide;
+        ref.current!.exitToChannel = exitToChannel;
+        await act(async () => {
+            ref.current!.handleSubmit();
+        });
         expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
-        process.nextTick(() => {
-            expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toHaveBeenCalled();
-            expect(wrapper.instance().exitToChannel).toEqual(`/${baseProps.currentTeamName}/channels/group`);
-            done();
+
+        await waitFor(() => {
+            expect(ref.current!.state.saving).toEqual(false);
         });
+        expect(handleHide).toHaveBeenCalled();
+        expect(ref.current!.exitToChannel).toEqual(`/${baseProps.currentTeamName}/channels/group`);
     });
 
     test('should exclude deleted users if there is not direct channel between users', () => {
@@ -259,7 +344,7 @@ describe('components/MoreDirectChannels', () => {
         ];
         const currentChannelMembers: UserProfile[] = [];
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {baseElement} = renderWithContext(<MoreDirectChannels {...props}/>);
+        expect(baseElement).toMatchSnapshot();
     });
 });
