@@ -79,6 +79,13 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npm ci --ignore-scripts
 
+      - name: ci/e2e-coverage/build-ci-config
+        working-directory: e2e-tests/playwright
+        run: |
+          # Disable traceability requirement in CI — manifest only exists locally
+          jq '.impact.traceability.enabled = false' e2e-ai-agents.config.json \
+            > e2e-ai-agents.ci.config.json
+
       - name: ci/e2e-coverage/impact-analysis
         id: impact
         working-directory: e2e-tests/playwright
@@ -87,7 +94,7 @@ jobs:
         continue-on-error: true
         run: |
           npx e2e-ai-agents impact \
-            --config ./e2e-ai-agents.config.json \
+            --config ./e2e-ai-agents.ci.config.json \
             --since origin/${{ github.base_ref }} \
             --allow-fallback
 
@@ -101,7 +108,7 @@ jobs:
         continue-on-error: true
         run: |
           npx e2e-ai-agents plan \
-            --config ./e2e-ai-agents.config.json \
+            --config ./e2e-ai-agents.ci.config.json \
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT" \
             --ci-comment-path ./.e2e-ai-agents/ci-summary.md
