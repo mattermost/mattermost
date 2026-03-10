@@ -210,8 +210,8 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 
 	// No posts to summarize - return success with 0 messages
 	if len(posts) == 0 {
-		if err := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); err != nil {
-			return result, err
+		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); appErr != nil {
+			return result, appErr
 		}
 		result.Success = true
 		return result, nil
@@ -232,8 +232,8 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 		return result, err
 	}
 
-	if err := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); err != nil {
-		return result, err
+	if appErr := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); appErr != nil {
+		return result, appErr
 	}
 
 	result.MessageCount = len(posts)
