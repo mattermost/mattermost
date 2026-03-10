@@ -125,7 +125,9 @@ class PlainLogList extends React.PureComponent<Props, State> {
             };
 
             if (this.props.logs[i].indexOf('[EROR]') > 0) {
-                style.color = 'red';
+                style.color = 'var(--dnd-indicator)';
+            } else if (this.props.logs[i].indexOf('[WARN]') > 0) {
+                style.color = 'var(--away-indicator)';
             }
             content.push(<br key={'br_' + i}/>);
             content.push(

@@ -1,381 +1,530 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
-import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-
-import FullLogEventModal from '../full_log_event_modal';
+import LogRow from './log_row';
 
 import './log_list.scss';
 
+type LogObjectWithAdditionalInfo = LogObject & {
+    [key: string]: string;
+};
+
 type Props = {
     loading: boolean;
-    logs: LogObject[];
+    logs: LogObjectWithAdditionalInfo[];
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
 };
 
-type State = {
-    modalLog: null | LogObject;
-    modalOpen: boolean;
-    page: number;
-    dateAsc: boolean;
+const PAGE_SIZES = [50, 100, 200, 500] as const;
+const DEFAULT_PAGE_SIZE = 200;
+
+const LEVEL_ORDER = ['error', 'warn', 'info', 'debug'] as const;
+const LEVEL_LABELS: Record<string, string> = {
+    error: 'Error',
+    warn: 'Warn',
+    info: 'Info',
+    debug: 'Debug',
+};
+
+const PREFS_KEY = 'mm_admin_logs_prefs';
+
+type StoredPrefs = {
+    pageSize: number;
+    compact: boolean;
+    wrapText: boolean;
+    enabledLevels: string[];
+    sortAsc: boolean;
+};
+
+function loadPrefs(): StoredPrefs {
+    try {
+        const raw = localStorage.getItem(PREFS_KEY);
+        if (raw) {
+            return JSON.parse(raw);
+        }
+    } catch {
+        // ignore
+    }
+    return {
+        pageSize: DEFAULT_PAGE_SIZE,
+        compact: true,
+        wrapText: true,
+        enabledLevels: ['error', 'warn', 'info', 'debug'],
+        sortAsc: true,
+    };
 }
 
-const PAGE_SIZE = 50;
-
-export default class LogList extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            modalLog: null,
-            modalOpen: false,
-            page: 0,
-            dateAsc: true,
-        };
+function savePrefs(prefs: StoredPrefs) {
+    try {
+        localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    } catch {
+        // ignore
     }
+}
 
-    isSearching = (term: string, filters: ChannelSearchOpts) => {
-        return term.length > 0 || Object.keys(filters).length > 0;
-    };
+export default function LogList({loading, logs, onFiltersChange, onSearchChange, search}: Props) {
+    const intl = useIntl();
+    const initialPrefs = useMemo(loadPrefs, []);
 
-    onSearch = (term: string) => {
-        this.props.onSearchChange(term);
-    };
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(initialPrefs.pageSize);
+    const [sortAsc, setSortAsc] = useState(initialPrefs.sortAsc);
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
+    const [compact, setCompact] = useState(initialPrefs.compact);
+    const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
-    nextPage = () => {
-        const page = this.state.page + 1;
-        this.setState({page});
-    };
+    const listRef = useRef<HTMLDivElement>(null);
 
-    previousPage = () => {
-        const page = this.state.page - 1;
-        this.setState({page});
-    };
+    // Persist prefs
+    useEffect(() => {
+        savePrefs({
+            pageSize,
+            compact,
+            wrapText,
+            enabledLevels: Array.from(enabledLevels),
+            sortAsc,
+        });
+    }, [pageSize, compact, wrapText, enabledLevels, sortAsc]);
 
-    getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
-        const {page} = this.state;
-        const startCount = (page * PAGE_SIZE) + 1;
-        const total = this.props.logs?.length ?? 0;
+    // Count logs by level
+    const levelCounts = useMemo(() => {
+        const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
+        for (const log of logs) {
+            if (log.level in counts) {
+                counts[log.level]++;
+            }
+        }
+        return counts;
+    }, [logs]);
 
-        let endCount = 0;
+    // Filter and sort logs
+    const processedLogs = useMemo(() => {
+        let filtered = logs;
 
-        endCount = (page + 1) * PAGE_SIZE;
-        endCount = endCount > total ? total : endCount;
+        // Level filter
+        if (enabledLevels.size < 4) {
+            filtered = filtered.filter((log) => enabledLevels.has(log.level));
+        }
 
-        return {startCount, endCount, total};
-    };
-
-    handleDateSort = () => {
-        this.setState({dateAsc: !this.state.dateAsc});
-        this.getColumns(this.state.dateAsc);
-    };
-
-    getColumns = (dateAsc: boolean): Column[] => {
-        const timestamp: JSX.Element = (
-            <div
-                className='timestamp'
-                onClick={this.handleDateSort}
-            >
-                <FormattedMessage
-                    id='admin.compliance_table.timestamp'
-                    defaultMessage='Timestamp'
-                />
-                {dateAsc ? (<ArrowUpIcon size={18}/>) : (<ArrowDownIcon size={18}/>)}
-            </div>
-        );
-        const level: JSX.Element = (
-            <FormattedMessage
-                id='admin.log.Level'
-                defaultMessage='Level'
-            />
-        );
-        const msg: JSX.Element = (
-            <FormattedMessage
-                id='user.settings.notifications.autoResponderPlaceholder'
-                defaultMessage='Message'
-            />
-        );
-        const caller: JSX.Element = (
-            <FormattedMessage
-                id='admin.logs.caller'
-                defaultMessage='Caller'
-            />
-        );
-        const options: JSX.Element = (
-            <FormattedMessage
-                id='admin.logs.options'
-                defaultMessage='Options'
-            />
-        );
-
-        return [
-            {
-                field: 'timestamp',
-                fixed: true,
-                name: timestamp,
-                textAlign: 'left',
-                width: 1.5,
-            },
-            {
-                field: 'level',
-                fixed: true,
-                name: level,
-                textAlign: 'left',
-                width: 0.5,
-            },
-            {
-                field: 'msg',
-                fixed: true,
-                name: msg,
-                textAlign: 'left',
-                width: 2.5,
-            },
-            {
-                field: 'caller',
-                fixed: true,
-                name: caller,
-                textAlign: 'left',
-                width: 1.5,
-            },
-            {
-                field: 'options',
-                fixed: true,
-                name: options,
-                textAlign: 'left',
-                width: 1,
-            },
-        ];
-    };
-
-    getRows = (): Row[] => {
-        const {startCount, endCount} = this.getPaginationProps();
-        const sortedLogs = this.props.logs.sort((a, b) => {
+        // Sort
+        const sorted = [...filtered].sort((a, b) => {
             const timeA = new Date(a.timestamp).valueOf();
             const timeB = new Date(b.timestamp).valueOf();
-
-            if (this.state.dateAsc) {
-                return timeA - timeB;
-            }
-            return timeB - timeA;
+            return sortAsc ? timeA - timeB : timeB - timeA;
         });
 
-        const logsToDisplay = sortedLogs.slice(startCount - 1, endCount);
+        return sorted;
+    }, [logs, enabledLevels, sortAsc]);
 
-        return logsToDisplay.map((log: LogObject) => {
-            return {
-                cells: {
-                    timestamp: (
-                        <span
-                            className='group-name overflow--ellipsis row-content'
-                            data-testid='timestamp'
-                        >
-                            <span className='group-description row-content'>
-                                {log.timestamp}
-                            </span>
-                        </span>
-                    ),
-                    level: (
-                        <span className='group-description adjusted row-content'>
-                            {log.level}
-                        </span>
-                    ),
-                    msg: (
-                        <span
-                            className='group-description row-content'
-                            title={log.msg}
-                        >
-                            {log.msg}
-                        </span>
-                    ),
-                    caller: (
-                        <span
-                            className='group-description row-content'
-                        >
-                            {log.caller}
-                        </span>
-                    ),
-                    options: (
-                        <button
-                            type='submit'
-                            className='btn btn-secondary btn-sm'
-                        >
-                            <FormattedMessage
-                                id='admin.logs.fullEvent'
-                                defaultMessage='Full Log event'
-                            />
-                        </button>
-                    ),
-                },
-                onClick: () => this.showFullLogEvent(log),
-            };
-        });
-    };
+    // Search match count
+    const matchCount = search ? processedLogs.length : null;
+    const totalCount = logs.length;
 
-    showFullLogEvent = (log: LogObject) => {
-        this.setState({
-            modalLog: log,
-            modalOpen: true,
-        });
-    };
+    // Paginate
+    const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
+    const startIndex = page * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, processedLogs.length);
+    const visibleLogs = processedLogs.slice(startIndex, endIndex);
 
-    hideModal = () => {
-        this.setState({
-            modalLog: null,
-            modalOpen: false,
-        });
-    };
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(0);
+        setExpandedIndex(null);
+        setFocusedIndex(null);
+    }, [search, enabledLevels, sortAsc]);
 
-    onFilter = (filterOptions: FilterOptions) => {
-        const filters = {} as unknown as LogFilter;
-        const levelValues = filterOptions.levels.values;
-        if (levelValues.all.value) {
-            filters.logLevels = [];
-        } else {
-            filters.logLevels = Object.keys(levelValues).reduce<LogFilter['logLevels']>((acc, key) => {
-                if (levelValues[key].value) {
-                    acc.push(key as LogLevelEnum);
+    // Level toggle
+    const toggleLevel = useCallback((level: string) => {
+        setEnabledLevels((prev) => {
+            const next = new Set(prev);
+            if (next.has(level)) {
+                // Don't allow disabling all levels
+                if (next.size > 1) {
+                    next.delete(level);
                 }
-                return acc;
-            }, []);
+            } else {
+                next.add(level);
+            }
+            return next;
+        });
+    }, []);
+
+    const enableAllLevels = useCallback(() => {
+        setEnabledLevels(new Set(['error', 'warn', 'info', 'debug']));
+    }, []);
+
+    // Expand/collapse
+    const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
+        const idx = visibleLogs.indexOf(log);
+        setExpandedIndex((prev) => (prev === idx ? null : idx));
+    }, [visibleLogs]);
+
+    const handleFocus = useCallback((log: LogObjectWithAdditionalInfo) => {
+        const idx = visibleLogs.indexOf(log);
+        setFocusedIndex(idx);
+    }, [visibleLogs]);
+
+    // Pagination
+    const goNextPage = useCallback(() => {
+        setPage((p) => Math.min(p + 1, totalPages - 1));
+        setExpandedIndex(null);
+        listRef.current?.scrollTo({top: 0});
+    }, [totalPages]);
+
+    const goPrevPage = useCallback(() => {
+        setPage((p) => Math.max(p - 1, 0));
+        setExpandedIndex(null);
+        listRef.current?.scrollTo({top: 0});
+    }, []);
+
+    const handlePageSizeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newSize = Number(e.target.value);
+        setPageSize(newSize);
+        setPage(0);
+        setExpandedIndex(null);
+    }, []);
+
+    // Sort toggle
+    const toggleSort = useCallback(() => {
+        setSortAsc((prev) => !prev);
+    }, []);
+
+    // Keyboard navigation at the list level
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        const target = e.target as HTMLElement;
+
+        // Don't capture if typing in search
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+            return;
         }
-        this.props.onFiltersChange(filters);
-    };
 
-    showErrors = () => {
-        this.props.onFiltersChange({logLevels: ['error']} as unknown as LogFilter);
-    };
+        switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+            e.preventDefault();
+            setFocusedIndex((prev) => {
+                const next = prev === null ? 0 : Math.min(prev + 1, visibleLogs.length - 1);
+                // Focus the row element
+                const rows = listRef.current?.querySelectorAll('.LogRow');
+                (rows?.[next] as HTMLElement)?.focus();
+                return next;
+            });
+            break;
+        case 'k':
+        case 'ArrowUp':
+            e.preventDefault();
+            setFocusedIndex((prev) => {
+                const next = prev === null ? 0 : Math.max(prev - 1, 0);
+                const rows = listRef.current?.querySelectorAll('.LogRow');
+                (rows?.[next] as HTMLElement)?.focus();
+                return next;
+            });
+            break;
+        case 'Escape':
+            setExpandedIndex(null);
+            break;
+        case '/':
+            e.preventDefault();
+            listRef.current?.closest('.LogViewer')?.querySelector<HTMLInputElement>('.LogViewer__search-input')?.focus();
+            break;
+        case 'e':
+        case 'E': {
+            // Jump to next/prev error
+            e.preventDefault();
+            const direction = e.shiftKey ? -1 : 1;
+            const start = focusedIndex === null ? 0 : focusedIndex + direction;
+            for (let i = start; i >= 0 && i < visibleLogs.length; i += direction) {
+                if (visibleLogs[i].level === 'error') {
+                    setFocusedIndex(i);
+                    const rows = listRef.current?.querySelectorAll('.LogRow');
+                    (rows?.[i] as HTMLElement)?.focus();
+                    (rows?.[i] as HTMLElement)?.scrollIntoView({block: 'nearest'});
+                    break;
+                }
+            }
+            break;
+        }
+        }
+    }, [visibleLogs, focusedIndex]);
 
-    getErrorCount = (): number => {
-        let n = 0;
-        this.props.logs.map((log) => log.level === 'error' && ++n);
-        return n;
-    };
-
-    render = (): JSX.Element => {
-        const {search} = this.props;
-        const rows: Row[] = this.getRows();
-        const columns: Column[] = this.getColumns(this.state.dateAsc);
-        const {startCount, endCount, total} = this.getPaginationProps();
-
-        const placeholderEmpty: JSX.Element = (
-            <FormattedMessage
-                id='admin.channel_settings.channel_list.no_logs_found'
-                defaultMessage='No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).'
-            />
-        );
-
-        const rowsContainerStyles = {
-            minHeight: `${rows.length * 40}px`,
-        };
-
-        const errorsButton: JSX.Element = (
-            <button
-                className='btn btn-tertiary btn-sm ml-2'
-                onClick={this.showErrors}
-            >
-                <FormattedMessage
-                    id='admin.logs.showErrors'
-                    defaultMessage='Show last {n} errors'
-                    values={{n: this.getErrorCount()}}
-                />
-            </button>
-        );
-
-        const filterOptions: FilterOptions = {
-            levels: {
-                name: 'Levels',
-                values: {
-                    all: {
-                        name: (
-                            <FormattedMessage
-                                id='admin.logs.Alllevels'
-                                defaultMessage='All levels'
-                            />
-                        ),
-                        value: true,
-                    },
-                    error: {
-                        name: (
-                            <FormattedMessage
-                                id='admin.logs.Error'
-                                defaultMessage='Error'
-                            />
-                        ),
-                        value: false,
-                    },
-                    warn: {
-                        name: (
-                            <FormattedMessage
-                                id='admin.logs.Warn'
-                                defaultMessage='Warn'
-                            />
-                        ),
-                        value: false,
-                    },
-                    info: {
-                        name: (
-                            <FormattedMessage
-                                id='admin.logs.Info'
-                                defaultMessage='Info'
-                            />
-                        ),
-                        value: false,
-                    },
-                    debug: {
-                        name: (
-                            <FormattedMessage
-                                id='admin.logs.Debug'
-                                defaultMessage='Debug'
-                            />
-                        ),
-                        value: false,
-                    },
-                },
-                keys: ['all', 'error', 'info', 'debug'],
-            },
-        };
-
-        const filterProps = {
-            options: filterOptions,
-            keys: ['levels'],
-            onFilter: this.onFilter,
-        };
-
+    if (loading && logs.length === 0) {
         return (
-            <div className='LogTable'>
-                <DataGrid
-                    columns={columns}
-                    rows={rows}
-                    loading={this.props.loading}
-                    startCount={startCount}
-                    endCount={endCount}
-                    total={total}
-                    onSearch={this.onSearch}
-                    term={search}
-                    placeholderEmpty={placeholderEmpty}
-                    rowsContainerStyles={rowsContainerStyles}
-                    nextPage={this.nextPage}
-                    previousPage={this.previousPage}
-                    filterProps={filterProps}
-                    extraComponent={errorsButton}
-                />
-                <FullLogEventModal
-                    log={this.state.modalLog}
-                    show={this.state.modalOpen}
-                    onModalDismissed={this.hideModal}
-                />
+            <div className='LogViewer'>
+                <div className='LogViewer__loading'>
+                    <div className='LogViewer__loading-spinner'/>
+                    <FormattedMessage
+                        id='admin.logs.loading'
+                        defaultMessage='Loading logs...'
+                    />
+                </div>
             </div>
         );
-    };
+    }
+
+    const allLevelsEnabled = enabledLevels.size === 4;
+
+    return (
+        <div
+            className='LogViewer'
+            onKeyDown={handleKeyDown}
+        >
+            {/* Toolbar */}
+            <div className='LogViewer__toolbar'>
+                <div className='LogViewer__toolbar-left'>
+                    {/* Search */}
+                    <div className='LogViewer__search'>
+                        <i className='icon icon-magnify LogViewer__search-icon'/>
+                        <input
+                            className='LogViewer__search-input'
+                            type='text'
+                            placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs...'})}
+                            value={search}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                        />
+                        {search && (
+                            <button
+                                className='LogViewer__search-clear'
+                                onClick={() => onSearchChange('')}
+                                type='button'
+                                aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
+                            >
+                                <i className='icon icon-close'/>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Search match count */}
+                    {matchCount !== null && (
+                        <span className='LogViewer__match-count'>
+                            <FormattedMessage
+                                id='admin.logs.matchCount'
+                                defaultMessage='{count} of {total}'
+                                values={{count: matchCount, total: totalCount}}
+                            />
+                        </span>
+                    )}
+                </div>
+
+                <div className='LogViewer__toolbar-right'>
+                    {/* Density toggle */}
+                    <button
+                        className={`LogViewer__toolbar-btn ${compact ? 'LogViewer__toolbar-btn--active' : ''}`}
+                        onClick={() => setCompact(!compact)}
+                        type='button'
+                        title={intl.formatMessage({id: 'admin.logs.density', defaultMessage: 'Toggle compact mode'})}
+                    >
+                        <i className={compact ? 'icon icon-format-line-spacing' : 'icon icon-format-line-spacing'}/>
+                    </button>
+
+                    {/* Wrap toggle */}
+                    <button
+                        className={`LogViewer__toolbar-btn ${wrapText ? 'LogViewer__toolbar-btn--active' : ''}`}
+                        onClick={() => setWrapText(!wrapText)}
+                        type='button'
+                        title={intl.formatMessage({id: 'admin.logs.wrap', defaultMessage: 'Toggle text wrapping'})}
+                    >
+                        <i className='icon icon-wrap'/>
+                    </button>
+                </div>
+            </div>
+
+            {/* Level filter toggles */}
+            <div className='LogViewer__level-filters'>
+                <button
+                    className={`LogViewer__level-btn LogViewer__level-btn--all ${allLevelsEnabled ? 'LogViewer__level-btn--active' : ''}`}
+                    onClick={enableAllLevels}
+                    type='button'
+                >
+                    <FormattedMessage
+                        id='admin.logs.allLevels'
+                        defaultMessage='All'
+                    />
+                    <span className='LogViewer__level-count'>{totalCount}</span>
+                </button>
+                {LEVEL_ORDER.map((level) => (
+                    <button
+                        key={level}
+                        className={`LogViewer__level-btn LogViewer__level-btn--${level} ${enabledLevels.has(level) ? 'LogViewer__level-btn--active' : ''}`}
+                        onClick={() => toggleLevel(level)}
+                        type='button'
+                    >
+                        {LEVEL_LABELS[level]}
+                        <span className='LogViewer__level-count'>{levelCounts[level]}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Column header */}
+            <div className='LogViewer__header'>
+                <span className='LogViewer__header-level'>
+                    <FormattedMessage
+                        id='admin.logs.header.level'
+                        defaultMessage='Level'
+                    />
+                </span>
+                <button
+                    className='LogViewer__header-timestamp'
+                    onClick={toggleSort}
+                    type='button'
+                >
+                    <FormattedMessage
+                        id='admin.logs.header.time'
+                        defaultMessage='Time'
+                    />
+                    <i className={`icon ${sortAsc ? 'icon-arrow-up' : 'icon-arrow-down'}`}/>
+                </button>
+                <span className='LogViewer__header-message'>
+                    <FormattedMessage
+                        id='admin.logs.header.message'
+                        defaultMessage='Message'
+                    />
+                </span>
+                <span className='LogViewer__header-caller'>
+                    <FormattedMessage
+                        id='admin.logs.header.caller'
+                        defaultMessage='Caller'
+                    />
+                </span>
+            </div>
+
+            {/* Log rows */}
+            <div
+                className='LogViewer__list'
+                ref={listRef}
+                role='grid'
+                aria-label={intl.formatMessage({id: 'admin.logs.listLabel', defaultMessage: 'Server log entries'})}
+            >
+                {visibleLogs.length === 0 && !loading && (
+                    <div className='LogViewer__empty'>
+                        {search || !allLevelsEnabled ? (
+                            <FormattedMessage
+                                id='admin.logs.noMatchingLogs'
+                                defaultMessage='No logs match your filters. {clearLink}'
+                                values={{
+                                    clearLink: (
+                                        <button
+                                            className='btn btn-link'
+                                            onClick={() => {
+                                                onSearchChange('');
+                                                enableAllLevels();
+                                            }}
+                                            type='button'
+                                        >
+                                            <FormattedMessage
+                                                id='admin.logs.clearFilters'
+                                                defaultMessage='Clear filters'
+                                            />
+                                        </button>
+                                    ),
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.logs.noLogs'
+                                defaultMessage='No logs found. Ensure log files are within the logging root directory.'
+                            />
+                        )}
+                    </div>
+                )}
+                {visibleLogs.map((log, idx) => (
+                    <LogRow
+                        key={`${log.timestamp}-${log.caller}-${idx}`}
+                        log={log}
+                        isExpanded={expandedIndex === idx}
+                        isFocused={focusedIndex === idx}
+                        onToggleExpand={handleToggleExpand}
+                        onFocus={handleFocus}
+                        searchTerm={search}
+                        wrapText={wrapText}
+                        compact={compact}
+                    />
+                ))}
+                {loading && logs.length > 0 && (
+                    <div className='LogViewer__loading-overlay'>
+                        <FormattedMessage
+                            id='admin.logs.refreshing'
+                            defaultMessage='Refreshing...'
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Footer / Pagination */}
+            <div className='LogViewer__footer'>
+                <div className='LogViewer__footer-info'>
+                    <FormattedMessage
+                        id='admin.logs.showing'
+                        defaultMessage='{start}-{end} of {total}'
+                        values={{
+                            start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                            end: endIndex,
+                            total: processedLogs.length,
+                        }}
+                    />
+                </div>
+                <div className='LogViewer__footer-pagination'>
+                    <button
+                        className='btn btn-sm btn-tertiary'
+                        onClick={goPrevPage}
+                        disabled={page === 0}
+                        type='button'
+                    >
+                        <i className='icon icon-chevron-left'/>
+                    </button>
+                    <span className='LogViewer__page-indicator'>
+                        <FormattedMessage
+                            id='admin.logs.pageOf'
+                            defaultMessage='Page {page} of {total}'
+                            values={{page: page + 1, total: totalPages}}
+                        />
+                    </span>
+                    <button
+                        className='btn btn-sm btn-tertiary'
+                        onClick={goNextPage}
+                        disabled={page >= totalPages - 1}
+                        type='button'
+                    >
+                        <i className='icon icon-chevron-right'/>
+                    </button>
+                </div>
+                <div className='LogViewer__footer-pagesize'>
+                    <label htmlFor='logPageSize'>
+                        <FormattedMessage
+                            id='admin.logs.rowsPerPage'
+                            defaultMessage='Rows:'
+                        />
+                    </label>
+                    <select
+                        id='logPageSize'
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                    >
+                        {PAGE_SIZES.map((size) => (
+                            <option
+                                key={size}
+                                value={size}
+                            >
+                                {size}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className='LogViewer__keyboard-hint'>
+                    <FormattedMessage
+                        id='admin.logs.keyboardHint'
+                        defaultMessage='j/k navigate \u00B7 Enter expand \u00B7 e jump to error \u00B7 / search'
+                    />
+                </div>
+            </div>
+        </div>
+    );
 }

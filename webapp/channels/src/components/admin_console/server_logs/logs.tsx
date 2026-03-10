@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
-import React from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {
     LogFilter,
@@ -19,6 +18,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
+import useLogPolling from './use_log_polling';
 
 type LogObjectWithAdditionalInfo = LogObject & {
     [key: string]: string;
@@ -37,19 +37,6 @@ type Props = {
     };
 };
 
-type State = {
-    dateFrom: string;
-    dateTo: string;
-    filteredLogs: LogObject[];
-    loading: boolean;
-    logLevels: LogLevels;
-    search: string;
-    serverNames: LogServerNames;
-    page: number;
-    perPage: number;
-    isPlainLogs: boolean;
-};
-
 const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
     bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
@@ -57,206 +44,362 @@ const messages = defineMessages({
     logFormatJson: {id: 'admin.logs.logFormatJson', defaultMessage: 'JSON'},
     logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
 });
+
 export const searchableStrings = [
     messages.title,
     messages.bannerDesc,
 ];
 
-export default class Logs extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            dateFrom: '',
-            dateTo: '',
-            filteredLogs: [],
-            loading: true,
-            logLevels: [],
-            search: '',
-            serverNames: [],
-            page: 0,
-            perPage: 1000,
-            isPlainLogs: props.isPlainLogs,
-        };
-    }
+const POLL_INTERVALS = [2000, 5000, 10000, 30000] as const;
+const POLL_INTERVAL_LABELS: Record<number, string> = {
+    2000: '2s',
+    5000: '5s',
+    10000: '10s',
+    30000: '30s',
+};
 
-    componentDidMount() {
-        this.reload();
-    }
+const TIME_PRESETS = [
+    {labelId: 'admin.logs.time.5m', defaultMessage: '5m', minutes: 5},
+    {labelId: 'admin.logs.time.15m', defaultMessage: '15m', minutes: 15},
+    {labelId: 'admin.logs.time.1h', defaultMessage: '1h', minutes: 60},
+    {labelId: 'admin.logs.time.24h', defaultMessage: '24h', minutes: 1440},
+] as const;
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.isPlainLogs && (this.state.page !== prevState.page || !this.props.plainLogs?.length)) {
-            this.reload();
-        }
-    }
+export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+    const intl = useIntl();
 
-    nextPage = () => {
-        this.setState({page: this.state.page + 1});
-    };
+    const [isPlainLogs, setIsPlainLogs] = useState(configIsPlainLogs);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
 
-    previousPage = () => {
-        this.setState({page: this.state.page - 1});
-    };
+    // Filter state
+    const [serverNames, setServerNames] = useState<LogServerNames>([]);
+    const [logLevels, setLogLevels] = useState<LogLevels>([]);
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
 
-    reload = async () => {
-        this.setState({loading: true});
-        if (this.state.isPlainLogs) {
-            await this.props.actions.getPlainLogs(
-                this.state.page,
-                this.state.perPage,
-            );
+    // Plain log pagination
+    const [plainPage, setPlainPage] = useState(0);
+    const [perPage] = useState(1000);
+
+    // Live tail state
+    const [liveTailEnabled, setLiveTailEnabled] = useState(false);
+    const [pollInterval, setPollInterval] = useState(5000);
+    const [showPollDropdown, setShowPollDropdown] = useState(false);
+
+    // Active time preset
+    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
+
+    const reload = useCallback(async () => {
+        setLoading(true);
+        if (isPlainLogs) {
+            await actions.getPlainLogs(plainPage, perPage);
         } else {
-            await this.props.actions.getLogs({
-                serverNames: this.state.serverNames,
-                logLevels: this.state.logLevels,
-                dateFrom: this.state.dateFrom,
-                dateTo: this.state.dateTo,
+            await actions.getLogs({
+                serverNames,
+                logLevels,
+                dateFrom,
+                dateTo,
             });
         }
-        this.setState({loading: false});
-    };
+        setLoading(false);
+    }, [isPlainLogs, plainPage, perPage, serverNames, logLevels, dateFrom, dateTo, actions]);
 
-    onLogFormatToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({isPlainLogs: event.target.value === 'plain'});
-    };
+    // Initial load
+    useEffect(() => {
+        reload();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    onSearchChange = (search: string) => {
-        this.setState({search}, () => this.performSearch());
-    };
+    // Reload when plain page changes
+    useEffect(() => {
+        if (isPlainLogs) {
+            reload();
+        }
+    }, [plainPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    performSearch = debounce(() => {
-        const {search} = this.state;
+    // Live tail polling
+    const {lastUpdated} = useLogPolling({
+        fetchLogs: reload,
+        enabled: liveTailEnabled && !isPlainLogs,
+        intervalMs: pollInterval,
+    });
 
-        // Excluding level and timestamp from search
+    const onSearchChange = useCallback((term: string) => {
+        setSearch(term);
+    }, []);
+
+    // Filter logs based on search term
+    const searchFilteredLogs = useMemo(() => {
+        if (!search) {
+            return logs;
+        }
         const excludedKeys = new Set(['level', 'timestamp']);
-
-        const filteredLogs = this.props.logs.filter((log) =>
+        const lowerSearch = search.toLowerCase();
+        return logs.filter((log) =>
             Object.entries(log).some(([key, value]) => {
                 if (excludedKeys.has(key)) {
                     return false;
                 }
-                return String(value).toLowerCase().includes(search.toLowerCase());
+                return String(value).toLowerCase().includes(lowerSearch);
             }),
         );
-        this.setState({filteredLogs});
-    }, 200);
+    }, [logs, search]);
 
-    componentWillUnmount(): void {
-        this.performSearch.cancel();
-    }
-
-    onFiltersChange = ({
-        dateFrom,
-        dateTo,
-        logLevels,
-        serverNames,
-    }: LogFilter) => {
-        this.setState({dateFrom, dateTo, logLevels, serverNames}, () =>
-            this.reload(),
-        );
-    };
-
-    render() {
-        const list = this.state.isPlainLogs ? (
-            <PlainLogList
-                loading={this.state.loading}
-                logs={this.props.plainLogs}
-                nextPage={this.nextPage}
-                previousPage={this.previousPage}
-                page={this.state.page}
-                perPage={this.state.perPage}
-            />
-        ) : (
-            <LogList
-                loading={this.state.loading}
-                logs={this.state.search ? this.state.filteredLogs : this.props.logs}
-                onSearchChange={this.onSearchChange}
-                search={this.state.search}
-                onFiltersChange={this.onFiltersChange}
-            />
-        );
-
-        let toggleLogFormat;
-        if (!this.props.isPlainLogs) {
-            toggleLogFormat = (
-                <div
-                    className='banner-buttons__log-format'
-                    id='admin.logs.LogFormat'
-                    role='radiogroup'
-                    aria-labelledby='admin.logs.LogFormat.legend'
-                >
-                    <span
-                        id='admin.logs.LogFormat.legend'
-                    >
-                        <FormattedMessage {...messages.logFormatTitle}/>
-                    </span>
-
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.json'
-                            name='log-format'
-                            value='json'
-                            checked={!this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatJson}/>
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.plain'
-                            name='log-format'
-                            value='plain'
-                            checked={this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatPlain}/>
-                    </label>
-                </div>
-            );
+    const onFiltersChange = useCallback((filters: LogFilter) => {
+        if (filters.serverNames !== undefined) {
+            setServerNames(filters.serverNames);
+        }
+        if (filters.logLevels !== undefined) {
+            setLogLevels(filters.logLevels);
+        }
+        if (filters.dateFrom !== undefined) {
+            setDateFrom(filters.dateFrom);
+        }
+        if (filters.dateTo !== undefined) {
+            setDateTo(filters.dateTo);
         }
 
-        return (
-            <div className='wrapper--admin'>
-                <AdminHeader>
-                    <FormattedMessage {...messages.title}/>
-                </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-logs-content admin-console__content'>
-                        <div className='logs-banner'>
-                            <div className='banner'>
-                                <div className='banner__content'>
-                                    <FormattedMessage {...messages.bannerDesc}/>
-                                </div>
-                            </div>
-                            <div className='banner-buttons'>
-                                {toggleLogFormat}
-                                <button
-                                    type='submit'
-                                    className='btn btn-primary'
-                                    onClick={this.reload}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.ReloadLogs'
-                                        defaultMessage='Reload Logs'
-                                    />
-                                </button>
-                                <ExternalLink
-                                    location='download_logs'
-                                    className='btn btn-primary'
-                                    href={Client4.getUrl() + '/api/v4/logs/download'}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.DownloadLogs'
-                                        defaultMessage='Download Logs'
-                                    />
-                                </ExternalLink>
+        // Trigger reload with new filters
+        setLoading(true);
+        actions.getLogs({
+            serverNames: filters.serverNames ?? serverNames,
+            logLevels: filters.logLevels ?? logLevels,
+            dateFrom: filters.dateFrom ?? dateFrom,
+            dateTo: filters.dateTo ?? dateTo,
+        }).then(() => setLoading(false));
+    }, [actions, serverNames, logLevels, dateFrom, dateTo]);
+
+    const onLogFormatToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        const plain = event.target.value === 'plain';
+        setIsPlainLogs(plain);
+        if (plain) {
+            setLiveTailEnabled(false);
+        }
+    }, []);
+
+    // Time presets
+    const handleTimePreset = useCallback((minutes: number) => {
+        const now = new Date();
+        const from = new Date(now.getTime() - (minutes * 60 * 1000));
+
+        // Format for the API
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const formatDate = (d: Date) => {
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000 +00:00`;
+        };
+
+        const newDateFrom = formatDate(from);
+        const newDateTo = formatDate(now);
+
+        setActiveTimePreset(minutes);
+        setDateFrom(newDateFrom);
+        setDateTo(newDateTo);
+
+        setLoading(true);
+        actions.getLogs({
+            serverNames,
+            logLevels,
+            dateFrom: newDateFrom,
+            dateTo: newDateTo,
+        }).then(() => setLoading(false));
+    }, [actions, serverNames, logLevels]);
+
+    const clearTimePreset = useCallback(() => {
+        setActiveTimePreset(null);
+        setDateFrom('');
+        setDateTo('');
+        setLoading(true);
+        actions.getLogs({
+            serverNames,
+            logLevels,
+            dateFrom: '',
+            dateTo: '',
+        }).then(() => setLoading(false));
+    }, [actions, serverNames, logLevels]);
+
+    // Format "last updated" for live tail
+    const lastUpdatedText = useMemo(() => {
+        if (!lastUpdated) {
+            return null;
+        }
+        const seconds = Math.round((Date.now() - lastUpdated) / 1000);
+        if (seconds < 5) {
+            return intl.formatMessage({id: 'admin.logs.justNow', defaultMessage: 'just now'});
+        }
+        return intl.formatMessage({id: 'admin.logs.secondsAgo', defaultMessage: '{n}s ago'}, {n: seconds});
+    }, [lastUpdated, intl]);
+
+    const displayLogs = searchFilteredLogs;
+
+    const list = isPlainLogs ? (
+        <PlainLogList
+            loading={loading}
+            logs={plainLogs}
+            nextPage={() => setPlainPage((p) => p + 1)}
+            previousPage={() => setPlainPage((p) => Math.max(0, p - 1))}
+            page={plainPage}
+            perPage={perPage}
+        />
+    ) : (
+        <LogList
+            loading={loading}
+            logs={displayLogs as Array<LogObject & {[key: string]: string}>}
+            onSearchChange={onSearchChange}
+            search={search}
+            onFiltersChange={onFiltersChange}
+        />
+    );
+
+    const toggleLogFormat = !configIsPlainLogs ? (
+        <div
+            className='banner-buttons__log-format'
+            id='admin.logs.LogFormat'
+            role='radiogroup'
+            aria-labelledby='admin.logs.LogFormat.legend'
+        >
+            <span id='admin.logs.LogFormat.legend'>
+                <FormattedMessage {...messages.logFormatTitle}/>
+            </span>
+            <label>
+                <input
+                    type='radio'
+                    id='admin.logs.LogFormat.json'
+                    name='log-format'
+                    value='json'
+                    checked={!isPlainLogs}
+                    onChange={onLogFormatToggle}
+                />
+                <FormattedMessage {...messages.logFormatJson}/>
+            </label>
+            <label>
+                <input
+                    type='radio'
+                    id='admin.logs.LogFormat.plain'
+                    name='log-format'
+                    value='plain'
+                    checked={isPlainLogs}
+                    onChange={onLogFormatToggle}
+                />
+                <FormattedMessage {...messages.logFormatPlain}/>
+            </label>
+        </div>
+    ) : null;
+
+    return (
+        <div className='wrapper--admin'>
+            <AdminHeader>
+                <FormattedMessage {...messages.title}/>
+            </AdminHeader>
+            <div className='admin-console__wrapper'>
+                <div className='admin-logs-content admin-console__content'>
+                    <div className='logs-banner'>
+                        <div className='banner'>
+                            <div className='banner__content'>
+                                <FormattedMessage {...messages.bannerDesc}/>
                             </div>
                         </div>
-                        {list}
+                        <div className='banner-buttons'>
+                            {toggleLogFormat}
+
+                            {/* Time range presets */}
+                            {!isPlainLogs && (
+                                <div className='LogViewer__time-presets'>
+                                    {TIME_PRESETS.map((preset) => (
+                                        <button
+                                            key={preset.minutes}
+                                            type='button'
+                                            className={`btn btn-sm ${activeTimePreset === preset.minutes ? 'btn-primary' : 'btn-tertiary'}`}
+                                            onClick={() => handleTimePreset(preset.minutes)}
+                                        >
+                                            {preset.defaultMessage}
+                                        </button>
+                                    ))}
+                                    {activeTimePreset !== null && (
+                                        <button
+                                            type='button'
+                                            className='btn btn-sm btn-tertiary'
+                                            onClick={clearTimePreset}
+                                        >
+                                            <i className='icon icon-close'/>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Live tail */}
+                            {!isPlainLogs && (
+                                <div className='LogViewer__live-tail'>
+                                    <button
+                                        type='button'
+                                        className={`btn btn-sm ${liveTailEnabled ? 'btn-primary LogViewer__live-tail-active' : 'btn-tertiary'}`}
+                                        onClick={() => setLiveTailEnabled(!liveTailEnabled)}
+                                    >
+                                        {liveTailEnabled && <span className='LogViewer__live-dot'/>}
+                                        <FormattedMessage
+                                            id='admin.logs.liveTail'
+                                            defaultMessage='Live'
+                                        />
+                                    </button>
+                                    <div className='LogViewer__poll-interval-wrapper'>
+                                        <button
+                                            type='button'
+                                            className='btn btn-sm btn-tertiary LogViewer__poll-interval-btn'
+                                            onClick={() => setShowPollDropdown(!showPollDropdown)}
+                                        >
+                                            {POLL_INTERVAL_LABELS[pollInterval]}
+                                            <i className='icon icon-chevron-down'/>
+                                        </button>
+                                        {showPollDropdown && (
+                                            <div className='LogViewer__poll-dropdown'>
+                                                {POLL_INTERVALS.map((interval) => (
+                                                    <button
+                                                        key={interval}
+                                                        type='button'
+                                                        className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
+                                                        onClick={() => {
+                                                            setPollInterval(interval);
+                                                            setShowPollDropdown(false);
+                                                        }}
+                                                    >
+                                                        {POLL_INTERVAL_LABELS[interval]}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {liveTailEnabled && lastUpdatedText && (
+                                        <span className='LogViewer__last-updated'>
+                                            {lastUpdatedText}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            <button
+                                type='submit'
+                                className='btn btn-primary'
+                                onClick={reload}
+                            >
+                                <FormattedMessage
+                                    id='admin.logs.ReloadLogs'
+                                    defaultMessage='Reload Logs'
+                                />
+                            </button>
+                            <ExternalLink
+                                location='download_logs'
+                                className='btn btn-primary'
+                                href={Client4.getUrl() + '/api/v4/logs/download'}
+                            >
+                                <FormattedMessage
+                                    id='admin.logs.DownloadLogs'
+                                    defaultMessage='Download Logs'
+                                />
+                            </ExternalLink>
+                        </div>
                     </div>
+                    {list}
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
