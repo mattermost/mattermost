@@ -128,6 +128,31 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.getByText(bannerMessage)).toBeInTheDocument();
     });
 
+    test('does not render when banner has been dismissed', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                preferences: {
+                    myPreferences: {
+                        'sc_guest_limit_banner--single_channel_guest_limit': {
+                            category: 'sc_guest_limit_banner',
+                            name: 'single_channel_guest_limit',
+                            value: 'true',
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
+            state,
+        );
+
+        expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
+    });
+
     test('does not render when singleChannelGuestLimit is 0', () => {
         const state = {
             ...baseState,

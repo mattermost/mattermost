@@ -1790,16 +1790,24 @@ func (us SqlUserStore) AnalyticsGetGuestCount() (int64, error) {
 }
 
 func (us SqlUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+	subQuery := us.getQueryBuilder().
+		Select("cm.UserId").
+		From("ChannelMembers cm").
+		Join("Users u ON cm.UserId = u.Id").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Where(sq.ILike{"u.Roles": "%system_guest%"}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"c.DeleteAt": 0}).
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
+		GroupBy("cm.UserId").
+		Having("COUNT(cm.ChannelId) = 1")
+
+	query := us.getQueryBuilder().
+		Select("COUNT(*)").
+		FromSelect(subQuery, "single_channel_guests")
+
 	var count int64
-	err := us.GetReplica().Get(&count, `SELECT COUNT(*) FROM (
-		SELECT cm.UserId
-		FROM ChannelMembers cm
-		JOIN Users u ON cm.UserId = u.Id
-		JOIN Channels c ON cm.ChannelId = c.Id
-		WHERE u.Roles LIKE ? AND u.DeleteAt = 0 AND c.DeleteAt = 0
-		GROUP BY cm.UserId
-		HAVING COUNT(cm.ChannelId) = 1
-	) AS single_channel_guests`, "%system_guest%")
+	err := us.GetReplica().GetBuilder(&count, query)
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count single-channel guest Users")
 	}

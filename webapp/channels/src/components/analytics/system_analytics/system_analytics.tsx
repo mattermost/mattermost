@@ -357,11 +357,14 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         }
 
         const isCloud = this.props.license.Cloud === 'true';
+        const guestAccountsEnabled = this.props.config?.EnableGuestAccounts === 'true';
+        const seatAdjustedUserCount = this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]);
         const userCount = (
             <ActivatedUserCard
-                activatedUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS])}
+                activatedUsers={seatAdjustedUserCount}
                 seatsPurchased={parseInt(this.props.license.Users, 10)}
                 isCloud={isCloud}
+                guestAccountsEnabled={guestAccountsEnabled}
             />
         );
 
@@ -483,11 +486,10 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         }
 
         const isEntrySku = this.props.license.SkuShortName === LicenseSkus.Entry;
-        const guestAccountsEnabled = this.props.config?.EnableGuestAccounts === 'true';
         const shouldShowSingleChannelGuests = isLicensed && !isEntrySku && guestAccountsEnabled;
 
         const singleChannelGuestsCount = this.getStatValue(stats[StatTypes.SINGLE_CHANNEL_GUESTS]);
-        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? 0;
+        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? parseInt(this.props.license.Users, 10);
 
         const singleChannelGuests = shouldShowSingleChannelGuests ? (
             <SingleChannelGuestsCard
@@ -535,7 +537,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     <div className='admin-console__content'>
                         <UserSeatAlertBanner
                             license={this.props.license}
-                            totalUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS]) || 0}
+                            totalUsers={this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]) ?? 0}
                             location='system_statistics'
                         />
                         {banner}

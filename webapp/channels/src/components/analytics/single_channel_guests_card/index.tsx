@@ -4,7 +4,7 @@
 import React from 'react';
 import {defineMessage, defineMessages, useIntl} from 'react-intl';
 
-import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import StatisticCount from 'components/analytics/statistic_count';
 import WithTooltip from 'components/with_tooltip';
@@ -22,15 +22,26 @@ const Title = ({isOverLimit}: TitleProps) => {
     const text = intl.formatMessage(messages.singleChannelGuests);
 
     if (!isOverLimit) {
-        return <>{text}</>;
+        return (
+            <WithTooltip
+                title={defineMessage({id: 'analytics.system.singleChannelGuests.info.tooltip.title', defaultMessage: 'Single-channel guests'})}
+                hint={defineMessage({id: 'analytics.system.singleChannelGuests.info.tooltip.hint', defaultMessage: 'Guests that are only in one channel are not counted towards your total activated user count.'})}
+            >
+                <span className='single-channel-guest-title'>
+                    {text}
+                    <InformationOutlineIcon size={14}/>
+                </span>
+            </WithTooltip>
+        );
     }
 
     return (
         <WithTooltip
             title={defineMessage({id: 'analytics.system.singleChannelGuests.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
             hint={defineMessage({id: 'analytics.system.singleChannelGuests.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+            className='single-channel-guest-tooltip'
         >
-            <span className='single-channel-guest-limit-title'>
+            <span className='single-channel-guest-title'>
                 {text}
                 <AlertOutlineIcon size={14}/>
             </span>

@@ -4687,6 +4687,104 @@ func testUserStoreAnalyticsGetSingleChannelGuestCount(t *testing.T, rctx request
 	result, err := ss.User().AnalyticsGetSingleChannelGuestCount()
 	require.NoError(t, err)
 	require.Equal(t, countBefore+1, result)
+
+	// Guest in a single DM channel should NOT be counted.
+	dmGuest := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_guest",
+	}
+	_, nErr = ss.User().Save(rctx, &dmGuest)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, dmGuest.Id)) }()
+
+	dmChannel := &model.Channel{
+		Name: model.GetDMNameFromIds(dmGuest.Id, regularUser.Id),
+		Type: model.ChannelTypeDirect,
+	}
+	dmMember1 := &model.ChannelMember{
+		UserId:      dmGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	}
+	dmMember2 := &model.ChannelMember{
+		UserId:      regularUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, nErr = ss.Channel().SaveDirectChannel(rctx, dmChannel, dmMember1, dmMember2)
+	require.NoError(t, nErr)
+
+	result, err = ss.User().AnalyticsGetSingleChannelGuestCount()
+	require.NoError(t, err)
+	require.Equal(t, countBefore+1, result, "guest only in a DM should not be counted")
+
+	// Guest in a single GM channel should NOT be counted.
+	gmGuest := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_guest",
+	}
+	_, nErr = ss.User().Save(rctx, &gmGuest)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, gmGuest.Id)) }()
+
+	gmChannel := &model.Channel{
+		DisplayName: "GM with guest",
+		Name:        "gm-scg-" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}
+	gmChannel, nErr = ss.Channel().Save(rctx, gmChannel, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   gmChannel.Id,
+		UserId:      gmGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	result, err = ss.User().AnalyticsGetSingleChannelGuestCount()
+	require.NoError(t, err)
+	require.Equal(t, countBefore+1, result, "guest only in a GM should not be counted")
+
+	// Guest in one public channel + a DM should still be counted (one non-DM/GM channel).
+	dmAndPublicGuest := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+		Roles:    "system_guest",
+	}
+	_, nErr = ss.User().Save(rctx, &dmAndPublicGuest)
+	require.NoError(t, nErr)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, dmAndPublicGuest.Id)) }()
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      dmAndPublicGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	dmChannel2 := &model.Channel{
+		Name: model.GetDMNameFromIds(dmAndPublicGuest.Id, regularUser.Id),
+		Type: model.ChannelTypeDirect,
+	}
+	dmMember3 := &model.ChannelMember{
+		UserId:      dmAndPublicGuest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	}
+	dmMember4 := &model.ChannelMember{
+		UserId:      regularUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, nErr = ss.Channel().SaveDirectChannel(rctx, dmChannel2, dmMember3, dmMember4)
+	require.NoError(t, nErr)
+
+	result, err = ss.User().AnalyticsGetSingleChannelGuestCount()
+	require.NoError(t, err)
+	require.Equal(t, countBefore+2, result, "guest in one public channel + a DM should be counted")
 }
 
 func testUserStoreAnalyticsGetExternalUsers(t *testing.T, rctx request.CTX, ss store.Store) {

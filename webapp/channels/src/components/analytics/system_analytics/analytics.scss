@@ -48,7 +48,11 @@ details[open] {
     }
 }
 
-.single-channel-guest-limit-title {
+.single-channel-guest-title {
     width: auto;
     cursor: pointer;
+}
+
+.single-channel-guest-tooltip {
+    max-width: 300px;
 }

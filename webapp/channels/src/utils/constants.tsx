@@ -148,7 +148,7 @@ export const Preferences = {
     OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
     POST_HISTORY_LIMIT_BANNER: ReduxPreferences.CATEGORY_POST_HISTORY_LIMIT_BANNER,
     USERS_LIMITS_BANNER: 'users_limits_banner',
-    SINGLE_CHANNEL_GUEST_LIMIT_BANNER: 'single_channel_guest_limit_banner',
+    SINGLE_CHANNEL_GUEST_LIMIT_BANNER: 'sc_guest_limit_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
