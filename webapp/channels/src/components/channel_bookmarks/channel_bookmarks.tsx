@@ -52,15 +52,19 @@ function ChannelBookmarks({channelId}: Props) {
     const [showDragOverlay, setShowDragOverlay] = useState(false);
     const postDropTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-    // Show drag overlay when auto-open triggers, hide after post-drop delay
+    // Show drag overlay when auto-open triggers, hide after post-drop delay.
+    // Keep the menu open after drop if there are overflow items.
     useEffect(() => {
         if (isDragging && autoOpenOverflow) {
             setShowDragOverlay(true);
         } else if (!isDragging && showDragOverlay) {
-            // Drag ended — hold overlay briefly, then close
+            // Drag ended — hold overlay briefly, then transition to normal menu
             postDropTimerRef.current = setTimeout(() => {
                 setShowDragOverlay(false);
-                setAutoOpenOverflow(false);
+
+                // Keep menu open if there are overflow items to show;
+                // autoOpenOverflow stays true and forceOpen keeps the menu visible.
+                // User can close it normally (Escape, click away).
             }, 400);
         }
 
@@ -69,7 +73,7 @@ function ChannelBookmarks({channelId}: Props) {
                 clearTimeout(postDropTimerRef.current);
             }
         };
-    }, [isDragging, autoOpenOverflow, showDragOverlay, setAutoOpenOverflow]);
+    }, [isDragging, autoOpenOverflow, showDragOverlay]);
 
     // --- Keyboard reorder ---
     const {reorderState, getItemProps} = useKeyboardReorder({

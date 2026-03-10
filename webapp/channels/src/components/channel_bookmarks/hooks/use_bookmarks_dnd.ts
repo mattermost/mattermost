@@ -90,8 +90,10 @@ export function useBookmarksDnd({
             onDrop: ({source, location}) => {
                 setActiveId(null);
 
-                // Don't reset autoOpenOverflow here — let the menu stay open
-                // if it was opened during drag. User closes it normally.
+                // Keep overflow menu open if dropped into overflow; close if dropped into bar
+                const dropTarget = location.current.dropTargets[0];
+                const droppedInOverflow = dropTarget?.data.container === 'overflow' || dropTarget?.data.type === 'overflow-trigger';
+                setAutoOpenOverflow(droppedInOverflow);
 
                 const sourceId = source.data.bookmarkId as string;
                 const target = location.current.dropTargets[0];
