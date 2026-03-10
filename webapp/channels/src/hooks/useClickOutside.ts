@@ -7,9 +7,18 @@ import {useEffect} from 'react';
 /**
  * Fires `handler` on mousedown outside the element referenced by `ref`.
  * When `ref` is null, fires on any mousedown (click-anywhere).
+ * When `enabled` is false, no listener is attached.
  */
-export function useClickOutside(ref: MutableRefObject<HTMLElement | null> | null, handler: () => void): void {
+export function useClickOutside(
+    ref: MutableRefObject<HTMLElement | null> | null,
+    handler: () => void,
+    enabled = true,
+): void {
     useEffect(() => {
+        if (!enabled) {
+            return undefined;
+        }
+
         function onMouseDown(event: MouseEvent) {
             if (!ref) {
                 handler();
@@ -25,5 +34,5 @@ export function useClickOutside(ref: MutableRefObject<HTMLElement | null> | null
         return () => {
             document.removeEventListener('mousedown', onMouseDown);
         };
-    }, [ref, handler]);
+    }, [ref, handler, enabled]);
 }

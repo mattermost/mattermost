@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import styled from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -38,42 +38,13 @@ function ChannelBookmarks({channelId}: Props) {
     // --- DnD coordination ---
     const {
         isDragging,
-        autoOpenOverflow,
-        setAutoOpenOverflow,
+        forceOverflowOpen,
+        setForceOverflowOpen,
     } = useBookmarksDnd({
         order,
         visibleItems,
-        overflowItems,
         onReorder: reorder,
     });
-
-    // Track whether the drag overlay should be visible. Stays true briefly
-    // after drop so the user sees the reorder result.
-    const [showDragOverlay, setShowDragOverlay] = useState(false);
-    const postDropTimerRef = useRef<ReturnType<typeof setTimeout>>();
-
-    // Show drag overlay when auto-open triggers, hide after post-drop delay.
-    // Keep the menu open after drop if there are overflow items.
-    useEffect(() => {
-        if (isDragging && autoOpenOverflow) {
-            setShowDragOverlay(true);
-        } else if (!isDragging && showDragOverlay) {
-            // Drag ended — hold overlay briefly, then transition to normal menu
-            postDropTimerRef.current = setTimeout(() => {
-                setShowDragOverlay(false);
-
-                // Keep menu open if there are overflow items to show;
-                // autoOpenOverflow stays true and forceOpen keeps the menu visible.
-                // User can close it normally (Escape, click away).
-            }, 400);
-        }
-
-        return () => {
-            if (postDropTimerRef.current) {
-                clearTimeout(postDropTimerRef.current);
-            }
-        };
-    }, [isDragging, autoOpenOverflow, showDragOverlay]);
 
     // --- Keyboard reorder ---
     const {reorderState, getItemProps} = useKeyboardReorder({
@@ -82,7 +53,7 @@ function ChannelBookmarks({channelId}: Props) {
         overflowItems,
         onReorder: reorder,
         getName: useCallback((id: string) => bookmarks[id]?.display_name ?? '', [bookmarks]),
-        onOverflowOpenChange: setAutoOpenOverflow,
+        onOverflowOpenChange: setForceOverflowOpen,
         canReorder,
     });
 
@@ -94,7 +65,7 @@ function ChannelBookmarks({channelId}: Props) {
     }, [isDragging, reorderState.isReordering, pauseRecalc]);
 
     // --- Render ---
-    const forceOpen = showDragOverlay || autoOpenOverflow || (reorderState.isReordering && overflowItems.includes(reorderState.itemId ?? '')) || undefined;
+    const forceOpen = forceOverflowOpen || (reorderState.isReordering && overflowItems.includes(reorderState.itemId ?? '')) || undefined;
 
     if (!hasBookmarks) {
         return null;
@@ -153,7 +124,7 @@ function ChannelBookmarks({channelId}: Props) {
                     isDragging={isDragging}
                     canAdd={canAdd}
                     forceOpen={forceOpen}
-                    onOpenChange={setAutoOpenOverflow}
+                    onOpenChange={setForceOverflowOpen}
                     reorderState={reorderState}
                     getItemProps={canReorder ? getItemProps : undefined}
                 />

@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {useClickOutside} from 'hooks/useClickOutside';
+import {useLatest} from 'hooks/useLatest';
 import {useReadout} from 'hooks/useReadout';
 
 interface KeyboardReorderState {
@@ -53,19 +54,9 @@ export function useKeyboardReorder({
     const [state, setState] = useState<KeyboardReorderState>(INITIAL_STATE);
 
     // Use refs for values accessed in callbacks to avoid stale closures
-    const orderRef = useRef(order);
-    const visibleItemsRef = useRef(visibleItems);
-    const overflowItemsRef = useRef(overflowItems);
-
-    useEffect(() => {
-        orderRef.current = order;
-    }, [order]);
-    useEffect(() => {
-        visibleItemsRef.current = visibleItems;
-    }, [visibleItems]);
-    useEffect(() => {
-        overflowItemsRef.current = overflowItems;
-    }, [overflowItems]);
+    const orderRef = useLatest(order);
+    const visibleItemsRef = useLatest(visibleItems);
+    const overflowItemsRef = useLatest(overflowItems);
 
     // Re-focus the active item after order changes
     useEffect(() => {
@@ -113,12 +104,7 @@ export function useKeyboardReorder({
     }, [state.itemId, onOverflowOpenChange, formatMessage, readAloud]);
 
     // Confirm reorder on click-anywhere (null ref = any mousedown)
-    const clickAnywhereHandler = useCallback(() => {
-        if (state.isReordering) {
-            confirmReorder();
-        }
-    }, [state.isReordering, confirmReorder]);
-    useClickOutside(null, clickAnywhereHandler);
+    useClickOutside(null, confirmReorder, state.isReordering);
 
     const cancelReorder = useCallback(() => {
         const {itemId, originalIndex} = state;

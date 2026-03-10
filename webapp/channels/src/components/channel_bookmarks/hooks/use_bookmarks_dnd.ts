@@ -4,20 +4,21 @@
 import {monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
+
+import {useLatest} from 'hooks/useLatest';
 
 interface UseBookmarksDndOptions {
     order: string[]; // full bookmark order from Redux
     visibleItems: string[]; // items shown in bar
-    overflowItems: string[]; // items in overflow menu
     onReorder: (id: string, prevIndex: number, nextIndex: number) => Promise<void>;
 }
 
 interface UseBookmarksDndResult {
     isDragging: boolean;
     activeId: string | null;
-    autoOpenOverflow: boolean;
-    setAutoOpenOverflow: (open: boolean) => void;
+    forceOverflowOpen: boolean;
+    setForceOverflowOpen: (open: boolean) => void;
 }
 
 function getDropIndex(
@@ -46,32 +47,17 @@ function getDropIndex(
 export function useBookmarksDnd({
     order,
     visibleItems,
-    overflowItems,
     onReorder,
 }: UseBookmarksDndOptions): UseBookmarksDndResult {
     const [activeId, setActiveId] = useState<string | null>(null);
     const isDragging = Boolean(activeId);
-    const [autoOpenOverflow, setAutoOpenOverflow] = useState(false);
+    const [forceOverflowOpen, setForceOverflowOpen] = useState(false);
 
     // Use refs for order arrays so the monitor callback always sees current values
     // without needing to re-register on every order change
-    const orderRef = useRef(order);
-    const visibleItemsRef = useRef(visibleItems);
-    const overflowItemsRef = useRef(overflowItems);
-    const onReorderRef = useRef(onReorder);
-
-    useEffect(() => {
-        orderRef.current = order;
-    }, [order]);
-    useEffect(() => {
-        visibleItemsRef.current = visibleItems;
-    }, [visibleItems]);
-    useEffect(() => {
-        overflowItemsRef.current = overflowItems;
-    }, [overflowItems]);
-    useEffect(() => {
-        onReorderRef.current = onReorder;
-    }, [onReorder]);
+    const orderRef = useLatest(order);
+    const visibleItemsRef = useLatest(visibleItems);
+    const onReorderRef = useLatest(onReorder);
 
     useEffect(() => {
         return monitorForElements({
@@ -83,7 +69,7 @@ export function useBookmarksDnd({
                 // If dragging from overflow, keep the menu force-open so MUI's
                 // synchronous close during dragstart is overridden on next render.
                 if (source.data.container === 'overflow') {
-                    setAutoOpenOverflow(true);
+                    setForceOverflowOpen(true);
                 }
             },
 
@@ -93,7 +79,7 @@ export function useBookmarksDnd({
                 // Keep overflow menu open if dropped into overflow; close if dropped into bar
                 const dropTarget = location.current.dropTargets[0];
                 const droppedInOverflow = dropTarget?.data.container === 'overflow' || dropTarget?.data.type === 'overflow-trigger';
-                setAutoOpenOverflow(droppedInOverflow);
+                setForceOverflowOpen(droppedInOverflow);
 
                 const sourceId = source.data.bookmarkId as string;
                 const target = location.current.dropTargets[0];
@@ -138,18 +124,18 @@ export function useBookmarksDnd({
                 // Detect when drag enters overflow-trigger zone
                 const target = location.current.dropTargets[0];
                 if (target?.data.type === 'overflow-trigger') {
-                    setAutoOpenOverflow(true);
+                    setForceOverflowOpen(true);
                 }
             },
         });
 
-    // Refs handle freshness; setAutoOpenOverflow is a stable setState
-    }, [setAutoOpenOverflow]);
+    // Refs handle freshness; setForceOverflowOpen is a stable setState
+    }, [setForceOverflowOpen]);
 
     return {
         isDragging,
         activeId,
-        autoOpenOverflow,
-        setAutoOpenOverflow,
+        forceOverflowOpen,
+        setForceOverflowOpen,
     };
 }

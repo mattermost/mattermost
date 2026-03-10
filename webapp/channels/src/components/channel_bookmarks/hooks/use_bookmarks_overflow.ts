@@ -3,6 +3,8 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
+import {useLatest} from 'hooks/useLatest';
+
 // Space to reserve for the menu button
 const MENU_BUTTON_WIDTH = 80;
 
@@ -22,6 +24,8 @@ export function useBookmarksOverflow(order: string[]) {
     const pendingRecalcRef = useRef(false);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+    const orderRef = useLatest(order);
+
     const [overflowStartIndex, setOverflowStartIndex] = useState<number>(order.length);
 
     const registerItemRef = useCallback((id: string, element: HTMLElement | null) => {
@@ -37,9 +41,11 @@ export function useBookmarksOverflow(order: string[]) {
             pendingRecalcRef.current = true;
             return;
         }
+
+        const currentOrder = orderRef.current;
         const container = containerRef.current;
-        if (!container || order.length === 0) {
-            setOverflowStartIndex(order.length);
+        if (!container || currentOrder.length === 0) {
+            setOverflowStartIndex(currentOrder.length);
             return;
         }
 
@@ -47,10 +53,10 @@ export function useBookmarksOverflow(order: string[]) {
         const availableWidth = containerWidth - MENU_BUTTON_WIDTH - BAR_INLINE_PADDING;
 
         let usedWidth = 0;
-        let newOverflowIndex = order.length;
+        let newOverflowIndex = currentOrder.length;
 
-        for (let i = 0; i < order.length; i++) {
-            const itemEl = itemRefs.current.get(order[i]);
+        for (let i = 0; i < currentOrder.length; i++) {
+            const itemEl = itemRefs.current.get(currentOrder[i]);
             if (!itemEl) {
                 continue;
             }
@@ -64,7 +70,7 @@ export function useBookmarksOverflow(order: string[]) {
         }
 
         setOverflowStartIndex(newOverflowIndex);
-    }, [order]);
+    }, [orderRef]);
 
     const debouncedCalculateOverflow = useCallback(() => {
         if (isPausedRef.current) {
@@ -79,27 +85,33 @@ export function useBookmarksOverflow(order: string[]) {
         debounceTimerRef.current = setTimeout(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
     }, [calculateOverflow]);
 
+    // Set up ResizeObserver — runs once on mount since deps are stable
     useEffect(() => {
         const container = containerRef.current;
         if (!container) {
             return undefined;
         }
 
-        const timeoutId = setTimeout(calculateOverflow, 0);
-
         const resizeObserver = new ResizeObserver(() => {
             debouncedCalculateOverflow();
         });
         resizeObserver.observe(container);
 
+        // Initial calculation
+        calculateOverflow();
+
         return () => {
-            clearTimeout(timeoutId);
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
             resizeObserver.disconnect();
         };
-    }, [calculateOverflow, debouncedCalculateOverflow, order]);
+    }, [calculateOverflow, debouncedCalculateOverflow]);
+
+    // Recalculate when order changes
+    useEffect(() => {
+        debouncedCalculateOverflow();
+    }, [order, debouncedCalculateOverflow]);
 
     const visibleItems = useMemo(() => order.slice(0, overflowStartIndex), [order, overflowStartIndex]);
     const overflowItems = useMemo(() => order.slice(overflowStartIndex), [order, overflowStartIndex]);
