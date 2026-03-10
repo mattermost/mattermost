@@ -163,6 +163,18 @@ jobs:
                       for (const f of gap.files) lines.push(`- \`${f}\``);
                       lines.push('');
                     }
+                    if (gap.existingTests && gap.existingTests.length > 0) {
+                      lines.push('**Existing tests (add scenarios here):**');
+                      lines.push('');
+                      for (const t of gap.existingTests) lines.push(`- \`${t.replace(/^specs\//, '')}\``);
+                      lines.push('');
+                    }
+                    if (gap.missingScenarios && gap.missingScenarios.length > 0) {
+                      lines.push('**Missing test scenarios:**');
+                      lines.push('');
+                      for (const s of gap.missingScenarios) lines.push(`- ${s}`);
+                      lines.push('');
+                    }
                     lines.push('</details>');
                     lines.push('');
                   }
