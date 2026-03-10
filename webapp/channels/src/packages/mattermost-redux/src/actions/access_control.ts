@@ -70,6 +70,28 @@ export function searchAccessControlPolicies(term: string, type: string, after: s
     };
 }
 
+export function searchTeamAccessControlPolicies(teamId: string, term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {
+    return async (dispatch, getState) => {
+        if (!teamId) {
+            return {error: new Error('teamId is required for team-scoped policy search')};
+        }
+
+        let data;
+        try {
+            data = await Client4.searchAccessControlPolicies(term, type, after, limit, teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        dispatch(
+            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data.policies},
+        );
+
+        return {data};
+    };
+}
+
 export function searchAccessControlPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         let data;

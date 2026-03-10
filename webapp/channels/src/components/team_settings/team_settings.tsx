@@ -5,6 +5,7 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
+import AccessPoliciesTab from './team_access_policies_tab';
 import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
 
@@ -51,6 +52,11 @@ const TeamSettings = ({
                 showTabSwitchError={showTabSwitchError}
                 setShowTabSwitchError={setShowTabSwitchError}
             />
+        );
+        break;
+    case 'access_policies':
+        result = (
+            <AccessPoliciesTab team={team}/>
         );
         break;
     default:

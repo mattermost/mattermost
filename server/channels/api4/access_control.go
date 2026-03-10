@@ -349,11 +349,6 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 }
 
 func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	var props *model.AccessControlPolicySearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
@@ -361,7 +356,33 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	policies, total, appErr := c.App.SearchAccessControlPolicies(c.AppContext, *props)
+	var policies []*model.AccessControlPolicy
+	var total int64
+	var appErr *model.AppError
+
+	if props.TeamID != "" {
+		// Team-scoped search: requires manage_system OR team-level manage_team_access_rules
+		if !model.IsValidId(props.TeamID) {
+			c.SetInvalidParam("team_id")
+			return
+		}
+		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		hasTeamPermission := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules)
+		if !hasSystemPermission && !hasTeamPermission {
+			c.SetPermissionError(model.PermissionManageTeamAccessRules)
+			return
+		}
+		requesterID := c.AppContext.Session().UserId
+		policies, total, appErr = c.App.SearchTeamAccessPolicies(c.AppContext, props.TeamID, requesterID, *props)
+	} else {
+		// System-wide search: requires system permission
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		policies, total, appErr = c.App.SearchAccessControlPolicies(c.AppContext, *props)
+	}
+
 	if appErr != nil {
 		c.Err = appErr
 		return

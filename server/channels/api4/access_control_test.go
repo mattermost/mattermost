@@ -607,6 +607,89 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 	}, "SearchAccessControlPolicies with system admin")
 }
 
+func TestSearchTeamAccessControlPolicies(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	teamSearch := model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id}
+
+	setupLicenseAndABAC := func(t *testing.T) {
+		t.Helper()
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	}
+
+	t.Run("without license returns not implemented", func(t *testing.T) {
+		originalACS := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = nil
+		defer func() { th.App.Srv().Channels().AccessControl = originalACS }()
+
+		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("regular user without manage_team_access_rules permission gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team admin with manage_team_access_rules can search", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		policiesResp, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policiesResp)
+		require.Empty(t, policiesResp.Policies)
+		require.Equal(t, int64(0), policiesResp.Total)
+	})
+
+	t.Run("team admin without manage_team_access_rules gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		setupLicenseAndABAC(t)
+
+		policiesResp, resp, err := client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policiesResp)
+		require.Empty(t, policiesResp.Policies)
+		require.Equal(t, int64(0), policiesResp.Total)
+	}, "system admin and local can search team policies")
+}
+
 func TestAssignAccessPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
