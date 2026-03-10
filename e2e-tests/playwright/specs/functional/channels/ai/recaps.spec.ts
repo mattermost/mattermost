@@ -397,6 +397,10 @@ test('recovers a failed recap through regeneration', {tag: '@ai_recaps'}, async 
 
     // * Verify the failed recap returns to processing and then recovers into a completed recap.
     await failedRecap.expectProcessing();
+    await waitForRecapStatus(pw, userClient, recapTitle, 'completed');
+    await recapsPage.page.reload();
+    await recapsPage.toBeVisible();
+    await failedRecap.expand();
     await expect(failedRecap.container).toContainText(recoveredHighlight, {timeout: pw.duration.one_min});
 });
 
