@@ -39,8 +39,8 @@ describe('Messaging', () => {
                     }
                 });
 
-                // Ensure gallery is expanded
-                cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
+                // Ensure gallery is expanded (retry up to 5s so expand animation can finish)
+                cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
 
                 // Then verify we have 4 image gallery items
                 cy.findAllByTestId('image-gallery__item').should('have.length', 4);
@@ -65,7 +65,8 @@ describe('Messaging', () => {
                             cy.findByTestId('image-gallery__toggle').click();
                         }
                     });
-                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
+                    // Wait for expand animation before clicking first item
+                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
                     cy.findAllByTestId('image-gallery__item').first().should('be.visible').click();
                 });
             });
