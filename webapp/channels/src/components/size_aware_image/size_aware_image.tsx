@@ -270,7 +270,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const image = (
             <img
                 {...restProps}
-                aria-label={ariaLabelImage}
+                aria-label={focusOnContainer ? undefined : ariaLabelImage}
                 aria-hidden={focusOnContainer ? true : undefined}
                 tabIndex={focusOnContainer ? -1 : 0}
                 onClick={focusOnContainer ? undefined : this.handleImageClick}
