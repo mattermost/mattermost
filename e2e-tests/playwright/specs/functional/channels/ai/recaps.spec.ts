@@ -157,8 +157,12 @@ test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, 
     const recapRequests = bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary');
 
     expect(recapRequests).toHaveLength(2);
-    expect(recapRequests.some((request) => request.messages.some((message) => message.message.includes(sourceMessageOne)))).toBe(true);
-    expect(recapRequests.some((request) => request.messages.some((message) => message.message.includes(sourceMessageTwo)))).toBe(true);
+    expect(
+        recapRequests.some((request) => request.messages.some((message) => message.message.includes(sourceMessageOne))),
+    ).toBe(true);
+    expect(
+        recapRequests.some((request) => request.messages.some((message) => message.message.includes(sourceMessageTwo))),
+    ).toBe(true);
 });
 
 /**
@@ -567,15 +571,14 @@ async function waitForRecapStatus(
     );
 }
 
-async function waitForRecordedRequestCount(
-    pw: PlaywrightExtended,
-    adminClient: Client4,
-    requestCount: number,
-) {
+async function waitForRecordedRequestCount(pw: PlaywrightExtended, adminClient: Client4, requestCount: number) {
     await pw.waitUntil(
         async () => {
             const bridgeState = await pw.getAIBridgeMock(adminClient);
-            return bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary').length === requestCount;
+            return (
+                bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary').length ===
+                requestCount
+            );
         },
         {timeout: pw.duration.one_min},
     );

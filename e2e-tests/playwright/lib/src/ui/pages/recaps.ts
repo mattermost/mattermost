@@ -77,7 +77,9 @@ class CreateRecapModal {
 
     async selectAgent(agentName: string) {
         await this.container.getByLabel('Agent selector').click();
-        await this.page.getByRole('menuitem', {name: new RegExp(`^${escapeRegExp(agentName)}(?: \\(default\\))?$`)}).click();
+        await this.page
+            .getByRole('menuitem', {name: new RegExp(`^${escapeRegExp(agentName)}(?: \\(default\\))?$`)})
+            .click();
     }
 }
 
@@ -86,7 +88,10 @@ class RecapChannelCard {
     readonly collapseButton: Locator;
     readonly menuButton: Locator;
 
-    constructor(private readonly page: Page, readonly container: Locator) {
+    constructor(
+        private readonly page: Page,
+        readonly container: Locator,
+    ) {
         this.channelButton = container.locator('.recap-channel-name-tag');
         this.collapseButton = container.locator('.recap-channel-collapse-button');
         this.menuButton = container.getByRole('button', {name: /Options for /});
@@ -120,7 +125,10 @@ class RecapItem {
     readonly deleteButton: Locator;
     readonly menuButton: Locator;
 
-    constructor(private readonly page: Page, readonly container: Locator) {
+    constructor(
+        private readonly page: Page,
+        readonly container: Locator,
+    ) {
         this.header = container.locator('.recap-item-header');
         this.markReadButton = container.getByRole('button', {name: 'Mark read'});
         this.deleteButton = container.locator('.recap-delete-button');
@@ -246,9 +254,12 @@ export default class RecapsPage {
     getRecap(title: string) {
         return new RecapItem(
             this.page,
-            this.page.locator('.recap-item, .recap-processing').filter({
-                has: this.page.getByRole('heading', {name: title, exact: true}),
-            }).first(),
+            this.page
+                .locator('.recap-item, .recap-processing')
+                .filter({
+                    has: this.page.getByRole('heading', {name: title, exact: true}),
+                })
+                .first(),
         );
     }
 
