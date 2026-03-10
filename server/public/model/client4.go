@@ -7718,7 +7718,7 @@ func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts
 			query.Set("per_page", strconv.Itoa(o.PerPage))
 		}
 		if o.IncludeDeleted {
-			query.Set("include_deleted", "true")
+			query.Set("include_deleted", c.boolString(true))
 		}
 		if o.Page > 0 {
 			query.Set("page", strconv.Itoa(o.Page))
