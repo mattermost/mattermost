@@ -281,6 +281,16 @@ func TestProcessRecapChannel(t *testing.T) {
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 		recapID := model.NewId()
 		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Test recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
 
 		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
 		require.Nil(t, err)
