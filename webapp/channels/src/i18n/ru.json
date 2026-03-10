@@ -3893,6 +3893,7 @@
   "integrations.successful": "Установлено",
   "interactive_dialog.cancel": "Отмена",
   "interactive_dialog.element.optional": "(необязательно)",
+  "interactive_dialog.submission_failed": "Отправка не выполнена",
   "interactive_dialog.submit": "Подтвердить",
   "interactive_dialog.submitting": "Отправка...",
   "intro_messages.DM": "Это начало вашей истории личных сообщений с {teammate}. Сообщения и файлы, которыми здесь делятся, не показываются никому другому.",
