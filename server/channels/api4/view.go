@@ -44,7 +44,7 @@ func createView(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.DeleteAt != 0 {
-		c.Err = model.NewAppError("createView", "api.view.create.deleted_channel.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("createView", "api.view.create.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
 		return
 	}
 
@@ -196,7 +196,7 @@ func updateView(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.DeleteAt != 0 {
-		c.Err = model.NewAppError("updateView", "api.view.update.deleted_channel.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateView", "api.view.update.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
 		return
 	}
 
@@ -252,7 +252,7 @@ func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.DeleteAt != 0 {
-		c.Err = model.NewAppError("deleteView", "api.view.delete.deleted_channel.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("deleteView", "api.view.delete.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
 		return
 	}
 
@@ -316,7 +316,7 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.DeleteAt != 0 {
-		c.Err = model.NewAppError("updateViewSortOrder", "api.view.update_sort_order.deleted_channel.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateViewSortOrder", "api.view.update_sort_order.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
 		return
 	}
 

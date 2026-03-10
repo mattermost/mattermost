@@ -97,7 +97,7 @@ func TestCreateView(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("deleted channel returns 403", func(t *testing.T) {
+	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -105,7 +105,7 @@ func TestCreateView(t *testing.T) {
 		view := makeTestViewForAPI()
 		_, resp, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("permission denied on public channel", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestUpdateView(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("deleted channel returns 403", func(t *testing.T) {
+	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
@@ -344,7 +344,7 @@ func TestUpdateView(t *testing.T) {
 		newTitle := "Title"
 		_, resp, err := th.Client.UpdateView(context.Background(), channel.Id, created.Id, &model.ViewPatch{Title: &newTitle})
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("permission denied on public channel", func(t *testing.T) {
@@ -412,7 +412,7 @@ func TestDeleteView(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("deleted channel returns 403", func(t *testing.T) {
+	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
@@ -423,7 +423,7 @@ func TestDeleteView(t *testing.T) {
 
 		resp, err := th.Client.DeleteView(context.Background(), channel.Id, created.Id)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("permission denied on public channel", func(t *testing.T) {
@@ -511,7 +511,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("deleted channel returns 403", func(t *testing.T) {
+	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		v := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
@@ -522,7 +522,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, 0)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("permission denied on public channel", func(t *testing.T) {
