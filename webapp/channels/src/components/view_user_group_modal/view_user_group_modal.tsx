@@ -214,6 +214,7 @@ const ViewUserGroupModal: React.FC<Props> = ({
                             <div className='user-groups-search'>
                                 <Input
                                     type='text'
+
                                     // Keep the member search field aligned with other modal search inputs.
                                     placeholder={defineMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={handleSearch}
