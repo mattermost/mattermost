@@ -26,6 +26,7 @@
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
     "impact:analyze": "e2e-ai-agents impact --config ./e2e-ai-agents.config.json",
+    "impact:ci": "e2e-ai-agents impact --config ./e2e-ai-agents.config.json --since origin/master && e2e-ai-agents plan --config ./e2e-ai-agents.config.json --fail-on-must-add-tests --ci-comment-path ./.e2e-ai-agents/ci-summary.md",
     "impact:plan": "e2e-ai-agents suggest --config ./e2e-ai-agents.config.json",
     "impact:suggest": "npm run impact:plan",
     "impact:generate": "e2e-ai-agents approve-and-generate --config ./e2e-ai-agents.config.json --pipeline --pipeline-mcp --pipeline-mcp-only",
