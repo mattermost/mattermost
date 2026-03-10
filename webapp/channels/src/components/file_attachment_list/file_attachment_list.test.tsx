@@ -174,6 +174,42 @@ describe('FileAttachmentList', () => {
         expect(screen.getByTestId('fileAttachmentList').querySelector('.post-image__column')).not.toBeInTheDocument();
     });
 
+    test('should render ImageGallery with compact class when isInPermalink is true', () => {
+        const imageFileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image1.png', extension: 'png', create_at: 1, post_id: post.id, delete_at: 0});
+        const imageFileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image2.png', extension: 'png', create_at: 2, post_id: post.id, delete_at: 0});
+
+        const state = {
+            entities: {
+                general: defaultState.entities.general,
+                posts: defaultState.entities.posts,
+                files: {
+                    files: {
+                        file_id_1: imageFileInfo1,
+                        file_id_2: imageFileInfo2,
+                    },
+                    fileIdsByPostId: {
+                        post_id: ['file_id_1', 'file_id_2'],
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = {
+            ...baseProps,
+            compactDisplay: false,
+            isInPermalink: true,
+            post: {
+                ...baseProps.post,
+                file_ids: ['file_id_1', 'file_id_2'],
+            },
+        };
+
+        const {container} = renderWithContext(<FileAttachmentList {...props}/>, state);
+
+        expect(screen.getByTestId('image-gallery__toggle')).toBeInTheDocument();
+        expect(container.querySelector('.image-gallery--compact')).toBeInTheDocument();
+    });
+
     test('should render a FileAttachment for an SVG with SVG previews disabled', () => {
         const state = {
             ...defaultState,
