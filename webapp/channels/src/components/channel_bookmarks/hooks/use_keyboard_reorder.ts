@@ -212,7 +212,8 @@ export function useKeyboardReorder({
                     case 'ArrowLeft':
                     case 'ArrowUp': {
                         const inOverflow = overflowItemsRef.current.includes(state.itemId!);
-                        if ((inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft')) {
+                        const willMove = (inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft');
+                        if (willMove) {
                             e.preventDefault();
                             e.stopPropagation();
                             moveItem(-1);
@@ -222,7 +223,8 @@ export function useKeyboardReorder({
                     case 'ArrowRight':
                     case 'ArrowDown': {
                         const inOverflow = overflowItemsRef.current.includes(state.itemId!);
-                        if ((inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight')) {
+                        const willMove = (inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight');
+                        if (willMove) {
                             e.preventDefault();
                             e.stopPropagation();
                             moveItem(1);

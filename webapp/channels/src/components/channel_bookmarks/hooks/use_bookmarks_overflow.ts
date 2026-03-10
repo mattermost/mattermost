@@ -33,6 +33,10 @@ export function useBookmarksOverflow(order: string[]) {
     }, []);
 
     const calculateOverflow = useCallback(() => {
+        if (isPausedRef.current) {
+            pendingRecalcRef.current = true;
+            return;
+        }
         const container = containerRef.current;
         if (!container || order.length === 0) {
             setOverflowStartIndex(order.length);

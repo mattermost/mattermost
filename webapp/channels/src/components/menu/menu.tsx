@@ -137,7 +137,7 @@ export function Menu(props: Props) {
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
-    function handleMenuClose(event: MouseEvent<HTMLDivElement>, reason?: string) {
+    function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         // When hideBackdrop is active (during DnD), block all MUI-initiated close.
         // The menu is controlled exclusively via isMenuOpen in this mode.
         if (props.menu.hideBackdrop) {

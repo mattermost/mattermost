@@ -52,11 +52,6 @@ function ChannelBookmarks({channelId}: Props) {
     const [showDragOverlay, setShowDragOverlay] = useState(false);
     const postDropTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-    // Pause overflow recalculation while dragging
-    useEffect(() => {
-        pauseRecalc(isDragging);
-    }, [isDragging, pauseRecalc]);
-
     // Show drag overlay when auto-open triggers, hide after post-drop delay
     useEffect(() => {
         if (isDragging && autoOpenOverflow) {
@@ -87,16 +82,23 @@ function ChannelBookmarks({channelId}: Props) {
         canReorder,
     });
 
-    // Pause overflow recalculation during keyboard reorder;
-    // reset autoOpenOverflow when reorder ends
+    // Pause overflow recalculation while dragging or keyboard reordering.
+    // MUST be a single effect — two separate effects create a brief unpause
+    // gap between them where calculateOverflow can fire and shift the split.
     useEffect(() => {
-        pauseRecalc(reorderState.isReordering);
+        pauseRecalc(isDragging || reorderState.isReordering);
+    }, [isDragging, reorderState.isReordering, pauseRecalc]);
+
+    // Reset autoOpenOverflow when reorder ends
+    useEffect(() => {
         if (!reorderState.isReordering) {
             setAutoOpenOverflow(false);
         }
-    }, [reorderState.isReordering, pauseRecalc, setAutoOpenOverflow]);
+    }, [reorderState.isReordering, setAutoOpenOverflow]);
 
     // --- Render ---
+    const forceOpen = showDragOverlay || (reorderState.isReordering && (autoOpenOverflow || overflowItems.includes(reorderState.itemId ?? ''))) || undefined;
+
     if (!hasBookmarks) {
         return null;
     }
@@ -153,7 +155,7 @@ function ChannelBookmarks({channelId}: Props) {
                     canReorder={canReorder}
                     isDragging={isDragging}
                     canAdd={canAdd}
-                    forceOpen={showDragOverlay || (reorderState.isReordering && (autoOpenOverflow || overflowItems.includes(reorderState.itemId ?? ''))) || undefined}
+                    forceOpen={forceOpen}
                     reorderState={reorderState}
                     getItemProps={canReorder ? getItemProps : undefined}
                 />
