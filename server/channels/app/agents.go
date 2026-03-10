@@ -6,10 +6,17 @@ package app
 import (
 	"net/http"
 
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// GetBridgeClient remains as a compatibility helper for downstream enterprise code.
+// New server code should use a.ch.agentsBridge instead of relying on the concrete bridge client.
+func (a *App) GetBridgeClient(userID string) *agentclient.Client {
+	return agentclient.NewClientFromApp(a, userID)
+}
 
 // GetAIPluginBridgeStatus checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)
 // It returns a boolean indicating availability, and a reason string (translation ID) if unavailable.

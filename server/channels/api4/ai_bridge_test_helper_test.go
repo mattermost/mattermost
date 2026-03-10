@@ -27,6 +27,10 @@ func TestAIBridgeTestHelperAdminPUTGETDELETE(t *testing.T) {
 		Status: &model.AIBridgeTestHelperStatus{
 			Available: true,
 		},
+		FeatureFlags: &model.AIBridgeTestHelperFeatureFlags{
+			EnableAIPluginBridge: model.NewPointer(true),
+			EnableAIRecaps:       model.NewPointer(true),
+		},
 		Agents: []model.BridgeAgentInfo{{
 			ID:          agentID,
 			DisplayName: "Claude",
@@ -55,6 +59,11 @@ func TestAIBridgeTestHelperAdminPUTGETDELETE(t *testing.T) {
 	assert.True(t, state.RecordRequests)
 	require.Len(t, state.Agents, 1)
 	assert.Equal(t, agentID, state.Agents[0].ID)
+	require.NotNil(t, state.FeatureFlags)
+	require.NotNil(t, state.FeatureFlags.EnableAIPluginBridge)
+	require.NotNil(t, state.FeatureFlags.EnableAIRecaps)
+	assert.True(t, *state.FeatureFlags.EnableAIPluginBridge)
+	assert.True(t, *state.FeatureFlags.EnableAIRecaps)
 
 	state, resp, err = th.SystemAdminClient.GetAIBridgeTestHelper(context.Background())
 	require.NoError(t, err)
@@ -63,6 +72,9 @@ func TestAIBridgeTestHelperAdminPUTGETDELETE(t *testing.T) {
 	assert.True(t, state.Status.Available)
 	require.Len(t, state.Services, 1)
 	assert.Equal(t, serviceID, state.Services[0].ID)
+	require.NotNil(t, state.FeatureFlags)
+	assert.True(t, *state.FeatureFlags.EnableAIPluginBridge)
+	assert.True(t, *state.FeatureFlags.EnableAIRecaps)
 
 	resp, err = th.SystemAdminClient.DeleteAIBridgeTestHelper(context.Background())
 	require.NoError(t, err)
@@ -78,6 +90,9 @@ func TestAIBridgeTestHelperAdminPUTGETDELETE(t *testing.T) {
 	assert.Empty(t, state.AgentCompletions)
 	assert.Empty(t, state.RecordedRequests)
 	assert.False(t, state.RecordRequests)
+	require.NotNil(t, state.FeatureFlags)
+	assert.True(t, *state.FeatureFlags.EnableAIPluginBridge)
+	assert.True(t, *state.FeatureFlags.EnableAIRecaps)
 }
 
 func TestAIBridgeTestHelperRejectsNonAdmin(t *testing.T) {
@@ -120,6 +135,10 @@ func TestAIBridgeTestHelperMocksRealEndpoints(t *testing.T) {
 		Status: &model.AIBridgeTestHelperStatus{
 			Available: true,
 		},
+		FeatureFlags: &model.AIBridgeTestHelperFeatureFlags{
+			EnableAIPluginBridge: model.NewPointer(true),
+			EnableAIRecaps:       model.NewPointer(true),
+		},
 		Agents: []model.BridgeAgentInfo{{
 			ID:          agentID,
 			DisplayName: "Claude",
@@ -142,6 +161,8 @@ func TestAIBridgeTestHelperMocksRealEndpoints(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
+	assert.True(t, th.App.Config().FeatureFlags.EnableAIPluginBridge)
+	assert.True(t, th.App.Config().FeatureFlags.EnableAIRecaps)
 
 	statusResp, httpResp, err := getAPIResponse[model.AgentsIntegrityResponse](t, th.Client, "/agents/status")
 	require.NoError(t, err)

@@ -55,6 +55,10 @@ export type AIBridgeMockConfig = {
     agents?: AIBridgeMockAgent[];
     services?: AIBridgeMockService[];
     agent_completions?: Partial<Record<AIBridgeOperation | string, AIBridgeMockCompletion[]>>;
+    feature_flags?: {
+        enable_ai_plugin_bridge?: boolean;
+        enable_ai_recaps?: boolean;
+    };
     record_requests?: boolean;
 };
 
@@ -101,18 +105,20 @@ export async function enableAIBridgeTestMode(
     adminClient: Client4,
     {enableRecaps = false}: EnableAIBridgeTestModeOptions = {},
 ): Promise<AdminConfig> {
-    const config = await adminClient.getConfig();
+    await adminClient.patchConfig({
+        ServiceSettings: {
+            EnableTesting: true,
+        },
+    });
 
-    config.ServiceSettings = config.ServiceSettings || {};
-    config.FeatureFlags = config.FeatureFlags || {};
-    config.ServiceSettings.EnableTesting = true;
-    config.FeatureFlags.EnableAIPluginBridge = true;
+    await configureAIBridgeMock(adminClient, {
+        feature_flags: {
+            enable_ai_plugin_bridge: true,
+            ...(enableRecaps ? {enable_ai_recaps: true} : {}),
+        },
+    });
 
-    if (enableRecaps) {
-        config.FeatureFlags.EnableAIRecaps = true;
-    }
-
-    return adminClient.updateConfig(config);
+    return adminClient.getConfig();
 }
 
 export async function configureAIBridgeMock(

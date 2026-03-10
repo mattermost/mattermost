@@ -20,11 +20,17 @@ type AIBridgeTestHelperMessage struct {
 	FileIDs []string `json:"file_ids,omitempty"`
 }
 
+type AIBridgeTestHelperFeatureFlags struct {
+	EnableAIPluginBridge *bool `json:"enable_ai_plugin_bridge,omitempty"`
+	EnableAIRecaps       *bool `json:"enable_ai_recaps,omitempty"`
+}
+
 type AIBridgeTestHelperConfig struct {
 	Status           *AIBridgeTestHelperStatus                 `json:"status,omitempty"`
 	Agents           []BridgeAgentInfo                         `json:"agents,omitempty"`
 	Services         []BridgeServiceInfo                       `json:"services,omitempty"`
 	AgentCompletions map[string][]AIBridgeTestHelperCompletion `json:"agent_completions,omitempty"`
+	FeatureFlags     *AIBridgeTestHelperFeatureFlags           `json:"feature_flags,omitempty"`
 	RecordRequests   *bool                                     `json:"record_requests,omitempty"`
 }
 
@@ -43,6 +49,7 @@ type AIBridgeTestHelperState struct {
 	Agents           []BridgeAgentInfo                         `json:"agents,omitempty"`
 	Services         []BridgeServiceInfo                       `json:"services,omitempty"`
 	AgentCompletions map[string][]AIBridgeTestHelperCompletion `json:"agent_completions,omitempty"`
+	FeatureFlags     *AIBridgeTestHelperFeatureFlags           `json:"feature_flags,omitempty"`
 	RecordRequests   bool                                      `json:"record_requests"`
 	RecordedRequests []AIBridgeTestHelperRecordedRequest       `json:"recorded_requests"`
 }

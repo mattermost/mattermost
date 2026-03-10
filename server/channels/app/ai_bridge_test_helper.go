@@ -189,15 +189,44 @@ func (a *App) SetAIBridgeTestHelperConfig(config *model.AIBridgeTestHelperConfig
 		return model.NewAppError("SetAIBridgeTestHelperConfig", "app.ai_bridge_test_helper.invalid_config", nil, err.Error(), http.StatusBadRequest)
 	}
 
+	if config.FeatureFlags != nil {
+		if appErr := a.setAIBridgeTestHelperFeatureFlags(config.FeatureFlags); appErr != nil {
+			return appErr
+		}
+	}
+
 	return nil
 }
 
 func (a *App) GetAIBridgeTestHelperState() *model.AIBridgeTestHelperState {
-	return a.ch.aiBridgeTestHelper.GetState()
+	state := a.ch.aiBridgeTestHelper.GetState()
+	state.FeatureFlags = &model.AIBridgeTestHelperFeatureFlags{
+		EnableAIPluginBridge: model.NewPointer(a.Config().FeatureFlags.EnableAIPluginBridge),
+		EnableAIRecaps:       model.NewPointer(a.Config().FeatureFlags.EnableAIRecaps),
+	}
+
+	return state
 }
 
 func (a *App) ResetAIBridgeTestHelper() {
 	a.ch.aiBridgeTestHelper.Reset()
+}
+
+func (a *App) setAIBridgeTestHelperFeatureFlags(featureFlags *model.AIBridgeTestHelperFeatureFlags) *model.AppError {
+	configStore := a.Srv().Platform().GetConfigStore()
+	configStore.SetReadOnlyFF(false)
+	defer configStore.SetReadOnlyFF(true)
+
+	a.UpdateConfig(func(cfg *model.Config) {
+		if featureFlags.EnableAIPluginBridge != nil {
+			cfg.FeatureFlags.EnableAIPluginBridge = *featureFlags.EnableAIPluginBridge
+		}
+		if featureFlags.EnableAIRecaps != nil {
+			cfg.FeatureFlags.EnableAIRecaps = *featureFlags.EnableAIRecaps
+		}
+	})
+
+	return nil
 }
 
 func cloneAIBridgeStatus(status *model.AIBridgeTestHelperStatus) *model.AIBridgeTestHelperStatus {
