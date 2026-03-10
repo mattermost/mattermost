@@ -6983,6 +6983,10 @@
     "translation": "Could not get channel members to remove."
   },
   {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
+  },
+  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
   },
