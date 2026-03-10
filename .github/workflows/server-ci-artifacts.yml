@@ -77,7 +77,7 @@ jobs:
       TAG: ${{ steps.set_tag.outputs.TAG }}
     steps:
       - name: cd/docker-login
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
@@ -96,7 +96,7 @@ jobs:
           path: server/build/
 
       - name: cd/setup-docker-buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: cd/set-docker-tag
         id: set_tag

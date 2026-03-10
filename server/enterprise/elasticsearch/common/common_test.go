@@ -71,7 +71,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Equal(t, "text 1", espost.Attachments)
 	})
 
-	t.Run("SlackAttachment form with text only", func(t *testing.T) {
+	t.Run("MessageAttachment form with text only", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId:         model.NewId(),
 			ParentCreateAt: nil,
@@ -84,7 +84,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Type:      "slack_attachment",
 				Hashtags:  "#buh #boh",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "text 2",
 						},
@@ -151,7 +151,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "failed")
 	})
 
-	t.Run("SlackAttachment form indexes title, pretext, fallback, and fields", func(t *testing.T) {
+	t.Run("MessageAttachment form indexes title, pretext, fallback, and fields", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId: model.NewId(),
 			Post: model.Post{
@@ -162,13 +162,13 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Title:    "Build Failed",
 							Pretext:  "CI notification",
 							Fallback: "Build Failed on main",
 							Text:     "Details here",
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{Title: "Branch", Value: "main"},
 								{Title: "Status", Value: "failed"},
 							},
@@ -201,7 +201,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Title: "Only Title",
 						},
@@ -226,11 +226,11 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						nil,
 						{
 							Text: "valid",
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								nil,
 								{Title: "field title", Value: "field value"},
 							},
@@ -286,7 +286,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "99.5")
 	})
 
-	t.Run("non-string field values in SlackAttachment form are indexed", func(t *testing.T) {
+	t.Run("non-string field values in MessageAttachment form are indexed", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId: model.NewId(),
 			Post: model.Post{
@@ -297,10 +297,10 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 				Message:   "",
 				Type:      "slack_attachment",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "metrics",
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{Title: "Count", Value: 42},
 								{Title: "Rate", Value: 99.5},
 							},
