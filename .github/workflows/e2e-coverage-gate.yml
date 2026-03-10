@@ -83,10 +83,14 @@ jobs:
         working-directory: e2e-tests/playwright
         run: |
           # CI: keep the mattermost profile (strict evidence policy) but enable
-          # AI mapping so coverage gaps are detected even without a local
-          # traceability manifest (which is gitignored and only exists locally).
-          jq '.impact.aiMapping.enabled = true | .impact.aiMapping.provider = "auto"' \
-            e2e-ai-agents.config.json > e2e-ai-agents.ci.config.json
+          # AI flow detection and AI test mapping so coverage gaps are detected
+          # even without a local traceability manifest (gitignored, local only).
+          jq '
+            .impact.aiFlow.enabled = true |
+            .impact.aiFlow.provider = "auto" |
+            .impact.aiMapping.enabled = true |
+            .impact.aiMapping.provider = "auto"
+          ' e2e-ai-agents.config.json > e2e-ai-agents.ci.config.json
 
       - name: ci/e2e-coverage/impact-analysis
         id: impact
