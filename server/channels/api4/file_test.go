@@ -860,7 +860,7 @@ func TestGetFile(t *testing.T) {
 		CheckOKStatus(t, response)
 
 		response, err = client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive content",
 		})
 		require.NoError(t, err)

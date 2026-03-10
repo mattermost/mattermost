@@ -17,6 +17,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// summarizePostsJSONSchema is the structured output schema for the LLM summarization response.
+// Defined at package level to avoid re-allocating on every call.
+var summarizePostsJSONSchema = map[string]any{
+	"type": "object",
+	"properties": map[string]any{
+		"highlights": map[string]any{
+			"type":        "array",
+			"items":       map[string]any{"type": "string"},
+			"description": "Key discussion points, decisions, or important information",
+		},
+		"action_items": map[string]any{
+			"type":        "array",
+			"items":       map[string]any{"type": "string"},
+			"description": "Tasks, todos, or action items mentioned",
+		},
+	},
+	"required":             []any{"highlights", "action_items"},
+	"additionalProperties": false,
+}
+
 // SummarizePosts generates an AI summary of posts with highlights and action items
 func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AIRecapSummaryResponse, *model.AppError) {
 	if len(posts) == 0 {
@@ -68,6 +88,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		JSONOutputFormat: summarizePostsJSONSchema,
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",

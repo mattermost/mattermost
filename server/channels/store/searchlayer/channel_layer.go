@@ -99,11 +99,44 @@ func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxC
 }
 
 func (c *SearchChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	// Fetch existing channel to detect type changes for post reindexing.
+	oldChannel, getErr := c.ChannelStore.Get(channel.Id, true)
+	if getErr != nil {
+		rctx.Logger().Warn("Failed to fetch channel before update; channel type change detection skipped",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(getErr))
+	}
+
 	updatedChannel, err := c.ChannelStore.Update(rctx, channel)
 	if err == nil {
 		c.indexChannel(rctx, updatedChannel)
+		// If channel type changed, reindex all posts so their channel_type field is updated.
+		if getErr == nil && oldChannel.Type != updatedChannel.Type {
+			c.reindexChannelPosts(rctx, channel.Id, updatedChannel.Type)
+		}
 	}
 	return updatedChannel, err
+}
+
+func (c *SearchChannelStore) reindexChannelPosts(rctx request.CTX, channelID string, channelType model.ChannelType) {
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				rctx.Logger().Info("Starting reindexChannelPosts",
+					mlog.String("channel_id", channelID),
+					mlog.String("channel_type", string(channelType)),
+					mlog.String("search_engine", engineCopy.GetName()))
+
+				if err := engineCopy.UpdatePostsChannelTypeByChannelId(rctx, channelID, string(channelType)); err != nil {
+					rctx.Logger().Error("Failed to update channel_type on posts in reindexChannelPosts. Consider running a full bulk index",
+						mlog.String("channel_id", channelID),
+						mlog.String("channel_type", string(channelType)),
+						mlog.String("search_engine", engineCopy.GetName()),
+						mlog.Err(err))
+				}
+			})
+		}
+	}
 }
 
 func (c *SearchChannelStore) UpdateMember(rctx request.CTX, cm *model.ChannelMember) (*model.ChannelMember, error) {
