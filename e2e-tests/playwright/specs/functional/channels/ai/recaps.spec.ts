@@ -109,6 +109,10 @@ test('creates a recap with AI bridge mock responses', {tag: '@ai_recaps'}, async
     );
     await page.reload();
 
+    const recapCard = page.locator('.recap-item', {hasText: recapTitle});
+    await expect(recapCard).toBeVisible();
+    await recapCard.locator('.recap-item-header').click();
+
     // * Verify the deterministic summary content is rendered.
     await expect(page.getByText(recapHighlight)).toBeVisible();
     await expect(page.getByText(recapActionItem)).toBeVisible();
