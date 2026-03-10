@@ -179,6 +179,10 @@ export function getSkin(emoji: Emoji) {
     return null;
 }
 
+export function unifiedToUnicode(unified: string): string {
+    return unified.split('-').map((cp) => String.fromCodePoint(parseInt(cp, 16))).join('');
+}
+
 export function trimmedEmojiName(emojiName: string) {
     return emojiName.startsWith(':') && emojiName.endsWith(':') ? emojiName.slice(1, -1) : emojiName;
 }

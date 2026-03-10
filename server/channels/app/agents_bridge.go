@@ -34,6 +34,7 @@ type BridgeMessage struct {
 
 type BridgeCompletionRequest struct {
 	Operation        BridgeOperation
+	OperationSubType string
 	Messages         []BridgeMessage
 	JSONOutputFormat map[string]any
 	UserID           string
@@ -118,6 +119,8 @@ func (b *liveAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCom
 	return client.AgentCompletion(agentID, agentclient.CompletionRequest{
 		Posts:            toBridgeClientPosts(req.Messages),
 		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
+		Operation:        string(req.Operation),
+		OperationSubType: req.OperationSubType,
 		UserID:           req.UserID,
 		ChannelID:        req.ChannelID,
 	})

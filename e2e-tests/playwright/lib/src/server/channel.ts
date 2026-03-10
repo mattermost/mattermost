@@ -3,8 +3,6 @@
 
 import {Channel, ChannelType} from '@mattermost/types/channels';
 
-import {getRandomId} from '@/util';
-
 type ChannelInput = {
     teamId: string;
     name: string;
@@ -14,6 +12,10 @@ type ChannelInput = {
     header?: string;
     unique?: boolean;
 };
+
+function getRandomSuffix(): string {
+    return Math.random().toString(36).substring(2, 9);
+}
 
 export function createRandomChannel(channelInput: ChannelInput): Channel {
     const channel = {
@@ -26,7 +28,7 @@ export function createRandomChannel(channelInput: ChannelInput): Channel {
     };
 
     if (channelInput.unique) {
-        const randomSuffix = getRandomId();
+        const randomSuffix = getRandomSuffix();
 
         channel.name = `${channelInput.name}-${randomSuffix}`;
         channel.display_name = `${channelInput.displayName} ${randomSuffix}`;
