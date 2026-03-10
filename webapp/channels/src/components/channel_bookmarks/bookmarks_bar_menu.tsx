@@ -198,6 +198,8 @@ function BookmarksBarMenu({
     if (hasOverflow) {
         overflowLabel = formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length});
         buttonTooltip = {text: overflowLabel};
+    } else if (canAdd) {
+        buttonTooltip = {text: addBookmarkLabel};
     }
 
     return (

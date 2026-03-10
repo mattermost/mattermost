@@ -112,11 +112,11 @@ describe('Channel Bookmarks', () => {
 
             // # Open the bookmark — may be in overflow menu
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
-                const barLink = $container.find(`a:contains("${file}")`);
+                const barLink = findVisibleBarLink($container, file);
                 if (barLink.length) {
                     // Bookmark visible in bar — click directly
-                    cy.wrap(barLink).find('.file-icon.image').should('exist');
-                    cy.wrap(barLink).click();
+                    cy.wrap(barLink).first().find('.file-icon.image').should('exist');
+                    cy.wrap(barLink).first().click();
                 } else {
                     // Bookmark is in overflow — open menu and click
                     cy.get('#channelBookmarksBarMenuButton').click();
@@ -177,9 +177,9 @@ describe('Channel Bookmarks', () => {
 
             // * Verify emoji and custom display name, then open preview — may be in bar or overflow
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
-                const barLink = $container.find(`a:contains("${displayName}")`);
+                const barLink = findVisibleBarLink($container, displayName);
                 if (barLink.length) {
-                    cy.wrap(barLink).click();
+                    cy.wrap(barLink).first().click();
                 } else {
                     cy.get('#channelBookmarksBarMenuButton').click();
                     cy.contains('[role="menuitem"]', displayName).click();
@@ -214,9 +214,9 @@ describe('Channel Bookmarks', () => {
 
             // * Verify changes — bookmark may be in bar or overflow
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
-                const barLink = $container.find(`a:contains("${nextDisplayName}")`);
+                const barLink = findVisibleBarLink($container, nextDisplayName);
                 if (barLink.length) {
-                    cy.wrap(barLink).should('have.attr', 'href', realNextLink);
+                    cy.wrap(barLink).first().should('have.attr', 'href', realNextLink);
                 } else {
                     cy.get('#channelBookmarksBarMenuButton').click();
                     cy.contains('[role="menuitem"]', nextDisplayName).should('exist');
@@ -245,9 +245,9 @@ describe('Channel Bookmarks', () => {
 
             // * Verify changes — bookmark may be in bar or overflow
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
-                const barLink = $container.find(`a:contains("${nextDisplayName}")`);
+                const barLink = findVisibleBarLink($container, nextDisplayName);
                 if (barLink.length) {
-                    cy.wrap(barLink).should('have.attr', 'href', realLink);
+                    cy.wrap(barLink).first().should('have.attr', 'href', realLink);
                 } else {
                     cy.get('#channelBookmarksBarMenuButton').click();
                     cy.contains('[role="menuitem"]', nextDisplayName).should('exist');
@@ -276,7 +276,7 @@ describe('Channel Bookmarks', () => {
 
             // * Verify bookmark deleted (not in bar or overflow)
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
-                const barLink = $container.find(`a:contains("${displayName}")`);
+                const barLink = findVisibleBarLink($container, displayName);
                 expect(barLink.length).to.eq(0);
             });
         });
@@ -290,23 +290,23 @@ describe('Channel Bookmarks', () => {
                 const {displayName: name2} = createLinkBookmark({displayName: 'Reorder Item B'});
 
                 cy.findByTestId('channel-bookmarks-container').within(() => {
-                    cy.findAllByRole('link').should('be.visible').as('bookmarks');
+                    cy.findAllByRole('link').should('have.length', 2).as('bookmarks');
                     cy.get('@bookmarks').eq(0).should('contain', name1);
                     cy.get('@bookmarks').eq(1).should('contain', name2);
 
                     // # Keyboard reorder: Space to select, ArrowRight to move, Space to confirm
-                    cy.get(`a:contains(${name1})`).focus().type(' ');
+                    cy.findByRole('link', {name: name1}).focus().type(' ');
                     cy.wait(TIMEOUTS.HALF_SEC);
-                    cy.get(`a:contains(${name1})`).type('{rightarrow}');
+                    cy.findByRole('link', {name: name1}).type('{rightarrow}');
                     cy.wait(TIMEOUTS.HALF_SEC);
-                    cy.get(`a:contains(${name1})`).type(' ');
+                    cy.findByRole('link', {name: name1}).type(' ');
                 });
 
                 cy.wait(TIMEOUTS.ONE_SEC);
 
                 // * Verify order swapped
                 cy.findByTestId('channel-bookmarks-container').within(() => {
-                    cy.findAllByRole('link').should('be.visible').as('after');
+                    cy.findAllByRole('link').should('have.length', 2).as('after');
                     cy.get('@after').eq(0).should('contain', name2);
                     cy.get('@after').eq(1).should('contain', name1);
                 });
@@ -363,11 +363,10 @@ describe('Channel Bookmarks', () => {
         });
 
         it('cannot add bookmark: private channel, non-admin', () => {
-            // # Switch to non-admin user
+            // # Switch to non-admin user and reload to get fresh permissions
             cy.apiLogin(user1);
-
-            // # private channel
             cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
+            cy.wait(TIMEOUTS.ONE_SEC);
 
             // * Verify non-admin user cannot create in private channel
             verifyCannotCreate();
@@ -407,6 +406,202 @@ describe('Channel Bookmarks', () => {
                 }
             });
         };
+    });
+
+    describe('overflow and reorder', () => {
+        let overflowChannel: Channel;
+        const OVERFLOW_COUNT = 15;
+
+        before(() => {
+            cy.apiAdminLogin();
+            cy.apiCreateChannel(testTeam.id, `overflow-${getRandomId(4)}`, 'overflow test', 'O').then((result) => {
+                overflowChannel = result.channel;
+
+                cy.makeClient().then(async (client) => {
+                    for (let i = 1; i <= OVERFLOW_COUNT; i++) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await client.createChannelBookmark(overflowChannel.id, {
+                            type: 'link',
+                            display_name: `OvBm ${String(i).padStart(2, '0')}`,
+                            link_url: `https://example.com/bm-${i}`,
+                        }, '');
+                    }
+                });
+
+                cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+                cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            });
+        });
+
+        // Dismiss any stale menu/backdrop from previous test
+        beforeEach(() => {
+            cy.get('body').then(($body) => {
+                if ($body.find('#backdropForMenuComponent').length) {
+                    cy.get('#backdropForMenuComponent').click({force: true});
+                    cy.wait(TIMEOUTS.HALF_SEC);
+                }
+            });
+        });
+
+        it('shows overflow count badge', () => {
+            // * Verify overflow button is visible with a positive count
+            cy.get('#channelBookmarksBarMenuButton').should('be.visible');
+            cy.get('#channelBookmarksBarMenuButton').invoke('text').then((text) => {
+                const count = parseInt(text.replace(/\D/g, ''), 10);
+                expect(count).to.be.greaterThan(0);
+            });
+        });
+
+        it('opens overflow menu and shows items', () => {
+            cy.get('#channelBookmarksBarMenuButton').click();
+
+            // * Verify overflow items appear as menuitems
+            cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                cy.get('[data-bookmark-id]').should('have.length.gte', 2);
+            });
+
+            // * Verify add actions below separator — scroll if needed
+            cy.get('#channelBookmarksAddLink').scrollIntoView().should('exist');
+            cy.get('#channelBookmarksAttachFile').should('exist');
+
+            dismissMenu();
+        });
+
+        it('keyboard reorder within overflow', () => {
+            // # Open overflow menu and get the first two item names
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(0).invoke('text').then((firstText) => {
+                const firstName = firstText.trim();
+
+                cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(1).invoke('text').then((secondText) => {
+                    const secondName = secondText.trim();
+
+                    // # Select first item with Space, move down, confirm with Space
+                    cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                        cy.contains('[data-bookmark-id]', firstName).focus()
+                            .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    });
+                    cy.wait(TIMEOUTS.HALF_SEC);
+
+                    cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                        cy.contains('[data-bookmark-id]', firstName)
+                            .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                    });
+                    cy.wait(TIMEOUTS.HALF_SEC);
+
+                    cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                        cy.contains('[data-bookmark-id]', firstName)
+                            .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    });
+                    cy.wait(TIMEOUTS.ONE_SEC);
+
+                    // Close menu and backdrop before reopening to verify
+                    dismissMenu();
+
+                    // * Verify items swapped — first item should now be what was second
+                    cy.get('#channelBookmarksBarMenuButton').click();
+                    cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(0).should('contain', secondName);
+                    cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(1).should('contain', firstName);
+                    dismissMenu();
+                });
+            });
+        });
+
+        it('keyboard reorder: Escape cancels', () => {
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(0).invoke('text').then((firstText) => {
+                const firstName = firstText.trim();
+
+                // # Select, move, then Escape to cancel
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', firstName).focus()
+                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                });
+                cy.wait(TIMEOUTS.HALF_SEC);
+
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', firstName)
+                        .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                });
+                cy.wait(TIMEOUTS.HALF_SEC);
+
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', firstName)
+                        .trigger('keydown', {key: 'Escape', code: 'Escape', bubbles: true});
+                });
+                cy.wait(TIMEOUTS.ONE_SEC);
+
+                // Close menu and backdrop before reopening to verify
+                dismissMenu();
+
+                // * Verify original order restored — first item unchanged
+                cy.get('#channelBookmarksBarMenuButton').click();
+                cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(0).should('contain', firstName);
+                dismissMenu();
+            });
+        });
+
+        it('edit from overflow dot menu', () => {
+            const newName = `Edited OvBm ${getRandomId(4)}`;
+
+            // # Open overflow menu
+            cy.get('#channelBookmarksBarMenuButton').click();
+
+            // # Scroll to and click first overflow item's dot menu
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
+                .scrollIntoView()
+                .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+            cy.findByRole('menuitem', {name: 'Edit'}).click();
+
+            // # Change display name
+            editTextInput('titleInput', newName);
+            editModalSave();
+            cy.get('.modal').should('not.exist');
+
+            // * Verify the name changed — may be in bar or overflow
+            findBookmarkAnywhere(newName);
+        });
+
+        it('copy link from overflow dot menu', () => {
+            // # Open overflow menu
+            cy.get('#channelBookmarksBarMenuButton').click();
+
+            // # Click first overflow item's dot menu
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
+                .scrollIntoView()
+                .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+
+            // * Verify "Copy link" action is available and click it
+            cy.findByRole('menuitem', {name: 'Copy link'}).should('exist').click();
+
+            // * Verify dot menu closed after action (confirms action was executed)
+            cy.get('#channelBookmarksDotMenuDropdown').should('not.exist');
+        });
+
+        it('delete from overflow dot menu', () => {
+            // # Open overflow menu and get first item name
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('text').then((itemText) => {
+                const itemName = itemText.trim();
+
+                // # Scroll to and click dot menu, then delete
+                cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
+                    .scrollIntoView()
+                    .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+                cy.findByRole('menuitem', {name: 'Delete'}).click();
+                cy.findByRole('dialog', {name: 'Delete bookmark'}).within(() => {
+                    cy.findByRole('button', {name: 'Yes, delete'}).click();
+                });
+                cy.get('.modal').should('not.exist');
+
+                // * Verify item is gone — reopen menu and check
+                cy.get('#channelBookmarksBarMenuButton').click();
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', itemName).should('not.exist');
+                });
+                dismissMenu();
+            });
+        });
     });
 
     describe('limits enforced', () => {
@@ -481,11 +676,12 @@ function openDotMenu(name: string) {
     cy.get('.modal').should('not.exist');
 
     cy.findByTestId('channel-bookmarks-container').then(($container) => {
-        const barLink = $container.find(`a:contains("${name}")`);
+        const barLink = findVisibleBarLink($container, name);
         if (barLink.length) {
-            // Bar item — hover to reveal dot menu, then click it
-            cy.wrap(barLink).scrollIntoView().focus().
-                parent('div').findByRole('button', {name: 'Bookmark menu'}).click();
+            // Bar item — focus to reveal dot menu via :focus-within, then click it
+            cy.wrap(barLink).first().scrollIntoView().focus();
+            cy.wrap(barLink).first().closest('[data-bookmark-id]').
+                find('button[aria-label="Bookmark menu"]').click({force: true});
         } else {
             // Overflow item — open overflow menu, find the item's dot menu
             cy.get('#channelBookmarksBarMenuButton').click();
@@ -502,9 +698,9 @@ function openDotMenu(name: string) {
  */
 function findBookmarkAnywhere(name: string) {
     cy.findByTestId('channel-bookmarks-container').then(($container) => {
-        const barLink = $container.find(`a:contains("${name}")`);
+        const barLink = findVisibleBarLink($container, name);
         if (barLink.length) {
-            cy.wrap(barLink).should('exist');
+            cy.wrap(barLink).first().should('exist');
         } else {
             cy.get('#channelBookmarksBarMenuButton').click();
             cy.contains('[role="menuitem"]', name).should('exist');
@@ -607,4 +803,28 @@ function selectEmoji(emojiName: string) {
         cy.findByRole('button', {name: 'select an emoji'}).click();
     });
     cy.focused().type(`${emojiName}{downArrow}{enter}`);
+}
+
+/**
+ * Dismisses any open overflow/bookmark menu by clicking the backdrop.
+ * Waits for the menu to fully close before proceeding.
+ */
+function dismissMenu() {
+    cy.get('body').then(($body) => {
+        if ($body.find('#channelBookmarksBarMenuDropdown').length) {
+            cy.get('#backdropForMenuComponent').click({force: true});
+            cy.wait(TIMEOUTS.HALF_SEC);
+        }
+    });
+}
+
+/**
+ * Finds visible bar links by name, excluding hidden measurement items.
+ * Hidden items (used for overflow measurement) have `visibility: hidden`
+ * on an ancestor, which is inherited by the anchor element.
+ */
+function findVisibleBarLink($container: JQuery, name: string): JQuery {
+    return $container.find(`a:contains("${name}")`).filter(function() {
+        return Cypress.$(this).css('visibility') !== 'hidden';
+    });
 }
