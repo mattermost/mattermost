@@ -3230,13 +3230,14 @@ func (a *App) RewriteMessage(
 	}
 
 	completionRequest := BridgeCompletionRequest{
-		Operation: BridgeOperationRewrite,
+		Operation:       BridgeOperationRewrite,
+		ClientOperation: "message_rewrite",
 		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
-		UserID:           sessionUserID,
 		OperationSubType: normalizeRewriteAction(action),
+		UserID:           sessionUserID,
 	}
 
 	completion, err := a.ch.agentsBridge.Complete(sessionUserID, agentID, completionRequest)

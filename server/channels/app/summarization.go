@@ -77,15 +77,20 @@ Your response must be compacted valid JSON only, with no additional text, format
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
+	requestUserID := userID
+	if sessionUserID != "" {
+		requestUserID = sessionUserID
+	}
 	completionRequest := BridgeCompletionRequest{
-		Operation: BridgeOperationRecapSummary,
+		Operation:       BridgeOperationRecapSummary,
+		ClientOperation: "recaps",
 		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 		JSONOutputFormat: summarizePostsJSONSchema,
-		UserID:           sessionUserID,
 		OperationSubType: "summarize_channel",
+		UserID:           requestUserID,
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",

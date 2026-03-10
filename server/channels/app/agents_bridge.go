@@ -22,8 +22,9 @@ const (
 type BridgeOperation string
 
 const (
-	BridgeOperationRecapSummary BridgeOperation = "recap_summary"
-	BridgeOperationRewrite      BridgeOperation = "rewrite"
+	BridgeOperationAutoTranslate BridgeOperation = "auto_translate"
+	BridgeOperationRecapSummary  BridgeOperation = "recap_summary"
+	BridgeOperationRewrite       BridgeOperation = "rewrite"
 )
 
 type BridgeMessage struct {
@@ -34,6 +35,7 @@ type BridgeMessage struct {
 
 type BridgeCompletionRequest struct {
 	Operation        BridgeOperation
+	ClientOperation  string
 	OperationSubType string
 	Messages         []BridgeMessage
 	JSONOutputFormat map[string]any
@@ -46,6 +48,7 @@ type AgentsBridge interface {
 	GetAgents(sessionUserID, userID string) ([]model.BridgeAgentInfo, error)
 	GetServices(sessionUserID, userID string) ([]model.BridgeServiceInfo, error)
 	Complete(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error)
+	CompleteService(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error)
 }
 
 type liveAgentsBridge struct {
@@ -101,28 +104,39 @@ func (b *liveAgentsBridge) GetServices(sessionUserID, userID string) ([]model.Br
 }
 
 func (b *liveAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-	b.ch.aiBridgeTestHelper.RecordRequest(model.AIBridgeTestHelperRecordedRequest{
-		Operation:        string(req.Operation),
-		SessionUserID:    sessionUserID,
-		UserID:           req.UserID,
-		ChannelID:        req.ChannelID,
-		AgentID:          agentID,
-		Messages:         toRecordedMessages(req.Messages),
-		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
-	})
+	b.recordRequest(sessionUserID, agentID, "", req)
 
 	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {
 		return completion.completion, completion.err
 	}
 
 	client := agentclient.NewClientFromApp(New(ServerConnector(b.ch)), sessionUserID)
-	return client.AgentCompletion(agentID, agentclient.CompletionRequest{
-		Posts:            toBridgeClientPosts(req.Messages),
-		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
+	return client.AgentCompletion(agentID, toClientCompletionRequest(req))
+}
+
+func (b *liveAgentsBridge) CompleteService(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+	b.recordRequest(sessionUserID, "", serviceID, req)
+
+	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {
+		return completion.completion, completion.err
+	}
+
+	client := agentclient.NewClientFromApp(New(ServerConnector(b.ch)), sessionUserID)
+	return client.ServiceCompletion(serviceID, toClientCompletionRequest(req))
+}
+
+func (b *liveAgentsBridge) recordRequest(sessionUserID, agentID, serviceID string, req BridgeCompletionRequest) {
+	b.ch.aiBridgeTestHelper.RecordRequest(model.AIBridgeTestHelperRecordedRequest{
 		Operation:        string(req.Operation),
+		ClientOperation:  req.ClientOperation,
 		OperationSubType: req.OperationSubType,
+		SessionUserID:    sessionUserID,
 		UserID:           req.UserID,
 		ChannelID:        req.ChannelID,
+		AgentID:          agentID,
+		ServiceID:        serviceID,
+		Messages:         toRecordedMessages(req.Messages),
+		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
 	})
 }
 
@@ -224,6 +238,17 @@ func toBridgeClientPosts(messages []BridgeMessage) []agentclient.Post {
 	}
 
 	return posts
+}
+
+func toClientCompletionRequest(req BridgeCompletionRequest) agentclient.CompletionRequest {
+	return agentclient.CompletionRequest{
+		Posts:            toBridgeClientPosts(req.Messages),
+		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
+		UserID:           req.UserID,
+		ChannelID:        req.ChannelID,
+		Operation:        req.ClientOperation,
+		OperationSubType: req.OperationSubType,
+	}
 }
 
 func toRecordedMessages(messages []BridgeMessage) []model.AIBridgeTestHelperMessage {

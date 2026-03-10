@@ -18,6 +18,13 @@ func (a *App) GetBridgeClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
 }
 
+// ServiceCompletion remains as a compatibility helper for downstream enterprise
+// code that needs service-based bridge completions while using the shared
+// AgentsBridge abstraction.
+func (a *App) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+	return a.ch.agentsBridge.CompleteService(sessionUserID, serviceID, req)
+}
+
 // GetAIPluginBridgeStatus checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)
 // It returns a boolean indicating availability, and a reason string (translation ID) if unavailable.
 func (a *App) GetAIPluginBridgeStatus(rctx request.CTX) (bool, string) {
