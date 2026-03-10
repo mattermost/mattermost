@@ -16,6 +16,14 @@
         "patterns": ["specs/**/*.spec.ts"]
     },
     "impact": {
+        "aiFlow": {
+            "enabled": true,
+            "provider": "auto"
+        },
+        "aiMapping": {
+            "enabled": true,
+            "provider": "auto"
+        },
         "traceability": {
             "enabled": true,
             "manifestPath": ".e2e-ai-agents/traceability.json",
