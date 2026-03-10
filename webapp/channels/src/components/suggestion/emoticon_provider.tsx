@@ -4,7 +4,7 @@
 import React from 'react';
 import {defineMessage} from 'react-intl';
 
-import type {Emoji} from '@mattermost/types/emojis';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
@@ -12,7 +12,7 @@ import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_util
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
 import store from 'stores/redux_store';
 
-import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
+import {compareEmojis, emojiMatchesSkin, unifiedToUnicode} from 'utils/emoji_utils';
 import * as Emoticons from 'utils/emoticons';
 
 import Provider from './provider';
@@ -29,7 +29,7 @@ type EmojiItem = {
 }
 
 const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
-    const text = props.term;
+    const displayName = ':' + props.item.name + ':';
     const emoji = props.item.emoji;
 
     return (
@@ -45,7 +45,7 @@ const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Emoji
                 />
             </div>
             <div className='pull-left'>
-                {text}
+                {displayName}
             </div>
         </SuggestionContainer>
     );
@@ -94,7 +94,12 @@ export default class EmoticonProvider extends Provider {
     }
 
     formatEmojis(emojis: EmojiItem[]) {
-        return emojis.map((item) => ':' + item.name + ':');
+        return emojis.map((item) => {
+            if (isSystemEmoji(item.emoji)) {
+                return unifiedToUnicode((item.emoji as SystemEmoji).unified);
+            }
+            return ':' + item.name + ':';
+        });
     }
 
     // findAndSuggestEmojis uses the provided partialName to match anywhere inside an emoji name.

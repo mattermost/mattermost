@@ -16,6 +16,8 @@ var SystemManagerDefaultPermissions []string
 var SystemUserManagerDefaultPermissions []string
 var SystemReadOnlyAdminDefaultPermissions []string
 var SystemCustomGroupAdminDefaultPermissions []string
+var SharedChannelManagerDefaultPermissions []string
+var SecureConnectionManagerDefaultPermissions []string
 
 var BuiltInSchemeManagedRoleIDs []string
 
@@ -26,6 +28,8 @@ func init() {
 		SystemUserManagerRoleId,
 		SystemReadOnlyAdminRoleId,
 		SystemManagerRoleId,
+		SharedChannelManagerRoleId,
+		SecureConnectionManagerRoleId,
 	}
 
 	BuiltInSchemeManagedRoleIDs = append([]string{
@@ -354,6 +358,14 @@ func init() {
 		PermissionManageCustomGroupMembers.Id,
 	}
 
+	SharedChannelManagerDefaultPermissions = []string{
+		PermissionManageSharedChannels.Id,
+	}
+
+	SecureConnectionManagerDefaultPermissions = []string{
+		PermissionManageSecureConnections.Id,
+	}
+
 	// Add the ancillary permissions to each system role
 	SystemUserManagerDefaultPermissions = AddAncillaryPermissions(SystemUserManagerDefaultPermissions)
 	SystemReadOnlyAdminDefaultPermissions = AddAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
@@ -365,16 +377,18 @@ type RoleType string
 type RoleScope string
 
 const (
-	SystemGuestRoleId            = "system_guest"
-	SystemUserRoleId             = "system_user"
-	SystemAdminRoleId            = "system_admin"
-	SystemPostAllRoleId          = "system_post_all"
-	SystemPostAllPublicRoleId    = "system_post_all_public"
-	SystemUserAccessTokenRoleId  = "system_user_access_token"
-	SystemUserManagerRoleId      = "system_user_manager"
-	SystemReadOnlyAdminRoleId    = "system_read_only_admin"
-	SystemManagerRoleId          = "system_manager"
-	SystemCustomGroupAdminRoleId = "system_custom_group_admin"
+	SystemGuestRoleId             = "system_guest"
+	SystemUserRoleId              = "system_user"
+	SystemAdminRoleId             = "system_admin"
+	SystemPostAllRoleId           = "system_post_all"
+	SystemPostAllPublicRoleId     = "system_post_all_public"
+	SystemUserAccessTokenRoleId   = "system_user_access_token"
+	SystemUserManagerRoleId       = "system_user_manager"
+	SystemReadOnlyAdminRoleId     = "system_read_only_admin"
+	SystemManagerRoleId           = "system_manager"
+	SystemCustomGroupAdminRoleId  = "system_custom_group_admin"
+	SharedChannelManagerRoleId    = "shared_channel_manager"
+	SecureConnectionManagerRoleId = "secure_connection_manager"
 
 	TeamGuestRoleId         = "team_guest"
 	TeamUserRoleId          = "team_user"
@@ -1170,6 +1184,24 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName:   "authentication.roles.system_custom_group_admin.name",
 		Description:   "authentication.roles.system_custom_group_admin.description",
 		Permissions:   SystemCustomGroupAdminDefaultPermissions,
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SharedChannelManagerRoleId] = &Role{
+		Name:          SharedChannelManagerRoleId,
+		DisplayName:   "authentication.roles.shared_channel_manager.name",
+		Description:   "authentication.roles.shared_channel_manager.description",
+		Permissions:   SharedChannelManagerDefaultPermissions,
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SecureConnectionManagerRoleId] = &Role{
+		Name:          SecureConnectionManagerRoleId,
+		DisplayName:   "authentication.roles.secure_connection_manager.name",
+		Description:   "authentication.roles.secure_connection_manager.description",
+		Permissions:   SecureConnectionManagerDefaultPermissions,
 		SchemeManaged: false,
 		BuiltIn:       true,
 	}

@@ -41,7 +41,7 @@ export default class PostDotMenu {
         this.editMenuItem = getMenuItem('Edit');
         this.copyTextMenuItem = getMenuItem('Copy Text');
         this.deleteMenuItem = getMenuItem('Delete');
-        this.flagMessageMenuItem = getMenuItem('Flag Message');
+        this.flagMessageMenuItem = getMenuItem('Quarantine for Review');
     }
 
     async toBeVisible() {
