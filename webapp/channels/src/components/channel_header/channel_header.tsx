@@ -170,7 +170,10 @@ class ChannelHeader extends React.PureComponent<Props> {
                     title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
                     hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
                 >
-                    <div className='autotranslation-header' data-testid='autotranslation-badge'>
+                    <div
+                        className='autotranslation-header'
+                        data-testid='autotranslation-badge'
+                    >
                         <Tag
                             text={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage', defaultMessage: 'Auto-translated'})}
                             icon={'translate'}
