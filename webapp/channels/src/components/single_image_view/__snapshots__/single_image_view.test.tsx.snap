@@ -85,7 +85,6 @@ exports[`components/SingleImageView permalink preview should render with permali
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
                   tabindex="-1"
@@ -185,7 +184,6 @@ exports[`components/SingleImageView should match snapshot 1`] = `
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
                   tabindex="-1"
@@ -254,7 +252,6 @@ exports[`components/SingleImageView should match snapshot 2`] = `
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
                   tabindex="-1"
@@ -383,7 +380,6 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name_svg"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/svg_file_info_id/preview"
                   style="width: 100%; height: auto;"
@@ -454,7 +450,6 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name_svg"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/svg_file_info_id/preview"
                   style="width: 100%; height: auto;"
@@ -552,7 +547,6 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
               >
                 <img
                   aria-hidden="true"
-                  aria-label="file thumbnail name"
                   class=" single-image-view__image small-image--inside-container"
                   src="/api/v4/files/file_info_id/preview"
                   tabindex="-1"
