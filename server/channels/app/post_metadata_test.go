@@ -779,6 +779,51 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Equal(t, referencedPost.Id, preview.PostID)
 	})
 
+	t.Run("permalink preview includes post priority metadata", func(t *testing.T) {
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
+
+		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   link,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		previewPost.Metadata.Embeds = nil
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, &model.PreparePostForClientOpts{})
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		preview := firstEmbed.Data.(*model.PreviewPost)
+
+		require.Equal(t, referencedPost.Id, preview.PostID)
+		require.NotNil(t, preview.Post.Metadata)
+		require.NotNil(t, preview.Post.Metadata.Priority)
+		assert.Equal(t, model.PostPriorityUrgent, *preview.Post.Metadata.Priority.Priority)
+		assert.True(t, *preview.Post.Metadata.Priority.RequestedAck)
+	})
+
 	t.Run("permalink previews for direct and group messages", func(t *testing.T) {
 		th := setup(t)
 
