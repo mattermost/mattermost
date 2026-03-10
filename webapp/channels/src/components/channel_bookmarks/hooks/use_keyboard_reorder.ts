@@ -203,23 +203,21 @@ export function useKeyboardReorder({
                     case 'ArrowLeft':
                     case 'ArrowUp': {
                         const inOverflow = overflowItemsRef.current.includes(state.itemId!);
-                        const willMove = (inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft');
-                        if (willMove) {
-                            e.preventDefault();
-                            e.stopPropagation();
+                        if ((inOverflow && e.key === 'ArrowUp') || (!inOverflow && e.key === 'ArrowLeft')) {
                             moveItem(-1);
                         }
+                        e.preventDefault();
+                        e.stopPropagation();
                         return;
                     }
                     case 'ArrowRight':
                     case 'ArrowDown': {
                         const inOverflow = overflowItemsRef.current.includes(state.itemId!);
-                        const willMove = (inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight');
-                        if (willMove) {
-                            e.preventDefault();
-                            e.stopPropagation();
+                        if ((inOverflow && e.key === 'ArrowDown') || (!inOverflow && e.key === 'ArrowRight')) {
                             moveItem(1);
                         }
+                        e.preventDefault();
+                        e.stopPropagation();
                         return;
                     }
                     default:

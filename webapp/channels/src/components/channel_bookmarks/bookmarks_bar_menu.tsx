@@ -18,6 +18,7 @@ import * as Menu from 'components/menu';
 
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
 import OverflowBookmarkItem from './overflow_bookmark_item';
+import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
 interface BookmarksBarMenuProps {
     channelId: string;
@@ -93,8 +94,8 @@ function BookmarksBarMenu({
         }
     }, [onOpenChange]);
 
-    // Don't show menu if no overflow items and user can't add
-    if (!hasOverflow && !canAdd) {
+    // Don't show menu if no overflow items and user can't add or limit reached
+    if (!hasOverflow && (!canAdd || limitReached)) {
         return null;
     }
 
@@ -126,6 +127,7 @@ function BookmarksBarMenu({
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
+    const limitReachedLabel = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add more than {limit} bookmarks'}, {limit: MAX_BOOKMARKS_PER_CHANNEL});
 
     // Build menu items as a flat array to avoid Fragment children warning from MUI
     const menuItems: React.ReactNode[] = [];
@@ -155,6 +157,18 @@ function BookmarksBarMenu({
     }
 
     if (canAdd) {
+        const addItemLabels = (text: string) => {
+            if (limitReached) {
+                return (
+                    <>
+                        <span>{text}</span>
+                        <span>{limitReachedLabel}</span>
+                    </>
+                );
+            }
+            return <span>{text}</span>;
+        };
+
         menuItems.push(
             <Menu.Item
                 key='channelBookmarksAddLink'
@@ -162,7 +176,7 @@ function BookmarksBarMenu({
                 onClick={handleCreateLink}
                 disabled={limitReached}
                 leadingElement={<LinkVariantIcon size={18}/>}
-                labels={<span>{addLinkLabel}</span>}
+                labels={addItemLabels(addLinkLabel)}
             />,
         );
         if (canUploadFiles) {
@@ -173,10 +187,17 @@ function BookmarksBarMenu({
                     onClick={handleCreateFile}
                     disabled={limitReached}
                     leadingElement={<PaperclipIcon size={18}/>}
-                    labels={<span>{attachFileLabel}</span>}
+                    labels={addItemLabels(attachFileLabel)}
                 />,
             );
         }
+    }
+
+    let overflowLabel = '';
+    let buttonTooltip;
+    if (hasOverflow) {
+        overflowLabel = formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length});
+        buttonTooltip = {text: overflowLabel};
     }
 
     return (
@@ -188,12 +209,9 @@ function BookmarksBarMenu({
                     id: 'channelBookmarksBarMenuButton',
                     class: buttonClass,
                     children: buttonContent,
-                    'aria-label': hasOverflow ? formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length}) : addBookmarkLabel,
-                    disabled: !hasOverflow && limitReached,
+                    'aria-label': overflowLabel || addBookmarkLabel,
                 }}
-                menuButtonTooltip={hasOverflow ? {
-                    text: formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length}),
-                } : undefined}
+                menuButtonTooltip={buttonTooltip}
                 menu={{
                     id: 'channelBookmarksBarMenuDropdown',
                     isMenuOpen: forceOpen,
