@@ -54,7 +54,7 @@ describe('Desktop notifications', () => {
             changeTeammateNameDisplayAs('#name_formatFormatB');
 
             const actualMsg = `@${testUser.username} first`;
-            const expected = `@${otherUser.nickname}: ${actualMsg}`;
+            const expected = `@${otherUser.nickname}: @${testUser.nickname} first`;
 
             // # Have another user send a post.
             cy.postMessageAs({sender: otherUser, message: actualMsg, channelId: channel.id});
@@ -70,7 +70,8 @@ describe('Desktop notifications', () => {
 
     it('MM-T489_2 Display teammates first and last name when nickname does not exists', () => {
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            // # Ensure other user is without nickname set up
+            // # Ensure neither has a nickname
+            patchUser(testUser.id, {nickname: ''});
             patchUser(otherUser.id, {nickname: ''});
 
             spyNotificationAs('withNotification', 'granted');
@@ -82,7 +83,7 @@ describe('Desktop notifications', () => {
             changeTeammateNameDisplayAs('#name_formatFormatB');
 
             const actualMsg = `@${testUser.username} second`;
-            const expected = `@${otherUser.first_name} ${otherUser.last_name}: ${actualMsg}`;
+            const expected = `@${otherUser.first_name} ${otherUser.last_name}: @${testUser.first_name} ${testUser.last_name} second`;
 
             // # Have another user send a post.
             cy.postMessageAs({sender: otherUser, message: actualMsg, channelId: channel.id});
