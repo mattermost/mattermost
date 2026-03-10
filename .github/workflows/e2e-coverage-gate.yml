@@ -189,7 +189,9 @@ jobs:
               body = '_E2E coverage analysis ran but produced no summary._';
             }
 
-            body += '\n\n---\n_To skip: add the `skip-e2e-coverage-check` label **or** comment `/skip-e2e-check: <reason>`._';
+            if (action !== 'safe-to-merge') {
+              body += '\n\n---\n_To skip: add the `skip-e2e-coverage-check` label **or** comment `/skip-e2e-check: <reason>`._';
+            }
 
             const prNumber = context.payload.pull_request.number;
             const { data: comments } = await github.rest.issues.listComments({
