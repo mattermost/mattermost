@@ -27,8 +27,8 @@ application behavior.
       multiple actions.
     - Always use best practices from the log when generating tests.
 
-     <example-generation>
-     For following plan:
+       <example-generation>
+       For following plan:
 
     ```markdown file=specs/plan.md
     ### 1. Adding New Todos
@@ -62,4 +62,4 @@ application behavior.
     });
     ```
 
-     </example-generation>
+       </example-generation>
