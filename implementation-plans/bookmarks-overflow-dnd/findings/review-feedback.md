@@ -133,8 +133,9 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 - [ ] Fix anchor/links in overflow menu — semantic anchor UX (deferred — MUI `<li>` structure, consider base-ui)
 
 ### Technical/patterns
-- [ ] `BookmarkMeasureItem` replacement — IntersectionObserver or measure real items
+- [ ] `BookmarkMeasureItem` replacement — render all items in bar with CSS overflow clipping, measure real chips instead of hidden duplicates. Eliminates 2N→N component renders. Requires rethinking overflow items (currently `Menu.Item`, would need a different approach for items hidden by CSS clipping).
 - [ ] `Menu.tsx hideBackdrop` → key handler approach (medium-term)
+- [ ] Replace querySelector patterns with ref registry context — `data-bookmark-id` lookup for refocus, menu ArrowDown entry, dot menu ArrowRight. Low priority since queries are scoped and cross component boundaries where ref threading adds complexity.
 
 ### Potential enhancements
 - [ ] Register bookmarks bar as A11yController region for F6/Ctrl+` cycling
