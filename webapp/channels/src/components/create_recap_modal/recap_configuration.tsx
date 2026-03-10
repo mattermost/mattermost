@@ -43,7 +43,7 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                 <div className='recap-type-card-description'>
                     <FormattedMessage
                         id='recaps.modal.allUnreadsDesc'
-                        defaultMessage='Copilot will create a recap of all unreads across your channels.'
+                        defaultMessage='Create a recap of all unread messages across your channels.'
                     />
                 </div>
             </div>
