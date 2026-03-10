@@ -77,6 +77,22 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | `handleMenuListKeyDown` — stops arrow/Space/Enter propagation after MenuList processes it | `menu.tsx` |
 | Disable add menu items when bookmark limit reached | `bookmarks_bar_menu.tsx` |
 
+### Bookmark limit UX
+| Change | Files |
+|---|---|
+| Hide bookmark bar menu entirely when limit reached and no overflow items | `bookmarks_bar_menu.tsx` |
+| Disable add items with limit explanation in overflow menu and channel header submenu | `bookmarks_bar_menu.tsx`, `channel_bookmarks_submenu.tsx` |
+| Add tooltip to menu button when no overflow items and user can add (`"Add a bookmark"`) | `bookmarks_bar_menu.tsx` |
+
+### Additional refactors
+| Change | Files |
+|---|---|
+| Remove `BookmarkMeasureItem` — all items render as `BookmarksBarItem` with `hidden` prop for measurement | `channel_bookmarks.tsx`, `bookmarks_bar_item.tsx`, `bookmarks_measure_item.tsx` (deleted) |
+| Add `useDebounce` hook (based on mattermost-mobile) replacing hand-rolled debounce | `useDebounce.ts` (new), `use_bookmarks_overflow.ts` |
+| Add `useLatest` hook to replace 7 ref-sync `useEffect` patterns | `useLatest.ts` (new), `use_bookmarks_dnd.ts`, `use_bookmarks_overflow.ts`, `use_keyboard_reorder.ts` |
+| Stabilize overflow recalc: read order from ref via `useLatest`, add `isPaused` guard in `calculateOverflow` | `use_bookmarks_overflow.ts` |
+| Merged separate `pauseRecalc` effects into single `pauseRecalc(isDragging \|\| reorderState.isReordering)` | `channel_bookmarks.tsx` |
+
 ### E2E test fixes
 | Change | Files |
 |---|---|
@@ -84,6 +100,21 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 | Handle bar-or-overflow for bookmark assertions and dot menu access | `channel_bookmarks_spec.ts` |
 | Fix modal timing, emoji scoping, reorder chain detachment | `channel_bookmarks_spec.ts` |
 | Use fresh channel for reorder test to avoid overflow interference | `channel_bookmarks_spec.ts` |
+| Add `findVisibleBarLink` helper to exclude hidden measurement items from jQuery queries | `channel_bookmarks_spec.ts` |
+| Fix `openDotMenu` to use `closest('[data-bookmark-id]')` and `{force: true}` for opacity-0 buttons | `channel_bookmarks_spec.ts` |
+| Fix reorder test to use `should('have.length', 2)` and `findByRole` selectors | `channel_bookmarks_spec.ts` |
+| Add `dismissMenu` helper for stale MUI backdrop cleanup between tests | `channel_bookmarks_spec.ts` |
+
+### New E2E spec cases (7 added)
+| # | Test Name | Status |
+|---|---|---|
+| 1 | `shows overflow count badge` | Added |
+| 2 | `opens overflow menu and shows items` | Added |
+| 3 | `keyboard reorder within overflow` | Added |
+| 4 | `keyboard reorder: Escape cancels` | Added |
+| 5 | `copy link from overflow dot menu` | Added |
+| 6 | `edit from overflow dot menu` | Added |
+| 7 | `delete from overflow dot menu` | Added |
 
 ---
 
@@ -97,33 +128,37 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 
 ---
 
-## Proposed E2E Test Cases (to be added)
+## E2E Test Cases
 
-### `describe('overflow and reorder')` — fresh channel with 15 bookmarks
+### Implemented (25 total specs)
 
-| # | Test Name | Description |
+**`describe('functionality')` — 12 tests** (existing, fixed for overflow)
+- All 12 original bookmark CRUD and reorder tests pass with overflow-aware helpers
+
+**`describe('manage bookmarks - permissions enforcement')` — 5 tests** (existing)
+- 3 pass consistently; 2 non-admin permission tests are pre-existing flaky (server-side permission timing)
+
+**`describe('overflow and reorder')` — 7 tests** (new)
+| # | Test Name | Status |
 |---|---|---|
-| 1 | `shows overflow count badge` | Verify overflow button visible with count, visible + overflow = total |
-| 2 | `opens overflow menu and shows items` | Click button, verify items as menuitems, add actions below separator |
-| 3 | `keyboard reorder within overflow` | Space → ArrowDown → Space on overflow item, verify swap |
-| 4 | `keyboard reorder: Escape cancels` | Space → ArrowRight → Escape, verify original order restored |
-| 5 | `keyboard reorder: click-away confirms` | Space → ArrowRight → click elsewhere, verify new position kept |
-| 6 | `keyboard reorder: bar to overflow` | Move last bar item right into overflow, verify it appears in menu |
-| 7 | `keyboard reorder: overflow to bar` | Move first overflow item up into bar, verify it appears in bar |
+| 1 | `shows overflow count badge` | Done |
+| 2 | `opens overflow menu and shows items` | Done |
+| 3 | `keyboard reorder within overflow` | Done |
+| 4 | `keyboard reorder: Escape cancels` | Done |
+| 5 | `copy link from overflow dot menu` | Done |
+| 6 | `edit from overflow dot menu` | Done |
+| 7 | `delete from overflow dot menu` | Done |
 
-### `describe('overflow dot menu')` — fresh channel with overflow
+**`describe('limits enforced')` — 1 test** (existing, updated)
 
-| # | Test Name | Description |
+### Not yet implemented
+| # | Test Name | Reason |
 |---|---|---|
-| 8 | `edit from overflow dot menu` | Open dot menu from overflow item, edit, verify change persists |
-| 9 | `delete from overflow dot menu` | Open dot menu, delete, verify item removed |
-
-### `describe('visual feedback')` — fresh channel
-
-| # | Test Name | Description |
-|---|---|---|
-| 10 | `truncated label tooltip` | Create bookmark with 200-char name, hover, verify tooltip |
-| 11 | `focus-visible indicator on Tab` | Tab to bookmark, verify box-shadow focus ring |
+| — | `keyboard reorder: click-away confirms` | Complex — requires click outside menu during reorder |
+| — | `keyboard reorder: bar to overflow` | Complex — cross-container keyboard transition |
+| — | `keyboard reorder: overflow to bar` | Complex — cross-container keyboard transition |
+| — | `truncated label tooltip` | Visual — hard to verify tooltip presence in headless |
+| — | `focus-visible indicator on Tab` | Visual — CSS assertion for box-shadow unreliable |
 
 ---
 
@@ -133,7 +168,6 @@ PR review comments from **hmhealey**, **jgheithcock**, and **asaadmahmood** on P
 - [ ] Fix anchor/links in overflow menu — semantic anchor UX (deferred — MUI `<li>` structure, consider base-ui)
 
 ### Technical/patterns
-- [ ] `BookmarkMeasureItem` replacement — render all items in bar with CSS overflow clipping, measure real chips instead of hidden duplicates. Eliminates 2N→N component renders. Requires rethinking overflow items (currently `Menu.Item`, would need a different approach for items hidden by CSS clipping).
 - [ ] `Menu.tsx hideBackdrop` → key handler approach (medium-term)
 - [ ] Replace querySelector patterns with ref registry context — `data-bookmark-id` lookup for refocus, menu ArrowDown entry, dot menu ArrowRight. Low priority since queries are scoped and cross component boundaries where ref threading adds complexity.
 
