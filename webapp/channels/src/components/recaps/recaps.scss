@@ -9,12 +9,12 @@
 
     .recaps-header {
         display: flex;
+        height: 56px;
         align-items: center;
         justify-content: space-between;
         padding: 12px 10px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background-color: var(--center-channel-bg);
-        height: 56px;
 
         .recaps-header-left {
             display: flex;
@@ -217,10 +217,10 @@
 
                 .recap-icon-button {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
                     width: 28px;
                     height: 28px;
+                    align-items: center;
+                    justify-content: center;
                     padding: 0;
                     border: none;
                     border-radius: var(--radius-s);
@@ -280,10 +280,10 @@
 
     .recaps-placeholder {
         display: flex;
+        height: 100%;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100%;
         text-align: center;
 
         svg {
@@ -404,10 +404,10 @@
 
                 .recap-icon-button {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
                     width: 28px;
                     height: 28px;
+                    align-items: center;
+                    justify-content: center;
                     padding: 0;
                     border: none;
                     border-radius: var(--radius-s);

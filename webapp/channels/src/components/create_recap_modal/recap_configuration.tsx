@@ -17,16 +17,15 @@ type Props = {
     recapType: 'selected' | 'all_unreads' | null;
     setRecapType: (type: 'selected' | 'all_unreads') => void;
     unreadChannels: Channel[];
-    nameError?: boolean;
 };
 
-const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels, nameError}: Props) => {
+const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
     const {formatMessage} = useIntl();
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [touched, setTouched] = useState(false);
     const hasUnreadChannels = unreadChannels.length > 0;
 
-    const showError = (touched || nameError) && recapName.trim().length === 0;
+    const showError = touched && recapName.trim().length === 0;
 
     useEffect(() => {
         nameInputRef.current?.focus();

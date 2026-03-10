@@ -256,17 +256,6 @@ describe('RecapConfiguration', () => {
             expect(screen.queryByText('This field is required')).not.toBeInTheDocument();
         });
 
-        it('should show error when nameError prop is true and name is empty', () => {
-            renderWithContext(
-                <RecapConfiguration
-                    {...defaultProps}
-                    nameError={true}
-                />,
-            );
-
-            expect(screen.getByText('This field is required')).toBeInTheDocument();
-        });
-
         it('should add input-error class when error is shown', async () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);
 

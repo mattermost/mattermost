@@ -49,7 +49,6 @@ const CreateRecapModal = ({onExited}: Props) => {
     const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [nameError, setNameError] = useState(false);
 
     // Fetch AI agents on mount
     useEffect(() => {
@@ -70,10 +69,6 @@ const CreateRecapModal = ({onExited}: Props) => {
 
     const handleNext = useCallback(() => {
         if (currentStep === 1) {
-            if (recapName.trim().length === 0) {
-                setNameError(true);
-                return;
-            }
             if (recapType === 'all_unreads') {
                 // For all unreads, skip channel selector and go to summary
                 setSelectedChannelIds(unreadChannels.map((c: Channel) => c.id));
@@ -86,7 +81,7 @@ const CreateRecapModal = ({onExited}: Props) => {
             // From channel selector to summary
             setCurrentStep(3);
         }
-    }, [currentStep, recapName, recapType, unreadChannels]);
+    }, [currentStep, recapType, unreadChannels]);
 
     const handlePrevious = useCallback(() => {
         if (currentStep === 3 && recapType === 'all_unreads') {
@@ -157,7 +152,6 @@ const CreateRecapModal = ({onExited}: Props) => {
                     recapType={recapType}
                     setRecapType={setRecapType}
                     unreadChannels={unreadChannels}
-                    nameError={nameError}
                 />
             );
         case 2:

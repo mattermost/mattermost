@@ -140,11 +140,11 @@
 
                 .icon {
                     position: absolute;
-                    left: 16px;
                     top: 50%;
-                    transform: translateY(-50%);
+                    left: 16px;
                     color: rgba(var(--center-channel-color-rgb), 0.64);
                     font-size: 16px;
+                    transform: translateY(-50%);
                 }
 
                 .form-control {
@@ -182,8 +182,8 @@
 
                     .icon {
                         position: static;
-                        transform: none;
                         font-size: 14px;
+                        transform: none;
                     }
                 }
             }

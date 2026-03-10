@@ -160,6 +160,47 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('Highlights')).toBeInTheDocument();
     });
 
+    test('should have keyboard-accessible header with proper ARIA attributes', () => {
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        expect(header).toHaveAttribute('role', 'button');
+        expect(header).toHaveAttribute('tabindex', '0');
+        expect(header).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    test('should toggle collapse with Enter key on header', async () => {
+        const user = userEvent.setup();
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        (header as HTMLElement).focus();
+        await user.keyboard('{Enter}');
+
+        expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
+        expect(header).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    test('should toggle collapse with Space key on header', async () => {
+        const user = userEvent.setup();
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        (header as HTMLElement).focus();
+        await user.keyboard(' ');
+
+        expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
+    });
+
     test('should dispatch switchToChannel when channel name clicked', async () => {
         const {switchToChannel} = require('actions/views/channel');
         const user = userEvent.setup();

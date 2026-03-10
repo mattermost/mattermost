@@ -29,6 +29,7 @@ const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
+    const [isLoading, setIsLoading] = useState(true);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
@@ -36,10 +37,14 @@ const Recaps = () => {
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
 
-    const hasNoRecaps = allRecaps.length === 0;
+    const hasNoRecaps = !isLoading && allRecaps.length === 0;
 
     useEffect(() => {
-        dispatch(getRecaps(0, 60));
+        const fetchData = async () => {
+            await dispatch(getRecaps(0, 60));
+            setIsLoading(false);
+        };
+        fetchData();
         dispatch(getAgents());
     }, [dispatch]);
 
