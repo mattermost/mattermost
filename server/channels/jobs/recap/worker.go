@@ -50,12 +50,8 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	publishRecapUpdate(appInstance, recapID, userID)
 
 	// Build a request context that carries the requesting user's identity,
-<<<<<<< HEAD
-	// so downstream code (e.g. bridge client) can enforce access checks.
-=======
 	// so downstream code (e.g. bridge client) can enforce access checks and
 	// session-dependent code (e.g. auto-translation supplements) works correctly.
->>>>>>> 27fd6abc24c0442bb182a4e816843fb407a1b47e
 	rctx := request.EmptyContext(logger).WithSession(&model.Session{UserId: userID})
 
 	totalMessages := 0
