@@ -1,0 +1,188 @@
+---
+name: E2E Coverage Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── Job 1: decide whether to skip ──────────────────────────────────────────
+  check-override:
+    name: ci/e2e-coverage/check-override
+    runs-on: ubuntu-24.04
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      reason: ${{ steps.check.outputs.reason }}
+    steps:
+      - name: ci/e2e-coverage/check-skip-label-or-comment
+        id: check
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            // 1. Label check
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.labels.some(l => l.name === 'skip-e2e-coverage-check')) {
+              core.setOutput('skip', 'true');
+              core.setOutput('reason', 'Label `skip-e2e-coverage-check` is set on this PR.');
+              return;
+            }
+
+            // 2. Comment check — find the last /skip-e2e-check: comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const skipComment = [...comments].reverse().find(c =>
+              c.body.trim().toLowerCase().startsWith('/skip-e2e-check:')
+            );
+            if (skipComment) {
+              const reason = skipComment.body.replace(/^\/skip-e2e-check:/i, '').trim();
+              core.setOutput('skip', 'true');
+              core.setOutput('reason', `Skip requested: ${reason || '(no reason given)'}`);
+              return;
+            }
+
+            core.setOutput('skip', 'false');
+            core.setOutput('reason', '');
+
+  # ── Job 2: analysis (runs when not skipped) ─────────────────────────────────
+  coverage-check:
+    name: ci/e2e-coverage/analyze
+    runs-on: ubuntu-24.04
+    needs: check-override
+    if: needs.check-override.outputs.skip == 'false'
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: e2e-tests/playwright/package-lock.json
+
+      - name: ci/e2e-coverage/install-deps
+        working-directory: e2e-tests/playwright
+        run: npm ci --ignore-scripts
+
+      - name: ci/e2e-coverage/impact-analysis
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npx e2e-ai-agents impact \
+            --config ./e2e-ai-agents.config.json \
+            --since origin/${{ github.base_ref }}
+
+      - name: ci/e2e-coverage/plan-enforcement
+        id: plan
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # continue-on-error so we can post the PR comment before failing
+        continue-on-error: true
+        run: |
+          npx e2e-ai-agents plan \
+            --config ./e2e-ai-agents.config.json \
+            --fail-on-must-add-tests \
+            --github-output "$GITHUB_OUTPUT" \
+            --ci-comment-path ./.e2e-ai-agents/ci-summary.md
+
+      - name: ci/e2e-coverage/post-pr-comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryPath = 'e2e-tests/playwright/.e2e-ai-agents/ci-summary.md';
+            const marker = '<!-- e2e-coverage-gate -->';
+
+            let body = fs.existsSync(summaryPath)
+              ? fs.readFileSync(summaryPath, 'utf8')
+              : '_E2E coverage analysis ran but produced no summary._';
+
+            body += '\n\n---\n_To skip: add the `skip-e2e-coverage-check` label **or** comment `/skip-e2e-check: <reason>`._';
+
+            const prNumber = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            const fullBody = `${marker}\n${body}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: fullBody,
+              });
+            }
+
+      - name: ci/e2e-coverage/fail-if-gaps
+        if: steps.plan.outcome == 'failure'
+        run: |
+          echo "::error::E2E coverage check failed — tests are required for this PR."
+          echo "Add the 'skip-e2e-coverage-check' label or comment '/skip-e2e-check: <reason>' to bypass."
+          exit 2
+
+  # ── Job 3: skip-notice (runs when skipped) ──────────────────────────────────
+  skip-notice:
+    name: ci/e2e-coverage/skipped
+    runs-on: ubuntu-24.04
+    needs: check-override
+    if: needs.check-override.outputs.skip == 'true'
+    steps:
+      - name: ci/e2e-coverage/post-skip-comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const reason = `${{ needs.check-override.outputs.reason }}`;
+            const marker = '<!-- e2e-coverage-gate -->';
+            const body = `${marker}\n> **E2E Coverage Gate — skipped**\n> ${reason}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
