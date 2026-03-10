@@ -3,7 +3,7 @@
 
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -18,21 +18,49 @@ interface BookmarksBarItemProps {
     isDraggingGlobal: boolean;
     keyboardReorderProps?: KeyboardReorderItemProps;
     isKeyboardReordering?: boolean;
+    hidden?: boolean;
+    onMount?: (id: string, element: HTMLElement | null) => void;
 }
 
-function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReorderProps, isKeyboardReordering}: BookmarksBarItemProps) {
+function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReorderProps, isKeyboardReordering, hidden, onMount}: BookmarksBarItemProps) {
     const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        onMount?.(id, ref.current);
+        return () => onMount?.(id, null);
+    }, [id, onMount]);
+
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
         id,
         container: 'bar',
         allowedEdges: ['left', 'right'] as Edge[],
         displayName: bookmark.display_name,
-        canReorder: !disabled,
+        canReorder: !disabled && !hidden,
         getElement: () => ref.current,
     });
 
     // Prevent Space from bubbling to message input
-    const disableInteractions = isDragSelf || isDraggingGlobal;
+    const disableInteractions = isDragSelf || isDraggingGlobal || Boolean(hidden);
+
+    if (hidden) {
+        return (
+            <BarItemWrapper
+                ref={ref}
+                data-bookmark-id={id}
+                data-testid={`bookmark-item-${id}`}
+                style={{position: 'absolute', visibility: 'hidden', pointerEvents: 'none'}}
+            >
+                <BarChip
+                    $isDragging={false}
+                >
+                    <BookmarkItemContent
+                        bookmark={bookmark}
+                        disableInteractions={true}
+                    />
+                </BarChip>
+            </BarItemWrapper>
+        );
+    }
 
     return (
         <BarItemWrapper

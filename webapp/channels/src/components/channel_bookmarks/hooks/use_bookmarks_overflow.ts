@@ -3,6 +3,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
+import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 
 // Space to reserve for the menu button
@@ -22,7 +23,6 @@ export function useBookmarksOverflow(order: string[]) {
     const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
     const isPausedRef = useRef(false);
     const pendingRecalcRef = useRef(false);
-    const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
     const orderRef = useLatest(order);
 
@@ -72,20 +72,12 @@ export function useBookmarksOverflow(order: string[]) {
         setOverflowStartIndex(newOverflowIndex);
     }, [orderRef]);
 
-    const debouncedCalculateOverflow = useCallback(() => {
-        if (isPausedRef.current) {
-            pendingRecalcRef.current = true;
-            return;
-        }
+    const debouncedCalculateOverflow = useDebounce(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
 
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
-        debounceTimerRef.current = setTimeout(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
-    }, [calculateOverflow]);
-
-    // Set up ResizeObserver — runs once on mount since deps are stable
+    // Set up ResizeObserver and trigger recalculation on order changes.
+    // calculateOverflow and debouncedCalculateOverflow are stable (read
+    // order from ref), so the observer is only recreated when order.length
+    // changes (items added/removed, not reordered).
     useEffect(() => {
         const container = containerRef.current;
         if (!container) {
@@ -97,18 +89,19 @@ export function useBookmarksOverflow(order: string[]) {
         });
         resizeObserver.observe(container);
 
-        // Initial calculation
-        calculateOverflow();
+        // Initial/re-calculation (debounced to ensure child refs are registered)
+        debouncedCalculateOverflow();
 
         return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
+            debouncedCalculateOverflow.cancel();
             resizeObserver.disconnect();
         };
-    }, [calculateOverflow, debouncedCalculateOverflow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- order.length triggers recalc when items are added/removed
+    }, [calculateOverflow, debouncedCalculateOverflow, order.length]);
 
-    // Recalculate when order changes
+    // Recalculate when order changes (reorder, add, remove).
+    // During active reorder this is blocked by isPausedRef; the pending
+    // recalc fires when the pause releases.
     useEffect(() => {
         debouncedCalculateOverflow();
     }, [order, debouncedCalculateOverflow]);

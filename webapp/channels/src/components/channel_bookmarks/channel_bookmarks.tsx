@@ -8,7 +8,6 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import BookmarksBarItem from './bookmarks_bar_item';
 import BookmarksBarMenu from './bookmarks_bar_menu';
-import BookmarkMeasureItem from './bookmarks_measure_item';
 import {useBookmarksDnd, useBookmarksOverflow, useKeyboardReorder} from './hooks';
 import {useChannelBookmarks, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from './utils';
 
@@ -30,6 +29,7 @@ function ChannelBookmarks({channelId}: Props) {
     const {
         containerRef,
         registerItemRef,
+        overflowStartIndex,
         visibleItems,
         overflowItems,
         pauseRecalc,
@@ -78,28 +78,13 @@ function ChannelBookmarks({channelId}: Props) {
             className='channel-bookmarks-container'
         >
             <BookmarksBarContent>
-                {/* Hidden measure components for ALL items */}
-                {order.map((id) => {
-                    const bookmark = bookmarks[id];
-                    if (!bookmark) {
-                        return null;
-                    }
-                    return (
-                        <BookmarkMeasureItem
-                            key={`measure-${id}`}
-                            id={id}
-                            bookmark={bookmark}
-                            onMount={registerItemRef}
-                        />
-                    );
-                })}
-
-                {/* Visible bar items with pragmatic-dnd */}
-                {visibleItems.map((id) => {
+                {/* All bar items — hidden ones are measured but not visible */}
+                {order.map((id, index) => {
                     const bookmark: ChannelBookmark | undefined = bookmarks[id];
                     if (!bookmark) {
                         return null;
                     }
+                    const isHidden = index >= overflowStartIndex;
                     return (
                         <BookmarksBarItem
                             key={id}
@@ -107,8 +92,10 @@ function ChannelBookmarks({channelId}: Props) {
                             bookmark={bookmark}
                             disabled={!canReorder}
                             isDraggingGlobal={isDragging}
-                            keyboardReorderProps={canReorder ? getItemProps(id) : undefined}
-                            isKeyboardReordering={reorderState.isReordering && reorderState.itemId === id}
+                            keyboardReorderProps={!isHidden && canReorder ? getItemProps(id) : undefined}
+                            isKeyboardReordering={!isHidden && reorderState.isReordering && reorderState.itemId === id}
+                            hidden={isHidden}
+                            onMount={registerItemRef}
                         />
                     );
                 })}
