@@ -4,11 +4,11 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 // Constants for repeated strings
-const FLAG_REASON_INAPPROPRIATE: string = 'Inappropriate Content';
-const FLAG_REASON_INAPPROPRIATE_ALT: string = 'Inappropriate content';
-const FLAG_COMMENT: string = 'This message is inappropriate';
+const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
+const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
+const FLAG_COMMENT: string = 'This message contains misclassified data';
 const SYSTEM_MESSAGE = (username: string): string =>
-    `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
+    `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
@@ -35,7 +35,7 @@ async function flagPostFlow(
     post: any,
     channelsPage: any,
     message: string,
-    reason: string = FLAG_REASON_INAPPROPRIATE,
+    reason: string = FLAG_REASON_CLASSIFICATION_MISMATCH,
     comment: string = FLAG_COMMENT,
 ): Promise<void> {
     await openPostDotMenu(post, channelsPage);
@@ -86,7 +86,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
 
     // Flag the message
-    await flagPostFlow(post, channelsPage, message, FLAG_REASON_INAPPROPRIATE_ALT);
+    await flagPostFlow(post, channelsPage, message, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT);
 
     // Verify the message is flagged
     const flaggedPost = await channelsPage.centerView.getPostById(postId);
@@ -181,7 +181,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
         message,
         user_id: user.id,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
@@ -192,7 +192,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_INAPPROPRIATE);
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -248,7 +248,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
         message,
         user_id: secondUserID,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
     // Login as the second user
@@ -260,7 +260,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_INAPPROPRIATE);
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -274,7 +274,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
  * 2. Post a message
  * 3. Verify that flag message option is not available in the post menu
  */
-test('Verify the Flag message option is not available when feature is disabled', async ({pw}) => {
+test('Verify the Quarantine for Review option is not available when feature is disabled', async ({pw}) => {
     const {user, adminClient} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
@@ -304,7 +304,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_INAPPROPRIATE, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
             },
         },
     });
@@ -317,7 +317,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Spam');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
 });
 
 /**
@@ -334,7 +334,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_INAPPROPRIATE, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
                 ReporterCommentRequired: true,
             },
         },
@@ -348,7 +348,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Spam');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.requireCommentsForFlaggingPost();
@@ -391,7 +391,7 @@ test('Verify message is removed from channel if the reviewer removed the message
         message,
         user_id: user.id,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user
