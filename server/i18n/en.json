@@ -10605,6 +10605,10 @@
     "translation": "Post Message property is longer than the maximum permitted length."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Invalid original id."
   },
