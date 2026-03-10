@@ -112,8 +112,8 @@ export function useBookmarksDnd({
                 let newIndex: number;
 
                 if (target.data.type === 'overflow-trigger') {
-                    // Dropped on the overflow trigger zone — append to end
-                    newIndex = Math.max(0, currentOrder.length - 1);
+                    // Dropped on the overflow trigger — place at the beginning of overflow
+                    newIndex = visibleItemsRef.current.length;
                 } else if (target.data.type === 'bookmark') {
                     const targetId = target.data.bookmarkId as string;
                     const edge = extractClosestEdge(target.data);
