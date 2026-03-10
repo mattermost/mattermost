@@ -271,6 +271,9 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 	if viewID == "" {
 		return nil, store.NewErrInvalidInput("View", "viewID", viewID)
 	}
+	if newIndex < 0 {
+		return nil, store.NewErrInvalidInput("View", "SortOrder", newIndex)
+	}
 
 	now := model.GetMillis()
 	transaction, err := s.GetMaster().Beginx()
@@ -298,7 +301,7 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 		views = append(views, v)
 	}
 
-	if len(views) == 0 || newIndex < 0 || int(newIndex) > len(views)-1 {
+	if len(views) == 0 || int(newIndex) > len(views)-1 {
 		return nil, store.NewErrInvalidInput("View", "SortOrder", newIndex)
 	}
 
