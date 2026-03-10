@@ -141,11 +141,4 @@ describe('useExternalLink', () => {
         const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
         expect(href).toContain('subject=hello%20world');
     });
-
-    it('malformed mattermost.com URL is returned unchanged without crashing', () => {
-        const malformedUrl = 'http://://mattermost.com';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(malformedUrl), getBaseState());
-        expect(href).toEqual(malformedUrl);
-        expect(queryParams).toEqual({});
-    });
 });

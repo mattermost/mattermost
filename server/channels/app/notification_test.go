@@ -861,7 +861,7 @@ func TestGetExplicitMentions(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Message     string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
 		Expected    *MentionResults
@@ -1330,7 +1330,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"should include the mentions from attachment text and preText": {
 			Message: "this is an message for @user1",
-			Attachments: []*model.SlackAttachment{
+			Attachments: []*model.MessageAttachment{
 				{
 					Text:    "this is a message For @user2",
 					Pretext: "this is a message for @here",
@@ -1347,9 +1347,9 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"should include the mentions from attachment field values (but not field titles)": {
 			Message: "this is a message",
-			Attachments: []*model.SlackAttachment{
+			Attachments: []*model.MessageAttachment{
 				{
-					Fields: []*model.SlackAttachmentField{
+					Fields: []*model.MessageAttachmentField{
 						{
 							Title: "@user1",
 							Value: "@user2",
@@ -2189,21 +2189,21 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 
 func TestGetMentionsEnabledFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	attachmentWithTextAndPreText := model.SlackAttachment{
+	attachmentWithTextAndPreText := model.MessageAttachment{
 		Text:    "@here with mentions",
 		Pretext: "@Channel some comment for the channel",
 	}
 
-	attachmentWithOutPreText := model.SlackAttachment{
+	attachmentWithOutPreText := model.MessageAttachment{
 		Text: "some text",
-		Fields: []*model.SlackAttachmentField{
+		Fields: []*model.MessageAttachmentField{
 			{
 				Title: "field title",
 				Value: "field value",
 			},
 		},
 	}
-	attachments := []*model.SlackAttachment{
+	attachments := []*model.MessageAttachment{
 		&attachmentWithTextAndPreText,
 		&attachmentWithOutPreText,
 	}

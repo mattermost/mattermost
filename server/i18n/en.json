@@ -6983,6 +6983,10 @@
     "translation": "Could not get channel members to remove."
   },
   {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
+  },
+  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
   },
@@ -10463,10 +10467,6 @@
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Notifications for new flagged post cannot be disabled for reviewers."
-  },
-  {
-    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
-    "translation": "One or more app download links are not valid URLs."
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
