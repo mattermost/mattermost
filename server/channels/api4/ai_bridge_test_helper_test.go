@@ -183,7 +183,7 @@ func TestAIBridgeTestHelperMocksRealEndpoints(t *testing.T) {
 
 	rewriteReq := &model.RewriteRequest{
 		AgentID: agentID,
-		Message: "teh status update",
+		Message: "the status update",
 		Action:  model.RewriteActionFixSpelling,
 	}
 

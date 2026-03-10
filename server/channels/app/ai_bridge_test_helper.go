@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -296,9 +297,7 @@ func cloneRecordedRequests(recordedRequests []model.AIBridgeTestHelperRecordedRe
 		clonedRequest.Messages = append([]model.AIBridgeTestHelperMessage(nil), request.Messages...)
 		if request.JSONOutputFormat != nil {
 			clonedRequest.JSONOutputFormat = make(map[string]any, len(request.JSONOutputFormat))
-			for key, value := range request.JSONOutputFormat {
-				clonedRequest.JSONOutputFormat[key] = value
-			}
+			maps.Copy(clonedRequest.JSONOutputFormat, request.JSONOutputFormat)
 		}
 		cloned = append(cloned, clonedRequest)
 	}

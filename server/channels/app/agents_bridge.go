@@ -4,6 +4,8 @@
 package app
 
 import (
+	"maps"
+
 	"github.com/blang/semver/v4"
 
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
@@ -240,9 +242,7 @@ func cloneJSONOutputFormat(jsonOutputFormat map[string]any) map[string]any {
 	}
 
 	cloned := make(map[string]any, len(jsonOutputFormat))
-	for key, value := range jsonOutputFormat {
-		cloned[key] = value
-	}
+	maps.Copy(cloned, jsonOutputFormat)
 
 	return cloned
 }
