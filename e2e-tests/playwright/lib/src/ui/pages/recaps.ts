@@ -132,7 +132,7 @@ class RecapItem {
         this.header = container.locator('.recap-item-header');
         this.markReadButton = container.getByRole('button', {name: 'Mark read'});
         this.deleteButton = container.locator('.recap-delete-button');
-        this.menuButton = container.getByRole('button', {name: /Options for /});
+        this.menuButton = this.header.getByRole('button', {name: /Options for /});
     }
 
     async toBeVisible() {
@@ -195,8 +195,8 @@ export default class RecapsPage {
 
     constructor(readonly page: Page) {
         this.heading = page.getByRole('heading', {name: 'Recaps'});
-        this.unreadTab = page.getByRole('button', {name: 'Unread'});
-        this.readTab = page.getByRole('button', {name: 'Read'});
+        this.unreadTab = page.getByRole('button', {name: 'Unread', exact: true});
+        this.readTab = page.getByRole('button', {name: 'Read', exact: true});
         this.addRecapButton = page.getByRole('button', {name: 'Add a recap'});
         this.createRecapModal = new CreateRecapModal(page);
     }
@@ -245,7 +245,7 @@ export default class RecapsPage {
     }
 
     async confirmDelete() {
-        const dialog = this.page.getByRole('dialog', {name: 'Delete recap?'});
+        const dialog = this.page.locator('#confirmModal');
         await expect(dialog).toBeVisible();
         await dialog.getByRole('button', {name: 'Delete'}).click();
         await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
