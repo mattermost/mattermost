@@ -284,6 +284,21 @@ func TestProcessRecapChannel(t *testing.T) {
 	})
 }
 
+func TestValidateAgentAccess(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+
+	t.Run("skips validation when bridge is unavailable", func(t *testing.T) {
+		// Without the AI plugin active, the bridge is unavailable and
+		// validateAgentAccess should return nil (skip validation).
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		appErr := th.App.validateAgentAccess(ctx, th.BasicUser.Id, "any-agent-id")
+		require.Nil(t, appErr)
+	})
+}
+
 func TestExtractPostIDs(t *testing.T) {
 	t.Run("extract post IDs from posts", func(t *testing.T) {
 		posts := []*model.Post{

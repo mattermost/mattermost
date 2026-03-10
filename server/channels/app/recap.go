@@ -22,6 +22,11 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		}
 	}
 
+	// Validate that the user is authorized to use the specified agent
+	if appErr := a.validateAgentAccess(rctx, userID, agentID); appErr != nil {
+		return nil, appErr
+	}
+
 	timeNow := model.GetMillis()
 
 	// Create recap record
@@ -116,6 +121,11 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, recap *model.Recap) (*model.Reca
 // RegenerateRecap regenerates an existing recap
 func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Recap) (*model.Recap, *model.AppError) {
 	recapID := recap.Id
+
+	// Validate that the user is authorized to use the recap's agent
+	if appErr := a.validateAgentAccess(rctx, userID, recap.BotID); appErr != nil {
+		return nil, appErr
+	}
 
 	// Get existing recap channels to extract channel IDs
 	channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
@@ -289,6 +299,30 @@ func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedA
 	}
 
 	return posts, nil
+}
+
+// validateAgentAccess checks that the user is authorized to use the specified agent.
+// It fetches the list of agents available to the user and verifies the agentID is among them.
+// If the AI plugin bridge is unavailable, validation is skipped (the job will fail later at summarization).
+func (a *App) validateAgentAccess(rctx request.CTX, userID, agentID string) *model.AppError {
+	// If the bridge is not available, skip validation - the downstream summarization
+	// call will fail with a clear error anyway.
+	if available, _ := a.GetAIPluginBridgeStatus(rctx); !available {
+		return nil
+	}
+
+	agents, appErr := a.GetAgents(rctx, userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, agent := range agents {
+		if agent.ID == agentID {
+			return nil
+		}
+	}
+
+	return model.NewAppError("validateAgentAccess", "app.recap.agent_not_authorized", nil, "user does not have access to the specified agent", http.StatusForbidden)
 }
 
 // extractPostIDs extracts post IDs from a slice of posts
