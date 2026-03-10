@@ -112,22 +112,39 @@ jobs:
           npx e2e-ai-agents plan \
             --config ./e2e-ai-agents.ci.config.json \
             --fail-on-must-add-tests \
-            --github-output "$GITHUB_OUTPUT" \
-            --ci-comment-path ./.e2e-ai-agents/ci-summary.md
+            --github-output "$GITHUB_OUTPUT"
 
       - name: ci/e2e-coverage/post-pr-comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const fs = require('fs');
-            const summaryPath = 'e2e-tests/playwright/.e2e-ai-agents/ci-summary.md';
+            const planPath = 'e2e-tests/playwright/.e2e-ai-agents/plan.json';
             const marker = '<!-- e2e-coverage-gate -->';
 
             let body;
             if ('${{ steps.impact.outcome }}' === 'failure') {
               body = '> ⚠️ **E2E Coverage Gate — analysis error**\n> The impact analysis step failed. Check the [workflow logs](' + context.payload.pull_request.html_url + '/checks) for details.';
-            } else if (fs.existsSync(summaryPath)) {
-              body = fs.readFileSync(summaryPath, 'utf8');
+            } else if (fs.existsSync(planPath)) {
+              const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+              const {action, title, summary} = plan.decision;
+              const {changedFiles, impactedFlows, p0Flows, p1Flows, uncoveredP0P1Flows} = plan.metrics;
+              const emoji = action === 'must-add-tests' ? '🔴' : action === 'safe-to-merge' ? '🟢' : '🟡';
+              const lines = [
+                `## ${emoji} E2E Coverage: ${title}`,
+                '',
+                summary,
+                '',
+                `**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted` +
+                  (p0Flows > 0 || p1Flows > 0 ? ` (P0: ${p0Flows}, P1: ${p1Flows})` : ''),
+              ];
+              if (action === 'must-add-tests' && plan.requiredNewTests.length > 0) {
+                lines.push('', `### ⚠️ Add E2E tests for these ${uncoveredP0P1Flows} uncovered P0/P1 flow(s)`, '');
+                for (const gap of plan.requiredNewTests) {
+                  lines.push(`- ${gap}`);
+                }
+              }
+              body = lines.join('\n');
             } else {
               body = '_E2E coverage analysis ran but produced no summary._';
             }
