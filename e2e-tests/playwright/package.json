@@ -45,7 +45,7 @@
     "@playwright/test": "1.58.1",
     "@types/luxon": "3.7.1",
     "@typescript-eslint/eslint-plugin": "8.54.0",
-    "@yasserkhanorg/e2e-agents": "^0.5.11",
+    "@yasserkhanorg/e2e-agents": "^0.5.12",
     "cross-env": "10.1.0",
     "dayjs": "1.11.19",
     "eslint": "9.39.2",

@@ -157,12 +157,6 @@ jobs:
                       for (const r of gap.reasons) lines.push(`- ${r}`);
                       lines.push('');
                     }
-                    if (gap.files && gap.files.length > 0) {
-                      lines.push('**Changed files:**');
-                      lines.push('');
-                      for (const f of gap.files) lines.push(`- \`${f}\``);
-                      lines.push('');
-                    }
                     if (gap.existingTests && gap.existingTests.length > 0) {
                       lines.push('**Existing tests (add scenarios here):**');
                       lines.push('');
@@ -170,9 +164,12 @@ jobs:
                       lines.push('');
                     }
                     if (gap.missingScenarios && gap.missingScenarios.length > 0) {
-                      lines.push('**Missing test scenarios:**');
+                      lines.push('<details>');
+                      lines.push(`<summary>Suggested test scenarios (${gap.missingScenarios.length})</summary>`);
                       lines.push('');
                       for (const s of gap.missingScenarios) lines.push(`- ${s}`);
+                      lines.push('');
+                      lines.push('</details>');
                       lines.push('');
                     }
                     lines.push('</details>');
