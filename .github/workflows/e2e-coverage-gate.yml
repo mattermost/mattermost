@@ -80,9 +80,11 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: ci/e2e-coverage/impact-analysis
+        id: impact
         working-directory: e2e-tests/playwright
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        continue-on-error: true
         run: |
           npx e2e-ai-agents impact \
             --config ./e2e-ai-agents.config.json \
@@ -90,6 +92,7 @@ jobs:
 
       - name: ci/e2e-coverage/plan-enforcement
         id: plan
+        if: steps.impact.outcome == 'success'
         working-directory: e2e-tests/playwright
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -110,9 +113,14 @@ jobs:
             const summaryPath = 'e2e-tests/playwright/.e2e-ai-agents/ci-summary.md';
             const marker = '<!-- e2e-coverage-gate -->';
 
-            let body = fs.existsSync(summaryPath)
-              ? fs.readFileSync(summaryPath, 'utf8')
-              : '_E2E coverage analysis ran but produced no summary._';
+            let body;
+            if ('${{ steps.impact.outcome }}' === 'failure') {
+              body = '> ⚠️ **E2E Coverage Gate — analysis error**\n> The impact analysis step failed. Check the [workflow logs](' + context.payload.pull_request.html_url + '/checks) for details.';
+            } else if (fs.existsSync(summaryPath)) {
+              body = fs.readFileSync(summaryPath, 'utf8');
+            } else {
+              body = '_E2E coverage analysis ran but produced no summary._';
+            }
 
             body += '\n\n---\n_To skip: add the `skip-e2e-coverage-check` label **or** comment `/skip-e2e-check: <reason>`._';
 
@@ -142,7 +150,7 @@ jobs:
             }
 
       - name: ci/e2e-coverage/fail-if-gaps
-        if: steps.plan.outcome == 'failure'
+        if: steps.impact.outcome == 'failure' || steps.plan.outcome == 'failure'
         run: |
           echo "::error::E2E coverage check failed — tests are required for this PR."
           echo "Add the 'skip-e2e-coverage-check' label or comment '/skip-e2e-check: <reason>' to bypass."
@@ -157,10 +165,12 @@ jobs:
     steps:
       - name: ci/e2e-coverage/post-skip-comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          SKIP_REASON: ${{ needs.check-override.outputs.reason }}
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
-            const reason = `${{ needs.check-override.outputs.reason }}`;
+            const reason = process.env.SKIP_REASON || '';
             const marker = '<!-- e2e-coverage-gate -->';
             const body = `${marker}\n> **E2E Coverage Gate — skipped**\n> ${reason}`;
 
