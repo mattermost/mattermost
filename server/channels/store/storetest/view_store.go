@@ -415,47 +415,51 @@ func testUpdateViewSortOrder(t *testing.T, ss store.Store) {
 		views = append(views, saved)
 	}
 
+	// Extract IDs for clarity across stateful subtests
+	idA, idB, idC := views[0].Id, views[1].Id, views[2].Id
+
 	t.Run("moves last to first", func(t *testing.T) {
-		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 0)
+		// BEFORE: A, B, C — AFTER: C, A, B
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 0)
 		require.NoError(t, err)
 		require.Len(t, result, 3)
-		assert.Equal(t, views[2].Id, result[0].Id)
-		assert.Equal(t, views[0].Id, result[1].Id)
-		assert.Equal(t, views[1].Id, result[2].Id)
+		assert.Equal(t, idC, result[0].Id)
+		assert.Equal(t, idA, result[1].Id)
+		assert.Equal(t, idB, result[2].Id)
 		assert.Equal(t, 0, result[0].SortOrder)
 		assert.Equal(t, 1, result[1].SortOrder)
 		assert.Equal(t, 2, result[2].SortOrder)
 	})
 
 	t.Run("moves first to last", func(t *testing.T) {
-		// After the previous test, order is: views[2], views[0], views[1]
-		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 2)
+		// BEFORE: C, A, B — AFTER: A, B, C
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 2)
 		require.NoError(t, err)
 		require.Len(t, result, 3)
-		assert.Equal(t, views[0].Id, result[0].Id)
-		assert.Equal(t, views[1].Id, result[1].Id)
-		assert.Equal(t, views[2].Id, result[2].Id)
+		assert.Equal(t, idA, result[0].Id)
+		assert.Equal(t, idB, result[1].Id)
+		assert.Equal(t, idC, result[2].Id)
 	})
 
 	t.Run("moves to middle", func(t *testing.T) {
-		// Order is: views[0], views[1], views[2]
-		result, err := ss.View().UpdateSortOrder(views[2].Id, channelID, 1)
+		// BEFORE: A, B, C — AFTER: A, C, B
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 1)
 		require.NoError(t, err)
 		require.Len(t, result, 3)
-		assert.Equal(t, views[0].Id, result[0].Id)
-		assert.Equal(t, views[2].Id, result[1].Id)
-		assert.Equal(t, views[1].Id, result[2].Id)
+		assert.Equal(t, idA, result[0].Id)
+		assert.Equal(t, idC, result[1].Id)
+		assert.Equal(t, idB, result[2].Id)
 	})
 
 	t.Run("negative index returns error", func(t *testing.T) {
-		_, err := ss.View().UpdateSortOrder(views[0].Id, channelID, -1)
+		_, err := ss.View().UpdateSortOrder(idA, channelID, -1)
 		require.Error(t, err)
 		var iiErr *store.ErrInvalidInput
 		assert.ErrorAs(t, err, &iiErr)
 	})
 
 	t.Run("out of bounds index returns error", func(t *testing.T) {
-		_, err := ss.View().UpdateSortOrder(views[0].Id, channelID, 99)
+		_, err := ss.View().UpdateSortOrder(idA, channelID, 99)
 		require.Error(t, err)
 		var iiErr *store.ErrInvalidInput
 		assert.ErrorAs(t, err, &iiErr)
@@ -469,7 +473,7 @@ func testUpdateViewSortOrder(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("empty channel returns error", func(t *testing.T) {
-		_, err := ss.View().UpdateSortOrder(views[0].Id, model.NewId(), 0)
+		_, err := ss.View().UpdateSortOrder(idA, model.NewId(), 0)
 		require.Error(t, err)
 		var iiErr *store.ErrInvalidInput
 		assert.ErrorAs(t, err, &iiErr)
