@@ -118,6 +118,13 @@ func SkipPostInitialization() Option {
 	}
 }
 
+func WithAgentsBridge(bridge AgentsBridge) Option {
+	return func(s *Server) error {
+		s.agentsBridgeOverride = bridge
+		return nil
+	}
+}
+
 type (
 	AppOption        func(a *App)
 	AppOptionCreator func() []AppOption

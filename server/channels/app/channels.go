@@ -51,6 +51,9 @@ type Channels struct {
 
 	imageProxy *imageproxy.ImageProxy
 
+	agentsBridge       AgentsBridge
+	aiBridgeTestHelper *aiBridgeTestHelper
+
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
 	cachedUserCount   int64
@@ -92,13 +95,20 @@ type Channels struct {
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:               s,
-		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:     map[string]bool{},
-		filestore:         s.FileBackend(),
-		exportFilestore:   s.ExportFileBackend(),
-		cfgSvc:            s.Platform(),
-		interruptQuitChan: make(chan struct{}),
+		srv:                s,
+		imageProxy:         imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:      map[string]bool{},
+		filestore:          s.FileBackend(),
+		exportFilestore:    s.ExportFileBackend(),
+		cfgSvc:             s.Platform(),
+		interruptQuitChan:  make(chan struct{}),
+		aiBridgeTestHelper: newAIBridgeTestHelper(),
+	}
+
+	if s.agentsBridgeOverride != nil {
+		ch.agentsBridge = s.agentsBridgeOverride
+	} else {
+		ch.agentsBridge = newLiveAgentsBridge(ch)
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise

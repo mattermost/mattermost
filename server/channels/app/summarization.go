@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -78,14 +77,14 @@ Your response must be compacted valid JSON only, with no additional text, format
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.GetBridgeClient(sessionUserID)
-
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	completionRequest := BridgeCompletionRequest{
+		Operation: BridgeOperationRecapSummary,
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 		JSONOutputFormat: summarizePostsJSONSchema,
+		UserID:           userID,
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",
@@ -95,7 +94,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 		mlog.Int("post_count", len(posts)),
 	)
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.Complete(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
