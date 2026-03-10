@@ -72,4 +72,5 @@ type QueryExpressionParams struct {
 	Limit      int    `json:"limit"`
 	After      string `json:"after"`
 	ChannelId  string `json:"channelId,omitempty"`
+	TeamId     string `json:"teamId,omitempty"`
 }
