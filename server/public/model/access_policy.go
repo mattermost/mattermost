@@ -48,6 +48,7 @@ type AccessControlPolicySearch struct {
 	Limit           int                       `json:"limit"`
 	IncludeChildren bool                      `json:"include_children"`
 	Active          bool                      `json:"active"`
+	TeamID          string                    `json:"team_id"`
 }
 
 type AccessControlPolicyCursor struct {

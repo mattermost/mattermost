@@ -996,6 +996,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageTeam.Id,
 			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
+			PermissionManageTeamAccessRules.Id,
 			PermissionManageChannelRoles.Id,
 			PermissionManageOwnIncomingWebhooks.Id,
 			PermissionManageOthersIncomingWebhooks.Id,
