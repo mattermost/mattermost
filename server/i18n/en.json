@@ -8809,6 +8809,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
@@ -10603,10 +10607,6 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "Post Message property is longer than the maximum permitted length."
-  },
-  {
-    "id": "ent.ldap.connection.test_failed",
-    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
