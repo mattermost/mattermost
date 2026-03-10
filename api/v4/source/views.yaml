@@ -310,10 +310,11 @@
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: number
+              type: integer
               format: int64
               description: The new sort order index for the view
       responses:
