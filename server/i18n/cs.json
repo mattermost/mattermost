@@ -10416,14 +10416,6 @@
     "translation": "Služba sdílených kanálů je zapnuta, ale neaktivní."
   },
   {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Označování obsahu je vypnuto."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Vaše licence nepodporuje označování obsahu."
-  },
-  {
     "id": "api.ldap.invalid_test_type.app_error",
     "translation": "Neplatný typ testu: {{.TestType}}"
   },
@@ -10728,22 +10720,6 @@
     "translation": "Byly zjištěny počáteční nebo koncové mezery u {{.Setting}}. Nalezeno \"{{.Value}}\"."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Maximální stáří souboru v nastavení auditních logů nesmí být záporné."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maximální počet záloh souborů v nastavení auditních logů nesmí být záporný."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maximální fronta souborů v nastavení auditních logů musí být větší než nula."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximální velikost souboru v nastavení auditních logů musí být větší než nula."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "Pokud je povoleno ukládání auditních logů do souboru, musí být zadán název souboru."
   },
@@ -10786,30 +10762,6 @@
   {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Nelze psát do chráněných přímých zpráv"
-  },
-  {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Přidejte prosím komentář vysvětlující, proč označujete tuto zprávu."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Důvod označení zprávy nesmí být delší než {{.MaxLength}} znaků."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Funkce označování obsahu není v tomto týmu povolena."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Označený příspěvek musí být ve stavu „čeká“ nebo „přiřazen“, aby mohl být ponechán nebo odstraněn."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Byl uveden neznámý důvod pro označení zprávy."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Vyberte prosím důvod pro označení této zprávy."
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
@@ -10866,14 +10818,6 @@
   {
     "id": "api.command.move_command.creator_no_permission.app_error",
     "translation": "Nemáte oprávnění k přesunutí příkazu"
-  },
-  {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Označení příspěvku typu „{{.PostType}}“ není povoleno."
-  },
-  {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "Uživatel není kontrolorem obsahu."
   },
   {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
