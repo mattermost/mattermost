@@ -139,10 +139,8 @@ jobs:
                 '',
                 summary,
                 '',
-                changedFiles === 0
-                ? '_No app files changed — E2E coverage check not required._'
-                : `**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted` +
-                  (p0Flows > 0 || p1Flows > 0 ? ` (P0: ${p0Flows}, P1: ${p1Flows})` : ''),
+                ...(changedFiles > 0 ? [`**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted` +
+                  (p0Flows > 0 || p1Flows > 0 ? ` (P0: ${p0Flows}, P1: ${p1Flows})` : '')] : []),
               ];
 
               if (action === 'must-add-tests' && (plan.gapDetails || plan.requiredNewTests || []).length > 0) {
