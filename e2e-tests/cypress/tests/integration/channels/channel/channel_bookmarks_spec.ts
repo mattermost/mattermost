@@ -173,7 +173,7 @@ describe('Channel Bookmarks', () => {
 
         it('create file bookmark, with emoji and custom title', () => {
         // # Create bookmark
-            const {file, displayName, emojiName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
+            const {file, displayName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
 
             // * Verify emoji and custom display name, then open preview — may be in bar or overflow
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
