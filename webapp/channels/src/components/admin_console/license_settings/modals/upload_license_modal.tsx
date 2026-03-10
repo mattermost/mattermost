@@ -72,20 +72,28 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             setIsLoading(true);
             setServerError(null);
 
-            const {data, error} = await dispatch(previewLicense(fileObj));
+            try {
+                const {data, error} = await dispatch(previewLicense(fileObj));
 
-            if (error || !data) {
-                setServerError(error?.message ?? intl.formatMessage({
+                if (error || !data) {
+                    setServerError(error?.message ?? intl.formatMessage({
+                        id: 'admin.license.preview_error',
+                        defaultMessage: 'Failed to preview license',
+                    }));
+                    setIsLoading(false);
+                    return;
+                }
+
+                setPreviewedLicense(data);
+                setIsLoading(false);
+                setStep('preview');
+            } catch (err) {
+                setServerError((err as Error)?.message ?? intl.formatMessage({
                     id: 'admin.license.preview_error',
                     defaultMessage: 'Failed to preview license',
                 }));
                 setIsLoading(false);
-                return;
             }
-
-            setPreviewedLicense(data);
-            setIsLoading(false);
-            setStep('preview');
         };
 
         doPreview();
@@ -102,18 +110,26 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         }
 
         setIsLoading(true);
-        const {error} = await dispatch(uploadLicense(fileObj));
+        try {
+            const {error} = await dispatch(uploadLicense(fileObj));
 
-        if (error) {
-            setServerError(error.message);
+            if (error) {
+                setServerError(error.message);
+                setIsLoading(false);
+                return;
+            }
+
+            await dispatch(getLicenseConfig());
+            setServerError(null);
             setIsLoading(false);
-            return;
+            setStep('success');
+        } catch (err) {
+            setServerError((err as Error)?.message ?? intl.formatMessage({
+                id: 'admin.license.apply_error',
+                defaultMessage: 'Failed to apply license',
+            }));
+            setIsLoading(false);
         }
-
-        await dispatch(getLicenseConfig());
-        setServerError(null);
-        setIsLoading(false);
-        setStep('success');
     };
 
     let uploadLicenseContent: JSX.Element;
@@ -261,7 +277,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     <div className='title'>
                         <FormattedMessage
                             id='admin.license.upload-modal.successfulUpgrade'
-                            defaultMessage='New license successfully applied.'
+                            defaultMessage='New license successfully applied'
                         />
                     </div>
                     <div className='subtitle'>

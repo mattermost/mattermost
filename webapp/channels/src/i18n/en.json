@@ -1623,6 +1623,7 @@
   "admin.ldap.usernameAttrDescHover": "This may be the same as the Login ID Attribute.",
   "admin.ldap.usernameAttrEx": "E.g.: \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Username Attribute:",
+  "admin.license.apply_error": "Failed to apply license",
   "admin.license.confirm-license-removal.cancel": "Cancel",
   "admin.license.confirm-license-removal.confirm": "Confirm",
   "admin.license.confirm-license-removal.subtitle": "Removing the license will downgrade your server from {currentSKU} to Free. You may lose information. ",
