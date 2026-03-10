@@ -64,6 +64,14 @@ func (a *App) GetViewsForChannel(rctx request.CTX, channelID string, opts model.
 	return result, nil
 }
 
+func (a *App) GetViewsCountForChannel(rctx request.CTX, channelID string, opts model.ViewQueryOpts) (int64, *model.AppError) {
+	count, err := a.Srv().Store().View().CountForChannel(channelID, opts)
+	if err != nil {
+		return 0, model.NewAppError("GetViewsCountForChannel", "app.view.count_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return count, nil
+}
+
 func (a *App) UpdateView(rctx request.CTX, view *model.View, patch *model.ViewPatch, connectionID string) (*model.View, *model.AppError) {
 	if view == nil {
 		return nil, model.NewAppError("UpdateView", "app.view.update.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)

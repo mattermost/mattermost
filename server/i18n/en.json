@@ -4839,6 +4839,14 @@
     "translation": "View does not belong to the specified channel."
   },
   {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Cannot get a view from a deleted channel."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Cannot list views for a deleted channel."
+  },
+  {
     "id": "api.view.update.channel_mismatch.app_error",
     "translation": "View does not belong to the specified channel."
   },
@@ -8523,6 +8531,10 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Password is not valid"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Failed to count views for channel."
   },
   {
     "id": "app.view.create.app_error",

@@ -167,19 +167,18 @@ func TestGetViewsForChannel(t *testing.T) {
 		_, _, err = th.Client.CreateView(context.Background(), channel.Id, v2)
 		require.NoError(t, err)
 
-		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
+		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, result.Views, 2)
-		require.False(t, result.HasMore)
+		require.Len(t, views, 2)
 	})
 
 	t.Run("empty channel returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
+		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Empty(t, result.Views)
+		require.Empty(t, views)
 	})
 
 	t.Run("permission denied for non-member", func(t *testing.T) {
@@ -194,7 +193,7 @@ func TestGetViewsForChannel(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("pagination with HasMore", func(t *testing.T) {
+	t.Run("pagination", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// Create 3 views
@@ -207,22 +206,20 @@ func TestGetViewsForChannel(t *testing.T) {
 		}
 
 		// Page 0: request per_page=2
-		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2})
+		page1, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, result.Views, 2)
-		require.True(t, result.HasMore)
+		require.Len(t, page1, 2)
 
 		// Page 1: next page
-		result2, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2, Page: 1})
+		page2, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2, Page: 1})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, result2.Views, 1)
-		require.False(t, result2.HasMore)
+		require.Len(t, page2, 1)
 
 		// Ensure no overlap between pages
-		page1IDs := map[string]bool{result.Views[0].Id: true, result.Views[1].Id: true}
-		require.False(t, page1IDs[result2.Views[0].Id])
+		page1IDs := map[string]bool{page1[0].Id: true, page1[1].Id: true}
+		require.False(t, page1IDs[page2[0].Id])
 	})
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
@@ -238,16 +235,33 @@ func TestGetViewsForChannel(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("include_total_count returns views with count", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		for i := range 3 {
+			v := makeTestViewForAPI()
+			v.Title = "Count View"
+			v.SortOrder = i
+			_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
+			require.NoError(t, err)
+		}
+
+		views, totalCount, resp, err := th.Client.GetViewsForChannelWithCount(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 2})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, views, 2)
+		require.Equal(t, int64(3), totalCount)
+	})
+
 	t.Run("out-of-bounds page returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
 
-		result, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 1, Page: 999})
+		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 1, Page: 999})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Empty(t, result.Views)
-		require.False(t, result.HasMore)
+		require.Empty(t, views)
 	})
 }
 

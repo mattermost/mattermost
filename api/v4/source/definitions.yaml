@@ -445,17 +445,18 @@ components:
           type: integer
         props:
           $ref: "#/components/schemas/ViewBoardProps"
-    ViewListResponse:
+    ViewsWithCount:
       type: object
-      description: Paginated list of views
+      description: Paginated list of views with total count
       properties:
         views:
           type: array
           items:
             $ref: "#/components/schemas/View"
-        has_more:
-          type: boolean
-          description: Whether there are more views available on subsequent pages
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of views matching the query (ignoring pagination)
     Post:
       type: object
       properties:

@@ -182,6 +182,28 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 	return views, nil
 }
 
+func (s *SqlViewStore) CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error) {
+	if channelID == "" {
+		return 0, store.NewErrInvalidInput("View", "channelID", channelID)
+	}
+
+	builder := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Views").
+		Where(sq.Eq{"ChannelId": channelID})
+
+	if !opts.IncludeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	var count int64
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return 0, errors.Wrapf(err, "failed to count views for channel %s", channelID)
+	}
+
+	return count, nil
+}
+
 func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 	view.PreUpdate()
 	if err := view.IsValid(); err != nil {

@@ -13795,6 +13795,22 @@ func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 	return result, err
 }
 
+func (s *TimerLayerViewStore) CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ViewStore.CountForChannel(channelID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ViewStore.CountForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerViewStore) Delete(viewID string, deleteAt int64) error {
 	start := time.Now()
 

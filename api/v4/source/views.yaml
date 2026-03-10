@@ -41,13 +41,29 @@
           schema:
             type: boolean
             default: false
+        - name: include_total_count
+          in: query
+          description: >
+            When true, the response is a ViewsWithCount object containing
+            a views array and a total_count integer. When false or omitted,
+            the response is a plain JSON array of View objects.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Channel views retrieval successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ViewListResponse"
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/View"
+                    description: Plain array of views (default, when include_total_count is false)
+                  - $ref: "#/components/schemas/ViewsWithCount"
+                    description: Views with total count (when include_total_count is true)
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

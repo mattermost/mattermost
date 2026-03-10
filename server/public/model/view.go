@@ -88,9 +88,9 @@ type ViewPatch struct {
 	Props       *ViewBoardProps `json:"props"`
 }
 
-type ViewListResponse struct {
-	Views   []*View `json:"views"`
-	HasMore bool    `json:"has_more"`
+type ViewsWithCount struct {
+	Views      []*View `json:"views"`
+	TotalCount int64   `json:"total_count"`
 }
 
 const ViewQueryDefaultPerPage = 20

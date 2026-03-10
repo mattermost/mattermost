@@ -7710,7 +7710,34 @@ func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View,
 }
 
 // GetViewsForChannel lists views for a channel with page-based pagination.
-func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) (*ViewListResponse, *Response, error) {
+func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), c.viewQueryValues(opts...), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
+// GetViewsForChannelWithCount lists views for a channel with page-based pagination and total count.
+func (c *Client4) GetViewsForChannelWithCount(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, int64, *Response, error) {
+	query := c.viewQueryValues(opts...)
+	query.Set("include_total_count", c.boolString(true))
+
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	vwc, resp, err := DecodeJSONFromResponse[*ViewsWithCount](r)
+	if err != nil {
+		return nil, 0, resp, err
+	}
+	return vwc.Views, vwc.TotalCount, resp, nil
+}
+
+func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
 	query := url.Values{}
 	if len(opts) > 0 {
 		o := opts[0]
@@ -7724,13 +7751,7 @@ func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts
 			query.Set("page", strconv.Itoa(o.Page))
 		}
 	}
-
-	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*ViewListResponse](r)
+	return query
 }
 
 // UpdateView patches a view.

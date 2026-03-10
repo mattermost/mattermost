@@ -118,12 +118,23 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := model.ViewListResponse{
-		Views:   views,
-		HasMore: len(views) == c.Params.PerPage,
+	if c.Params.IncludeTotalCount {
+		totalCount, appErr := c.App.GetViewsCountForChannel(c.AppContext, c.Params.ChannelId, opts)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		vwc := &model.ViewsWithCount{
+			Views:      views,
+			TotalCount: totalCount,
+		}
+		if err := json.NewEncoder(w).Encode(vwc); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
 	}
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	if err := json.NewEncoder(w).Encode(views); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
