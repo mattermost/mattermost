@@ -89,15 +89,8 @@ function ChannelBookmarks({channelId}: Props) {
         pauseRecalc(isDragging || reorderState.isReordering);
     }, [isDragging, reorderState.isReordering, pauseRecalc]);
 
-    // Reset autoOpenOverflow when reorder ends
-    useEffect(() => {
-        if (!reorderState.isReordering) {
-            setAutoOpenOverflow(false);
-        }
-    }, [reorderState.isReordering, setAutoOpenOverflow]);
-
     // --- Render ---
-    const forceOpen = showDragOverlay || (reorderState.isReordering && (autoOpenOverflow || overflowItems.includes(reorderState.itemId ?? ''))) || undefined;
+    const forceOpen = showDragOverlay || autoOpenOverflow || (reorderState.isReordering && overflowItems.includes(reorderState.itemId ?? '')) || undefined;
 
     if (!hasBookmarks) {
         return null;
@@ -156,6 +149,7 @@ function ChannelBookmarks({channelId}: Props) {
                     isDragging={isDragging}
                     canAdd={canAdd}
                     forceOpen={forceOpen}
+                    onOpenChange={setAutoOpenOverflow}
                     reorderState={reorderState}
                     getItemProps={canReorder ? getItemProps : undefined}
                 />

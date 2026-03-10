@@ -99,6 +99,10 @@ export function useKeyboardReorder({
     }, [getName, formatMessage, readAloud]);
 
     const confirmReorder = useCallback(() => {
+        // Keep overflow menu open if item ended in overflow
+        const inOverflow = state.itemId ? overflowItemsRef.current.includes(state.itemId) : false;
+        onOverflowOpenChange?.(inOverflow);
+
         setState(INITIAL_STATE);
         readAloud(
             formatMessage({
@@ -106,7 +110,7 @@ export function useKeyboardReorder({
                 defaultMessage: 'Reorder confirmed.',
             }),
         );
-    }, [formatMessage, readAloud]);
+    }, [state.itemId, onOverflowOpenChange, formatMessage, readAloud]);
 
     // Confirm reorder on click-anywhere (null ref = any mousedown)
     const clickAnywhereHandler = useCallback(() => {
@@ -125,6 +129,7 @@ export function useKeyboardReorder({
             }
         }
 
+        onOverflowOpenChange?.(false);
         setState(INITIAL_STATE);
         readAloud(
             formatMessage({

@@ -88,7 +88,9 @@ function BookmarksBarMenu({
     }, []);
 
     const handleToggle = useCallback((open: boolean) => {
-        onOpenChange?.(open);
+        if (!open) {
+            onOpenChange?.(false);
+        }
     }, [onOpenChange]);
 
     // Don't show menu if no overflow items and user can't add
@@ -197,7 +199,7 @@ function BookmarksBarMenu({
                     isMenuOpen: forceOpen,
                     onToggle: handleToggle,
                     onKeyDown: handleMenuKeyDown,
-                    hideBackdrop: forceOpen,
+                    hideBackdrop: isDragging || reorderState?.isReordering,
                     disableRestoreFocus: reorderState?.isReordering,
                     autoFocusItem: false,
                     width: hasOverflow ? '280px' : undefined,
