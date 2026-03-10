@@ -11,9 +11,10 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 16px;
+        padding: 12px 10px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background-color: var(--center-channel-bg);
+        height: 56px;
 
         .recaps-header-left {
             display: flex;
@@ -265,6 +266,43 @@
         .icon {
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 24px;
+        }
+    }
+
+    .recaps-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+
+        svg {
+            margin-bottom: 24px;
+        }
+
+        .recaps-placeholder-title {
+            margin: 0 0 8px;
+            color: var(--center-channel-color);
+            font-family: 'Metropolis', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        .recaps-placeholder-description {
+            max-width: 400px;
+            margin: 0 0 24px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .recaps-placeholder-button {
+            padding: 10px 20px;
+            border-radius: var(--radius-s);
+            font-size: 14px;
+            font-weight: 600;
         }
     }
 
