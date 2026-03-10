@@ -280,8 +280,8 @@ func newAuditCommandArgs(ca *CommandArgs) auditCommandArgs {
 
 func (ca auditCommandArgs) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("channel_id", ca.ChannelID)
-	enc.StringKey("team_id", ca.TriggerID)
-	enc.StringKey("trigger_id", ca.TeamID)
+	enc.StringKey("team_id", ca.TeamID)
+	enc.StringKey("trigger_id", ca.TriggerID)
 	enc.StringKey("command", ca.Command)
 }
 
