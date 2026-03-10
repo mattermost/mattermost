@@ -4,7 +4,6 @@
 package app
 
 import (
-	"net/http"
 	"os"
 	"testing"
 
@@ -31,40 +30,6 @@ func TestCreateRecap(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, recap.UserId)
 		assert.Equal(t, model.RecapStatusPending, recap.Status)
 		assert.Equal(t, "My Test Recap", recap.Title)
-	})
-
-	t.Run("create recap rejected when user has too many pending recaps", func(t *testing.T) {
-		channelIds := []string{th.BasicChannel.Id}
-
-		// Use a dedicated user so that pending recaps from other subtests cannot affect the count.
-		isolatedUser := th.CreateUser(t)
-		th.LinkUserToTeam(t, isolatedUser, th.BasicTeam)
-		th.AddUserToChannel(t, isolatedUser, th.BasicChannel)
-		ctx := th.Context.WithSession(&model.Session{UserId: isolatedUser.Id})
-
-		// Create exactly 3 pending recaps directly in the store
-		for range 3 {
-			recap := &model.Recap{
-				Id:                model.NewId(),
-				UserId:            isolatedUser.Id,
-				Title:             "Pending Recap",
-				CreateAt:          model.GetMillis(),
-				UpdateAt:          model.GetMillis(),
-				DeleteAt:          0,
-				ReadAt:            0,
-				TotalMessageCount: 0,
-				Status:            model.RecapStatusPending,
-				BotID:             "test-agent-id",
-			}
-			_, storeErr := th.App.Srv().Store().Recap().SaveRecap(recap)
-			require.NoError(t, storeErr)
-		}
-
-		// 4th recap should be rejected
-		_, err := th.App.CreateRecap(ctx, "One Too Many", channelIds, "test-agent-id")
-		require.NotNil(t, err)
-		assert.Equal(t, "app.recap.too_many_pending.app_error", err.Id)
-		assert.Equal(t, http.StatusTooManyRequests, err.StatusCode)
 	})
 
 	t.Run("create recap with channel user is not member of", func(t *testing.T) {

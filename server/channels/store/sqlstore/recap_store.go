@@ -149,20 +149,6 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 	return recaps, nil
 }
 
-func (s *SqlRecapStore) GetRecapsForUserByStatus(userId string, status string) ([]*model.Recap, error) {
-	var recaps []*model.Recap
-
-	query := s.recapSelectQuery.
-		Where(sq.Eq{"UserId": userId, "DeleteAt": 0, "Status": status}).
-		OrderBy("CreateAt DESC")
-
-	if err := s.GetReplica().SelectBuilder(&recaps, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Recaps for userId=%s status=%s", userId, status)
-	}
-
-	return recaps, nil
-}
-
 func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Update("Recaps").

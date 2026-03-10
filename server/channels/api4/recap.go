@@ -58,12 +58,6 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const maxRecapChannels = 10
-	if len(req.ChannelIds) > maxRecapChannels {
-		c.SetInvalidParam("channel_ids")
-		return
-	}
-
 	if req.Title == "" {
 		c.SetInvalidParam("title")
 		return

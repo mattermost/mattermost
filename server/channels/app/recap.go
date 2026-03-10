@@ -15,16 +15,6 @@ import (
 func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
 	userID := rctx.Session().UserId
 
-	// Limit concurrent pending recaps per user to prevent job queue abuse
-	const maxPendingRecapsPerUser = 3
-	pendingRecaps, err := a.Srv().Store().Recap().GetRecapsForUserByStatus(userID, model.RecapStatusPending)
-	if err != nil {
-		return nil, model.NewAppError("CreateRecap", "app.recap.check_pending.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(pendingRecaps) >= maxPendingRecapsPerUser {
-		return nil, model.NewAppError("CreateRecap", "app.recap.too_many_pending.app_error", nil, "user already has maximum pending recaps", http.StatusTooManyRequests)
-	}
-
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
 		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {

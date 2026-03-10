@@ -7443,10 +7443,6 @@
     "translation": "You do not have access to the specified agent."
   },
   {
-    "id": "app.recap.check_pending.app_error",
-    "translation": "Failed to check pending recaps."
-  },
-  {
     "id": "app.recap.delete.app_error",
     "translation": "Failed to delete recap."
   },
@@ -7493,10 +7489,6 @@
   {
     "id": "app.recap.save_channel.app_error",
     "translation": "Failed to save recap channel."
-  },
-  {
-    "id": "app.recap.too_many_pending.app_error",
-    "translation": "You have too many pending recaps. Please wait for existing recaps to complete."
   },
   {
     "id": "app.recap.update.app_error",
