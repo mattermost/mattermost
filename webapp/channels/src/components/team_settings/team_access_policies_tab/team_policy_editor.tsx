@@ -103,6 +103,14 @@ export default function TeamPolicyEditor({
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
+    const handleExpressionChange = useCallback((value: string) => {
+        setExpression(value);
+        if (formError) {
+            setFormError('');
+            setSaveChangesPanelState(undefined);
+        }
+    }, [formError]);
+
     // Load attributes on mount
     useEffect(() => {
         abacActions.getAccessControlFields('', 100).then((result) => {
@@ -148,8 +156,8 @@ export default function TeamPolicyEditor({
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const shouldShowPanel = useMemo(() => {
-        return hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
-    }, [hasUnsavedChanges, saveChangesPanelState]);
+        return hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED || showTabSwitchError;
+    }, [hasUnsavedChanges, saveChangesPanelState, showTabSwitchError]);
 
     // Channel management
     const addToNewChannels = useCallback((channels: ChannelWithTeamData[]) => {
@@ -165,7 +173,11 @@ export default function TeamPolicyEditor({
             });
             return newChanges;
         });
-    }, []);
+        if (formError) {
+            setFormError('');
+            setSaveChangesPanelState(undefined);
+        }
+    }, [formError]);
 
     const addToRemovedChannels = useCallback((channel: ChannelWithTeamData) => {
         setChannelChanges((prev) => {
@@ -200,16 +212,34 @@ export default function TeamPolicyEditor({
         });
     };
 
-    // Save flow
-    const handleSave = useCallback(async (apply = false) => {
+    // Validation
+    const validateForm = useCallback(() => {
         if (policyName.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.name_required', defaultMessage: 'Please add a name to the policy'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
-            return;
+            return false;
         }
         if (expression.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.expression_required', defaultMessage: 'Please add an expression to the policy'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
+            return false;
+        }
+        if (expression.includes('== ""') || expression.includes("== ''") || expression.includes('in []')) {
+            setFormError(formatMessage({id: 'team_settings.policy_editor.error.incomplete_rule', defaultMessage: 'Please complete all attribute rules with a value'}));
+            setSaveChangesPanelState(SAVE_RESULT_ERROR);
+            return false;
+        }
+        if (!hasChannels()) {
+            setFormError(formatMessage({id: 'team_settings.policy_editor.error.channels_required', defaultMessage: 'Please assign at least one channel to the policy'}));
+            setSaveChangesPanelState(SAVE_RESULT_ERROR);
+            return false;
+        }
+        return true;
+    }, [policyName, expression, hasChannels, formatMessage]);
+
+    // Save flow
+    const handleSave = useCallback(async (apply = false) => {
+        if (!validateForm()) {
             return;
         }
 
@@ -269,16 +299,19 @@ export default function TeamPolicyEditor({
         } finally {
             setSaving(false);
         }
-    }, [policyId, policyName, expression, channelChanges, policyActiveStatusChanges, actions, abacActions, formatMessage]);
+    }, [validateForm, policyId, policyName, expression, channelChanges, policyActiveStatusChanges, actions, abacActions, formatMessage]);
 
     const handleSaveChanges = useCallback(async () => {
         setFormError('');
+        if (!validateForm()) {
+            return;
+        }
         if (hasChannels()) {
             setShowConfirmationModal(true);
         } else {
             await handleSave();
         }
-    }, [handleSave, hasChannels]);
+    }, [handleSave, hasChannels, validateForm]);
 
     const handleCancel = useCallback(() => {
         setPolicyName(originalName);
@@ -349,7 +382,13 @@ export default function TeamPolicyEditor({
                     className={`TeamPolicyEditor__name-field${hasErrors && policyName.length === 0 ? ' has-error' : ''}`}
                     value={policyName}
                     placeholder={formatMessage({id: 'team_settings.policy_editor.name_placeholder', defaultMessage: 'Add a unique policy name'})}
-                    onChange={(e) => setPolicyName(e.target.value)}
+                    onChange={(e) => {
+                            setPolicyName(e.target.value);
+                            if (formError) {
+                                setFormError('');
+                                setSaveChangesPanelState(undefined);
+                            }
+                        }}
                     autoFocus={!policyId}
                 />
                 <p className='TeamPolicyEditor__name-hint'>
@@ -390,7 +429,7 @@ export default function TeamPolicyEditor({
                     {editorMode === 'cel' ? (
                         <CELEditor
                             value={expression}
-                            onChange={setExpression}
+                            onChange={handleExpressionChange}
                             onValidate={() => {}}
                             disabled={noUsableAttributes}
                             teamId={teamId}
@@ -399,13 +438,14 @@ export default function TeamPolicyEditor({
                     ) : (
                         <TableEditor
                             value={expression}
-                            onChange={setExpression}
+                            onChange={handleExpressionChange}
                             onValidate={() => {}}
                             disabled={noUsableAttributes}
                             userAttributes={autocompleteResult}
                             onParseError={() => setEditorMode('cel')}
                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                             actions={abacActions}
+                            teamId={teamId}
                             isSystemAdmin={false}
                             validateExpressionAgainstRequester={abacActions.validateExpressionAgainstRequester}
                         />
@@ -482,12 +522,9 @@ export default function TeamPolicyEditor({
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
-                    tabChangeError={hasErrors}
-                    state={hasErrors ? SAVE_RESULT_ERROR : saveChangesPanelState}
-                    customErrorMessage={formError || (showTabSwitchError ? undefined : formatMessage({
-                        id: 'team_settings.policy_editor.form_error',
-                        defaultMessage: 'There are errors in the fields above',
-                    }))}
+                    tabChangeError={hasErrors || showTabSwitchError}
+                    state={hasErrors || showTabSwitchError ? SAVE_RESULT_ERROR : saveChangesPanelState}
+                    customErrorMessage={formError || undefined}
                     cancelButtonText={formatMessage({
                         id: 'team_settings.policy_editor.undo',
                         defaultMessage: 'Undo',

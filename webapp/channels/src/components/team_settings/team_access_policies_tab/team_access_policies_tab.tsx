@@ -43,6 +43,7 @@ type ViewState = 'list' | 'create' | 'edit';
 const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedChanges, showTabSwitchError, actions}: Props) => {
     const [view, setView] = useState<ViewState>('list');
     const [selectedPolicyId, setSelectedPolicyId] = useState<string | undefined>(undefined);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const searchPolicies = useCallback(
         (term: string, type: string, after: string, limit: number) => {
@@ -140,6 +141,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 </button>
             </div>
             <PolicyList
+                key={refreshKey}
                 hideHeader={true}
                 showRefreshButton={true}
                 actions={policyListActions}

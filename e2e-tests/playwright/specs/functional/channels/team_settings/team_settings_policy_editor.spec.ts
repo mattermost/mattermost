@@ -50,7 +50,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
+        // # Create private channel and team admin, add admin to channel so it appears in selector
+        const channel = await createPrivateChannel(adminClient, team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, channel.id);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -67,16 +70,29 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policyName = `TA Policy ${Date.now()}`;
         await teamSettings.container.getByPlaceholder('Add a unique policy name').fill(policyName);
 
-        // # Add a rule via the table editor
-        const attributeDropdown = teamSettings.container.locator('select').first();
-        await attributeDropdown.selectOption('Department');
-        const operatorDropdown = teamSettings.container.locator('select').nth(1);
-        await operatorDropdown.selectOption('==');
-        const valueInput = teamSettings.container.locator('.table-editor input[type="text"]').last();
-        await valueInput.fill('Engineering');
+        // # Switch to Advanced Mode and enter CEL expression
+        await teamSettings.container.getByRole('button', {name: /Switch to Advanced Mode/}).click();
+        await teamSettings.container.locator('.cel-editor__input').click();
+        await page.keyboard.type('true');
+
+        // # Add channel via channel selector
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await channelModal
+            .locator('.more-modal__row')
+            .filter({hasText: channel.display_name})
+            .locator('button[aria-label="Select channel"]')
+            .click();
+        await channelModal.getByRole('button', {name: 'Add'}).click();
 
         // # Save via SaveChangesPanel
-        await teamSettings.container.getByRole('button', {name: 'Save'}).click();
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // # Confirm in PolicyConfirmationModal
+        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
         // # Navigate back to list
@@ -121,7 +137,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.getByPlaceholder('Add a unique policy name').fill(newName);
 
         // # Save via SaveChangesPanel
-        await teamSettings.container.getByRole('button', {name: 'Save'}).click();
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // # Confirm in PolicyConfirmationModal (policy has channels, so modal appears)
+        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
         // # Navigate back to list
@@ -192,7 +212,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.getByPlaceholder('Add a unique policy name').fill('Changed Name');
 
         // # Click Undo in SaveChangesPanel
-        await teamSettings.container.getByRole('button', {name: 'Undo'}).click();
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__cancel-btn"]').click();
 
         // * Name reverted to original
         await expect(teamSettings.container.getByPlaceholder('Add a unique policy name')).toHaveValue(policy.name);
@@ -248,11 +268,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.getByText(policy.name).click();
         await page.waitForLoadState('networkidle');
 
-        // # Remove the channel (click Remove link)
+        // # Remove the channel to enable delete (click Remove link in channel list)
         await teamSettings.container.getByText('Remove').first().click();
 
-        // # Click Delete in the delete section
-        await teamSettings.container.getByRole('button', {name: 'Delete'}).last().click();
+        // # Click Delete in the delete section (TitleAndButtonCardHeader button)
+        await teamSettings.container.locator('.delete-policy button').filter({hasText: 'Delete'}).click();
         await page.waitForLoadState('networkidle');
 
         // * Back to list, policy removed
@@ -285,7 +305,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const menuButton = teamSettings.container.locator(`button[id="policy-menu-${policy.id}"]`);
         await menuButton.click();
 
-        // * Delete menu item is disabled
+        // * Delete menu item is disabled (MUI MenuItem sets aria-disabled when disabled prop is true)
         const deleteItem = page.locator(`#policy-menu-delete-${policy.id}`);
         await expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
 
@@ -297,6 +317,9 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
+
+        // # Create private channel for assignment
+        const channel = await createPrivateChannel(adminClient, team.id);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -312,15 +335,29 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policyName = `SysAdmin Policy ${Date.now()}`;
         await teamSettings.container.getByPlaceholder('Add a unique policy name').fill(policyName);
 
-        const attributeDropdown = teamSettings.container.locator('select').first();
-        await attributeDropdown.selectOption('Department');
-        const operatorDropdown = teamSettings.container.locator('select').nth(1);
-        await operatorDropdown.selectOption('==');
-        const valueInput = teamSettings.container.locator('.table-editor input[type="text"]').last();
-        await valueInput.fill('Engineering');
+        // # Switch to Advanced Mode and enter CEL expression
+        await teamSettings.container.getByRole('button', {name: /Switch to Advanced Mode/}).click();
+        await teamSettings.container.locator('.cel-editor__input').click();
+        await page.keyboard.type('true');
+
+        // # Add channel via channel selector
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await channelModal
+            .locator('.more-modal__row')
+            .filter({hasText: channel.display_name})
+            .locator('button[aria-label="Select channel"]')
+            .click();
+        await channelModal.getByRole('button', {name: 'Add'}).click();
 
         // # Save via SaveChangesPanel
-        await teamSettings.container.getByRole('button', {name: 'Save'}).click();
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // # Confirm in PolicyConfirmationModal
+        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
         // # Navigate back to list

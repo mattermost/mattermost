@@ -29,7 +29,8 @@ interface TableEditorProps {
     userAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
-    channelId?: string; // Optional channelId for channel-specific context
+    channelId?: string;
+    teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
@@ -113,6 +114,7 @@ function TableEditor({
     enableUserManagedAttributes,
     onParseError,
     channelId,
+    teamId,
     actions,
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
@@ -466,7 +468,7 @@ function TableEditor({
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
                             // Return the action for the modal to dispatch
-                            return searchUsersForExpression(value, term, after, limit, channelId);
+                            return searchUsersForExpression(value, term, after, limit, channelId, teamId);
                         },
                     }}
                 />
