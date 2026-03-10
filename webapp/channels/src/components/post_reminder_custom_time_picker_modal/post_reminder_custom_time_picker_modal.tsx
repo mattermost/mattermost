@@ -17,7 +17,7 @@ type Props = PropsFromRedux & {
     onExited: () => void;
     postId: string;
     actions: {
-        addPostReminder: (postId: string, userId: string, timestamp: number) => void;
+        addPostReminder: (userId: string, postId: string, timestamp: number) => void;
     };
 };
 
