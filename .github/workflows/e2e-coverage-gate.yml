@@ -82,9 +82,11 @@ jobs:
       - name: ci/e2e-coverage/build-ci-config
         working-directory: e2e-tests/playwright
         run: |
-          # Disable traceability requirement in CI — manifest only exists locally
-          jq '.impact.traceability.enabled = false' e2e-ai-agents.config.json \
-            > e2e-ai-agents.ci.config.json
+          # CI: switch to default profile so missing traceability manifest doesn't
+          # block analysis. The mattermost profile's fail-closed evidence policy
+          # requires a local manifest that only exists after a traceability-ingest run.
+          jq '.profile = "default" | .impact.traceability.enabled = false' \
+            e2e-ai-agents.config.json > e2e-ai-agents.ci.config.json
 
       - name: ci/e2e-coverage/impact-analysis
         id: impact

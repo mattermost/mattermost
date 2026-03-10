@@ -15,14 +15,26 @@ Mattermost Channels - External link handling via the useExternalLink hook. When 
 **File:** `specs/functional/ai-assisted/external_links/external_links.spec.ts`
 
 **Steps:**
-  1. Initialize setup with a regular user and login to the channels page
+
+1. Initialize setup with a regular user and login to the channels page
+
+
     - expect: User is logged in
     - expect: Channels page is visible
-  2. Post a message containing a plain external URL: https://example.com
+
+2. Post a message containing a plain external URL: https://example.com
+
+
     - expect: Message is posted and visible in the channel center view
     - expect: The URL renders as a clickable anchor link
-  3. Wait for the page popup event and then click the rendered link anchor
+
+3. Wait for the page popup event and then click the rendered link anchor
+
+
     - expect: A new browser tab/popup is opened
     - expect: The new tab navigates to https://example.com
-  4. Verify the new tab URL matches https://example.com
+
+4. Verify the new tab URL matches https://example.com
+
+
     - expect: The URL of the new page matches example.com
