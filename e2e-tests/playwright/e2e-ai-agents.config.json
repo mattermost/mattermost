@@ -13,7 +13,10 @@
         "includeUncommitted": false
     },
     "testDiscovery": {
-        "patterns": ["specs/**/*.spec.ts"]
+        "patterns": [
+            "specs/**/*.spec.ts",
+            "../cypress/tests/integration/**/*.js"
+        ]
     },
     "impact": {
         "aiFlow": {
