@@ -260,7 +260,8 @@ const ImageGallery = (props: Props) => {
         const targetItem = items?.[index] as HTMLElement;
 
         if (targetItem) {
-            targetItem.focus();
+            // preventScroll: true when expanding so we don't jump scroll position after the expand animation
+            targetItem.focus({preventScroll: !fromKeyboard});
             setFocusedItemIndex(index);
 
             // Only set keyboard navigation flag for actual keyboard navigation
