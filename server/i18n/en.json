@@ -2426,7 +2426,7 @@
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
-    "translation": ""
+    "translation": "Invalid LDAP test type: {{.TestType}}."
   },
   {
     "id": "api.ldap_group.not_found",
@@ -6968,7 +6968,7 @@
   },
   {
     "id": "app.pap.delete_policy.app_error",
-    "translation": ""
+    "translation": "Failed to delete access control policy."
   },
   {
     "id": "app.pap.expression_to_visual_ast.app_error",
@@ -6988,7 +6988,7 @@
   },
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
-    "translation": ""
+    "translation": "Failed to get channel members to remove for access control policy."
   },
   {
     "id": "app.pap.get_policies_for_field_ids.app_error",
@@ -7000,31 +7000,31 @@
   },
   {
     "id": "app.pap.get_policy_attributes.app_error",
-    "translation": ""
+    "translation": "Failed to get access control policy attributes."
   },
   {
     "id": "app.pap.init.app_error",
-    "translation": ""
+    "translation": "Failed to initialize access control service."
   },
   {
     "id": "app.pap.is_ready.app_error",
-    "translation": ""
+    "translation": "Access control service is not ready."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
-    "translation": ""
+    "translation": "Missing required attribute for access control evaluation."
   },
   {
     "id": "app.pap.normalize_policy.app_error",
-    "translation": ""
+    "translation": "Failed to normalize access control policy expression."
   },
   {
     "id": "app.pap.query_expression.app_error",
-    "translation": ""
+    "translation": "Failed to query users for access control expression."
   },
   {
     "id": "app.pap.save_policy.app_error",
-    "translation": ""
+    "translation": "Failed to save access control policy."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7040,7 +7040,7 @@
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
-    "translation": ""
+    "translation": "Failed to evaluate access control decision."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -8598,131 +8598,131 @@
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
-    "translation": ""
+    "translation": "Failed to convert access control sync job data."
   },
   {
     "id": "ent.access_control.sync_job.app_error",
-    "translation": ""
+    "translation": "Access control sync job failed."
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": ""
+    "translation": "Failed to retrieve all users for account migration."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": ""
+    "translation": "Failed to retrieve SAML users for account migration."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
-    "translation": ""
+    "translation": " uploaded an image"
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_id",
-    "translation": ""
+    "translation": "Translation task object ID is required."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_type",
-    "translation": ""
+    "translation": "Translation task object type is required."
   },
   {
     "id": "ent.autotranslation.add_task.nil_task",
-    "translation": ""
+    "translation": "Translation task cannot be nil."
   },
   {
     "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": ""
+    "translation": "Translation worker pool is stopped."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
-    "translation": ""
+    "translation": "Failed to create translation."
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
-    "translation": ""
+    "translation": "Context cannot be nil for language detection."
   },
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
-    "translation": ""
+    "translation": "Text exceeds maximum size for language detection."
   },
   {
     "id": "ent.autotranslation.detect_remote.error",
-    "translation": ""
+    "translation": "Failed to detect language using remote provider."
   },
   {
     "id": "ent.autotranslation.extract_content.mask_error",
-    "translation": ""
+    "translation": "Failed to mask content for translation."
   },
   {
     "id": "ent.autotranslation.extract_post.nil_post",
-    "translation": ""
+    "translation": "Post cannot be nil for translation."
   },
   {
     "id": "ent.autotranslation.feature_unavailable",
-    "translation": ""
+    "translation": "Auto-translation feature is not available."
   },
   {
     "id": "ent.autotranslation.invalid_input",
-    "translation": ""
+    "translation": "Invalid input for auto-translation."
   },
   {
     "id": "ent.autotranslation.mask_verification_failed",
-    "translation": ""
+    "translation": "Mask verification failed during translation reconciliation."
   },
   {
     "id": "ent.autotranslation.no_translatable_content",
-    "translation": ""
+    "translation": "Content contains only masked elements with no translatable text."
   },
   {
     "id": "ent.autotranslation.provider_not_available",
-    "translation": ""
+    "translation": "Translation provider is not available."
   },
   {
     "id": "ent.autotranslation.provider_not_initialized",
-    "translation": ""
+    "translation": "Translation provider is not initialized."
   },
   {
     "id": "ent.autotranslation.store_error",
-    "translation": ""
+    "translation": "Failed to save translation to store."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
-    "translation": ""
+    "translation": "Mask token found in text but not in masks map."
   },
   {
     "id": "ent.autotranslation.unmask.orphan_token",
-    "translation": ""
+    "translation": "Text contains mask tokens but masks map is empty."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_json",
-    "translation": ""
+    "translation": "Failed to parse JSON content for translation."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_type",
-    "translation": ""
+    "translation": "Unsupported content type for translation."
   },
   {
     "id": "ent.autotranslation.validate_content.nil_content",
-    "translation": ""
+    "translation": "Content cannot be nil for translation."
   },
   {
     "id": "ent.autotranslation.validate_content.text_too_large",
-    "translation": ""
+    "translation": "Text exceeds maximum size for translation."
   },
   {
     "id": "ent.autotranslation.validate_id.empty",
-    "translation": ""
+    "translation": "ID cannot be empty for auto-translation."
   },
   {
     "id": "ent.autotranslation.validate_id.invalid",
-    "translation": ""
+    "translation": "ID is invalid for auto-translation."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": ""
+    "translation": "Cluster configuration has changed on node {{.id}}."
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": ""
+    "translation": "Failed to encode cluster message to JSON."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -8730,7 +8730,7 @@
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": ""
+    "translation": "Cluster request timed out."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -8738,7 +8738,7 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": ""
+    "translation": "Compliance export job failed."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -8746,15 +8746,15 @@
   },
   {
     "id": "ent.data_retention.policies.internal_error",
-    "translation": ""
+    "translation": "An internal error occurred with data retention policies."
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
-    "translation": ""
+    "translation": "Invalid data retention policy: one or more fields are missing."
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": ""
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -9014,43 +9014,43 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": ""
+    "translation": "ID-loaded push notifications are not available with your current license."
   },
   {
     "id": "ent.intune.login.account_not_found.app_error",
-    "translation": ""
+    "translation": "SAML user must complete first login via web or desktop application to establish account."
   },
   {
     "id": "ent.intune.login.extract_auth_data.app_error",
-    "translation": ""
+    "translation": "Failed to extract authentication data from Intune token."
   },
   {
     "id": "ent.intune.login.not_configured.app_error",
-    "translation": ""
+    "translation": "Intune login is not configured."
   },
   {
     "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
-    "translation": ""
+    "translation": "Invalid Intune tenant ID format."
   },
   {
     "id": "ent.intune.validate_token.invalid_token.app_error",
-    "translation": ""
+    "translation": "Invalid Intune token."
   },
   {
     "id": "ent.intune.validate_token.jwks_init.app_error",
-    "translation": ""
+    "translation": "Failed to initialize JWKS for Intune token validation."
   },
   {
     "id": "ent.intune.validate_token.missing_claims.app_error",
-    "translation": ""
+    "translation": "Missing required claims in Intune token."
   },
   {
     "id": "ent.intune.validate_token.token_expired.app_error",
-    "translation": ""
+    "translation": "Intune token has expired."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "Synchronize job timed out while waiting to start."
   },
   {
     "id": "ent.ldap.app_error",
@@ -9058,15 +9058,15 @@
   },
   {
     "id": "ent.ldap.connection.test_failed",
-    "translation": ""
+    "translation": "LDAP connection test failed to server {{.Server}}:{{.Port}} with connection security {{.ConnectionType}}, bind username {{.BindUsername}}, private key {{.PrivateKeyFilename}}, public cert {{.PublicCertFilename}}. Error: {{.Error}}"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Failed to retrieve custom profile attribute fields for LDAP sync."
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": ""
+    "translation": "Failed to create LDAP user."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -9074,91 +9074,91 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": ""
+    "translation": "Failed to bind to the LDAP server with admin user."
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": ""
+    "translation": "Failed to load LDAP public certificate."
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
-    "translation": ""
+    "translation": "Invalid LDAP ID attribute value."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": ""
+    "translation": "Invalid LDAP password."
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": ""
+    "translation": "Failed to load LDAP private key."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": ""
+    "translation": "LDAP is not available with your current license."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": ""
+    "translation": "LDAP login matched too many users."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": ""
+    "translation": "Failed to search the LDAP server."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": ""
+    "translation": "Unable to connect to the LDAP server."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": ""
+    "translation": "The LDAP user is filtered from using Mattermost."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": ""
+    "translation": "User not found on the LDAP server."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": ""
+    "translation": "Failed to create X.509 key pair for LDAP connection."
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
-    "translation": ""
+    "translation": "Failed to get user by LDAP authentication data."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": ""
+    "translation": "No LDAP users found. Please check your LDAP certificate configuration."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": ""
+    "translation": "An LDAP user with this email address already exists."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": ""
+    "translation": "An LDAP user with this username already exists."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": ""
+    "translation": "Failed to get all LDAP users during synchronization."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": ""
+    "translation": "Failed to get all LDAP groups during synchronization."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": ""
+    "translation": "Failed to populate group syncables during LDAP first login sync."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "Failed to search LDAP server during synchronization."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": ""
+    "translation": "LDAP search failed because the server-side result size limit was exceeded."
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": ""
+    "translation": "LDAP entry is nil for custom profile attribute update."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -9174,27 +9174,27 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": ""
+    "translation": "Failed to search for LDAP group."
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": ""
+    "translation": "Failed to search for LDAP groups."
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
-    "translation": ""
+    "translation": "Invalid LDAP group ID."
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": ""
+    "translation": "Failed to get members of LDAP group."
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": ""
+    "translation": "No LDAP groups found matching the given ID."
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": ""
+    "translation": "Failed to get linked LDAP groups for user."
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
@@ -9210,227 +9210,227 @@
   },
   {
     "id": "ent.message_export.calculate_channel_exports.app_error",
-    "translation": ""
+    "translation": "Failed to calculate channel exports for message export."
   },
   {
     "id": "ent.message_export.job_data_conversion.app_error",
-    "translation": ""
+    "translation": "Failed to convert message export job data."
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": ""
+    "translation": "Message export job failed."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": ""
+    "translation": "Duplicate LDAP field found during migration."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": ""
+    "translation": "User not found in LDAP during migration."
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": ""
+    "translation": "Email is already used by another SAML user during migration."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": ""
+    "translation": "User not found in SAML users mapping file during migration."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": ""
+    "translation": "Username is already used by another SAML user during migration."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
-    "translation": ""
+    "translation": "Failed to authenticate outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
-    "translation": ""
+    "translation": "Failed to check for existing outgoing OAuth connection matching audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
-    "translation": ""
+    "translation": "No outgoing OAuth connection found matching the audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
-    "translation": ""
+    "translation": "Failed to delete outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.feature_disabled",
-    "translation": ""
+    "translation": "Outgoing OAuth connections feature is disabled."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
-    "translation": ""
+    "translation": "Failed to get outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
-    "translation": ""
+    "translation": "Outgoing OAuth connection not found."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
-    "translation": ""
+    "translation": "Failed to get outgoing OAuth connection for audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
-    "translation": ""
+    "translation": "No outgoing OAuth connection found for the given audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": ""
+    "translation": "Failed to get outgoing OAuth connections."
   },
   {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
-    "translation": ""
+    "translation": "Outgoing OAuth connections are not available with your current license."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": ""
+    "translation": "Failed to save outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
-    "translation": ""
+    "translation": "An outgoing OAuth connection with audience {{.Audience}} already exists."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
-    "translation": ""
+    "translation": "Invalid audience for outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": ""
+    "translation": "Failed to update outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
-    "translation": ""
+    "translation": "An outgoing OAuth connection with audience {{.Audience}} already exists."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
-    "translation": ""
+    "translation": "Invalid audience for outgoing OAuth connection."
   },
   {
     "id": "ent.push_proxy.delete.app_error",
-    "translation": ""
+    "translation": "Failed to delete push proxy authentication token."
   },
   {
     "id": "ent.push_proxy.generate.bad_status.app_error",
-    "translation": ""
+    "translation": "Push proxy returned a non-OK status during auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.create_request.app_error",
-    "translation": ""
+    "translation": "Failed to create HTTP request for push proxy auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.empty_token.app_error",
-    "translation": ""
+    "translation": "Push proxy returned an empty session token."
   },
   {
     "id": "ent.push_proxy.generate.encrypt.app_error",
-    "translation": ""
+    "translation": "Failed to encrypt payload for push proxy auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.http_request.app_error",
-    "translation": ""
+    "translation": "Failed to make HTTP request to push proxy for auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.marshal.app_error",
-    "translation": ""
+    "translation": "Failed to marshal payload for push proxy auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.marshal_request.app_error",
-    "translation": ""
+    "translation": "Failed to marshal request body for push proxy auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.no_key.app_error",
-    "translation": ""
+    "translation": "No public key available for push proxy auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.parse_response.app_error",
-    "translation": ""
+    "translation": "Failed to parse response from push proxy during auth token generation."
   },
   {
     "id": "ent.push_proxy.generate.save_system.app_error",
-    "translation": ""
+    "translation": "Failed to save push proxy auth token to the database."
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": ""
+    "translation": "Push proxy interface is not initialized."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": ""
+    "translation": "Failed to extract user attributes from SAML assertion."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": ""
+    "translation": "Failed to build SAML authentication request."
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": ""
+    "translation": "Failed to parse Identity Provider certificate. Please contact your system administrator."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": ""
+    "translation": "SAML response is encrypted but encryption is not enabled in the configuration."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": ""
+    "translation": "Failed to load SAML private key."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": ""
+    "translation": "SAML response is not encrypted but encryption is required by the configuration."
   },
   {
     "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Failed to retrieve custom profile attribute fields for SAML."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": ""
+    "translation": "Empty SAML response received."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": ""
+    "translation": "SAML response has an invalid signature."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": ""
+    "translation": "SAML response has expired or is not yet valid."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": ""
+    "translation": "Failed to parse SAML response."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": ""
+    "translation": "SAML is not available with your current license."
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
-    "translation": ""
+    "translation": "SAML login failed because the user was not found in the LDAP server."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": ""
+    "translation": "Failed to generate SAML service provider metadata."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": ""
+    "translation": "A SAML user with this email address already exists."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": ""
+    "translation": "A SAML user with this username already exists."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": ""
+    "translation": "SAML is not enabled in the configuration."
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
-    "translation": ""
+    "translation": "SAML assertion attribute statement is nil."
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "Cannot complete account switch: email address is blank."
   },
   {
     "id": "error",
