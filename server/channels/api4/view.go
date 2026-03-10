@@ -88,6 +88,11 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("getViewsForChannel", "api.view.list.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
+		return
+	}
+
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
@@ -140,6 +145,11 @@ func getView(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("getView", "api.view.get.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
 		return
 	}
 

@@ -225,6 +225,19 @@ func TestGetViewsForChannel(t *testing.T) {
 		require.False(t, page1IDs[result2.Views[0].Id])
 	})
 
+	t.Run("deleted channel returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
+		require.NoError(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("out-of-bounds page returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
@@ -267,6 +280,20 @@ func TestGetView(t *testing.T) {
 
 		otherChannel := th.CreatePublicChannel(t)
 		_, resp, err := th.Client.GetView(context.Background(), otherChannel.Id, created.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("deleted channel returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.GetView(context.Background(), channel.Id, created.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
