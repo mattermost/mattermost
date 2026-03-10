@@ -142,12 +142,48 @@ jobs:
                 `**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted` +
                   (p0Flows > 0 || p1Flows > 0 ? ` (P0: ${p0Flows}, P1: ${p1Flows})` : ''),
               ];
-              if (action === 'must-add-tests' && plan.requiredNewTests.length > 0) {
-                lines.push('', `### ⚠️ Add E2E tests for these ${uncoveredP0P1Flows} uncovered P0/P1 flow(s)`, '');
-                for (const gap of plan.requiredNewTests) {
-                  lines.push(`- ${gap}`);
+
+              if (action === 'must-add-tests' && (plan.gapDetails || plan.requiredNewTests || []).length > 0) {
+                lines.push('', `### ⚠️ Missing coverage for ${uncoveredP0P1Flows} P0/P1 flow(s)`, '');
+                const gaps = plan.gapDetails && plan.gapDetails.length > 0 ? plan.gapDetails : null;
+                if (gaps) {
+                  for (const gap of gaps) {
+                    lines.push(`<details>`);
+                    lines.push(`<summary><b>${gap.name}</b> <code>${gap.id}</code> · ${gap.priority}</summary>`);
+                    lines.push('');
+                    if (gap.reasons && gap.reasons.length > 0) {
+                      lines.push('**Why impacted:**');
+                      lines.push('');
+                      for (const r of gap.reasons) lines.push(`- ${r}`);
+                      lines.push('');
+                    }
+                    if (gap.files && gap.files.length > 0) {
+                      lines.push('**Changed files:**');
+                      lines.push('');
+                      for (const f of gap.files) lines.push(`- \`${f}\``);
+                      lines.push('');
+                    }
+                    lines.push('</details>');
+                    lines.push('');
+                  }
+                } else {
+                  for (const gap of plan.requiredNewTests) lines.push(`- ${gap}`);
                 }
               }
+
+              if (action !== 'must-add-tests' && plan.coveredFlows && plan.coveredFlows.length > 0) {
+                lines.push('');
+                lines.push('<details>');
+                lines.push(`<summary>Covered flows (${plan.coveredFlows.length})</summary>`);
+                lines.push('');
+                for (const cf of plan.coveredFlows) {
+                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
+                  lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''}`);
+                }
+                lines.push('');
+                lines.push('</details>');
+              }
+
               body = lines.join('\n');
             } else {
               body = '_E2E coverage analysis ran but produced no summary._';
