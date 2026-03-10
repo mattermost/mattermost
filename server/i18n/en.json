@@ -213,7 +213,7 @@
   },
   {
     "id": "api.ai_bridge_test_helper.disabled.app_error",
-    "translation": ""
+    "translation": "Bridge test helper is disabled."
   },
   {
     "id": "api.back_to_app",
@@ -4960,7 +4960,7 @@
   },
   {
     "id": "app.ai_bridge_test_helper.invalid_config",
-    "translation": ""
+    "translation": "Invalid configuration for AI bridge test helper."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
