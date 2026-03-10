@@ -106,19 +106,11 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	query := r.URL.Query()
 	opts := model.ViewQueryOpts{
+		Page:    c.Params.Page,
 		PerPage: c.Params.PerPage,
 	}
-	opts.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
-	if pageStr := query.Get("page"); pageStr != "" {
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page < 0 {
-			c.SetInvalidParam("page")
-			return
-		}
-		opts.Page = page
-	}
+	opts.IncludeDeleted, _ = strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
 	views, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, opts)
 	if appErr != nil {
