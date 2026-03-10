@@ -12,6 +12,7 @@ import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
 import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
+import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -19,6 +20,8 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import RecapsList from './recaps_list';
 
@@ -35,6 +38,7 @@ const Recaps = () => {
     const readRecaps = useSelector(getReadRecaps);
 
     useEffect(() => {
+        dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
         dispatch(getRecaps(0, 60));
         dispatch(getAgents());
     }, [dispatch]);
