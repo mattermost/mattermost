@@ -51,14 +51,14 @@ func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
 	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
 		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
 
-	err = th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
-	require.Nil(t, err)
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
+	require.Nil(t, appErr)
 	assert.Contains(t, systemAdminRole.Permissions, model.PermissionManageOAuth.Id)
 	assert.NotContains(t, systemUserRole.Permissions, model.PermissionManageOAuth.Id)
 	assert.Len(t, systemAdminRole.Permissions, 2)
 
-	err = th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
-	require.Nil(t, err)
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
+	require.Nil(t, appErr)
 	assert.Len(t, systemAdminRole.Permissions, 2)
 
 	roleStore.AssertNumberOfCalls(t, "Save", 2)
