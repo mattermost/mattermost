@@ -25,15 +25,14 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
     useEffect(() => {
         if (!enabled) {
             stop();
-            return;
+            return undefined;
         }
 
         const tick = async () => {
-            if (document.hidden) {
-                return;
+            if (!document.hidden) {
+                await fetchRef.current();
+                setLastUpdated(Date.now());
             }
-            await fetchRef.current();
-            setLastUpdated(Date.now());
         };
 
         intervalRef.current = setInterval(tick, intervalMs);
@@ -44,7 +43,7 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
     // Pause when tab is hidden
     useEffect(() => {
         if (!enabled) {
-            return;
+            return undefined;
         }
 
         const handleVisibilityChange = () => {

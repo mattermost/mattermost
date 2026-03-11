@@ -13,7 +13,6 @@ import type {
 
 import {Client4} from 'mattermost-redux/client';
 
-import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
@@ -272,7 +271,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         />
     );
 
-    const toggleLogFormat = !configIsPlainLogs ? (
+    const toggleLogFormat = configIsPlainLogs ? null : (
         <div
             className='logs-banner__format'
             id='admin.logs.LogFormat'
@@ -305,7 +304,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                 <FormattedMessage {...messages.logFormatPlain}/>
             </label>
         </div>
-    ) : null;
+    );
 
     return (
         <div className='wrapper--admin'>

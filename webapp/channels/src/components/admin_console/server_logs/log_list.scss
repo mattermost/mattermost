@@ -7,8 +7,8 @@
 
 .LogViewer {
     display: flex;
-    flex-direction: column;
     height: calc(100vh - 280px);
+    flex-direction: column;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 4px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -19,10 +19,10 @@
     &__toolbar {
         display: flex;
         align-items: center;
-        gap: 8px;
         padding: 8px 12px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         background: rgba(var(--center-channel-color-rgb), 0.02);
+        gap: 8px;
     }
 
     &__toolbar-group {
@@ -39,7 +39,6 @@
     &__action-btn {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 4px 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 4px;
@@ -48,10 +47,11 @@
         cursor: pointer;
         font-size: 12px;
         font-weight: 500;
+        gap: 4px;
         line-height: 20px;
         text-decoration: none;
-        white-space: nowrap;
         transition: all 0.15s ease;
+        white-space: nowrap;
 
         i {
             font-size: 14px;
@@ -87,16 +87,16 @@
     &__filterbar {
         display: flex;
         align-items: center;
-        gap: 12px;
         padding: 6px 12px 8px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 12px;
     }
 
     // Search
     &__search {
         display: flex;
-        flex: 1;
         max-width: 360px;
+        flex: 1;
         align-items: center;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
@@ -155,7 +155,6 @@
     &__level-btn {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 3px 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 12px;
@@ -164,6 +163,7 @@
         cursor: pointer;
         font-size: 12px;
         font-weight: 600;
+        gap: 4px;
         line-height: 18px;
         transition: all 0.15s ease;
 
@@ -217,13 +217,13 @@
     &__header {
         display: flex;
         align-items: center;
-        gap: 8px;
         padding: 4px 12px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background: rgba(var(--center-channel-color-rgb), 0.04);
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 11px;
         font-weight: 600;
+        gap: 8px;
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
@@ -258,8 +258,8 @@
     }
 
     &__header-message {
-        flex: 1;
         min-width: 0;
+        flex: 1;
     }
 
     &__header-caller {
@@ -273,8 +273,8 @@
     // ---------------------
     &__list {
         flex: 1;
-        overflow-y: auto;
         overflow-x: hidden;
+        overflow-y: auto;
     }
 
     // Empty state
@@ -297,19 +297,19 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
         padding: 48px 24px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 14px;
+        gap: 8px;
     }
 
     &__loading-spinner {
         width: 20px;
         height: 20px;
-        animation: log-spin 0.8s linear infinite;
         border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-top-color: var(--button-bg);
         border-radius: 50%;
+        border-top-color: var(--button-bg);
+        animation: log-spin 0.8s linear infinite;
     }
 
     &__loading-overlay {
@@ -326,9 +326,9 @@
         display: inline-block;
         width: 6px;
         height: 6px;
+        border-radius: 50%;
         margin-right: 4px;
         animation: live-pulse 1.5s ease-in-out infinite;
-        border-radius: 50%;
         background: currentColor;
     }
 
@@ -342,9 +342,9 @@
         top: 100%;
         left: 0;
         min-width: 60px;
-        margin-top: 2px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
+        margin-top: 2px;
         background: var(--center-channel-bg);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
@@ -383,11 +383,11 @@
     &__footer {
         display: flex;
         align-items: center;
-        gap: 12px;
         padding: 6px 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background: rgba(var(--center-channel-color-rgb), 0.02);
         font-size: 12px;
+        gap: 12px;
     }
 
     &__footer-left {
@@ -427,8 +427,8 @@
         }
 
         &:disabled {
-            opacity: 0.32;
             cursor: default;
+            opacity: 0.32;
         }
     }
 
@@ -443,8 +443,8 @@
     &__footer-pagesize {
         display: flex;
         align-items: center;
-        gap: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+        gap: 4px;
 
         select {
             padding: 2px 4px;
@@ -459,10 +459,10 @@
     &__keyboard-hints {
         display: flex;
         align-items: center;
-        gap: 12px;
         margin-left: auto;
         color: rgba(var(--center-channel-color-rgb), 0.40);
         font-size: 11px;
+        gap: 12px;
         white-space: nowrap;
     }
 
@@ -552,11 +552,11 @@
     &__level {
         display: inline-flex;
         width: 32px;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         padding: 1px 0;
         border-radius: 3px;
-        flex-shrink: 0;
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-size: 10px;
         font-weight: 700;
@@ -595,15 +595,15 @@
 
     // Message
     &__message {
-        flex: 1;
         min-width: 0;
+        flex: 1;
         color: var(--center-channel-color);
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     }
 
     &--wrap &__message {
-        word-break: break-word;
         overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     &--nowrap &__message {
@@ -648,9 +648,9 @@
     // Core fields section (timestamp, level, caller, message)
     &__details-core {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px 24px;
         padding-bottom: 8px;
+        gap: 6px 24px;
+        grid-template-columns: 1fr 1fr;
     }
 
     // Extra fields section (dynamic fields with copy/links)
@@ -661,8 +661,8 @@
 
     &__details-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
         gap: 6px 24px;
+        grid-template-columns: 1fr 1fr;
     }
 
     &__detail-item {
@@ -686,9 +686,9 @@
     &__detail-value {
         display: flex;
         align-items: center;
-        gap: 4px;
         color: var(--center-channel-color);
         font-size: 13px;
+        gap: 4px;
         word-break: break-word;
 
         &--mono {
@@ -700,17 +700,17 @@
     // Inline copy button next to copyable values
     &__copy-btn {
         display: inline-flex;
-        align-items: center;
-        justify-content: center;
         width: 20px;
         height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
         padding: 0;
         border: none;
         border-radius: 3px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.32);
         cursor: pointer;
-        flex-shrink: 0;
 
         i {
             font-size: 13px;
@@ -726,8 +726,8 @@
     &__detail-link {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
         color: var(--button-bg);
+        gap: 2px;
         text-decoration: none;
 
         &:hover {
@@ -744,16 +744,15 @@
     &__details-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
         padding-top: 8px;
-        margin-top: 8px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
+        margin-top: 8px;
+        gap: 8px;
     }
 
     &__action-btn {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 4px 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 4px;
@@ -762,6 +761,7 @@
         cursor: pointer;
         font-size: 12px;
         font-weight: 500;
+        gap: 4px;
         line-height: 20px;
         transition: all 0.15s ease;
 

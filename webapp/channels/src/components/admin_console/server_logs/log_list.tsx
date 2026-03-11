@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
+import type {LogFilter, LogObject} from '@mattermost/types/admin';
 
 import ExternalLink from 'components/external_link';
 
@@ -99,7 +99,7 @@ function savePrefs(prefs: StoredPrefs) {
 }
 
 export default function LogList({
-    loading, logs, onFiltersChange, onSearchChange, search,
+    loading, logs, onSearchChange, search,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels, showPollDropdown, onTogglePollDropdown, lastUpdatedText,
@@ -629,19 +629,31 @@ export default function LogList({
                 <div className='LogViewer__keyboard-hints'>
                     <span className='LogViewer__kbd-group'>
                         <kbd>{'j'}</kbd><kbd>{'k'}</kbd>{' '}
-                        <FormattedMessage id='admin.logs.kbd.navigate' defaultMessage='navigate'/>
+                        <FormattedMessage
+                            id='admin.logs.kbd.navigate'
+                            defaultMessage='navigate'
+                        />
                     </span>
                     <span className='LogViewer__kbd-group'>
                         <kbd>{'Enter'}</kbd>{' '}
-                        <FormattedMessage id='admin.logs.kbd.expand' defaultMessage='expand'/>
+                        <FormattedMessage
+                            id='admin.logs.kbd.expand'
+                            defaultMessage='expand'
+                        />
                     </span>
                     <span className='LogViewer__kbd-group'>
                         <kbd>{'e'}</kbd>{' '}
-                        <FormattedMessage id='admin.logs.kbd.jumpError' defaultMessage='next error'/>
+                        <FormattedMessage
+                            id='admin.logs.kbd.jumpError'
+                            defaultMessage='next error'
+                        />
                     </span>
                     <span className='LogViewer__kbd-group'>
                         <kbd>{'/'}</kbd>{' '}
-                        <FormattedMessage id='admin.logs.kbd.search' defaultMessage='search'/>
+                        <FormattedMessage
+                            id='admin.logs.kbd.search'
+                            defaultMessage='search'
+                        />
                     </span>
                 </div>
             </div>

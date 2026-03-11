@@ -120,7 +120,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
                     className='LogRow__detail-link'
                     href={adminPath + value}
                     onClick={(e) => e.stopPropagation()}
-                    title={`View in admin console`}
+                    title={'View in admin console'}
                 >
                     {value}
                     <i className='icon icon-open-in-new LogRow__detail-link-icon'/>

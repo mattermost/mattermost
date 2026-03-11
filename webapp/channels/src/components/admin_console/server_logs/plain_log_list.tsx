@@ -4,6 +4,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import ExternalLink from 'components/external_link';
+
 import './plain_log_list.scss';
 
 type Props = {
@@ -46,19 +48,34 @@ function highlightJson(text: string): React.ReactNode {
             // Check if this is a key (followed by colon)
             const afterStr = text.slice(end).trimStart();
             if (afterStr[0] === ':') {
-                parts.push(<span key={key++} className='PlainLogViewer__json-key'>{str}</span>);
+                parts.push(
+                    <span
+                        key={key++}
+                        className='PlainLogViewer__json-key'
+                    >{str}</span>,
+                );
             } else {
-                parts.push(<span key={key++} className='PlainLogViewer__json-string'>{str}</span>);
+                parts.push(
+                    <span
+                        key={key++}
+                        className='PlainLogViewer__json-string'
+                    >{str}</span>,
+                );
             }
             i = end;
             continue;
         }
 
         // Numbers
-        if (/[-\d]/.test(text[i]) && (i === 0 || /[,:\s[{]/.test(text[i - 1]))) {
+        if ((/[-\d]/).test(text[i]) && (i === 0 || (/[,:\s[{]/).test(text[i - 1]))) {
             const match = text.slice(i).match(/^-?\d+\.?\d*([eE][+-]?\d+)?/);
             if (match) {
-                parts.push(<span key={key++} className='PlainLogViewer__json-number'>{match[0]}</span>);
+                parts.push(
+                    <span
+                        key={key++}
+                        className='PlainLogViewer__json-number'
+                    >{match[0]}</span>,
+                );
                 i += match[0].length;
                 continue;
             }
@@ -68,21 +85,31 @@ function highlightJson(text: string): React.ReactNode {
         const remaining = text.slice(i);
         const boolMatch = remaining.match(/^(true|false|null)\b/);
         if (boolMatch) {
-            parts.push(<span key={key++} className='PlainLogViewer__json-bool'>{boolMatch[0]}</span>);
+            parts.push(
+                <span
+                    key={key++}
+                    className='PlainLogViewer__json-bool'
+                >{boolMatch[0]}</span>,
+            );
             i += boolMatch[0].length;
             continue;
         }
 
         // Brackets and braces
         if ('{}[]'.includes(text[i])) {
-            parts.push(<span key={key++} className='PlainLogViewer__json-bracket'>{text[i]}</span>);
+            parts.push(
+                <span
+                    key={key++}
+                    className='PlainLogViewer__json-bracket'
+                >{text[i]}</span>,
+            );
             i++;
             continue;
         }
 
         // Accumulate plain text
         let plain = '';
-        while (i < text.length && text[i] !== '"' && !'{}[]'.includes(text[i]) && !(text[i] === '-' && /\d/.test(text[i + 1] || '')) && !/\d/.test(text[i])) {
+        while (i < text.length && text[i] !== '"' && !'{}[]'.includes(text[i]) && !(text[i] === '-' && (/\d/).test(text[i + 1] || '')) && !(/\d/).test(text[i])) {
             plain += text[i];
             i++;
         }
@@ -129,7 +156,10 @@ function highlightPlainLog(line: string): React.ReactNode {
     // Timestamp portion (before level)
     if (levelIdx > 0) {
         parts.push(
-            <span key={key++} className='PlainLogViewer__log-timestamp'>
+            <span
+                key={key++}
+                className='PlainLogViewer__log-timestamp'
+            >
                 {line.slice(0, levelIdx)}
             </span>,
         );
@@ -144,7 +174,10 @@ function highlightPlainLog(line: string): React.ReactNode {
     }[levelMatch[1]] || '';
 
     parts.push(
-        <span key={key++} className={`PlainLogViewer__log-level ${levelClass}`}>
+        <span
+            key={key++}
+            className={`PlainLogViewer__log-level ${levelClass}`}
+        >
             {levelMatch[0]}
         </span>,
     );
@@ -156,13 +189,23 @@ function highlightPlainLog(line: string): React.ReactNode {
     let match;
 
     while ((match = kvRegex.exec(rest)) !== null) {
-        // Text before this key=value
         if (match.index + 1 > lastIdx) {
             parts.push(<span key={key++}>{rest.slice(lastIdx, match.index + 1)}</span>);
         }
+
         // Key
-        parts.push(<span key={key++} className='PlainLogViewer__log-key'>{match[2]}</span>);
-        parts.push(<span key={key++} className='PlainLogViewer__log-equals'>{'='}</span>);
+        parts.push(
+            <span
+                key={key++}
+                className='PlainLogViewer__log-key'
+            >{match[2]}</span>,
+        );
+        parts.push(
+            <span
+                key={key++}
+                className='PlainLogViewer__log-equals'
+            >{'='}</span>,
+        );
         lastIdx = match.index + match[0].length;
     }
 
@@ -246,7 +289,7 @@ export default function PlainLogList({
     const getLineNumber = (i: number) => {
         const offset = page * perPage;
         if (newestFirst) {
-            return offset + logs.length - i;
+            return (offset + logs.length) - i;
         }
         return offset + i + 1;
     };
@@ -273,19 +316,17 @@ export default function PlainLogList({
                             defaultMessage='Reload'
                         />
                     </button>
-                    <a
+                    <ExternalLink
+                        location='download_plain_logs'
                         className='PlainLogViewer__action-btn'
                         href={downloadUrl}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        title={intl.formatMessage({id: 'admin.logs.download', defaultMessage: 'Download'})}
                     >
                         <i className='icon icon-download-outline'/>
                         <FormattedMessage
                             id='admin.logs.download'
                             defaultMessage='Download'
                         />
-                    </a>
+                    </ExternalLink>
                 </div>
                 <div className='PlainLogViewer__toolbar-spacer'/>
                 <div className='PlainLogViewer__toolbar-group'>
@@ -371,7 +412,7 @@ export default function PlainLogList({
                 onScroll={handleScroll}
                 tabIndex={-1}
             >
-                {loading ? (
+                {loading && (
                     <div className='PlainLogViewer__loading'>
                         <div className='PlainLogViewer__loading-spinner'/>
                         <FormattedMessage
@@ -379,14 +420,16 @@ export default function PlainLogList({
                             defaultMessage='Loading...'
                         />
                     </div>
-                ) : displayLogs.length === 0 ? (
+                )}
+                {!loading && displayLogs.length === 0 && (
                     <div className='PlainLogViewer__empty'>
                         <FormattedMessage
                             id='admin.logs.noLogs'
                             defaultMessage='No logs to display.'
                         />
                     </div>
-                ) : (
+                )}
+                {!loading && displayLogs.length > 0 && (
                     highlightedLines.map((highlighted, i) => {
                         const line = displayLogs[i];
                         let lineClass = 'PlainLogViewer__line';
