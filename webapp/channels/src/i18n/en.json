@@ -250,7 +250,7 @@
   "add_user_to_channel_modal.title": "Add {name} to a Channel",
   "add_users_to_role.title": "Add users to {roleName}",
   "add_users_to_team.title": "Add New Members to {teamName} Team",
-  "add_workspace_modal.empty": "All connected workspaces are already sharing this channel.",
+  "add_workspace_modal.empty": "No other connected workspaces available",
   "add_workspace_modal.error": "Failed to load workspaces",
   "add_workspace_modal.loading": "Loading workspaces...",
   "adldap_upsell_banner.banner_message": "AD/LDAP group sync creates groups faster",
