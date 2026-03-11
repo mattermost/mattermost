@@ -134,9 +134,13 @@ jobs:
               const {changedFiles, impactedFlows, coveredFlows: coveredCount, partialFlows: partialCount, uncoveredP0P1Flows} = plan.metrics;
               const emoji = action === 'must-add-tests' ? '🔴' : action === 'safe-to-merge' ? '🟢' : '🟡';
 
-              // Build a readable breakdown: "3 covered · 1 gap · 1 partial"
+              const flowsWithAdvisory = (plan.coveredFlows || []).filter(f => f.advisoryScenarios && f.advisoryScenarios.length > 0);
+              const cleanFlows = (plan.coveredFlows || []).filter(f => !f.advisoryScenarios || f.advisoryScenarios.length === 0);
+
+              // Coverage breakdown: "3 covered · 2 new behavior · 1 gap · 1 partial"
               const parts = [];
               if (coveredCount > 0) parts.push(`${coveredCount} covered`);
+              if (flowsWithAdvisory.length > 0) parts.push(`${flowsWithAdvisory.length} new behavior`);
               if (uncoveredP0P1Flows > 0) parts.push(`${uncoveredP0P1Flows} gap${uncoveredP0P1Flows !== 1 ? 's' : ''}`);
               if (partialCount > 0) parts.push(`${partialCount} partial`);
               const breakdown = parts.length > 0 ? ` (${parts.join(' · ')})` : '';
@@ -149,6 +153,7 @@ jobs:
                 ...(changedFiles > 0 ? [`**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted${breakdown}`] : []),
               ];
 
+              // ── Blocking gaps ──────────────────────────────────────────────
               if (action === 'must-add-tests' && (plan.gapDetails || plan.requiredNewTests || []).length > 0) {
                 lines.push('', `### ⚠️ Missing coverage for ${uncoveredP0P1Flows} P0/P1 flow(s)`, '');
                 const hardGaps = (plan.gapDetails || []).filter(g => !g.name.includes('(partial)'));
@@ -156,52 +161,68 @@ jobs:
 
                 if (hardGaps.length > 0) {
                   for (const gap of hardGaps) {
-                    lines.push(`**${gap.name}** \`${gap.id}\` · ${gap.priority}`);
-                    lines.push('');
-                    // Show max 2 concise reasons (first is deterministic, second is AI insight if present)
-                    if (gap.reasons && gap.reasons.length > 0) {
-                      for (const r of gap.reasons.slice(0, 2)) lines.push(`> ${r}`);
-                      lines.push('');
-                    }
-                    // Show test scenarios inline (not collapsed)
+                    const aiLabel = gap.source === 'ai+deterministic' ? ' ✦ AI-enriched' : '';
+                    lines.push('> [!WARNING]');
+                    lines.push(`> **${gap.name}** · ${gap.priority}${aiLabel}`);
+                    // AI reasons (skip first generic deterministic reason)
+                    const aiReasons = (gap.reasons || []).slice(1);
+                    if (aiReasons.length > 0) lines.push(`> ${aiReasons.join(' ')}`);
                     if (gap.missingScenarios && gap.missingScenarios.length > 0) {
-                      lines.push('**Add tests for these scenarios:**');
-                      lines.push('');
-                      for (const s of gap.missingScenarios) lines.push(`- [ ] ${s}`);
-                      lines.push('');
+                      lines.push('>');
+                      lines.push('> **Suggested test scenarios:**');
+                      for (const s of gap.missingScenarios) lines.push(`> - [ ] ${s}`);
                     }
+                    lines.push('');
                   }
                 } else {
                   for (const gap of plan.requiredNewTests) lines.push(`- ${gap}`);
                 }
 
                 if (partialGaps.length > 0) {
-                  lines.push('### ℹ️ Partial coverage (advisory)');
-                  lines.push('');
+                  lines.push('### ℹ️ Partial coverage (advisory)', '');
                   for (const gap of partialGaps) {
-                    lines.push(`**${gap.name}** · ${gap.priority}`);
-                    if (gap.reasons && gap.reasons.length > 0) {
-                      lines.push(`> ${gap.reasons[0]}`);
-                    }
+                    lines.push('> [!NOTE]');
+                    lines.push(`> **${gap.name}** · ${gap.priority}`);
+                    const aiReasons = (gap.reasons || []).slice(1);
+                    if (aiReasons.length > 0) lines.push(`> ${aiReasons.join(' ')}`);
                     lines.push('');
                   }
                 }
               }
 
-              if (plan.coveredFlows && plan.coveredFlows.length > 0) {
+              // ── Advisory: covered flows with new behavior ──────────────────
+              if (flowsWithAdvisory.length > 0) {
                 lines.push('');
-                lines.push('<details>');
-                lines.push(`<summary>Covered flows (${plan.coveredFlows.length})</summary>`);
+                lines.push(`### 💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''}`);
                 lines.push('');
-                for (const cf of plan.coveredFlows) {
+                lines.push('These features already have E2E tests, but this PR introduces new behavior worth covering:');
+                lines.push('');
+                for (const cf of flowsWithAdvisory) {
+                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
+                  lines.push('> [!TIP]');
+                  lines.push(`> **${cf.name}** · ${cf.priority}${tests ? ' — ' + tests : ''}`);
+                  lines.push('>');
+                  lines.push('> Consider adding tests for:');
+                  for (const s of cf.advisoryScenarios) lines.push(`> - [ ] ${s}`);
+                  lines.push('');
+                }
+              }
+
+              // ── Clean covered flows (collapsed) ────────────────────────────
+              if (cleanFlows.length > 0 || flowsWithAdvisory.length > 0) {
+                lines.push('');
+                const collapseLabel = cleanFlows.length > 0
+                  ? `✅ Covered flows (${cleanFlows.length})`
+                  : `✅ All covered flows have advisory notes above`;
+                lines.push(`<details><summary>${collapseLabel}</summary>`);
+                lines.push('');
+                for (const cf of cleanFlows) {
                   const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
                   lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''}`);
-                  if (cf.advisoryScenarios && cf.advisoryScenarios.length > 0) {
-                    lines.push(`  💡 New behavior in this PR — consider adding:`);
-                    for (const s of cf.advisoryScenarios) {
-                      lines.push(`  - [ ] ${s}`);
-                    }
-                  }
+                }
+                for (const cf of flowsWithAdvisory) {
+                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
+                  lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''} 💡`);
                 }
                 lines.push('');
                 lines.push('</details>');
