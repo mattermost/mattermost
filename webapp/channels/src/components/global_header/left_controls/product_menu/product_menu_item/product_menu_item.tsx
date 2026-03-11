@@ -22,6 +22,34 @@ export interface ProductMenuItemProps {
     id?: string;
 }
 
+const MenuItemTextContainer = styled.div`
+    margin-left: 8px;
+    flex-grow: 1;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+`;
+
+const OpenInNewTabButton = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    padding: 6px !important;
+    margin-right: -6px;
+    opacity: 0;
+    pointer-events: none;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+`;
+
 const MenuItem = styled(Link)`
     && {
         text-decoration: none;
@@ -46,31 +74,10 @@ const MenuItem = styled(Link)`
     button {
         padding: 0 6px;
     }
-`;
 
-const MenuItemTextContainer = styled.div`
-    margin-left: 8px;
-    flex-grow: 1;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 20px;
-`;
-
-const OpenInNewTabButton = styled.button`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    padding: 6px !important;
-    margin-right: -6px;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+    &:hover ${OpenInNewTabButton} {
+        opacity: 1;
+        pointer-events: auto;
     }
 `;
 
@@ -116,7 +123,7 @@ const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}
                         onClick={handleOpenInNewTab}
                         aria-label={formatMessage({id: 'product_menu_item.open_in_new_tab', defaultMessage: 'Open in new tab'})}
                     >
-                        <OpenInNewIcon size={18}/>
+                        <OpenInNewIcon size={16}/>
                     </OpenInNewTabButton>
                 </WithTooltip>
             )}

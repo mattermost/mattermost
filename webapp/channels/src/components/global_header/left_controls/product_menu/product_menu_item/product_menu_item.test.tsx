@@ -117,7 +117,7 @@ describe('components/ProductMenuItem', () => {
 
         renderWithContext(<ProductMenuItem {...props}/>);
 
-        await userEvent.click(screen.getByLabelText('Open in new tab'));
+        await userEvent.click(screen.getByLabelText('Open in new tab'), {pointerEventsCheck: 0});
 
         expect(windowOpenSpy).toHaveBeenCalledWith('/test-destination', '_blank', 'noopener,noreferrer');
         expect(onClick).toHaveBeenCalledTimes(1);
