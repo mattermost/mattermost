@@ -82,10 +82,13 @@ jobs:
       - name: ci/e2e-coverage/plan-enforcement
         id: plan
         working-directory: e2e-tests/playwright
-        # V2: Deterministic graph-based analysis — no AI API calls needed.
-        # ANTHROPIC_API_KEY is no longer required for the default path.
+        # V2: Deterministic graph-based analysis — AI enrichment is optional.
+        # ANTHROPIC_API_KEY activates AI-generated test scenario suggestions when set;
+        # the step works without it too.
         # continue-on-error so we can post the PR comment before failing
         continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           npx e2e-ai-agents plan \
             --config ./e2e-ai-agents.config.json \
