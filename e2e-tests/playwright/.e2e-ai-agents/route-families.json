@@ -1,0 +1,575 @@
+{
+    "families": [
+        {
+            "id": "channels",
+            "routes": ["/{team}", "/{team}/channels/{channel}", "/{team}/messages/@{user}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": [
+                "CenterView",
+                "SidebarLeft",
+                "SidebarRight",
+                "Header",
+                "AppBar",
+                "PostCreate",
+                "PostEdit",
+                "ChannelsPost",
+                "PostDotMenu",
+                "PostMenu",
+                "FindChannelsModal",
+                "ChannelSettingsModal",
+                "EmojiGifPicker"
+            ],
+            "webappPaths": [
+                "webapp/channels/src/components/channel_*",
+                "webapp/channels/src/components/post*",
+                "webapp/channels/src/components/sidebar*",
+                "webapp/channels/src/components/advanced_create_post*",
+                "webapp/channels/src/components/advanced_create_comment*",
+                "webapp/channels/src/components/rhs_*",
+                "webapp/channels/src/components/channel_view*",
+                "webapp/channels/src/components/channel_layout*",
+                "webapp/channels/src/components/channel_header*",
+                "webapp/channels/src/components/browse_channels*",
+                "webapp/channels/src/components/channel_members*",
+                "webapp/channels/src/components/channel_invite*",
+                "webapp/channels/src/components/advanced_text_editor*",
+                "webapp/channels/src/components/dot_menu*",
+                "webapp/channels/src/components/more_direct_channels*",
+                "webapp/channels/src/components/get_public_link_modal*",
+                "webapp/channels/src/components/properties_card_view*",
+                "webapp/channels/src/packages/mattermost-redux/src/actions/shared_channels*"
+            ],
+            "serverPaths": [
+                "server/channels/app/channel*.go",
+                "server/channels/app/post*.go",
+                "server/channels/api4/channel*.go",
+                "server/channels/api4/post*.go"
+            ],
+            "specDirs": [
+                "specs/functional/channels/center_view/",
+                "specs/functional/channels/channel_banner/",
+                "specs/functional/channels/sidebar_right/",
+                "specs/functional/channels/message_scroll/",
+                "specs/functional/channels/unreads_filter/"
+            ],
+            "cypressSpecDirs": [
+                "../cypress/tests/integration/channels/messaging/",
+                "../cypress/tests/integration/channels/channel/",
+                "../cypress/tests/integration/channels/channel_settings/",
+                "../cypress/tests/integration/channels/channel_sidebar/",
+                "../cypress/tests/integration/channels/scroll/",
+                "../cypress/tests/integration/channels/markdown/",
+                "../cypress/tests/integration/channels/modals/",
+                "../cypress/tests/integration/channels/multi_team_and_dm/",
+                "../cypress/tests/integration/channels/toast/",
+                "../cypress/tests/integration/channels/mark_as_unread/",
+                "../cypress/tests/integration/channels/archived_channel/",
+                "../cypress/tests/integration/channels/message_forwarding/"
+            ],
+            "tags": ["@channels", "@messaging"],
+            "priority": "P0",
+            "userFlows": [
+                "Send and receive messages in a channel",
+                "Create, archive, and manage channels",
+                "Browse and join channels",
+                "View and interact with posts in center view",
+                "Use the channel sidebar to navigate"
+            ],
+            "features": [
+                {
+                    "id": "channels/mentions",
+                    "webappPaths": [
+                        "webapp/channels/src/components/at_mention*",
+                        "webapp/channels/src/components/at_sum_members_mention*",
+                        "webapp/channels/src/components/mention*",
+                        "webapp/channels/src/components/suggestion*"
+                    ],
+                    "serverPaths": ["server/channels/app/notification*.go"],
+                    "specDirs": ["specs/functional/channels/mentions/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/autocomplete/"],
+                    "tags": ["@mentions"],
+                    "priority": "P0",
+                    "userFlows": [
+                        "Mention a user with @username in a message",
+                        "Use autocomplete to mention users and channels",
+                        "View and navigate mention notifications"
+                    ]
+                },
+                {
+                    "id": "channels/emoji",
+                    "webappPaths": [
+                        "webapp/channels/src/components/emoji*",
+                        "webapp/channels/src/components/gif_picker*"
+                    ],
+                    "specDirs": ["specs/functional/channels/emoji_picker/", "specs/functional/channels/gif_picker/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/emoji/"],
+                    "tags": ["@emoji"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Add emoji reactions to posts",
+                        "Use emoji picker to insert emoji",
+                        "Search and browse GIFs"
+                    ]
+                },
+                {
+                    "id": "channels/file_attachments",
+                    "webappPaths": ["webapp/channels/src/components/file_*"],
+                    "specDirs": ["specs/functional/channels/file_attachments/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/files_and_attachments/"],
+                    "tags": ["@file_attachments"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Upload and attach files to messages",
+                        "Preview and download file attachments",
+                        "Share public links for file attachments"
+                    ]
+                },
+                {
+                    "id": "channels/search",
+                    "webappPaths": [
+                        "webapp/channels/src/components/search*",
+                        "webapp/channels/src/components/new_search*"
+                    ],
+                    "specDirs": ["specs/functional/channels/search/"],
+                    "cypressSpecDirs": [
+                        "../cypress/tests/integration/channels/search/",
+                        "../cypress/tests/integration/channels/search_autocomplete/",
+                        "../cypress/tests/integration/channels/search_filter/"
+                    ],
+                    "tags": ["@search"],
+                    "priority": "P0",
+                    "userFlows": [
+                        "Search for messages by keyword",
+                        "Search with date/from/in filters",
+                        "View and interact with search results",
+                        "Clear and reset search"
+                    ]
+                },
+                {
+                    "id": "channels/notifications",
+                    "webappPaths": [
+                        "webapp/channels/src/components/notify_*",
+                        "webapp/channels/src/components/notification*",
+                        "webapp/channels/src/components/desktop_notification*"
+                    ],
+                    "serverPaths": [
+                        "server/channels/app/notification*.go",
+                        "server/channels/app/push_notification*.go"
+                    ],
+                    "specDirs": ["specs/functional/channels/notifications/"],
+                    "cypressSpecDirs": [
+                        "../cypress/tests/integration/channels/notifications/",
+                        "../cypress/tests/integration/channels/test_notification/"
+                    ],
+                    "tags": ["@notifications"],
+                    "priority": "P0",
+                    "userFlows": [
+                        "Receive desktop and push notifications",
+                        "Configure notification preferences per channel",
+                        "Mute and unmute channel notifications"
+                    ]
+                },
+                {
+                    "id": "channels/keyboard_shortcuts",
+                    "webappPaths": ["webapp/channels/src/components/keyboard_shortcuts*"],
+                    "specDirs": ["specs/functional/channels/keyboard_shortcuts/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/keyboard_shortcuts/"],
+                    "tags": ["@keyboard_shortcuts"],
+                    "priority": "P2",
+                    "userFlows": [
+                        "Navigate with keyboard shortcuts",
+                        "View keyboard shortcuts dialog"
+                    ]
+                },
+                {
+                    "id": "channels/message_priority",
+                    "webappPaths": [
+                        "webapp/channels/src/components/post_priority*",
+                        "webapp/channels/src/components/message_priority*"
+                    ],
+                    "specDirs": ["specs/functional/channels/message_priority/"],
+                    "tags": ["@message_priority"],
+                    "priority": "P2",
+                    "userFlows": [
+                        "Send messages with priority labels",
+                        "View and filter priority messages"
+                    ]
+                },
+                {
+                    "id": "channels/content_flagging",
+                    "webappPaths": [
+                        "webapp/channels/src/components/content_flagging*",
+                        "webapp/channels/src/components/flag_post*",
+                        "webapp/channels/src/components/flag_message_modal*",
+                        "webapp/channels/src/components/remove_flagged_message_confirmation_modal*"
+                    ],
+                    "serverPaths": ["server/channels/app/content_flagging*.go"],
+                    "specDirs": ["specs/functional/channels/content_flagging/"],
+                    "tags": ["@content_flagging"],
+                    "priority": "P2",
+                    "userFlows": [
+                        "Flag and save messages for later",
+                        "View and manage flagged messages"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "threads",
+            "routes": ["/{team}/threads"],
+            "pageObjects": ["ThreadsPage"],
+            "components": ["SidebarRight", "ThreadFooter"],
+            "webappPaths": [
+                "webapp/channels/src/components/threading*",
+                "webapp/channels/src/components/rhs_thread*",
+                "webapp/channels/src/components/global_threads*"
+            ],
+            "serverPaths": ["server/channels/app/thread*.go", "server/channels/api4/thread*.go"],
+            "specDirs": ["specs/functional/channels/threads/"],
+            "cypressSpecDirs": [
+                "../cypress/tests/integration/channels/collapsed_reply_threads/",
+                "../cypress/tests/integration/channels/move_thread/"
+            ],
+            "tags": ["@threads"],
+            "priority": "P0",
+            "userFlows": [
+                "Reply to messages in a thread",
+                "View global threads list",
+                "Follow and unfollow threads",
+                "Move threads between channels"
+            ]
+        },
+        {
+            "id": "drafts",
+            "routes": ["/{team}/drafts"],
+            "pageObjects": ["DraftsPage"],
+            "components": ["DraftPost"],
+            "webappPaths": ["webapp/channels/src/components/draft*"],
+            "serverPaths": ["server/channels/app/draft*.go", "server/channels/api4/draft*.go"],
+            "specDirs": ["specs/functional/channels/drafts/"],
+            "tags": ["@drafts"],
+            "priority": "P1",
+            "userFlows": [
+                "Save and resume message drafts",
+                "View drafts list",
+                "Delete drafts"
+            ]
+        },
+        {
+            "id": "scheduled_posts",
+            "routes": ["/{team}/scheduled_posts"],
+            "pageObjects": ["ScheduledPostsPage"],
+            "components": [
+                "ScheduledPost",
+                "ScheduleMessageModal",
+                "ScheduleMessageMenu",
+                "ScheduledPostIndicator",
+                "ScheduledDraftModal",
+                "SendMessageNowModal",
+                "DeleteScheduledPostModal"
+            ],
+            "webappPaths": [
+                "webapp/channels/src/components/scheduled*",
+                "webapp/channels/src/components/schedule_message*",
+                "webapp/channels/src/components/edit_scheduled_post*"
+            ],
+            "serverPaths": ["server/channels/app/scheduled_post*.go", "server/channels/api4/scheduled_post*.go"],
+            "specDirs": ["specs/functional/channels/scheduled_messages/"],
+            "tags": ["@scheduled_messages"],
+            "priority": "P1",
+            "userFlows": [
+                "Schedule a message for later delivery",
+                "Edit or cancel a scheduled message",
+                "View scheduled messages list"
+            ]
+        },
+        {
+            "id": "system_console",
+            "routes": ["/admin_console"],
+            "pageObjects": ["SystemConsolePage"],
+            "components": [
+                "SystemConsoleHeader",
+                "SystemConsoleNavbar",
+                "SystemConsoleSidebar",
+                "SystemConsoleSidebarHeader",
+                "EditionAndLicense",
+                "TeamStatistics",
+                "Users",
+                "DelegatedGranularAdministration",
+                "MobileSecurity",
+                "FeatureDiscovery"
+            ],
+            "webappPaths": [
+                "webapp/channels/src/components/admin_console*",
+                "webapp/channels/src/components/system_console*",
+                "webapp/channels/src/components/analytics*",
+                "webapp/channels/src/components/announcement_bar*",
+                "webapp/channels/src/components/product_notices_modal*",
+                "webapp/channels/src/actions/admin_actions*",
+                "webapp/channels/src/sass/routes/_statistics*",
+                "webapp/channels/src/packages/mattermost-redux/src/reducers/entities/admin*",
+                "webapp/channels/src/packages/mattermost-redux/src/constants/stats*",
+                "webapp/channels/src/packages/mattermost-redux/src/actions/limits*",
+                "webapp/platform/types/src/admin*",
+                "webapp/platform/types/src/config*",
+                "webapp/platform/types/src/limits*",
+                "webapp/platform/client/src/client4*"
+            ],
+            "serverPaths": [
+                "server/channels/app/admin*.go",
+                "server/channels/api4/system*.go",
+                "server/channels/api4/config*.go",
+                "server/channels/api4/license*.go"
+            ],
+            "specDirs": ["specs/functional/system_console/"],
+            "cypressSpecDirs": ["../cypress/tests/integration/channels/system_console/"],
+            "tags": ["@system_console", "@admin"],
+            "priority": "P1",
+            "userFlows": [
+                "Access and navigate the system console",
+                "Configure system settings",
+                "View team and server statistics"
+            ],
+            "features": [
+                {
+                    "id": "system_console/permissions",
+                    "routes": ["/admin_console/user_management/permissions"],
+                    "webappPaths": ["webapp/channels/src/components/admin_console/permission*"],
+                    "serverPaths": [
+                        "server/channels/app/role*.go",
+                        "server/channels/app/permission*.go",
+                        "server/channels/api4/role*.go"
+                    ],
+                    "specDirs": ["specs/functional/system_console/permissions/"],
+                    "tags": ["@permissions"],
+                    "priority": "P0",
+                    "userFlows": [
+                        "Configure channel and team permissions",
+                        "Manage system-wide permission schemes",
+                        "Assign and revoke roles"
+                    ]
+                },
+                {
+                    "id": "system_console/system_users",
+                    "routes": ["/admin_console/user_management/users"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/admin_console/system_users*",
+                        "webapp/channels/src/components/user_list*"
+                    ],
+                    "serverPaths": ["server/channels/app/user*.go", "server/channels/api4/user*.go"],
+                    "specDirs": ["specs/functional/system_console/system_users/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/users/"],
+                    "tags": ["@system_users"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Search and manage system users",
+                        "Activate and deactivate users",
+                        "View user details and roles"
+                    ]
+                },
+                {
+                    "id": "system_console/abac",
+                    "routes": ["/admin_console/user_management/delegated_granular_administration"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/admin_console/delegated*",
+                        "webapp/channels/src/components/admin_console/abac*"
+                    ],
+                    "serverPaths": ["server/channels/app/delegated*.go"],
+                    "specDirs": ["specs/functional/system_console/abac/"],
+                    "tags": ["@abac"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Configure delegated granular administration",
+                        "Assign admin roles with fine-grained access"
+                    ]
+                },
+                {
+                    "id": "system_console/license",
+                    "routes": ["/admin_console/about/license"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/admin_console/license*",
+                        "webapp/channels/src/components/admin_console/edition*",
+                        "webapp/channels/src/components/cloud_start_trial*",
+                        "webapp/channels/src/components/trial_benefits_modal*"
+                    ],
+                    "serverPaths": ["server/channels/app/license*.go"],
+                    "specDirs": ["specs/functional/system_console/"],
+                    "cypressSpecDirs": ["../cypress/tests/integration/channels/enterprise/"],
+                    "tags": ["@license"],
+                    "priority": "P2",
+                    "userFlows": [
+                        "View and manage license information",
+                        "Start a trial or upgrade"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "auth",
+            "routes": ["/login", "/landing#/login", "/signup_user_complete", "/reset_password"],
+            "pageObjects": ["LoginPage", "LandingLoginPage", "SignupPage", "ResetPasswordPage"],
+            "components": [],
+            "webappPaths": [
+                "webapp/channels/src/components/login*",
+                "webapp/channels/src/components/signup*",
+                "webapp/channels/src/components/password_reset*",
+                "webapp/channels/src/components/claim*",
+                "webapp/channels/src/components/do_verify_email*",
+                "webapp/channels/src/components/mfa*",
+                "webapp/channels/src/components/header_footer_route*",
+                "webapp/channels/src/components/terms_of_service*",
+                "webapp/channels/src/components/logged_in*"
+            ],
+            "serverPaths": [
+                "server/channels/app/authentication*.go",
+                "server/channels/app/login*.go",
+                "server/channels/app/session*.go",
+                "server/channels/api4/user*.go"
+            ],
+            "specDirs": ["specs/visual/common/"],
+            "cypressSpecDirs": [
+                "../cypress/tests/integration/channels/signin_authentication/",
+                "../cypress/tests/integration/channels/onboarding/",
+                "../cypress/tests/integration/channels/auth_sso/"
+            ],
+            "tags": ["@login", "@signup", "@auth"],
+            "priority": "P0",
+            "userFlows": [
+                "Log in with email and password",
+                "Sign up for a new account",
+                "Reset a forgotten password",
+                "Log in with SSO/SAML/LDAP"
+            ]
+        },
+        {
+            "id": "account_settings",
+            "routes": ["/{team}/channels/{channel}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": ["SettingsModal", "UserAccountMenu"],
+            "webappPaths": [
+                "webapp/channels/src/components/user_settings*",
+                "webapp/channels/src/components/profile*",
+                "webapp/channels/src/components/custom_profile_attributes*",
+                "webapp/channels/src/components/user_profile*",
+                "webapp/channels/src/components/activity_log_modal*",
+                "webapp/channels/src/packages/mattermost-redux/src/utils/user_utils*"
+            ],
+            "serverPaths": ["server/channels/app/preference*.go", "server/channels/api4/preference*.go"],
+            "specDirs": [
+                "specs/functional/channels/account_settings/",
+                "specs/functional/channels/custom_profile_attributes/"
+            ],
+            "cypressSpecDirs": [
+                "../cypress/tests/integration/channels/account_settings/",
+                "../cypress/tests/integration/channels/profile_settings/",
+                "../cypress/tests/integration/channels/settings/",
+                "../cypress/tests/integration/channels/custom_status/"
+            ],
+            "tags": ["@account_settings", "@profile"],
+            "priority": "P1",
+            "userFlows": [
+                "Update display name and profile picture",
+                "Change notification preferences",
+                "Manage security and password settings",
+                "Configure custom profile attributes"
+            ]
+        },
+        {
+            "id": "team_settings",
+            "routes": ["/{team}/channels/{channel}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": ["TeamMenu", "TeamSettingsModal"],
+            "webappPaths": [
+                "webapp/channels/src/components/team_settings*",
+                "webapp/channels/src/components/team_sidebar*",
+                "webapp/channels/src/components/invite_people*",
+                "webapp/channels/src/components/invitation_modal*",
+                "webapp/channels/src/components/team_members_modal*"
+            ],
+            "serverPaths": ["server/channels/app/team*.go", "server/channels/api4/team*.go"],
+            "specDirs": ["specs/functional/channels/team_settings/"],
+            "cypressSpecDirs": ["../cypress/tests/integration/channels/team_settings/"],
+            "tags": ["@team_settings"],
+            "priority": "P1",
+            "userFlows": [
+                "Create and configure teams",
+                "Invite users to a team",
+                "Manage team members and roles"
+            ]
+        },
+        {
+            "id": "plugins",
+            "routes": ["/{team}/channels/{channel}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": [],
+            "webappPaths": [
+                "webapp/channels/src/components/plugin*",
+                "webapp/channels/src/components/integrations*",
+                "webapp/channels/src/components/apps_form*"
+            ],
+            "serverPaths": [
+                "server/channels/app/plugin*.go",
+                "server/channels/api4/plugin*.go",
+                "server/platform/services/marketplace*"
+            ],
+            "specDirs": ["specs/functional/plugins/"],
+            "cypressSpecDirs": [
+                "../cypress/tests/integration/channels/plugins/",
+                "../cypress/tests/integration/channels/integrations/",
+                "../cypress/tests/integration/channels/interactive_dialog/",
+                "../cypress/tests/integration/channels/interactive_menu/",
+                "../cypress/tests/integration/channels/commands/",
+                "../cypress/tests/integration/channels/slash_commands/",
+                "../cypress/tests/integration/channels/bot_accounts/",
+                "../cypress/tests/integration/channels/menus/"
+            ],
+            "tags": ["@plugins"],
+            "priority": "P2",
+            "userFlows": [
+                "Install and manage plugins",
+                "Use slash commands",
+                "Interact with bot accounts"
+            ]
+        },
+        {
+            "id": "user_groups",
+            "routes": ["/{team}/channels/{channel}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": [],
+            "webappPaths": [
+                "webapp/channels/src/components/user_group*",
+                "webapp/channels/src/components/view_user_group*",
+                "webapp/channels/src/components/create_user_group*",
+                "webapp/channels/src/components/update_user_group*",
+                "webapp/channels/src/components/add_users_to_group_modal*"
+            ],
+            "serverPaths": ["server/channels/app/group*.go", "server/channels/api4/group*.go"],
+            "specDirs": [
+                "specs/functional/ai-assisted/view_user_group_details/",
+                "specs/functional/ai-assisted/view_user_group_modal/"
+            ],
+            "tags": ["@user_groups"],
+            "priority": "P2",
+            "userFlows": [
+                "Create and manage user groups",
+                "View group membership details"
+            ]
+        },
+        {
+            "id": "accessibility",
+            "routes": ["/{team}", "/{team}/channels/{channel}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": [],
+            "webappPaths": [],
+            "serverPaths": [],
+            "specDirs": ["specs/accessibility/"],
+            "cypressSpecDirs": ["../cypress/tests/integration/channels/accessibility/"],
+            "tags": ["@accessibility"],
+            "priority": "P2",
+            "userFlows": [
+                "Navigate the application using screen readers",
+                "Use keyboard navigation throughout the app"
+            ]
+        }
+    ]
+}
