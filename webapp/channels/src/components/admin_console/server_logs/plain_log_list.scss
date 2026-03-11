@@ -77,38 +77,124 @@
     &__content {
         flex: 1;
         overflow: auto;
-        padding: 8px 12px;
+        padding: 0;
         background: rgba(var(--center-channel-color-rgb), 0.02);
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-size: 12px;
         line-height: 20px;
 
         &--wrap {
-            .PlainLogViewer__line {
+            .PlainLogViewer__line-text {
                 white-space: pre-wrap;
                 word-break: break-all;
+            }
+        }
+
+        // Line numbers via CSS pseudo-element (not selectable)
+        &--numbered {
+            .PlainLogViewer__line {
+                &::before {
+                    content: attr(data-line-number);
+                    display: inline-block;
+                    width: 48px;
+                    padding-right: 12px;
+                    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                    margin-right: 12px;
+                    color: rgba(var(--center-channel-color-rgb), 0.32);
+                    font-size: 11px;
+                    text-align: right;
+                    user-select: none;
+                    flex-shrink: 0;
+                }
             }
         }
     }
 
     &__line {
-        padding: 0 4px;
+        display: flex;
+        padding: 0 12px;
         color: var(--center-channel-color);
         white-space: nowrap;
 
         &--error {
-            color: var(--dnd-indicator);
             background: rgba(var(--dnd-indicator-rgb), 0.04);
         }
 
         &--warn {
-            color: var(--away-indicator);
             background: rgba(var(--away-indicator-rgb), 0.03);
         }
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.04);
         }
+    }
+
+    &__line-text {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    // ============================
+    // Syntax highlighting: JSON
+    // ============================
+
+    &__json-key {
+        color: var(--button-bg);
+    }
+
+    &__json-string {
+        color: var(--online-indicator);
+    }
+
+    &__json-number {
+        color: var(--away-indicator);
+    }
+
+    &__json-bool {
+        color: var(--away-indicator);
+        font-weight: 600;
+    }
+
+    &__json-bracket {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-weight: 600;
+    }
+
+    // ============================
+    // Syntax highlighting: Plain log
+    // ============================
+
+    &__log-timestamp {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__log-level {
+        font-weight: 700;
+
+        &--error {
+            color: var(--dnd-indicator);
+        }
+
+        &--warn {
+            color: var(--away-indicator);
+        }
+
+        &--info {
+            color: var(--button-bg);
+        }
+
+        &--debug {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__log-key {
+        color: var(--button-bg);
+    }
+
+    &__log-equals {
+        color: rgba(var(--center-channel-color-rgb), 0.40);
     }
 
     // Loading

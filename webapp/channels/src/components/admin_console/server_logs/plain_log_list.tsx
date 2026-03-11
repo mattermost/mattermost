@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import './plain_log_list.scss';
@@ -17,6 +17,162 @@ type Props = {
     downloadUrl: string;
 };
 
+// Highlight JSON/JSONL content in a log line
+function highlightLogLine(line: string): React.ReactNode {
+    const trimmed = line.trim();
+
+    // Try to detect and highlight JSON lines
+    if (trimmed.startsWith('{')) {
+        return highlightJson(trimmed);
+    }
+
+    // Mattermost plain log format: timestamp [LEVEL] msg key=value ...
+    // Highlight the level tag and key=value pairs
+    return highlightPlainLog(line);
+}
+
+function highlightJson(text: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    let i = 0;
+    let key = 0;
+
+    while (i < text.length) {
+        // Strings
+        if (text[i] === '"') {
+            const end = findStringEnd(text, i);
+            const str = text.slice(i, end);
+
+            // Check if this is a key (followed by colon)
+            const afterStr = text.slice(end).trimStart();
+            if (afterStr[0] === ':') {
+                parts.push(<span key={key++} className='PlainLogViewer__json-key'>{str}</span>);
+            } else {
+                parts.push(<span key={key++} className='PlainLogViewer__json-string'>{str}</span>);
+            }
+            i = end;
+            continue;
+        }
+
+        // Numbers
+        if (/[-\d]/.test(text[i]) && (i === 0 || /[,:\s[{]/.test(text[i - 1]))) {
+            const match = text.slice(i).match(/^-?\d+\.?\d*([eE][+-]?\d+)?/);
+            if (match) {
+                parts.push(<span key={key++} className='PlainLogViewer__json-number'>{match[0]}</span>);
+                i += match[0].length;
+                continue;
+            }
+        }
+
+        // Booleans and null
+        const remaining = text.slice(i);
+        const boolMatch = remaining.match(/^(true|false|null)\b/);
+        if (boolMatch) {
+            parts.push(<span key={key++} className='PlainLogViewer__json-bool'>{boolMatch[0]}</span>);
+            i += boolMatch[0].length;
+            continue;
+        }
+
+        // Brackets and braces
+        if ('{}[]'.includes(text[i])) {
+            parts.push(<span key={key++} className='PlainLogViewer__json-bracket'>{text[i]}</span>);
+            i++;
+            continue;
+        }
+
+        // Accumulate plain text
+        let plain = '';
+        while (i < text.length && text[i] !== '"' && !'{}[]'.includes(text[i]) && !(text[i] === '-' && /\d/.test(text[i + 1] || '')) && !/\d/.test(text[i])) {
+            plain += text[i];
+            i++;
+        }
+        if (plain) {
+            parts.push(<span key={key++}>{plain}</span>);
+        } else if (i < text.length) {
+            // Safety: advance at least one character to prevent infinite loop
+            parts.push(<span key={key++}>{text[i]}</span>);
+            i++;
+        }
+    }
+
+    return <>{parts}</>;
+}
+
+function findStringEnd(text: string, start: number): number {
+    let i = start + 1;
+    while (i < text.length) {
+        if (text[i] === '\\') {
+            i += 2;
+            continue;
+        }
+        if (text[i] === '"') {
+            return i + 1;
+        }
+        i++;
+    }
+    return text.length;
+}
+
+function highlightPlainLog(line: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    let key = 0;
+
+    // Match level tags like [INFO], [EROR], [WARN], [DBUG]
+    const levelMatch = line.match(/\[(EROR|WARN|INFO|DBUG)\]/);
+    if (!levelMatch) {
+        return line;
+    }
+
+    const levelIdx = levelMatch.index!;
+    const levelEnd = levelIdx + levelMatch[0].length;
+
+    // Timestamp portion (before level)
+    if (levelIdx > 0) {
+        parts.push(
+            <span key={key++} className='PlainLogViewer__log-timestamp'>
+                {line.slice(0, levelIdx)}
+            </span>,
+        );
+    }
+
+    // Level tag
+    const levelClass = {
+        EROR: 'PlainLogViewer__log-level--error',
+        WARN: 'PlainLogViewer__log-level--warn',
+        INFO: 'PlainLogViewer__log-level--info',
+        DBUG: 'PlainLogViewer__log-level--debug',
+    }[levelMatch[1]] || '';
+
+    parts.push(
+        <span key={key++} className={`PlainLogViewer__log-level ${levelClass}`}>
+            {levelMatch[0]}
+        </span>,
+    );
+
+    // Rest of the line - highlight key=value pairs
+    const rest = line.slice(levelEnd);
+    const kvRegex = /(\s)([a-zA-Z_][a-zA-Z0-9_.]*)(=)/g;
+    let lastIdx = 0;
+    let match;
+
+    while ((match = kvRegex.exec(rest)) !== null) {
+        // Text before this key=value
+        if (match.index + 1 > lastIdx) {
+            parts.push(<span key={key++}>{rest.slice(lastIdx, match.index + 1)}</span>);
+        }
+        // Key
+        parts.push(<span key={key++} className='PlainLogViewer__log-key'>{match[2]}</span>);
+        parts.push(<span key={key++} className='PlainLogViewer__log-equals'>{'='}</span>);
+        lastIdx = match.index + match[0].length;
+    }
+
+    // Remaining text
+    if (lastIdx < rest.length) {
+        parts.push(<span key={key++}>{rest.slice(lastIdx)}</span>);
+    }
+
+    return <>{parts}</>;
+}
+
 export default function PlainLogList({
     loading, logs: rawLogs, page, perPage, nextPage, previousPage, onReload, downloadUrl,
 }: Props) {
@@ -26,6 +182,7 @@ export default function PlainLogList({
     const [followTail, setFollowTail] = useState(true);
     const [wrapText, setWrapText] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
+    const [showLineNumbers, setShowLineNumbers] = useState(true);
 
     // Auto-scroll to bottom when follow tail is on
     useEffect(() => {
@@ -57,6 +214,12 @@ export default function PlainLogList({
     const hasMore = logs.length >= perPage;
     const hasPrevious = page > 0;
     const totalShowing = logs.length;
+    const lineNumberOffset = page * perPage;
+
+    // Memoize highlighted lines to avoid re-rendering on scroll/toggle changes
+    const highlightedLines = useMemo(() => {
+        return logs.map((line) => highlightLogLine(line));
+    }, [logs]);
 
     return (
         <div className='PlainLogViewer'>
@@ -91,6 +254,13 @@ export default function PlainLogList({
                 </div>
                 <div className='PlainLogViewer__toolbar-spacer'/>
                 <div className='PlainLogViewer__toolbar-group'>
+                    <button
+                        type='button'
+                        className={`PlainLogViewer__action-btn ${showLineNumbers ? 'PlainLogViewer__action-btn--active' : ''}`}
+                        onClick={() => setShowLineNumbers(!showLineNumbers)}
+                    >
+                        <i className='icon icon-format-list-numbered'/>
+                    </button>
                     <button
                         type='button'
                         className={`PlainLogViewer__action-btn ${wrapText ? 'PlainLogViewer__action-btn--active' : ''}`}
@@ -132,7 +302,11 @@ export default function PlainLogList({
             {/* Log content */}
             <div
                 ref={logPanelRef}
-                className={`PlainLogViewer__content ${wrapText ? 'PlainLogViewer__content--wrap' : ''}`}
+                className={[
+                    'PlainLogViewer__content',
+                    wrapText ? 'PlainLogViewer__content--wrap' : '',
+                    showLineNumbers ? 'PlainLogViewer__content--numbered' : '',
+                ].filter(Boolean).join(' ')}
                 onScroll={handleScroll}
                 tabIndex={-1}
             >
@@ -152,7 +326,8 @@ export default function PlainLogList({
                         />
                     </div>
                 ) : (
-                    logs.map((line, i) => {
+                    highlightedLines.map((highlighted, i) => {
+                        const line = logs[i];
                         let lineClass = 'PlainLogViewer__line';
                         if (line.indexOf('[EROR]') > 0) {
                             lineClass += ' PlainLogViewer__line--error';
@@ -163,8 +338,11 @@ export default function PlainLogList({
                             <div
                                 key={i} // eslint-disable-line react/no-array-index-key
                                 className={lineClass}
+                                data-line-number={lineNumberOffset + i + 1}
                             >
-                                {line}
+                                <span className='PlainLogViewer__line-text'>
+                                    {highlighted}
+                                </span>
                             </div>
                         );
                     })
