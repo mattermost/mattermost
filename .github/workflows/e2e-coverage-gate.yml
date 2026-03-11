@@ -162,17 +162,21 @@ jobs:
                 if (hardGaps.length > 0) {
                   for (const gap of hardGaps) {
                     const aiLabel = gap.source === 'ai+deterministic' ? ' ✦ AI-enriched' : '';
+                    // Warning box: name + AI reason (always visible)
                     lines.push('> [!WARNING]');
                     lines.push(`> **${gap.name}** · ${gap.priority}${aiLabel}`);
-                    // AI reasons (skip first generic deterministic reason)
                     const aiReasons = (gap.reasons || []).slice(1);
                     if (aiReasons.length > 0) lines.push(`> ${aiReasons.join(' ')}`);
-                    if (gap.missingScenarios && gap.missingScenarios.length > 0) {
-                      lines.push('>');
-                      lines.push('> **Suggested test scenarios:**');
-                      for (const s of gap.missingScenarios) lines.push(`> - [ ] ${s}`);
-                    }
                     lines.push('');
+                    // Scenarios: collapsible below the warning box
+                    if (gap.missingScenarios && gap.missingScenarios.length > 0) {
+                      lines.push(`<details><summary>📋 Suggested test scenarios (${gap.missingScenarios.length})</summary>`);
+                      lines.push('');
+                      for (const s of gap.missingScenarios) lines.push(`- [ ] ${s}`);
+                      lines.push('');
+                      lines.push('</details>');
+                      lines.push('');
+                    }
                   }
                 } else {
                   for (const gap of plan.requiredNewTests) lines.push(`- ${gap}`);
@@ -190,23 +194,26 @@ jobs:
                 }
               }
 
-              // ── Advisory: covered flows with new behavior (collapsible) ──
+              // ── Advisory: covered flows with new behavior ──────────────────
               if (flowsWithAdvisory.length > 0) {
                 lines.push('');
-                lines.push(`<details>`);
-                lines.push(`<summary>💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''} — consider adding tests</summary>`);
-                lines.push('');
-                lines.push('These features already have E2E tests, but this PR introduces new behavior worth covering:');
+                lines.push(`### 💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''} — consider adding tests`);
                 lines.push('');
                 for (const cf of flowsWithAdvisory) {
+                  // Green [!TIP] box: just the name (always visible)
+                  lines.push('> [!TIP]');
+                  lines.push(`> **${cf.name}** · ${cf.priority}`);
+                  lines.push('');
+                  // Specs + scenarios: collapsible below
                   const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
-                  lines.push(`#### ${cf.name} · ${cf.priority}`);
-                  if (tests) lines.push(`*${tests}*`);
+                  const coverageSummary = tests || cf.coveredBy.join(', ');
+                  lines.push(`<details><summary>${coverageSummary} — click to see suggested scenarios</summary>`);
                   lines.push('');
                   for (const s of cf.advisoryScenarios) lines.push(`- [ ] ${s}`);
                   lines.push('');
+                  lines.push('</details>');
+                  lines.push('');
                 }
-                lines.push('</details>');
               }
 
               // ── Clean covered flows (collapsed) ────────────────────────────
