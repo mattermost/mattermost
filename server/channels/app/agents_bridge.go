@@ -47,8 +47,8 @@ type AgentsBridge interface {
 	Status(rctx request.CTX) (bool, string)
 	GetAgents(sessionUserID, userID string) ([]model.BridgeAgentInfo, error)
 	GetServices(sessionUserID, userID string) ([]model.BridgeServiceInfo, error)
-	Complete(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error)
-	CompleteService(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error)
+	AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error)
+	ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error)
 }
 
 type liveAgentsBridge struct {
@@ -103,7 +103,7 @@ func (b *liveAgentsBridge) GetServices(sessionUserID, userID string) ([]model.Br
 	return toModelBridgeServices(services), nil
 }
 
-func (b *liveAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+func (b *liveAgentsBridge) AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
 	b.recordRequest(sessionUserID, agentID, "", req)
 
 	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {
@@ -114,7 +114,7 @@ func (b *liveAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCom
 	return client.AgentCompletion(agentID, toClientCompletionRequest(req))
 }
 
-func (b *liveAgentsBridge) CompleteService(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+func (b *liveAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
 	b.recordRequest(sessionUserID, "", serviceID, req)
 
 	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {

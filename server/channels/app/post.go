@@ -3240,7 +3240,7 @@ func (a *App) RewriteMessage(
 		UserID:           sessionUserID,
 	}
 
-	completion, err := a.ch.agentsBridge.Complete(sessionUserID, agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}

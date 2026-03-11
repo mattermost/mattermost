@@ -100,7 +100,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 		mlog.Int("post_count", len(posts)),
 	)
 
-	completion, err := a.ch.agentsBridge.Complete(sessionUserID, agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}

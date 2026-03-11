@@ -22,7 +22,7 @@ func (a *App) GetBridgeClient(userID string) *agentclient.Client {
 // code that needs service-based bridge completions while using the shared
 // AgentsBridge abstraction.
 func (a *App) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
-	return a.ch.agentsBridge.CompleteService(sessionUserID, serviceID, req)
+	return a.ch.agentsBridge.ServiceCompletion(sessionUserID, serviceID, req)
 }
 
 // GetAIPluginBridgeStatus checks if the mattermost-ai plugin is active and supports the bridge API (v1.5.0+)

@@ -55,7 +55,7 @@ func (b *testAgentsBridge) GetServices(sessionUserID, userID string) ([]model.Br
 	return []model.BridgeServiceInfo{}, nil
 }
 
-func (b *testAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+func (b *testAgentsBridge) AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
 	b.completeCalls = append(b.completeCalls, bridgeCompleteCall{
 		sessionUserID: sessionUserID,
 		agentID:       agentID,
@@ -69,7 +69,7 @@ func (b *testAgentsBridge) Complete(sessionUserID, agentID string, req BridgeCom
 	return "", nil
 }
 
-func (b *testAgentsBridge) CompleteService(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+func (b *testAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
 	b.completeCalls = append(b.completeCalls, bridgeCompleteCall{
 		sessionUserID: sessionUserID,
 		serviceID:     serviceID,
