@@ -2384,10 +2384,10 @@ func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptio
 		query = applyRoleFilter(query, "system_guest")
 	case model.GuestFilterSingleChannel:
 		query = applyRoleFilter(query, "system_guest")
-		query = query.Where(sq.Expr("Users.Id IN (SELECT cm.UserId FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') GROUP BY cm.UserId HAVING COUNT(*) = 1)"))
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) = 1"))
 	case model.GuestFilterMultipleChannel:
 		query = applyRoleFilter(query, "system_guest")
-		query = query.Where(sq.Expr("Users.Id IN (SELECT cm.UserId FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') GROUP BY cm.UserId HAVING COUNT(*) > 1)"))
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) > 1"))
 	default:
 		query = applyRoleFilter(query, filter.Role)
 	}
