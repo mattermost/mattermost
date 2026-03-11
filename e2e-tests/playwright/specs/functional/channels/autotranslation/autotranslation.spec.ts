@@ -834,12 +834,13 @@ test(
     },
 );
 
-test.skip(
+test(
     'message actions include Show translation',
     {
         tag: ['@autotranslation'],
     },
     async ({pw}) => {
+        test.skip(true, 'Skipped due to flaky race condition - see https://github.com/mattermost/mattermost/pull/35443');
         const {adminClient, user, userClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
