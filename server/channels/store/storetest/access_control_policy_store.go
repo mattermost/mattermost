@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -19,6 +20,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+	t.Run("GetPoliciesByFieldID", func(t *testing.T) { testAccessControlPolicyStoreGetPoliciesByFieldID(t, rctx, ss) })
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -541,5 +543,148 @@ func testAccessControlPolicyStoreSetActiveMultiple(t *testing.T, rctx request.CT
 		require.NoError(t, err)
 		require.NotNil(t, p2)
 		require.True(t, p2.Active)
+	})
+}
+
+func testAccessControlPolicyStoreGetPoliciesByFieldID(t *testing.T, rctx request.CTX, ss store.Store) {
+	fieldA := model.NewId()
+	fieldB := model.NewId()
+
+	makePolicy := func(t *testing.T, expression string) *model.AccessControlPolicy {
+		t.Helper()
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"*"},
+					Expression: expression,
+				},
+			},
+		}
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = ss.AccessControlPolicy().Delete(rctx, saved.ID)
+		})
+		return saved
+	}
+
+	t.Run("Single policy matches", func(t *testing.T) {
+		p := makePolicy(t, fmt.Sprintf("user.attributes.id_%s == \"Engineering\"", fieldA))
+
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, fieldA)
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+		require.Equal(t, p.ID, policies[0].ID)
+	})
+
+	t.Run("Multiple policies match same field", func(t *testing.T) {
+		sharedField := model.NewId()
+		p1 := makePolicy(t, fmt.Sprintf("user.attributes.id_%s == \"Engineering\"", sharedField))
+		p2 := makePolicy(t, fmt.Sprintf("user.attributes.id_%s == \"Sales\"", sharedField))
+
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, sharedField)
+		require.NoError(t, err)
+		require.Len(t, policies, 2)
+
+		ids := []string{policies[0].ID, policies[1].ID}
+		require.Contains(t, ids, p1.ID)
+		require.Contains(t, ids, p2.ID)
+	})
+
+	t.Run("No policies match", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, policies)
+	})
+
+	t.Run("Multiple fields in one expression", func(t *testing.T) {
+		expr := fmt.Sprintf("user.attributes.id_%s == \"x\" && user.attributes.id_%s == \"y\"", fieldA, fieldB)
+		makePolicy(t, expr)
+
+		policiesA, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, fieldA)
+		require.NoError(t, err)
+		require.Len(t, policiesA, 1)
+
+		policiesB, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, fieldB)
+		require.NoError(t, err)
+		require.Len(t, policiesB, 1)
+
+		unusedField := model.NewId()
+		policiesC, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, unusedField)
+		require.NoError(t, err)
+		require.Empty(t, policiesC)
+	})
+
+	t.Run("Field removed after policy update", func(t *testing.T) {
+		updatableField := model.NewId()
+		replacementField := model.NewId()
+
+		p := makePolicy(t, fmt.Sprintf("user.attributes.id_%s == \"v1\"", updatableField))
+
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, updatableField)
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+
+		p.Rules = []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"*"},
+				Expression: fmt.Sprintf("user.attributes.id_%s == \"v2\"", replacementField),
+			},
+		}
+		_, err = ss.AccessControlPolicy().Save(rctx, p)
+		require.NoError(t, err)
+
+		policies, err = ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, updatableField)
+		require.NoError(t, err)
+		require.Empty(t, policies)
+
+		policies, err = ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, replacementField)
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+	})
+
+	t.Run("Deleted policy no longer matches", func(t *testing.T) {
+		deletableField := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"*"},
+					Expression: fmt.Sprintf("user.attributes.id_%s == \"test\"", deletableField),
+				},
+			},
+		}
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, deletableField)
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+
+		err = ss.AccessControlPolicy().Delete(rctx, saved.ID)
+		require.NoError(t, err)
+
+		policies, err = ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, deletableField)
+		require.NoError(t, err)
+		require.Empty(t, policies)
+	})
+
+	t.Run("Invalid field ID returns error", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetPoliciesByFieldID(rctx, "invalid")
+		require.Error(t, err)
+		require.Nil(t, policies)
 	})
 }
