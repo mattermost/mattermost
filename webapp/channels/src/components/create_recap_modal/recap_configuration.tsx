@@ -145,8 +145,8 @@ const RecapConfiguration = ({
                             </div>
                             <div className='recap-type-card-description'>
                                 <FormattedMessage
-                        id='recaps.modal.allUnreadsDesc'
-                        defaultMessage='Create a recap of all unread messages across your channels.'
+                                    id='recaps.modal.allUnreadsDesc'
+                                    defaultMessage='Create a recap of all unread messages across your channels.'
                                 />
                             </div>
                         </div>
