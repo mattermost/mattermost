@@ -128,7 +128,8 @@
                     "id": "channels/search",
                     "webappPaths": [
                         "webapp/channels/src/components/search*",
-                        "webapp/channels/src/components/new_search*"
+                        "webapp/channels/src/components/new_search*",
+                        "webapp/channels/src/components/search_results*"
                     ],
                     "specDirs": ["specs/functional/channels/search/"],
                     "cypressSpecDirs": [
@@ -143,6 +144,44 @@
                         "Search with date/from/in filters",
                         "View and interact with search results",
                         "Clear and reset search"
+                    ]
+                },
+                {
+                    "id": "channels/search-popout",
+                    "webappPaths": [
+                        "webapp/channels/src/components/rhs_search_popout*",
+                        "webapp/channels/src/components/rhs_popout*",
+                        "webapp/channels/src/components/popout_controller*",
+                        "webapp/channels/src/utils/popouts*"
+                    ],
+                    "specDirs": ["specs/functional/channels/search/"],
+                    "cypressSpecDirs": [],
+                    "tags": ["@search", "@popout"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Open search results in a detached popout window",
+                        "Open recent mentions in a popout window",
+                        "Open saved messages in a popout window",
+                        "Open pinned posts in a popout window",
+                        "Open channel files in a popout window",
+                        "Popout window preserves search type (messages vs files)",
+                        "Popout window does not show a second popout button"
+                    ]
+                },
+                {
+                    "id": "channels/thread-popout",
+                    "webappPaths": [
+                        "webapp/channels/src/components/thread_popout*"
+                    ],
+                    "specDirs": [],
+                    "cypressSpecDirs": [],
+                    "tags": ["@threads", "@popout"],
+                    "priority": "P1",
+                    "userFlows": [
+                        "Open a thread in a detached popout window",
+                        "Thread popout loads thread replies correctly",
+                        "Reply in popout focuses post in parent window",
+                        "Thread marked as read when popout window is focused"
                     ]
                 },
                 {
