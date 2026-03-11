@@ -77,7 +77,7 @@ const fieldNameMessages = defineMessages({
     },
     reporting_user_id: {
         id: 'property_card.field.reporting_user_id.label',
-        defaultMessage: 'Flagged by',
+        defaultMessage: 'Quarantined by',
     },
     reporting_comment: {
         id: 'property_card.field.reporting_comment.label',
@@ -101,7 +101,7 @@ const fieldNameMessages = defineMessages({
     },
     reporting_time: {
         id: 'property_card.field.reporting_time.label',
-        defaultMessage: 'Flagged at',
+        defaultMessage: 'Quarantined at',
     },
     actor_user_id: {
         id: 'property_card.field.actor_user_id.label',

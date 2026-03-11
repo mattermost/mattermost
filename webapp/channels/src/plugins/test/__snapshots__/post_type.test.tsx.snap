@@ -1,144 +1,38 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`plugins/PostMessageView should match snapshot with extended post type 1`] = `
-<PostMessageView
-  currentRelativeTeamUrl="team_url"
-  enableFormatting={true}
-  isChannelAutotranslated={false}
-  isRHS={false}
-  options={Object {}}
-  pluginPostTypes={
-    Object {
-      "testtype": Object {
-        "component": [Function],
-        "id": "some id",
-        "pluginId": "some plugin id",
-        "type": "",
-      },
-    }
-  }
-  post={
-    Object {
-      "id": "post_id",
-      "message": "this is some text",
-      "type": "testtype",
-    }
-  }
-  theme={
-    Object {
-      "awayIndicator": "#ffbc1f",
-      "buttonBg": "#1c58d9",
-      "buttonColor": "#ffffff",
-      "centerChannelBg": "#ffffff",
-      "centerChannelColor": "#3f4350",
-      "codeTheme": "github",
-      "dndIndicator": "#d24b4e",
-      "errorTextColor": "#d24b4e",
-      "linkColor": "#386fe5",
-      "mentionBg": "#ffffff",
-      "mentionBj": "#ffffff",
-      "mentionColor": "#1e325c",
-      "mentionHighlightBg": "#ffd470",
-      "mentionHighlightLink": "#1b1d22",
-      "newMessageSeparator": "#cc8f00",
-      "onlineIndicator": "#3db887",
-      "sidebarBg": "#1e325c",
-      "sidebarHeaderBg": "#192a4d",
-      "sidebarHeaderTextColor": "#ffffff",
-      "sidebarTeamBarBg": "#162545",
-      "sidebarText": "#ffffff",
-      "sidebarTextActiveBorder": "#5d89ea",
-      "sidebarTextActiveColor": "#ffffff",
-      "sidebarTextHoverBg": "#28427b",
-      "sidebarUnreadText": "#ffffff",
-      "type": "Denim",
-    }
-  }
-  userLanguage="en"
->
-  <PostTypePlugin
-    isRHS={false}
-    post={
-      Object {
-        "id": "post_id",
-        "message": "this is some text",
-        "type": "testtype",
-      }
-    }
-    theme={
-      Object {
-        "awayIndicator": "#ffbc1f",
-        "buttonBg": "#1c58d9",
-        "buttonColor": "#ffffff",
-        "centerChannelBg": "#ffffff",
-        "centerChannelColor": "#3f4350",
-        "codeTheme": "github",
-        "dndIndicator": "#d24b4e",
-        "errorTextColor": "#d24b4e",
-        "linkColor": "#386fe5",
-        "mentionBg": "#ffffff",
-        "mentionBj": "#ffffff",
-        "mentionColor": "#1e325c",
-        "mentionHighlightBg": "#ffd470",
-        "mentionHighlightLink": "#1b1d22",
-        "newMessageSeparator": "#cc8f00",
-        "onlineIndicator": "#3db887",
-        "sidebarBg": "#1e325c",
-        "sidebarHeaderBg": "#192a4d",
-        "sidebarHeaderTextColor": "#ffffff",
-        "sidebarTeamBarBg": "#162545",
-        "sidebarText": "#ffffff",
-        "sidebarTextActiveBorder": "#5d89ea",
-        "sidebarTextActiveColor": "#ffffff",
-        "sidebarTextHoverBg": "#28427b",
-        "sidebarUnreadText": "#ffffff",
-        "type": "Denim",
-      }
-    }
-  >
+<body>
+  <div>
     <span
       id="pluginId"
     >
       PostTypePlugin
     </span>
-  </PostTypePlugin>
-</PostMessageView>
+  </div>
+</body>
 `;
 
 exports[`plugins/PostMessageView should match snapshot with no extended post type 1`] = `
-<Connect(ShowMore)
-  checkOverflow={0}
-  text="this is some text"
->
-  <div
-    className="post-message__text"
-    dir="auto"
-    id="postMessageText_post_id"
-    onClick={[Function]}
-  >
-    <Connect(PostMarkdown)
-      imageProps={
-        Object {
-          "onImageHeightChanged": [Function],
-          "onImageLoaded": [Function],
-        }
-      }
-      isRHS={false}
-      message="this is some text"
-      options={Object {}}
-      post={
-        Object {
-          "id": "post_id",
-          "message": "this is some text",
-          "type": "testtype",
-        }
-      }
-    />
+<body>
+  <div>
+    <div
+      class="post-message post-message--collapsed"
+    >
+      <div
+        class="post-message__text-container"
+        style="max-height: 600px;"
+      >
+        <div
+          class="post-message__text"
+          dir="auto"
+          id="postMessageText_post_id"
+        >
+          <p>
+            this is some text
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
-  <Pluggable
-    onHeightChange={[Function]}
-    pluggableName="PostMessageAttachment"
-    postId="post_id"
-  />
-</Connect(ShowMore)>
+</body>
 `;

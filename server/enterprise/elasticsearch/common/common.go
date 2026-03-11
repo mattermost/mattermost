@@ -61,6 +61,7 @@ type ESPost struct {
 	Hashtags    []string `json:"hashtags"`
 	Attachments string   `json:"attachments"`
 	URLs        []string `json:"urls"`
+	ChannelType string   `json:"channel_type"`
 }
 
 type ESFile struct {
@@ -94,9 +95,10 @@ type ESUser struct {
 	ChannelsIds                []string `json:"channel_id"`
 }
 
-func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
+func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPost, error) {
 	p := &model.PostForIndexing{
-		TeamId: teamId,
+		TeamId:      teamId,
+		ChannelType: channelType,
 	}
 	err := post.ShallowCopy(&p.Post)
 	if err != nil {
@@ -107,14 +109,15 @@ func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
 
 func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 	searchPost := ESPost{
-		Id:        post.Id,
-		TeamId:    post.TeamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
-		CreateAt:  post.CreateAt,
-		Message:   post.Message,
-		Type:      post.Type,
-		Hashtags:  strings.Fields(post.Hashtags),
+		Id:          post.Id,
+		TeamId:      post.TeamId,
+		ChannelId:   post.ChannelId,
+		UserId:      post.UserId,
+		CreateAt:    post.CreateAt,
+		Message:     post.Message,
+		Type:        post.Type,
+		Hashtags:    strings.Fields(post.Hashtags),
+		ChannelType: post.ChannelType,
 	}
 
 	var searchAttachments []string
@@ -123,19 +126,66 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		attachmentsInterfaceArray, ok := attachments.([]any)
 		if ok {
 			for _, attachment := range attachmentsInterfaceArray {
-				if attachment != nil {
-					if attachmentText := attachment.(map[string]any)["text"]; attachmentText != nil {
-						searchAttachments = append(searchAttachments, attachmentText.(string))
+				if attachment == nil {
+					continue
+				}
+				m, mOk := attachment.(map[string]any)
+				if !mOk {
+					continue
+				}
+				for _, key := range []string{"text", "title", "pretext", "fallback"} {
+					if s, _ := m[key].(string); s != "" {
+						searchAttachments = append(searchAttachments, s)
+					}
+				}
+				if fields, fOk := m["fields"].([]any); fOk {
+					for _, f := range fields {
+						if fm, fmOk := f.(map[string]any); fmOk {
+							if s, _ := fm["title"].(string); s != "" {
+								searchAttachments = append(searchAttachments, s)
+							}
+							if v := fm["value"]; v != nil {
+								if s, vOk := v.(string); vOk {
+									if s != "" {
+										searchAttachments = append(searchAttachments, s)
+									}
+								} else {
+									searchAttachments = append(searchAttachments, fmt.Sprint(v))
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 
-		attachmentsArray, ok := attachments.([]*model.SlackAttachment)
+		attachmentsArray, ok := attachments.([]*model.MessageAttachment)
 		if ok {
 			for _, attachment := range attachmentsArray {
-				if attachment != nil {
-					searchAttachments = append(searchAttachments, attachment.Text)
+				if attachment == nil {
+					continue
+				}
+				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback} {
+					if s != "" {
+						searchAttachments = append(searchAttachments, s)
+					}
+				}
+				for _, field := range attachment.Fields {
+					if field == nil {
+						continue
+					}
+					if field.Title != "" {
+						searchAttachments = append(searchAttachments, field.Title)
+					}
+					if field.Value != nil {
+						if s, ok := field.Value.(string); ok {
+							if s != "" {
+								searchAttachments = append(searchAttachments, s)
+							}
+						} else {
+							searchAttachments = append(searchAttachments, fmt.Sprint(field.Value))
+						}
+					}
 				}
 			}
 		}

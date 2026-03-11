@@ -161,6 +161,38 @@ func (_m *AccessControlServiceInterface) GetChannelMembersToRemove(rctx request.
 	return r0, r1
 }
 
+// GetPoliciesForFieldIDs provides a mock function with given fields: rctx, fieldIDs
+func (_m *AccessControlServiceInterface) GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+	ret := _m.Called(rctx, fieldIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPoliciesForFieldIDs")
+	}
+
+	var r0 []*model.AccessControlPolicy
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.AccessControlPolicy, *model.AppError)); ok {
+		return rf(rctx, fieldIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.AccessControlPolicy); ok {
+		r0 = rf(rctx, fieldIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) *model.AppError); ok {
+		r1 = rf(rctx, fieldIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPolicy provides a mock function with given fields: rctx, id
 func (_m *AccessControlServiceInterface) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, id)

@@ -850,7 +850,7 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("user is member", func(t *testing.T) {
 		for _, rc := range remotes {
 			for _, userId := range users {
-				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId)
+				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId, false)
 				assert.NoError(t, err, "remote should be found for user")
 				assert.Equal(t, rc.RemoteId, rcFound.RemoteId, "remoteIds should match")
 			}
@@ -859,15 +859,49 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("user is not a member", func(t *testing.T) {
 		for _, rc := range remotes {
-			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId())
+			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId(), false)
 			assert.Error(t, err, "remote should not be found for user")
 			assert.Nil(t, rcFound)
 		}
 	})
 
 	t.Run("unknown remote id", func(t *testing.T) {
-		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0])
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0], false)
 		assert.Error(t, err, "remote should not be found for unknown remote id")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted false", func(t *testing.T) {
+		// Get the shared channel remote to delete
+		scr, err := ss.SharedChannel().GetRemoteByIds(channel.Id, remotes[0].RemoteId)
+		require.NoError(t, err)
+		require.NotEmpty(t, scr.Id)
+
+		// Delete the shared channel remote
+		deleted, err := ss.SharedChannel().DeleteRemote(scr.Id)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		// Should not find the remote without includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], false)
+		assert.Error(t, err, "deleted remote should not be found without includeDeleted")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted true", func(t *testing.T) {
+		// Should find the remote with includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], true)
+		assert.NoError(t, err, "deleted remote should be found with includeDeleted")
+		assert.NotNil(t, rcFound)
+		assert.Equal(t, remotes[0].RemoteId, rcFound.RemoteId, "remoteIds should match")
+	})
+
+	t.Run("deleted remote with includeDeleted true but user not a member", func(t *testing.T) {
+		// A user who is not a member of the channel should not be able to see
+		// the deleted remote, even with includeDeleted=true
+		nonMemberUserId := model.NewId()
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, nonMemberUserId, true)
+		assert.Error(t, err, "deleted remote should not be found for non-member user even with includeDeleted")
 		assert.Nil(t, rcFound)
 	})
 }
