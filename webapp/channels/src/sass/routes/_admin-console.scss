@@ -610,6 +610,10 @@
     border: variables.$border-gray;
     margin: 20px 0 10px;
     background-color: variables.$white;
+
+    &--full-height {
+        max-height: none;
+    }
 }
 
 .admin-console__disabled-text {

@@ -45,7 +45,7 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
                         </div>
                     </div>
                     <div className='job-table__panel'>
-                        <div className='job-table__table'>
+                        <div className='job-table__table job-table__table--full-height'>
                             <table
                                 className='table'
                             >
