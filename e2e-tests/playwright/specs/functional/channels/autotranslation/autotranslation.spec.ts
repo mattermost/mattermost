@@ -834,95 +834,95 @@ test(
     },
 );
 
-test(
-    'message actions include Show translation',
-    {
-        tag: ['@autotranslation'],
-    },
-    async ({pw}) => {
-        test.skip(true, 'Skipped due to flaky race condition - see https://github.com/mattermost/mattermost/pull/35443');
-        const {adminClient, user, userClient, team} = await pw.initSetup();
-
-        const license = await adminClient.getClientLicenseOld();
-        // test.skip(
-        //     !hasAutotranslationLicense(license.SkuShortName),
-        //     'Skipping test - server does not have Entry or Advanced license',
-        // );
-        const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
-        await enableAutotranslationConfig(adminClient, {
-            mockBaseUrl: translationUrl,
-            targetLanguages: ['en', 'es'],
-        });
-
-        const channelName = `autotranslation-dotmenu-${await getRandomId()}`;
-        const created = await adminClient.createChannel({
-            team_id: team.id,
-            name: channelName,
-            display_name: 'Dot Menu Show Translation Test',
-            type: 'O',
-        });
-        await enableChannelAutotranslation(adminClient, created.id);
-        await adminClient.addToChannel(user.id, created.id);
-        await setUserChannelAutotranslation(userClient, created.id, true);
-
-        const poster = await pw.random.user('poster');
-        const createdPoster = await adminClient.createUser(poster, '', '');
-        await adminClient.addToTeam(team.id, createdPoster.id);
-        await adminClient.addToChannel(createdPoster.id, created.id);
-        const {client: posterClient} = await pw.makeClient({
-            username: poster.username,
-            password: poster.password,
-        });
-        if (!posterClient) throw new Error('Failed to create poster client');
-
-        // Create a second poster to show translation indicator (only visible with multiple users)
-        const poster2 = await pw.random.user('poster2');
-        const createdPoster2 = await adminClient.createUser(poster2, '', '');
-        await adminClient.addToTeam(team.id, createdPoster2.id);
-        await adminClient.addToChannel(createdPoster2.id, created.id);
-        const {client: posterClient2} = await pw.makeClient({
-            username: poster2.username,
-            password: poster2.password,
-        });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
-
-        // Set Spanish source to ensure translation happens
-        await setMockSourceLanguage(translationUrl, 'es');
-        // Post Spanish message that's long enough for reliable detection
-        await posterClient.createPost({
-            channel_id: created.id,
-            message: 'Este mensaje es para probar el menú de acciones con la opción de mostrar traducción automática',
-            user_id: createdPoster.id,
-        });
-        // Second user posts a message so the first user's translation indicator appears
-        await posterClient2.createPost({
-            channel_id: created.id,
-            message: 'Segundo usuario con mensaje más largo para mejor detección de idioma',
-            user_id: createdPoster2.id,
-        });
-
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channelName);
-        await channelsPage.toBeVisible();
-
-        // * Find post with message text and wait for translation before opening dot menu
-        const messagePost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
-        await messagePost.waitFor({state: 'visible', timeout: 15000});
-
-        // Wait for mock translation to be applied before opening the menu
-        // (mock appends "[translated to en]"; Show translation only appears after translation)
-        await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
-
-        await messagePost.hover();
-        // Click the "more" (three dots) button to open the action menu
-        await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
-
-        const showTranslationItem = page.getByRole('menuitem', {name: 'Show translation'});
-        await expect(showTranslationItem).toBeVisible({timeout: 10000});
-    },
-);
+// Skipped due to flaky race condition - see https://github.com/mattermost/mattermost/pull/35443
+// test(
+//     'message actions include Show translation',
+//     {
+//         tag: ['@autotranslation'],
+//     },
+//     async ({pw}) => {
+//         const {adminClient, user, userClient, team} = await pw.initSetup();
+//
+//         const license = await adminClient.getClientLicenseOld();
+//         test.skip(
+//             !hasAutotranslationLicense(license.SkuShortName),
+//             'Skipping test - server does not have Entry or Advanced license',
+//         );
+//         const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
+//         await enableAutotranslationConfig(adminClient, {
+//             mockBaseUrl: translationUrl,
+//             targetLanguages: ['en', 'es'],
+//         });
+//
+//         const channelName = `autotranslation-dotmenu-${await getRandomId()}`;
+//         const created = await adminClient.createChannel({
+//             team_id: team.id,
+//             name: channelName,
+//             display_name: 'Dot Menu Show Translation Test',
+//             type: 'O',
+//         });
+//         await enableChannelAutotranslation(adminClient, created.id);
+//         await adminClient.addToChannel(user.id, created.id);
+//         await setUserChannelAutotranslation(userClient, created.id, true);
+//
+//         const poster = await pw.random.user('poster');
+//         const createdPoster = await adminClient.createUser(poster, '', '');
+//         await adminClient.addToTeam(team.id, createdPoster.id);
+//         await adminClient.addToChannel(createdPoster.id, created.id);
+//         const {client: posterClient} = await pw.makeClient({
+//             username: poster.username,
+//             password: poster.password,
+//         });
+//         if (!posterClient) throw new Error('Failed to create poster client');
+//
+//         // Create a second poster to show translation indicator (only visible with multiple users)
+//         const poster2 = await pw.random.user('poster2');
+//         const createdPoster2 = await adminClient.createUser(poster2, '', '');
+//         await adminClient.addToTeam(team.id, createdPoster2.id);
+//         await adminClient.addToChannel(createdPoster2.id, created.id);
+//         const {client: posterClient2} = await pw.makeClient({
+//             username: poster2.username,
+//             password: poster2.password,
+//         });
+//         if (!posterClient2) throw new Error('Failed to create second poster client');
+//
+//         // Set Spanish source to ensure translation happens
+//         await setMockSourceLanguage(translationUrl, 'es');
+//         // Post Spanish message that's long enough for reliable detection
+//         await posterClient.createPost({
+//             channel_id: created.id,
+//             message: 'Este mensaje es para probar el menú de acciones con la opción de mostrar traducción automática',
+//             user_id: createdPoster.id,
+//         });
+//         // Second user posts a message so the first user's translation indicator appears
+//         await posterClient2.createPost({
+//             channel_id: created.id,
+//             message: 'Segundo usuario con mensaje más largo para mejor detección de idioma',
+//             user_id: createdPoster2.id,
+//         });
+//
+//         const {channelsPage, page} = await pw.testBrowser.login(user);
+//         await channelsPage.goto(team.name, channelName);
+//         await channelsPage.toBeVisible();
+//
+//         // * Find post with message text and wait for translation before opening dot menu
+//         const messagePost = channelsPage.centerView.container
+//             .locator('[id^="post_"]')
+//             .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
+//         await messagePost.waitFor({state: 'visible', timeout: 15000});
+//
+//         // Wait for mock translation to be applied before opening the menu
+//         // (mock appends "[translated to en]"; Show translation only appears after translation)
+//         await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
+//
+//         await messagePost.hover();
+//         // Click the "more" (three dots) button to open the action menu
+//         await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
+//
+//         const showTranslationItem = page.getByRole('menuitem', {name: 'Show translation'});
+//         await expect(showTranslationItem).toBeVisible({timeout: 10000});
+//     },
+// );
 
 test(
     'any user can disable and enable again autotranslation for themselves in a channel',
