@@ -196,6 +196,12 @@ jobs:
                 for (const cf of plan.coveredFlows) {
                   const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
                   lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''}`);
+                  if (cf.advisoryScenarios && cf.advisoryScenarios.length > 0) {
+                    lines.push(`  💡 New behavior in this PR — consider adding:`);
+                    for (const s of cf.advisoryScenarios) {
+                      lines.push(`  - [ ] ${s}`);
+                    }
+                  }
                 }
                 lines.push('');
                 lines.push('</details>');
