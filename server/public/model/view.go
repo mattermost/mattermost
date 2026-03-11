@@ -98,7 +98,6 @@ const ViewQueryDefaultPerPage = 20
 const ViewQueryMaxPerPage = 200
 
 type ViewQueryOpts struct {
-	IncludeDeleted bool
 	// Page is the 0-based page number for limit/offset pagination.
 	Page int
 	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (20).

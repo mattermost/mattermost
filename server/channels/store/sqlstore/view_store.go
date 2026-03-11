@@ -161,9 +161,7 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 		Limit(uint64(opts.PerPage)).
 		Offset(uint64(opts.Page * opts.PerPage))
 
-	if !opts.IncludeDeleted {
-		builder = builder.Where(sq.Eq{"DeleteAt": 0})
-	}
+	builder = builder.Where(sq.Eq{"DeleteAt": 0})
 
 	var rows []dbView
 	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
@@ -192,9 +190,7 @@ func (s *SqlViewStore) CountForChannel(channelID string, opts model.ViewQueryOpt
 		From("Views").
 		Where(sq.Eq{"ChannelId": channelID})
 
-	if !opts.IncludeDeleted {
-		builder = builder.Where(sq.Eq{"DeleteAt": 0})
-	}
+	builder = builder.Where(sq.Eq{"DeleteAt": 0})
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {

@@ -198,23 +198,6 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		assert.Equal(t, saved[2].Id, page2[0].Id)
 	})
 
-	t.Run("includes deleted when IncludeDeleted=true", func(t *testing.T) {
-		ch := model.NewId()
-		creator := model.NewId()
-		v := makeView(ch, creator)
-		v.Title = "IncDel Board"
-		saved, err := ss.View().Save(v)
-		require.NoError(t, err)
-
-		err = ss.View().Delete(saved.Id, model.GetMillis())
-		require.NoError(t, err)
-
-		views, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{IncludeDeleted: true})
-		require.NoError(t, err)
-		assert.Len(t, views, 1)
-		assert.Equal(t, saved.Id, views[0].Id)
-	})
-
 	t.Run("respects SortOrder ordering across pages", func(t *testing.T) {
 		ch := model.NewId()
 		creator := model.NewId()

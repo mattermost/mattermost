@@ -7744,9 +7744,6 @@ func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
 		if o.PerPage > 0 {
 			query.Set("per_page", strconv.Itoa(o.PerPage))
 		}
-		if o.IncludeDeleted {
-			query.Set("include_deleted", c.boolString(true))
-		}
 		if o.Page > 0 {
 			query.Set("page", strconv.Itoa(o.Page))
 		}

@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -110,7 +109,6 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		Page:    c.Params.Page,
 		PerPage: c.Params.PerPage,
 	}
-	opts.IncludeDeleted, _ = strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
 	views, appErr := c.App.GetViewsForChannel(c.AppContext, c.Params.ChannelId, opts)
 	if appErr != nil {

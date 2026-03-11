@@ -34,13 +34,6 @@
             type: integer
             default: 0
             minimum: 0
-        - name: include_deleted
-          in: query
-          description: Whether to include soft-deleted views
-          required: false
-          schema:
-            type: boolean
-            default: false
         - name: include_total_count
           in: query
           description: >

@@ -256,24 +256,6 @@ func TestGetViewsForChannel(t *testing.T) {
 		require.Len(t, views, 1)
 	})
 
-	t.Run("includes deleted views with include_deleted", func(t *testing.T) {
-		channel := th.CreatePublicChannel(t)
-
-		created, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
-		require.NoError(t, err)
-		_, _, err = th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
-		require.NoError(t, err)
-
-		resp, err := th.Client.DeleteView(context.Background(), channel.Id, created.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{IncludeDeleted: true})
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.Len(t, views, 2)
-	})
-
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
