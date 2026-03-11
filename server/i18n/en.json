@@ -6739,6 +6739,10 @@
     "translation": "Error fetching last accessible post"
   },
   {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Failed to get single-channel guest count."
+  },
+  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
   },
@@ -6977,6 +6981,10 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
   },
   {
     "id": "app.pap.get_policy.app_error",
@@ -8199,6 +8207,10 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Failed to get single-channel guest count for analytics."
   },
   {
     "id": "app.user.check_user_password.failed_migration",

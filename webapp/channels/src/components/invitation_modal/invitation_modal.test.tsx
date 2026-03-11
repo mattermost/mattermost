@@ -108,6 +108,9 @@ describe('InvitationModal', () => {
                     },
                 },
             },
+            limits: {
+                serverLimits: {},
+            },
         },
     };
 
