@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
@@ -21,15 +21,10 @@ type Props = {
 
 const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
     const {formatMessage} = useIntl();
-    const nameInputRef = useRef<HTMLInputElement>(null);
     const [touched, setTouched] = useState(false);
     const hasUnreadChannels = unreadChannels.length > 0;
 
     const showError = touched && recapName.trim().length === 0;
-
-    useEffect(() => {
-        nameInputRef.current?.focus();
-    }, []);
 
     const handleBlur = useCallback(() => {
         setTouched(true);
@@ -77,9 +72,9 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                 </label>
                 <div className={`input-container${showError ? ' has-error' : ''}`}>
                     <input
-                        ref={nameInputRef}
                         id='recap-name-input'
                         type='text'
+                        autoFocus={true}
                         className={`form-control${showError ? ' input-error' : ''}`}
                         placeholder={formatMessage({id: 'recaps.modal.namePlaceholder', defaultMessage: 'Give your recap a name'})}
                         value={recapName}
