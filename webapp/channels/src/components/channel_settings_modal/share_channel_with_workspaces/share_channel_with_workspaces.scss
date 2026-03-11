@@ -77,6 +77,12 @@
         }
     }
 
+    &__noWorkspacesMessage {
+        font-size: 12px;
+        line-height: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
     &__addBtn {
         align-self: flex-start;
     }

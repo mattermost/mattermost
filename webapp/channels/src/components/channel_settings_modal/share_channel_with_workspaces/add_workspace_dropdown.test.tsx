@@ -4,48 +4,51 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AddWorkspaceDropdown from './add_workspace_dropdown';
 
-jest.mock('mattermost-redux/client', () => ({
-    Client4: {
-        getRemoteClusters: jest.fn().mockResolvedValue([
-            {
-                remote_id: 'remote1',
-                name: 'nebula',
-                display_name: 'Nebula Networks',
-            },
-            {
-                remote_id: 'remote2',
-                name: 'cascade',
-                display_name: 'Cascade Collaborative',
-            },
-        ]),
+const mockRemoteClusters: RemoteCluster[] = [
+    {
+        remote_id: 'remote1',
+        name: 'nebula',
+        display_name: 'Nebula Networks',
+        remote_team_id: '',
+        site_url: 'https://nebula.example.com',
+        create_at: 0,
+        delete_at: 0,
+        last_ping_at: 0,
+        topics: '',
+        creator_id: '',
+        plugin_id: '',
+        options: 0,
+        default_team_id: '',
     },
-}));
+    {
+        remote_id: 'remote2',
+        name: 'cascade',
+        display_name: 'Cascade Collaborative',
+        remote_team_id: '',
+        site_url: 'https://cascade.example.com',
+        create_at: 0,
+        delete_at: 0,
+        last_ping_at: 0,
+        topics: '',
+        creator_id: '',
+        plugin_id: '',
+        options: 0,
+        default_team_id: '',
+    },
+];
 
 describe('AddWorkspaceDropdown', () => {
     const defaultProps: ComponentProps<typeof AddWorkspaceDropdown> = {
         currentRemoteIds: new Set<string>(),
         onAdd: jest.fn(),
+        remoteClusters: mockRemoteClusters,
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        (require('mattermost-redux/client').Client4.getRemoteClusters as jest.Mock).mockResolvedValue([
-            {
-                remote_id: 'remote1',
-                name: 'nebula',
-                display_name: 'Nebula Networks',
-            },
-            {
-                remote_id: 'remote2',
-                name: 'cascade',
-                display_name: 'Cascade Collaborative',
-            },
-        ]);
-    });
 
     it('should render Add workspace button', () => {
         renderWithContext(<AddWorkspaceDropdown {...defaultProps}/>);
@@ -58,10 +61,7 @@ describe('AddWorkspaceDropdown', () => {
 
         await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
-        await waitFor(() => {
-            expect(screen.getByText('Nebula Networks')).toBeInTheDocument();
-        });
-
+        expect(screen.getByText('Nebula Networks')).toBeInTheDocument();
         expect(screen.getByText('Cascade Collaborative')).toBeInTheDocument();
     });
 
@@ -70,9 +70,7 @@ describe('AddWorkspaceDropdown', () => {
 
         await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
-        await waitFor(() => {
-            expect(screen.getByText('Nebula Networks')).toBeInTheDocument();
-        });
+        expect(screen.getByText('Nebula Networks')).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
@@ -93,20 +91,14 @@ describe('AddWorkspaceDropdown', () => {
 
         await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
-        await waitFor(() => {
-            expect(screen.getByText(/All connected workspaces are already sharing this channel/)).toBeInTheDocument();
-        });
+        expect(screen.getByText(/No other connected workspaces available/)).toBeInTheDocument();
     });
 
-    it('should show error when getRemoteClusters fails', async () => {
-        (require('mattermost-redux/client').Client4.getRemoteClusters as jest.Mock).mockRejectedValue(new Error('Network error'));
-
-        renderWithContext(<AddWorkspaceDropdown {...defaultProps}/>);
+    it('should show loading when remoteClusters is null', async () => {
+        renderWithContext(<AddWorkspaceDropdown {...defaultProps} remoteClusters={null}/>);
 
         await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
-        await waitFor(() => {
-            expect(screen.getByText('Network error')).toBeInTheDocument();
-        });
+        expect(screen.getByText(/Loading workspaces/)).toBeInTheDocument();
     });
 });

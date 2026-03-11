@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
+
+import {Client4} from 'mattermost-redux/client';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import Toggle from 'components/toggle';
@@ -31,6 +34,29 @@ export default function ShareChannelWithWorkspaces({
     onRemotesChange,
 }: Props) {
     const {formatMessage} = useIntl();
+
+    const [availableRemoteClusters, setAvailableRemoteClusters] = useState<RemoteCluster[] | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        Client4.getRemoteClusters({
+            excludePlugins: true,
+            onlyConfirmed: true,
+        }).then((data) => {
+            if (!cancelled) {
+                setAvailableRemoteClusters(data || []);
+            }
+        }).catch(() => {
+            if (!cancelled) {
+                setAvailableRemoteClusters([]);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const hasAvailableWorkspaces = availableRemoteClusters !== null && availableRemoteClusters.length > 0;
 
     const [enabled, setEnabled] = useState(remotes.length > 0);
     const currentRemoteIds = useMemo(() => new Set(remotes.map((w) => w.remote_id || w.name)), [remotes]);
@@ -116,13 +142,26 @@ export default function ShareChannelWithWorkspaces({
                         size='btn-md'
                         onToggle={handleToggle}
                         toggled={enabled}
-                        tabIndex={0}
+                        disabled={!hasAvailableWorkspaces}
+                        tabIndex={hasAvailableWorkspaces ? 0 : -1}
                         toggleClassName='btn-toggle-primary'
                     />
                 </div>
             </div>
 
-            {enabled && (
+            {!hasAvailableWorkspaces && (
+                <div className='channel_shared_with_workspaces_section_body'>
+                    <span className='ShareChannelWithWorkspaces__noWorkspacesMessage'>
+                        <i className='icon icon-information-outline'/>
+                        <FormattedMessage
+                            id='channel_settings.share_channel_with_workspaces.no_workspaces_available'
+                            defaultMessage='No connected workspaces are available. Contact your system admin to add one.'
+                        />
+                    </span>
+                </div>
+            )}
+
+            {hasAvailableWorkspaces && enabled && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__listHeader'>
                         {remotes.length > 0 ? (
@@ -146,6 +185,7 @@ export default function ShareChannelWithWorkspaces({
                     <AddWorkspaceDropdown
                         currentRemoteIds={currentRemoteIds}
                         onAdd={handleAdd}
+                        remoteClusters={availableRemoteClusters}
                     />
                 </div>
             )}

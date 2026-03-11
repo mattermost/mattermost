@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
-
-import {Client4} from 'mattermost-redux/client';
 
 import * as Menu from 'components/menu';
 
@@ -16,6 +14,9 @@ export type RemoteToAdd = {remote_id: string; display_name: string};
 type Props = {
     currentRemoteIds: Set<string>;
     onAdd: (remotes: RemoteToAdd[]) => void;
+
+    /** When provided, this list is used instead of fetching on open. null = still loading. */
+    remoteClusters?: RemoteCluster[] | null;
 };
 
 const MENU_ID = 'add_workspace_to_channel_menu';
@@ -23,42 +24,9 @@ const MENU_ID = 'add_workspace_to_channel_menu';
 export default function AddWorkspaceDropdown({
     currentRemoteIds,
     onAdd,
+    remoteClusters = undefined,
 }: Props) {
     const {formatMessage} = useIntl();
-    const [remotes, setRemotes] = useState<RemoteCluster[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const isFetchingRef = useRef(false);
-
-    const loadRemotes = useCallback(async () => {
-        if (isFetchingRef.current) {
-            return;
-        }
-        isFetchingRef.current = true;
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await Client4.getRemoteClusters({
-                excludePlugins: true,
-                onlyConfirmed: true,
-            });
-            setRemotes(data || []);
-        } catch (err: unknown) {
-            setError((err as Error)?.message || formatMessage({
-                id: 'add_workspace_modal.error',
-                defaultMessage: 'Failed to load workspaces',
-            }));
-        } finally {
-            setLoading(false);
-            isFetchingRef.current = false;
-        }
-    }, [formatMessage]);
-
-    const handleToggle = useCallback((isOpen: boolean) => {
-        if (isOpen) {
-            loadRemotes();
-        }
-    }, [loadRemotes]);
 
     const handleSelect = useCallback((rc: RemoteCluster) => {
         onAdd([{
@@ -67,6 +35,8 @@ export default function AddWorkspaceDropdown({
         }]);
     }, [onAdd]);
 
+    const loading = remoteClusters === null;
+    const remotes = remoteClusters ?? [];
     const available = remotes.filter((r) => !currentRemoteIds.has(r.remote_id));
 
     const menuButton = useMemo(() => ({
@@ -96,8 +66,7 @@ export default function AddWorkspaceDropdown({
             id: 'channel_settings.share_channel_with_workspaces.add_aria',
             defaultMessage: 'Add workspace',
         }),
-        onToggle: handleToggle,
-    }), [formatMessage, handleToggle]);
+    }), [formatMessage]);
 
     return (
         <Menu.Container
@@ -116,14 +85,7 @@ export default function AddWorkspaceDropdown({
                     disabled={true}
                 />
             )}
-            {!loading && error && (
-                <Menu.Item
-                    id={`${MENU_ID}-error`}
-                    labels={<span>{error}</span>}
-                    disabled={true}
-                />
-            )}
-            {!loading && !error && available.length === 0 && (
+            {!loading && available.length === 0 && (
                 <Menu.Item
                     id={`${MENU_ID}-empty`}
                     labels={
@@ -135,7 +97,7 @@ export default function AddWorkspaceDropdown({
                     disabled={true}
                 />
             )}
-            {!loading && !error && available.map((rc) => (
+            {!loading && available.map((rc) => (
                 <Menu.Item
                     key={rc.remote_id}
                     id={`${MENU_ID}-item-${rc.remote_id}`}
