@@ -79,46 +79,22 @@ jobs:
         working-directory: e2e-tests/playwright
         run: npm ci --ignore-scripts
 
-      - name: ci/e2e-coverage/build-ci-config
-        working-directory: e2e-tests/playwright
-        run: |
-          # CI: keep the mattermost profile (strict evidence policy) but enable
-          # AI flow detection and AI test mapping so coverage gaps are detected
-          # even without a local traceability manifest (gitignored, local only).
-          jq '
-            .impact.aiFlow.enabled = true |
-            .impact.aiFlow.provider = "auto" |
-            .impact.aiMapping.enabled = true |
-            .impact.aiMapping.provider = "auto"
-          ' e2e-ai-agents.config.json > e2e-ai-agents.ci.config.json
-
-      - name: ci/e2e-coverage/impact-analysis
-        id: impact
-        working-directory: e2e-tests/playwright
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        continue-on-error: true
-        run: |
-          npx e2e-ai-agents impact \
-            --config ./e2e-ai-agents.ci.config.json \
-            --since origin/${{ github.base_ref }} \
-            --allow-fallback
-
       - name: ci/e2e-coverage/plan-enforcement
         id: plan
-        if: steps.impact.outcome == 'success'
         working-directory: e2e-tests/playwright
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # V2: Deterministic graph-based analysis — no AI API calls needed.
+        # ANTHROPIC_API_KEY is no longer required for the default path.
         # continue-on-error so we can post the PR comment before failing
         continue-on-error: true
         run: |
           npx e2e-ai-agents plan \
-            --config ./e2e-ai-agents.ci.config.json \
+            --config ./e2e-ai-agents.config.json \
+            --since origin/${{ github.base_ref }} \
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
       - name: ci/e2e-coverage/post-pr-comment
+        if: always() && needs.check-override.outputs.skip == 'false'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
@@ -127,8 +103,8 @@ jobs:
             const marker = '<!-- e2e-coverage-gate -->';
 
             let body;
-            if ('${{ steps.impact.outcome }}' === 'failure') {
-              body = '> ⚠️ **E2E Coverage Gate — analysis error**\n> The impact analysis step failed. Check the [workflow logs](' + context.payload.pull_request.html_url + '/checks) for details.';
+            if ('${{ steps.plan.outcome }}' === 'failure' && !fs.existsSync(planPath)) {
+              body = '> ⚠️ **E2E Coverage Gate — analysis error**\n> The plan analysis step failed. Check the [workflow logs](' + context.payload.pull_request.html_url + '/checks) for details.';
             } else if (fs.existsSync(planPath)) {
               const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
               const {action, title, summary} = plan.decision;
@@ -227,7 +203,7 @@ jobs:
             }
 
       - name: ci/e2e-coverage/fail-if-gaps
-        if: steps.plan.outcome == 'failure'
+        if: always() && steps.plan.outcome == 'failure'
         run: |
           echo "::error::E2E coverage check failed — E2E tests are required for flows impacted by this PR."
           echo "See the PR comment for the list of affected flows and suggested tests to add."
