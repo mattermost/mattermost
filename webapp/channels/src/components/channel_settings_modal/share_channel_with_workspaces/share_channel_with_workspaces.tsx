@@ -11,6 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import Toggle from 'components/toggle';
+import WithTooltip from 'components/with_tooltip';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
 import type {WorkspaceWithStatus} from './types';
@@ -136,16 +137,28 @@ export default function ShareChannelWithWorkspaces({
                     </label>
                 </div>
                 <div className='channel_shared_with_workspaces_header__toggle'>
-                    <Toggle
-                        id='shareChannelWithWorkspacesToggle'
-                        ariaLabel={heading}
-                        size='btn-md'
-                        onToggle={handleToggle}
-                        toggled={enabled}
-                        disabled={!hasAvailableWorkspaces}
-                        tabIndex={hasAvailableWorkspaces ? 0 : -1}
-                        toggleClassName='btn-toggle-primary'
-                    />
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
+                            defaultMessage: 'No connected workspaces are available',
+                        })}
+                        hint={formatMessage({
+                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
+                            defaultMessage: 'Contact your system admin to add one.',
+                        })}
+                        disabled={hasAvailableWorkspaces}
+                    >
+                        <Toggle
+                            id='shareChannelWithWorkspacesToggle'
+                            ariaLabel={heading}
+                            size='btn-md'
+                            onToggle={handleToggle}
+                            toggled={enabled && hasAvailableWorkspaces}
+                            disabled={!hasAvailableWorkspaces}
+                            tabIndex={hasAvailableWorkspaces ? 0 : -1}
+                            toggleClassName='btn-toggle-primary'
+                        />
+                    </WithTooltip>
                 </div>
             </div>
 
