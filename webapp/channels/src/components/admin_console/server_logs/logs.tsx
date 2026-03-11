@@ -184,7 +184,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
         const pad = (n: number) => String(n).padStart(2, '0');
         const formatDate = (d: Date) => {
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000 +00:00`;
+            return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000 +00:00`;
         };
 
         const newDateFrom = formatDate(from);
