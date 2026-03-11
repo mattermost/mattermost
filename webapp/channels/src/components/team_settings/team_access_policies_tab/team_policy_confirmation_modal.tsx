@@ -12,9 +12,10 @@ type Props = {
     channelsAffected: number;
     onExited: () => void;
     onConfirm: () => void;
+    saving?: boolean;
 }
 
-export default function TeamPolicyConfirmationModal({channelsAffected, onExited, onConfirm}: Props) {
+export default function TeamPolicyConfirmationModal({channelsAffected, onExited, onConfirm, saving}: Props) {
     const {formatMessage} = useIntl();
 
     return (
@@ -44,6 +45,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, onExited,
                         type='button'
                         className='btn btn-danger'
                         onClick={onConfirm}
+                        disabled={saving}
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.apply', defaultMessage: 'Apply policy'})}
                     </button>

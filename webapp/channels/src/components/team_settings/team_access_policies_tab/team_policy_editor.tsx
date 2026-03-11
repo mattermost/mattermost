@@ -14,6 +14,10 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
+import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
+import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -24,10 +28,6 @@ import type {SaveChangesPanelState} from 'components/widgets/modals/components/s
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 
-import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
-import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
-import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
-import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import TeamPolicyConfirmationModal from './team_policy_confirmation_modal';
 
 import './team_policy_editor.scss';
@@ -84,7 +84,6 @@ export default function TeamPolicyEditor({
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
 
-
     // Editor mode
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
 
@@ -138,7 +137,6 @@ export default function TeamPolicyEditor({
                 setOriginalName(result.data.name || '');
                 setExpression(result.data.rules?.[0]?.expression || '');
                 setOriginalExpression(result.data.rules?.[0]?.expression || '');
-
             }
         });
         actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
@@ -337,6 +335,13 @@ export default function TeamPolicyEditor({
         }
         setShowDeleteModal(false);
         try {
+            // Unassign locally-removed channels first so child policies are deleted
+            if (channelChanges.removedCount > 0) {
+                const unassignResult = await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
+                if (unassignResult.error?.server_error_id) {
+                    throw new Error(unassignResult.error.message || 'Failed to unassign channels');
+                }
+            }
             const result = await actions.deletePolicy(policyId);
             if (result.error?.server_error_id) {
                 throw new Error(result.error.message || 'Failed to delete policy');
@@ -346,7 +351,7 @@ export default function TeamPolicyEditor({
             setFormError(error.message || 'Error deleting policy');
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
         }
-    }, [policyId, actions, onNavigateBack]);
+    }, [policyId, actions, onNavigateBack, channelChanges]);
 
     const filteredAttributes = useMemo(() => {
         return autocompleteResult.filter((attr) => {
@@ -408,7 +413,10 @@ export default function TeamPolicyEditor({
                 </p>
             </div>
 
-            <Card expanded={true} className='TeamPolicyEditor__card'>
+            <Card
+                expanded={true}
+                className='TeamPolicyEditor__card'
+            >
                 <Card.Header>
                     <TitleAndButtonCardHeader
                         title={
@@ -425,9 +433,15 @@ export default function TeamPolicyEditor({
                         }
                         buttonText={
                             editorMode === 'table' ? (
-                                <FormattedMessage id='admin.access_control.policy.edit_policy.switch_to_advanced' defaultMessage='Switch to Advanced Mode'/>
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.switch_to_advanced'
+                                    defaultMessage='Switch to Advanced Mode'
+                                />
                             ) : (
-                                <FormattedMessage id='admin.access_control.policy.edit_policy.switch_to_simple' defaultMessage='Switch to Simple Mode'/>
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.switch_to_simple'
+                                    defaultMessage='Switch to Simple Mode'
+                                />
                             )
                         }
                         onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
@@ -462,12 +476,24 @@ export default function TeamPolicyEditor({
                 </Card.Body>
             </Card>
 
-            <Card expanded={true} className='console add-channels'>
+            <Card
+                expanded={true}
+                className='TeamPolicyEditor__card'
+            >
                 <Card.Header>
                     <TitleAndButtonCardHeader
-                        title={<FormattedMessage id='admin.access_control.policy.edit_policy.channel_selector.title' defaultMessage='Assigned channels'/>}
-                        subtitle={<FormattedMessage id='admin.access_control.policy.edit_policy.channel_selector.subtitle' defaultMessage='Add channels that this attribute-based access policy will apply to.'/>}
-                        buttonText={<FormattedMessage id='admin.access_control.policy.edit_policy.channel_selector.addChannels' defaultMessage='Add channels'/>}
+                        title={<FormattedMessage
+                            id='admin.access_control.policy.edit_policy.channel_selector.title'
+                            defaultMessage='Assigned channels'
+                               />}
+                        subtitle={<FormattedMessage
+                            id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
+                            defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                                  />}
+                        buttonText={<FormattedMessage
+                            id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
+                            defaultMessage='Add channels'
+                                    />}
                         onClick={() => setAddChannelOpen(true)}
                     />
                 </Card.Header>
@@ -487,19 +513,34 @@ export default function TeamPolicyEditor({
             </Card>
 
             {policyId && (
-                <Card expanded={true} className='TeamPolicyEditor__card TeamPolicyEditor__delete-section'>
+                <Card
+                    expanded={true}
+                    className='TeamPolicyEditor__card TeamPolicyEditor__delete-section'
+                >
                     <Card.Header>
                         <TitleAndButtonCardHeader
-                            title={<FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.title' defaultMessage='Delete policy'/>}
+                            title={<FormattedMessage
+                                id='admin.access_control.policy.edit_policy.delete_policy.title'
+                                defaultMessage='Delete policy'
+                                   />}
                             subtitle={
                                 hasChannels() ? (
-                                    <FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources' defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'/>
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
+                                        defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                    />
                                 ) : (
-                                    <FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.subtitle' defaultMessage='This policy will be deleted and cannot be recovered.'/>
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.delete_policy.subtitle'
+                                        defaultMessage='This policy will be deleted and cannot be recovered.'
+                                    />
                                 )
                             }
-                            buttonText={<FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.delete' defaultMessage='Delete'/>}
-                            onClick={() => hasChannels() ? undefined : setShowDeleteModal(true)}
+                            buttonText={<FormattedMessage
+                                id='admin.access_control.policy.edit_policy.delete_policy.delete'
+                                defaultMessage='Delete'
+                                        />}
+                            onClick={() => (hasChannels() ? undefined : setShowDeleteModal(true))}
                             isDisabled={hasChannels()}
                         />
                     </Card.Header>
@@ -523,6 +564,7 @@ export default function TeamPolicyEditor({
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSave}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                    saving={saving}
                 />
             )}
 

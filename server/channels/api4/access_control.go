@@ -187,8 +187,21 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			if teamID != "" && model.IsValidId(teamID) &&
 				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
 				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
-					c.Err = appErr
-					return
+					// Allow delete if the policy is a channelless parent (channels were just unassigned)
+					policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+					if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
+						c.Err = appErr
+						return
+					}
+					childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+						ParentID: policyID,
+						Type:     model.AccessControlPolicyTypeChannel,
+						Limit:    1,
+					})
+					if searchErr != nil || len(childCount) > 0 {
+						c.Err = appErr
+						return
+					}
 				}
 			} else {
 				c.SetPermissionError(model.PermissionManageSystem)
