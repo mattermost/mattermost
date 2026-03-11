@@ -241,6 +241,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             logs={plainLogs}
             nextPage={() => setPlainPage((p) => p + 1)}
             previousPage={() => setPlainPage((p) => Math.max(0, p - 1))}
+            goToPage={(p: number) => setPlainPage(Math.max(0, p))}
             page={plainPage}
             perPage={perPage}
             onReload={reload}

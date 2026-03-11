@@ -284,6 +284,49 @@
             opacity: 0.32;
             cursor: default;
         }
+
+        &--page-num {
+            width: auto;
+            min-width: 28px;
+            padding: 0 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    }
+
+    // Go to page input
+    &__goto-page {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    &__goto-input {
+        width: 56px;
+        padding: 2px 6px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 12px;
+        outline: none;
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 1px var(--button-bg);
+        }
+
+        // Hide number input spinners
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            appearance: none;
+            margin: 0;
+        }
+
+        -moz-appearance: textfield;
     }
 }
 

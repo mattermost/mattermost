@@ -13,6 +13,7 @@ type Props = {
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
+    goToPage: (page: number) => void;
     onReload: () => void;
     downloadUrl: string;
 };
@@ -174,7 +175,7 @@ function highlightPlainLog(line: string): React.ReactNode {
 }
 
 export default function PlainLogList({
-    loading, logs: rawLogs, page, perPage, nextPage, previousPage, onReload, downloadUrl,
+    loading, logs: rawLogs, page, perPage, nextPage, previousPage, goToPage, onReload, downloadUrl,
 }: Props) {
     const logs = rawLogs || [];
     const intl = useIntl();
@@ -183,13 +184,21 @@ export default function PlainLogList({
     const [wrapText, setWrapText] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     const [showLineNumbers, setShowLineNumbers] = useState(true);
+    const [newestFirst, setNewestFirst] = useState(false);
+    const [goToPageInput, setGoToPageInput] = useState('');
+    const [showGoToPage, setShowGoToPage] = useState(false);
+
+    // Reverse logs if newest-first
+    const displayLogs = useMemo(() => {
+        return newestFirst ? [...logs].reverse() : logs;
+    }, [logs, newestFirst]);
 
     // Auto-scroll to bottom when follow tail is on
     useEffect(() => {
         if (followTail && logPanelRef.current) {
             logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
         }
-    }, [logs, followTail]);
+    }, [displayLogs, followTail]);
 
     // Detect manual scroll to auto-disable follow tail
     const handleScroll = useCallback(() => {
@@ -206,20 +215,46 @@ export default function PlainLogList({
     }, [followTail]);
 
     const handleCopyAll = useCallback(() => {
-        navigator.clipboard.writeText(logs.join('\n'));
+        navigator.clipboard.writeText(displayLogs.join('\n'));
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
-    }, [logs]);
+    }, [displayLogs]);
+
+    const handleGoToPage = useCallback(() => {
+        const pageNum = parseInt(goToPageInput, 10);
+        if (!isNaN(pageNum) && pageNum >= 1) {
+            goToPage(pageNum - 1);
+            setShowGoToPage(false);
+            setGoToPageInput('');
+        }
+    }, [goToPageInput, goToPage]);
+
+    const handleGoToPageKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleGoToPage();
+        } else if (e.key === 'Escape') {
+            setShowGoToPage(false);
+            setGoToPageInput('');
+        }
+    }, [handleGoToPage]);
 
     const hasMore = logs.length >= perPage;
     const hasPrevious = page > 0;
     const totalShowing = logs.length;
-    const lineNumberOffset = page * perPage;
+
+    // Line numbers: account for sort order
+    const getLineNumber = (i: number) => {
+        const offset = page * perPage;
+        if (newestFirst) {
+            return offset + logs.length - i;
+        }
+        return offset + i + 1;
+    };
 
     // Memoize highlighted lines to avoid re-rendering on scroll/toggle changes
     const highlightedLines = useMemo(() => {
-        return logs.map((line) => highlightLogLine(line));
-    }, [logs]);
+        return displayLogs.map((line) => highlightLogLine(line));
+    }, [displayLogs]);
 
     return (
         <div className='PlainLogViewer'>
@@ -256,10 +291,36 @@ export default function PlainLogList({
                 <div className='PlainLogViewer__toolbar-group'>
                     <button
                         type='button'
+                        className={`PlainLogViewer__action-btn ${newestFirst ? 'PlainLogViewer__action-btn--active' : ''}`}
+                        onClick={() => setNewestFirst(!newestFirst)}
+                        title={intl.formatMessage({
+                            id: newestFirst ? 'admin.logs.oldestFirst' : 'admin.logs.newestFirst',
+                            defaultMessage: newestFirst ? 'Oldest first' : 'Newest first',
+                        })}
+                    >
+                        <i className={newestFirst ? 'icon icon-sort-descending' : 'icon icon-sort-ascending'}/>
+                        {newestFirst ? (
+                            <FormattedMessage
+                                id='admin.logs.newestFirst'
+                                defaultMessage='Newest'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.logs.oldestFirst'
+                                defaultMessage='Oldest'
+                            />
+                        )}
+                    </button>
+                    <button
+                        type='button'
                         className={`PlainLogViewer__action-btn ${showLineNumbers ? 'PlainLogViewer__action-btn--active' : ''}`}
                         onClick={() => setShowLineNumbers(!showLineNumbers)}
                     >
                         <i className='icon icon-format-list-numbered'/>
+                        <FormattedMessage
+                            id='admin.logs.lineNumbers'
+                            defaultMessage='Lines'
+                        />
                     </button>
                     <button
                         type='button'
@@ -318,7 +379,7 @@ export default function PlainLogList({
                             defaultMessage='Loading...'
                         />
                     </div>
-                ) : logs.length === 0 ? (
+                ) : displayLogs.length === 0 ? (
                     <div className='PlainLogViewer__empty'>
                         <FormattedMessage
                             id='admin.logs.noLogs'
@@ -327,7 +388,7 @@ export default function PlainLogList({
                     </div>
                 ) : (
                     highlightedLines.map((highlighted, i) => {
-                        const line = logs[i];
+                        const line = displayLogs[i];
                         let lineClass = 'PlainLogViewer__line';
                         if (line.indexOf('[EROR]') > 0) {
                             lineClass += ' PlainLogViewer__line--error';
@@ -338,7 +399,7 @@ export default function PlainLogList({
                             <div
                                 key={i} // eslint-disable-line react/no-array-index-key
                                 className={lineClass}
-                                data-line-number={lineNumberOffset + i + 1}
+                                data-line-number={getLineNumber(i)}
                             >
                                 <span className='PlainLogViewer__line-text'>
                                     {highlighted}
@@ -363,11 +424,31 @@ export default function PlainLogList({
                         <button
                             type='button'
                             className='PlainLogViewer__page-btn'
+                            onClick={() => goToPage(0)}
+                            disabled={!hasPrevious}
+                            title={intl.formatMessage({id: 'admin.logs.firstPage', defaultMessage: 'First page'})}
+                        >
+                            <i className='icon icon-page-first'/>
+                        </button>
+                        <button
+                            type='button'
+                            className='PlainLogViewer__page-btn'
                             onClick={previousPage}
                             disabled={!hasPrevious}
                             title={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
                         >
                             <i className='icon icon-chevron-left'/>
+                        </button>
+                        <button
+                            type='button'
+                            className='PlainLogViewer__page-btn PlainLogViewer__page-btn--page-num'
+                            onClick={() => {
+                                setGoToPageInput(String(page + 1));
+                                setShowGoToPage(!showGoToPage);
+                            }}
+                            title={intl.formatMessage({id: 'admin.logs.goToPage', defaultMessage: 'Go to page'})}
+                        >
+                            {page + 1}
                         </button>
                         <button
                             type='button'
@@ -379,6 +460,33 @@ export default function PlainLogList({
                             <i className='icon icon-chevron-right'/>
                         </button>
                     </div>
+                    {showGoToPage && (
+                        <div className='PlainLogViewer__goto-page'>
+                            <FormattedMessage
+                                id='admin.logs.goToPageLabel'
+                                defaultMessage='Go to page:'
+                            />
+                            <input
+                                type='number'
+                                className='PlainLogViewer__goto-input'
+                                value={goToPageInput}
+                                onChange={(e) => setGoToPageInput(e.target.value)}
+                                onKeyDown={handleGoToPageKeyDown}
+                                min={1}
+                                autoFocus={true} // eslint-disable-line jsx-a11y/no-autofocus
+                            />
+                            <button
+                                type='button'
+                                className='PlainLogViewer__action-btn PlainLogViewer__action-btn--small'
+                                onClick={handleGoToPage}
+                            >
+                                <FormattedMessage
+                                    id='admin.logs.go'
+                                    defaultMessage='Go'
+                                />
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <div className='PlainLogViewer__footer-right'>
                     {!followTail && (
