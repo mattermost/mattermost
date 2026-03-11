@@ -92,7 +92,7 @@ export default function WorkspaceList({workspaces, onRemove}: Props) {
                     </span>
                     <button
                         type='button'
-                        className='ShareChannelWithWorkspaces__remove'
+                        className='btn btn-sm btn-icon btn-compact ShareChannelWithWorkspaces__remove'
                         onClick={() => onRemove(getRemoteId(w))}
                         aria-label={formatMessage(
                             {id: 'channel_settings.share_channel_with_workspaces.remove_aria', defaultMessage: 'Remove {name}'},
