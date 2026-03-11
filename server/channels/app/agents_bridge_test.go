@@ -108,4 +108,79 @@ func TestServiceCompletionUsesAgentsBridge(t *testing.T) {
 	assert.Equal(t, "translate", bridge.completeCalls[0].request.OperationSubType)
 }
 
+func TestSetAIBridgeTestHelperSwapsBridge(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	recordRequests := true
+	config := &model.AIBridgeTestHelperConfig{
+		Status: &model.AIBridgeTestHelperStatus{Available: true},
+		Agents: []model.BridgeAgentInfo{{
+			ID: "agent-1", DisplayName: "Test Agent", Username: "test.agent",
+			ServiceID: "svc-1", ServiceType: "openai", IsDefault: true,
+		}},
+		Services: []model.BridgeServiceInfo{{
+			ID: "svc-1", Name: "Test Service", Type: "openai",
+		}},
+		AgentCompletions: map[string][]model.AIBridgeTestHelperCompletion{
+			string(BridgeOperationRewrite): {{Completion: "rewritten"}},
+		},
+		RecordRequests: &recordRequests,
+	}
+
+	appErr := th.App.SetAIBridgeTestHelperConfig(config)
+	require.Nil(t, appErr)
+
+	_, ok := th.App.Channels().agentsBridge.(*e2eAgentsBridge)
+	assert.True(t, ok, "bridge should be e2eAgentsBridge after SetAIBridgeTestHelperConfig")
+
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	available, _ := th.App.Channels().agentsBridge.Status(rctx)
+	assert.True(t, available)
+
+	agents, err := th.App.Channels().agentsBridge.GetAgents("", "")
+	require.NoError(t, err)
+	require.Len(t, agents, 1)
+	assert.Equal(t, "agent-1", agents[0].ID)
+
+	services, err := th.App.Channels().agentsBridge.GetServices("", "")
+	require.NoError(t, err)
+	require.Len(t, services, 1)
+	assert.Equal(t, "svc-1", services[0].ID)
+
+	completion, err := th.App.Channels().agentsBridge.AgentCompletion("", "agent-1", BridgeCompletionRequest{
+		Operation: BridgeOperationRewrite,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "rewritten", completion)
+
+	state := th.App.GetAIBridgeTestHelperState()
+	require.Len(t, state.RecordedRequests, 1)
+	assert.Equal(t, string(BridgeOperationRewrite), state.RecordedRequests[0].Operation)
+	assert.Equal(t, "agent-1", state.RecordedRequests[0].AgentID)
+}
+
+func TestResetAIBridgeTestHelperRestoresLiveBridge(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	config := &model.AIBridgeTestHelperConfig{
+		Status: &model.AIBridgeTestHelperStatus{Available: true},
+	}
+
+	appErr := th.App.SetAIBridgeTestHelperConfig(config)
+	require.Nil(t, appErr)
+
+	_, ok := th.App.Channels().agentsBridge.(*e2eAgentsBridge)
+	require.True(t, ok)
+
+	th.App.ResetAIBridgeTestHelper()
+
+	_, ok = th.App.Channels().agentsBridge.(*e2eAgentsBridge)
+	assert.False(t, ok, "bridge should be restored to live after reset")
+
+	state := th.App.GetAIBridgeTestHelperState()
+	assert.Nil(t, state.Status)
+	assert.Empty(t, state.Agents)
+	assert.Empty(t, state.RecordedRequests)
+}
+
 var _ AgentsBridge = (*testAgentsBridge)(nil)

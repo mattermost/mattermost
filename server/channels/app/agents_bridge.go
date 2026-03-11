@@ -60,18 +60,10 @@ func newLiveAgentsBridge(ch *Channels) AgentsBridge {
 }
 
 func (b *liveAgentsBridge) Status(rctx request.CTX) (bool, string) {
-	if status, ok := b.ch.aiBridgeTestHelper.GetStatus(); ok {
-		return status.Available, status.Reason
-	}
-
 	return b.getLiveStatus(rctx)
 }
 
 func (b *liveAgentsBridge) GetAgents(sessionUserID, userID string) ([]model.BridgeAgentInfo, error) {
-	if agents, ok := b.ch.aiBridgeTestHelper.GetAgents(); ok {
-		return agents, nil
-	}
-
 	if available, _ := b.getLiveStatus(request.EmptyContext(b.ch.srv.Log())); !available {
 		return []model.BridgeAgentInfo{}, nil
 	}
@@ -86,10 +78,6 @@ func (b *liveAgentsBridge) GetAgents(sessionUserID, userID string) ([]model.Brid
 }
 
 func (b *liveAgentsBridge) GetServices(sessionUserID, userID string) ([]model.BridgeServiceInfo, error) {
-	if services, ok := b.ch.aiBridgeTestHelper.GetServices(); ok {
-		return services, nil
-	}
-
 	if available, _ := b.getLiveStatus(request.EmptyContext(b.ch.srv.Log())); !available {
 		return []model.BridgeServiceInfo{}, nil
 	}
@@ -104,40 +92,13 @@ func (b *liveAgentsBridge) GetServices(sessionUserID, userID string) ([]model.Br
 }
 
 func (b *liveAgentsBridge) AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-	b.recordRequest(sessionUserID, agentID, "", req)
-
-	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {
-		return completion.completion, completion.err
-	}
-
 	client := agentclient.NewClientFromApp(New(ServerConnector(b.ch)), sessionUserID)
 	return client.AgentCompletion(agentID, toClientCompletionRequest(req))
 }
 
 func (b *liveAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
-	b.recordRequest(sessionUserID, "", serviceID, req)
-
-	if completion, ok := b.ch.aiBridgeTestHelper.GetCompletion(string(req.Operation)); ok {
-		return completion.completion, completion.err
-	}
-
 	client := agentclient.NewClientFromApp(New(ServerConnector(b.ch)), sessionUserID)
 	return client.ServiceCompletion(serviceID, toClientCompletionRequest(req))
-}
-
-func (b *liveAgentsBridge) recordRequest(sessionUserID, agentID, serviceID string, req BridgeCompletionRequest) {
-	b.ch.aiBridgeTestHelper.RecordRequest(model.AIBridgeTestHelperRecordedRequest{
-		Operation:        string(req.Operation),
-		ClientOperation:  req.ClientOperation,
-		OperationSubType: req.OperationSubType,
-		SessionUserID:    sessionUserID,
-		UserID:           req.UserID,
-		ChannelID:        req.ChannelID,
-		AgentID:          agentID,
-		ServiceID:        serviceID,
-		Messages:         toRecordedMessages(req.Messages),
-		JSONOutputFormat: cloneJSONOutputFormat(req.JSONOutputFormat),
-	})
 }
 
 func (b *liveAgentsBridge) getLiveStatus(rctx request.CTX) (bool, string) {
@@ -249,19 +210,6 @@ func toClientCompletionRequest(req BridgeCompletionRequest) agentclient.Completi
 		Operation:        req.ClientOperation,
 		OperationSubType: req.OperationSubType,
 	}
-}
-
-func toRecordedMessages(messages []BridgeMessage) []model.AIBridgeTestHelperMessage {
-	recorded := make([]model.AIBridgeTestHelperMessage, 0, len(messages))
-	for _, message := range messages {
-		recorded = append(recorded, model.AIBridgeTestHelperMessage{
-			Role:    message.Role,
-			Message: message.Message,
-			FileIDs: append([]string(nil), message.FileIDs...),
-		})
-	}
-
-	return recorded
 }
 
 func cloneJSONOutputFormat(jsonOutputFormat map[string]any) map[string]any {
