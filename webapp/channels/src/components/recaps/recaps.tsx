@@ -12,6 +12,7 @@ import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
 import {getAllRecaps, getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
+import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -19,6 +20,8 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import AICopilotIntroSvg from './ai_copilot_intro_svg';
 import RecapsList from './recaps_list';
@@ -40,6 +43,7 @@ const Recaps = () => {
     const hasNoRecaps = !isLoading && allRecaps.length === 0;
 
     useEffect(() => {
+        dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
         const fetchData = async () => {
             await dispatch(getRecaps(0, 60));
             setIsLoading(false);

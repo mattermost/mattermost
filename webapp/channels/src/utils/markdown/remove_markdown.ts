@@ -49,7 +49,7 @@ const HTML_ENTITY_DECODE_MAP: Record<string, string> = {
 };
 
 const HTML_ENTITY_PATTERN = new RegExp(
-    Object.keys(HTML_ENTITY_DECODE_MAP).map((key) => TextFormatting.escapeRegex(key)).join('|'),
+    Object.keys(HTML_ENTITY_DECODE_MAP).map((key) => RegExp.escape(key)).join('|'),
     'g',
 );
 

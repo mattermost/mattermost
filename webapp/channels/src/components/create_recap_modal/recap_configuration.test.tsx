@@ -301,7 +301,7 @@ describe('RecapConfiguration', () => {
         it('should show description for all unreads option', () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
-            expect(screen.getByText('Copilot will create a recap of all unreads across your channels.')).toBeInTheDocument();
+            expect(screen.getByText('Create a recap of all unread messages across your channels.')).toBeInTheDocument();
         });
     });
 });
