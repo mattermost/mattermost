@@ -243,6 +243,8 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             previousPage={() => setPlainPage((p) => Math.max(0, p - 1))}
             page={plainPage}
             perPage={perPage}
+            onReload={reload}
+            downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
         />
     ) : (
         <LogList

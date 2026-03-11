@@ -1,160 +1,227 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import './plain_log_list.scss';
 
-const NEXT_BUTTON_TIMEOUT = 500;
-
-interface Props extends WrappedComponentProps {
+type Props = {
     loading: boolean;
     logs: string[];
     page: number;
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
-}
-
-type State = {
-    nextDisabled: boolean;
+    onReload: () => void;
+    downloadUrl: string;
 };
 
-class PlainLogList extends React.PureComponent<Props, State> {
-    private logPanel: React.RefObject<HTMLDivElement>;
+export default function PlainLogList({
+    loading, logs, page, perPage, nextPage, previousPage, onReload, downloadUrl,
+}: Props) {
+    const intl = useIntl();
+    const logPanelRef = useRef<HTMLDivElement>(null);
+    const [followTail, setFollowTail] = useState(true);
+    const [wrapText, setWrapText] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
 
-    constructor(props: Props) {
-        super(props);
-
-        this.logPanel = React.createRef();
-
-        this.state = {
-            nextDisabled: false,
-        };
-    }
-
-    componentDidMount() {
-        // Scroll Down to get the latest logs
-        const node = this.logPanel.current;
-        if (node) {
-            node.scrollTop = node.scrollHeight;
+    // Auto-scroll to bottom when follow tail is on
+    useEffect(() => {
+        if (followTail && logPanelRef.current) {
+            logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
         }
-    }
+    }, [logs, followTail]);
 
-    componentDidUpdate() {
-        // Scroll Down to get the latest logs
-        const node = this.logPanel.current;
-        if (node) {
-            node.scrollTop = node.scrollHeight;
+    // Detect manual scroll to auto-disable follow tail
+    const handleScroll = useCallback(() => {
+        if (!logPanelRef.current) {
+            return;
         }
-    }
+        const {scrollTop, scrollHeight, clientHeight} = logPanelRef.current;
+        const atBottom = scrollHeight - scrollTop - clientHeight < 40;
+        if (!atBottom && followTail) {
+            setFollowTail(false);
+        } else if (atBottom && !followTail) {
+            setFollowTail(true);
+        }
+    }, [followTail]);
 
-    nextPage = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
+    const handleCopyAll = useCallback(() => {
+        navigator.clipboard.writeText(logs.join('\n'));
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+    }, [logs]);
 
-        this.setState({nextDisabled: true});
-        setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT);
+    const hasMore = logs.length >= perPage;
+    const hasPrevious = page > 0;
+    const totalShowing = logs.length;
 
-        this.props.nextPage();
-    };
-
-    previousPage = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
-
-        this.props.previousPage();
-    };
-
-    render() {
-        if (this.props.loading) {
-            return (
-                <div className='log__panel'>
-                    <LoadingSpinner/>
+    return (
+        <div className='PlainLogViewer'>
+            {/* Toolbar */}
+            <div className='PlainLogViewer__toolbar'>
+                <div className='PlainLogViewer__toolbar-group'>
+                    <button
+                        type='button'
+                        className='PlainLogViewer__action-btn'
+                        onClick={onReload}
+                        title={intl.formatMessage({id: 'admin.logs.reload', defaultMessage: 'Reload'})}
+                    >
+                        <i className='icon icon-refresh'/>
+                        <FormattedMessage
+                            id='admin.logs.reload'
+                            defaultMessage='Reload'
+                        />
+                    </button>
+                    <a
+                        className='PlainLogViewer__action-btn'
+                        href={downloadUrl}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        title={intl.formatMessage({id: 'admin.logs.download', defaultMessage: 'Download'})}
+                    >
+                        <i className='icon icon-download-outline'/>
+                        <FormattedMessage
+                            id='admin.logs.download'
+                            defaultMessage='Download'
+                        />
+                    </a>
                 </div>
-            );
-        }
-
-        let content = null;
-        let nextButton;
-        let previousButton;
-
-        if (this.props.logs.length >= this.props.perPage) {
-            nextButton = (
-                <button
-                    type='button'
-                    className='btn btn-tertiary filter-control filter-control__next pull-right'
-                    onClick={this.nextPage}
-                    disabled={this.state.nextDisabled}
-                >
-                    <FormattedMessage
-                        id='admin.logs.next'
-                        defaultMessage='Next'
-                    />
-                    <NextIcon additionalClassName='ml-2'/>
-                </button>
-            );
-        }
-
-        if (this.props.page > 0) {
-            previousButton = (
-                <button
-                    type='button'
-                    className='btn btn-tertiary filter-control filter-control__prev'
-                    onClick={this.previousPage}
-                >
-                    <i
-                        className='fa fa-angle-left'
-                        title={this.props.intl.formatMessage({id: 'generic_icons.previous', defaultMessage: 'Previous Icon'})}
-                    />
-                    <FormattedMessage
-                        id='admin.logs.prev'
-                        defaultMessage='Previous'
-                    />
-                </button>
-            );
-        }
-
-        content = [];
-
-        for (let i = 0; i < this.props.logs.length; i++) {
-            const style: React.CSSProperties = {
-                whiteSpace: 'nowrap',
-                fontFamily: 'monospace',
-                color: '',
-            };
-
-            if (this.props.logs[i].indexOf('[EROR]') > 0) {
-                style.color = 'var(--dnd-indicator)';
-            } else if (this.props.logs[i].indexOf('[WARN]') > 0) {
-                style.color = 'var(--away-indicator)';
-            }
-            content.push(<br key={'br_' + i}/>);
-            content.push(
-                <span
-                    key={'log_' + i}
-                    style={style}
-                >
-                    {this.props.logs[i]}
-                </span>,
-            );
-        }
-        return (
-            <div>
-                <div
-                    tabIndex={-1}
-                    ref={this.logPanel}
-                    className='log__panel'
-                >
-                    {content}
-                </div>
-                <div className='pt-3 pb-3 filter-controls'>
-                    {previousButton}
-                    {nextButton}
+                <div className='PlainLogViewer__toolbar-spacer'/>
+                <div className='PlainLogViewer__toolbar-group'>
+                    <button
+                        type='button'
+                        className={`PlainLogViewer__action-btn ${wrapText ? 'PlainLogViewer__action-btn--active' : ''}`}
+                        onClick={() => setWrapText(!wrapText)}
+                    >
+                        {wrapText ? (
+                            <FormattedMessage
+                                id='admin.logs.nowrap'
+                                defaultMessage='No wrap'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.logs.wrap'
+                                defaultMessage='Wrap'
+                            />
+                        )}
+                    </button>
+                    <button
+                        type='button'
+                        className='PlainLogViewer__action-btn'
+                        onClick={handleCopyAll}
+                    >
+                        <i className={copySuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
+                        {copySuccess ? (
+                            <FormattedMessage
+                                id='admin.logs.copied'
+                                defaultMessage='Copied!'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.logs.copyAll'
+                                defaultMessage='Copy all'
+                            />
+                        )}
+                    </button>
                 </div>
             </div>
-        );
-    }
-}
 
-export default injectIntl(PlainLogList);
+            {/* Log content */}
+            <div
+                ref={logPanelRef}
+                className={`PlainLogViewer__content ${wrapText ? 'PlainLogViewer__content--wrap' : ''}`}
+                onScroll={handleScroll}
+                tabIndex={-1}
+            >
+                {loading ? (
+                    <div className='PlainLogViewer__loading'>
+                        <div className='PlainLogViewer__loading-spinner'/>
+                        <FormattedMessage
+                            id='admin.logs.loading'
+                            defaultMessage='Loading...'
+                        />
+                    </div>
+                ) : logs.length === 0 ? (
+                    <div className='PlainLogViewer__empty'>
+                        <FormattedMessage
+                            id='admin.logs.noLogs'
+                            defaultMessage='No logs to display.'
+                        />
+                    </div>
+                ) : (
+                    logs.map((line, i) => {
+                        let lineClass = 'PlainLogViewer__line';
+                        if (line.indexOf('[EROR]') > 0) {
+                            lineClass += ' PlainLogViewer__line--error';
+                        } else if (line.indexOf('[WARN]') > 0) {
+                            lineClass += ' PlainLogViewer__line--warn';
+                        }
+                        return (
+                            <div
+                                key={i} // eslint-disable-line react/no-array-index-key
+                                className={lineClass}
+                            >
+                                {line}
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Footer */}
+            <div className='PlainLogViewer__footer'>
+                <div className='PlainLogViewer__footer-left'>
+                    <span className='PlainLogViewer__footer-info'>
+                        <FormattedMessage
+                            id='admin.logs.plain.pageInfo'
+                            defaultMessage='Page {page} \u00B7 {count} lines'
+                            values={{page: page + 1, count: totalShowing}}
+                        />
+                    </span>
+                    <div className='PlainLogViewer__footer-pagination'>
+                        <button
+                            type='button'
+                            className='PlainLogViewer__page-btn'
+                            onClick={previousPage}
+                            disabled={!hasPrevious}
+                            title={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
+                        >
+                            <i className='icon icon-chevron-left'/>
+                        </button>
+                        <button
+                            type='button'
+                            className='PlainLogViewer__page-btn'
+                            onClick={nextPage}
+                            disabled={!hasMore}
+                            title={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
+                        >
+                            <i className='icon icon-chevron-right'/>
+                        </button>
+                    </div>
+                </div>
+                <div className='PlainLogViewer__footer-right'>
+                    {!followTail && (
+                        <button
+                            type='button'
+                            className='PlainLogViewer__action-btn PlainLogViewer__action-btn--small'
+                            onClick={() => {
+                                setFollowTail(true);
+                                if (logPanelRef.current) {
+                                    logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+                                }
+                            }}
+                        >
+                            <i className='icon icon-arrow-down'/>
+                            <FormattedMessage
+                                id='admin.logs.scrollToBottom'
+                                defaultMessage='Scroll to bottom'
+                            />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
