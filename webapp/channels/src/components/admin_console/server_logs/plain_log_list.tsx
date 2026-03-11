@@ -355,7 +355,7 @@ export default function PlainLogList({
                     <span className='PlainLogViewer__footer-info'>
                         <FormattedMessage
                             id='admin.logs.plain.pageInfo'
-                            defaultMessage='Page {page} \u00B7 {count} lines'
+                            defaultMessage='Page {page} · {count} lines'
                             values={{page: page + 1, count: totalShowing}}
                         />
                     </span>

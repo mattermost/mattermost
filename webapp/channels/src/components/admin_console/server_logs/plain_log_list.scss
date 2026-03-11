@@ -140,24 +140,24 @@
     // ============================
 
     &__json-key {
-        color: var(--button-bg);
+        color: #0550ae;
     }
 
     &__json-string {
-        color: var(--online-indicator);
+        color: #0a3069;
     }
 
     &__json-number {
-        color: var(--away-indicator);
+        color: #953800;
     }
 
     &__json-bool {
-        color: var(--away-indicator);
+        color: #953800;
         font-weight: 600;
     }
 
     &__json-bracket {
-        color: rgba(var(--center-channel-color-rgb), 0.48);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         font-weight: 600;
     }
 
@@ -166,31 +166,31 @@
     // ============================
 
     &__log-timestamp {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.50);
     }
 
     &__log-level {
         font-weight: 700;
 
         &--error {
-            color: var(--dnd-indicator);
+            color: #cf222e;
         }
 
         &--warn {
-            color: var(--away-indicator);
+            color: #9a6700;
         }
 
         &--info {
-            color: var(--button-bg);
+            color: #0550ae;
         }
 
         &--debug {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.50);
         }
     }
 
     &__log-key {
-        color: var(--button-bg);
+        color: #0550ae;
     }
 
     &__log-equals {
