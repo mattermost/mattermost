@@ -60,7 +60,9 @@ describe('components/ProfilePopoverController', () => {
 
         const mention = screen.getByText('@username_abc');
         expect(mention).toBeInTheDocument();
-        expect(mention.closest('button')?.type).toBe('button');
+        const button = mention.closest('button');
+        expect(button).toBeInTheDocument();
+        expect(button!.type).toBe('button');
         fireEvent.click(mention);
         expect(onSubmit).not.toHaveBeenCalled();
     });
