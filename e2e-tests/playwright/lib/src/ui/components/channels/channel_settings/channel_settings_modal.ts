@@ -10,6 +10,7 @@ export default class ChannelSettingsModal {
     readonly container: Locator;
 
     readonly closeButton;
+    readonly saveButton;
 
     readonly infoTab;
     readonly configurationTab;
@@ -21,6 +22,7 @@ export default class ChannelSettingsModal {
         this.container = container;
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
 
         this.infoTab = container.getByRole('tab', {name: 'info'});
         this.configurationTab = container.getByRole('tab', {name: 'configuration'});
@@ -43,6 +45,11 @@ export default class ChannelSettingsModal {
         await this.closeButton.click();
 
         await expect(this.container).not.toBeVisible();
+    }
+
+    async save() {
+        await expect(this.saveButton).toBeVisible();
+        await this.saveButton.click();
     }
 
     async openInfoTab(): Promise<InfoSettings> {
