@@ -17,27 +17,27 @@ var (
 	hexColorRegex     = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 )
 
-type SlackAttachment struct {
-	Id         int64                   `json:"id"`
-	Fallback   string                  `json:"fallback"`
-	Color      string                  `json:"color"`
-	Pretext    string                  `json:"pretext"`
-	AuthorName string                  `json:"author_name"`
-	AuthorLink string                  `json:"author_link"`
-	AuthorIcon string                  `json:"author_icon"`
-	Title      string                  `json:"title"`
-	TitleLink  string                  `json:"title_link"`
-	Text       string                  `json:"text"`
-	Fields     []*SlackAttachmentField `json:"fields"`
-	ImageURL   string                  `json:"image_url"`
-	ThumbURL   string                  `json:"thumb_url"`
-	Footer     string                  `json:"footer"`
-	FooterIcon string                  `json:"footer_icon"`
-	Timestamp  any                     `json:"ts"` // This is either a string or an int64
-	Actions    []*PostAction           `json:"actions,omitempty"`
+type MessageAttachment struct {
+	Id         int64                     `json:"id"`
+	Fallback   string                    `json:"fallback"`
+	Color      string                    `json:"color"`
+	Pretext    string                    `json:"pretext"`
+	AuthorName string                    `json:"author_name"`
+	AuthorLink string                    `json:"author_link"`
+	AuthorIcon string                    `json:"author_icon"`
+	Title      string                    `json:"title"`
+	TitleLink  string                    `json:"title_link"`
+	Text       string                    `json:"text"`
+	Fields     []*MessageAttachmentField `json:"fields"`
+	ImageURL   string                    `json:"image_url"`
+	ThumbURL   string                    `json:"thumb_url"`
+	Footer     string                    `json:"footer"`
+	FooterIcon string                    `json:"footer_icon"`
+	Timestamp  any                       `json:"ts"` // This is either a string or an int64
+	Actions    []*PostAction             `json:"actions,omitempty"`
 }
 
-func (s *SlackAttachment) IsValid() error {
+func (s *MessageAttachment) IsValid() error {
 	var multiErr *multierror.Error
 
 	if s.Color != "" {
@@ -109,7 +109,7 @@ func (s *SlackAttachment) IsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
-func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
+func (s *MessageAttachment) Equals(input *MessageAttachment) bool {
 	// Direct comparison of simple types
 
 	if s.Id != input.Id {
@@ -193,13 +193,13 @@ func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
 	return s.Timestamp == input.Timestamp
 }
 
-type SlackAttachmentField struct {
+type MessageAttachmentField struct {
 	Title string              `json:"title"`
 	Value any                 `json:"value"`
 	Short SlackCompatibleBool `json:"short"`
 }
 
-func (s *SlackAttachmentField) IsValid() error {
+func (s *MessageAttachmentField) IsValid() error {
 	var multiErr *multierror.Error
 
 	if s.Value != nil {
@@ -214,7 +214,7 @@ func (s *SlackAttachmentField) IsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
-func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
+func (s *MessageAttachmentField) Equals(input *MessageAttachmentField) bool {
 	if s.Title != input.Title {
 		return false
 	}
@@ -232,15 +232,15 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 	return s.Short == input.Short
 }
 
-func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
-	var nonNilAttachments []*SlackAttachment
+func StringifyMessageAttachmentFieldValue(a []*MessageAttachment) []*MessageAttachment {
+	var nonNilAttachments []*MessageAttachment
 	for _, attachment := range a {
 		if attachment == nil {
 			continue
 		}
 		nonNilAttachments = append(nonNilAttachments, attachment)
 
-		var nonNilFields []*SlackAttachmentField
+		var nonNilFields []*MessageAttachmentField
 		for _, field := range attachment.Fields {
 			if field == nil {
 				continue
@@ -259,12 +259,12 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
-func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
+func ParseMessageAttachment(post *Post, attachments []*MessageAttachment) {
 	if post.Type == "" {
-		post.Type = PostTypeSlackAttachment
+		post.Type = PostTypeMessageAttachment
 	}
 
-	postAttachments := []*SlackAttachment{}
+	postAttachments := []*MessageAttachment{}
 
 	for _, attachment := range attachments {
 		if attachment == nil {
