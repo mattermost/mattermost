@@ -1789,6 +1789,31 @@ func (us SqlUserStore) AnalyticsGetGuestCount() (int64, error) {
 	return count, nil
 }
 
+func (us SqlUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+	subQuery := us.getQueryBuilder().
+		Select("cm.UserId").
+		From("ChannelMembers cm").
+		Join("Users u ON cm.UserId = u.Id").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Where(sq.ILike{"u.Roles": "%system_guest%"}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"c.DeleteAt": 0}).
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
+		GroupBy("cm.UserId").
+		Having("COUNT(cm.ChannelId) = 1")
+
+	query := us.getQueryBuilder().
+		Select("COUNT(*)").
+		FromSelect(subQuery, "single_channel_guests")
+
+	var count int64
+	err := us.GetReplica().GetBuilder(&count, query)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to count single-channel guest Users")
+	}
+	return count, nil
+}
+
 func (us SqlUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	var count int64
 	err := us.GetReplica().Get(&count, "SELECT count(*) FROM Users WHERE Roles LIKE ? and DeleteAt = 0", "%system_admin%")
