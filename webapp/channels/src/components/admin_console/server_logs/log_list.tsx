@@ -322,7 +322,20 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                         type='button'
                         title={intl.formatMessage({id: 'admin.logs.density', defaultMessage: 'Toggle compact mode'})}
                     >
-                        <i className={compact ? 'icon icon-format-line-spacing' : 'icon icon-format-line-spacing'}/>
+                        {compact ? 'A' : 'A'}
+                        <span className='LogViewer__toolbar-btn-label'>
+                            {compact ? (
+                                <FormattedMessage
+                                    id='admin.logs.compact'
+                                    defaultMessage='Compact'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='admin.logs.comfortable'
+                                    defaultMessage='Comfortable'
+                                />
+                            )}
+                        </span>
                     </button>
 
                     {/* Wrap toggle */}
@@ -332,7 +345,10 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                         type='button'
                         title={intl.formatMessage({id: 'admin.logs.wrap', defaultMessage: 'Toggle text wrapping'})}
                     >
-                        <i className='icon icon-wrap'/>
+                        <FormattedMessage
+                            id={wrapText ? 'admin.logs.wrapOn' : 'admin.logs.wrapOff'}
+                            defaultMessage={wrapText ? 'Wrap' : 'No wrap'}
+                        />
                     </button>
                 </div>
             </div>
@@ -518,11 +534,14 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                         ))}
                     </select>
                 </div>
-                <div className='LogViewer__keyboard-hint'>
-                    <FormattedMessage
-                        id='admin.logs.keyboardHint'
-                        defaultMessage='j/k navigate \u00B7 Enter expand \u00B7 e jump to error \u00B7 / search'
-                    />
+                <div className='LogViewer__keyboard-hint-wrapper'>
+                    <button
+                        className='LogViewer__keyboard-hint-btn'
+                        type='button'
+                        title={'j/k navigate \u00b7 Enter expand \u00b7 e jump to error \u00b7 / search'}
+                    >
+                        {'?'}
+                    </button>
                 </div>
             </div>
         </div>

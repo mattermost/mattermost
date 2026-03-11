@@ -301,78 +301,84 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                         <div className='banner-buttons'>
                             {toggleLogFormat}
 
-                            {/* Time range presets */}
                             {!isPlainLogs && (
-                                <div className='LogViewer__time-presets'>
-                                    {TIME_PRESETS.map((preset) => (
-                                        <button
-                                            key={preset.minutes}
-                                            type='button'
-                                            className={`btn btn-sm ${activeTimePreset === preset.minutes ? 'btn-primary' : 'btn-tertiary'}`}
-                                            onClick={() => handleTimePreset(preset.minutes)}
-                                        >
-                                            {preset.defaultMessage}
-                                        </button>
-                                    ))}
-                                    {activeTimePreset !== null && (
-                                        <button
-                                            type='button'
-                                            className='btn btn-sm btn-tertiary'
-                                            onClick={clearTimePreset}
-                                        >
-                                            <i className='icon icon-close'/>
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+                                <>
+                                    <div className='banner-buttons__separator'/>
 
-                            {/* Live tail */}
-                            {!isPlainLogs && (
-                                <div className='LogViewer__live-tail'>
-                                    <button
-                                        type='button'
-                                        className={`btn btn-sm ${liveTailEnabled ? 'btn-primary LogViewer__live-tail-active' : 'btn-tertiary'}`}
-                                        onClick={() => setLiveTailEnabled(!liveTailEnabled)}
-                                    >
-                                        {liveTailEnabled && <span className='LogViewer__live-dot'/>}
-                                        <FormattedMessage
-                                            id='admin.logs.liveTail'
-                                            defaultMessage='Live'
-                                        />
-                                    </button>
-                                    <div className='LogViewer__poll-interval-wrapper'>
-                                        <button
-                                            type='button'
-                                            className='btn btn-sm btn-tertiary LogViewer__poll-interval-btn'
-                                            onClick={() => setShowPollDropdown(!showPollDropdown)}
-                                        >
-                                            {POLL_INTERVAL_LABELS[pollInterval]}
-                                            <i className='icon icon-chevron-down'/>
-                                        </button>
-                                        {showPollDropdown && (
-                                            <div className='LogViewer__poll-dropdown'>
-                                                {POLL_INTERVALS.map((interval) => (
-                                                    <button
-                                                        key={interval}
-                                                        type='button'
-                                                        className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
-                                                        onClick={() => {
-                                                            setPollInterval(interval);
-                                                            setShowPollDropdown(false);
-                                                        }}
-                                                    >
-                                                        {POLL_INTERVAL_LABELS[interval]}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                    {/* Time range presets */}
+                                    <div className='LogViewer__time-presets'>
+                                        {TIME_PRESETS.map((preset) => (
+                                            <button
+                                                key={preset.minutes}
+                                                type='button'
+                                                className={`btn btn-sm ${activeTimePreset === preset.minutes ? 'btn-primary' : 'btn-tertiary'}`}
+                                                onClick={() => handleTimePreset(preset.minutes)}
+                                            >
+                                                {preset.defaultMessage}
+                                            </button>
+                                        ))}
+                                        {activeTimePreset !== null && (
+                                            <button
+                                                type='button'
+                                                className='btn btn-sm btn-tertiary'
+                                                onClick={clearTimePreset}
+                                            >
+                                                <i className='icon icon-close'/>
+                                            </button>
                                         )}
                                     </div>
-                                    {liveTailEnabled && lastUpdatedText && (
-                                        <span className='LogViewer__last-updated'>
-                                            {lastUpdatedText}
-                                        </span>
-                                    )}
-                                </div>
+
+                                    <div className='banner-buttons__separator'/>
+
+                                    {/* Live tail */}
+                                    <div className='LogViewer__live-tail'>
+                                        <button
+                                            type='button'
+                                            className={`btn btn-sm ${liveTailEnabled ? 'btn-primary LogViewer__live-tail-active' : 'btn-tertiary'}`}
+                                            onClick={() => setLiveTailEnabled(!liveTailEnabled)}
+                                        >
+                                            {liveTailEnabled && <span className='LogViewer__live-dot'/>}
+                                            <FormattedMessage
+                                                id='admin.logs.liveTail'
+                                                defaultMessage='Live'
+                                            />
+                                        </button>
+                                        <div className='LogViewer__poll-interval-wrapper'>
+                                            <button
+                                                type='button'
+                                                className='btn btn-sm btn-tertiary LogViewer__poll-interval-btn'
+                                                onClick={() => setShowPollDropdown(!showPollDropdown)}
+                                            >
+                                                {POLL_INTERVAL_LABELS[pollInterval]}
+                                                <i className='icon icon-chevron-down'/>
+                                            </button>
+                                            {showPollDropdown && (
+                                                <div className='LogViewer__poll-dropdown'>
+                                                    {POLL_INTERVALS.map((interval) => (
+                                                        <button
+                                                            key={interval}
+                                                            type='button'
+                                                            className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
+                                                            onClick={() => {
+                                                                setPollInterval(interval);
+                                                                setShowPollDropdown(false);
+                                                            }}
+                                                        >
+                                                            {POLL_INTERVAL_LABELS[interval]}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {liveTailEnabled && lastUpdatedText && (
+                                            <span className='LogViewer__last-updated'>
+                                                {lastUpdatedText}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className='banner-buttons__separator'/>
+                                </>
                             )}
 
                             <button

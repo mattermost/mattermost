@@ -1123,11 +1123,14 @@
 
     .banner-buttons {
         display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
 
         .banner-buttons__log-format {
             display: flex;
             align-items: center;
-            margin-right: 28px;
+            margin-right: 12px;
             gap: 8px;
 
             label {
@@ -1140,6 +1143,12 @@
                     margin-top: 0;
                 }
             }
+        }
+
+        .banner-buttons__separator {
+            width: 1px;
+            height: 20px;
+            background: rgba(var(--center-channel-color-rgb), 0.16);
         }
     }
 
