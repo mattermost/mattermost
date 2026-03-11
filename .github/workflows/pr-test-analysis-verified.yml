@@ -27,8 +27,22 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     steps:
+      # Verify label still exists — it may have been removed by a concurrent analysis run
+      - name: ci/check-label-still-present
+        id: label-check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          CURRENT_LABELS=$(gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/labels 2>/dev/null || echo '[]')
+          HAS_LABEL=$(echo "$CURRENT_LABELS" | jq -r --arg label "$OVERRIDE_LABEL" '.[] | select(.name == $label) | .name' 2>/dev/null || true)
+          if [ -z "$HAS_LABEL" ]; then
+            echo "Label ${OVERRIDE_LABEL} no longer present — skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: ci/check-permission
-        id: permission
+        if: steps.label-check.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           LABEL_AUTHOR: ${{ github.event.sender.login }}
@@ -41,6 +55,7 @@ jobs:
           echo "User ${LABEL_AUTHOR} has ${PERMISSION} permission"
 
       - name: ci/post-verified-status
+        if: steps.label-check.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
@@ -74,7 +89,7 @@ jobs:
           echo "Verified: ${NEW_DESC}"
 
       - name: ci/send-webhook
-        if: env.REPORT_WEBHOOK_URL != ''
+        if: steps.label-check.outputs.skip != 'true' && env.REPORT_WEBHOOK_URL != ''
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_URL: ${{ github.event.pull_request.html_url }}

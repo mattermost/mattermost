@@ -158,7 +158,7 @@ jobs:
           claude_args: |
             --model ${{ env.CLAUDE_MODEL }}
             --max-turns 15
-            --allowedTools "Bash(gh pr diff*),Bash(gh pr view*)"
+            --allowedTools "Bash(gh pr diff*),Bash(gh pr view*),Bash(cat >>*),Bash(echo *)"
 
       - name: ci/post-results
         env:
