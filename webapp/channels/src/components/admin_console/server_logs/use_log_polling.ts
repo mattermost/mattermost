@@ -51,6 +51,7 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
                 stop();
             } else {
                 // Resume polling when tab becomes visible again
+                stop(); // Clear any existing interval first
                 const tick = async () => {
                     await fetchRef.current();
                     setLastUpdated(Date.now());

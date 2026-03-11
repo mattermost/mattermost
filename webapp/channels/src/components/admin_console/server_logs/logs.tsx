@@ -7,7 +7,6 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {
     LogFilter,
     LogLevels,
-    LogObject,
     LogServerNames,
 } from '@mattermost/types/admin';
 
@@ -17,11 +16,8 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
+import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
-
-type LogObjectWithAdditionalInfo = LogObject & {
-    [key: string]: string;
-};
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
@@ -72,8 +68,8 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const [search, setSearch] = useState('');
 
     // Filter state
-    const [serverNames, setServerNames] = useState<LogServerNames>([]);
-    const [logLevels, setLogLevels] = useState<LogLevels>([]);
+    const [serverNames] = useState<LogServerNames>([]);
+    const [logLevels] = useState<LogLevels>([]);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
@@ -143,30 +139,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             }),
         );
     }, [logs, search]);
-
-    const onFiltersChange = useCallback((filters: LogFilter) => {
-        if (filters.serverNames !== undefined) {
-            setServerNames(filters.serverNames);
-        }
-        if (filters.logLevels !== undefined) {
-            setLogLevels(filters.logLevels);
-        }
-        if (filters.dateFrom !== undefined) {
-            setDateFrom(filters.dateFrom);
-        }
-        if (filters.dateTo !== undefined) {
-            setDateTo(filters.dateTo);
-        }
-
-        // Trigger reload with new filters
-        setLoading(true);
-        actions.getLogs({
-            serverNames: filters.serverNames ?? serverNames,
-            logLevels: filters.logLevels ?? logLevels,
-            dateFrom: filters.dateFrom ?? dateFrom,
-            dateTo: filters.dateTo ?? dateTo,
-        }).then(() => setLoading(false));
-    }, [actions, serverNames, logLevels, dateFrom, dateTo]);
 
     const onLogFormatToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const plain = event.target.value === 'plain';
@@ -252,7 +224,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             logs={displayLogs as Array<LogObject & {[key: string]: string}>}
             onSearchChange={onSearchChange}
             search={search}
-            onFiltersChange={onFiltersChange}
             onReload={reload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
             liveTailEnabled={liveTailEnabled}

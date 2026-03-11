@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {LogObject} from '@mattermost/types/admin';
+import type {LogObjectWithAdditionalInfo} from './types';
+
+function copyToClipboard(text: string): void {
+    copyToClipboard(text).catch(() => {
+        // Fallback: noop if clipboard API unavailable (e.g. non-HTTPS)
+    });
+}
 
 import './log_list.scss';
-
-type LogObjectWithAdditionalInfo = LogObject & {
-    [key: string]: string;
-};
 
 type Props = {
     log: LogObjectWithAdditionalInfo;
@@ -20,7 +22,6 @@ type Props = {
     onFocus: (log: LogObjectWithAdditionalInfo) => void;
     searchTerm: string;
     wrapText: boolean;
-    compact: boolean;
 };
 
 const LEVEL_CONFIG: Record<string, {label: string; className: string}> = {
@@ -64,33 +65,45 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
         return text;
     }
 
-    const lowerText = text.toLowerCase();
     const lowerSearch = searchTerm.toLowerCase();
-    const index = lowerText.indexOf(lowerSearch);
+    const parts: React.ReactNode[] = [];
+    let remaining = text;
+    let key = 0;
 
-    if (index === -1) {
-        return text;
+    while (remaining.length > 0) {
+        const index = remaining.toLowerCase().indexOf(lowerSearch);
+        if (index === -1) {
+            parts.push(<span key={key++}>{remaining}</span>);
+            break;
+        }
+        if (index > 0) {
+            parts.push(<span key={key++}>{remaining.slice(0, index)}</span>);
+        }
+        parts.push(
+            <mark
+                key={key++}
+                className='LogRow__highlight'
+            >
+                {remaining.slice(index, index + searchTerm.length)}
+            </mark>,
+        );
+        remaining = remaining.slice(index + searchTerm.length);
     }
 
-    return (
-        <>
-            {text.slice(0, index)}
-            <mark className='LogRow__highlight'>{text.slice(index, index + searchTerm.length)}</mark>
-            {text.slice(index + searchTerm.length)}
-        </>
-    );
+    return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
 const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
 // Small inline copy button
 function CopyButton({value}: {value: string}) {
+    const intl = useIntl();
     const [copied, setCopied] = useState(false);
 
     const handleCopy = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        navigator.clipboard.writeText(value);
+        copyToClipboard(value);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }, [value]);
@@ -100,7 +113,7 @@ function CopyButton({value}: {value: string}) {
             type='button'
             className='LogRow__copy-btn'
             onClick={handleCopy}
-            title='Copy to clipboard'
+            title={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={copied ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
@@ -109,6 +122,7 @@ function CopyButton({value}: {value: string}) {
 
 // Value renderer: handles copy buttons and admin deep links
 function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
+    const intl = useIntl();
     const isCopyable = COPYABLE_FIELDS.has(fieldKey) || fieldKey.endsWith('_id');
     const adminPath = ADMIN_LINK_FIELDS[fieldKey];
     const isLinkable = adminPath && MM_ID_PATTERN.test(value);
@@ -120,7 +134,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
                     className='LogRow__detail-link'
                     href={adminPath + value}
                     onClick={(e) => e.stopPropagation()}
-                    title={'View in admin console'}
+                    title={intl.formatMessage({id: 'admin.logs.viewInAdmin', defaultMessage: 'View in admin console'})}
                 >
                     {value}
                     <i className='icon icon-open-in-new LogRow__detail-link-icon'/>
@@ -135,7 +149,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, compact}: Props) {
+function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText}: Props) {
     const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
     const [copyLineSuccess, setCopyLineSuccess] = useState(false);
     const levelConfig = LEVEL_CONFIG[log.level] || {label: log.level?.toUpperCase()?.slice(0, 3) || '???', className: 'LogRow__level--debug'};
@@ -150,7 +164,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(JSON.stringify(log, undefined, 2));
+        copyToClipboard(JSON.stringify(log, undefined, 2));
         setCopyJsonSuccess(true);
         setTimeout(() => setCopyJsonSuccess(false), 2000);
     }, [log]);
@@ -158,7 +172,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     const handleCopyLine = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         const line = `${log.timestamp} [${log.level?.toUpperCase()}] ${log.msg} (${log.caller})`;
-        navigator.clipboard.writeText(line);
+        copyToClipboard(line);
         setCopyLineSuccess(true);
         setTimeout(() => setCopyLineSuccess(false), 2000);
     }, [log]);
@@ -169,7 +183,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
             onToggleExpand(log);
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
-            navigator.clipboard.writeText(JSON.stringify(log, undefined, 2));
+            copyToClipboard(JSON.stringify(log, undefined, 2));
             setCopyJsonSuccess(true);
             setTimeout(() => setCopyJsonSuccess(false), 2000);
         }
@@ -177,7 +191,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const rowClasses = [
         'LogRow',
-        compact ? 'LogRow--compact' : 'LogRow--comfortable',
+        'LogRow--compact',
         isExpanded ? 'LogRow--expanded' : '',
         isFocused ? 'LogRow--focused' : '',
         log.level === 'error' ? 'LogRow--error-bg' : '',

@@ -258,7 +258,9 @@ export default function PlainLogList({
     }, [followTail]);
 
     const handleCopyAll = useCallback(() => {
-        navigator.clipboard.writeText(displayLogs.join('\n'));
+        navigator.clipboard.writeText(displayLogs.join('\n')).catch(() => {
+            // Fallback: noop if clipboard API unavailable
+        });
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
     }, [displayLogs]);

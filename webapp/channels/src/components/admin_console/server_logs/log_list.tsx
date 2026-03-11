@@ -4,17 +4,12 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {LogFilter, LogObject} from '@mattermost/types/admin';
-
 import ExternalLink from 'components/external_link';
 
 import LogRow from './log_row';
+import type {LogObjectWithAdditionalInfo} from './types';
 
 import './log_list.scss';
-
-type LogObjectWithAdditionalInfo = LogObject & {
-    [key: string]: string;
-};
 
 type TimePreset = {
     readonly labelId: string;
@@ -25,7 +20,6 @@ type TimePreset = {
 type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
-    onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
 
@@ -310,7 +304,7 @@ export default function LogList({
                             className={`LogViewer__action-btn ${activeTimePreset === preset.minutes ? 'LogViewer__action-btn--active' : ''}`}
                             onClick={() => onTimePreset(preset.minutes)}
                         >
-                            {preset.defaultMessage}
+                            {intl.formatMessage({id: preset.labelId, defaultMessage: preset.defaultMessage})}
                         </button>
                     ))}
                     {activeTimePreset !== null && (
@@ -551,7 +545,6 @@ export default function LogList({
                         onFocus={handleFocus}
                         searchTerm={search}
                         wrapText={wrapText}
-                        compact={true}
                     />
                 ))}
                 {loading && logs.length > 0 && (
