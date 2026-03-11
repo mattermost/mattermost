@@ -33,7 +33,7 @@ test('Verify multiple reviewers receive same flagged post', async ({pw}) => {
     const message = `Post by @${user.username}, is flagged once`;
 
     const {post} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
         await pw.testBrowser.login(secondUser);

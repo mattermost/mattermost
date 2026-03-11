@@ -10600,28 +10600,12 @@
     "translation": "Toegangscontroleservice niet beschikbaar. Kan gebruikers niet filteren voor kanaal met kenmerkengebaseerde toegangscontrole."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maximum Bestandbackups van audit logs config mag niet negatief zijn."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maximum Bestandsqueue van audit logs config moet groter zijn dan nul."
-  },
-  {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Kan geen gastgebruikers uitnodigen voor dit kanaal omdat het toegangsbeperkingen heeft op basis van gebruikerskenmerken."
   },
   {
     "id": "ent.ldap.connection.test_failed",
     "translation": "LDAPverbindingstest mislukt: Server: {{.Server}}:{{.Port}}, Verbindingsbeveiliging {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, Publieke certificaatssleutel {{.PublicCertFilename}}, BindGebruikersnaam: {{.BindUsername}}. Fout: {{.Error}}"
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Maximum Bestandsleeftijd van audit logs config mag niet negatief zijn."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximale bestandsgrootte van audit logs config moet groter zijn dan nul."
   },
   {
     "id": "api.command_share.service_inactive",
@@ -10698,14 +10682,6 @@
   {
     "id": "app.cloud.preview_modal_data_parse_error",
     "translation": "Fout bij het parsen van preview modal-gegevens"
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "De markeerfunctie voor inhoud is uitgeschakeld."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Je licentie ondersteunt het markeren van inhoud niet."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -10796,30 +10772,6 @@
     "translation": "Kan geen bericht plaatsen in beperkt DM"
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "De reden voor het markeren van een bericht kan niet langer zijn dan {{.MaxLength}} tekens."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "De markeerfunctie voor inhoud is niet ingeschakeld in dit team."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Het gemarkeerde bericht moet de status 'in behandeling' of 'toegewezen' hebben om bewaard of verwijderd te worden."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Onbekende reden opgegeven voor markeren van bericht."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Selecteer een reden om dit bericht te markeren."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
   },
@@ -10860,90 +10812,6 @@
     "translation": "Fout bij het ophalen van gemeenschappelijke teams voor kanaal"
   },
   {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Kan dit bericht niet markeren omdat het al gemarkeerd is."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Kan dit bericht niet markeren, het is verwijderd in een eerder verzoek voor markering."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Kan dit bericht niet markeren omdat het is bewaard in een eerder verzoek om markering."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Kan dit bericht niet markeren omdat het een onbekende status heeft."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Mislukt om commentaar van markerende gebruiker te verzamelen"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Faalde om de reden van de vlaggende gebruiker te verzamelen"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "Fout bij het ophalen van de Content Flagging bot."
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Fout bij het ophalen van het Statusveld."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Fout bij het zoeken van beoordeelaars in het team."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Fout bij het verkeken van de commentaar van de beoordeelaar"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht en de bijhorende data te verwijderen."
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Fout bij de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "Fout bij het permanent verwijderen van de prioriteitsgegevens uit de database voor het bericht."
   },
@@ -10952,24 +10820,12 @@
     "translation": "Kan bericht niet plannen in een beperkte DM"
   },
   {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Inhoud beoordelen"
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
   },
   {
     "id": "api.encoding_error",
     "translation": "Er is een fout opgetreden bij het coderen van JSON voor het API-antwoord"
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "Fout bij het ophalen van instellingen voor inhoudsbeoordelaar uit de database"
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "Het is niet gelukt om de instellingen van de inhoudsbeoordelaar op te slaan in de database."
   },
   {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
@@ -10992,72 +10848,8 @@
     "translation": "Kan geen rechten toevoegen die beperkt zijn door het machtigingsschema van het team of het systeem."
   },
   {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "De gebruiker is geen inhoudsbeoordelaar."
-  },
-  {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
     "translation": "TeamID komt niet overeen met de teamID van het gemarkeerde bericht."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "Geen eigenschapveld ReviewerID gevonden."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij het instellen van reviewer."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "Fout bij het instellen van een beoordelaar voor een gemarkeerd bericht."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "Kan het eigenschapveld Flagged Post ID niet vinden."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Kan het reporting user veld niet vinden."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Kan de waarde voor het reporting user veld niet vinden."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "Kan de term niet vinden in Common Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "Kan reviewer berichten niet vinden het gemarkeerde bericht."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Kan de zoekterm niet vinden in System Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Kan de zoekterm niet vinden in Team Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Kan de zoekterm niet vinden in Team Reviewers."
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "Het is niet gelukt om reacties op de gemarkeerde post op te halen."
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "Manage By-eigenschapsveld is niet gevonden."
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "Status-eigenschapsveld niet gevonden."
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
@@ -11324,10 +11116,6 @@
     "translation": "Ongeldige uitnodigingslink."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Ongeldig uitnodigingslink type ."
-  },
-  {
     "id": "api.user.guest_magic_link.missing_token.app_error",
     "translation": "Ontbrekend uitnodigingstoken."
   },
@@ -11590,10 +11378,6 @@
   {
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
     "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
-  },
-  {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
   },
   {
     "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
@@ -11902,5 +11686,45 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
     "translation": "{{.Searching}} instelling moet worden ingesteld op actief als {{.EnableCJKAnalyzers}} is ingesteld op actief"
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Downloaden van bestand geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Downloadvoorbeeld van bestand geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Download voorbeeld van bestanden geweigerd door plugin"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Publiek bestanden downloaden geweigerd door plugin"
+  },
+  {
+    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "translation": "Kan geen postprioriteit krijgen voor bericht met context"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Bericht is vereist"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "Gebruikers-ID is vereist"
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "Vertaaltaken kunnen niet worden toegevoegd omdat de werker is gestopt."
+  },
+  {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR redirect URI allowlist bevat een ongeldig patroon. Patronen moeten beginnen met http:// of https:// en mogen niet leeg zijn of spaties bevatten."
   }
 ]

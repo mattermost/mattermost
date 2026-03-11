@@ -8,6 +8,22 @@ import (
 	"strings"
 )
 
+// Deprecated: Use MessageAttachment instead.
+type SlackAttachment = MessageAttachment
+
+// Deprecated: Use MessageAttachmentField instead.
+type SlackAttachmentField = MessageAttachmentField
+
+// Deprecated: Use ParseMessageAttachment instead.
+func ParseSlackAttachment(post *Post, attachments []*MessageAttachment) {
+	ParseMessageAttachment(post, attachments)
+}
+
+// Deprecated: Use StringifyMessageAttachmentFieldValue instead.
+func StringifySlackFieldValue(a []*MessageAttachment) []*MessageAttachment {
+	return StringifyMessageAttachmentFieldValue(a)
+}
+
 // SlackCompatibleBool is an alias for bool that implements json.Unmarshaler
 type SlackCompatibleBool bool
 
@@ -18,11 +34,12 @@ type SlackCompatibleBool bool
 // that supports both.
 func (b *SlackCompatibleBool) UnmarshalJSON(data []byte) error {
 	value := strings.ToLower(string(data))
-	if value == "true" || value == `"true"` {
+	switch value {
+	case "true", `"true"`:
 		*b = true
-	} else if value == "false" || value == `"false"` {
+	case "false", `"false"`:
 		*b = false
-	} else {
+	default:
 		return fmt.Errorf("unmarshal: unable to convert %s to bool", data)
 	}
 

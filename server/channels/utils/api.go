@@ -93,7 +93,7 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
 		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
 		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
-		<p> `+i18n.T("api.oauth.click_redirect", model.StringInterface{"Link": link})+` </p>
+		<p> `+string(i18n.TranslateAsHTML(i18n.T, "api.oauth.click_redirect", map[string]any{"Link": redirectURL}))+` </p>
 		<meta http-equiv="refresh" content="2; url=`+link+`">
 		<script>
 			window.onload = function() {
@@ -110,7 +110,7 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 	var link = template.HTMLEscapeString(redirectURL)
 	u, redirectErr := url.Parse(redirectURL)
 	if redirectErr != nil || !slices.Contains(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
-		link = *config.ServiceSettings.SiteURL
+		link = template.HTMLEscapeString(*config.ServiceSettings.SiteURL)
 	}
 	RenderMobileMessage(w, `
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="width: 64px; height: 64px; fill: #ccc">
@@ -118,9 +118,9 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 			<path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/>
 		</svg>
 		<h2> `+i18n.T("error")+` </h2>
-		<p> `+err.Message+` </p>
+		<p> `+template.HTMLEscapeString(err.Message)+` </p>
 		<a href="`+link+`">
-			`+i18n.T("api.back_to_app", map[string]any{"SiteName": config.TeamSettings.SiteName})+`
+			`+string(i18n.TranslateAsHTML(i18n.T, "api.back_to_app", map[string]any{"SiteName": config.TeamSettings.SiteName}))+`
 		</a>
 	`)
 }
