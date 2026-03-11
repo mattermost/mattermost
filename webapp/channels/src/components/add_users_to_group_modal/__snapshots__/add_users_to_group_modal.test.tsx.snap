@@ -1,139 +1,189 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/add_users_to_group_modal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="createUserGroupsModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal user-groups-modal-create"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="addUsersToGroupsModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <div>
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={false}
-      closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="createUserGroupsModalLabel"
+      class="fade in modal"
+      id="addUsersToGroupsModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
       <div
-        className="d-flex align-items-center"
+        class="a11y__modal user-groups-modal-create modal-dialog"
       >
-        <button
-          aria-label="Back"
-          className="modal-header-back-button btn btn-icon"
-          onClick={[Function]}
-          type="button"
+        <div
+          class="modal-content"
+          role="document"
         >
-          <i
-            className="icon icon-arrow-left"
-          />
-        </button>
-        <ModalTitle
-          bsClass="modal-title"
-          componentClass="h1"
-          id="addUsersToGroupsModalLabel"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Add people to {group}"
-            id="user_groups_modal.addPeopleTitle"
-            values={
-              Object {
-                "group": "Group Name",
-              }
-            }
-          />
-        </ModalTitle>
-      </div>
-      <button
-        aria-label="Close"
-        className="close"
-        onClick={[MockFunction]}
-        type="button"
-      >
-        <span
-          aria-hidden="true"
-        >
-          ×
-        </span>
-        <span
-          className="sr-only"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Close"
-            id="generic.close"
-          />
-        </span>
-      </button>
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      className="overflow--visible"
-      componentClass="div"
-    >
-      <div
-        className="user-groups-modal__content"
-      >
-        <form
-          role="form"
-        >
-          <div
-            className="group-add-user"
-          >
-            <Connect(injectIntl(AddUserToGroupMultiSelect))
-              addUserCallback={[Function]}
-              backButtonClass="multiselect-back"
-              backButtonClick={[Function]}
-              buttonSubmitLoadingText={
-                Object {
-                  "defaultMessage": "Adding...",
-                  "id": "multiselect.adding",
-                }
-              }
-              buttonSubmitText={
-                Object {
-                  "defaultMessage": "Add People",
-                  "id": "multiselect.addPeopleToGroup",
-                }
-              }
-              deleteUserCallback={[Function]}
-              focusOnLoad={false}
-              groupId="groupid123"
-              multilSelectKey="addUsersToGroupKey"
-              onSubmitCallback={[Function]}
-              saving={false}
-              savingEnabled={false}
-              searchOptions={
-                Object {
-                  "not_in_group_id": "groupid123",
-                }
-              }
-            />
+          <div>
+            <div
+              class="modal-header"
+            >
+              <div
+                class="d-flex align-items-center"
+              >
+                <button
+                  aria-label="Back"
+                  class="modal-header-back-button btn btn-icon"
+                  type="button"
+                >
+                  <i
+                    class="icon icon-arrow-left"
+                  />
+                </button>
+                <h1
+                  class="modal-title"
+                  id="addUsersToGroupsModalLabel"
+                >
+                  Add people to Group Name
+                </h1>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="overflow--visible modal-body"
+            >
+              <div
+                class="user-groups-modal__content"
+              >
+                <form
+                  role="form"
+                >
+                  <div
+                    class="group-add-user"
+                  >
+                    <div
+                      class="filtered-user-list"
+                    >
+                      <div
+                        class="filter-row"
+                      >
+                        <div
+                          class="multi-select__container react-select"
+                        >
+                          <div
+                            class="css-1dedlln"
+                            id="selectItems"
+                          >
+                            <span
+                              class="css-1f43avz-a11yText-A11yText"
+                              id="react-select-2-live-region"
+                            />
+                            <span
+                              aria-atomic="false"
+                              aria-live="polite"
+                              aria-relevant="additions text"
+                              class="css-1f43avz-a11yText-A11yText"
+                              role="log"
+                            />
+                            <div
+                              class="react-select-auto react-select__control css-13cymwt-control"
+                            >
+                              <div
+                                class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                              >
+                                <div
+                                  class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                                  id="react-select-2-placeholder"
+                                >
+                                  Search for people
+                                </div>
+                                <div
+                                  class="react-select-auto react-select__input-container css-19bb58m"
+                                  data-value=""
+                                >
+                                  <input
+                                    aria-activedescendant=""
+                                    aria-autocomplete="list"
+                                    aria-describedby="react-select-2-placeholder"
+                                    aria-expanded="false"
+                                    aria-haspopup="true"
+                                    aria-invalid="false"
+                                    aria-label="Search for people"
+                                    autocapitalize="none"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    class="react-select-auto react-select__input"
+                                    id="react-select-2-input"
+                                    role="combobox"
+                                    spellcheck="false"
+                                    style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                    tabindex="0"
+                                    type="text"
+                                    value=""
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="multi-select__help"
+                          id="multiSelectHelpMemberInfo"
+                        />
+                      </div>
+                      <div
+                        class="multi-select__help"
+                        id="multiSelectMessageNote"
+                      />
+                    </div>
+                    <div
+                      class="multi-select__footer modal-footer"
+                    >
+                      <button
+                        class="btn btn-tertiary multiselect-back"
+                      >
+                        Back
+                      </button>
+                      <button
+                        class="btn btn-primary"
+                        data-testid="saveSetting"
+                        disabled=""
+                        id="saveItems"
+                        type="submit"
+                      >
+                        <span>
+                          Add People
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-    </ModalBody>
+    </div>
   </div>
-</Modal>
+</body>
 `;

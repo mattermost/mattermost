@@ -1020,7 +1020,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Can't fleg when post already flagged in pending status
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 
 		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
@@ -1139,7 +1139,7 @@ func TestFlagPost(t *testing.T) {
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.reason_invalid", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.reason_invalid", appErr.Id)
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
@@ -1177,7 +1177,7 @@ func TestFlagPost(t *testing.T) {
 		// Try to flag the same post again
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
@@ -1948,7 +1948,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -1961,7 +1961,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply to the flag review post
 
 		// Verify author message
-		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was quarantined for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var authorPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == authorMessage {
@@ -1973,7 +1973,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
 
 		// Verify reporter message
-		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you quarantined for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var reporterPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reporterMessage {
@@ -2011,7 +2011,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2030,7 +2030,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2050,7 +2050,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
@@ -2083,7 +2083,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -2096,7 +2096,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply
 
 		// Verify author message
-		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was quarantined for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var authorPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == authorMessage {
@@ -2108,7 +2108,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
 
 		// Verify reporter message
-		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you quarantined for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var reporterPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reporterMessage {
@@ -2141,7 +2141,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2160,7 +2160,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2180,7 +2180,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2200,7 +2200,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
@@ -2335,7 +2335,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2359,7 +2359,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2720,7 +2720,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 
 		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2744,7 +2744,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 
 		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
