@@ -174,8 +174,13 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         setIsPlainLogs(plain);
         if (plain) {
             setLiveTailEnabled(false);
+            setLoading(true);
+            actions.getPlainLogs(plainPage, perPage).then(() => setLoading(false));
+        } else {
+            setLoading(true);
+            actions.getLogs({serverNames, logLevels, dateFrom, dateTo}).then(() => setLoading(false));
         }
-    }, []);
+    }, [actions, plainPage, perPage, serverNames, logLevels, dateFrom, dateTo]);
 
     // Time presets
     const handleTimePreset = useCallback((minutes: number) => {
