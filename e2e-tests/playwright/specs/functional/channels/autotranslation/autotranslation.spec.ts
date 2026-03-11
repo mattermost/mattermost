@@ -901,7 +901,7 @@ test(
             user_id: createdPoster2.id,
         });
 
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
@@ -917,6 +917,10 @@ test(
         await post.hover();
         await post.postMenu.toBeVisible();
         await post.postMenu.dotMenuButton.click();
+
+        // Move mouse away so it doesn't hover over Remind and trigger its submenu.
+        // The submenu's MUI portal sets aria-hidden on the main menu, breaking getByRole.
+        await page.mouse.move(0, 0);
         await channelsPage.postDotMenu.toBeVisible();
 
         // * Verify the "Show translation" menu item is present
