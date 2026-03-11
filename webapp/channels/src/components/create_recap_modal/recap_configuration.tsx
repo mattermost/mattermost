@@ -36,8 +36,6 @@ const RecapConfiguration = ({
     const {formatMessage} = useIntl();
     const hasUnreadChannels = unreadChannels.length > 0;
 
-    // Disable "run once" when all_unreads is selected but there are no current unreads,
-    // since there's nothing to recap immediately — scheduling is the only valid option.
     const runOnceDisabled = recapType === 'all_unreads' && !hasUnreadChannels;
 
     const handleAllUnreadsClick = () => {
@@ -147,8 +145,8 @@ const RecapConfiguration = ({
                             </div>
                             <div className='recap-type-card-description'>
                                 <FormattedMessage
-                                    id='recaps.modal.allUnreadsDesc'
-                                    defaultMessage='Copilot will create a recap of all unreads across your channels.'
+                        id='recaps.modal.allUnreadsDesc'
+                        defaultMessage='Create a recap of all unread messages across your channels.'
                                 />
                             </div>
                         </div>

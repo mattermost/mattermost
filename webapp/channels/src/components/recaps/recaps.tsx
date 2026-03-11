@@ -12,6 +12,7 @@ import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
 import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps, getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
 
+import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -21,6 +22,8 @@ import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {useQuery} from 'utils/http_utils';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import RecapUsageBadge from './recap_usage_badge';
 import RecapsList from './recaps_list';
@@ -77,6 +80,7 @@ const Recaps = () => {
     }, [tabParam]);
 
     useEffect(() => {
+        dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
         dispatch(getRecaps(0, 60));
         dispatch(getScheduledRecaps(0, 60));
         dispatch(getAgents());
