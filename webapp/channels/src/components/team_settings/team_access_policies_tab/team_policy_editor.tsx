@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -16,6 +17,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
+import Input from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -25,7 +28,7 @@ import ChannelList from 'components/admin_console/access_control/policy_details/
 import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
 import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
-import PolicyConfirmationModal from 'components/admin_console/access_control/modals/confirmation/confirmation_modal';
+import TeamPolicyConfirmationModal from './team_policy_confirmation_modal';
 
 import './team_policy_editor.scss';
 
@@ -80,7 +83,7 @@ export default function TeamPolicyEditor({
     const [originalName, setOriginalName] = useState('');
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
-    const [autoSyncMembership, setAutoSyncMembership] = useState(false);
+
 
     // Editor mode
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
@@ -100,6 +103,7 @@ export default function TeamPolicyEditor({
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -134,7 +138,7 @@ export default function TeamPolicyEditor({
                 setOriginalName(result.data.name || '');
                 setExpression(result.data.rules?.[0]?.expression || '');
                 setOriginalExpression(result.data.rules?.[0]?.expression || '');
-                setAutoSyncMembership(result.data.active || false);
+
             }
         });
         actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
@@ -238,7 +242,7 @@ export default function TeamPolicyEditor({
     }, [policyName, expression, hasChannels, formatMessage]);
 
     // Save flow
-    const handleSave = useCallback(async (apply = false) => {
+    const handleSave = useCallback(async () => {
         if (!validateForm()) {
             return;
         }
@@ -291,10 +295,8 @@ export default function TeamPolicyEditor({
                 }
             }
 
-            // Trigger sync job if needed
-            if (apply) {
-                await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
-            }
+            // Always trigger sync on save
+            await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
 
             setShowConfirmationModal(false);
             onNavigateBack();
@@ -333,8 +335,12 @@ export default function TeamPolicyEditor({
         if (!policyId) {
             return;
         }
+        setShowDeleteModal(false);
         try {
-            await actions.deletePolicy(policyId);
+            const result = await actions.deletePolicy(policyId);
+            if (result.error?.server_error_id) {
+                throw new Error(result.error.message || 'Failed to delete policy');
+            }
             onNavigateBack();
         } catch (error: any) {
             setFormError(error.message || 'Error deleting policy');
@@ -355,6 +361,8 @@ export default function TeamPolicyEditor({
     }, [autocompleteResult, accessControlSettings.EnableUserManagedAttributes]);
 
     const hasErrors = formError.length > 0;
+    const nameHasError = hasErrors && policyName.length === 0;
+    const nameErrorMessage: CustomMessageInputType = nameHasError ? {type: 'error', value: formatMessage({id: 'team_settings.policy_editor.name_required', defaultMessage: 'A policy name is required.'})} : null;
 
     return (
         <div className='TeamPolicyEditor'>
@@ -372,29 +380,27 @@ export default function TeamPolicyEditor({
             </div>
 
             <div className='TeamPolicyEditor__name-input'>
-                <label htmlFor='policyName'>
-                    <FormattedMessage
-                        id='team_settings.policy_editor.name_label'
-                        defaultMessage='Access policy name'
-                    />
-                </label>
-                <input
-                    id='policyName'
+                <Input
+                    name='policyName'
                     type='text'
-                    className={`TeamPolicyEditor__name-field${hasErrors && policyName.length === 0 ? ' has-error' : ''}`}
                     value={policyName}
+                    label={formatMessage({id: 'team_settings.policy_editor.name_label', defaultMessage: 'Membership policy name'})}
                     placeholder={formatMessage({id: 'team_settings.policy_editor.name_placeholder', defaultMessage: 'Add a unique policy name'})}
-                    onChange={(e) => {
-                            setPolicyName(e.target.value);
-                            if (formError) {
-                                setFormError('');
-                                setSaveChangesPanelState(undefined);
-                            }
-                        }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setPolicyName(e.target.value);
+                        if (formError) {
+                            setFormError('');
+                            setSaveChangesPanelState(undefined);
+                        }
+                    }}
                     maxLength={64}
+                    limit={64}
                     autoFocus={!policyId}
+                    required={true}
+                    hasError={nameHasError}
+                    customMessage={nameErrorMessage}
                 />
-                <p className='TeamPolicyEditor__name-hint'>
+                <p className={`TeamPolicyEditor__name-hint${nameHasError ? ' TeamPolicyEditor__name-hint--error' : ''}`}>
                     <FormattedMessage
                         id='team_settings.policy_editor.name_hint'
                         defaultMessage='Give your policy a name that will be used to identify it in the policies list.'
@@ -481,7 +487,7 @@ export default function TeamPolicyEditor({
             </Card>
 
             {policyId && (
-                <Card expanded={true} className='console delete-policy'>
+                <Card expanded={true} className='TeamPolicyEditor__card TeamPolicyEditor__delete-section'>
                     <Card.Header>
                         <TitleAndButtonCardHeader
                             title={<FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.title' defaultMessage='Delete policy'/>}
@@ -493,7 +499,7 @@ export default function TeamPolicyEditor({
                                 )
                             }
                             buttonText={<FormattedMessage id='admin.access_control.policy.edit_policy.delete_policy.delete' defaultMessage='Delete'/>}
-                            onClick={() => hasChannels() ? undefined : handleDelete()}
+                            onClick={() => hasChannels() ? undefined : setShowDeleteModal(true)}
                             isDisabled={hasChannels()}
                         />
                     </Card.Header>
@@ -513,12 +519,54 @@ export default function TeamPolicyEditor({
             )}
 
             {showConfirmationModal && (
-                <PolicyConfirmationModal
-                    active={autoSyncMembership}
+                <TeamPolicyConfirmationModal
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSave}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
                 />
+            )}
+
+            {showDeleteModal && (
+                <GenericModal
+                    className='TeamPolicyEditor__delete-modal'
+                    show={true}
+                    isStacked={true}
+                    onExited={() => setShowDeleteModal(false)}
+                    onHide={() => setShowDeleteModal(false)}
+                    compassDesign={true}
+                    modalHeaderText={
+                        <FormattedMessage
+                            id='team_settings.policy_editor.delete_confirmation.title'
+                            defaultMessage='Delete policy {name}'
+                            values={{name: policyName}}
+                        />
+                    }
+                    footerContent={
+                        <div className='TeamPolicyEditor__delete-modal-footer'>
+                            <button
+                                type='button'
+                                className='btn btn-tertiary'
+                                onClick={() => setShowDeleteModal(false)}
+                            >
+                                {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.cancel', defaultMessage: 'Cancel'})}
+                            </button>
+                            <button
+                                type='button'
+                                className='btn btn-danger'
+                                onClick={handleDelete}
+                            >
+                                {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.confirm', defaultMessage: 'Delete'})}
+                            </button>
+                        </div>
+                    }
+                >
+                    <p>
+                        <FormattedMessage
+                            id='team_settings.policy_editor.delete_confirmation.body'
+                            defaultMessage='This action cannot be undone.'
+                        />
+                    </p>
+                </GenericModal>
             )}
 
             {shouldShowPanel && (
