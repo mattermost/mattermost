@@ -298,7 +298,7 @@ export default function PlainLogList({
                             defaultMessage: newestFirst ? 'Oldest first' : 'Newest first',
                         })}
                     >
-                        <i className={newestFirst ? 'icon icon-sort-descending' : 'icon icon-sort-ascending'}/>
+                        <i className={newestFirst ? 'icon icon-arrow-down' : 'icon icon-arrow-up'}/>
                         {newestFirst ? (
                             <FormattedMessage
                                 id='admin.logs.newestFirst'
@@ -428,7 +428,7 @@ export default function PlainLogList({
                             disabled={!hasPrevious}
                             title={intl.formatMessage({id: 'admin.logs.firstPage', defaultMessage: 'First page'})}
                         >
-                            <i className='icon icon-page-first'/>
+                            <span className='PlainLogViewer__double-chevron'>{'«'}</span>
                         </button>
                         <button
                             type='button'
