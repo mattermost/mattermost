@@ -905,14 +905,12 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Wait for the Spanish post to appear and be translated
-        await channelsPage.centerView.waitUntilLastPostContains('[translated to en]', 15000);
-
-        // * Find the post with the Spanish message text
+        // * Find the target post and wait for its translation before opening the menu
         const messagePost = channelsPage.centerView.container
             .getByTestId('postView')
             .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
         await messagePost.waitFor({state: 'visible', timeout: 15000});
+        await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
 
         // * Open dot menu using the established hover → wait → click pattern
         const post = new ChannelsPost(messagePost);
