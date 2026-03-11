@@ -311,9 +311,12 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	}
 
 	const pageSize = 1000
+	const maxBroadcasts = 100000
 	switch scheme.Scope {
 	case model.SchemeScopeTeam:
-		for offset := 0; ; offset += pageSize {
+		totalBroadcasts := 0
+		offset := 0
+		for {
 			teams, storeErr := a.Srv().Store().Team().GetTeamsByScheme(scheme.Id, offset, pageSize)
 			if storeErr != nil {
 				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
@@ -321,12 +324,22 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			for _, team := range teams {
 				publishEvent(team.Id, "")
 			}
+			totalBroadcasts += len(teams)
 			if len(teams) < pageSize {
 				break
 			}
+			if totalBroadcasts >= maxBroadcasts {
+				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for team scheme",
+					mlog.String("scheme_id", scheme.Id),
+					mlog.Int("totalBroadcasts", totalBroadcasts))
+				break
+			}
+			offset += pageSize
 		}
 	case model.SchemeScopeChannel:
-		for offset := 0; ; offset += pageSize {
+		totalBroadcasts := 0
+		offset := 0
+		for {
 			channels, storeErr := a.Srv().Store().Channel().GetChannelsByScheme(scheme.Id, offset, pageSize)
 			if storeErr != nil {
 				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
@@ -334,9 +347,17 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			for _, channel := range channels {
 				publishEvent("", channel.Id)
 			}
+			totalBroadcasts += len(channels)
 			if len(channels) < pageSize {
 				break
 			}
+			if totalBroadcasts >= maxBroadcasts {
+				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for channel scheme",
+					mlog.String("scheme_id", scheme.Id),
+					mlog.Int("totalBroadcasts", totalBroadcasts))
+				break
+			}
+			offset += pageSize
 		}
 	case model.SchemeScopePlaybook, model.SchemeScopeRun:
 		// Playbook/run schemes don't map to teams or channels; broadcast globally.
