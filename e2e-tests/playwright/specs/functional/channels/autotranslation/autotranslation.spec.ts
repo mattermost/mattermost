@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    ChannelsPost,
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
@@ -900,26 +901,28 @@ test(
             user_id: createdPoster2.id,
         });
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Find post with message text and wait for translation before opening dot menu
+        // * Wait for the Spanish post to appear and be translated
+        await channelsPage.centerView.waitUntilLastPostContains('[translated to en]', 15000);
+
+        // * Find the post with the Spanish message text
         const messagePost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
+            .getByTestId('postView')
             .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
         await messagePost.waitFor({state: 'visible', timeout: 15000});
 
-        // Wait for mock translation to be applied before opening the menu
-        // (mock appends "[translated to en]"; Show translation only appears after translation)
-        await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
+        // * Open dot menu using the established hover → wait → click pattern
+        const post = new ChannelsPost(messagePost);
+        await post.hover();
+        await post.postMenu.toBeVisible();
+        await post.postMenu.dotMenuButton.click();
+        await channelsPage.postDotMenu.toBeVisible();
 
-        await messagePost.hover();
-        // Click the "more" (three dots) button to open the action menu
-        await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
-
-        const showTranslationItem = page.getByRole('menuitem').filter({hasText: 'Show translation'});
-        await expect(showTranslationItem).toBeVisible({timeout: 10000});
+        // * Verify the "Show translation" menu item is present
+        await expect(channelsPage.postDotMenu.showTranslationMenuItem).toBeVisible({timeout: 10000});
     },
 );
 
