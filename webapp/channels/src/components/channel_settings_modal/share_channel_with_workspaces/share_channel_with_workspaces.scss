@@ -68,7 +68,7 @@
         border: none;
         border-radius: 4px;
         background: transparent;
-        color: var(--dnd-indicator);
+        color: var(--error-text);
         cursor: pointer;
 
         &:hover:not(:disabled) {
