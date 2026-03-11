@@ -190,39 +190,33 @@ jobs:
                 }
               }
 
-              // ── Advisory: covered flows with new behavior ──────────────────
+              // ── Advisory: covered flows with new behavior (collapsible) ──
               if (flowsWithAdvisory.length > 0) {
                 lines.push('');
-                lines.push(`### 💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''}`);
+                lines.push(`<details>`);
+                lines.push(`<summary>💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''} — consider adding tests</summary>`);
                 lines.push('');
                 lines.push('These features already have E2E tests, but this PR introduces new behavior worth covering:');
                 lines.push('');
                 for (const cf of flowsWithAdvisory) {
                   const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
-                  lines.push('> [!TIP]');
-                  lines.push(`> **${cf.name}** · ${cf.priority}${tests ? ' — ' + tests : ''}`);
-                  lines.push('>');
-                  lines.push('> Consider adding tests for:');
-                  for (const s of cf.advisoryScenarios) lines.push(`> - [ ] ${s}`);
+                  lines.push(`#### ${cf.name} · ${cf.priority}`);
+                  if (tests) lines.push(`*${tests}*`);
+                  lines.push('');
+                  for (const s of cf.advisoryScenarios) lines.push(`- [ ] ${s}`);
                   lines.push('');
                 }
+                lines.push('</details>');
               }
 
               // ── Clean covered flows (collapsed) ────────────────────────────
-              if (cleanFlows.length > 0 || flowsWithAdvisory.length > 0) {
+              if (cleanFlows.length > 0) {
                 lines.push('');
-                const collapseLabel = cleanFlows.length > 0
-                  ? `✅ Covered flows (${cleanFlows.length})`
-                  : `✅ All covered flows have advisory notes above`;
-                lines.push(`<details><summary>${collapseLabel}</summary>`);
+                lines.push(`<details><summary>✅ Covered flows (${cleanFlows.length})</summary>`);
                 lines.push('');
                 for (const cf of cleanFlows) {
                   const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
                   lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''}`);
-                }
-                for (const cf of flowsWithAdvisory) {
-                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
-                  lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''} 💡`);
                 }
                 lines.push('');
                 lines.push('</details>');
