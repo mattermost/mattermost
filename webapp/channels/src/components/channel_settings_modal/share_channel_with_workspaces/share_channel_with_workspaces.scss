@@ -17,7 +17,7 @@
     &__item {
         display: flex;
         align-items: center;
-        padding: 12px 0px;
+        padding: 8px 0px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         gap: 12px;
 
@@ -29,10 +29,6 @@
     &__itemName {
         overflow: hidden;
         flex: 1;
-        color: var(--center-channel-color);
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 20px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -45,11 +41,11 @@
     }
 
     &__statusPending {
-        color: var(--dnd-indicator);
+        color: var(--error-text);
     }
 
     &__statusConnectionPending {
-        color: var(--away-indicator);
+        color: rgba(var(--center-channel-color-rgb), 0.75)
     }
 
     &__statusOnline {

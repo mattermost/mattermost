@@ -129,7 +129,7 @@ export default function AddWorkspaceDropdown({
                     labels={
                         <FormattedMessage
                             id='add_workspace_modal.empty'
-                            defaultMessage='All connected workspaces are already sharing this channel.'
+                            defaultMessage='No other connected workspaces available'
                         />
                     }
                     disabled={true}

@@ -89,7 +89,7 @@ export default function ShareChannelWithWorkspaces({
     });
     const subheading = formatMessage({
         id: 'channel_settings.share_channel_with_workspaces.description',
-        defaultMessage: 'Collaborate with trusted organizations in this channel. Connections must first be defined by a system administrator.',
+        defaultMessage: 'Collaborate with trusted organizations in this channel.',
     });
 
     return (
@@ -128,12 +128,12 @@ export default function ShareChannelWithWorkspaces({
                         {remotes.length > 0 ? (
                             <FormattedMessage
                                 id='channel_settings.share_channel_with_workspaces.workspaces_label'
-                                defaultMessage='Workspaces sharing this channel'
+                                defaultMessage='Workspaces this channel is shared with'
                             />
                         ) : (
                             <FormattedMessage
                                 id='channel_settings.share_channel_with_workspaces.workspaces_label_empty'
-                                defaultMessage='No workspaces sharing this channel yet.'
+                                defaultMessage='This channel is not shared with any connected workspaces yet.'
                             />
                         )}
                     </span>
