@@ -9,9 +9,9 @@
     gap: 32px;
 
     &__configurationDivider {
-        margin: 0;
         border: none;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: 0;
     }
 
     .channel_shared_with_workspaces_container {
