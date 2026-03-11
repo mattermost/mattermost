@@ -200,14 +200,12 @@ jobs:
                 lines.push(`### 💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''} — consider adding tests`);
                 lines.push('');
                 for (const cf of flowsWithAdvisory) {
-                  // Green [!TIP] box: just the name (always visible)
-                  lines.push('> [!TIP]');
-                  lines.push(`> **${cf.name}** · ${cf.priority}`);
-                  lines.push('');
-                  // Specs + scenarios: collapsible below
-                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
-                  const coverageSummary = tests || cf.coveredBy.join(', ');
-                  lines.push(`<details><summary>${coverageSummary} — click to see suggested scenarios</summary>`);
+                  const specParts = cf.coveredBy.map(s =>
+                    s.replace(/ Playwright spec\(s\)/, ' PW').replace(/ Cypress spec\(s\)/, ' Cy')
+                  );
+                  const specSummary = specParts.length > 0 ? ` — ${specParts.join(' · ')}` : '';
+                  const scenarioCount = cf.advisoryScenarios.length;
+                  lines.push(`<details><summary>💡 <strong>${cf.name}</strong> · ${cf.priority}${specSummary} · ${scenarioCount} scenario${scenarioCount !== 1 ? 's' : ''}</summary>`);
                   lines.push('');
                   for (const s of cf.advisoryScenarios) lines.push(`- [ ] ${s}`);
                   lines.push('');
