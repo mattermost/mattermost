@@ -918,14 +918,7 @@ test(
         // Click the "more" (three dots) button to open the action menu
         await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
 
-        // Scope to the menu that contains "Show translation" — avoids grabbing
-        // the "Remind" submenu when it happens to be expanded and rendered first.
-        const postActionsMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: 'Show translation'})});
-        await expect(postActionsMenu).toBeVisible({timeout: 5000});
-
-        const showTranslationItem = postActionsMenu.getByRole('menuitem', {name: 'Show translation'});
+        const showTranslationItem = page.getByRole('menuitem', {name: 'Show translation'});
         await expect(showTranslationItem).toBeVisible({timeout: 10000});
     },
 );
