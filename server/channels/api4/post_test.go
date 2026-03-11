@@ -1701,6 +1701,29 @@ func TestUpdatePost(t *testing.T) {
 		assert.Contains(t, updatedPost.FileIds, fileId)
 	})
 
+	t.Run("should prevent editing when create_post permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		postToEdit, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "original message",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+
+		updatePost := &model.Post{
+			Id:        postToEdit.Id,
+			ChannelId: channel.Id,
+			Message:   "edited message",
+		}
+		_, resp, err := client.UpdatePost(context.Background(), postToEdit.Id, updatePost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -2083,6 +2106,27 @@ func TestPatchPost(t *testing.T) {
 
 		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
+	})
+
+	t.Run("should prevent patching when create_post permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("edited message"),
+		}
+		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("time limit expired", func(t *testing.T) {

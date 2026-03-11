@@ -1046,6 +1046,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionCreatePost); !ok {
+		c.SetPermissionError(model.PermissionCreatePost)
+		return
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -1180,6 +1186,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
 	if !ok {
 		c.SetPermissionError(permission)
+		return false
+	}
+
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionCreatePost); !ok {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return false
 	}
 
