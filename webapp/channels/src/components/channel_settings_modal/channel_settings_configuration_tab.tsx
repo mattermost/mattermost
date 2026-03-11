@@ -438,6 +438,10 @@ function ChannelSettingsConfigurationTab({
                 </>
             )}
 
+            {canManageSharedChannels && canManageBanner && (
+                <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
+            )}
+
             {canManageBanner && (
                 <>
                     <div className='channel_banner_header'>
@@ -521,6 +525,10 @@ function ChannelSettingsConfigurationTab({
                         </div>
                     }
                 </>
+            )}
+
+            {(canManageSharedChannels || canManageBanner) && canManageChannelTranslation && (
+                <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
             )}
 
             {canManageChannelTranslation && (

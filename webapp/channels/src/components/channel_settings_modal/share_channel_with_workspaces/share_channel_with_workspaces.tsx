@@ -119,7 +119,7 @@ export default function ShareChannelWithWorkspaces({
     });
 
     return (
-        <>
+        <div className='channel_shared_with_workspaces_container'>
             <div className='channel_shared_with_workspaces_header'>
                 <div className='channel_shared_with_workspaces_header__text'>
                     <label
@@ -189,6 +189,6 @@ export default function ShareChannelWithWorkspaces({
                     />
                 </div>
             )}
-        </>
+        </div>
     );
 }
