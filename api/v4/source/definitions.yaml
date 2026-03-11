@@ -4134,6 +4134,12 @@ components:
         operation:
           type: string
           description: Explicit bridge operation key such as recap_summary or rewrite
+        client_operation:
+          type: string
+          description: Client-facing operation routed through the bridge client
+        operation_sub_type:
+          type: string
+          description: Optional subtype used to disambiguate bridge requests
         session_user_id:
           type: string
           description: Session user ID used when invoking the bridge
@@ -4146,6 +4152,9 @@ components:
         agent_id:
           type: string
           description: Agent ID targeted by the bridge completion request
+        service_id:
+          type: string
+          description: Service ID targeted by the bridge completion request
         messages:
           type: array
           items:

@@ -4,8 +4,6 @@
 package app
 
 import (
-	"maps"
-
 	"github.com/blang/semver/v4"
 
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
@@ -218,9 +216,32 @@ func cloneJSONOutputFormat(jsonOutputFormat map[string]any) map[string]any {
 	}
 
 	cloned := make(map[string]any, len(jsonOutputFormat))
-	maps.Copy(cloned, jsonOutputFormat)
+	for key, value := range jsonOutputFormat {
+		cloned[key] = cloneJSONValue(value)
+	}
 
 	return cloned
+}
+
+func cloneJSONValue(value any) any {
+	switch v := value.(type) {
+	case map[string]any:
+		cloned := make(map[string]any, len(v))
+		for key, child := range v {
+			cloned[key] = cloneJSONValue(child)
+		}
+		return cloned
+	case []any:
+		cloned := make([]any, len(v))
+		for i, child := range v {
+			cloned[i] = cloneJSONValue(child)
+		}
+		return cloned
+	case []string:
+		return append([]string(nil), v...)
+	default:
+		return v
+	}
 }
 
 var _ AgentsBridge = (*liveAgentsBridge)(nil)

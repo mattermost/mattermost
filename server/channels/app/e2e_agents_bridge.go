@@ -139,19 +139,22 @@ func (b *e2eAgentsBridge) GetServices(_, _ string) ([]model.BridgeServiceInfo, e
 }
 
 func (b *e2eAgentsBridge) AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-	b.recordRequest(sessionUserID, agentID, "", req)
-	return b.getCompletion(string(req.Operation))
-}
-
-func (b *e2eAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
-	b.recordRequest(sessionUserID, "", serviceID, req)
-	return b.getCompletion(string(req.Operation))
-}
-
-func (b *e2eAgentsBridge) getCompletion(operation string) (string, error) {
 	b.mut.Lock()
 	defer b.mut.Unlock()
 
+	b.recordRequestLocked(sessionUserID, agentID, "", req)
+	return b.getCompletionLocked(string(req.Operation))
+}
+
+func (b *e2eAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+
+	b.recordRequestLocked(sessionUserID, "", serviceID, req)
+	return b.getCompletionLocked(string(req.Operation))
+}
+
+func (b *e2eAgentsBridge) getCompletionLocked(operation string) (string, error) {
 	completions, ok := b.agentCompletions[operation]
 	if !ok || len(completions) == 0 {
 		return "", nil
@@ -170,10 +173,7 @@ func (b *e2eAgentsBridge) getCompletion(operation string) (string, error) {
 	return completion.Completion, nil
 }
 
-func (b *e2eAgentsBridge) recordRequest(sessionUserID, agentID, serviceID string, req BridgeCompletionRequest) {
-	b.mut.Lock()
-	defer b.mut.Unlock()
-
+func (b *e2eAgentsBridge) recordRequestLocked(sessionUserID, agentID, serviceID string, req BridgeCompletionRequest) {
 	if !b.recordRequests {
 		return
 	}

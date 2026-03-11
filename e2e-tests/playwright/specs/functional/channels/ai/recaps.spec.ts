@@ -454,7 +454,7 @@ test('executes recap channel card actions', {tag: '@ai_recaps'}, async ({pw}) =>
     await pw.waitUntil(
         async () => {
             const channelMember = await userClient.getMyChannelMember(channel.id);
-            return channelMember.msg_count === 0;
+            return channelMember.mention_count === 0;
         },
         {timeout: pw.duration.one_min},
     );
