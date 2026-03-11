@@ -13,6 +13,8 @@ import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 
+import {MattermostListCompat} from './mattermost_list_extension';
+
 import './wysiwyg_editor.scss';
 
 export type WysiwygEditorHandle = {
@@ -24,6 +26,8 @@ type Props = {
     value: string;
     onChange: (markdown: string) => void;
     onSubmit: () => void;
+    onFocus?: () => void;
+    onBlur?: () => void;
     placeholder?: string;
     channelId: string;
     disabled?: boolean;
@@ -34,6 +38,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     value,
     onChange,
     onSubmit,
+    onFocus,
+    onBlur,
     placeholder: placeholderText,
     channelId,
     disabled = false,
@@ -41,6 +47,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 }, ref) => {
     const onSubmitRef = useRef(onSubmit);
     const onChangeRef = useRef(onChange);
+    const onFocusRef = useRef(onFocus);
+    const onBlurRef = useRef(onBlur);
 
     useEffect(() => {
         onSubmitRef.current = onSubmit;
@@ -49,6 +57,14 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     useEffect(() => {
         onChangeRef.current = onChange;
     }, [onChange]);
+
+    useEffect(() => {
+        onFocusRef.current = onFocus;
+    }, [onFocus]);
+
+    useEffect(() => {
+        onBlurRef.current = onBlur;
+    }, [onBlur]);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         const md = editor.getMarkdown();
@@ -75,6 +91,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             Markdown.configure({
                 markedOptions: {gfm: true},
             }),
+            MattermostListCompat,
         ],
         content: value,
         contentType: 'markdown',
@@ -84,12 +101,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 ...(id ? {id} : {}),
                 'data-channel-id': channelId,
             },
-            handleKeyDown: (_view, event) => {
+            handleKeyDown: (view, event) => {
                 if (event.key === 'Enter' && !event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
-                    if (!editor) {
-                        return false;
-                    }
-                    const {state} = editor;
+                    const {state} = view;
                     const {$from} = state.selection;
                     const parentNode = $from.node($from.depth);
                     const grandparentNode = $from.depth > 1 ? $from.node($from.depth - 1) : null;
@@ -112,6 +126,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 return false;
             },
         },
+        onFocus: () => onFocusRef.current?.(),
+        onBlur: () => onBlurRef.current?.(),
         onUpdate: handleUpdate,
     }, [channelId, placeholderText, disabled]);
 

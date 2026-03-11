@@ -21,7 +21,6 @@
     "@tanstack/react-table": "8.10.7",
     "@tippyjs/react": "4.2.6",
     "@tiptap/extension-link": "3.20.0",
-    "@tiptap/extension-mention": "3.20.0",
     "@tiptap/extension-placeholder": "3.20.0",
     "@tiptap/extension-table": "3.20.0",
     "@tiptap/extension-table-cell": "3.20.0",

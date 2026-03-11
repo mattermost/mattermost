@@ -492,6 +492,7 @@ const AdvancedTextEditor = ({
     }, [draft, handleDraftChange, serverError]);
 
     const handleWysiwygChange = useCallback((markdown: string) => {
+        emitTypingEvent();
         if (!isErrorInvalidSlashCommand(serverError)) {
             setServerError(null);
         }
@@ -499,7 +500,7 @@ const AdvancedTextEditor = ({
             ...draft,
             message: markdown,
         });
-    }, [draft, handleDraftChange, serverError]);
+    }, [draft, handleDraftChange, serverError, emitTypingEvent]);
 
     /**
      * by getting the value directly from the textbox we eliminate all unnecessary
@@ -815,6 +816,8 @@ const AdvancedTextEditor = ({
                                 value={messageValue}
                                 onChange={handleWysiwygChange}
                                 onSubmit={handleSubmitWrapper}
+                                onFocus={handleFocus}
+                                onBlur={handleBlur}
                                 placeholder={createMessage}
                                 channelId={channelId}
                                 id={textboxId}
