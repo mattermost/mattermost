@@ -4,7 +4,7 @@
 import React, {useCallback, useState, memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {LogLevelEnum, LogObject} from '@mattermost/types/admin';
+import type {LogObject} from '@mattermost/types/admin';
 
 import './log_list.scss';
 
@@ -30,11 +30,26 @@ const LEVEL_CONFIG: Record<string, {label: string; className: string}> = {
     debug: {label: 'DBG', className: 'LogRow__level--debug'},
 };
 
+// Fields that link to admin console pages
+const ADMIN_LINK_FIELDS: Record<string, string> = {
+    user_id: '/admin_console/user_management/user/',
+    team_id: '/admin_console/user_management/teams/',
+    channel_id: '/admin_console/user_management/channels/',
+};
+
+// Fields where a copy button is useful
+const COPYABLE_FIELDS = new Set([
+    'user_id', 'team_id', 'channel_id', 'post_id', 'request_id',
+    'job_id', 'session_id', 'token_id', 'caller', 'url',
+]);
+
+// Mattermost IDs are always 26 lowercase alphanumeric characters
+const MM_ID_PATTERN = /^[a-z0-9]{26}$/;
+
 function formatTimestampShort(timestamp: string): string {
     try {
         const date = new Date(timestamp);
         if (isNaN(date.getTime())) {
-            // Try parsing the mattermost log format "2006-01-02 15:04:05.999 Z"
             const match = timestamp.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/);
             return match ? match[1] : timestamp.slice(11, 23);
         }
@@ -68,8 +83,61 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
 
 const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
+// Small inline copy button
+function CopyButton({value}: {value: string}) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    }, [value]);
+
+    return (
+        <button
+            type='button'
+            className='LogRow__copy-btn'
+            onClick={handleCopy}
+            title='Copy to clipboard'
+        >
+            <i className={copied ? 'icon icon-check' : 'icon icon-content-copy'}/>
+        </button>
+    );
+}
+
+// Value renderer: handles copy buttons and admin deep links
+function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
+    const isCopyable = COPYABLE_FIELDS.has(fieldKey) || fieldKey.endsWith('_id');
+    const adminPath = ADMIN_LINK_FIELDS[fieldKey];
+    const isLinkable = adminPath && MM_ID_PATTERN.test(value);
+
+    return (
+        <span className='LogRow__detail-value LogRow__detail-value--mono'>
+            {isLinkable ? (
+                <a
+                    className='LogRow__detail-link'
+                    href={adminPath + value}
+                    onClick={(e) => e.stopPropagation()}
+                    title={`View in admin console`}
+                >
+                    {value}
+                    <i className='icon icon-open-in-new LogRow__detail-link-icon'/>
+                </a>
+            ) : (
+                value
+            )}
+            {isCopyable && value && (
+                <CopyButton value={value}/>
+            )}
+        </span>
+    );
+}
+
 function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, compact}: Props) {
-    const [copySuccess, setCopySuccess] = useState(false);
+    const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
+    const [copyLineSuccess, setCopyLineSuccess] = useState(false);
     const levelConfig = LEVEL_CONFIG[log.level] || {label: log.level?.toUpperCase()?.slice(0, 3) || '???', className: 'LogRow__level--debug'};
 
     const handleClick = useCallback(() => {
@@ -83,8 +151,16 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         navigator.clipboard.writeText(JSON.stringify(log, undefined, 2));
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        setCopyJsonSuccess(true);
+        setTimeout(() => setCopyJsonSuccess(false), 2000);
+    }, [log]);
+
+    const handleCopyLine = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const line = `${log.timestamp} [${log.level?.toUpperCase()}] ${log.msg} (${log.caller})`;
+        navigator.clipboard.writeText(line);
+        setCopyLineSuccess(true);
+        setTimeout(() => setCopyLineSuccess(false), 2000);
     }, [log]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -94,8 +170,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
             navigator.clipboard.writeText(JSON.stringify(log, undefined, 2));
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 2000);
+            setCopyJsonSuccess(true);
+            setTimeout(() => setCopyJsonSuccess(false), 2000);
         }
     }, [log, onToggleExpand]);
 
@@ -153,7 +229,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                     className='LogRow__details'
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className='LogRow__details-grid'>
+                    {/* Core fields - compact summary */}
+                    <div className='LogRow__details-core'>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage
@@ -179,7 +256,10 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Caller'
                                 />
                             </span>
-                            <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.caller}</span>
+                            <span className='LogRow__detail-value LogRow__detail-value--mono'>
+                                {log.caller}
+                                <CopyButton value={log.caller}/>
+                            </span>
                         </div>
                         <div className='LogRow__detail-item LogRow__detail-item--full'>
                             <span className='LogRow__detail-label'>
@@ -190,23 +270,37 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                             </span>
                             <span className='LogRow__detail-value'>{log.msg}</span>
                         </div>
-                        {extraFields.map(([key, value]) => (
-                            <div
-                                className='LogRow__detail-item'
-                                key={key}
-                            >
-                                <span className='LogRow__detail-label'>{key}</span>
-                                <span className='LogRow__detail-value LogRow__detail-value--mono'>{value}</span>
-                            </div>
-                        ))}
                     </div>
+
+                    {/* Extra fields with copy + links */}
+                    {extraFields.length > 0 && (
+                        <div className='LogRow__details-extra'>
+                            <div className='LogRow__details-grid'>
+                                {extraFields.map(([key, value]) => (
+                                    <div
+                                        className='LogRow__detail-item'
+                                        key={key}
+                                    >
+                                        <span className='LogRow__detail-label'>{key}</span>
+                                        <DetailValue
+                                            fieldKey={key}
+                                            value={value}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Action buttons */}
                     <div className='LogRow__details-actions'>
                         <button
                             type='button'
-                            className='btn btn-sm btn-tertiary'
+                            className='LogRow__action-btn'
                             onClick={handleCopyJson}
                         >
-                            {copySuccess ? (
+                            <i className={copyJsonSuccess ? 'icon icon-check' : 'icon icon-code-json'}/>
+                            {copyJsonSuccess ? (
                                 <FormattedMessage
                                     id='admin.logs.copied'
                                     defaultMessage='Copied!'
@@ -215,6 +309,24 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                 <FormattedMessage
                                     id='admin.logs.copyJson'
                                     defaultMessage='Copy JSON'
+                                />
+                            )}
+                        </button>
+                        <button
+                            type='button'
+                            className='LogRow__action-btn'
+                            onClick={handleCopyLine}
+                        >
+                            <i className={copyLineSuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
+                            {copyLineSuccess ? (
+                                <FormattedMessage
+                                    id='admin.logs.copiedLine'
+                                    defaultMessage='Copied!'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='admin.logs.copyLine'
+                                    defaultMessage='Copy log line'
                                 />
                             )}
                         </button>

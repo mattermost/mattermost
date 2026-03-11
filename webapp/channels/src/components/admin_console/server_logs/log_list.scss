@@ -645,6 +645,20 @@
         animation: log-expand 0.15s ease;
     }
 
+    // Core fields section (timestamp, level, caller, message)
+    &__details-core {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 24px;
+        padding-bottom: 8px;
+    }
+
+    // Extra fields section (dynamic fields with copy/links)
+    &__details-extra {
+        padding-top: 8px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
+    }
+
     &__details-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -670,6 +684,9 @@
     }
 
     &__detail-value {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         color: var(--center-channel-color);
         font-size: 13px;
         word-break: break-word;
@@ -680,10 +697,83 @@
         }
     }
 
+    // Inline copy button next to copyable values
+    &__copy-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: none;
+        border-radius: 3px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: pointer;
+        flex-shrink: 0;
+
+        i {
+            font-size: 13px;
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    // Deep link to admin console pages
+    &__detail-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        color: var(--button-bg);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__detail-link-icon {
+        font-size: 12px;
+        opacity: 0.64;
+    }
+
+    // Action buttons row
     &__details-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         padding-top: 8px;
         margin-top: 8px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
+    }
+
+    &__action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 20px;
+        transition: all 0.15s ease;
+
+        i {
+            font-size: 14px;
+        }
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            color: rgba(var(--center-channel-color-rgb), 0.80);
+        }
     }
 }
 
