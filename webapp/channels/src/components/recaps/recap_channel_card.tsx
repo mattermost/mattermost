@@ -76,6 +76,13 @@ const RecapChannelCard = ({channel}: Props) => {
         }
     }, [dispatch, channelObject]);
 
+    const handleHeaderKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsCollapsed((prev) => !prev);
+        }
+    }, []);
+
     const menuActions: RecapMenuAction[] = useMemo(() => [
 
         {
@@ -101,13 +108,6 @@ const RecapChannelCard = ({channel}: Props) => {
     if (!hasHighlights && !hasActionItems) {
         return null;
     }
-
-    const handleHeaderKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsCollapsed((prev) => !prev);
-        }
-    }, []);
 
     return (
         <div className={`recap-channel-card${isCollapsed ? ' collapsed' : ''}`}>
