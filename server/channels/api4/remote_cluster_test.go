@@ -674,6 +674,63 @@ func TestGetRemoteCluster(t *testing.T) {
 	})
 }
 
+func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:      model.NewId(),
+		Name:          "test-remote",
+		SiteURL:       "http://example.com",
+		CreatorId:     th.SystemAdminUser.Id,
+		DefaultTeamId: th.BasicTeam.Id,
+		Token:         model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the shared_channel_manager role
+	sharedChannelUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, sharedChannelUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	sharedChannelClient := th.CreateClient()
+	_, _, err := sharedChannelClient.Login(context.Background(), sharedChannelUser.Email, sharedChannelUser.Password)
+	require.NoError(t, err)
+
+	// Create a user with only the secure_connection_manager role
+	secureConnUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, secureConnUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	secureConnClient := th.CreateClient()
+	_, _, err = secureConnClient.Login(context.Background(), secureConnUser.Email, secureConnUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("shared_channel_manager user should have access", func(t *testing.T) {
+		fetchedRC, resp, err := sharedChannelClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, newRC.RemoteId, fetchedRC.RemoteId)
+		require.Empty(t, fetchedRC.Token)
+	})
+
+	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+		fetchedRC, resp, err := secureConnClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, newRC.RemoteId, fetchedRC.RemoteId)
+		require.Empty(t, fetchedRC.Token)
+	})
+}
+
 func TestPatchRemoteCluster(t *testing.T) {
 	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{

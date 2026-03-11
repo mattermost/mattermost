@@ -589,7 +589,7 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePermissionToManageSecureConnections()
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
 	if c.Err != nil {
 		return
 	}
