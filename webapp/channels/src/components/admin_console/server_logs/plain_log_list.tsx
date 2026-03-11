@@ -18,8 +18,9 @@ type Props = {
 };
 
 export default function PlainLogList({
-    loading, logs, page, perPage, nextPage, previousPage, onReload, downloadUrl,
+    loading, logs: rawLogs, page, perPage, nextPage, previousPage, onReload, downloadUrl,
 }: Props) {
+    const logs = rawLogs || [];
     const intl = useIntl();
     const logPanelRef = useRef<HTMLDivElement>(null);
     const [followTail, setFollowTail] = useState(true);
