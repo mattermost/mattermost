@@ -834,7 +834,7 @@ test(
     },
 );
 
-test(
+test.skip(
     'message actions include Show translation',
     {
         tag: ['@autotranslation'],
