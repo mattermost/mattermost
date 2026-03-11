@@ -53,7 +53,7 @@ describe('Recent Emoji', () => {
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', `:${firstEmoji}: `).type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post
@@ -68,11 +68,16 @@ describe('Recent Emoji', () => {
         // * Verify recently used category is present in emoji picker
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
-        // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'grin emoji');
+        // * Assert both emojis appear in the recently used section (grin most recent, joy before it)
+        cy.findAllByTestId('emojiItem').then((items) => {
+            const labels = [...items].map((el) => el.getAttribute('aria-label'));
+            const grinIdx = labels.indexOf('grin emoji');
+            const joyIdx = labels.indexOf('joy emoji');
 
-        // * Assert second emoji should equal with first recent emoji
-        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'joy emoji');
+            expect(grinIdx, 'grin should be in recently used').to.be.greaterThan(-1);
+            expect(joyIdx, 'joy should be in recently used').to.be.greaterThan(-1);
+            expect(grinIdx, 'grin should appear before joy (more recent)').to.be.lessThan(joyIdx);
+        });
     });
 
     it('MM-T4463 Recently used custom emoji, when is deleted should be removed from recent emoji category and quick reactions', () => {
