@@ -594,10 +594,36 @@
     }
 
     .logs-banner {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
+        margin-bottom: 12px;
+
+        &__top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        &__format {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            white-space: nowrap;
+
+            label {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                cursor: pointer;
+                font-weight: 400;
+            }
+
+            input[type='radio'] {
+                margin: 0;
+            }
+        }
     }
 }
 

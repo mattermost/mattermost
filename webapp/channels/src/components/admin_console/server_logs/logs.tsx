@@ -182,7 +182,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         const now = new Date();
         const from = new Date(now.getTime() - (minutes * 60 * 1000));
 
-        // Format for the API
         const pad = (n: number) => String(n).padStart(2, '0');
         const formatDate = (d: Date) => {
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000 +00:00`;
@@ -247,12 +246,27 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             onSearchChange={onSearchChange}
             search={search}
             onFiltersChange={onFiltersChange}
+            onReload={reload}
+            downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
+            liveTailEnabled={liveTailEnabled}
+            onToggleLiveTail={() => setLiveTailEnabled(!liveTailEnabled)}
+            pollInterval={pollInterval}
+            onPollIntervalChange={setPollInterval}
+            pollIntervals={POLL_INTERVALS}
+            pollIntervalLabels={POLL_INTERVAL_LABELS}
+            showPollDropdown={showPollDropdown}
+            onTogglePollDropdown={() => setShowPollDropdown(!showPollDropdown)}
+            lastUpdatedText={lastUpdatedText}
+            timePresets={TIME_PRESETS}
+            activeTimePreset={activeTimePreset}
+            onTimePreset={handleTimePreset}
+            onClearTimePreset={clearTimePreset}
         />
     );
 
     const toggleLogFormat = !configIsPlainLogs ? (
         <div
-            className='banner-buttons__log-format'
+            className='logs-banner__format'
             id='admin.logs.LogFormat'
             role='radiogroup'
             aria-labelledby='admin.logs.LogFormat.legend'
@@ -293,116 +307,13 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             <div className='admin-console__wrapper'>
                 <div className='admin-logs-content admin-console__content'>
                     <div className='logs-banner'>
-                        <div className='banner'>
-                            <div className='banner__content'>
-                                <FormattedMessage {...messages.bannerDesc}/>
+                        <div className='logs-banner__top'>
+                            <div className='banner'>
+                                <div className='banner__content'>
+                                    <FormattedMessage {...messages.bannerDesc}/>
+                                </div>
                             </div>
-                        </div>
-                        <div className='banner-buttons'>
                             {toggleLogFormat}
-
-                            {!isPlainLogs && (
-                                <>
-                                    <div className='banner-buttons__separator'/>
-
-                                    {/* Time range presets */}
-                                    <div className='LogViewer__time-presets'>
-                                        {TIME_PRESETS.map((preset) => (
-                                            <button
-                                                key={preset.minutes}
-                                                type='button'
-                                                className={`btn btn-sm ${activeTimePreset === preset.minutes ? 'btn-primary' : 'btn-tertiary'}`}
-                                                onClick={() => handleTimePreset(preset.minutes)}
-                                            >
-                                                {preset.defaultMessage}
-                                            </button>
-                                        ))}
-                                        {activeTimePreset !== null && (
-                                            <button
-                                                type='button'
-                                                className='btn btn-sm btn-tertiary'
-                                                onClick={clearTimePreset}
-                                            >
-                                                <i className='icon icon-close'/>
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className='banner-buttons__separator'/>
-
-                                    {/* Live tail */}
-                                    <div className='LogViewer__live-tail'>
-                                        <button
-                                            type='button'
-                                            className={`btn btn-sm ${liveTailEnabled ? 'btn-primary LogViewer__live-tail-active' : 'btn-tertiary'}`}
-                                            onClick={() => setLiveTailEnabled(!liveTailEnabled)}
-                                        >
-                                            {liveTailEnabled && <span className='LogViewer__live-dot'/>}
-                                            <FormattedMessage
-                                                id='admin.logs.liveTail'
-                                                defaultMessage='Live'
-                                            />
-                                        </button>
-                                        <div className='LogViewer__poll-interval-wrapper'>
-                                            <button
-                                                type='button'
-                                                className='btn btn-sm btn-tertiary LogViewer__poll-interval-btn'
-                                                onClick={() => setShowPollDropdown(!showPollDropdown)}
-                                            >
-                                                {POLL_INTERVAL_LABELS[pollInterval]}
-                                                <i className='icon icon-chevron-down'/>
-                                            </button>
-                                            {showPollDropdown && (
-                                                <div className='LogViewer__poll-dropdown'>
-                                                    {POLL_INTERVALS.map((interval) => (
-                                                        <button
-                                                            key={interval}
-                                                            type='button'
-                                                            className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
-                                                            onClick={() => {
-                                                                setPollInterval(interval);
-                                                                setShowPollDropdown(false);
-                                                            }}
-                                                        >
-                                                            {POLL_INTERVAL_LABELS[interval]}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {liveTailEnabled && lastUpdatedText && (
-                                            <span className='LogViewer__last-updated'>
-                                                {lastUpdatedText}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className='banner-buttons__separator'/>
-                                </>
-                            )}
-
-                            <button
-                                type='button'
-                                className='btn btn-sm btn-tertiary'
-                                onClick={reload}
-                            >
-                                <i className='icon icon-refresh'/>
-                                <FormattedMessage
-                                    id='admin.logs.ReloadLogs'
-                                    defaultMessage='Reload'
-                                />
-                            </button>
-                            <ExternalLink
-                                location='download_logs'
-                                className='btn btn-sm btn-tertiary'
-                                href={Client4.getUrl() + '/api/v4/logs/download'}
-                            >
-                                <i className='icon icon-download-outline'/>
-                                <FormattedMessage
-                                    id='admin.logs.DownloadLogs'
-                                    defaultMessage='Download'
-                                />
-                            </ExternalLink>
                         </div>
                     </div>
                     {list}

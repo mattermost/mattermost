@@ -6,6 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
 
+import ExternalLink from 'components/external_link';
+
 import LogRow from './log_row';
 
 import './log_list.scss';
@@ -14,12 +16,39 @@ type LogObjectWithAdditionalInfo = LogObject & {
     [key: string]: string;
 };
 
+type TimePreset = {
+    readonly labelId: string;
+    readonly defaultMessage: string;
+    readonly minutes: number;
+};
+
 type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
+
+    // Actions
+    onReload: () => void;
+    downloadUrl: string;
+
+    // Live tail
+    liveTailEnabled: boolean;
+    onToggleLiveTail: () => void;
+    pollInterval: number;
+    onPollIntervalChange: (interval: number) => void;
+    pollIntervals: readonly number[];
+    pollIntervalLabels: Record<number, string>;
+    showPollDropdown: boolean;
+    onTogglePollDropdown: () => void;
+    lastUpdatedText: string | null;
+
+    // Time presets
+    timePresets: readonly TimePreset[];
+    activeTimePreset: number | null;
+    onTimePreset: (minutes: number) => void;
+    onClearTimePreset: () => void;
 };
 
 const PAGE_SIZES = [50, 100, 200, 500] as const;
@@ -69,7 +98,13 @@ function savePrefs(prefs: StoredPrefs) {
     }
 }
 
-export default function LogList({loading, logs, onFiltersChange, onSearchChange, search}: Props) {
+export default function LogList({
+    loading, logs, onFiltersChange, onSearchChange, search,
+    onReload, downloadUrl,
+    liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
+    pollIntervals, pollIntervalLabels, showPollDropdown, onTogglePollDropdown, lastUpdatedText,
+    timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
+}: Props) {
     const intl = useIntl();
     const initialPrefs = useMemo(loadPrefs, []);
 
@@ -109,12 +144,10 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
     const processedLogs = useMemo(() => {
         let filtered = logs;
 
-        // Level filter
         if (enabledLevels.size < 4) {
             filtered = filtered.filter((log) => enabledLevels.has(log.level));
         }
 
-        // Sort
         const sorted = [...filtered].sort((a, b) => {
             const timeA = new Date(a.timestamp).valueOf();
             const timeB = new Date(b.timestamp).valueOf();
@@ -124,7 +157,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
         return sorted;
     }, [logs, enabledLevels, sortAsc]);
 
-    // Search match count
     const matchCount = search ? processedLogs.length : null;
     const totalCount = logs.length;
 
@@ -141,12 +173,10 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
         setFocusedIndex(null);
     }, [search, enabledLevels, sortAsc]);
 
-    // Level toggle
     const toggleLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
             const next = new Set(prev);
             if (next.has(level)) {
-                // Don't allow disabling all levels
                 if (next.size > 1) {
                     next.delete(level);
                 }
@@ -161,7 +191,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
         setEnabledLevels(new Set(['error', 'warn', 'info', 'debug']));
     }, []);
 
-    // Expand/collapse
     const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
         const idx = visibleLogs.indexOf(log);
         setExpandedIndex((prev) => (prev === idx ? null : idx));
@@ -172,7 +201,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
         setFocusedIndex(idx);
     }, [visibleLogs]);
 
-    // Pagination
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
         setExpandedIndex(null);
@@ -192,16 +220,13 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
         setExpandedIndex(null);
     }, []);
 
-    // Sort toggle
     const toggleSort = useCallback(() => {
         setSortAsc((prev) => !prev);
     }, []);
 
-    // Keyboard navigation at the list level
+    // Keyboard navigation
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         const target = e.target as HTMLElement;
-
-        // Don't capture if typing in search
         if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
             return;
         }
@@ -212,7 +237,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
             e.preventDefault();
             setFocusedIndex((prev) => {
                 const next = prev === null ? 0 : Math.min(prev + 1, visibleLogs.length - 1);
-                // Focus the row element
                 const rows = listRef.current?.querySelectorAll('.LogRow');
                 (rows?.[next] as HTMLElement)?.focus();
                 return next;
@@ -237,7 +261,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
             break;
         case 'e':
         case 'E': {
-            // Jump to next/prev error
             e.preventDefault();
             const direction = e.shiftKey ? -1 : 1;
             const start = focusedIndex === null ? 0 : focusedIndex + direction;
@@ -276,32 +299,127 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
             className='LogViewer'
             onKeyDown={handleKeyDown}
         >
-            {/* Toolbar */}
+            {/* Toolbar row 1: Actions */}
             <div className='LogViewer__toolbar'>
-                <div className='LogViewer__toolbar-left'>
-                    {/* Search */}
-                    <div className='LogViewer__search'>
-                        <i className='icon icon-magnify LogViewer__search-icon'/>
-                        <input
-                            className='LogViewer__search-input'
-                            type='text'
-                            placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs...'})}
-                            value={search}
-                            onChange={(e) => onSearchChange(e.target.value)}
+                <div className='LogViewer__toolbar-group'>
+                    {/* Time range presets */}
+                    {timePresets.map((preset) => (
+                        <button
+                            key={preset.minutes}
+                            type='button'
+                            className={`LogViewer__action-btn ${activeTimePreset === preset.minutes ? 'LogViewer__action-btn--active' : ''}`}
+                            onClick={() => onTimePreset(preset.minutes)}
+                        >
+                            {preset.defaultMessage}
+                        </button>
+                    ))}
+                    {activeTimePreset !== null && (
+                        <button
+                            type='button'
+                            className='LogViewer__action-btn LogViewer__action-btn--icon'
+                            onClick={onClearTimePreset}
+                        >
+                            <i className='icon icon-close'/>
+                        </button>
+                    )}
+                </div>
+
+                <div className='LogViewer__toolbar-group'>
+                    {/* Live tail */}
+                    <button
+                        type='button'
+                        className={`LogViewer__action-btn ${liveTailEnabled ? 'LogViewer__action-btn--live' : ''}`}
+                        onClick={onToggleLiveTail}
+                    >
+                        {liveTailEnabled && <span className='LogViewer__live-dot'/>}
+                        <FormattedMessage
+                            id='admin.logs.liveTail'
+                            defaultMessage='Live'
                         />
-                        {search && (
-                            <button
-                                className='LogViewer__search-clear'
-                                onClick={() => onSearchChange('')}
-                                type='button'
-                                aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
-                            >
-                                <i className='icon icon-close'/>
-                            </button>
+                    </button>
+                    <div className='LogViewer__poll-interval-wrapper'>
+                        <button
+                            type='button'
+                            className='LogViewer__action-btn'
+                            onClick={onTogglePollDropdown}
+                        >
+                            {pollIntervalLabels[pollInterval]}
+                            <i className='icon icon-chevron-down'/>
+                        </button>
+                        {showPollDropdown && (
+                            <div className='LogViewer__poll-dropdown'>
+                                {pollIntervals.map((interval) => (
+                                    <button
+                                        key={interval}
+                                        type='button'
+                                        className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
+                                        onClick={() => {
+                                            onPollIntervalChange(interval);
+                                            onTogglePollDropdown();
+                                        }}
+                                    >
+                                        {pollIntervalLabels[interval]}
+                                    </button>
+                                ))}
+                            </div>
                         )}
                     </div>
+                    {liveTailEnabled && lastUpdatedText && (
+                        <span className='LogViewer__last-updated'>
+                            {lastUpdatedText}
+                        </span>
+                    )}
+                </div>
 
-                    {/* Search match count */}
+                <div className='LogViewer__toolbar-spacer'/>
+
+                <div className='LogViewer__toolbar-group'>
+                    <button
+                        type='button'
+                        className='LogViewer__action-btn'
+                        onClick={onReload}
+                    >
+                        <i className='icon icon-refresh'/>
+                        <FormattedMessage
+                            id='admin.logs.ReloadLogs'
+                            defaultMessage='Reload'
+                        />
+                    </button>
+                    <ExternalLink
+                        location='download_logs'
+                        className='LogViewer__action-btn'
+                        href={downloadUrl}
+                    >
+                        <i className='icon icon-download-outline'/>
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download'
+                        />
+                    </ExternalLink>
+                </div>
+            </div>
+
+            {/* Toolbar row 2: Search + levels + wrap */}
+            <div className='LogViewer__filterbar'>
+                <div className='LogViewer__search'>
+                    <i className='icon icon-magnify LogViewer__search-icon'/>
+                    <input
+                        className='LogViewer__search-input'
+                        type='text'
+                        placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs...'})}
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                    />
+                    {search && (
+                        <button
+                            className='LogViewer__search-clear'
+                            onClick={() => onSearchChange('')}
+                            type='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
+                        >
+                            <i className='icon icon-close'/>
+                        </button>
+                    )}
                     {matchCount !== null && (
                         <span className='LogViewer__match-count'>
                             <FormattedMessage
@@ -313,46 +431,42 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                     )}
                 </div>
 
-                <div className='LogViewer__toolbar-right'>
-                    {/* Wrap toggle */}
+                {/* Level toggles */}
+                <div className='LogViewer__level-filters'>
                     <button
-                        className={`LogViewer__toolbar-btn ${wrapText ? 'LogViewer__toolbar-btn--active' : ''}`}
-                        onClick={() => setWrapText(!wrapText)}
+                        className={`LogViewer__level-btn ${allLevelsEnabled ? 'LogViewer__level-btn--active' : ''}`}
+                        onClick={enableAllLevels}
                         type='button'
-                        title={intl.formatMessage({id: 'admin.logs.wrap', defaultMessage: 'Toggle text wrapping'})}
                     >
                         <FormattedMessage
-                            id={wrapText ? 'admin.logs.wrapOn' : 'admin.logs.wrapOff'}
-                            defaultMessage={wrapText ? 'Wrap' : 'No wrap'}
+                            id='admin.logs.allLevels'
+                            defaultMessage='All'
                         />
+                        <span className='LogViewer__level-count'>{totalCount}</span>
                     </button>
+                    {LEVEL_ORDER.map((level) => (
+                        <button
+                            key={level}
+                            className={`LogViewer__level-btn LogViewer__level-btn--${level} ${enabledLevels.has(level) ? 'LogViewer__level-btn--on' : ''}`}
+                            onClick={() => toggleLevel(level)}
+                            type='button'
+                        >
+                            {LEVEL_LABELS[level]}
+                            <span className='LogViewer__level-count'>{levelCounts[level]}</span>
+                        </button>
+                    ))}
                 </div>
-            </div>
 
-            {/* Level filter toggles */}
-            <div className='LogViewer__level-filters'>
                 <button
-                    className={`LogViewer__level-btn LogViewer__level-btn--all ${allLevelsEnabled ? 'LogViewer__level-btn--active' : ''}`}
-                    onClick={enableAllLevels}
+                    className={`LogViewer__action-btn ${wrapText ? 'LogViewer__action-btn--active' : ''}`}
+                    onClick={() => setWrapText(!wrapText)}
                     type='button'
                 >
                     <FormattedMessage
-                        id='admin.logs.allLevels'
-                        defaultMessage='All'
+                        id={wrapText ? 'admin.logs.wrapOn' : 'admin.logs.wrapOff'}
+                        defaultMessage={wrapText ? 'Wrap' : 'No wrap'}
                     />
-                    <span className='LogViewer__level-count'>{totalCount}</span>
                 </button>
-                {LEVEL_ORDER.map((level) => (
-                    <button
-                        key={level}
-                        className={`LogViewer__level-btn LogViewer__level-btn--${level} ${enabledLevels.has(level) ? 'LogViewer__level-btn--active' : ''}`}
-                        onClick={() => toggleLevel(level)}
-                        type='button'
-                    >
-                        {LEVEL_LABELS[level]}
-                        <span className='LogViewer__level-count'>{levelCounts[level]}</span>
-                    </button>
-                ))}
             </div>
 
             {/* Column header */}
@@ -450,10 +564,10 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                 )}
             </div>
 
-            {/* Footer / Pagination */}
+            {/* Footer */}
             <div className='LogViewer__footer'>
                 <div className='LogViewer__footer-left'>
-                    <div className='LogViewer__footer-info'>
+                    <span className='LogViewer__footer-info'>
                         <FormattedMessage
                             id='admin.logs.showing'
                             defaultMessage='{start}-{end} of {total}'
@@ -463,10 +577,10 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                                 total: processedLogs.length,
                             }}
                         />
-                    </div>
+                    </span>
                     <div className='LogViewer__footer-pagination'>
                         <button
-                            className='btn btn-sm btn-tertiary'
+                            className='LogViewer__page-btn'
                             onClick={goPrevPage}
                             disabled={page === 0}
                             type='button'
@@ -481,7 +595,7 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                             />
                         </span>
                         <button
-                            className='btn btn-sm btn-tertiary'
+                            className='LogViewer__page-btn'
                             onClick={goNextPage}
                             disabled={page >= totalPages - 1}
                             type='button'
@@ -514,36 +628,20 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                 </div>
                 <div className='LogViewer__keyboard-hints'>
                     <span className='LogViewer__kbd-group'>
-                        <kbd>{'j'}</kbd><kbd>{'k'}</kbd>
-                        {' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.navigate'
-                            defaultMessage='navigate'
-                        />
+                        <kbd>{'j'}</kbd><kbd>{'k'}</kbd>{' '}
+                        <FormattedMessage id='admin.logs.kbd.navigate' defaultMessage='navigate'/>
                     </span>
                     <span className='LogViewer__kbd-group'>
-                        <kbd>{'Enter'}</kbd>
-                        {' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.expand'
-                            defaultMessage='expand'
-                        />
+                        <kbd>{'Enter'}</kbd>{' '}
+                        <FormattedMessage id='admin.logs.kbd.expand' defaultMessage='expand'/>
                     </span>
                     <span className='LogViewer__kbd-group'>
-                        <kbd>{'e'}</kbd>
-                        {' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.jumpError'
-                            defaultMessage='next error'
-                        />
+                        <kbd>{'e'}</kbd>{' '}
+                        <FormattedMessage id='admin.logs.kbd.jumpError' defaultMessage='next error'/>
                     </span>
                     <span className='LogViewer__kbd-group'>
-                        <kbd>{'/'}</kbd>
-                        {' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.search'
-                            defaultMessage='search'
-                        />
+                        <kbd>{'/'}</kbd>{' '}
+                        <FormattedMessage id='admin.logs.kbd.search' defaultMessage='search'/>
                     </span>
                 </div>
             </div>
