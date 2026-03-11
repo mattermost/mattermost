@@ -844,10 +844,10 @@ test(
         const {adminClient, user, userClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasAutotranslationLicense(license.SkuShortName),
-            'Skipping test - server does not have Entry or Advanced license',
-        );
+        // test.skip(
+        //     !hasAutotranslationLicense(license.SkuShortName),
+        //     'Skipping test - server does not have Entry or Advanced license',
+        // );
         const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: translationUrl,
