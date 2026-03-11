@@ -5,11 +5,16 @@ on:
   pull_request:
     types: [labeled]
 
+concurrency:
+  group: test-analyzer-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
 permissions:
   statuses: write
 
 env:
   OVERRIDE_LABEL: "Tests/verified"
+  VERIFIED_PREFIX: "(verified)"
   STATUS_CONTEXT: "Tests/analysis"
   REPORT_WEBHOOK_URL: ${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}
 
@@ -51,10 +56,13 @@ jobs:
             CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
           fi
 
-          if [ -n "$CURRENT_DESC" ]; then
-            NEW_DESC="(verified) ${CURRENT_DESC}"
+          # Strip any existing prefix to avoid stacking on repeated runs
+          ESCAPED_PREFIX=$(echo "$VERIFIED_PREFIX" | sed 's/[()]/\\&/g')
+          CLEAN_DESC=$(echo "$CURRENT_DESC" | sed "s/^${ESCAPED_PREFIX} *//")
+          if [ -n "$CLEAN_DESC" ]; then
+            NEW_DESC="${VERIFIED_PREFIX} ${CLEAN_DESC}"
           else
-            NEW_DESC="(verified)"
+            NEW_DESC="${VERIFIED_PREFIX}"
           fi
 
           gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
@@ -73,13 +81,16 @@ jobs:
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           SENDER: ${{ github.event.sender.login }}
         run: |
-          PAYLOAD=$(cat <<EOF
-          {
-            "username": "Test Check",
-            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
-            "text": "**Tests/verified applied**\n\nBy: \`@${SENDER}\` via \`${OVERRIDE_LABEL}\` label\n[mattermost-pr-${PR_NUMBER}](${PR_URL}), commit: \`${COMMIT_SHA:0:7}\`"
-          }
-          EOF
-          )
+          PAYLOAD=$(jq -n \
+            --arg sender "$SENDER" \
+            --arg label "$OVERRIDE_LABEL" \
+            --arg pr_num "$PR_NUMBER" \
+            --arg pr_url "$PR_URL" \
+            --arg commit "${COMMIT_SHA:0:7}" \
+            '{
+              username: "Test Check",
+              icon_url: "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+              text: "**Tests/verified applied**\n\nBy: `@\($sender)` via `\($label)` label\n[mattermost-pr-\($pr_num)](\($pr_url)), commit: `\($commit)`"
+            }')
 
-          curl -sS -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+          curl -sS --max-time 30 -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
