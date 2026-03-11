@@ -23,6 +23,7 @@ const (
 	SubviewTitleMaxRunes    = 256
 	ViewMaxSubviews         = 50
 	ViewMaxLinkedProperties = 500
+	MaxViewsPerChannel      = 50
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"

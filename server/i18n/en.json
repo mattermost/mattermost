@@ -8541,6 +8541,14 @@
     "translation": "Unable to create the view."
   },
   {
+    "id": "app.view.create.count.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "This channel has reached the maximum number of views."
+  },
+  {
     "id": "app.view.create.nil_view.app_error",
     "translation": "View is required."
   },

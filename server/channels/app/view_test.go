@@ -54,6 +54,20 @@ func TestAppCreateView(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
+
+	t.Run("exceeding max views per channel returns error", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		for i := range model.MaxViewsPerChannel {
+			_, appErr := th.App.CreateView(th.Context, makeTestView(channel.Id, th.BasicUser.Id), "")
+			require.Nil(t, appErr, "failed to create view %d", i)
+		}
+
+		_, appErr := th.App.CreateView(th.Context, makeTestView(channel.Id, th.BasicUser.Id), "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "app.view.create.limit.app_error", appErr.Id)
+	})
 }
 
 func TestAppGetView(t *testing.T) {

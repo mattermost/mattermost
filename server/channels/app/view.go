@@ -18,6 +18,15 @@ func (a *App) CreateView(rctx request.CTX, view *model.View, connectionID string
 	if view == nil {
 		return nil, model.NewAppError("CreateView", "app.view.create.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)
 	}
+
+	count, err := a.Srv().Store().View().CountForChannel(view.ChannelId, model.ViewQueryOpts{})
+	if err != nil {
+		return nil, model.NewAppError("CreateView", "app.view.create.count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if count >= model.MaxViewsPerChannel {
+		return nil, model.NewAppError("CreateView", "app.view.create.limit.app_error", nil, "channel has reached the maximum number of views", http.StatusBadRequest)
+	}
+
 	saved, err := a.Srv().Store().View().Save(view)
 	if err != nil {
 		var appErr *model.AppError

@@ -150,6 +150,22 @@ func TestCreateView(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	t.Run("exceeding max views per channel returns 400", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		for i := range model.MaxViewsPerChannel {
+			view := makeTestViewForAPI()
+			_, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+			require.NoError(t, err, "failed to create view %d", i)
+		}
+
+		// The next one should fail
+		view := makeTestViewForAPI()
+		_, resp, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetViewsForChannel(t *testing.T) {
