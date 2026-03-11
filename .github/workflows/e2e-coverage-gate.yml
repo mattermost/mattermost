@@ -47,6 +47,26 @@ jobs:
               c.body.trim().toLowerCase().startsWith('/skip-e2e-check:')
             );
             if (skipComment) {
+              // Guard: skip is only valid if no new commits were pushed after it.
+              // If new code landed after the skip comment, the skip is stale.
+              const { data: commits } = await github.rest.pulls.listCommits({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 1,
+              });
+              const lastCommit = commits[commits.length - 1];
+              const lastCommitDate = lastCommit ? new Date(lastCommit.commit.committer.date) : null;
+              const skipCommentDate = new Date(skipComment.created_at);
+
+              if (lastCommitDate && lastCommitDate > skipCommentDate) {
+                // New commits pushed after skip — skip is stale, re-evaluate coverage.
+                core.setOutput('skip', 'false');
+                core.setOutput('reason', '');
+                core.warning(`/skip-e2e-check comment from ${skipCommentDate.toISOString()} is stale — new commit pushed at ${lastCommitDate.toISOString()}. Re-running coverage check.`);
+                return;
+              }
+
               const reason = skipComment.body.replace(/^\/skip-e2e-check:/i, '').trim();
               core.setOutput('skip', 'true');
               core.setOutput('reason', `Skip requested: ${reason || '(no reason given)'}`);
