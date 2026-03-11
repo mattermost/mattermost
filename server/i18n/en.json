@@ -7680,7 +7680,7 @@
   },
   {
     "id": "app.role.send_updated_role_event.unknown_scope",
-    "translation": "An error occurred while broadcasting the role update."
+    "translation": "An error occurred while broadcasting the role update: unknown scheme scope."
   },
   {
     "id": "app.save_config.app_error",
