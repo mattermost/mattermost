@@ -1484,10 +1484,6 @@
     "translation": "Błąd podczas uruchamiania serwera, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Użytkownik Integracji / Slack Bot z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nie udało się zaimportować użytkownika Integracji/Slack Bot {{.Username}}.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtworzeni użytkownicy:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Użytkownik Slacka z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",

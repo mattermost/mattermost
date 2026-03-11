@@ -3000,10 +3000,6 @@
     "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nVytvořeno uživatelů:\n"
   },
@@ -3026,10 +3022,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
