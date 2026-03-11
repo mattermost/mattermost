@@ -127,7 +127,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 <h4 className='TeamAccessPoliciesTab__title'>
                     <FormattedMessage
                         id='team_settings.access_policies.title'
-                        defaultMessage='Access policies'
+                        defaultMessage='Channel membership policies'
                     />
                 </h4>
                 <button

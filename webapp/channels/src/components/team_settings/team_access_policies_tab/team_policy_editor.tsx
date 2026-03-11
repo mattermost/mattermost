@@ -366,7 +366,7 @@ export default function TeamPolicyEditor({
                     <i className='fa fa-angle-left'/>
                     <FormattedMessage
                         id={policyId ? 'team_settings.policy_editor.edit_title' : 'team_settings.policy_editor.add_title'}
-                        defaultMessage={policyId ? 'Edit access policy' : 'Add access policy'}
+                        defaultMessage={policyId ? 'Edit Access Policy' : 'Create Access Policy'}
                     />
                 </button>
             </div>
@@ -391,6 +391,7 @@ export default function TeamPolicyEditor({
                                 setSaveChangesPanelState(undefined);
                             }
                         }}
+                    maxLength={64}
                     autoFocus={!policyId}
                 />
                 <p className='TeamPolicyEditor__name-hint'>
@@ -401,7 +402,7 @@ export default function TeamPolicyEditor({
                 </p>
             </div>
 
-            <Card expanded={true} className='console'>
+            <Card expanded={true} className='TeamPolicyEditor__card'>
                 <Card.Header>
                     <TitleAndButtonCardHeader
                         title={

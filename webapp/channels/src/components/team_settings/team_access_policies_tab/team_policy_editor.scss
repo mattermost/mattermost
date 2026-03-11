@@ -58,4 +58,83 @@
         font-size: 12px;
         line-height: 16px;
     }
+
+    &__card {
+        width: 100%;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        margin-bottom: 20px;
+        background-color: var(--center-channel-bg);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+        color: var(--center-channel-color);
+
+        .Card__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 28px 32px 24px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            .text-top {
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 24px;
+            }
+
+            .text-bottom {
+                margin-right: 24px;
+                font-size: 14px;
+                line-height: 20px;
+            }
+
+            .content-button {
+                height: 32px;
+                padding: 10px 16px;
+                border: none;
+                border-radius: 4px;
+                margin-left: auto;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 9.5px;
+                white-space: nowrap;
+
+                &.primary {
+                    background: var(--button-bg);
+                    color: var(--button-color);
+                }
+            }
+
+            .Card__hr {
+                display: none;
+            }
+        }
+
+        .Card__body {
+            overflow: visible;
+
+            &.expanding {
+                transition: none;
+            }
+
+            &.expanded {
+                margin: 28px 32px;
+            }
+        }
+    }
+
+    // Table editor button overrides for channel theme context
+    .table-editor__cell {
+        button {
+            color: var(--center-channel-color) !important;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+            }
+        }
+    }
+
+    .editor__help-text {
+        width: 75%;
+        color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+    }
 }
