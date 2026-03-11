@@ -111,55 +111,64 @@ jobs:
             } else if (fs.existsSync(planPath)) {
               const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
               const {action, title, summary} = plan.decision;
-              const {changedFiles, impactedFlows, p0Flows, p1Flows, uncoveredP0P1Flows} = plan.metrics;
+              const {changedFiles, impactedFlows, coveredFlows: coveredCount, partialFlows: partialCount, uncoveredP0P1Flows} = plan.metrics;
               const emoji = action === 'must-add-tests' ? '🔴' : action === 'safe-to-merge' ? '🟢' : '🟡';
+
+              // Build a readable breakdown: "3 covered · 1 gap · 1 partial"
+              const parts = [];
+              if (coveredCount > 0) parts.push(`${coveredCount} covered`);
+              if (uncoveredP0P1Flows > 0) parts.push(`${uncoveredP0P1Flows} gap${uncoveredP0P1Flows !== 1 ? 's' : ''}`);
+              if (partialCount > 0) parts.push(`${partialCount} partial`);
+              const breakdown = parts.length > 0 ? ` (${parts.join(' · ')})` : '';
+
               const lines = [
                 `## ${emoji} E2E Coverage: ${title}`,
                 '',
                 summary,
                 '',
-                ...(changedFiles > 0 ? [`**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted` +
-                  (p0Flows > 0 || p1Flows > 0 ? ` (P0: ${p0Flows}, P1: ${p1Flows})` : '')] : []),
+                ...(changedFiles > 0 ? [`**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted${breakdown}`] : []),
               ];
 
               if (action === 'must-add-tests' && (plan.gapDetails || plan.requiredNewTests || []).length > 0) {
                 lines.push('', `### ⚠️ Missing coverage for ${uncoveredP0P1Flows} P0/P1 flow(s)`, '');
-                const gaps = plan.gapDetails && plan.gapDetails.length > 0 ? plan.gapDetails : null;
-                if (gaps) {
-                  for (const gap of gaps) {
-                    lines.push(`<details>`);
-                    lines.push(`<summary><b>${gap.name}</b> <code>${gap.id}</code> · ${gap.priority}</summary>`);
+                const hardGaps = (plan.gapDetails || []).filter(g => !g.name.includes('(partial)'));
+                const partialGaps = (plan.gapDetails || []).filter(g => g.name.includes('(partial)'));
+
+                if (hardGaps.length > 0) {
+                  for (const gap of hardGaps) {
+                    lines.push(`**${gap.name}** \`${gap.id}\` · ${gap.priority}`);
                     lines.push('');
+                    // Show max 2 concise reasons (first is deterministic, second is AI insight if present)
                     if (gap.reasons && gap.reasons.length > 0) {
-                      lines.push('**Why impacted:**');
-                      lines.push('');
-                      for (const r of gap.reasons) lines.push(`- ${r}`);
+                      for (const r of gap.reasons.slice(0, 2)) lines.push(`> ${r}`);
                       lines.push('');
                     }
-                    if (gap.existingTests && gap.existingTests.length > 0) {
-                      lines.push('**Existing tests (add scenarios here):**');
-                      lines.push('');
-                      for (const t of gap.existingTests) lines.push(`- \`${t.replace(/^specs\//, '')}\``);
-                      lines.push('');
-                    }
+                    // Show test scenarios inline (not collapsed)
                     if (gap.missingScenarios && gap.missingScenarios.length > 0) {
-                      lines.push('<details>');
-                      lines.push(`<summary>Suggested test scenarios (${gap.missingScenarios.length})</summary>`);
+                      lines.push('**Add tests for these scenarios:**');
                       lines.push('');
-                      for (const s of gap.missingScenarios) lines.push(`- ${s}`);
-                      lines.push('');
-                      lines.push('</details>');
+                      for (const s of gap.missingScenarios) lines.push(`- [ ] ${s}`);
                       lines.push('');
                     }
-                    lines.push('</details>');
-                    lines.push('');
                   }
                 } else {
                   for (const gap of plan.requiredNewTests) lines.push(`- ${gap}`);
                 }
+
+                if (partialGaps.length > 0) {
+                  lines.push('### ℹ️ Partial coverage (advisory)');
+                  lines.push('');
+                  for (const gap of partialGaps) {
+                    lines.push(`**${gap.name}** · ${gap.priority}`);
+                    if (gap.reasons && gap.reasons.length > 0) {
+                      lines.push(`> ${gap.reasons[0]}`);
+                    }
+                    lines.push('');
+                  }
+                }
               }
 
-              if (action !== 'must-add-tests' && plan.coveredFlows && plan.coveredFlows.length > 0) {
+              if (plan.coveredFlows && plan.coveredFlows.length > 0) {
                 lines.push('');
                 lines.push('<details>');
                 lines.push(`<summary>Covered flows (${plan.coveredFlows.length})</summary>`);
