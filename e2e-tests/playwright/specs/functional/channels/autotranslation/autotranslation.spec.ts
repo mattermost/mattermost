@@ -918,7 +918,7 @@ test(
         // Click the "more" (three dots) button to open the action menu
         await messagePost.locator('.post-menu').getByRole('button', {name: 'more'}).click();
 
-        const showTranslationItem = page.getByRole('menuitem', {name: 'Show translation'});
+        const showTranslationItem = page.getByRole('menuitem').filter({hasText: 'Show translation'});
         await expect(showTranslationItem).toBeVisible({timeout: 10000});
     },
 );
