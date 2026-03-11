@@ -35,7 +35,7 @@ export interface ChannelAccessControlActions {
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
-    createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
+    createAccessControlSyncJob: (jobData: {policy_id: string; team_id?: string}) => Promise<ActionResult>;
 }
 
 /**
@@ -113,7 +113,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
         /**
          * Create an access control sync job with deduplication
          */
-        createAccessControlSyncJob: (jobData: {policy_id: string}) => {
+        createAccessControlSyncJob: (jobData: {policy_id: string; team_id?: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
         },
 
@@ -121,7 +121,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
          * Update the active statuses of access control policies
          */
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
-            return dispatch(updateAccessControlPoliciesActive(statuses));
+            return dispatch(updateAccessControlPoliciesActive(statuses, teamId));
         },
     }), [dispatch, channelId, teamId]);
 };

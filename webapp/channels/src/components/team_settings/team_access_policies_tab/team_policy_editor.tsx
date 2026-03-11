@@ -268,16 +268,27 @@ export default function TeamPolicyEditor({
             }
 
             // Assign/unassign channels
+            // only throw on errors that have a server_error_id (actual API errors),
+            // not on response parsing issues.
             if (channelChanges.removedCount > 0) {
-                await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
+                const unassignResult = await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
+                if (unassignResult.error?.server_error_id) {
+                    throw new Error(unassignResult.error.message || 'Failed to unassign channels');
+                }
             }
             if (Object.keys(channelChanges.added).length > 0) {
-                await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
+                const assignResult = await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
+                if (assignResult.error?.server_error_id) {
+                    throw new Error(assignResult.error.message || 'Failed to assign channels');
+                }
             }
 
             // Update active status
             if (policyActiveStatusChanges.length > 0) {
-                await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                const activeResult = await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                if (activeResult.error?.server_error_id) {
+                    throw new Error(activeResult.error.message || 'Failed to update active status');
+                }
             }
 
             // Trigger sync job if needed
@@ -285,33 +296,24 @@ export default function TeamPolicyEditor({
                 await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
             }
 
-            // Update originals
-            setOriginalName(policyName);
-            setOriginalExpression(expression);
-            setChannelChanges({removed: {}, added: {}, removedCount: 0});
-            setPolicyActiveStatusChanges([]);
             setShowConfirmationModal(false);
-
-            setSaveChangesPanelState(SAVE_RESULT_SAVED);
+            onNavigateBack();
         } catch (error: any) {
             setFormError(error.message || 'An error occurred');
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
+            setShowConfirmationModal(false);
         } finally {
             setSaving(false);
         }
-    }, [validateForm, policyId, policyName, expression, channelChanges, policyActiveStatusChanges, actions, abacActions, formatMessage]);
+    }, [validateForm, policyId, policyName, expression, channelChanges, policyActiveStatusChanges, actions, abacActions, teamId, onNavigateBack]);
 
     const handleSaveChanges = useCallback(async () => {
         setFormError('');
         if (!validateForm()) {
             return;
         }
-        if (hasChannels()) {
-            setShowConfirmationModal(true);
-        } else {
-            await handleSave();
-        }
-    }, [handleSave, hasChannels, validateForm]);
+        setShowConfirmationModal(true);
+    }, [validateForm]);
 
     const handleCancel = useCallback(() => {
         setPolicyName(originalName);
@@ -472,6 +474,7 @@ export default function TeamPolicyEditor({
                         onPolicyActiveStatusChange={setPolicyActiveStatusChanges}
                         saving={saving}
                         hideTeamColumn={true}
+                        teamId={teamId}
                     />
                 </Card.Body>
             </Card>

@@ -106,14 +106,14 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const nextPage = async () => {
-        // Save current cursor to history for "previous" navigation
         const newCursorHistory = [...cursorHistory, after];
+        const newPage = page + 1;
 
         setLoading(true);
-        setPage(page + 1);
         setCursorHistory(newCursorHistory);
 
         await fetchPolicies(search, after);
+        setPage(newPage);
     };
 
     const previousPage = async () => {
@@ -121,18 +121,16 @@ export default function PolicyList(props: Props): JSX.Element {
             return;
         }
 
-        // Remove the current cursor from history
         const newCursorHistory = [...cursorHistory];
         newCursorHistory.pop();
-
-        // Get the previous cursor
         const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
+        const newPage = page - 1;
 
         setLoading(true);
-        setPage(page - 1);
         setCursorHistory(newCursorHistory);
 
         await fetchPolicies(search, previousCursor);
+        setPage(newPage);
     };
 
     const getResources = (policy: AccessControlPolicy) => {

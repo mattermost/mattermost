@@ -34,7 +34,7 @@ type Props = {
         assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[], teamId?: string) => Promise<ActionResult>;
         unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[], teamId?: string) => Promise<ActionResult>;
         createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
-        updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
+        updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[], teamId?: string) => Promise<ActionResult>;
     };
 };
 
@@ -73,7 +73,8 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) =>
             actions.unassignChannelsFromAccessControlPolicy(policyId, channelIds, team.id),
         createJob: actions.createJob,
-        updateAccessControlPoliciesActive: actions.updateAccessControlPoliciesActive,
+        updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) =>
+            actions.updateAccessControlPoliciesActive(states, team.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [team.id]);
 

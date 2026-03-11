@@ -170,7 +170,7 @@ export function validateExpressionAgainstRequester(expression: string, channelId
     };
 }
 
-export function createAccessControlSyncJob(jobData: {policy_id: string}): ActionFuncAsync<any> {
+export function createAccessControlSyncJob(jobData: {policy_id: string; team_id?: string}): ActionFuncAsync<any> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -183,9 +183,9 @@ export function createAccessControlSyncJob(jobData: {policy_id: string}): Action
     };
 }
 
-export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[]) {
+export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[], teamId?: string) {
     return bindClientFunc({
         clientFunc: Client4.updateAccessControlPoliciesActive,
-        params: [states],
+        params: [states, teamId],
     });
 }

@@ -241,13 +241,11 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		teamPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
-		// ValidateExpressionAgainstRequester needs this mock
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil)
 
 		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
-		// At least the team-scoped policy should be present
 		found := false
 		for _, p := range policies {
 			if p.ID == teamPolicy.ID {
@@ -264,27 +262,24 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		crossTeamChannel := th.CreatePrivateChannel(t, otherTeam)
 		crossTeamPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{crossTeamChannel})
 
-		// Catch-all for QueryUsersForExpression (for any accumulated team-scoped policies)
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
 		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
-		// The cross-team policy should NOT be in results
 		for _, p := range policies {
 			assert.NotEqual(t, crossTeamPolicy.ID, p.ID, "cross-team policy should be filtered out")
 		}
 	})
 }
 
-// TestSearchTeamAccessPolicies_SelfExclusionFiltering uses a separate test function
-// for clean DB isolation to test that policies excluding the admin are filtered out.
+// TestSearchTeamAccessPolicies_SelfExclusionFiltering verifies that policies
+// whose rules the admin doesn't satisfy are filtered out of search results.
 func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 
-	// Create a policy with a restrictive expression
 	parentPolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeParent,
@@ -326,9 +321,10 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 		"user.attributes.clearance == 'top-secret'", mock.Anything).
 		Return([]*model.User{}, int64(0), nil)
 
-	policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+	policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 	require.Nil(t, appErr)
 	assert.Empty(t, policies, "policy where admin doesn't satisfy rules should be filtered out")
+	assert.Equal(t, int64(0), total, "total should reflect filtered count")
 }
 
 func TestValidateTeamAdminPolicyOwnership(t *testing.T) {

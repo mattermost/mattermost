@@ -1335,7 +1335,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !fromSysConsole {
-		if len(props.TeamIds) == 1 {
+		if len(props.TeamIds) == 1 && model.IsValidId(props.TeamIds[0]) {
 			// Team-scoped search at the store layer
 			channels, err := c.App.AutocompleteChannelsForTeam(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term)
 			if err != nil {

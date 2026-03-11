@@ -4828,10 +4828,14 @@ export default class Client4 {
         );
     };
 
-    updateAccessControlPoliciesActive = (states: AccessControlPolicyActiveUpdate[]) => {
+    updateAccessControlPoliciesActive = (states: AccessControlPolicyActiveUpdate[], teamId?: string) => {
+        const body: Record<string, unknown> = {entries: states};
+        if (teamId) {
+            body.team_id = teamId;
+        }
         return this.doFetch<AccessControlPolicy[]>(
             `${this.getBaseRoute()}/access_control_policies/activate`,
-            {method: 'put', body: JSON.stringify({entries: states})},
+            {method: 'put', body: JSON.stringify(body)},
         );
     };
 
