@@ -37,7 +37,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 func TestClient4CreatePost(t *testing.T) {
 	post := &model.Post{
 		Props: map[string]any{
-			model.PostPropsAttachments: []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					Actions: []*model.PostAction{
 						{
@@ -61,7 +61,7 @@ func TestClient4CreatePost(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(&post)
 		assert.NoError(t, err)
 		attachments := post.Attachments()
-		assert.Equal(t, []*model.SlackAttachment{
+		assert.Equal(t, []*model.MessageAttachment{
 			{
 				Actions: []*model.PostAction{
 					{

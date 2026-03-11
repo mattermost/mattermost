@@ -439,6 +439,7 @@ export type ServiceSettings = {
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
     DeleteAccountLink: string;
+    MinimumDesktopAppVersion: string;
 };
 
 export type TeamSettings = {
@@ -510,11 +511,6 @@ export type LogSettings = {
 export type ExperimentalAuditSettings = {
     FileEnabled: boolean;
     FileName: string;
-    FileMaxSizeMB: number;
-    FileMaxAgeDays: number;
-    FileMaxBackups: number;
-    FileCompress: boolean;
-    FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
 };
@@ -912,6 +908,7 @@ export type ElasticsearchSettings = {
     ClientKey: string;
     Trace: string;
     IgnoredPurgeIndexes: string;
+    EnableSearchPublicChannelsWithoutMembership: boolean;
 };
 
 export type DataRetentionSettings = {

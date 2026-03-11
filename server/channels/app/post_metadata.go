@@ -905,7 +905,9 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 	} else {
 		// referencedPost does not contain a permalink: we get its metadata
-		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, &model.PreparePostForClientOpts{})
+		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
 

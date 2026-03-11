@@ -36,3 +36,13 @@ function notificationMessage(notificationMessage: string) {
 
 Cypress.Commands.add('stubNotificationPermission', stubNotificationPermission);
 Cypress.Commands.add('verifySystemBotMessageRecieved', notificationMessage);
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            stubNotificationPermission: typeof stubNotificationPermission;
+            verifySystemBotMessageRecieved: typeof notificationMessage;
+        }
+    }
+}

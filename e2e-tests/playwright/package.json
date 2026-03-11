@@ -25,6 +25,7 @@
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
+    "start:libretranslate-mock": "node mock_libre_translate.js",
     "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
   },
   "dependencies": {

@@ -1541,7 +1541,7 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + " update post 3",
 		}
-		up4.AddProp(model.PostPropsAttachments, []model.SlackAttachment{
+		up4.AddProp(model.PostPropsAttachments, []model.MessageAttachment{
 			{
 				Text: "Hello World",
 			},
@@ -1993,7 +1993,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("add slack attachments", func(t *testing.T) {
 		patch2 := &model.PostPatch{}
-		attachments := []model.SlackAttachment{
+		attachments := []model.MessageAttachment{
 			{
 				Text: "Hello World",
 			},
@@ -4968,10 +4968,10 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "with slack attachment action",
 	}
-	post.AddProp(model.PostPropsAttachments, []*model.SlackAttachment{
+	post.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{
 		{
 			Text: "Slack Attachment Text",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "Test Field",
 					Value: "test value",

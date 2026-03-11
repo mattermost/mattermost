@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import UserGroupsList from './user_groups_list';
 
@@ -63,26 +64,62 @@ describe('component/user_groups_modal', () => {
         return groupPermissionsMap;
     }
 
+    const initialState = {
+        entities: {
+            general: {
+                license: {
+                    Cloud: 'false',
+                },
+                config: {},
+            },
+            cloud: {},
+            admin: {
+                prevTrialLicense: {
+                    IsLicensed: 'false',
+                },
+            },
+            users: {
+                currentUserId: 'user1',
+                profiles: {
+                    user1: {
+                        id: 'user1',
+                        roles: 'system_user',
+                    },
+                },
+            },
+        },
+    };
+
     test('should match snapshot without groups', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <UserGroupsList
                 {...baseProps}
             />,
+            initialState as any,
+            {useMockedStore: true},
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot with groups', () => {
         const groups = getGroups(3);
         const permissions = getPermissions(groups);
 
-        const wrapper = shallow(
+        // Suppress expected DOM nesting warning from component's button structure
+        const originalError = console.error;
+        console.error = jest.fn();
+
+        const {baseElement} = renderWithContext(
             <UserGroupsList
                 {...baseProps}
                 groups={groups}
                 groupPermissionsMap={permissions}
             />,
+            initialState as any,
+            {useMockedStore: true},
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
+
+        console.error = originalError;
     });
 });
