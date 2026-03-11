@@ -10150,5 +10150,29 @@
   {
     "id": "api.data_spillage.error.license",
     "translation": "Твоя лицензия не поддерживает функцию обработки утечки данных."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Функция обработки утечки данных не включена в этой команде."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Сообщение, помещенное в карантин, должно находиться в статусе \"Ожидание\" или \"Назначено\", чтобы его можно было сохранить или удалить."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Неизвестная причина, указанная для помещения сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Пожалуйста, выберите причину помещения этого сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Пользователь не является рецензентом контента."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Невозможно сохранить черновик в ограниченном канале личных сообщений"
   }
 ]
