@@ -225,6 +225,7 @@ const initialComponents: PluginsState['components'] = {
     MessageWillBeUpdated: [],
     SlashCommandWillBePosted: [],
     SystemConsoleGroupTable: [],
+    SystemUsersListMenuItem: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: MMAction) {

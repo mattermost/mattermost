@@ -75,6 +75,7 @@ export type PluginsState = {
         SlashCommandWillBePosted: SlashCommandWillBePostedHook[];
         MessageWillBeUpdated: MessageWillBeUpdatedHook[];
         SystemConsoleGroupTable: SystemConsoleGroupTableComponent[];
+        SystemUsersListMenuItem: SystemUsersListMenuItemAction[];
     };
 
     postTypes: {
@@ -506,4 +507,9 @@ export type AdminConsolePluginCustomSection = {
 
 export type SystemConsoleGroupTableComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps>;
+};
+
+export type SystemUsersListMenuItemAction = PluginComponent & {
+    text: PluggableText;
+    action: (userId: string) => void;
 };
