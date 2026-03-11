@@ -13,7 +13,7 @@ export type RemoteToAdd = {remote_id: string; display_name: string};
 
 type Props = {
     currentRemoteIds: Set<string>;
-    onAdd: (remotes: RemoteToAdd[]) => void;
+    onAdd: (remotes: RemoteToAdd) => void;
 
     /** When provided, this list is used instead of fetching on open. null = still loading. */
     remoteClusters?: RemoteCluster[] | null;
@@ -29,10 +29,10 @@ export default function AddWorkspaceDropdown({
     const {formatMessage} = useIntl();
 
     const handleSelect = useCallback((rc: RemoteCluster) => {
-        onAdd([{
+        onAdd({
             remote_id: rc.remote_id,
             display_name: rc.display_name || rc.name,
-        }]);
+        });
     }, [onAdd]);
 
     const loading = remoteClusters === null;

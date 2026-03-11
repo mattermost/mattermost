@@ -74,29 +74,22 @@ export default function ShareChannelWithWorkspaces({
         }
     }, [enabled, onRemotesChange]);
 
-    const handleAdd = useCallback((toAdd: RemoteToAdd[]) => {
-        if (toAdd.length === 0) {
-            return;
-        }
+    const handleAdd = useCallback((toAdd: RemoteToAdd) => {
         const initialById = new Map((initialRemotes || []).map((r) => [r.remote_id || r.name, r]));
         onRemotesChange((prev) => {
-            const prevIds = new Set(prev.map((w) => w.remote_id || w.name));
-            const added: WorkspaceWithStatus[] = toAdd.filter((r) => !prevIds.has(r.remote_id)).map((r) => {
-                const existing = initialById.get(r.remote_id);
-                if (existing) {
-                    return {...existing};
-                }
-                return {
-                    remote_id: r.remote_id,
-                    name: r.remote_id,
-                    display_name: r.display_name || r.remote_id,
-                    create_at: 0,
-                    delete_at: 0,
-                    last_ping_at: 0,
-                    pendingSave: true,
-                };
-            });
-            return [...prev, ...added];
+            const existing = initialById.get(toAdd.remote_id);
+            if (existing) {
+                return [...prev, {...existing}];
+            }
+            return [...prev, {
+                remote_id: toAdd.remote_id,
+                name: toAdd.remote_id,
+                display_name: toAdd.display_name || toAdd.remote_id,
+                create_at: 0,
+                delete_at: 0,
+                last_ping_at: 0,
+                pendingSave: true,
+            }];
         });
     }, [initialRemotes, onRemotesChange]);
 
@@ -136,18 +129,19 @@ export default function ShareChannelWithWorkspaces({
                         {subheading}
                     </label>
                 </div>
-                <div className='channel_shared_with_workspaces_header__toggle'>
-                    <WithTooltip
-                        title={formatMessage({
-                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
-                            defaultMessage: 'No connected workspaces are available',
-                        })}
-                        hint={formatMessage({
-                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
-                            defaultMessage: 'Contact your system admin to add one.',
-                        })}
-                        disabled={hasAvailableWorkspaces}
-                    >
+                <WithTooltip
+                    title={formatMessage({
+                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
+                        defaultMessage: 'No connected workspaces are available',
+                    })}
+                    hint={formatMessage({
+                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
+                        defaultMessage: 'Contact your system admin to add one.',
+                    })}
+                    disabled={hasAvailableWorkspaces}
+                >
+                    <div className='channel_shared_with_workspaces_header__toggle'>
+
                         <Toggle
                             id='shareChannelWithWorkspacesToggle'
                             ariaLabel={heading}
@@ -158,8 +152,8 @@ export default function ShareChannelWithWorkspaces({
                             tabIndex={hasAvailableWorkspaces ? 0 : -1}
                             toggleClassName='btn-toggle-primary'
                         />
-                    </WithTooltip>
-                </div>
+                    </div>
+                </WithTooltip>
             </div>
 
             {!hasAvailableWorkspaces && (

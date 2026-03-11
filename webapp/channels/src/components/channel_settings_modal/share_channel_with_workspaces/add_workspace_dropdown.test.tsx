@@ -75,9 +75,9 @@ describe('AddWorkspaceDropdown', () => {
         await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
         await waitFor(() => {
-            expect(defaultProps.onAdd).toHaveBeenCalledWith([
+            expect(defaultProps.onAdd).toHaveBeenCalledWith(
                 {remote_id: 'remote1', display_name: 'Nebula Networks'},
-            ]);
+            );
         });
     });
 
@@ -95,7 +95,12 @@ describe('AddWorkspaceDropdown', () => {
     });
 
     it('should show loading when remoteClusters is null', async () => {
-        renderWithContext(<AddWorkspaceDropdown {...defaultProps} remoteClusters={null}/>);
+        renderWithContext(
+            <AddWorkspaceDropdown
+                {...defaultProps}
+                remoteClusters={null}
+            />,
+        );
 
         await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
