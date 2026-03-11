@@ -382,23 +382,25 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                             )}
 
                             <button
-                                type='submit'
-                                className='btn btn-primary'
+                                type='button'
+                                className='btn btn-sm btn-tertiary'
                                 onClick={reload}
                             >
+                                <i className='icon icon-refresh'/>
                                 <FormattedMessage
                                     id='admin.logs.ReloadLogs'
-                                    defaultMessage='Reload Logs'
+                                    defaultMessage='Reload'
                                 />
                             </button>
                             <ExternalLink
                                 location='download_logs'
-                                className='btn btn-primary'
+                                className='btn btn-sm btn-tertiary'
                                 href={Client4.getUrl() + '/api/v4/logs/download'}
                             >
+                                <i className='icon icon-download-outline'/>
                                 <FormattedMessage
                                     id='admin.logs.DownloadLogs'
-                                    defaultMessage='Download Logs'
+                                    defaultMessage='Download'
                                 />
                             </ExternalLink>
                         </div>

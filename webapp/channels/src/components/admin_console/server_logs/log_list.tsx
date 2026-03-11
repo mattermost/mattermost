@@ -79,7 +79,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
-    const [compact, setCompact] = useState(initialPrefs.compact);
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
     const listRef = useRef<HTMLDivElement>(null);
@@ -88,12 +87,12 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
     useEffect(() => {
         savePrefs({
             pageSize,
-            compact,
+            compact: true,
             wrapText,
             enabledLevels: Array.from(enabledLevels),
             sortAsc,
         });
-    }, [pageSize, compact, wrapText, enabledLevels, sortAsc]);
+    }, [pageSize, wrapText, enabledLevels, sortAsc]);
 
     // Count logs by level
     const levelCounts = useMemo(() => {
@@ -315,29 +314,6 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                 </div>
 
                 <div className='LogViewer__toolbar-right'>
-                    {/* Density toggle */}
-                    <button
-                        className={`LogViewer__toolbar-btn ${compact ? 'LogViewer__toolbar-btn--active' : ''}`}
-                        onClick={() => setCompact(!compact)}
-                        type='button'
-                        title={intl.formatMessage({id: 'admin.logs.density', defaultMessage: 'Toggle compact mode'})}
-                    >
-                        {compact ? 'A' : 'A'}
-                        <span className='LogViewer__toolbar-btn-label'>
-                            {compact ? (
-                                <FormattedMessage
-                                    id='admin.logs.compact'
-                                    defaultMessage='Compact'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='admin.logs.comfortable'
-                                    defaultMessage='Comfortable'
-                                />
-                            )}
-                        </span>
-                    </button>
-
                     {/* Wrap toggle */}
                     <button
                         className={`LogViewer__toolbar-btn ${wrapText ? 'LogViewer__toolbar-btn--active' : ''}`}
@@ -461,7 +437,7 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
                         onFocus={handleFocus}
                         searchTerm={search}
                         wrapText={wrapText}
-                        compact={compact}
+                        compact={true}
                     />
                 ))}
                 {loading && logs.length > 0 && (
@@ -476,72 +452,99 @@ export default function LogList({loading, logs, onFiltersChange, onSearchChange,
 
             {/* Footer / Pagination */}
             <div className='LogViewer__footer'>
-                <div className='LogViewer__footer-info'>
-                    <FormattedMessage
-                        id='admin.logs.showing'
-                        defaultMessage='{start}-{end} of {total}'
-                        values={{
-                            start: processedLogs.length > 0 ? startIndex + 1 : 0,
-                            end: endIndex,
-                            total: processedLogs.length,
-                        }}
-                    />
-                </div>
-                <div className='LogViewer__footer-pagination'>
-                    <button
-                        className='btn btn-sm btn-tertiary'
-                        onClick={goPrevPage}
-                        disabled={page === 0}
-                        type='button'
-                    >
-                        <i className='icon icon-chevron-left'/>
-                    </button>
-                    <span className='LogViewer__page-indicator'>
+                <div className='LogViewer__footer-left'>
+                    <div className='LogViewer__footer-info'>
                         <FormattedMessage
-                            id='admin.logs.pageOf'
-                            defaultMessage='Page {page} of {total}'
-                            values={{page: page + 1, total: totalPages}}
+                            id='admin.logs.showing'
+                            defaultMessage='{start}-{end} of {total}'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                total: processedLogs.length,
+                            }}
+                        />
+                    </div>
+                    <div className='LogViewer__footer-pagination'>
+                        <button
+                            className='btn btn-sm btn-tertiary'
+                            onClick={goPrevPage}
+                            disabled={page === 0}
+                            type='button'
+                        >
+                            <i className='icon icon-chevron-left'/>
+                        </button>
+                        <span className='LogViewer__page-indicator'>
+                            <FormattedMessage
+                                id='admin.logs.pageOf'
+                                defaultMessage='Page {page} of {total}'
+                                values={{page: page + 1, total: totalPages}}
+                            />
+                        </span>
+                        <button
+                            className='btn btn-sm btn-tertiary'
+                            onClick={goNextPage}
+                            disabled={page >= totalPages - 1}
+                            type='button'
+                        >
+                            <i className='icon icon-chevron-right'/>
+                        </button>
+                    </div>
+                    <div className='LogViewer__footer-pagesize'>
+                        <label htmlFor='logPageSize'>
+                            <FormattedMessage
+                                id='admin.logs.rowsPerPage'
+                                defaultMessage='Rows:'
+                            />
+                        </label>
+                        <select
+                            id='logPageSize'
+                            value={pageSize}
+                            onChange={handlePageSizeChange}
+                        >
+                            {PAGE_SIZES.map((size) => (
+                                <option
+                                    key={size}
+                                    value={size}
+                                >
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                <div className='LogViewer__keyboard-hints'>
+                    <span className='LogViewer__kbd-group'>
+                        <kbd>{'j'}</kbd><kbd>{'k'}</kbd>
+                        {' '}
+                        <FormattedMessage
+                            id='admin.logs.kbd.navigate'
+                            defaultMessage='navigate'
                         />
                     </span>
-                    <button
-                        className='btn btn-sm btn-tertiary'
-                        onClick={goNextPage}
-                        disabled={page >= totalPages - 1}
-                        type='button'
-                    >
-                        <i className='icon icon-chevron-right'/>
-                    </button>
-                </div>
-                <div className='LogViewer__footer-pagesize'>
-                    <label htmlFor='logPageSize'>
+                    <span className='LogViewer__kbd-group'>
+                        <kbd>{'Enter'}</kbd>
+                        {' '}
                         <FormattedMessage
-                            id='admin.logs.rowsPerPage'
-                            defaultMessage='Rows:'
+                            id='admin.logs.kbd.expand'
+                            defaultMessage='expand'
                         />
-                    </label>
-                    <select
-                        id='logPageSize'
-                        value={pageSize}
-                        onChange={handlePageSizeChange}
-                    >
-                        {PAGE_SIZES.map((size) => (
-                            <option
-                                key={size}
-                                value={size}
-                            >
-                                {size}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className='LogViewer__keyboard-hint-wrapper'>
-                    <button
-                        className='LogViewer__keyboard-hint-btn'
-                        type='button'
-                        title={'j/k navigate \u00b7 Enter expand \u00b7 e jump to error \u00b7 / search'}
-                    >
-                        {'?'}
-                    </button>
+                    </span>
+                    <span className='LogViewer__kbd-group'>
+                        <kbd>{'e'}</kbd>
+                        {' '}
+                        <FormattedMessage
+                            id='admin.logs.kbd.jumpError'
+                            defaultMessage='next error'
+                        />
+                    </span>
+                    <span className='LogViewer__kbd-group'>
+                        <kbd>{'/'}</kbd>
+                        {' '}
+                        <FormattedMessage
+                            id='admin.logs.kbd.search'
+                            defaultMessage='search'
+                        />
+                    </span>
                 </div>
             </div>
         </div>

@@ -292,11 +292,17 @@
     &__footer {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 8px 12px;
+        gap: 12px;
+        padding: 6px 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background: rgba(var(--center-channel-color-rgb), 0.02);
         font-size: 12px;
+    }
+
+    &__footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     &__footer-info {
@@ -307,7 +313,7 @@
     &__footer-pagination {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 0;
 
         .btn {
             display: flex;
@@ -320,7 +326,8 @@
     }
 
     &__page-indicator {
-        min-width: 120px;
+        display: inline-block;
+        min-width: 110px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         text-align: center;
         white-space: nowrap;
@@ -330,7 +337,6 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        margin-left: auto;
         color: rgba(var(--center-channel-color-rgb), 0.56);
 
         select {
@@ -343,28 +349,34 @@
         }
     }
 
-    &__keyboard-hint-wrapper {
-        margin-left: 4px;
+    &__keyboard-hints {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-left: auto;
+        color: rgba(var(--center-channel-color-rgb), 0.40);
+        font-size: 11px;
+        white-space: nowrap;
     }
 
-    &__keyboard-hint-btn {
-        display: flex;
-        width: 22px;
-        height: 22px;
+    &__kbd-group {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 50%;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.40);
-        cursor: help;
-        font-size: 11px;
-        font-weight: 600;
+        gap: 2px;
 
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+        kbd {
+            display: inline-block;
+            min-width: 18px;
+            padding: 1px 4px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 3px;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 16px;
+            text-align: center;
         }
     }
 }
