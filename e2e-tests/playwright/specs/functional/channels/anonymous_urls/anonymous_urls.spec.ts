@@ -10,7 +10,7 @@ async function skipIfNoAdvancedLicense(adminClient: any) {
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 }
 
-async function setSecureUrls(adminClient: any, enabled: boolean) {
+async function setAnonymousUrls(adminClient: any, enabled: boolean) {
     await adminClient.patchConfig({
         PrivacySettings: {
             UseAnonymousURLs: enabled,
@@ -62,7 +62,7 @@ async function getTeamByDisplayName(adminClient: any, displayName: string) {
     return team!;
 }
 
-async function createSecureUrlChannel(
+async function createAnonymousUrlChannel(
     channelsPage: any,
     adminClient: any,
     teamName: string,
@@ -79,16 +79,16 @@ async function createSecureUrlChannel(
     return channel;
 }
 
-test.describe('Secure URLs', () => {
+test.describe('Anonymous URLs', () => {
     /**
-     * @objective Verify that the secure URLs setting can be toggled on from System Console and persists after navigation
+     * @objective Verify that the anonymous URLs setting can be toggled on from System Console and persists after navigation
      *
      * @precondition
      * Server must have an Enterprise Advanced license
      */
     test(
-        'enables secure URLs setting from System Console and verifies it persists',
-        {tag: '@secure_urls'},
+        'enables anonymous URLs setting from System Console and verifies it persists',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
             // # Initialize setup and check license
             const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
@@ -109,17 +109,17 @@ test.describe('Secure URLs', () => {
             await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();
             await systemConsolePage.usersAndTeams.toBeVisible();
 
-            // * Verify the secure URLs radio group is visible
-            await systemConsolePage.usersAndTeams.useSecureURLs.toBeVisible();
+            // * Verify the anonymous URLs radio group is visible
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.toBeVisible();
 
             // * Verify the setting is initially false
-            await systemConsolePage.usersAndTeams.useSecureURLs.toBeFalse();
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.toBeFalse();
 
-            // # Enable secure URLs by clicking the True radio
-            await systemConsolePage.usersAndTeams.useSecureURLs.selectTrue();
+            // # Enable anonymous URLs by clicking the True radio
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.selectTrue();
 
             // * Verify it is now true
-            await systemConsolePage.usersAndTeams.useSecureURLs.toBeTrue();
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.toBeTrue();
 
             // # Save settings
             await systemConsolePage.usersAndTeams.save();
@@ -133,26 +133,26 @@ test.describe('Secure URLs', () => {
             await systemConsolePage.usersAndTeams.toBeVisible();
 
             // * Verify the setting is still enabled
-            await systemConsolePage.usersAndTeams.useSecureURLs.toBeTrue();
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.toBeTrue();
 
             // # Reset to false for cleanup
-            await systemConsolePage.usersAndTeams.useSecureURLs.selectFalse();
+            await systemConsolePage.usersAndTeams.useAnonymousURLs.selectFalse();
             await systemConsolePage.usersAndTeams.save();
             await pw.waitUntil(async () => (await systemConsolePage.usersAndTeams.saveButton.textContent()) === 'Save');
         },
     );
 
     /**
-     * @objective Verify that the channel URL editor is hidden when creating a new channel with secure URLs enabled
+     * @objective Verify that the channel URL editor is hidden when creating a new channel with anonymous URLs enabled
      *
      * @precondition
      * Server must have an Enterprise Advanced license
      */
     test(
-        'hides channel URL editor when creating new channel with secure URLs enabled',
-        {tag: '@secure_urls'},
+        'hides channel URL editor when creating new channel with anonymous URLs enabled',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup and configure secure URLs
+            // # Initialize setup and configure anonymous URLs
             const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
             const license = await adminClient.getClientLicenseOld();
             test.skip(
@@ -160,7 +160,7 @@ test.describe('Secure URLs', () => {
                 'Skipping test - server does not have enterprise advanced license',
             );
 
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
 
             // # Log in and go to channels
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -173,7 +173,7 @@ test.describe('Secure URLs', () => {
             await channelsPage.newChannelModal.toBeVisible();
 
             // # Fill in a channel name
-            await channelsPage.newChannelModal.fillDisplayName('Secure Test Channel');
+            await channelsPage.newChannelModal.fillDisplayName('Anonymous Test Channel');
 
             // * Verify the URL editor section is not visible
             await expect(channelsPage.newChannelModal.urlSection).not.toBeVisible();
@@ -184,66 +184,70 @@ test.describe('Secure URLs', () => {
     );
 
     /**
-     * @objective Verify that a channel created with secure URLs enabled has an obfuscated slug that does not match the display name
+     * @objective Verify that a channel created with anonymous URLs enabled has an obfuscated slug that does not match the display name
      *
      * @precondition
      * Server must have an Enterprise Advanced license
      */
-    test('creates channel with obfuscated URL slug when secure URLs enabled', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'advanced',
-            'Skipping test - server does not have enterprise advanced license',
-        );
+    test(
+        'creates channel with obfuscated URL slug when anonymous URLs enabled',
+        {tag: '@anonymous_urls'},
+        async ({pw}) => {
+            // # Initialize setup
+            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                license.SkuShortName !== 'advanced',
+                'Skipping test - server does not have enterprise advanced license',
+            );
 
-        await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
 
-        // # Add admin to the test team so they can create channels there
-        await adminClient.addToTeam(team.id, adminUser.id);
+            // # Add admin to the test team so they can create channels there
+            await adminClient.addToTeam(team.id, adminUser.id);
 
-        // # Log in and go to the test team
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+            // # Log in and go to the test team
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
 
-        // # Create a new channel via UI
-        const channelDisplayName = 'Obfuscated Channel ' + Date.now();
-        await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-        await channelsPage.page.locator('#createNewChannelMenuItem').click();
-        await channelsPage.newChannelModal.toBeVisible();
-        await channelsPage.newChannelModal.fillDisplayName(channelDisplayName);
-        await channelsPage.newChannelModal.create();
+            // # Create a new channel via UI
+            const channelDisplayName = 'Obfuscated Channel ' + Date.now();
+            await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
+            await channelsPage.page.locator('#createNewChannelMenuItem').click();
+            await channelsPage.newChannelModal.toBeVisible();
+            await channelsPage.newChannelModal.fillDisplayName(channelDisplayName);
+            await channelsPage.newChannelModal.create();
 
-        // # Wait for channel to be created and navigated to
-        await channelsPage.toBeVisible();
-        await pw.wait(pw.duration.two_sec);
+            // # Wait for channel to be created and navigated to
+            await channelsPage.toBeVisible();
+            await pw.wait(pw.duration.two_sec);
 
-        // # Fetch all channels for the team to find the newly created one by display name
-        const allChannels = await adminClient.getChannels(team.id);
-        const createdChannel = allChannels.find((ch) => ch.display_name === channelDisplayName);
+            // # Fetch all channels for the team to find the newly created one by display name
+            const allChannels = await adminClient.getChannels(team.id);
+            const createdChannel = allChannels.find((ch) => ch.display_name === channelDisplayName);
 
-        // * Verify channel was created
-        expect(createdChannel).toBeDefined();
+            // * Verify channel was created
+            expect(createdChannel).toBeDefined();
 
-        // * Verify the slug does not match a cleaned version of the display name
-        const humanReadableSlug = channelDisplayName.toLowerCase().replace(/\s+/g, '-');
-        expect(createdChannel!.name).not.toBe(humanReadableSlug);
+            // * Verify the slug does not match a cleaned version of the display name
+            const humanReadableSlug = channelDisplayName.toLowerCase().replace(/\s+/g, '-');
+            expect(createdChannel!.name).not.toBe(humanReadableSlug);
 
-        // * Verify the slug looks like a model.NewId (26 chars, alphanumeric)
-        expect(createdChannel!.name).toMatch(/^[a-z0-9]{26}$/);
+            // * Verify the slug looks like a model.NewId (26 chars, alphanumeric)
+            expect(createdChannel!.name).toMatch(/^[a-z0-9]{26}$/);
 
-        // * Verify display name is preserved
-        expect(createdChannel!.display_name).toBe(channelDisplayName);
-    });
+            // * Verify display name is preserved
+            expect(createdChannel!.display_name).toBe(channelDisplayName);
+        },
+    );
 
     /**
-     * @objective Verify that the channel URL editor is visible when creating a new channel with secure URLs disabled (default)
+     * @objective Verify that the channel URL editor is visible when creating a new channel with anonymous URLs disabled (default)
      */
     test(
-        'shows channel URL editor when creating new channel with secure URLs disabled',
-        {tag: '@secure_urls'},
+        'shows channel URL editor when creating new channel with anonymous URLs disabled',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
             // # Initialize setup
             const {adminUser} = await pw.initSetup({withDefaultProfileImage: false});
@@ -270,99 +274,107 @@ test.describe('Secure URLs', () => {
     );
 
     /**
-     * @objective Verify that the team URL step is skipped when creating a team with secure URLs enabled and the team is created directly after entering display name
+     * @objective Verify that the team URL step is skipped when creating a team with anonymous URLs enabled and the team is created directly after entering display name
      *
      * @precondition
      * Server must have an Enterprise Advanced license
      */
-    test('skips team URL step when creating team with secure URLs enabled', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup
-        const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'advanced',
-            'Skipping test - server does not have enterprise advanced license',
-        );
+    test(
+        'skips team URL step when creating team with anonymous URLs enabled',
+        {tag: '@anonymous_urls'},
+        async ({pw}) => {
+            // # Initialize setup
+            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                license.SkuShortName !== 'advanced',
+                'Skipping test - server does not have enterprise advanced license',
+            );
 
-        await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
 
-        // # Log in and go to channels
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+            // # Log in and go to channels
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
 
-        // # Open team menu and click Create a team
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickCreateTeam();
+            // # Open team menu and click Create a team
+            await channelsPage.sidebarLeft.teamMenuButton.click();
+            await channelsPage.teamMenu.toBeVisible();
+            await channelsPage.teamMenu.clickCreateTeam();
 
-        // # Wait for create team form
-        await channelsPage.createTeamForm.toBeVisible();
+            // # Wait for create team form
+            await channelsPage.createTeamForm.toBeVisible();
 
-        // * Verify the display name input is visible
-        await expect(channelsPage.createTeamForm.teamNameInput).toBeVisible();
+            // * Verify the display name input is visible
+            await expect(channelsPage.createTeamForm.teamNameInput).toBeVisible();
 
-        // * Verify the submit button text says "Finish" (not "Next") because URL step is skipped
-        await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Finish');
+            // * Verify the submit button text says "Finish" (not "Next") because URL step is skipped
+            await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Finish');
 
-        // # Enter team name and submit
-        const teamName = 'Secure Team ' + Date.now();
-        await channelsPage.createTeamForm.fillTeamName(teamName);
-        await channelsPage.createTeamForm.submitDisplayName();
+            // # Enter team name and submit
+            const teamName = 'Anonymous Team ' + Date.now();
+            await channelsPage.createTeamForm.fillTeamName(teamName);
+            await channelsPage.createTeamForm.submitDisplayName();
 
-        // * Verify the team is created and user is redirected (no URL step shown)
-        await channelsPage.toBeVisible();
+            // * Verify the team is created and user is redirected (no URL step shown)
+            await channelsPage.toBeVisible();
 
-        // # Verify the team has an obfuscated slug
-        const teams = await adminClient.getMyTeams();
-        const createdTeam = teams.find((t) => t.display_name === teamName);
-        expect(createdTeam).toBeDefined();
-        expect(createdTeam!.name).toMatch(/^[a-z0-9]{26}$/);
-    });
-
-    /**
-     * @objective Verify that the team URL step is shown when creating a team with secure URLs disabled (default)
-     */
-    test('shows team URL step when creating team with secure URLs disabled', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup
-        const {adminUser} = await pw.initSetup({withDefaultProfileImage: false});
-
-        // # Log in and go to channels
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        // # Open team menu and click Create a team
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickCreateTeam();
-
-        // # Wait for create team form
-        await channelsPage.createTeamForm.toBeVisible();
-
-        // * Verify the submit button says "Next" (not "Finish") indicating URL step follows
-        await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Next');
-
-        // # Enter team name and click Next
-        await channelsPage.createTeamForm.fillTeamName('Test Team URL Step');
-        await channelsPage.createTeamForm.submitDisplayName();
-
-        // * Verify the team URL step is now visible
-        await expect(channelsPage.createTeamForm.teamURLInput).toBeVisible();
-        await expect(channelsPage.createTeamForm.teamURLFinishButton).toBeVisible();
-    });
+            // # Verify the team has an obfuscated slug
+            const teams = await adminClient.getMyTeams();
+            const createdTeam = teams.find((t) => t.display_name === teamName);
+            expect(createdTeam).toBeDefined();
+            expect(createdTeam!.name).toMatch(/^[a-z0-9]{26}$/);
+        },
+    );
 
     /**
-     * @objective Verify that an archived channel created with secure URLs keeps its obfuscated route and becomes usable again after unarchiving.
+     * @objective Verify that the team URL step is shown when creating a team with anonymous URLs disabled (default)
      */
     test(
-        'preserves archived secure channel routes and restores channel access after unarchive',
-        {tag: '@secure_urls'},
+        'shows team URL step when creating team with anonymous URLs disabled',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup and enable secure URLs
+            // # Initialize setup
+            const {adminUser} = await pw.initSetup({withDefaultProfileImage: false});
+
+            // # Log in and go to channels
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
+
+            // # Open team menu and click Create a team
+            await channelsPage.sidebarLeft.teamMenuButton.click();
+            await channelsPage.teamMenu.toBeVisible();
+            await channelsPage.teamMenu.clickCreateTeam();
+
+            // # Wait for create team form
+            await channelsPage.createTeamForm.toBeVisible();
+
+            // * Verify the submit button says "Next" (not "Finish") indicating URL step follows
+            await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Next');
+
+            // # Enter team name and click Next
+            await channelsPage.createTeamForm.fillTeamName('Test Team URL Step');
+            await channelsPage.createTeamForm.submitDisplayName();
+
+            // * Verify the team URL step is now visible
+            await expect(channelsPage.createTeamForm.teamURLInput).toBeVisible();
+            await expect(channelsPage.createTeamForm.teamURLFinishButton).toBeVisible();
+        },
+    );
+
+    /**
+     * @objective Verify that an archived channel created with anonymous URLs keeps its obfuscated route and becomes usable again after unarchiving.
+     */
+    test(
+        'preserves archived anonymous channel routes and restores channel access after unarchive',
+        {tag: '@anonymous_urls'},
+        async ({pw}) => {
+            // # Initialize setup and enable anonymous URLs
             const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
             await skipIfNoAdvancedLicense(adminClient);
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
             await adminClient.addToTeam(team.id, adminUser.id);
 
             // # Log in as admin and create a channel with an obfuscated slug
@@ -370,20 +382,20 @@ test.describe('Secure URLs', () => {
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
 
-            const channelDisplayName = `Archived Secure ${await pw.random.id()}`;
+            const channelDisplayName = `Archived Anonymous ${await pw.random.id()}`;
             await createChannelFromUI(channelsPage, channelDisplayName);
 
             const createdChannel = await getChannelByDisplayName(adminClient, team.id, channelDisplayName);
             expectObfuscatedSlug(createdChannel.name);
 
-            // # Archive the channel and preserve the secure slug
+            // # Archive the channel and preserve the anonymous URL slug
             await adminClient.deleteChannel(createdChannel.id);
             const archivedChannel = await adminClient.getChannel(createdChannel.id);
 
-            // * Verify archiving does not rotate the secure route slug
+            // * Verify archiving does not rotate the anonymous URL route slug
             expect(archivedChannel.name).toBe(createdChannel.name);
 
-            // # Restore the archived channel and verify the secure slug is preserved
+            // # Restore the archived channel and verify the anonymous URL slug is preserved
             const restoredChannel = await adminClient.unarchiveChannel(createdChannel.id);
             expect(restoredChannel.name).toBe(createdChannel.name);
 
@@ -391,25 +403,25 @@ test.describe('Secure URLs', () => {
             await channelsPage.page.reload();
             await channelsPage.sidebarLeft.goToItem(createdChannel.name);
 
-            // * Verify the restored channel still uses the original secure route
+            // * Verify the restored channel still uses the original anonymous URL route
             await channelsPage.centerView.header.toHaveTitle(channelDisplayName);
             await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${createdChannel.name}`);
         },
     );
 
     /**
-     * @objective Verify that enabling secure URLs does not rewrite existing readable slugs and only affects channels and teams created afterward.
+     * @objective Verify that enabling anonymous URLs does not rewrite existing readable slugs and only affects channels and teams created afterward.
      */
     test(
         'keeps existing readable routes unchanged and obfuscates only newly created channels and teams',
-        {tag: '@secure_urls'},
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup with secure URLs disabled by default
+            // # Initialize setup with anonymous URLs disabled by default
             const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
             await skipIfNoAdvancedLicense(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
 
-            // # Create a legacy channel and team before enabling secure URLs
+            // # Create a legacy channel and team before enabling anonymous URLs
             const legacyChannelSlug = `legacy-channel-${await pw.random.id()}`;
             const legacyChannelDisplayName = `Legacy Channel ${await pw.random.id()}`;
             const legacyChannel = await adminClient.createChannel({
@@ -430,8 +442,8 @@ test.describe('Secure URLs', () => {
             expectReadableSlug(legacyChannel.name, legacyChannelSlug);
             expectReadableSlug(legacyTeam.name, legacyTeamSlug);
 
-            // # Enable secure URLs after the legacy channel and team already exist
-            await setSecureUrls(adminClient, true);
+            // # Enable anonymous URLs after the legacy channel and team already exist
+            await setAnonymousUrls(adminClient, true);
 
             const legacyChannelAfterToggle = await adminClient.getChannel(legacyChannel.id);
             const legacyTeamAfterToggle = await adminClient.getTeam(legacyTeam.id);
@@ -446,53 +458,53 @@ test.describe('Secure URLs', () => {
             await channelsPage.toBeVisible();
             await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${legacyChannelSlug}`);
 
-            // # Create a new channel after the secure URL toggle
-            const secureChannelDisplayName = `Secure Channel ${await pw.random.id()}`;
+            // # Create a new channel after the anonymous URL toggle
+            const anonymousChannelDisplayName = `Anonymous Channel ${await pw.random.id()}`;
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
-            await createChannelFromUI(channelsPage, secureChannelDisplayName);
+            await createChannelFromUI(channelsPage, anonymousChannelDisplayName);
 
-            const secureChannel = await getChannelByDisplayName(adminClient, team.id, secureChannelDisplayName);
+            const anonymousChannel = await getChannelByDisplayName(adminClient, team.id, anonymousChannelDisplayName);
 
             // * Verify only the new channel receives an obfuscated slug
-            expectObfuscatedSlug(secureChannel.name);
-            await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${secureChannel.name}`);
+            expectObfuscatedSlug(anonymousChannel.name);
+            await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${anonymousChannel.name}`);
 
-            // # Create a new team after the secure URL toggle
-            const secureTeamDisplayName = `Secure Team ${await pw.random.id()}`;
-            await createTeamFromUI(channelsPage, secureTeamDisplayName);
+            // # Create a new team after the anonymous URL toggle
+            const anonymousTeamDisplayName = `Anonymous Team ${await pw.random.id()}`;
+            await createTeamFromUI(channelsPage, anonymousTeamDisplayName);
 
-            const secureTeam = await getTeamByDisplayName(adminClient, secureTeamDisplayName);
+            const anonymousTeam = await getTeamByDisplayName(adminClient, anonymousTeamDisplayName);
 
             // * Verify only the new team receives an obfuscated slug
-            expectObfuscatedSlug(secureTeam.name);
-            await expect(channelsPage.page).toHaveURL(new RegExp(`/${secureTeam.name}/`));
+            expectObfuscatedSlug(anonymousTeam.name);
+            await expect(channelsPage.page).toHaveURL(new RegExp(`/${anonymousTeam.name}/`));
         },
     );
 
     /**
-     * @objective Verify that direct and group messages continue using message routes and are excluded from secure URL slug obfuscation.
+     * @objective Verify that direct and group messages continue using message routes and are excluded from anonymous URL slug obfuscation.
      */
     test(
-        'keeps direct and group message routes readable when secure URLs are enabled',
-        {tag: '@secure_urls'},
+        'keeps direct and group message routes readable when anonymous URLs are enabled',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup, create message participants, and enable secure URLs
+            // # Initialize setup, create message participants, and enable anonymous URLs
             const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
             await skipIfNoAdvancedLicense(adminClient);
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
             await adminClient.addToTeam(team.id, adminUser.id);
 
-            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'secureurlsdm'});
-            const thirdUser = await pw.createNewUserProfile(adminClient, {prefix: 'secureurlsgm'});
+            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'anonymousurlsdm'});
+            const thirdUser = await pw.createNewUserProfile(adminClient, {prefix: 'anonymousurlsgm'});
             await adminClient.addToTeam(team.id, secondUser.id);
             await adminClient.addToTeam(team.id, thirdUser.id);
 
             const dmChannel = await adminClient.createDirectChannel([adminUser.id, secondUser.id]);
             const gmChannel = await adminClient.createGroupChannel([adminUser.id, secondUser.id, thirdUser.id]);
 
-            const dmMessage = `Secure URL DM ${await pw.random.id()}`;
-            const gmMessage = `Secure URL GM ${await pw.random.id()}`;
+            const dmMessage = `Anonymous URL DM ${await pw.random.id()}`;
+            const gmMessage = `Anonymous URL GM ${await pw.random.id()}`;
             await adminClient.createPost({channel_id: dmChannel.id, message: dmMessage});
             await adminClient.createPost({channel_id: gmChannel.id, message: gmMessage});
 
@@ -524,135 +536,143 @@ test.describe('Secure URLs', () => {
     );
 
     /**
-     * @objective Verify that renaming a secure channel changes the display name without rewriting its obfuscated channel slug.
-     */
-    test('renames a secure channel without changing its obfuscated route', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup and create a secure channel
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoAdvancedLicense(adminClient);
-        await setSecureUrls(adminClient, true);
-        await adminClient.addToTeam(team.id, adminUser.id);
-
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        const originalDisplayName = `Original Channel ${await pw.random.id()}`;
-        await createChannelFromUI(channelsPage, originalDisplayName);
-
-        const createdChannel = await getChannelByDisplayName(adminClient, team.id, originalDisplayName);
-        const originalSlug = createdChannel.name;
-        expectObfuscatedSlug(originalSlug);
-
-        // # Rename the channel from channel settings
-        const renamedDisplayName = `Renamed Channel ${await pw.random.id()}`;
-        const channelSettingsModal = await channelsPage.openChannelSettings();
-        const infoTab = await channelSettingsModal.openInfoTab();
-        await infoTab.updateName(renamedDisplayName);
-        await channelSettingsModal.save();
-
-        await pw.waitUntil(
-            async () => (await adminClient.getChannel(createdChannel.id)).display_name === renamedDisplayName,
-        );
-        await channelSettingsModal.close();
-
-        const renamedChannel = await adminClient.getChannel(createdChannel.id);
-
-        // * Verify the channel name changes without rotating the secure slug
-        expect(renamedChannel.display_name).toBe(renamedDisplayName);
-        expect(renamedChannel.name).toBe(originalSlug);
-        expectObfuscatedSlug(renamedChannel.name);
-
-        // # Reopen the channel using its original obfuscated route
-        await channelsPage.goto(team.name, originalSlug);
-        await channelsPage.toBeVisible();
-
-        // * Verify the obfuscated route still resolves to the renamed channel
-        await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${originalSlug}`);
-        await channelsPage.centerView.header.toHaveTitle(renamedDisplayName);
-    });
-
-    /**
-     * @objective Verify that renaming a secure team changes the display name without rewriting its obfuscated team slug.
-     */
-    test('renames a secure team without changing its obfuscated route', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup and enable secure URLs
-        const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoAdvancedLicense(adminClient);
-        await setSecureUrls(adminClient, true);
-
-        // # Log in as admin and create a team with an obfuscated slug
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        const originalTeamDisplayName = `Original Team ${await pw.random.id()}`;
-        await createTeamFromUI(channelsPage, originalTeamDisplayName);
-
-        const createdTeam = await getTeamByDisplayName(adminClient, originalTeamDisplayName);
-        const originalTeamSlug = createdTeam.name;
-        expectObfuscatedSlug(originalTeamSlug);
-
-        // # Rename the team from team settings
-        const renamedTeamDisplayName = `Renamed Team ${await pw.random.id()}`;
-        const teamSettingsModal = await channelsPage.openTeamSettings();
-        const infoTab = await teamSettingsModal.openInfoTab();
-        await infoTab.updateName(renamedTeamDisplayName);
-        await teamSettingsModal.save();
-
-        await pw.waitUntil(
-            async () => (await adminClient.getTeam(createdTeam.id)).display_name === renamedTeamDisplayName,
-        );
-        await teamSettingsModal.close();
-
-        const renamedTeam = await adminClient.getTeam(createdTeam.id);
-
-        // * Verify the team name changes without rotating the secure slug
-        expect(renamedTeam.display_name).toBe(renamedTeamDisplayName);
-        expect(renamedTeam.name).toBe(originalTeamSlug);
-        expectObfuscatedSlug(renamedTeam.name);
-
-        // # Reopen the team using its original obfuscated route
-        await channelsPage.goto(originalTeamSlug);
-        await channelsPage.toBeVisible();
-
-        // * Verify the obfuscated team route still resolves to the renamed team
-        await expect(channelsPage.page).toHaveURL(new RegExp(`/${originalTeamSlug}/`));
-
-        const reopenedTeamSettings = await channelsPage.openTeamSettings();
-        await expect(reopenedTeamSettings.infoSettings.nameInput).toHaveValue(renamedTeamDisplayName);
-        await reopenedTeamSettings.close();
-    });
-
-    /**
-     * @objective Verify that post permalinks created in secure URL channels continue to resolve after the feature is turned off.
+     * @objective Verify that renaming an anonymous URL channel changes the display name without rewriting its obfuscated channel slug.
      */
     test(
-        'opens secure channel permalinks before and after disabling secure URLs',
-        {tag: '@secure_urls'},
+        'renames an anonymous URL channel without changing its obfuscated route',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup and enable secure URLs
+            // # Initialize setup and create an anonymous URL channel
+            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            await skipIfNoAdvancedLicense(adminClient);
+            await setAnonymousUrls(adminClient, true);
+            await adminClient.addToTeam(team.id, adminUser.id);
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const originalDisplayName = `Original Channel ${await pw.random.id()}`;
+            await createChannelFromUI(channelsPage, originalDisplayName);
+
+            const createdChannel = await getChannelByDisplayName(adminClient, team.id, originalDisplayName);
+            const originalSlug = createdChannel.name;
+            expectObfuscatedSlug(originalSlug);
+
+            // # Rename the channel from channel settings
+            const renamedDisplayName = `Renamed Channel ${await pw.random.id()}`;
+            const channelSettingsModal = await channelsPage.openChannelSettings();
+            const infoTab = await channelSettingsModal.openInfoTab();
+            await infoTab.updateName(renamedDisplayName);
+            await channelSettingsModal.save();
+
+            await pw.waitUntil(
+                async () => (await adminClient.getChannel(createdChannel.id)).display_name === renamedDisplayName,
+            );
+            await channelSettingsModal.close();
+
+            const renamedChannel = await adminClient.getChannel(createdChannel.id);
+
+            // * Verify the channel name changes without rotating the anonymous URL slug
+            expect(renamedChannel.display_name).toBe(renamedDisplayName);
+            expect(renamedChannel.name).toBe(originalSlug);
+            expectObfuscatedSlug(renamedChannel.name);
+
+            // # Reopen the channel using its original obfuscated route
+            await channelsPage.goto(team.name, originalSlug);
+            await channelsPage.toBeVisible();
+
+            // * Verify the obfuscated route still resolves to the renamed channel
+            await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${originalSlug}`);
+            await channelsPage.centerView.header.toHaveTitle(renamedDisplayName);
+        },
+    );
+
+    /**
+     * @objective Verify that renaming an anonymous URL team changes the display name without rewriting its obfuscated team slug.
+     */
+    test(
+        'renames an anonymous URL team without changing its obfuscated route',
+        {tag: '@anonymous_urls'},
+        async ({pw}) => {
+            // # Initialize setup and enable anonymous URLs
+            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
+            await skipIfNoAdvancedLicense(adminClient);
+            await setAnonymousUrls(adminClient, true);
+
+            // # Log in as admin and create a team with an obfuscated slug
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
+
+            const originalTeamDisplayName = `Original Team ${await pw.random.id()}`;
+            await createTeamFromUI(channelsPage, originalTeamDisplayName);
+
+            const createdTeam = await getTeamByDisplayName(adminClient, originalTeamDisplayName);
+            const originalTeamSlug = createdTeam.name;
+            expectObfuscatedSlug(originalTeamSlug);
+
+            // # Rename the team from team settings
+            const renamedTeamDisplayName = `Renamed Team ${await pw.random.id()}`;
+            const teamSettingsModal = await channelsPage.openTeamSettings();
+            const infoTab = await teamSettingsModal.openInfoTab();
+            await infoTab.updateName(renamedTeamDisplayName);
+            await teamSettingsModal.save();
+
+            await pw.waitUntil(
+                async () => (await adminClient.getTeam(createdTeam.id)).display_name === renamedTeamDisplayName,
+            );
+            await teamSettingsModal.close();
+
+            const renamedTeam = await adminClient.getTeam(createdTeam.id);
+
+            // * Verify the team name changes without rotating the anonymous URL slug
+            expect(renamedTeam.display_name).toBe(renamedTeamDisplayName);
+            expect(renamedTeam.name).toBe(originalTeamSlug);
+            expectObfuscatedSlug(renamedTeam.name);
+
+            // # Reopen the team using its original obfuscated route
+            await channelsPage.goto(originalTeamSlug);
+            await channelsPage.toBeVisible();
+
+            // * Verify the obfuscated team route still resolves to the renamed team
+            await expect(channelsPage.page).toHaveURL(new RegExp(`/${originalTeamSlug}/`));
+
+            const reopenedTeamSettings = await channelsPage.openTeamSettings();
+            await expect(reopenedTeamSettings.infoSettings.nameInput).toHaveValue(renamedTeamDisplayName);
+            await reopenedTeamSettings.close();
+        },
+    );
+
+    /**
+     * @objective Verify that post permalinks created in anonymous URL channels continue to resolve after the feature is turned off.
+     */
+    test(
+        'opens anonymous channel permalinks before and after disabling anonymous URLs',
+        {tag: '@anonymous_urls'},
+        async ({pw}) => {
+            // # Initialize setup and enable anonymous URLs
             const {adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
             await skipIfNoAdvancedLicense(adminClient);
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
 
-            // # Log in and create a secure URL channel
+            // # Log in and create an anonymous URL channel
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto();
             await channelsPage.toBeVisible();
 
             const displayName = `Permalink Channel ${await pw.random.id()}`;
-            const channel = await createSecureUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
+            const channel = await createAnonymousUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
 
             // # Publish a post that will be opened via permalink
-            const message = `Secure permalink message ${await pw.random.id()}`;
+            const message = `Anonymous permalink message ${await pw.random.id()}`;
             await channelsPage.postMessage(message);
 
             const lastPost = await channelsPage.getLastPost();
             const postId = await lastPost.getId();
             const permalink = `/${team.name}/pl/${postId}`;
 
-            // # Open the permalink while secure URLs are enabled
+            // # Open the permalink while anonymous URLs are enabled
             await channelsPage.page.goto(permalink);
 
             // * Verify the permalink resolves to the channel's obfuscated route
@@ -660,8 +680,8 @@ test.describe('Secure URLs', () => {
             await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${channel.name}`);
             await channelsPage.centerView.waitUntilPostWithIdContains(postId, message);
 
-            // # Disable secure URLs and reopen the same permalink
-            await setSecureUrls(adminClient, false);
+            // # Disable anonymous URLs and reopen the same permalink
+            await setAnonymousUrls(adminClient, false);
             await channelsPage.page.goto(permalink);
 
             // * Verify the permalink still resolves to the existing obfuscated route
@@ -672,15 +692,15 @@ test.describe('Secure URLs', () => {
     );
 
     /**
-     * @objective Verify that channel search finds secure URL channels by display name and navigates to their obfuscated routes.
+     * @objective Verify that channel search finds anonymous URL channels by display name and navigates to their obfuscated routes.
      */
-    test('channel search finds channels with obfuscated URLs', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup and enable secure URLs
+    test('channel search finds channels with obfuscated URLs', {tag: '@anonymous_urls'}, async ({pw}) => {
+        // # Initialize setup and enable anonymous URLs
         const {adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
         await skipIfNoAdvancedLicense(adminClient);
-        await setSecureUrls(adminClient, true);
+        await setAnonymousUrls(adminClient, true);
 
-        // # Log in and create secure URL channels
+        // # Log in and create anonymous URL channels
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
         await channelsPage.toBeVisible();
@@ -688,7 +708,7 @@ test.describe('Secure URLs', () => {
         const createdChannels = [];
         for (let i = 1; i <= 3; i++) {
             const displayName = `Search Test Channel ${i} ${await pw.random.id()}`;
-            const channel = await createSecureUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
+            const channel = await createAnonymousUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
             createdChannels.push({channel, displayName});
         }
 
@@ -701,12 +721,12 @@ test.describe('Secure URLs', () => {
         await channelsPage.findChannelsModal.toBeVisible();
         await channelsPage.findChannelsModal.input.fill(targetChannel.displayName.substring(0, 15));
 
-        // * Verify the secure URL channel appears in results
+        // * Verify the anonymous URL channel appears in results
         const result = channelsPage.findChannelsModal.getResult(targetChannel.channel.name);
         await expect(result).toBeVisible();
         await expect(result).toContainText(targetChannel.displayName);
 
-        // # Select the matching secure URL channel
+        // # Select the matching anonymous URL channel
         await channelsPage.findChannelsModal.selectChannel(targetChannel.channel.name);
 
         // * Verify navigation lands on the obfuscated route
@@ -715,22 +735,22 @@ test.describe('Secure URLs', () => {
     });
 
     /**
-     * @objective Verify that post search results navigate back to the correct secure URL channel route.
+     * @objective Verify that post search results navigate back to the correct anonymous URL channel route.
      */
-    test('navigates post search results back to secure URL channels', {tag: '@secure_urls'}, async ({pw}) => {
-        // # Initialize setup and enable secure URLs
+    test('navigates post search results back to anonymous URL channels', {tag: '@anonymous_urls'}, async ({pw}) => {
+        // # Initialize setup and enable anonymous URLs
         const {adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
         await skipIfNoAdvancedLicense(adminClient);
-        await setSecureUrls(adminClient, true);
+        await setAnonymousUrls(adminClient, true);
 
-        // # Log in and create a secure URL channel with a searchable post
+        // # Log in and create an anonymous URL channel with a searchable post
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
         const displayName = `Search Channel ${await pw.random.id()}`;
-        const channel = await createSecureUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
-        const message = `SecureSearchableMessage${await pw.random.id()}`;
+        const channel = await createAnonymousUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
+        const message = `AnonymousSearchableMessage${await pw.random.id()}`;
         await channelsPage.postMessage(message);
 
         const lastPost = await channelsPage.getLastPost();
@@ -748,26 +768,26 @@ test.describe('Secure URLs', () => {
         // * Verify the post appears in results
         await expect(searchItem).toContainText(message, {timeout: 15000});
 
-        // # Jump from the search result back to the secure URL channel
+        // # Jump from the search result back to the anonymous URL channel
         await searchItem.getByRole('link', {name: 'Jump'}).click();
 
-        // * Verify navigation returns to the secure route and highlights the expected post
+        // * Verify navigation returns to the anonymous URL route and highlights the expected post
         await channelsPage.centerView.header.toHaveTitle(displayName);
         await expect(channelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
         await channelsPage.centerView.waitUntilPostWithIdContains(postId, message);
     });
 
     /**
-     * @objective Verify that secure URLs preserve edge-case channel display names while keeping channels discoverable and fully usable.
+     * @objective Verify that anonymous URLs preserve edge-case channel display names while keeping channels discoverable and fully usable.
      */
     test(
-        'creates secure URL channels from unicode and emoji display names and keeps them discoverable',
-        {tag: '@secure_urls'},
+        'creates anonymous URL channels from unicode and emoji display names and keeps them discoverable',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
-            // # Initialize setup and enable secure URLs
+            // # Initialize setup and enable anonymous URLs
             const {user, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
             await skipIfNoAdvancedLicense(adminClient);
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
 
             // # Log in and open the test team
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -780,7 +800,7 @@ test.describe('Secure URLs', () => {
 
             for (const template of channelTemplates) {
                 const displayName = `${template} ${(await pw.random.id()).slice(0, 6)}`;
-                const channel = await createSecureUrlChannel(
+                const channel = await createAnonymousUrlChannel(
                     channelsPage,
                     adminClient,
                     team.name,
@@ -790,8 +810,8 @@ test.describe('Secure URLs', () => {
 
                 createdChannels.push({channel, displayName});
 
-                // # Post in the new secure URL channel
-                const message = `secure-url edge case ${displayName}`;
+                // # Post in the new anonymous URL channel
+                const message = `anonymous-url edge case ${displayName}`;
                 await channelsPage.postMessage(message);
 
                 // * Verify the channel keeps the exact display name and remains usable
@@ -821,14 +841,14 @@ test.describe('Secure URLs', () => {
     );
 
     /**
-     * @objective Verify that secure URL channels with special-character names still expose the Calls entry point after direct navigation.
+     * @objective Verify that anonymous URL channels with special-character names still expose the Calls entry point after direct navigation.
      *
      * @precondition
      * Calls plugin must be installed in the test environment.
      */
     test(
-        'shows calls entry point in secure URL channels with special-character names and preserves the obfuscated route',
-        {tag: '@secure_urls'},
+        'shows calls entry point in anonymous URL channels with special-character names and preserves the obfuscated route',
+        {tag: '@anonymous_urls'},
         async ({pw}) => {
             // # Initialize setup and validate Calls prerequisites
             const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
@@ -842,23 +862,23 @@ test.describe('Secure URLs', () => {
 
             await pw.ensurePluginsLoaded(['com.mattermost.calls']);
             await pw.shouldHaveCallsEnabled();
-            await setSecureUrls(adminClient, true);
+            await setAnonymousUrls(adminClient, true);
             await adminClient.addToTeam(team.id, adminUser.id);
 
-            // # Create a secure URL channel with a special-character display name
+            // # Create an anonymous URL channel with a special-character display name
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto();
             await channelsPage.toBeVisible();
 
             const displayName = `Calls & Planning 🚀 ${(await pw.random.id()).slice(0, 6)}`;
-            const channel = await createSecureUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
+            const channel = await createAnonymousUrlChannel(channelsPage, adminClient, team.name, team.id, displayName);
             await adminClient.addToChannel(adminUser.id, channel.id);
 
-            // * Verify the current secure URL channel shows the Calls entry point
+            // * Verify the current anonymous URL channel shows the Calls entry point
             await channelsPage.centerView.header.toHaveTitle(displayName);
             await expect(channelsPage.centerView.header.callButton).toBeVisible();
 
-            // # Open the secure URL directly as another member
+            // # Open the anonymous URL directly as another member
             const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(adminUser);
             await otherChannelsPage.goto(team.name, channel.name);
             await otherChannelsPage.toBeVisible();
@@ -868,10 +888,10 @@ test.describe('Secure URLs', () => {
             await expect(otherChannelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}$`));
             await expect(otherChannelsPage.centerView.header.callButton).toBeVisible();
 
-            // # Open the Calls entry point from the secure URL channel
+            // # Open the Calls entry point from the anonymous URL channel
             await otherChannelsPage.centerView.header.openCalls();
 
-            // * Verify opening Calls does not break the secure route context
+            // * Verify opening Calls does not break the anonymous URL route context
             await otherChannelsPage.centerView.header.toHaveTitle(displayName);
             await expect(otherChannelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
         },

@@ -196,7 +196,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
             ]);
 
-        const secureURLState: DeepPartial<GlobalState> = {
+        const anonymousURLState: DeepPartial<GlobalState> = {
             ...baseState,
             entities: {
                 ...baseState.entities,
@@ -211,7 +211,7 @@ describe('component/ConvertGmToChannelModal', () => {
 
         renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
-            secureURLState,
+            anonymousURLState,
         );
 
         await waitFor(

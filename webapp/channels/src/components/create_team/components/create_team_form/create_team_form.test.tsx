@@ -91,7 +91,7 @@ describe('CreateTeamForm - display_name step', () => {
     });
 
     describe('with UseAnonymousURLs enabled', () => {
-        const secureURLState = {
+        const anonymousURLState = {
             entities: {
                 general: {
                     config: {
@@ -103,14 +103,14 @@ describe('CreateTeamForm - display_name step', () => {
         };
 
         test('should show Finish button instead of Next', () => {
-            renderWithContext(<CreateTeamForm {...defaultProps}/>, secureURLState);
+            renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
             expect(screen.getByRole('button', {name: /finish/i})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /next/i})).not.toBeInTheDocument();
         });
 
         test('should create team directly without going to team_url step', async () => {
-            renderWithContext(<CreateTeamForm {...defaultProps}/>, secureURLState);
+            renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
             await userEvent.click(screen.getByRole('button', {name: /finish/i}));
 
@@ -136,7 +136,7 @@ describe('CreateTeamForm - display_name step', () => {
                     {...defaultProps}
                     actions={actions}
                 />,
-                secureURLState,
+                anonymousURLState,
             );
 
             await userEvent.click(screen.getByRole('button', {name: /finish/i}));
@@ -157,7 +157,7 @@ describe('CreateTeamForm - display_name step', () => {
                     {...defaultProps}
                     actions={actions}
                 />,
-                secureURLState,
+                anonymousURLState,
             );
 
             await userEvent.click(screen.getByRole('button', {name: /finish/i}));
@@ -185,7 +185,7 @@ describe('CreateTeamForm - display_name step', () => {
                     {...defaultProps}
                     actions={actions}
                 />,
-                secureURLState,
+                anonymousURLState,
             );
 
             await userEvent.click(screen.getByRole('button', {name: /finish/i}));
@@ -210,7 +210,7 @@ describe('CreateTeamForm - display_name step', () => {
                 },
             };
 
-            renderWithContext(<CreateTeamForm {...props}/>, secureURLState);
+            renderWithContext(<CreateTeamForm {...props}/>, anonymousURLState);
 
             await userEvent.click(screen.getByRole('button', {name: /finish/i}));
 

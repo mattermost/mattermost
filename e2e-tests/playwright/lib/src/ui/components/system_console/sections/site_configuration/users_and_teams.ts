@@ -12,14 +12,16 @@ export default class UsersAndTeams {
     readonly container: Locator;
 
     readonly header: Locator;
-    readonly useSecureURLs: RadioSetting;
+    readonly useAnonymousURLs: RadioSetting;
     readonly saveButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = container.getByText('Users and Teams', {exact: true});
-        this.useSecureURLs = new RadioSetting(container.getByRole('group', {name: /Use secure channel and team URLs/}));
+        this.useAnonymousURLs = new RadioSetting(
+            container.getByRole('group', {name: /Use anonymous channel and team URLs/i}),
+        );
         this.saveButton = container.getByRole('button', {name: 'Save'});
     }
 
