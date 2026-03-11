@@ -71,7 +71,7 @@ export default function AddWorkspaceDropdown({
 
     const menuButton = useMemo(() => ({
         id: `${MENU_ID}-button`,
-        class: classNames('btn', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
+        class: classNames('btn', 'btn-sm', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
         children: (
             <>
                 <i
