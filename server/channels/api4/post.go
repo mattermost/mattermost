@@ -1047,8 +1047,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionCreatePost); !ok {
-		c.SetPermissionError(model.PermissionCreatePost)
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return
 	}
 
@@ -1190,8 +1190,8 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	}
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionCreatePost); !ok {
-		c.SetPermissionError(model.PermissionCreatePost)
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return false
 	}
 
