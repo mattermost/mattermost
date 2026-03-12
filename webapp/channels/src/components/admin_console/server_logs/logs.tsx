@@ -36,7 +36,7 @@ const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
     bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
     logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
-    logFormatJson: {id: 'admin.logs.logFormatJson', defaultMessage: 'JSON'},
+    logFormatStructured: {id: 'admin.logs.logFormatStructured', defaultMessage: 'Structured'},
     logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
 });
 
@@ -60,10 +60,30 @@ const TIME_PRESETS = [
     {labelId: 'admin.logs.time.24h', defaultMessage: '24h', minutes: 1440},
 ] as const;
 
+const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
+
+function getInitialFormat(configIsPlainLogs: boolean): boolean {
+    if (configIsPlainLogs) {
+        return true;
+    }
+    try {
+        const saved = localStorage.getItem(LOG_FORMAT_PREF_KEY);
+        if (saved === 'plain') {
+            return true;
+        }
+        if (saved === 'structured') {
+            return false;
+        }
+    } catch {
+        // ignore
+    }
+    return false;
+}
+
 export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
     const intl = useIntl();
 
-    const [isPlainLogs, setIsPlainLogs] = useState(configIsPlainLogs);
+    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
@@ -143,6 +163,11 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const onLogFormatToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const plain = event.target.value === 'plain';
         setIsPlainLogs(plain);
+        try {
+            localStorage.setItem(LOG_FORMAT_PREF_KEY, plain ? 'plain' : 'structured');
+        } catch {
+            // ignore
+        }
         if (plain) {
             setLiveTailEnabled(false);
             setLoading(true);
@@ -261,7 +286,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                     checked={!isPlainLogs}
                     onChange={onLogFormatToggle}
                 />
-                <FormattedMessage {...messages.logFormatJson}/>
+                <FormattedMessage {...messages.logFormatStructured}/>
             </label>
             <label>
                 <input
