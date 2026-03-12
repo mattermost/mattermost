@@ -522,18 +522,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue(':blush: ');
-            expect(textbox.selectionStart).toEqual(8);
-            expect(textbox.selectionEnd).toEqual(8);
+            expect(textbox).toHaveValue('\uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(3);
+            expect(textbox.selectionEnd).toEqual(3);
 
             // Do it again
             await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue(':blush: :relaxed: ');
-            expect(textbox.selectionStart).toEqual(18);
-            expect(textbox.selectionEnd).toEqual(18);
+            expect(textbox).toHaveValue('\uD83D\uDE0A \u263A\uFE0F ');
+            expect(textbox.selectionStart).toEqual(6);
+            expect(textbox.selectionEnd).toEqual(6);
         });
 
         it('should add a space after the existing text if needed', async () => {
@@ -553,9 +553,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('This is some text :blush: ');
-            expect(textbox.selectionStart).toEqual(26);
-            expect(textbox.selectionEnd).toEqual(26);
+            expect(textbox).toHaveValue('This is some text \uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(21);
+            expect(textbox.selectionEnd).toEqual(21);
         });
 
         it('should be able to add an emoji in the middle of the text', async () => {
@@ -579,10 +579,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('aaa :blush: bbb');
-
-            // The caret should now be after the emoji
-            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
         });
 
@@ -607,10 +605,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('aaa :blush: bbb');
-
-            // The caret should now be after the emoji
-            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
         });
     });

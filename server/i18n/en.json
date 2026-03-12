@@ -3279,8 +3279,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3307,8 +3307,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3321,6 +3321,10 @@
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -6787,6 +6791,10 @@
     "translation": "Error fetching last accessible post"
   },
   {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Failed to get single-channel guest count."
+  },
+  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
   },
@@ -7025,6 +7033,10 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
   },
   {
     "id": "app.pap.get_policy.app_error",
@@ -8267,6 +8279,10 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Failed to get single-channel guest count for analytics."
   },
   {
     "id": "app.user.check_user_password.failed_migration",

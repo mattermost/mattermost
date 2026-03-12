@@ -86,6 +86,9 @@ Your response must be compacted valid JSON only, with no additional text, format
 			{Role: "user", Message: userPrompt},
 		},
 		JSONOutputFormat: summarizePostsJSONSchema,
+		UserID:           sessionUserID,
+		Operation:        "recaps",
+		OperationSubType: "summarize_channel",
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",
