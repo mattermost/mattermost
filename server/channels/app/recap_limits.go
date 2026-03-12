@@ -105,7 +105,6 @@ func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *m
 		limits.CooldownMinutes = model.UnlimitedValue
 	}
 
-
 	return limits, nil
 }
 
