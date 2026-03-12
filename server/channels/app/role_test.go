@@ -404,6 +404,65 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		require.NotNil(t, appErr)
 	})
 
+	t.Run("Team scheme paginates across multiple pages", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}
+
+		// Build a full first page (1000 teams) and a partial second page (2 teams).
+		page1 := make([]*model.Team, 1000)
+		for i := range page1 {
+			page1[i] = &model.Team{Id: model.NewId()}
+		}
+		page2 := []*model.Team{{Id: model.NewId()}, {Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 0, 1000).Return(page1, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 1000, 1000).Return(page2, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		role := &model.Role{Name: model.NewId(), BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockTeamStore.AssertCalled(t, "GetTeamsByScheme", schemeID, 0, 1000)
+		mockTeamStore.AssertCalled(t, "GetTeamsByScheme", schemeID, 1000, 1000)
+	})
+
+	t.Run("Channel scheme paginates across multiple pages", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
+
+		page1 := make(model.ChannelList, 1000)
+		for i := range page1 {
+			page1[i] = &model.Channel{Id: model.NewId()}
+		}
+		page2 := model.ChannelList{{Id: model.NewId()}, {Id: model.NewId()}, {Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(page1, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 1000, 1000).Return(page2, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockChannelStore.AssertCalled(t, "GetChannelsByScheme", schemeID, 0, 1000)
+		mockChannelStore.AssertCalled(t, "GetChannelsByScheme", schemeID, 1000, 1000)
+	})
+
 	t.Run("GetChannelsByScheme store error propagates as AppError", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := SetupWithStoreMock(t)
