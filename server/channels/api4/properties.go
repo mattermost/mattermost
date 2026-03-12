@@ -95,6 +95,9 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+	default:
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	// Trim whitespace from name
@@ -632,6 +635,9 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				return false
 			}
 		}
+	default:
+		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.invalid_object_type.app_error", nil, "", http.StatusBadRequest)
+		return false
 	}
 	return true
 }

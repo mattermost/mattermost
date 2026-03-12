@@ -303,6 +303,34 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("unknown target_type should fail with bad request", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "unknown",
+			TargetID:   model.NewId(),
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("empty target_type should fail with bad request", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetPropertyFields(t *testing.T) {
@@ -1507,6 +1535,7 @@ func TestGetPropertyValues(t *testing.T) {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
 	})
+
 }
 
 func TestPatchPropertyValues(t *testing.T) {
@@ -1858,6 +1887,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		// Value should be updated
 		require.Equal(t, json.RawMessage(`"second"`), u.Value)
 	})
+
 }
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {

@@ -7828,7 +7828,7 @@ func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType s
 	if search.TargetID != "" {
 		values.Set("target_id", search.TargetID)
 	}
-	if search.CursorID != "" {
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
 		values.Set("cursor_id", search.CursorID)
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
 	}
@@ -7863,7 +7863,7 @@ func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, 
 	if search.PerPage > 0 {
 		values.Set("per_page", strconv.Itoa(search.PerPage))
 	}
-	if search.CursorID != "" {
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
 		values.Set("cursor_id", search.CursorID)
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
 	}
