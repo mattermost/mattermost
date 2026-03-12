@@ -95,7 +95,7 @@
         }
     }
 
-    // Table editor button overrides for channel theme context
+    // Override table editor colors for channel theme
     .table-editor__cell {
         button {
             color: var(--center-channel-color) !important;
@@ -111,7 +111,7 @@
         color: rgba(var(--center-channel-color-rgb), 0.56) !important;
     }
 
-    // Extra bottom padding so the delete section isn't hidden behind SaveChangesPanel
+    // Space for SaveChangesPanel overlap
     &__delete-section {
         margin-bottom: 80px;
     }

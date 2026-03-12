@@ -101,7 +101,12 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 1,
             },
         } as ActionResult);
-        renderWithContext(<PolicyList {...defaultProps} hideDeleteAction={true}/>);
+        renderWithContext(
+            <PolicyList
+                {...defaultProps}
+                hideDeleteAction={true}
+            />,
+        );
         await waitFor(() => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });

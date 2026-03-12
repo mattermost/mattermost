@@ -278,10 +278,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    // Note: Test for "Delete is disabled when policy has channels" was removed because
-    // the Delete action is no longer shown in the three-dot menu in Team Settings.
-    // In the team context, all listed policies have channels (that's how team scope is
-    // derived), so Delete is only available from the policy editor after removing channels.
+    // Delete action is hidden in the team settings three-dot menu (all listed policies have channels).
 
     test('MM-67594_9 System Admin can also create policy from Team Settings', async ({pw}) => {
         await pw.skipIfNoLicense();
