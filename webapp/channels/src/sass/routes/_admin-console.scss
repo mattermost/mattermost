@@ -189,8 +189,8 @@
     .log__panel {
         overflow: scroll;
         width: 100%;
-        flex: 1;
         min-height: 0;
+        flex: 1;
         padding: 10px;
         border: variables.$border-gray;
         margin-top: 14px;
@@ -1147,8 +1147,8 @@
     }
 
     .LogTable {
-        flex: 1;
         min-height: 0;
+        flex: 1;
 
         .DataGrid {
             display: flex;
@@ -1157,17 +1157,17 @@
 
             .DataGrid_rows {
                 overflow: auto;
-                flex: 1;
                 min-height: 0 !important;
+                flex: 1;
             }
         }
     }
 
     .plain-log-list {
         display: flex;
+        min-height: 0;
         flex: 1;
         flex-direction: column;
-        min-height: 0;
     }
 }
 
