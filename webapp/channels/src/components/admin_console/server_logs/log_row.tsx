@@ -10,9 +10,10 @@ import type {LogObjectWithAdditionalInfo} from './types';
 import './log_list.scss';
 
 function copyToClipboard(text: string): Promise<void> {
-    return navigator.clipboard.writeText(text).catch(() => {
-        // Fallback: noop if clipboard API unavailable (e.g. non-HTTPS)
-    });
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        return Promise.reject(new Error('Clipboard API unavailable'));
+    }
+    return navigator.clipboard.writeText(text);
 }
 
 type Props = {
@@ -104,9 +105,12 @@ function CopyButton({value}: {value: string}) {
     const handleCopy = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        copyToClipboard(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        copyToClipboard(value).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        }).catch(() => {
+            // Clipboard unavailable — no success feedback
+        });
     }, [value]);
 
     return (
@@ -168,6 +172,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
             setCopyJsonSuccess(true);
             setTimeout(() => setCopyJsonSuccess(false), 2000);
+        }).catch(() => {
+            // Clipboard unavailable — no success feedback
         });
     }, [log]);
 
@@ -177,6 +183,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         copyToClipboard(line).then(() => {
             setCopyLineSuccess(true);
             setTimeout(() => setCopyLineSuccess(false), 2000);
+        }).catch(() => {
+            // Clipboard unavailable — no success feedback
         });
     }, [log]);
 
@@ -194,6 +202,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
             copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
                 setCopyJsonSuccess(true);
                 setTimeout(() => setCopyJsonSuccess(false), 2000);
+            }).catch(() => {
+                // Clipboard unavailable — no success feedback
             });
         }
     }, [log, onToggleExpand]);
