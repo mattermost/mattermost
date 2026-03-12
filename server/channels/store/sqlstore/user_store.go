@@ -2379,7 +2379,19 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 }
 
 func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptions) sq.SelectBuilder {
-	query = applyRoleFilter(query, filter.Role)
+	switch filter.GuestFilter {
+	case model.GuestFilterAll:
+		query = applyRoleFilter(query, "system_guest")
+	case model.GuestFilterSingleChannel:
+		query = applyRoleFilter(query, "system_guest")
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) = 1"))
+	case model.GuestFilterMultipleChannel:
+		query = applyRoleFilter(query, "system_guest")
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) > 1"))
+	default:
+		query = applyRoleFilter(query, filter.Role)
+	}
+
 	if filter.HasNoTeam {
 		query = query.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
 	} else if filter.Team != "" {
@@ -2426,6 +2438,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		"MAX(ps.LastPostDate) AS LastPostDate",
 		"COUNT(ps.Day) AS DaysActive",
 		"SUM(ps.NumPosts) AS TotalPosts",
+		"(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) AS ChannelCount",
 	)
 
 	sortDirection := "ASC"
@@ -2502,7 +2515,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts")...).
+			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount")...).
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

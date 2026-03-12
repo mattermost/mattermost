@@ -1983,6 +1983,12 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 	if options.DateRange != "" {
 		values.Set("date_range", options.DateRange)
 	}
+	if options.GuestFilter != "" {
+		values.Set("guest_filter", options.GuestFilter)
+	}
+	if options.SearchTerm != "" {
+		values.Set("search_term", options.SearchTerm)
+	}
 
 	r, err := c.doAPIGetWithQuery(ctx, c.reportsRoute().Join("users"), values, "")
 	if err != nil {
