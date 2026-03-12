@@ -151,6 +151,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"enable UseAnonymousURLs prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					UseAnonymousURLs: model.NewPointer(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"UseAnonymousURLs": "true",
+			},
+		},
+		{
 			"Custom groups professional license",
 			&model.Config{},
 			"",

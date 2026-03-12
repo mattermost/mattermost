@@ -5,7 +5,7 @@ import type {SortingState} from '@tanstack/react-table';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
+import {UserReportSortColumns, ReportSortDirection, GuestFilter} from '@mattermost/types/reports';
 import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
 
@@ -186,11 +186,20 @@ export function getDefaultSelectedTeam(teamId: Team['id'] | string, label?: stri
     };
 }
 
-export function getRoleFilterOption(role?: string): Pick<UserReportOptions, 'role_filter'> {
+export function getRoleFilterOption(role?: string): Pick<UserReportOptions, 'role_filter' | 'guest_filter'> {
     if (!role || role === RoleFilters.Any) {
-        return {role_filter: undefined};
+        return {role_filter: undefined, guest_filter: undefined};
     }
-    return {role_filter: role};
+    if (role === RoleFilters.GuestAll) {
+        return {role_filter: undefined, guest_filter: GuestFilter.All};
+    }
+    if (role === RoleFilters.GuestSingleChannel) {
+        return {role_filter: undefined, guest_filter: GuestFilter.SingleChannel};
+    }
+    if (role === RoleFilters.GuestMultiChannel) {
+        return {role_filter: undefined, guest_filter: GuestFilter.MultipleChannel};
+    }
+    return {role_filter: role, guest_filter: undefined};
 }
 
 export function getSearchFilterOption(search?: string): Pick<UserReportOptions, 'search_term'> {
