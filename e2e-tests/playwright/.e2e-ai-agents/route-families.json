@@ -1,219 +1,193 @@
 {
-  "families": [
-    {
-      "id": "channels",
-      "routes": ["/{team}/channels/{channel}", "/{team}/messages/{user}"],
-      "pageObjects": ["ChannelsPage"],
-      "components": ["CenterView", "SidebarRight"],
-      "webappPaths": [
-        "webapp/channels/src/components/channel_*/**",
-        "webapp/channels/src/components/post*/**",
-        "webapp/channels/src/components/create_post/**",
-        "webapp/channels/src/components/rhs*/**",
-        "webapp/channels/src/components/threading/**",
-        "webapp/channels/src/components/file_*/**"
-      ],
-      "serverPaths": [
-        "server/channels/api4/channel*.go",
-        "server/channels/api4/post*.go",
-        "server/channels/api4/file*.go",
-        "server/channels/api4/reaction*.go",
-        "server/channels/app/channel*.go",
-        "server/channels/app/post*.go",
-        "server/channels/app/file*.go"
-      ],
-      "specDirs": ["specs/functional/channels"],
-      "features": [
+    "families": [
         {
-          "id": "channels/threads",
-          "routes": ["/{team}/threads/{thread}"],
-          "webappPaths": [
-            "webapp/channels/src/components/threading/**",
-            "webapp/channels/src/components/rhs_thread/**"
-          ],
-          "serverPaths": [
-            "server/channels/api4/post*.go"
-          ],
-          "specDirs": ["specs/functional/channels/threads"]
+            "id": "channels",
+            "routes": ["/{team}/channels/{channel}", "/{team}/messages/{user}"],
+            "pageObjects": ["ChannelsPage"],
+            "components": ["CenterView", "SidebarRight"],
+            "webappPaths": [
+                "webapp/channels/src/components/channel_*/**",
+                "webapp/channels/src/components/post*/**",
+                "webapp/channels/src/components/create_post/**",
+                "webapp/channels/src/components/rhs*/**",
+                "webapp/channels/src/components/threading/**",
+                "webapp/channels/src/components/file_*/**"
+            ],
+            "serverPaths": [
+                "server/channels/api4/channel*.go",
+                "server/channels/api4/post*.go",
+                "server/channels/api4/file*.go",
+                "server/channels/api4/reaction*.go",
+                "server/channels/app/channel*.go",
+                "server/channels/app/post*.go",
+                "server/channels/app/file*.go"
+            ],
+            "specDirs": ["specs/functional/channels"],
+            "features": [
+                {
+                    "id": "channels/threads",
+                    "routes": ["/{team}/threads/{thread}"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/threading/**",
+                        "webapp/channels/src/components/rhs_thread/**"
+                    ],
+                    "serverPaths": ["server/channels/api4/post*.go"],
+                    "specDirs": ["specs/functional/channels/threads"]
+                },
+                {
+                    "id": "channels/drafts",
+                    "webappPaths": ["webapp/channels/src/components/drafts/**"],
+                    "serverPaths": ["server/channels/api4/draft*.go", "server/channels/app/draft*.go"],
+                    "specDirs": ["specs/functional/channels/drafts"]
+                },
+                {
+                    "id": "channels/notifications",
+                    "webappPaths": ["webapp/channels/src/components/notify_*/**"],
+                    "serverPaths": ["server/channels/app/notification*.go"],
+                    "specDirs": ["specs/functional/channels/notifications"]
+                },
+                {
+                    "id": "channels/search",
+                    "webappPaths": ["webapp/channels/src/components/search*/**"],
+                    "serverPaths": ["server/channels/api4/search*.go"],
+                    "specDirs": ["specs/functional/channels/search"]
+                },
+                {
+                    "id": "channels/emoji",
+                    "webappPaths": [
+                        "webapp/channels/src/components/emoji*/**",
+                        "webapp/channels/src/components/gif*/**"
+                    ],
+                    "serverPaths": ["server/channels/api4/emoji*.go"],
+                    "specDirs": ["specs/functional/channels/emoji_picker", "specs/functional/channels/gif_picker"]
+                },
+                {
+                    "id": "channels/scheduled_messages",
+                    "webappPaths": ["webapp/channels/src/components/scheduled*/**"],
+                    "serverPaths": ["server/channels/api4/scheduled*.go", "server/channels/app/scheduled*.go"],
+                    "specDirs": ["specs/functional/channels/scheduled_messages"]
+                }
+            ]
         },
         {
-          "id": "channels/drafts",
-          "webappPaths": ["webapp/channels/src/components/drafts/**"],
-          "serverPaths": ["server/channels/api4/draft*.go", "server/channels/app/draft*.go"],
-          "specDirs": ["specs/functional/channels/drafts"]
+            "id": "system_console",
+            "routes": ["/admin_console/**"],
+            "pageObjects": ["SystemConsolePage"],
+            "webappPaths": ["webapp/channels/src/components/admin_console/**"],
+            "serverPaths": [
+                "server/channels/api4/config*.go",
+                "server/channels/api4/system*.go",
+                "server/channels/api4/license*.go",
+                "server/channels/app/config*.go",
+                "server/channels/app/license*.go"
+            ],
+            "specDirs": ["specs/functional/system_console"],
+            "features": [
+                {
+                    "id": "system_console/permissions",
+                    "routes": ["/admin_console/user_management/permissions/**"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/admin_console/**/permission*/**",
+                        "webapp/channels/src/components/admin_console/**/system_role*/**"
+                    ],
+                    "serverPaths": [
+                        "server/channels/api4/role*.go",
+                        "server/channels/app/role*.go",
+                        "server/channels/app/permissions*.go",
+                        "server/public/model/permission*.go",
+                        "server/public/model/role*.go",
+                        "server/channels/app/authorization*.go"
+                    ],
+                    "specDirs": ["specs/functional/system_console/permissions"]
+                },
+                {
+                    "id": "system_console/site_configuration",
+                    "routes": ["/admin_console/site_config/**"],
+                    "webappPaths": ["webapp/channels/src/components/admin_console/settings/**"],
+                    "serverPaths": ["server/channels/api4/config*.go", "server/channels/app/config*.go"],
+                    "specDirs": ["specs/functional/system_console/site_configuration"]
+                },
+                {
+                    "id": "system_console/system_users",
+                    "routes": ["/admin_console/user_management/users/**"],
+                    "webappPaths": ["webapp/channels/src/components/admin_console/system_users/**"],
+                    "serverPaths": ["server/channels/api4/user*.go", "server/channels/app/user*.go"],
+                    "specDirs": ["specs/functional/system_console/system_users"]
+                },
+                {
+                    "id": "system_console/abac",
+                    "routes": ["/admin_console/feature_flags/**"],
+                    "webappPaths": ["webapp/channels/src/components/admin_console/**/attribute_based*/**"],
+                    "serverPaths": ["server/channels/app/feature_flags*.go"],
+                    "specDirs": ["specs/functional/system_console/abac"]
+                }
+            ]
         },
         {
-          "id": "channels/notifications",
-          "webappPaths": ["webapp/channels/src/components/notify_*/**"],
-          "serverPaths": ["server/channels/app/notification*.go"],
-          "specDirs": ["specs/functional/channels/notifications"]
+            "id": "auth",
+            "routes": ["/login", "/signup", "/reset_password"],
+            "webappPaths": [
+                "webapp/channels/src/components/login/**",
+                "webapp/channels/src/components/signup/**",
+                "webapp/channels/src/components/password_reset/**"
+            ],
+            "serverPaths": [
+                "server/channels/api4/user*.go",
+                "server/channels/api4/oauth*.go",
+                "server/channels/api4/saml*.go",
+                "server/channels/api4/ldap*.go",
+                "server/channels/app/login*.go",
+                "server/channels/app/oauth*.go",
+                "server/channels/app/session*.go",
+                "server/channels/app/authentication*.go"
+            ],
+            "specDirs": [],
+            "unmapped": true
         },
         {
-          "id": "channels/search",
-          "webappPaths": ["webapp/channels/src/components/search*/**"],
-          "serverPaths": ["server/channels/api4/search*.go"],
-          "specDirs": ["specs/functional/channels/search"]
+            "id": "migrations",
+            "routes": [],
+            "serverPaths": [
+                "server/channels/app/permissions_migrations*.go",
+                "server/channels/app/*migration*.go",
+                "server/public/model/migration*.go",
+                "server/channels/db/migrations/**"
+            ],
+            "specDirs": ["specs/functional/system_console/permissions"],
+            "tags": ["permissions", "migration"]
         },
         {
-          "id": "channels/emoji",
-          "webappPaths": [
-            "webapp/channels/src/components/emoji*/**",
-            "webapp/channels/src/components/gif*/**"
-          ],
-          "serverPaths": ["server/channels/api4/emoji*.go"],
-          "specDirs": ["specs/functional/channels/emoji_picker", "specs/functional/channels/gif_picker"]
+            "id": "plugins",
+            "routes": ["/marketplace"],
+            "webappPaths": ["webapp/channels/src/plugins/**", "webapp/channels/src/components/plugin*/**"],
+            "serverPaths": ["server/channels/api4/plugin*.go", "server/channels/app/plugin*.go"],
+            "specDirs": ["specs/functional/plugins"]
         },
         {
-          "id": "channels/scheduled_messages",
-          "webappPaths": ["webapp/channels/src/components/scheduled*/**"],
-          "serverPaths": [
-            "server/channels/api4/scheduled*.go",
-            "server/channels/app/scheduled*.go"
-          ],
-          "specDirs": ["specs/functional/channels/scheduled_messages"]
+            "id": "remote_clusters",
+            "routes": [],
+            "serverPaths": [
+                "server/channels/api4/remote_cluster*.go",
+                "server/channels/api4/shared_channel*.go",
+                "server/channels/app/remote_cluster*.go",
+                "server/channels/app/shared_channel*.go"
+            ],
+            "specDirs": [],
+            "unmapped": true
+        },
+        {
+            "id": "webhooks",
+            "routes": [],
+            "webappPaths": ["webapp/channels/src/components/integrations/**"],
+            "serverPaths": [
+                "server/channels/api4/webhook*.go",
+                "server/channels/api4/integration*.go",
+                "server/channels/app/webhook*.go",
+                "server/channels/app/incoming_webhook*.go",
+                "server/channels/app/outgoing_webhook*.go"
+            ],
+            "specDirs": [],
+            "unmapped": true
         }
-      ]
-    },
-    {
-      "id": "system_console",
-      "routes": ["/admin_console/**"],
-      "pageObjects": ["SystemConsolePage"],
-      "webappPaths": [
-        "webapp/channels/src/components/admin_console/**"
-      ],
-      "serverPaths": [
-        "server/channels/api4/config*.go",
-        "server/channels/api4/system*.go",
-        "server/channels/api4/license*.go",
-        "server/channels/app/config*.go",
-        "server/channels/app/license*.go"
-      ],
-      "specDirs": ["specs/functional/system_console"],
-      "features": [
-        {
-          "id": "system_console/permissions",
-          "routes": ["/admin_console/user_management/permissions/**"],
-          "webappPaths": [
-            "webapp/channels/src/components/admin_console/**/permission*/**",
-            "webapp/channels/src/components/admin_console/**/system_role*/**"
-          ],
-          "serverPaths": [
-            "server/channels/api4/role*.go",
-            "server/channels/app/role*.go",
-            "server/channels/app/permissions*.go",
-            "server/public/model/permission*.go",
-            "server/public/model/role*.go",
-            "server/channels/app/authorization*.go"
-          ],
-          "specDirs": ["specs/functional/system_console/permissions"]
-        },
-        {
-          "id": "system_console/site_configuration",
-          "routes": ["/admin_console/site_config/**"],
-          "webappPaths": [
-            "webapp/channels/src/components/admin_console/settings/**"
-          ],
-          "serverPaths": [
-            "server/channels/api4/config*.go",
-            "server/channels/app/config*.go"
-          ],
-          "specDirs": ["specs/functional/system_console/site_configuration"]
-        },
-        {
-          "id": "system_console/system_users",
-          "routes": ["/admin_console/user_management/users/**"],
-          "webappPaths": [
-            "webapp/channels/src/components/admin_console/system_users/**"
-          ],
-          "serverPaths": [
-            "server/channels/api4/user*.go",
-            "server/channels/app/user*.go"
-          ],
-          "specDirs": ["specs/functional/system_console/system_users"]
-        },
-        {
-          "id": "system_console/abac",
-          "routes": ["/admin_console/feature_flags/**"],
-          "webappPaths": [
-            "webapp/channels/src/components/admin_console/**/attribute_based*/**"
-          ],
-          "serverPaths": [
-            "server/channels/app/feature_flags*.go"
-          ],
-          "specDirs": ["specs/functional/system_console/abac"]
-        }
-      ]
-    },
-    {
-      "id": "auth",
-      "routes": ["/login", "/signup", "/reset_password"],
-      "webappPaths": [
-        "webapp/channels/src/components/login/**",
-        "webapp/channels/src/components/signup/**",
-        "webapp/channels/src/components/password_reset/**"
-      ],
-      "serverPaths": [
-        "server/channels/api4/user*.go",
-        "server/channels/api4/oauth*.go",
-        "server/channels/api4/saml*.go",
-        "server/channels/api4/ldap*.go",
-        "server/channels/app/login*.go",
-        "server/channels/app/oauth*.go",
-        "server/channels/app/session*.go",
-        "server/channels/app/authentication*.go"
-      ],
-      "specDirs": []
-    },
-    {
-      "id": "migrations",
-      "routes": [],
-      "serverPaths": [
-        "server/channels/app/permissions_migrations*.go",
-        "server/channels/app/*migration*.go",
-        "server/public/model/migration*.go",
-        "server/channels/db/migrations/**"
-      ],
-      "specDirs": ["specs/functional/system_console/permissions"],
-      "tags": ["permissions", "migration"]
-    },
-    {
-      "id": "plugins",
-      "routes": ["/marketplace"],
-      "webappPaths": [
-        "webapp/channels/src/plugins/**",
-        "webapp/channels/src/components/plugin*/**"
-      ],
-      "serverPaths": [
-        "server/channels/api4/plugin*.go",
-        "server/channels/app/plugin*.go"
-      ],
-      "specDirs": ["specs/functional/plugins"]
-    },
-    {
-      "id": "remote_clusters",
-      "routes": [],
-      "serverPaths": [
-        "server/channels/api4/remote_cluster*.go",
-        "server/channels/api4/shared_channel*.go",
-        "server/channels/app/remote_cluster*.go",
-        "server/channels/app/shared_channel*.go"
-      ],
-      "specDirs": []
-    },
-    {
-      "id": "webhooks",
-      "routes": [],
-      "webappPaths": [
-        "webapp/channels/src/components/integrations/**"
-      ],
-      "serverPaths": [
-        "server/channels/api4/webhook*.go",
-        "server/channels/api4/integration*.go",
-        "server/channels/app/webhook*.go",
-        "server/channels/app/incoming_webhook*.go",
-        "server/channels/app/outgoing_webhook*.go"
-      ],
-      "specDirs": []
-    }
-  ]
+    ]
 }
