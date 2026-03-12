@@ -7,7 +7,7 @@
         Get a list of remote clusters.
 
         ##### Permissions
-        `manage_secure_connections`
+        `manage_secure_connections` or `manage_shared_channels`
       operationId: GetRemoteClusters
       parameters:
         - name: page
@@ -134,7 +134,7 @@
         Get the Remote Cluster details from the provided id string.
 
         ##### Permissions
-        `manage_secure_connections`
+        `manage_secure_connections` or `manage_shared_channels`
       operationId: GetRemoteCluster
       parameters:
         - name: remote_id

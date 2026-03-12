@@ -10,8 +10,11 @@ import EditionAndLicense from '@/ui/components/system_console/sections/about/edi
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
 import Users from '@/ui/components/system_console/sections/user_management/users';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
+import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
+import Localization from '@/ui/components/system_console/sections/site_configuration/localization';
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
+import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 
 export default class SystemConsolePage {
@@ -31,12 +34,15 @@ export default class SystemConsolePage {
     // User Management
     readonly users: Users;
     readonly delegatedGranularAdministration: DelegatedGranularAdministration;
+    readonly permissionsSystemScheme: PermissionsSystemScheme;
 
     // Environment
     readonly mobileSecurity: MobileSecurity;
 
     // Site Configuration
+    readonly localization: Localization;
     readonly notifications: Notifications;
+    readonly usersAndTeams: UsersAndTeams;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
@@ -60,12 +66,15 @@ export default class SystemConsolePage {
         // User Management
         this.users = new Users(adminConsoleWrapper);
         this.delegatedGranularAdministration = new DelegatedGranularAdministration(adminConsoleWrapper);
+        this.permissionsSystemScheme = new PermissionsSystemScheme(adminConsoleWrapper);
 
         // Environment
         this.mobileSecurity = new MobileSecurity(adminConsoleWrapper);
 
         // Site Configuration
+        this.localization = new Localization(adminConsoleWrapper);
         this.notifications = new Notifications(adminConsoleWrapper);
+        this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
