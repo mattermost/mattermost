@@ -97,9 +97,10 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
             >
               <Component />
             </Connect(Component)>
-            <span>
-              footer
-            </span>
+            <Connect(Markdown)
+              message="footer"
+              postId="post_id"
+            />
           </div>
           <div>
             <div
@@ -245,9 +246,10 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
             >
               <Component />
             </Connect(Component)>
-            <span>
-              footer
-            </span>
+            <Connect(Markdown)
+              message="footer"
+              postId="post_id"
+            />
           </div>
         </div>
         <div
@@ -578,9 +580,10 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           <div
             className="attachment__footer-container"
           >
-            <span>
-              aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…
-            </span>
+            <Connect(Markdown)
+              message="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…"
+              postId="post_id"
+            />
           </div>
         </div>
         <div
