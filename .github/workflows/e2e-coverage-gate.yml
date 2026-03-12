@@ -12,13 +12,13 @@ permissions:
 jobs:
   # ── Job 1: decide whether to skip ──────────────────────────────────────────
   check-override:
-    name: ci/e2e-coverage/check-override
+    name: Check Override
     runs-on: ubuntu-24.04
     outputs:
       skip: ${{ steps.check.outputs.skip }}
       reason: ${{ steps.check.outputs.reason }}
     steps:
-      - name: ci/e2e-coverage/check-skip-label-or-comment
+      - name: Check skip label or comment
         id: check
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
@@ -78,28 +78,28 @@ jobs:
 
   # ── Job 2: analysis (runs when not skipped) ─────────────────────────────────
   coverage-check:
-    name: ci/e2e-coverage/analyze
+    name: Analyze Impact
     runs-on: ubuntu-24.04
     needs: check-override
     if: needs.check-override.outputs.skip == 'false'
     steps:
-      - name: ci/checkout-repo
+      - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
-      - name: ci/setup-node
+      - name: Setup Node
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: e2e-tests/playwright/package-lock.json
 
-      - name: ci/e2e-coverage/install-deps
+      - name: Install dependencies
         working-directory: e2e-tests/playwright
         run: npm ci --ignore-scripts
 
-      - name: ci/e2e-coverage/plan-enforcement
+      - name: Run plan enforcement
         id: plan
         working-directory: e2e-tests/playwright
         # V2: Deterministic graph-based analysis — AI enrichment is optional.
@@ -116,7 +116,7 @@ jobs:
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
-      - name: ci/e2e-coverage/agentic-generate-dry-run
+      - name: Agentic generate (dry-run)
         if: steps.plan.outcome == 'success'
         continue-on-error: true
         working-directory: e2e-tests/playwright
@@ -127,7 +127,7 @@ jobs:
             --config ./e2e-ai-agents.config.json \
             --dry-run
 
-      - name: ci/e2e-coverage/post-pr-comment
+      - name: Post PR comment
         if: always() && needs.check-override.outputs.skip == 'false'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
@@ -271,7 +271,7 @@ jobs:
               });
             }
 
-      - name: ci/e2e-coverage/fail-if-gaps
+      - name: Fail if gaps found
         if: always() && steps.plan.outcome == 'failure'
         run: |
           echo "::error::E2E coverage check failed — E2E tests are required for flows impacted by this PR."
@@ -281,12 +281,12 @@ jobs:
 
   # ── Job 3: skip-notice (runs when skipped) ──────────────────────────────────
   skip-notice:
-    name: ci/e2e-coverage/skipped
+    name: Skipped
     runs-on: ubuntu-24.04
     needs: check-override
     if: needs.check-override.outputs.skip == 'true'
     steps:
-      - name: ci/e2e-coverage/post-skip-comment
+      - name: Post skip comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           SKIP_REASON: ${{ needs.check-override.outputs.reason }}
