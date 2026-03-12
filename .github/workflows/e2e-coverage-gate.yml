@@ -116,6 +116,17 @@ jobs:
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
+      - name: ci/e2e-coverage/agentic-generate-dry-run
+        if: steps.plan.outcome == 'success'
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npx e2e-ai-agents generate \
+            --config ./e2e-ai-agents.config.json \
+            --dry-run
+
       - name: ci/e2e-coverage/post-pr-comment
         if: always() && needs.check-override.outputs.skip == 'false'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

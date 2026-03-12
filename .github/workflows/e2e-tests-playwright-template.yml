@@ -265,6 +265,21 @@ jobs:
           if [ -f playwright/results/reporter/results.json ]; then
             cp playwright/results/reporter/results.json playwright/.e2e-ai-agents/playwright-report.json
           fi
+      - name: ci/impact-agentic-generate
+        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        id: impact-agentic-generate
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REQUIRED_NEW_TESTS: ${{ steps.impact-plan.outputs.required_new_tests_count }}
+        run: |
+          if [ "${REQUIRED_NEW_TESTS}" = "0" ]; then
+            echo "No gaps detected — skipping agentic generation."
+            exit 0
+          fi
+          echo "Running agentic generate→run→fix loop for ${REQUIRED_NEW_TESTS} gap(s)..."
+          npm run impact:agentic-generate -- --max-attempts 3
       - name: ci/impact-heal
         if: always() && inputs.impact_enabled && steps.impact-plan.outcome == 'success'
         id: impact-heal
@@ -291,6 +306,9 @@ jobs:
           if [ "${{ steps.impact-generate.outcome }}" = "failure" ]; then
             echo "::error::AI test generation failed. Review .e2e-ai-agents artifacts."
             exit 1
+          fi
+          if [ "${{ steps.impact-agentic-generate.outcome }}" = "failure" ]; then
+            echo "::warning::Agentic test generation had failures. Review .e2e-ai-agents/agentic-summary.json."
           fi
           if [ "${{ steps.impact-heal.outcome }}" = "failure" ]; then
             echo "::error::AI heal failed. Review .e2e-ai-agents artifacts."
