@@ -44,6 +44,11 @@
             margin-right: 1px;
             color: rgba(var(--sidebar-text-rgb), 0.64);
             font-size: 18px;
+            opacity: 0.64;
+
+            svg {
+                vertical-align: middle;
+            }
         }
 
         .SidebarChannelLinkLabel_wrapper {
