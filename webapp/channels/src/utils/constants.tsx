@@ -1026,7 +1026,7 @@ export const AboutLinks = {
 };
 
 export const CloudLinks = {
-    BILLING_DOCS: 'https://docs.mattermost.com/pl/cloud-billing',
+    BILLING_DOCS: 'https://docs.mattermost.com/product-overview/cloud-subscriptions.html',
     PRICING: 'https://mattermost.com/pl/pricing/',
     PRORATED_PAYMENT: 'https://mattermost.com/pl/mattermost-cloud-prorate-documentation',
     DEPLOYMENT_OPTIONS: 'https://mattermost.com/deploy/',
@@ -1074,7 +1074,7 @@ export const DocLinks = {
     SETUP_LDAP: 'https://mattermost.com/pl/setup-ldap',
     SETUP_PERFORMANCE_MONITORING: 'https://mattermost.com/pl/setup-performance-monitoring',
     SETUP_PUSH_NOTIFICATIONS: 'https://mattermost.com/pl/setup-push-notifications',
-    SETUP_SAML: 'https://docs.mattermost.com/pl/setup-saml',
+    SETUP_SAML: 'https://docs.mattermost.com/administration-guide/onboard/sso-saml.html',
     SHARE_LINKS_TO_MESSAGES: 'https://mattermost.com/pl/share-links-to-messages',
     SITE_URL: 'https://mattermost.com/pl/configure-site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',

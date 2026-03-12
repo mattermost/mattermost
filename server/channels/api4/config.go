@@ -335,6 +335,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 	}
 
+	// Treating an empty plugins map as nil preserves the existing configs.
+	if len(cfg.PluginSettings.Plugins) == 0 {
+		cfg.PluginSettings.Plugins = nil
+	}
+
 	updatedCfg, err := config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: filterFn,
 	})
