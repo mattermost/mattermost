@@ -14,6 +14,7 @@ import PermissionsSystemScheme from '@/ui/components/system_console/sections/use
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
 import Localization from '@/ui/components/system_console/sections/site_configuration/localization';
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
+import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 
 export default class SystemConsolePage {
@@ -41,6 +42,7 @@ export default class SystemConsolePage {
     // Site Configuration
     readonly localization: Localization;
     readonly notifications: Notifications;
+    readonly usersAndTeams: UsersAndTeams;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
@@ -72,6 +74,7 @@ export default class SystemConsolePage {
         // Site Configuration
         this.localization = new Localization(adminConsoleWrapper);
         this.notifications = new Notifications(adminConsoleWrapper);
+        this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
