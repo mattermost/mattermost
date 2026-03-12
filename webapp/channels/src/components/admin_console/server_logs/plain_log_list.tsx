@@ -204,12 +204,16 @@ export default function PlainLogList({
         return newestFirst ? [...logs].reverse() : logs;
     }, [logs, newestFirst]);
 
-    // Auto-scroll to bottom when follow tail is on
+    // Auto-scroll to tail when follow tail is on (top when newestFirst, bottom otherwise)
     useEffect(() => {
         if (followTail && logPanelRef.current) {
-            logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+            if (newestFirst) {
+                logPanelRef.current.scrollTop = 0;
+            } else {
+                logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+            }
         }
-    }, [displayLogs, followTail]);
+    }, [displayLogs, followTail, newestFirst]);
 
     // Detect manual scroll to auto-disable follow tail
     const handleScroll = useCallback(() => {
@@ -217,13 +221,15 @@ export default function PlainLogList({
             return;
         }
         const {scrollTop, scrollHeight, clientHeight} = logPanelRef.current;
-        const atBottom = scrollHeight - scrollTop - clientHeight < 40;
-        if (!atBottom && followTail) {
+        const atTail = newestFirst ?
+            scrollTop < 40 :
+            scrollHeight - scrollTop - clientHeight < 40;
+        if (!atTail && followTail) {
             setFollowTail(false);
-        } else if (atBottom && !followTail) {
+        } else if (atTail && !followTail) {
             setFollowTail(true);
         }
-    }, [followTail]);
+    }, [followTail, newestFirst]);
 
     const [copyFailed, setCopyFailed] = useState(false);
 
@@ -537,14 +543,14 @@ export default function PlainLogList({
                             onClick={() => {
                                 setFollowTail(true);
                                 if (logPanelRef.current) {
-                                    logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+                                    logPanelRef.current.scrollTop = newestFirst ? 0 : logPanelRef.current.scrollHeight;
                                 }
                             }}
                         >
-                            <i className='icon icon-arrow-down'/>
+                            <i className={newestFirst ? 'icon icon-arrow-up' : 'icon icon-arrow-down'}/>
                             <FormattedMessage
-                                id='admin.logs.scrollToBottom'
-                                defaultMessage='Scroll to bottom'
+                                id={newestFirst ? 'admin.logs.scrollToTop' : 'admin.logs.scrollToBottom'}
+                                defaultMessage={newestFirst ? 'Scroll to top' : 'Scroll to bottom'}
                             />
                         </button>
                     )}
