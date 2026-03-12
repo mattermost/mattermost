@@ -235,7 +235,7 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	groupID := model.NewId()
@@ -265,7 +265,7 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
@@ -278,7 +278,7 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	t.Run("should be able to retrieve existing property fields from multiple groups", func(t *testing.T) {

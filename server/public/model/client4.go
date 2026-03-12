@@ -7819,7 +7819,9 @@ func (c *Client4) CreatePropertyField(ctx context.Context, groupName, objectType
 // GetPropertyFields returns property fields matching the given search parameters.
 func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
 	values := url.Values{}
-	values.Set("per_page", strconv.Itoa(search.PerPage))
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
 	if search.TargetType != "" {
 		values.Set("target_type", search.TargetType)
 	}
@@ -7858,7 +7860,9 @@ func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType
 
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
 	values := url.Values{}
-	values.Set("per_page", strconv.Itoa(search.PerPage))
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
 	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))

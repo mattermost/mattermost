@@ -396,7 +396,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting values", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	groupID := model.NewId()
@@ -430,7 +430,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValues[1].ID, model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	t.Run("should be able to retrieve existing property values", func(t *testing.T) {
@@ -443,7 +443,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValueOutsideGroup.ID})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		require.ErrorAs(t, err, new(store.ErrResultsMismatch))
 	})
 
 	t.Run("should be able to retrieve existing property values from multiple groups", func(t *testing.T) {

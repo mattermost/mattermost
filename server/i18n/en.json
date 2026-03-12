@@ -3111,6 +3111,10 @@
     "translation": "You do not have permission to set values on one or more fields."
   },
   {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "You do not have permission to access property values for another user."
+  },
+  {
     "id": "api.push_notification.disabled.app_error",
     "translation": "Push Notifications are disabled on this server."
   },

@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (api *API) InitProperties() {
@@ -409,6 +410,11 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check target access based on object type
+	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, false) {
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyValues, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
@@ -455,6 +461,11 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check target access based on object type
+	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, true) {
+		return
+	}
+
 	// Resolve group_name to internal group ID
 	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
 	if appErr != nil {
@@ -491,7 +502,8 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// The store returns a mismatch error when some IDs are not found
 		// within the group — treat this as a bad request (wrong group).
-		if strings.Contains(err.Error(), "missmatch results") {
+		var mismatchErr *store.ErrResultsMismatch
+		if errors.As(err, &mismatchErr) {
 			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.field_group_mismatch.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -559,6 +571,69 @@ func propertyValueError(where string, err error) *model.AppError {
 		return appErr
 	}
 	return model.NewAppError(where, "api.property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+}
+
+// hasTargetAccess checks that the caller has access to the target entity
+// identified by objectType and targetID. For reads (write=false) it checks
+// read-level permissions; for writes it checks management-level permissions.
+// It sets c.Err and returns false when access is denied.
+func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
+	switch objectType {
+	case model.PropertyFieldObjectTypeChannel:
+		if !write {
+			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, model.PermissionReadChannel)
+			if !hasPermission {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return false
+			}
+		} else {
+			channel, appErr := c.App.GetChannel(c.AppContext, targetID)
+			if appErr != nil {
+				c.Err = appErr
+				return false
+			}
+			var perm *model.Permission
+			switch channel.Type {
+			case model.ChannelTypeOpen:
+				perm = model.PermissionManagePublicChannelProperties
+			case model.ChannelTypePrivate:
+				perm = model.PermissionManagePrivateChannelProperties
+			default:
+				// DM/GM channels: just check membership via read permission
+				perm = model.PermissionReadChannel
+			}
+			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)
+			if !hasPermission {
+				c.SetPermissionError(perm)
+				return false
+			}
+		}
+	case model.PropertyFieldObjectTypePost:
+		post, appErr := c.App.GetSinglePost(c.AppContext, targetID, false)
+		if appErr != nil {
+			c.Err = appErr
+			return false
+		}
+		perm := model.PermissionReadChannel
+		if write {
+			perm = model.PermissionCreatePost
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, perm)
+		if !hasPermission {
+			c.SetPermissionError(perm)
+			return false
+		}
+	case model.PropertyFieldObjectTypeUser:
+		// Any authenticated user can read another user's property values.
+		// Only the user themselves or a system admin can write values.
+		if write && targetID != c.AppContext.Session().UserId {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+				c.Err = model.NewAppError("hasTargetAccess", "api.property_value.target_user.forbidden.app_error", nil, "", http.StatusForbidden)
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.

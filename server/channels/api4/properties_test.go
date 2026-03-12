@@ -1379,8 +1379,10 @@ func TestGetPropertyValues(t *testing.T) {
 	createdField, appErr := th.App.CreatePropertyField(field, false)
 	require.NoError(t, appErr)
 
+	// Use a real post as the target so target access checks pass
+	targetID := th.BasicPost.Id
+
 	// Create a value via upsert
-	targetID := model.NewId()
 	value := &model.PropertyValue{
 		TargetID:   targetID,
 		TargetType: "post",
@@ -1440,8 +1442,8 @@ func TestGetPropertyValues(t *testing.T) {
 	t.Run("get with no values returns empty array", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		emptyTargetID := model.NewId()
-		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", emptyTargetID, model.PropertyValueSearch{PerPage: 60})
+		emptyPost := th.CreatePost(t)
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", emptyPost.Id, model.PropertyValueSearch{PerPage: 60})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Empty(t, values)
@@ -1450,8 +1452,9 @@ func TestGetPropertyValues(t *testing.T) {
 	t.Run("cursor pagination should return subsequent pages", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		// Create additional fields and values for pagination
-		paginationTarget := model.NewId()
+		// Create a real post and additional fields/values for pagination
+		paginationPost := th.CreatePost(t)
+		paginationTarget := paginationPost.Id
 		for range 4 {
 			f := &model.PropertyField{
 				Name:              model.NewId(),
@@ -1559,7 +1562,8 @@ func TestPatchPropertyValues(t *testing.T) {
 	createdNoneField, appErr := th.App.CreatePropertyField(noneField, false)
 	require.NoError(t, appErr)
 
-	targetID := model.NewId()
+	// Use a real post as the target so target access checks pass
+	targetID := th.BasicPost.Id
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
 		client := model.NewAPIv4Client(th.Client.URL)
@@ -1789,7 +1793,8 @@ func TestPatchPropertyValues(t *testing.T) {
 	t.Run("returned value should have all fields correctly set", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		valueTargetID := model.NewId()
+		valueTargetPost := th.CreatePost(t)
+		valueTargetID := valueTargetPost.Id
 		items := []model.PropertyValuePatchItem{
 			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"test-fields"`)},
 		}
@@ -1819,7 +1824,8 @@ func TestPatchPropertyValues(t *testing.T) {
 		// Create initial value as BasicUser
 		th.LoginBasic(t)
 
-		upsertTargetID := model.NewId()
+		upsertTargetPost := th.CreatePost(t)
+		upsertTargetID := upsertTargetPost.Id
 		items := []model.PropertyValuePatchItem{
 			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"first"`)},
 		}
@@ -1851,5 +1857,389 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Equal(t, th.SystemAdminUser.Id, u.UpdatedBy, "UpdatedBy should be the user who performed the update")
 		// Value should be updated
 		require.Equal(t, json.RawMessage(`"second"`), u.Value)
+	})
+}
+
+func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_user_get_access")
+	require.NoError(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	// Create a user-scoped field
+	field := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "user",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdField, appErr := th.App.CreatePropertyField(field, false)
+	require.NoError(t, appErr)
+
+	// Create a value for BasicUser
+	_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
+		TargetID:   th.BasicUser.Id,
+		TargetType: "user",
+		GroupID:    group.ID,
+		FieldID:    createdField.ID,
+		Value:      json.RawMessage(`"my-value"`),
+		CreatedBy:  th.BasicUser.Id,
+		UpdatedBy:  th.BasicUser.Id,
+	}})
+	require.NoError(t, appErr)
+
+	t.Run("user can get their own property values", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("non-admin can get another user's property values", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("admin can get another user's property values", func(t *testing.T) {
+		th.LoginSystemAdmin(t)
+
+		values, resp, err := th.SystemAdminClient.GetPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+}
+
+func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_user_patch_access")
+	require.NoError(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	// Create a user-scoped field
+	field := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "user",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdField, appErr := th.App.CreatePropertyField(field, false)
+	require.NoError(t, appErr)
+
+	t.Run("user can set their own property values", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"self-value"`)},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"self-value"`), values[0].Value)
+	})
+
+	t.Run("non-admin cannot set another user's property values", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"should-fail"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("admin can set another user's property values", func(t *testing.T) {
+		th.LoginSystemAdmin(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"admin-set"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"admin-set"`), values[0].Value)
+	})
+}
+
+func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_chan_get_access")
+	require.NoError(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	createFieldAndValue := func(t *testing.T, channelID string) {
+		t.Helper()
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(field, false)
+		require.NoError(t, appErr)
+
+		_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
+			TargetID:   channelID,
+			TargetType: "channel",
+			GroupID:    group.ID,
+			FieldID:    createdField.ID,
+			Value:      json.RawMessage(`"val"`),
+			CreatedBy:  th.BasicUser.Id,
+			UpdatedBy:  th.BasicUser.Id,
+		}})
+		require.NoError(t, appErr)
+	}
+
+	// Create a non-member user
+	nonMember := th.CreateUser(t)
+	nonMemberClient := th.CreateClient()
+	_, _, err = nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	require.NoError(t, err)
+
+	t.Run("public channel - member can read", func(t *testing.T) {
+		createFieldAndValue(t, th.BasicChannel.Id)
+		th.LoginBasic(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("public channel - non-member cannot read", func(t *testing.T) {
+		_, resp, err := nonMemberClient.GetPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("private channel - member can read", func(t *testing.T) {
+		createFieldAndValue(t, th.BasicPrivateChannel.Id)
+		th.LoginBasic(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", th.BasicPrivateChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("private channel - non-member cannot read", func(t *testing.T) {
+		_, resp, err := nonMemberClient.GetPropertyValues(context.Background(), group.Name, "channel", th.BasicPrivateChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - participant can read", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		createFieldAndValue(t, dmChannel.Id)
+		th.LoginBasic(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("DM channel - non-participant cannot read", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		createFieldAndValue(t, dmChannel.Id)
+
+		_, resp, err := nonMemberClient.GetPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GM channel - participant can read", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		createFieldAndValue(t, gmChannel.Id)
+		th.LoginBasic(t)
+
+		values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, values)
+	})
+
+	t.Run("GM channel - non-participant cannot read", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		createFieldAndValue(t, gmChannel.Id)
+
+		_, resp, err := nonMemberClient.GetPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_chan_patch_access")
+	require.NoError(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	createField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(field, false)
+		require.NoError(t, appErr)
+		return createdField
+	}
+
+	// Create a non-member user
+	nonMember := th.CreateUser(t)
+	nonMemberClient := th.CreateClient()
+	_, _, err = nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	require.NoError(t, err)
+
+	t.Run("public channel - member with manage permission can write", func(t *testing.T) {
+		f := createField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"pub-val"`)},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("public channel - non-member cannot write", func(t *testing.T) {
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"should-fail"`)},
+		}
+		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("private channel - member with manage permission can write", func(t *testing.T) {
+		f := createField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"priv-val"`)},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicPrivateChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("private channel - non-member cannot write", func(t *testing.T) {
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"should-fail"`)},
+		}
+		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicPrivateChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - participant can write", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-val"`)},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("DM channel - non-participant cannot write", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"should-fail"`)},
+		}
+		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GM channel - participant can write", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		f := createField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"gm-val"`)},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("GM channel - non-participant cannot write", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"should-fail"`)},
+		}
+		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
