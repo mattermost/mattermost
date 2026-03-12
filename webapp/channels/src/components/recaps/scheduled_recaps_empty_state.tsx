@@ -17,7 +17,6 @@ const ScheduledRecapsEmptyState = ({onCreateClick, disabled}: Props) => {
     return (
         <div className='scheduled-recaps-empty-state'>
             <div className='empty-state-illustration'>
-                {/* Simplified illustration - matches Figma design concept */}
                 <div className='illustration-icons'>
                     <i className='icon icon-message-text-outline'/>
                     <i className='icon icon-calendar-outline'/>
