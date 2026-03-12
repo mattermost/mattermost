@@ -6,11 +6,11 @@
     &__back-btn {
         display: flex;
         align-items: center;
-        gap: 8px;
         color: var(--center-channel-color);
+        cursor: pointer;
         font-size: 16px;
         font-weight: 600;
-        cursor: pointer;
+        gap: 8px;
 
         .fa {
             font-size: 20px;
@@ -118,7 +118,7 @@
 
     &__delete-modal-footer {
         display: flex;
-        gap: 8px;
         justify-content: flex-end;
+        gap: 8px;
     }
 }

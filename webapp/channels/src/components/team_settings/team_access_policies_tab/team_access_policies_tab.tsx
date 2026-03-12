@@ -75,6 +75,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         createJob: actions.createJob,
         updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) =>
             actions.updateAccessControlPoliciesActive(states, team.id),
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [team.id]);
 

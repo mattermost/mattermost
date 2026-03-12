@@ -36,6 +36,21 @@ const SAVE_RESULT_SAVED = 'saved' as const;
 const SAVE_RESULT_ERROR = 'error' as const;
 const DEFAULT_PAGE_SIZE = 10;
 
+function isSimpleExpression(expr: string): boolean {
+    if (!expr) {
+        return true;
+    }
+    return expr.split('&&').every((condition) => {
+        const trimmed = condition.trim();
+        return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
+               trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+               trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
+               trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+               trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+               trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
+    });
+}
+
 interface ChannelChanges {
     removed: Record<string, ChannelWithTeamData>;
     added: Record<string, ChannelWithTeamData>;
@@ -195,24 +210,8 @@ export default function TeamPolicyEditor({
     }, []);
 
     const hasChannels = useCallback(() => {
-        return (channelsCount - channelChanges.removedCount + Object.keys(channelChanges.added).length) > 0;
+        return ((channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length) > 0;
     }, [channelsCount, channelChanges]);
-
-    // Expression mode switching
-    const isSimpleExpression = (expr: string): boolean => {
-        if (!expr) {
-            return true;
-        }
-        return expr.split('&&').every((condition) => {
-            const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
-        });
-    };
 
     // Validation
     const validateForm = useCallback(() => {
@@ -482,18 +481,24 @@ export default function TeamPolicyEditor({
             >
                 <Card.Header>
                     <TitleAndButtonCardHeader
-                        title={<FormattedMessage
-                            id='admin.access_control.policy.edit_policy.channel_selector.title'
-                            defaultMessage='Assigned channels'
-                               />}
-                        subtitle={<FormattedMessage
-                            id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                            defaultMessage='Add channels that this attribute-based access policy will apply to.'
-                                  />}
-                        buttonText={<FormattedMessage
-                            id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
-                            defaultMessage='Add channels'
-                                    />}
+                        title={
+                            <FormattedMessage
+                                id='admin.access_control.policy.edit_policy.channel_selector.title'
+                                defaultMessage='Assigned channels'
+                            />
+                        }
+                        subtitle={
+                            <FormattedMessage
+                                id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
+                                defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                            />
+                        }
+                        buttonText={
+                            <FormattedMessage
+                                id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
+                                defaultMessage='Add channels'
+                            />
+                        }
                         onClick={() => setAddChannelOpen(true)}
                     />
                 </Card.Header>
@@ -519,10 +524,12 @@ export default function TeamPolicyEditor({
                 >
                     <Card.Header>
                         <TitleAndButtonCardHeader
-                            title={<FormattedMessage
-                                id='admin.access_control.policy.edit_policy.delete_policy.title'
-                                defaultMessage='Delete policy'
-                                   />}
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.delete_policy.title'
+                                    defaultMessage='Delete policy'
+                                />
+                            }
                             subtitle={
                                 hasChannels() ? (
                                     <FormattedMessage
@@ -536,10 +543,12 @@ export default function TeamPolicyEditor({
                                     />
                                 )
                             }
-                            buttonText={<FormattedMessage
-                                id='admin.access_control.policy.edit_policy.delete_policy.delete'
-                                defaultMessage='Delete'
-                                        />}
+                            buttonText={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.delete_policy.delete'
+                                    defaultMessage='Delete'
+                                />
+                            }
                             onClick={() => (hasChannels() ? undefined : setShowDeleteModal(true))}
                             isDisabled={hasChannels()}
                         />

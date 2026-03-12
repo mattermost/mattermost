@@ -4,13 +4,12 @@
 import type {Client4} from '@mattermost/client';
 
 export async function enableABACConfig(client: Client4) {
-    const config = await client.getConfig();
-    config.AccessControlSettings = {
-        ...config.AccessControlSettings,
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
-    };
-    await client.updateConfig(config);
+    await client.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
+    });
 }
 
 export async function ensureDepartmentAttribute(client: Client4) {
@@ -45,15 +44,10 @@ export async function createParentPolicy(client: Client4, name: string) {
 }
 
 export async function assignChannelsToPolicy(client: Client4, policyId: string, channelIds: string[]) {
-    const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/assign`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${client.getToken()}`},
+    await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
+        method: 'post',
         body: JSON.stringify({channel_ids: channelIds}),
     });
-    if (!response.ok) {
-        throw new Error(`assignChannelsToPolicy failed: ${response.status}`);
-    }
 }
 
 export async function createPrivateChannel(client: Client4, teamId: string) {

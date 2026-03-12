@@ -91,7 +91,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
@@ -140,7 +140,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
         // # Confirm in PolicyConfirmationModal (policy has channels, so modal appears)
-        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
@@ -272,7 +272,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.getByText('Remove').first().click();
 
         // # Click Delete in the delete section (TitleAndButtonCardHeader button)
-        await teamSettings.container.locator('.delete-policy button').filter({hasText: 'Delete'}).click();
+        await teamSettings.container.locator('.TeamPolicyEditor__delete-section button').filter({hasText: 'Delete'}).click();
         await page.waitForLoadState('networkidle');
 
         // * Back to list, policy removed
@@ -356,7 +356,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.PolicyConfirmationModal').waitFor();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
