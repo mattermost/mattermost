@@ -102,17 +102,17 @@ describe('CreateTeamForm - display_name step', () => {
             },
         };
 
-        test('should show Finish button instead of Next', () => {
+        test('should show Create button instead of Next', () => {
             renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
-            expect(screen.getByRole('button', {name: /finish/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /create/i})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /next/i})).not.toBeInTheDocument();
         });
 
         test('should create team directly without going to team_url step', async () => {
             renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
-            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+            await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
             await waitFor(() => {
                 expect(defaultProps.actions.createTeam).toHaveBeenCalledTimes(1);
@@ -139,7 +139,7 @@ describe('CreateTeamForm - display_name step', () => {
                 anonymousURLState,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+            await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
             await waitFor(() => {
                 expect(defaultProps.history.push).toHaveBeenCalledWith('/my-new-team/channels/town-square');
@@ -160,7 +160,7 @@ describe('CreateTeamForm - display_name step', () => {
                 anonymousURLState,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+            await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
             await waitFor(() => {
                 expect(screen.getByText('Team creation failed')).toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('CreateTeamForm - display_name step', () => {
                 anonymousURLState,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+            await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
             await waitFor(() => {
                 expect(screen.getByText('Creating team...')).toBeInTheDocument();
@@ -212,7 +212,7 @@ describe('CreateTeamForm - display_name step', () => {
 
             renderWithContext(<CreateTeamForm {...props}/>, anonymousURLState);
 
-            await userEvent.click(screen.getByRole('button', {name: /finish/i}));
+            await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
             expect(defaultProps.actions.createTeam).not.toHaveBeenCalled();
             expect(defaultProps.updateParent).not.toHaveBeenCalled();
@@ -253,6 +253,12 @@ describe('CreateTeamForm - team_url step', () => {
             ...defaultProps.state,
             wizard: 'display_name',
         });
+    });
+
+    test('should show Finish button on the team_url step', () => {
+        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+
+        expect(screen.getByRole('button', {name: /finish/i})).toBeInTheDocument();
     });
 
     test('should successfully submit', async () => {

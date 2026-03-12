@@ -8,11 +8,13 @@ export default class CreateTeamForm {
 
     // Display name step
     readonly teamNameInput: Locator;
+    readonly teamNameSubmitButton: Locator;
     readonly teamNameNextButton: Locator;
     readonly teamNameError: Locator;
 
     // Team URL step
     readonly teamURLInput: Locator;
+    readonly teamURLSubmitButton: Locator;
     readonly teamURLFinishButton: Locator;
     readonly teamURLError: Locator;
     readonly backLink: Locator;
@@ -21,10 +23,12 @@ export default class CreateTeamForm {
         this.container = container;
 
         this.teamNameInput = container.locator('#teamNameInput');
+        this.teamNameSubmitButton = container.locator('#teamNameNextButton');
         this.teamNameNextButton = container.locator('#teamNameNextButton');
         this.teamNameError = container.locator('#teamNameInputError');
 
         this.teamURLInput = container.locator('#teamURLInput');
+        this.teamURLSubmitButton = container.locator('#teamURLFinishButton');
         this.teamURLFinishButton = container.locator('#teamURLFinishButton');
         this.teamURLError = container.locator('#teamURLInputError');
         this.backLink = container.getByText('Back to previous step');
@@ -39,7 +43,7 @@ export default class CreateTeamForm {
     }
 
     async submitDisplayName() {
-        await this.teamNameNextButton.click();
+        await this.teamNameSubmitButton.click();
     }
 
     async fillTeamURL(url: string) {
@@ -47,7 +51,7 @@ export default class CreateTeamForm {
     }
 
     async submitTeamURL() {
-        await this.teamURLFinishButton.click();
+        await this.teamURLSubmitButton.click();
     }
 
     async goBack() {

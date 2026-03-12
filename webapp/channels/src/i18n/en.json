@@ -4225,6 +4225,7 @@
   "create_post.write": "Write to {channelDisplayName}",
   "create_team.createTeamRestricted.message": "Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.",
   "create_team.createTeamRestricted.title": "Professional feature",
+  "create_team.display_name.create": "Create",
   "create_team.display_name.nameHelp": "Name your team in any language. Your team name shows in menus and headings.",
   "create_team.display_name.next": "Next",
   "create_team.display_name.teamName": "Team Name",

@@ -244,6 +244,13 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
     }, []);
 
     const buttonText = useMemo(() => {
+        const createMessage = (
+            <FormattedMessage
+                id='create_team.display_name.create'
+                defaultMessage='Create'
+            />
+        );
+
         const finishMessage = (
             <FormattedMessage
                 id='create_team.team_url.finish'
@@ -268,7 +275,11 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             </>
         );
 
-        if (UseAnonymousURLs || step === 'team_url') {
+        if (UseAnonymousURLs) {
+            return isLoading ? loadingMessage : createMessage;
+        }
+
+        if (step === 'team_url') {
             return isLoading ? loadingMessage : finishMessage;
         }
 

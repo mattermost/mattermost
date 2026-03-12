@@ -309,8 +309,8 @@ test.describe('Anonymous URLs', () => {
             // * Verify the display name input is visible
             await expect(channelsPage.createTeamForm.teamNameInput).toBeVisible();
 
-            // * Verify the submit button text says "Finish" (not "Next") because URL step is skipped
-            await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Finish');
+            // * Verify the submit button text says "Create" because team creation stays on a single step
+            await expect(channelsPage.createTeamForm.teamNameSubmitButton).toContainText('Create');
 
             // # Enter team name and submit
             const teamName = 'Anonymous Team ' + Date.now();
@@ -351,8 +351,8 @@ test.describe('Anonymous URLs', () => {
             // # Wait for create team form
             await channelsPage.createTeamForm.toBeVisible();
 
-            // * Verify the submit button says "Next" (not "Finish") indicating URL step follows
-            await expect(channelsPage.createTeamForm.teamNameNextButton).toContainText('Next');
+            // * Verify the submit button says "Next" on the first step because the team URL step follows
+            await expect(channelsPage.createTeamForm.teamNameSubmitButton).toContainText('Next');
 
             // # Enter team name and click Next
             await channelsPage.createTeamForm.fillTeamName('Test Team URL Step');
@@ -360,7 +360,8 @@ test.describe('Anonymous URLs', () => {
 
             // * Verify the team URL step is now visible
             await expect(channelsPage.createTeamForm.teamURLInput).toBeVisible();
-            await expect(channelsPage.createTeamForm.teamURLFinishButton).toBeVisible();
+            await expect(channelsPage.createTeamForm.teamURLSubmitButton).toBeVisible();
+            await expect(channelsPage.createTeamForm.teamURLSubmitButton).toContainText('Finish');
         },
     );
 
