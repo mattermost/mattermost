@@ -13,6 +13,9 @@ export function useBrowserPopout() {
     useEffect(() => {
         if (!isDesktopApp()) {
             const unblockHistory = history.block((blockState) => {
+                if (blockState.pathname.startsWith('/_popout')) {
+                    return undefined;
+                }
                 window.opener.postMessage({
                     channel: NAVIGATE_CHANNEL,
                     args: [blockState.pathname],

@@ -26,7 +26,6 @@ export type StateProps = {
     isRhsExpanded: boolean;
     isSearchingTerm: boolean;
     searchTerms: string;
-    searchTeam: string;
     searchType: SearchType;
     searchVisible: boolean;
     hideMobileSearchBarInRHS: boolean;
@@ -34,7 +33,6 @@ export type StateProps = {
     isFlaggedPosts: boolean;
     isPinnedPosts: boolean;
     isChannelFiles: boolean;
-    currentChannel?: Channel;
     isMobileView: boolean;
     crossTeamSearchEnabled: boolean;
 }
@@ -46,16 +44,11 @@ export type DispatchProps = {
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
         showSearchResults: (isMentionSearch: boolean) => unknown;
-        showChannelFiles: (channelId: string) => void;
-        setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
         autocompleteChannelsForSearch: (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: (teamId: string) => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: (teamId: string) => void;
-        filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }
 
