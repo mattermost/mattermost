@@ -248,11 +248,24 @@ jobs:
               }
           }
 
-          // Sanitize: reject paths with shell metacharacters to prevent command injection
+          // Sanitize: reject paths with shell metacharacters, traversal, or outside spec tree
           const safePathPattern = /^[a-zA-Z0-9_.\/\-]+$/;
           const values = Array.from(tests).filter(p => {
               if (!safePathPattern.test(p)) {
                   console.warn(`Rejected unsafe spec path: ${p}`);
+                  return false;
+              }
+              const normalized = path.normalize(p);
+              if (normalized.startsWith('/') || normalized.includes('..')) {
+                  console.warn(`Rejected traversal/absolute spec path: ${p}`);
+                  return false;
+              }
+              if (!normalized.startsWith('specs/') && !normalized.startsWith('specs\\')) {
+                  console.warn(`Rejected out-of-tree spec path: ${p}`);
+                  return false;
+              }
+              if (!/\.(spec|test)\.[tj]sx?$/.test(normalized)) {
+                  console.warn(`Rejected non-test file: ${p}`);
                   return false;
               }
               return true;
@@ -262,6 +275,7 @@ jobs:
           NODE
           echo "count=$(wc -l < .e2e-ai-agents/spec-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
       - name: ci/run-tests
+        id: run-tests
         run: |
           make cloud-init
           if [ -s playwright/.e2e-ai-agents/spec-files.txt ]; then
@@ -272,7 +286,11 @@ jobs:
           else
             make
           fi
+      - name: ci/persist-playwright-report
+        if: always() && steps.run-tests.outcome != 'skipped'
+        run: |
           if [ -f playwright/results/reporter/results.json ]; then
+            mkdir -p playwright/.e2e-ai-agents
             cp playwright/results/reporter/results.json playwright/.e2e-ai-agents/playwright-report.json
           fi
       - name: ci/impact-agentic-generate
