@@ -536,15 +536,17 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            const removeButton = screen.getByRole('button', {name: /Remove Nebula Networks/i});
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
             await userEvent.click(removeButton);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
 
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
-            expect(screen.getByText(/Yes, unshare/)).toBeInTheDocument();
-            expect(Client4.sharedChannelRemoteUninvite).not.toHaveBeenCalled();
+            await waitFor(() => {
+                expect(screen.getByText(/Are you sure you want to unshare\?/)).toBeInTheDocument();
+                expect(screen.getByText(/Yes, unshare/)).toBeInTheDocument();
+                expect(Client4.sharedChannelRemoteUninvite).not.toHaveBeenCalled();
+            });
         });
 
         it('when user confirms remove in modal, uninvite and fetchChannelRemotes are called', async () => {
@@ -574,9 +576,16 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByRole('button', {name: /Remove Nebula Networks/i}));
-            await new Promise((resolve) => setTimeout(resolve, 0));
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Are you sure you want to unshare\?/)).toBeInTheDocument();
+                expect(screen.getByText(/Yes, unshare/)).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: /Yes, unshare/}));
 
             expect(Client4.sharedChannelRemoteUninvite).toHaveBeenCalledWith('remote1', 'channel1');
@@ -608,10 +617,12 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: /Remove Nebula Networks/i}));
-            await new Promise((resolve) => setTimeout(resolve, 0));
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-            await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+            const cancelButton = await screen.findByRole('button', {name: 'Cancel'});
+            await userEvent.click(cancelButton);
 
             expect(Client4.sharedChannelRemoteUninvite).not.toHaveBeenCalled();
         });
