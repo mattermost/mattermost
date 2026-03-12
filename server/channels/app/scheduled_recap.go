@@ -36,7 +36,7 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, limitsErr
 	}
 
-	// ENF-01, ENF-08: Check max scheduled recaps limit
+	// Check max scheduled recaps limit
 	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
 		count, storeErr := a.Srv().Store().ScheduledRecap().CountForUser(recap.UserId)
 		if storeErr != nil {
