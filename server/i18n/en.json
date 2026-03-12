@@ -3279,8 +3279,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3307,8 +3307,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3321,6 +3321,10 @@
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -11651,6 +11655,10 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Provided guest filter is not valid."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",

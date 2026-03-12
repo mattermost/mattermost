@@ -39,6 +39,14 @@ func (a *App) SlackImport(rctx request.CTX, fileData multipart.File, fileSize in
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func() *model.AppError { return a.ch.srv.platform.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			sent, err := a.SendPasswordReset(rctx, email, a.GetSiteURL())
+			if err != nil {
+				return false, err
+			}
+
+			return sent, nil
+		},
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
 			img, imgType, release, err := prepareImage(rctx, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
