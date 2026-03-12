@@ -31,7 +31,6 @@ export type StateProps = {
     searchVisible: boolean;
     hideMobileSearchBarInRHS: boolean;
     isMentionSearch: boolean;
-    isFlaggedPosts: boolean;
     isPinnedPosts: boolean;
     isChannelFiles: boolean;
     currentChannel?: Channel;

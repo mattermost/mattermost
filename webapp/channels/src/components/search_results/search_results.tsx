@@ -65,7 +65,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     useEffect(() => {
         // reset search type when switching views
         setSearchType(props.searchType);
-    }, [props.isFlaggedPosts, props.isPinnedPosts, props.isMentionSearch]);
+    }, [props.isPinnedPosts, props.isMentionSearch]);
 
     useEffect(() => {
         // after the first page of search results, there is no way to
@@ -80,7 +80,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [props.searchPage, props.searchTerms, props.isSearchingTerm]);
 
     const handleScroll = (): void => {
-        if (!props.isFlaggedPosts && !props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchGettingMore && !props.isChannelFiles) {
+        if (!props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchGettingMore && !props.isChannelFiles) {
             const scrollHeight = scrollbars.current?.scrollHeight || 0;
             const scrollTop = scrollbars.current?.scrollTop || 0;
             const clientHeight = scrollbars.current?.clientHeight || 0;
@@ -124,7 +124,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         isSearchAtEnd,
         isSearchFilesAtEnd,
         isSearchingTerm,
-        isFlaggedPosts,
         isSearchingFlaggedPost,
         isPinnedPosts,
         isChannelFiles,
@@ -142,8 +141,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
     const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
-    const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
-    const isMessagesSearch = (!isFlaggedPosts && !isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
+    const showLoadMore = !isAtEnd && !isChannelFiles && !isPinnedPosts;
+    const isMessagesSearch = (!isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
 
     let contentItems;
     let loadingMorePostsComponent;
@@ -161,17 +160,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor = defineMessage({
             id: 'search_header.title2',
             defaultMessage: 'Recent Mentions',
-        });
-    } else if (isFlaggedPosts) {
-        noResultsProps.variant = NoResultsVariant.FlaggedPosts;
-        noResultsProps.subtitleValues = {buttonText: <strong>{
-            intl.formatMessage({
-                id: 'flag_post.flag',
-                defaultMessage: 'Save Message'},
-            )}</strong>};
-        titleDescriptor = defineMessage({
-            id: 'search_header.title3',
-            defaultMessage: 'Saved messages',
         });
     } else if (isPinnedPosts) {
         noResultsProps.variant = NoResultsVariant.PinnedPosts;
@@ -241,7 +229,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             </div>
         );
         break;
-    case (noResults && !searchTerms && !isMentionSearch && !isPinnedPosts && !isFlaggedPosts && !isChannelFiles):
+    case (noResults && !searchTerms && !isMentionSearch && !isPinnedPosts && !isChannelFiles):
         contentItems = (
             <div className='sidebar--right__subheader search__hints a11y__section'>
                 <SearchHint
@@ -307,7 +295,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         post={post}
                         matches={props.matches[post.id]}
                         searchTerm={searchTerms}
-                        isFlaggedPosts={props.isFlaggedPosts}
                         isMentionSearch={props.isMentionSearch}
                         isPinnedPosts={props.isPinnedPosts}
                         a11yIndex={index}

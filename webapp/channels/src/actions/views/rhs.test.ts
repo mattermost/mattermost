@@ -12,6 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
+import * as FlaggedPostsActions from 'mattermost-redux/actions/flagged_posts';
 import * as SearchActions from 'mattermost-redux/actions/search';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
@@ -81,6 +82,10 @@ jest.mock('mattermost-redux/actions/search', () => ({
     clearSearch: (...args: any) => ({type: 'MOCK_CLEAR_SEARCH', args}),
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/flagged_posts', () => ({
+    fetchFlaggedPosts: jest.fn(),
 }));
 
 describe('rhs view actions', () => {
@@ -304,15 +309,15 @@ describe('rhs view actions', () => {
 
     describe('showFlaggedPosts', () => {
         test('it dispatches the right actions', async () => {
-            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
+            (FlaggedPostsActions.fetchFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
+                dispatch({type: 'MOCK_FETCH_FLAGGED_POSTS'});
 
-                return {data: 'data'};
+                return {data: true};
             });
 
             await store.dispatch(showFlaggedPosts());
 
-            expect(SearchActions.getFlaggedPosts).toHaveBeenCalled();
+            expect(FlaggedPostsActions.fetchFlaggedPosts).toHaveBeenCalledWith(0);
 
             expect(store.getActions()).toEqual([
                 {
@@ -320,27 +325,7 @@ describe('rhs view actions', () => {
                     state: RHSStates.FLAG,
                 },
                 {
-                    type: 'MOCK_GET_FLAGGED_POSTS',
-                },
-                {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
-                    },
-                    payload: [
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                            data: 'data',
-                        },
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_TERM,
-                            data: {
-                                teamId: currentTeamId,
-                                terms: null,
-                                isOrSearch: false,
-                            },
-                        },
-                    ],
+                    type: 'MOCK_FETCH_FLAGGED_POSTS',
                 },
             ]);
         });
@@ -782,15 +767,15 @@ describe('rhs view actions', () => {
         });
 
         it('opens flagged posts', async () => {
-            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
+            (FlaggedPostsActions.fetchFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
+                dispatch({type: 'MOCK_FETCH_FLAGGED_POSTS'});
 
-                return {data: 'data'};
+                return {data: true};
             });
 
             await store.dispatch(openAtPrevious({isFlaggedPosts: true}));
 
-            expect(SearchActions.getFlaggedPosts).toHaveBeenCalled();
+            expect(FlaggedPostsActions.fetchFlaggedPosts).toHaveBeenCalledWith(0);
 
             expect(store.getActions()).toEqual([
                 {
@@ -798,9 +783,8 @@ describe('rhs view actions', () => {
                     state: RHSStates.FLAG,
                 },
                 {
-                    type: 'MOCK_GET_FLAGGED_POSTS',
+                    type: 'MOCK_FETCH_FLAGGED_POSTS',
                 },
-                batchingReducerBatch,
             ]);
         });
 

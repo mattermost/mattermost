@@ -98,7 +98,6 @@ const Search = ({
     crossTeamSearchEnabled,
     hideMobileSearchBarInRHS = false,
     isChannelFiles,
-    isFlaggedPosts,
     isMentionSearch,
     isMobileView,
     isPinnedPosts,
@@ -544,7 +543,6 @@ const Search = ({
             {searchVisible ? (
                 <SearchResults
                     isMentionSearch={isMentionSearch}
-                    isFlaggedPosts={isFlaggedPosts}
                     isPinnedPosts={isPinnedPosts}
                     isChannelFiles={isChannelFiles}
                     shrink={handleShrink}

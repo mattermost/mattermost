@@ -2658,7 +2658,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rpl.Posts, 2, "should have returned 2 posts")
 
-	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 2, 2)
+	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, rpl.Posts, 1, "should have returned 1 post")
 

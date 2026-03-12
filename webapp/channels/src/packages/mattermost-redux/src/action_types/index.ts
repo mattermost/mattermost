@@ -16,6 +16,7 @@ import DraftTypes from './drafts';
 import EmojiTypes from './emojis';
 import ErrorTypes from './errors';
 import FileTypes from './files';
+import FlaggedPostsTypes from './flagged_posts';
 import GeneralTypes from './general';
 import GroupTypes from './groups';
 import HostedCustomerTypes from './hosted_customer';
@@ -45,6 +46,7 @@ export {
     ChannelTypes,
     PostTypes,
     FileTypes,
+    FlaggedPostsTypes,
     PreferenceTypes,
     RecapTypes,
     IntegrationTypes,

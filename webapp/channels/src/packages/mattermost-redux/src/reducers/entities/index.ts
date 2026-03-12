@@ -14,6 +14,7 @@ import cloud from './cloud';
 import contentFlagging from './content_flagging';
 import emojis from './emojis';
 import files from './files';
+import flaggedPosts from './flagged_posts';
 import general from './general';
 import groups from './groups';
 import hostedCustomer from './hosted_customer';
@@ -65,4 +66,5 @@ export default combineReducers({
     scheduledPosts,
     sharedChannels,
     contentFlagging,
+    flaggedPosts,
 });
