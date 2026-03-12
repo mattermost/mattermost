@@ -138,7 +138,7 @@ const (
 // Property Values
 const (
 	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
-	AuditEventPatchPropertyValues = "patchPropertyValues"  // update property values for target
+	AuditEventPatchPropertyValues = "patchPropertyValues" // update property values for target
 )
 
 // Data Retention Policies

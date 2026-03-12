@@ -23,4 +23,3 @@ func (pg *PropertyGroup) PreSave() {
 func IsValidPropertyGroupName(name string) bool {
 	return name != "" && validPropertyGroupNameRegex.MatchString(name)
 }
-

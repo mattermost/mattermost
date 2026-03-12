@@ -55,6 +55,9 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// Set ObjectType and GroupID from URL
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
@@ -63,6 +66,34 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	// Check scope access for creation
+	switch field.TargetType {
+	case "channel":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionCreatePost)
+			return
+		}
+	case "team":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
+			c.SetPermissionError(model.PermissionManageTeam)
+			return
+		}
+	case "system":
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 	}
 
 	// Trim whitespace from name
@@ -96,8 +127,6 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.CreatedBy = c.AppContext.Session().UserId
 	field.UpdatedBy = c.AppContext.Session().UserId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
 	createdField, err := c.App.CreatePropertyField(field, false)
@@ -496,7 +525,7 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	values := make([]*model.PropertyValue, len(items))
 	for i, item := range items {
 		values[i] = &model.PropertyValue{
-			TargetID:   c.Params.TargetId,
+			TargetID: c.Params.TargetId,
 			// in PSAv2, values always point to entities of the same
 			// type that their field.ObjectType
 			TargetType: c.Params.ObjectType,

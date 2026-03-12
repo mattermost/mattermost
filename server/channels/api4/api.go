@@ -168,10 +168,10 @@ type Routes struct {
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
-	Properties      *mux.Router // 'api/v4/properties'
-	PropertyFields  *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields'
-	PropertyField   *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}'
-	PropertyValues  *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}'
+	Properties     *mux.Router // 'api/v4/properties'
+	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields'
+	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}'
+	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}'
 }
 
 type API struct {

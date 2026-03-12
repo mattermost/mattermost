@@ -61,7 +61,8 @@ func TestCreatePropertyField(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
-			TargetType:        "system",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
@@ -160,7 +161,8 @@ func TestCreatePropertyField(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "system",
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
 		}
 
 		createdField, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
@@ -180,7 +182,8 @@ func TestCreatePropertyField(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "system",
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
 			GroupID:    model.NewId(), // Try to set a different group ID in body
 		}
 
@@ -190,6 +193,115 @@ func TestCreatePropertyField(t *testing.T) {
 
 		// The group ID should come from the URL's group_name resolution, not the body
 		require.Equal(t, group.ID, createdField.GroupID)
+	})
+
+	t.Run("system target_type requires ManageSystem permission", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		// Non-admin should be rejected for system-scoped fields
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Admin should succeed
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, "system", createdField.TargetType)
+	})
+
+	t.Run("channel target_type requires CreatePost permission", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+		}
+
+		// BasicUser is a member of BasicChannel and can post — should succeed
+		createdField, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, "channel", createdField.TargetType)
+		require.Equal(t, th.BasicChannel.Id, createdField.TargetID)
+	})
+
+	t.Run("channel target_type with inaccessible channel should fail", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		// Create a channel BasicUser is not a member of
+		otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "channel",
+			TargetID:   otherChannel.Id,
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel target_type without target_id should fail", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "channel",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("team target_type requires ManageTeam permission", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "team",
+			TargetID:   th.BasicTeam.Id,
+		}
+
+		// BasicUser is a member but not a team admin — should fail
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// SystemAdmin should succeed
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, "team", createdField.TargetType)
+		require.Equal(t, th.BasicTeam.Id, createdField.TargetID)
+	})
+
+	t.Run("team target_type without target_id should fail", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "team",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 
@@ -278,7 +390,7 @@ func TestGetPropertyFields(t *testing.T) {
 		th.LoginBasic(t)
 
 		// Create additional fields to have enough for pagination
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			f := &model.PropertyField{
 				Name:              model.NewId(),
 				Type:              model.PropertyFieldTypeText,
@@ -1340,7 +1452,7 @@ func TestGetPropertyValues(t *testing.T) {
 
 		// Create additional fields and values for pagination
 		paginationTarget := model.NewId()
-		for i := 0; i < 4; i++ {
+		for range 4 {
 			f := &model.PropertyField{
 				Name:              model.NewId(),
 				Type:              model.PropertyFieldTypeText,

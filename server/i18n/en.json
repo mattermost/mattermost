@@ -3043,20 +3043,24 @@
     "translation": "Cannot create a protected property field via API."
   },
   {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "The specified property group was not found."
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "A target_id is required when creating a channel or team scoped property field."
   },
   {
     "id": "api.property_field.delete.no_permission.app_error",
     "translation": "You do not have permission to delete this property field."
   },
   {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Cannot delete a protected property field via API."
+  },
+  {
     "id": "api.property_field.get.target_id_required.app_error",
     "translation": "A target_id is required when querying by channel or team target_type."
   },
   {
-    "id": "api.property_field.delete.protected_via_api.app_error",
-    "translation": "Cannot delete a protected property field via API."
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "The specified property group was not found."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
@@ -3065,6 +3069,10 @@
   {
     "id": "api.property_field.object_type_mismatch.app_error",
     "translation": "Property field object type does not match URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Cannot patch a v1 property field via this API."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -3079,10 +3087,6 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
-    "id": "api.property_field.patch.legacy_field.app_error",
-    "translation": "Cannot patch a v1 property field via this API."
-  },
-  {
     "id": "api.property_value.app_error",
     "translation": "An error occurred while processing property values."
   },
@@ -3095,12 +3099,12 @@
     "translation": "Request body must contain at least one property value update."
   },
   {
-    "id": "api.property_value.patch.invalid_field_id.app_error",
-    "translation": "One or more field IDs in the request are invalid."
-  },
-  {
     "id": "api.property_value.patch.field_group_mismatch.app_error",
     "translation": "All field IDs must belong to the specified property group."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "One or more field IDs in the request are invalid."
   },
   {
     "id": "api.property_value.patch.no_values_permission.app_error",
