@@ -63,9 +63,12 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
-	// to avoid fetching the channel again, we manually set the shared
-	// flag before notifying the clients
-	channel.Shared = model.NewPointer(true)
+	// we get the channel to get the updated fields, including updateAt
+	// and Shared flag
+	channel, err = scs.server.GetStore().Channel().Get(sc.ChannelId, false)
+	if err != nil {
+		return nil, fmt.Errorf("cannot fetch channel after share: %w", err)
+	}
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return scNew, nil
@@ -100,9 +103,12 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// to avoid fetching the channel again, we manually set the shared
-	// flag before notifying the clients
-	channel.Shared = model.NewPointer(false)
+	// we get the channel to get the updated fields, including updateAt
+	// and Shared flag
+	channel, err = scs.server.GetStore().Channel().Get(channelID, false)
+	if err != nil {
+		return false, fmt.Errorf("cannot fetch channel after unshare: %w", err)
+	}
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
