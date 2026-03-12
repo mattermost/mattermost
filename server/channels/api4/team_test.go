@@ -4655,7 +4655,7 @@ func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 				return
 			}
 		}
-		t.Fatal("current user not found in members")
+		require.Fail(t, "current user not found in members")
 	})
 
 	t.Run("team admin sees full role data", func(t *testing.T) {
@@ -4668,7 +4668,7 @@ func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 				return
 			}
 		}
-		t.Fatal("team admin not found in members")
+		require.Fail(t, "team admin not found in members")
 	})
 
 	t.Run("system admin sees full role data", func(t *testing.T) {
@@ -4681,7 +4681,7 @@ func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 				return
 			}
 		}
-		t.Fatal("team admin not found in members")
+		require.Fail(t, "team admin not found in members")
 	})
 }
 
