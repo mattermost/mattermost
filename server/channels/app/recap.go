@@ -23,7 +23,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		}
 	}
 
-	// ENF-04: Cooldown enforcement for manual recaps
+	// Cooldown enforcement for manual recaps
 	// Cooldown only applies to manual recaps, not scheduled
 	limits, err := a.GetEffectiveLimits(userID)
 	if err != nil {
