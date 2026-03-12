@@ -105,12 +105,6 @@ func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *m
 		limits.CooldownMinutes = model.UnlimitedValue
 	}
 
-	// TODO (Phase 8): Group-based limit resolution
-	// groups, err := a.GetGroupsByUserId(userID, model.GroupSearchOpts{})
-	// Apply "highest wins" logic for multi-group membership
-
-	// TODO (Phase 8): User-specific override resolution
-	// Check if user has individual limit overrides
 
 	return limits, nil
 }
