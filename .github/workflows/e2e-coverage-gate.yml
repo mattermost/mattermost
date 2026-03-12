@@ -1,0 +1,321 @@
+---
+name: E2E Coverage Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── Job 1: decide whether to skip ──────────────────────────────────────────
+  check-override:
+    name: Check Override
+    runs-on: ubuntu-24.04
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      reason: ${{ steps.check.outputs.reason }}
+    steps:
+      - name: Check skip label or comment
+        id: check
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            // 1. Label check
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.labels.some(l => l.name === 'skip-e2e-coverage-check')) {
+              core.setOutput('skip', 'true');
+              core.setOutput('reason', 'Label `skip-e2e-coverage-check` is set on this PR.');
+              return;
+            }
+
+            // 2. Comment check — find the last /skip-e2e-check: comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const skipComment = [...comments].reverse().find(c =>
+              c.body.trim().toLowerCase().startsWith('/skip-e2e-check:')
+            );
+            if (skipComment) {
+              // Guard: skip is only valid if no new commits were pushed after it.
+              // If new code landed after the skip comment, the skip is stale.
+              const { data: commits } = await github.rest.pulls.listCommits({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 1,
+              });
+              const lastCommit = commits[commits.length - 1];
+              const lastCommitDate = lastCommit ? new Date(lastCommit.commit.committer.date) : null;
+              const skipCommentDate = new Date(skipComment.created_at);
+
+              if (lastCommitDate && lastCommitDate > skipCommentDate) {
+                // New commits pushed after skip — skip is stale, re-evaluate coverage.
+                core.setOutput('skip', 'false');
+                core.setOutput('reason', '');
+                core.warning(`/skip-e2e-check comment from ${skipCommentDate.toISOString()} is stale — new commit pushed at ${lastCommitDate.toISOString()}. Re-running coverage check.`);
+                return;
+              }
+
+              const reason = skipComment.body.replace(/^\/skip-e2e-check:/i, '').trim();
+              core.setOutput('skip', 'true');
+              core.setOutput('reason', `Skip requested: ${reason || '(no reason given)'}`);
+              return;
+            }
+
+            core.setOutput('skip', 'false');
+            core.setOutput('reason', '');
+
+  # ── Job 2: analysis (runs when not skipped) ─────────────────────────────────
+  coverage-check:
+    name: Analyze Impact
+    runs-on: ubuntu-24.04
+    needs: check-override
+    if: needs.check-override.outputs.skip == 'false'
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: e2e-tests/playwright/package-lock.json
+
+      - name: Install dependencies
+        working-directory: e2e-tests/playwright
+        run: npm ci --ignore-scripts
+
+      - name: Run plan enforcement
+        id: plan
+        working-directory: e2e-tests/playwright
+        # V2: Deterministic graph-based analysis — AI enrichment is optional.
+        # ANTHROPIC_API_KEY activates AI-generated test scenario suggestions when set;
+        # the step works without it too.
+        # continue-on-error so we can post the PR comment before failing
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npx e2e-ai-agents plan \
+            --config ./e2e-ai-agents.config.json \
+            --since origin/${{ github.base_ref }} \
+            --fail-on-must-add-tests \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Agentic generate (dry-run)
+        if: steps.plan.outcome == 'success'
+        continue-on-error: true
+        working-directory: e2e-tests/playwright
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npx e2e-ai-agents generate \
+            --config ./e2e-ai-agents.config.json \
+            --dry-run
+
+      - name: Post PR comment
+        if: always() && needs.check-override.outputs.skip == 'false'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const planPath = 'e2e-tests/playwright/.e2e-ai-agents/plan.json';
+            const marker = '<!-- e2e-coverage-gate -->';
+
+            let body;
+            if ('${{ steps.plan.outcome }}' === 'failure' && !fs.existsSync(planPath)) {
+              body = '> ⚠️ **E2E Coverage Gate — analysis error**\n> The plan analysis step failed. Check the [workflow logs](' + context.payload.pull_request.html_url + '/checks) for details.';
+            } else if (fs.existsSync(planPath)) {
+              const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+              const {action, title, summary} = plan.decision;
+              const {changedFiles, impactedFlows, coveredFlows: coveredCount, partialFlows: partialCount, uncoveredP0P1Flows} = plan.metrics;
+              const emoji = action === 'must-add-tests' ? '🔴' : action === 'safe-to-merge' ? '🟢' : '🟡';
+
+              const flowsWithAdvisory = (plan.coveredFlows || []).filter(f => f.advisoryScenarios && f.advisoryScenarios.length > 0);
+              const cleanFlows = (plan.coveredFlows || []).filter(f => !f.advisoryScenarios || f.advisoryScenarios.length === 0);
+
+              // Coverage breakdown: "3 covered · 2 new behavior · 1 gap · 1 partial"
+              const parts = [];
+              if (coveredCount > 0) parts.push(`${coveredCount} covered`);
+              if (flowsWithAdvisory.length > 0) parts.push(`${flowsWithAdvisory.length} new behavior`);
+              if (uncoveredP0P1Flows > 0) parts.push(`${uncoveredP0P1Flows} gap${uncoveredP0P1Flows !== 1 ? 's' : ''}`);
+              if (partialCount > 0) parts.push(`${partialCount} partial`);
+              const breakdown = parts.length > 0 ? ` (${parts.join(' · ')})` : '';
+
+              const lines = [
+                `## ${emoji} E2E Coverage: ${title}`,
+                '',
+                summary,
+                '',
+                ...(changedFiles > 0 ? [`**${changedFiles}** file(s) changed → **${impactedFlows}** flow(s) impacted${breakdown}`] : []),
+              ];
+
+              // ── Blocking gaps ──────────────────────────────────────────────
+              if (action === 'must-add-tests' && (plan.gapDetails || plan.requiredNewTests || []).length > 0) {
+                lines.push('', `### ⚠️ Missing coverage for ${uncoveredP0P1Flows} P0/P1 flow(s)`, '');
+                const hardGaps = (plan.gapDetails || []).filter(g => !g.name.includes('(partial)'));
+                const partialGaps = (plan.gapDetails || []).filter(g => g.name.includes('(partial)'));
+
+                if (hardGaps.length > 0) {
+                  for (const gap of hardGaps) {
+                    const aiLabel = gap.source === 'ai+deterministic' ? ' ✦ AI-enriched' : '';
+                    // Warning box: name + AI reason (always visible)
+                    lines.push('> [!WARNING]');
+                    lines.push(`> **${gap.name}** · ${gap.priority}${aiLabel}`);
+                    const aiReasons = (gap.reasons || []).slice(1);
+                    if (aiReasons.length > 0) lines.push(`> ${aiReasons.join(' ')}`);
+                    lines.push('');
+                    // Scenarios: collapsible below the warning box
+                    if (gap.missingScenarios && gap.missingScenarios.length > 0) {
+                      lines.push(`<details><summary>📋 Suggested test scenarios (${gap.missingScenarios.length})</summary>`);
+                      lines.push('');
+                      for (const s of gap.missingScenarios) lines.push(`- [ ] ${s}`);
+                      lines.push('');
+                      lines.push('</details>');
+                      lines.push('');
+                    }
+                  }
+                } else {
+                  for (const gap of plan.requiredNewTests) lines.push(`- ${gap}`);
+                }
+
+                if (partialGaps.length > 0) {
+                  lines.push('### ℹ️ Partial coverage (advisory)', '');
+                  for (const gap of partialGaps) {
+                    lines.push('> [!NOTE]');
+                    lines.push(`> **${gap.name}** · ${gap.priority}`);
+                    const aiReasons = (gap.reasons || []).slice(1);
+                    if (aiReasons.length > 0) lines.push(`> ${aiReasons.join(' ')}`);
+                    lines.push('');
+                  }
+                }
+              }
+
+              // ── Advisory: covered flows with new behavior ──────────────────
+              if (flowsWithAdvisory.length > 0) {
+                lines.push('');
+                lines.push(`### 💡 New behavior detected in ${flowsWithAdvisory.length} covered feature${flowsWithAdvisory.length !== 1 ? 's' : ''} — consider adding tests`);
+                lines.push('');
+                for (const cf of flowsWithAdvisory) {
+                  const specParts = cf.coveredBy.map(s =>
+                    s.replace(/ Playwright spec\(s\)/, ' PW').replace(/ Cypress spec\(s\)/, ' Cy')
+                  );
+                  const specSummary = specParts.length > 0 ? ` — ${specParts.join(' · ')}` : '';
+                  const scenarioCount = cf.advisoryScenarios.length;
+                  lines.push(`<details><summary>💡 <strong>${cf.name}</strong> · ${cf.priority}${specSummary} · ${scenarioCount} scenario${scenarioCount !== 1 ? 's' : ''}</summary>`);
+                  lines.push('');
+                  for (const s of cf.advisoryScenarios) lines.push(`- [ ] ${s}`);
+                  lines.push('');
+                  lines.push('</details>');
+                  lines.push('');
+                }
+              }
+
+              // ── Clean covered flows (collapsed) ────────────────────────────
+              if (cleanFlows.length > 0) {
+                lines.push('');
+                lines.push(`<details><summary>✅ Covered flows (${cleanFlows.length})</summary>`);
+                lines.push('');
+                for (const cf of cleanFlows) {
+                  const tests = cf.coveredBy.map(t => `\`${t.replace(/^specs\//, '')}\``).join(', ');
+                  lines.push(`- **${cf.name}** (${cf.priority})${tests ? ' — ' + tests : ''}`);
+                }
+                lines.push('');
+                lines.push('</details>');
+              }
+
+              body = lines.join('\n');
+              if (action !== 'safe-to-merge') {
+                body += '\n\n---\n_To skip: add the `skip-e2e-coverage-check` label **or** comment `/skip-e2e-check: <reason>`._';
+              }
+            } else {
+              body = '_E2E coverage analysis ran but produced no summary._';
+            }
+
+            const prNumber = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            const fullBody = `${marker}\n${body}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: fullBody,
+              });
+            }
+
+      - name: Fail if gaps found
+        if: always() && steps.plan.outcome == 'failure'
+        run: |
+          echo "::error::E2E coverage check failed — E2E tests are required for flows impacted by this PR."
+          echo "See the PR comment for the list of affected flows and suggested tests to add."
+          echo "To bypass: add the 'skip-e2e-coverage-check' label or comment '/skip-e2e-check: <reason>'."
+          exit 2
+
+  # ── Job 3: skip-notice (runs when skipped) ──────────────────────────────────
+  skip-notice:
+    name: Skipped
+    runs-on: ubuntu-24.04
+    needs: check-override
+    if: needs.check-override.outputs.skip == 'true'
+    steps:
+      - name: Post skip comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          SKIP_REASON: ${{ needs.check-override.outputs.reason }}
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const reason = process.env.SKIP_REASON || '';
+            const marker = '<!-- e2e-coverage-gate -->';
+            const body = `${marker}\n> **E2E Coverage Gate — skipped**\n> ${reason}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }

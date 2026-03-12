@@ -39,7 +39,14 @@ export default defineConfig({
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
-        timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezoneId: ((): string => {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            // Firefox does not support deprecated IANA timezone aliases; normalize known ones
+            const aliases: Record<string, string> = {
+                'Asia/Calcutta': 'Asia/Kolkata',
+            };
+            return aliases[tz] ?? tz;
+        })(),
         trace: 'off',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,

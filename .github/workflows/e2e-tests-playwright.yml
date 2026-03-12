@@ -41,6 +41,14 @@ on:
         type: string
         required: false
         description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+      llm_provider:
+        type: string
+        required: false
+        default: auto
+      impact_auto_apply_heal:
+        type: boolean
+        required: false
+        default: false
     secrets:
       MM_LICENSE:
         required: false
@@ -151,6 +159,8 @@ jobs:
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
       context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+      llm_provider: ${{ inputs.llm_provider }}
+      impact_auto_apply_heal: ${{ inputs.impact_auto_apply_heal }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
