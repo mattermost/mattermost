@@ -79,6 +79,38 @@ func TestCreateRecap(t *testing.T) {
 		assert.Equal(t, "app.recap.cooldown_active.app_error", err.Id)
 		assert.Contains(t, err.SystemMessage(i18n.GetUserTranslations("en")), "another recap in 2 minutes")
 	})
+
+	t.Run("cooldown still applies after soft deleting last recap", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
+			cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(2)
+		})
+
+		lastCreateAt := model.GetMillis() - int64(30*1000)
+		lastManualRecap := &model.Recap{
+			Id:                model.NewId(),
+			UserId:            th.BasicUser.Id,
+			Title:             "Soft Deleted Completed Recap",
+			CreateAt:          lastCreateAt,
+			UpdateAt:          lastCreateAt,
+			DeleteAt:          0,
+			ReadAt:            0,
+			TotalMessageCount: 1,
+			Status:            model.RecapStatusCompleted,
+			BotID:             "test-agent-id",
+		}
+		_, saveErr := th.App.Srv().Store().Recap().SaveRecap(lastManualRecap)
+		require.NoError(t, saveErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		deleteErr := th.App.DeleteRecap(ctx, lastManualRecap.Id)
+		require.Nil(t, deleteErr)
+
+		recap, err := th.App.CreateRecap(ctx, "Cooldown Recap", []string{th.BasicChannel.Id}, "test-agent-id")
+		require.NotNil(t, err)
+		require.Nil(t, recap)
+		assert.Equal(t, "app.recap.cooldown_active.app_error", err.Id)
+	})
 }
 
 func TestGetRecap(t *testing.T) {

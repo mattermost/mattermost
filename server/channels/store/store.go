@@ -1318,13 +1318,15 @@ type RecapStore interface {
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 
-	// CountForUserSince returns count of recaps created by user since given timestamp
-	// Used for daily limit enforcement (pass midnight timestamp in user timezone)
-	// Excludes skipped recaps from the count
+	// CountForUserSince returns count of recaps created by user since given timestamp.
+	// Used for daily limit enforcement (pass midnight timestamp in user timezone).
+	// Excludes skipped recaps, but includes soft-deleted recaps because they still
+	// consumed AI usage.
 	CountForUserSince(userId string, since int64) (int64, error)
 
-	// GetLastCompletedManualRecap returns the most recent completed manual recap for user
-	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking.
+	// GetLastCompletedManualRecap returns the most recent completed manual recap for user.
+	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including
+	// soft-deleted recaps so deleting a recap does not bypass cooldown.
 	// Returns nil, nil if no manual recap exists.
 	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
 }
