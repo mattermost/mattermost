@@ -16,5 +16,5 @@ dist
 *.tsbuildinfo
 
 # e2e-agents artifacts (keep route-families.json — it's the static knowledge graph)
-.e2e-ai-agents/
+.e2e-ai-agents/*
 !.e2e-ai-agents/route-families.json

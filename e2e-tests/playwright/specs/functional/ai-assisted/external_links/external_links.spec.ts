@@ -23,6 +23,5 @@ test('external link in a posted message opens in a new tab @ai-assisted', async 
     const [newPage] = await Promise.all([page.context().waitForEvent('page'), linkLocator.click()]);
 
     // * Verify the new tab navigates to the external URL
-    await newPage.waitForLoadState('domcontentloaded');
     await expect(newPage).toHaveURL(/example\.com/);
 });

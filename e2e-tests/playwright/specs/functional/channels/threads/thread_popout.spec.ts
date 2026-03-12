@@ -221,7 +221,7 @@ test('Thread popout shows Following button and channel link', async ({pw}) => {
     await popoutPage.waitForLoadState('domcontentloaded');
 
     // Verify Follow button is present (user hasn't replied, so it shows "Follow" not "Following")
-    await expect(popoutPage.getByText('Follow')).toBeVisible({timeout: 10000});
+    await expect(popoutPage.getByText('Follow', {exact: true})).toBeVisible({timeout: 10000});
 
     // Verify the channel name is displayed in the popout header
     await expect(popoutPage.getByText(channel.display_name)).toBeVisible();

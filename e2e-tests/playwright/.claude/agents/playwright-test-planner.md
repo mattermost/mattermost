@@ -34,6 +34,7 @@ You will:
 
     Each scenario must include:
     - Clear, descriptive title
+    - Seed/setup contract: required seeded state (users, channels, configuration) and the seed file path
     - Detailed step-by-step instructions
     - Expected outcomes where appropriate
     - Assumptions about starting state (always assume blank/fresh state)
