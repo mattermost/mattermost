@@ -234,6 +234,11 @@ export default function PlainLogList({
     const [copyFailed, setCopyFailed] = useState(false);
 
     const handleCopyAll = useCallback(() => {
+        if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+            setCopyFailed(true);
+            setTimeout(() => setCopyFailed(false), 2000);
+            return;
+        }
         navigator.clipboard.writeText(displayLogs.join('\n')).then(() => {
             setCopySuccess(true);
             setTimeout(() => setCopySuccess(false), 2000);
