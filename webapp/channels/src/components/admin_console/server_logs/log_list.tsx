@@ -160,12 +160,20 @@ export default function LogList({
     const endIndex = Math.min(startIndex + pageSize, processedLogs.length);
     const visibleLogs = processedLogs.slice(startIndex, endIndex);
 
-    // Reset page when filters or logs dataset change
+    // Reset to page 0 when filters or sort order change
     useEffect(() => {
         setPage(0);
         setExpandedIndex(null);
         setFocusedIndex(null);
-    }, [search, enabledLevels, sortAsc, logs]);
+    }, [search, enabledLevels, sortAsc]);
+
+    // Clamp page and clear selection when the logs dataset changes (reload, live-tail)
+    useEffect(() => {
+        const lastPage = Math.max(0, Math.ceil(processedLogs.length / pageSize) - 1);
+        setPage((prev) => Math.max(0, Math.min(prev, lastPage)));
+        setExpandedIndex(null);
+        setFocusedIndex(null);
+    }, [logs, processedLogs.length, pageSize]);
 
     const toggleLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
@@ -212,6 +220,7 @@ export default function LogList({
         setPageSize(newSize);
         setPage(0);
         setExpandedIndex(null);
+        setFocusedIndex(null);
     }, []);
 
     const toggleSort = useCallback(() => {
