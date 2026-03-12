@@ -29,7 +29,7 @@ func (ps *PlatformService) NewClusterDiscoveryService() *ClusterDiscoveryService
 }
 
 func (ps *PlatformService) IsLeader() bool {
-	if ps.License() != nil && *ps.Config().ClusterSettings.Enable && ps.clusterIFace != nil {
+	if ps.License() != nil && *ps.License().Features.Cluster && *ps.Config().ClusterSettings.Enable && ps.clusterIFace != nil {
 		return ps.clusterIFace.IsLeader()
 	}
 
