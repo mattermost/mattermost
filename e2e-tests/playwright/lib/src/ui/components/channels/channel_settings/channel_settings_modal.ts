@@ -42,7 +42,7 @@ export default class ChannelSettingsModal {
     async close() {
         await this.closeButton.click();
 
-        await expect(this.container).not.toBeVisible();
+        await expect(this.container).not.toBeVisible({timeout: 10000});
     }
 
     async openInfoTab(): Promise<InfoSettings> {

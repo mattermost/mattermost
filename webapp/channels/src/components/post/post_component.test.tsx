@@ -12,6 +12,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
+import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -330,6 +331,66 @@ describe('PostComponent', () => {
 
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
                 expect(getHistory().push).toHaveBeenCalled();
+            });
+
+            test('should navigate within popout when clicking reply on a search result in a popout window', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining(`/_popout/thread/${currentTeam.name}/${rootPost.id}`),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should navigate within popout on cross-team reply click instead of jumping', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    team: TestHelper.getTeamMock({id: 'another_team'}),
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(getHistory().push).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining('/_popout/thread/'),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should not navigate within popout when not a search result item', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.CENTER,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(getHistory().replace).not.toHaveBeenCalled();
+
+                jest.restoreAllMocks();
             });
         });
     });

@@ -6,7 +6,8 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import {AnalyticsVisualizationType} from '@mattermost/types/admin';
-import type {ClientLicense} from '@mattermost/types/config';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerLimits} from '@mattermost/types/limits';
 
 import {getFormattedFileSize} from 'mattermost-redux/utils/file_utils';
 
@@ -14,10 +15,11 @@ import * as AdminActions from 'actions/admin_actions.jsx';
 
 import UserSeatAlertBanner from 'components/admin_console/license_settings/user_seat_alert_banner';
 import ActivatedUserCard from 'components/analytics/activated_users_card';
+import SingleChannelGuestsCard from 'components/analytics/single_channel_guests_card';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import Constants from 'utils/constants';
+import Constants, {LicenseSkus} from 'utils/constants';
 
 import './analytics.scss';
 
@@ -39,7 +41,9 @@ type Props = {
     isLicensed: boolean;
     stats?: AnalyticsState;
     license: ClientLicense;
+    config?: Partial<ClientConfig>;
     pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
+    serverLimits: ServerLimits;
 }
 
 type State = {
@@ -66,6 +70,7 @@ const messages = defineMessages({
     monthlyActiveUsers: {id: 'analytics.system.monthlyActiveUsers', defaultMessage: 'Monthly Active Users'},
     totalFiles: {id: 'analytics.system.totalFiles', defaultMessage: 'Total Files'},
     totalFilesSize: {id: 'analytics.system.totalFilesSize', defaultMessage: 'Total Files Size'},
+    singleChannelGuests: {id: 'analytics.system.singleChannelGuests', defaultMessage: 'Single-channel Guests'},
 });
 
 export const searchableStrings = [
@@ -87,6 +92,7 @@ export const searchableStrings = [
     messages.monthlyActiveUsers,
     messages.totalFiles,
     messages.totalFilesSize,
+    messages.singleChannelGuests,
 ];
 
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
@@ -97,6 +103,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
 
     public async componentDidMount() {
         AdminActions.getStandardAnalytics();
+        AdminActions.refreshServerLimits();
 
         if (this.props.isLicensed) {
             AdminActions.getAdvancedAnalytics();
@@ -350,11 +357,14 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         }
 
         const isCloud = this.props.license.Cloud === 'true';
+        const guestAccountsEnabled = this.props.config?.EnableGuestAccounts === 'true';
+        const seatAdjustedUserCount = this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]);
         const userCount = (
             <ActivatedUserCard
-                activatedUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS])}
+                activatedUsers={seatAdjustedUserCount}
                 seatsPurchased={parseInt(this.props.license.Users, 10)}
                 isCloud={isCloud}
+                guestAccountsEnabled={guestAccountsEnabled}
             />
         );
 
@@ -475,12 +485,26 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             }
         }
 
+        const isEntrySku = this.props.license.SkuShortName === LicenseSkus.Entry;
+        const shouldShowSingleChannelGuests = isLicensed && !isEntrySku && guestAccountsEnabled;
+
+        const singleChannelGuestsCount = this.getStatValue(stats[StatTypes.SINGLE_CHANNEL_GUESTS]);
+        const singleChannelGuestLimit = this.props.serverLimits?.singleChannelGuestLimit ?? parseInt(this.props.license.Users, 10);
+
+        const singleChannelGuests = shouldShowSingleChannelGuests ? (
+            <SingleChannelGuestsCard
+                singleChannelGuestsCount={singleChannelGuestsCount}
+                singleChannelGuestLimit={singleChannelGuestLimit}
+            />
+        ) : null;
+
         let systemCards;
         if (isLicensed) {
             systemCards = (
                 <>
                     {userCount}
                     {isCloud ? null : seatsPurchased}
+                    {singleChannelGuests}
                     {teamCount}
                     {channelCount}
                     {skippedIntensiveQueries ? null : postCount}
@@ -513,7 +537,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     <div className='admin-console__content'>
                         <UserSeatAlertBanner
                             license={this.props.license}
-                            totalUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS]) || 0}
+                            totalUsers={this.props.serverLimits?.activeUserCount ?? this.getStatValue(stats[StatTypes.TOTAL_USERS]) ?? 0}
                             location='system_statistics'
                         />
                         {banner}

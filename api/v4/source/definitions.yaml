@@ -1085,8 +1085,8 @@ components:
         Attachments:
           type: array
           items:
-            $ref: "#/components/schemas/SlackAttachment"
-    SlackAttachment:
+            $ref: "#/components/schemas/MessageAttachment"
+    MessageAttachment:
       type: object
       properties:
         Id:
@@ -1112,7 +1112,7 @@ components:
         Fields:
           type: array
           items:
-            $ref: "#/components/schemas/SlackAttachmentField"
+            $ref: "#/components/schemas/MessageAttachmentField"
         ImageURL:
           type: string
         ThumbURL:
@@ -1122,9 +1122,9 @@ components:
         FooterIcon:
           type: string
         Timestamp:
-          description: The timestamp of the slack attachment, either type of string or integer
+          description: The timestamp of the message attachment, either type of string or integer
           type: string
-    SlackAttachmentField:
+    MessageAttachmentField:
       type: object
       properties:
         Title:
