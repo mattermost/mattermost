@@ -37,7 +37,7 @@ jobs:
               return;
             }
 
-            // 2. Comment check — find the last /skip-e2e-check: comment
+            // 2. Comment check — find the last /skip-e2e-check: comment from an authorized user
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -47,6 +47,24 @@ jobs:
               c.body.trim().toLowerCase().startsWith('/skip-e2e-check:')
             );
             if (skipComment) {
+              // Verify the comment author has write access to the repo
+              let hasWriteAccess = false;
+              try {
+                const { data: permLevel } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username: skipComment.user.login,
+                });
+                hasWriteAccess = ['admin', 'write'].includes(permLevel.permission);
+              } catch {
+                hasWriteAccess = false;
+              }
+              if (!hasWriteAccess) {
+                core.warning(`/skip-e2e-check comment by @${skipComment.user.login} ignored — user lacks write access.`);
+                core.setOutput('skip', 'false');
+                core.setOutput('reason', '');
+                return;
+              }
               // Guard: skip is only valid if no new commits were pushed after it.
               // If new code landed after the skip comment, the skip is stale.
               const { data: commits } = await github.rest.pulls.listCommits({
@@ -252,7 +270,10 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const existing = comments.find(c => c.body.includes(marker));
+            const existing = comments.find(c =>
+              c.body.includes(marker) &&
+              c.user.login === 'github-actions[bot]'
+            );
             const fullBody = `${marker}\n${body}`;
 
             if (existing) {
@@ -302,7 +323,10 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const existing = comments.find(c => c.body.includes(marker));
+            const existing = comments.find(c =>
+              c.body.includes(marker) &&
+              c.user.login === 'github-actions[bot]'
+            );
 
             if (existing) {
               await github.rest.issues.updateComment({

@@ -246,7 +246,15 @@ jobs:
               }
           }
 
-          const values = Array.from(tests).sort();
+          // Sanitize: reject paths with shell metacharacters to prevent command injection
+          const safePathPattern = /^[a-zA-Z0-9_.\/\-]+$/;
+          const values = Array.from(tests).filter(p => {
+              if (!safePathPattern.test(p)) {
+                  console.warn(`Rejected unsafe spec path: ${p}`);
+                  return false;
+              }
+              return true;
+          }).sort();
           fs.writeFileSync(outPath, values.join('\n') + (values.length > 0 ? '\n' : ''), 'utf-8');
           console.log(`Derived ${values.length} targeted specs`);
           NODE
