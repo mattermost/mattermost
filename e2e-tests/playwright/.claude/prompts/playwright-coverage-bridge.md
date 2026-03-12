@@ -4,7 +4,7 @@ description: Generate tests for coverage gaps found by e2e-agents impact analysi
 ---
 
 Parameters:
-- Plan path (optional): defaults to `.e2e-ai-agents/plan.json`
+- Plan path (optional): defaults to `e2e-tests/playwright/.e2e-ai-agents/plan.json`
 
 Steps:
 
@@ -32,8 +32,8 @@ Steps:
 
        Analysis: {gap.reasons joined}
      </task-text>
-     <seed-file>specs/seed.spec.ts</seed-file>
-     <plan-file>specs/{gap.id}-plan.md</plan-file>
+     <seed-file>e2e-tests/playwright/specs/seed.spec.ts</seed-file>
+     <plan-file>e2e-tests/playwright/specs/{gap.id}-plan.md</plan-file>
    </plan>
 
 4. For each test case in the plan (1.1, 1.2, ...), one at a time,
@@ -41,7 +41,7 @@ Steps:
    (same pattern as playwright-test-coverage.md).
 
 5. After all test cases for a gap are generated,
-   call #playwright-test-healer to fix any failures.
+   call #playwright-test-healer scoped to the generated specs only.
 
 6. Repeat for the next gap.
 

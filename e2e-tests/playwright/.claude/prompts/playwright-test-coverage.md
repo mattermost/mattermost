@@ -27,6 +27,6 @@ Parameters:
   <body><!-- Test case content including steps and expectations --></body>
 </generate>
 
-3. Call #playwright-test-healer subagent with prompt:
+3. Collect the list of spec files generated in step 2. Call #playwright-test-healer subagent with prompt:
 
-<heal>Run all tests and fix the failing ones one after another.</heal>
+<heal>Run only the following generated test files and fix the failing ones one after another: <!-- comma-separated list of generated spec file paths --></heal>

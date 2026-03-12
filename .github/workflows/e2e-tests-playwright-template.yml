@@ -113,6 +113,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      ANTHROPIC_API_KEY:
+        required: false
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"

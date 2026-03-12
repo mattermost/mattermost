@@ -25,8 +25,8 @@ test('system console navigation seed @seed', async ({pw}) => {
         throw new Error('Failed to create admin user');
     }
 
-    // # Touch adminClient to keep the setup shape explicit for generation
-    await adminClient.getConfig();
+    // # Touch adminClient to keep the setup shape explicit for generation scaffolding
+    void (await adminClient.getConfig());
 
     // # Now login - this ensures the UI will have the attributes loaded
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
