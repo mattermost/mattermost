@@ -214,6 +214,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 		"hide_inactive":      strconv.FormatBool(ro.HideInactive),
 		"start_at":           strconv.FormatInt(startAt, 10),
 		"end_at":             strconv.FormatInt(endAt, 10),
+		"guest_filter":       ro.GuestFilter,
 	}
 
 	// Check for existing jobs
@@ -269,7 +270,8 @@ func (a *App) checkForExistingJobs(rctx request.CTX, options map[string]string, 
 				job.Data["role"] == options["role"] &&
 				job.Data["team"] == options["team"] &&
 				job.Data["hide_active"] == options["hide_active"] &&
-				job.Data["hide_inactive"] == options["hide_inactive"] {
+				job.Data["hide_inactive"] == options["hide_inactive"] &&
+				job.Data["guest_filter"] == options["guest_filter"] {
 				return true
 			}
 		}
