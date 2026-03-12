@@ -135,31 +135,7 @@
         white-space: nowrap;
     }
 
-    // ============================
-    // Syntax highlighting: JSON
-    // ============================
-
-    &__json-key {
-        color: var(--button-bg, #0550ae);
-    }
-
-    &__json-string {
-        color: rgba(var(--center-channel-color-rgb), 0.80);
-    }
-
-    &__json-number {
-        color: var(--away-indicator, #953800);
-    }
-
-    &__json-bool {
-        color: var(--away-indicator, #953800);
-        font-weight: 600;
-    }
-
-    &__json-bracket {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-weight: 600;
-    }
+    // JSON lines use highlight.js via the .hljs class — themed by the user's code theme CSS
 
     // ============================
     // Syntax highlighting: Plain log

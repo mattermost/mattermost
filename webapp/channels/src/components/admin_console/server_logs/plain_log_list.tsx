@@ -6,6 +6,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
+import * as SyntaxHighlighting from 'utils/syntax_highlighting';
+import * as TextFormatting from 'utils/text_formatting';
+
 import './plain_log_list.scss';
 
 type Props = {
@@ -20,139 +23,54 @@ type Props = {
     downloadUrl: string;
 };
 
-// Highlight JSON/JSONL content in a log line
-function highlightLogLine(line: string): React.ReactNode {
+// Represents a highlighted line: either an HTML string (JSON via highlight.js) or a React node (plain log)
+type HighlightedLine = {
+    isHtml: true;
+    html: string;
+} | {
+    isHtml: false;
+    node: React.ReactNode;
+};
+
+// Initial (synchronous) highlight: uses sanitized HTML for JSON, React nodes for plain logs
+function highlightLogLineSync(line: string): HighlightedLine {
     const trimmed = line.trim();
 
-    // Try to detect and highlight JSON lines
     if (trimmed.startsWith('{')) {
-        return highlightJson(trimmed);
+        return {isHtml: true, html: TextFormatting.sanitizeHtml(trimmed)};
     }
 
-    // Mattermost plain log format: timestamp [LEVEL] msg key=value ...
-    // Highlight the level tag and key=value pairs
-    return highlightPlainLog(line);
+    return {isHtml: false, node: highlightPlainLog(line)};
 }
 
-// Returns true if the character at position i is not a JSON structural token or number-starter
-function isPlainChar(text: string, i: number): boolean {
-    const ch = text[i];
-    if (ch === '"' || '{}[]'.includes(ch)) {
-        return false;
-    }
-    if (ch === '-' && (/\d/).test(text[i + 1] || '')) {
-        return false;
-    }
-    if ((/\d/).test(ch)) {
-        return false;
-    }
-    return true;
-}
-
-function highlightJson(text: string): React.ReactNode {
-    const parts: React.ReactNode[] = [];
-    let i = 0;
-    let key = 0;
-
-    while (i < text.length) {
-        // Strings
-        if (text[i] === '"') {
-            const end = findStringEnd(text, i);
-            const str = text.slice(i, end);
-
-            // Check if this is a key (followed by colon)
-            const afterStr = text.slice(end).trimStart();
-            if (afterStr[0] === ':') {
-                parts.push(
-                    <span
-                        key={key++}
-                        className='PlainLogViewer__json-key'
-                    >{str}</span>,
-                );
-            } else {
-                parts.push(
-                    <span
-                        key={key++}
-                        className='PlainLogViewer__json-string'
-                    >{str}</span>,
-                );
-            }
-            i = end;
-            continue;
-        }
-
-        // Numbers
-        if ((/[-\d]/).test(text[i]) && (i === 0 || (/[,:\s[{]/).test(text[i - 1]))) {
-            const match = text.slice(i).match(/^-?\d+\.?\d*([eE][+-]?\d+)?/);
-            if (match) {
-                parts.push(
-                    <span
-                        key={key++}
-                        className='PlainLogViewer__json-number'
-                    >{match[0]}</span>,
-                );
-                i += match[0].length;
-                continue;
-            }
-        }
-
-        // Booleans and null
-        const remaining = text.slice(i);
-        const boolMatch = remaining.match(/^(true|false|null)\b/);
-        if (boolMatch) {
-            parts.push(
-                <span
-                    key={key++}
-                    className='PlainLogViewer__json-bool'
-                >{boolMatch[0]}</span>,
-            );
-            i += boolMatch[0].length;
-            continue;
-        }
-
-        // Brackets and braces
-        if ('{}[]'.includes(text[i])) {
-            parts.push(
-                <span
-                    key={key++}
-                    className='PlainLogViewer__json-bracket'
-                >{text[i]}</span>,
-            );
-            i++;
-            continue;
-        }
-
-        // Accumulate plain text (characters that aren't JSON structural tokens or number-starters)
-        let plain = '';
-        while (i < text.length && isPlainChar(text, i)) {
-            plain += text[i];
-            i++;
-        }
-        if (plain) {
-            parts.push(<span key={key++}>{plain}</span>);
-        } else if (i < text.length) {
-            // Safety: advance at least one character to prevent infinite loop
-            parts.push(<span key={key++}>{text[i]}</span>);
-            i++;
+// Async highlight for JSON lines using highlight.js
+async function highlightJsonLines(lines: string[]): Promise<Map<number, string>> {
+    const jsonEntries: Array<{index: number; text: string}> = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim().startsWith('{')) {
+            jsonEntries.push({index: i, text: lines[i].trim()});
         }
     }
 
-    return <>{parts}</>;
-}
-
-function findStringEnd(text: string, start: number): number {
-    let i = start + 1;
-    while (i < text.length) {
-        if (text[i] === '\\') {
-            i += 2;
-            continue;
-        }
-        if (text[i] === '"') {
-            return i + 1;
-        }
-        i++;
+    if (jsonEntries.length === 0) {
+        return new Map();
     }
-    return text.length;
+
+    const results = new Map<number, string>();
+    const combined = jsonEntries.map((e) => e.text).join('\n');
+    const highlighted = await SyntaxHighlighting.highlight('json', combined);
+    const highlightedLines = highlighted.split('\n');
+
+    // Map highlighted lines back to their indices
+    let lineIdx = 0;
+    for (const entry of jsonEntries) {
+        const lineCount = entry.text.split('\n').length;
+        const slice = highlightedLines.slice(lineIdx, lineIdx + lineCount).join('\n');
+        results.set(entry.index, slice);
+        lineIdx += lineCount;
+    }
+
+    return results;
 }
 
 function highlightPlainLog(line: string): React.ReactNode {
@@ -350,9 +268,24 @@ export default function PlainLogList({
         return offset + i + 1;
     };
 
-    // Memoize highlighted lines to avoid re-rendering on scroll/toggle changes
-    const highlightedLines = useMemo(() => {
-        return displayLogs.map((line) => highlightLogLine(line));
+    // Synchronous initial highlighting (plain logs get React nodes, JSON gets sanitized HTML)
+    const initialHighlightedLines = useMemo(() => {
+        return displayLogs.map((line) => highlightLogLineSync(line));
+    }, [displayLogs]);
+
+    // Async highlight.js enhancement for JSON lines
+    const [jsonHighlights, setJsonHighlights] = useState<Map<number, string>>(new Map());
+    useEffect(() => {
+        let cancelled = false;
+        setJsonHighlights(new Map());
+        highlightJsonLines(displayLogs).then((results) => {
+            if (!cancelled) {
+                setJsonHighlights(results);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [displayLogs]);
 
     return (
@@ -476,7 +409,7 @@ export default function PlainLogList({
                     </div>
                 )}
                 {!loading && displayLogs.length > 0 && (
-                    highlightedLines.map((highlighted, i) => {
+                    initialHighlightedLines.map((highlighted, i) => {
                         const line = displayLogs[i];
                         let lineClass = 'PlainLogViewer__line';
                         if (line.indexOf('[EROR]') > 0) {
@@ -484,6 +417,25 @@ export default function PlainLogList({
                         } else if (line.indexOf('[WARN]') > 0) {
                             lineClass += ' PlainLogViewer__line--warn';
                         }
+
+                        // JSON lines: render with highlight.js HTML (or sanitized fallback)
+                        if (highlighted.isHtml) {
+                            const jsonHtml = jsonHighlights.get(i) || highlighted.html;
+                            return (
+                                <div
+                                    key={i} // eslint-disable-line react/no-array-index-key
+                                    className={lineClass}
+                                    data-line-number={getLineNumber(i)}
+                                >
+                                    <span
+                                        className='PlainLogViewer__line-text hljs'
+                                        dangerouslySetInnerHTML={{__html: jsonHtml}} // eslint-disable-line react/no-danger
+                                    />
+                                </div>
+                            );
+                        }
+
+                        // Plain log lines: render React nodes
                         return (
                             <div
                                 key={i} // eslint-disable-line react/no-array-index-key
@@ -491,7 +443,7 @@ export default function PlainLogList({
                                 data-line-number={getLineNumber(i)}
                             >
                                 <span className='PlainLogViewer__line-text'>
-                                    {highlighted}
+                                    {highlighted.node}
                                 </span>
                             </div>
                         );
