@@ -13,6 +13,7 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
     const [lastUpdated, setLastUpdated] = useState<number | null>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fetchRef = useRef(fetchLogs);
+    const isPollingRef = useRef(false);
     fetchRef.current = fetchLogs;
 
     const stop = useCallback(() => {
@@ -29,9 +30,15 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         }
 
         const tick = async () => {
-            if (!document.hidden) {
+            if (document.hidden || isPollingRef.current) {
+                return;
+            }
+            isPollingRef.current = true;
+            try {
                 await fetchRef.current();
                 setLastUpdated(Date.now());
+            } finally {
+                isPollingRef.current = false;
             }
         };
 
@@ -55,8 +62,16 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
             } else if (!intervalRef.current) {
                 // Resume polling when tab becomes visible again (only if not already running)
                 const tick = async () => {
-                    await fetchRef.current();
-                    setLastUpdated(Date.now());
+                    if (isPollingRef.current) {
+                        return;
+                    }
+                    isPollingRef.current = true;
+                    try {
+                        await fetchRef.current();
+                        setLastUpdated(Date.now());
+                    } finally {
+                        isPollingRef.current = false;
+                    }
                 };
                 tick();
                 intervalRef.current = setInterval(tick, intervalMs);
