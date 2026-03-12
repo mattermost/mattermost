@@ -234,12 +234,12 @@
     }
 
     &__header-level {
-        width: 40px;
+        width: 32px;
         flex-shrink: 0;
     }
 
     &__header-timestamp {
-        width: 100px;
+        width: 92px;
         flex-shrink: 0;
         padding: 2px 4px;
         border: none;
@@ -268,7 +268,7 @@
     }
 
     &__header-caller {
-        width: 200px;
+        width: 216px; // 192px caller + 8px gap + 16px expand indicator
         flex-shrink: 0;
         text-align: right;
     }
