@@ -213,8 +213,7 @@ export default function TeamPolicyEditor({
         return ((channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length) > 0;
     }, [channelsCount, channelChanges]);
 
-    // Validation
-    const validateForm = useCallback(() => {
+    const validateForm = useCallback(async () => {
         if (policyName.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.name_required', defaultMessage: 'Please add a name to the policy'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
@@ -235,12 +234,28 @@ export default function TeamPolicyEditor({
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
         }
-        return true;
-    }, [policyName, expression, hasChannels, formatMessage]);
 
-    // Save flow
+        // Validate self-inclusion: delegated admin must satisfy the policy's rules
+        if (expression.trim()) {
+            try {
+                const result = await abacActions.validateExpressionAgainstRequester(expression);
+                if (!result.data?.requester_matches) {
+                    setFormError(formatMessage({id: 'team_settings.policy_editor.error.self_exclusion', defaultMessage: 'You cannot save these rules because they would remove your access to this policy. Adjust the rules to include your user attributes.'}));
+                    setSaveChangesPanelState(SAVE_RESULT_ERROR);
+                    return false;
+                }
+            } catch {
+                setFormError(formatMessage({id: 'team_settings.policy_editor.error.validation_failed', defaultMessage: 'Failed to validate access rules. Please try again.'}));
+                setSaveChangesPanelState(SAVE_RESULT_ERROR);
+                return false;
+            }
+        }
+
+        return true;
+    }, [policyName, expression, hasChannels, formatMessage, abacActions]);
+
     const handleSave = useCallback(async () => {
-        if (!validateForm()) {
+        if (!await validateForm()) {
             return;
         }
 
@@ -269,8 +284,7 @@ export default function TeamPolicyEditor({
             }
 
             // Assign/unassign channels
-            // only throw on errors that have a server_error_id (actual API errors),
-            // not on response parsing issues.
+            // throw on errors that have a server_error_id (actual API errors)
             if (channelChanges.removedCount > 0) {
                 const unassignResult = await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
                 if (unassignResult.error?.server_error_id) {
@@ -308,7 +322,7 @@ export default function TeamPolicyEditor({
 
     const handleSaveChanges = useCallback(async () => {
         setFormError('');
-        if (!validateForm()) {
+        if (!await validateForm()) {
             return;
         }
         setShowConfirmationModal(true);

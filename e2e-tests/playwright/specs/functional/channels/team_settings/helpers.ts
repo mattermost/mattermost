@@ -44,10 +44,15 @@ export async function createParentPolicy(client: Client4, name: string) {
 }
 
 export async function assignChannelsToPolicy(client: Client4, policyId: string, channelIds: string[]) {
-    await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
-        method: 'post',
+    const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/assign`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${client.getToken()}`},
         body: JSON.stringify({channel_ids: channelIds}),
     });
+    if (!response.ok) {
+        throw new Error(`assignChannelsToPolicy failed: ${response.status}`);
+    }
 }
 
 export async function createPrivateChannel(client: Client4, teamId: string) {

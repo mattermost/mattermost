@@ -145,6 +145,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
             <PolicyList
                 key={refreshKey}
                 hideHeader={true}
+                hideDeleteAction={true}
                 showRefreshButton={true}
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}

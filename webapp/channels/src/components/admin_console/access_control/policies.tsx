@@ -20,6 +20,7 @@ type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
     simpleMode?: boolean;
     hideHeader?: boolean;
+    hideDeleteAction?: boolean;
     showRefreshButton?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
@@ -218,19 +219,21 @@ export default function PolicyList(props: Props): JSX.Element {
                                             />
                                         }
                                     />
-                                    <Menu.Item
-                                        id={`policy-menu-delete-${policy.id}`}
-                                        onClick={() => handleDelete(policy.id)}
-                                        leadingElement={<i className='icon icon-trash-can-outline'/>}
-                                        labels={
-                                            <FormattedMessage
-                                                id='admin.access_control.delete'
-                                                defaultMessage='Delete'
-                                            />
-                                        }
-                                        isDestructive={true}
-                                        disabled={Boolean(policy.props?.child_ids?.length)}
-                                    />
+                                    {!props.hideDeleteAction && (
+                                        <Menu.Item
+                                            id={`policy-menu-delete-${policy.id}`}
+                                            onClick={() => handleDelete(policy.id)}
+                                            leadingElement={<i className='icon icon-trash-can-outline'/>}
+                                            labels={
+                                                <FormattedMessage
+                                                    id='admin.access_control.delete'
+                                                    defaultMessage='Delete'
+                                                />
+                                            }
+                                            isDestructive={true}
+                                            disabled={Boolean(policy.props?.child_ids?.length)}
+                                        />
+                                    )}
                                 </Menu.Container>
                             )}
                         </div>
