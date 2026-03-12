@@ -499,19 +499,22 @@ func TestScheduledPostAuditable(t *testing.T) {
 	})
 
 	t.Run("with non-nil metadata", func(t *testing.T) {
+		metadata := &PostMetadata{
+			Emojis: []*Emoji{{Name: "smile"}},
+		}
 		s := ScheduledPost{
 			Draft: Draft{
 				CreateAt:  GetMillis(),
 				UpdateAt:  GetMillis(),
 				UserId:    NewId(),
 				ChannelId: NewId(),
-				Metadata:  &PostMetadata{},
+				Metadata:  metadata,
 			},
 			Id: NewId(),
 		}
 
 		result := s.Auditable()
-		assert.NotNil(t, result["metadata"])
+		assert.Equal(t, metadata.Auditable(), result["metadata"])
 	})
 }
 
