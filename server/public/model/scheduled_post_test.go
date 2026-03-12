@@ -92,7 +92,7 @@ func TestScheduledPostBaseIsValid(t *testing.T) {
 			ScheduledAt: GetMillis() + 100000,
 		}
 		err := s.BaseIsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("valid with file ids and no message", func(t *testing.T) {
@@ -108,7 +108,7 @@ func TestScheduledPostBaseIsValid(t *testing.T) {
 			ScheduledAt: GetMillis() + 100000,
 		}
 		err := s.BaseIsValid()
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("draft base validation fails with missing update_at", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestScheduledPostIsValid(t *testing.T) {
 			ScheduledAt: GetMillis() + 100000,
 		}
 		err := s.IsValid(maxMessageSize)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -337,6 +337,23 @@ func TestScheduledPostToPost(t *testing.T) {
 		assert.Nil(t, post.Metadata)
 	})
 
+	t.Run("with metadata but no priority preserves metadata", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+				Metadata:  &PostMetadata{},
+			},
+			Id: NewId(),
+		}
+
+		post, err := s.ToPost()
+		require.NoError(t, err)
+		require.NotNil(t, post.Metadata)
+		assert.Nil(t, post.Metadata.Priority)
+	})
+
 	t.Run("with valid priority", func(t *testing.T) {
 		s := ScheduledPost{
 			Draft: Draft{
@@ -356,6 +373,9 @@ func TestScheduledPostToPost(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, post.Metadata)
 		require.NotNil(t, post.Metadata.Priority)
+		require.NotNil(t, post.Metadata.Priority.Priority)
+		require.NotNil(t, post.Metadata.Priority.RequestedAck)
+		require.NotNil(t, post.Metadata.Priority.PersistentNotifications)
 		assert.Equal(t, "urgent", *post.Metadata.Priority.Priority)
 		assert.True(t, *post.Metadata.Priority.RequestedAck)
 		assert.False(t, *post.Metadata.Priority.PersistentNotifications)
@@ -381,6 +401,7 @@ func TestScheduledPostToPost(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, post.Metadata)
 		require.NotNil(t, post.Metadata.Priority)
+		require.NotNil(t, post.Metadata.Priority.Priority)
 		assert.Equal(t, "important", *post.Metadata.Priority.Priority)
 	})
 
@@ -400,8 +421,8 @@ func TestScheduledPostToPost(t *testing.T) {
 		}
 
 		post, err := s.ToPost()
-		assert.Nil(t, post)
-		assert.Error(t, err)
+		require.Nil(t, post)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "priority is not a string")
 	})
 
@@ -421,8 +442,8 @@ func TestScheduledPostToPost(t *testing.T) {
 		}
 
 		post, err := s.ToPost()
-		assert.Nil(t, post)
-		assert.Error(t, err)
+		require.Nil(t, post)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "requested_ack is not a bool")
 	})
 
@@ -442,8 +463,8 @@ func TestScheduledPostToPost(t *testing.T) {
 		}
 
 		post, err := s.ToPost()
-		assert.Nil(t, post)
-		assert.Error(t, err)
+		require.Nil(t, post)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "persistent_notifications is not a bool")
 	})
 }
@@ -607,6 +628,8 @@ func TestScheduledPostGetPriority(t *testing.T) {
 		}
 		result := s.GetPriority()
 		require.NotNil(t, result)
+		require.NotNil(t, result.Priority)
+		require.NotNil(t, result.RequestedAck)
 		assert.Equal(t, "urgent", *result.Priority)
 		assert.True(t, *result.RequestedAck)
 	})
