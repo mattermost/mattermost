@@ -135,7 +135,12 @@
         white-space: nowrap;
     }
 
-    // JSON lines use highlight.js via the .hljs class — themed by the user's code theme CSS
+    // JSON lines use highlight.js via the .hljs class — themed by the user's code theme CSS.
+    // Override the background that hljs themes set so it inherits from the log viewer.
+    .hljs {
+        background: transparent;
+        padding: 0;
+    }
 
     // ============================
     // Syntax highlighting: Plain log
