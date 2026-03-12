@@ -345,12 +345,8 @@ func TestCreateTarGzArchive(t *testing.T) {
 		err := os.WriteFile(filepath.Join(sourceDir, "test.txt"), []byte("test"), 0600)
 		require.NoError(t, err)
 
-		// Create a read-only directory so file creation fails regardless of user
-		readOnlyDir := t.TempDir()
-		require.NoError(t, os.Chmod(readOnlyDir, 0555))
-		t.Cleanup(func() { _ = os.Chmod(readOnlyDir, 0755) })
-
-		archivePath := filepath.Join(readOnlyDir, "test-should-fail.tar.gz")
+		// Use a path through a non-existent directory to guarantee failure even as root
+		archivePath := filepath.Join(t.TempDir(), "nonexistent", "test-should-fail.tar.gz")
 		err = createTarGzArchive(sourceDir, archivePath)
 		require.Error(t, err)
 	})
