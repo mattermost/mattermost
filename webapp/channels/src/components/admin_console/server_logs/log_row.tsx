@@ -50,16 +50,22 @@ const COPYABLE_FIELDS = new Set([
 const MM_ID_PATTERN = /^[a-z0-9]{26}$/;
 
 function formatTimestampShort(timestamp: string): string {
+    // Extract time directly from the raw string to preserve original wall-clock timezone
+    const match = timestamp.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/);
+    if (match) {
+        return match[1];
+    }
+
+    // Fallback: try Date parsing for non-standard formats
     try {
         const date = new Date(timestamp);
-        if (isNaN(date.getTime())) {
-            const match = timestamp.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/);
-            return match ? match[1] : timestamp.slice(11, 23);
+        if (!isNaN(date.getTime())) {
+            return date.toISOString().slice(11, 23);
         }
-        return date.toISOString().slice(11, 23);
     } catch {
-        return timestamp.slice(0, 23);
+        // ignore
     }
+    return timestamp.slice(0, 23);
 }
 
 function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode {
