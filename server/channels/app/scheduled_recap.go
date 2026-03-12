@@ -52,7 +52,7 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		}
 	}
 
-	// ENF-02: Check max channels per recap limit
+	// Check max channels per recap limit
 	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) {
 		if len(recap.ChannelIds) > limits.MaxChannelsPerRecap {
 			return nil, model.NewAppError("CreateScheduledRecap",
