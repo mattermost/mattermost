@@ -77,6 +77,9 @@ const RecapChannelCard = ({channel}: Props) => {
     }, [dispatch, channelObject]);
 
     const handleHeaderKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             setIsCollapsed((prev) => !prev);
@@ -115,7 +118,7 @@ const RecapChannelCard = ({channel}: Props) => {
                 className='recap-channel-header'
                 role='button'
                 tabIndex={0}
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                onClick={(e) => e.target === e.currentTarget && setIsCollapsed(!isCollapsed)}
                 onKeyDown={handleHeaderKeyDown}
                 aria-expanded={!isCollapsed}
             >
