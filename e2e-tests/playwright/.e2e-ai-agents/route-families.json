@@ -145,16 +145,23 @@
             "unmapped": true
         },
         {
-            "id": "migrations",
+            "id": "migrations/permissions",
+            "routes": [],
+            "serverPaths": ["server/channels/app/permissions_migrations*.go"],
+            "specDirs": ["specs/functional/system_console/permissions"],
+            "tags": ["permissions", "migration"]
+        },
+        {
+            "id": "migrations/general",
             "routes": [],
             "serverPaths": [
-                "server/channels/app/permissions_migrations*.go",
                 "server/channels/app/*migration*.go",
                 "server/public/model/migration*.go",
                 "server/channels/db/migrations/**"
             ],
-            "specDirs": ["specs/functional/system_console/permissions"],
-            "tags": ["permissions", "migration"]
+            "specDirs": [],
+            "unmapped": true,
+            "tags": ["migration"]
         },
         {
             "id": "plugins",
