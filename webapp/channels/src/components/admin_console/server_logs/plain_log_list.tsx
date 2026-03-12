@@ -418,7 +418,7 @@ export default function PlainLogList({
                     <div className='PlainLogViewer__loading'>
                         <div className='PlainLogViewer__loading-spinner'/>
                         <FormattedMessage
-                            id='admin.logs.loading'
+                            id='admin.logs.plain.loading'
                             defaultMessage='Loading...'
                         />
                     </div>
@@ -426,7 +426,7 @@ export default function PlainLogList({
                 {!loading && displayLogs.length === 0 && (
                     <div className='PlainLogViewer__empty'>
                         <FormattedMessage
-                            id='admin.logs.noLogs'
+                            id='admin.logs.plain.noLogs'
                             defaultMessage='No logs to display.'
                         />
                     </div>
