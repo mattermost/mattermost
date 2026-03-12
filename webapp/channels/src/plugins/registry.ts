@@ -1444,7 +1444,7 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('SystemConsoleGroupTable', this.id, component);
     });
 
-    registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void}) => {
+    registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void}) => {
         registerRHSPluginPopoutListener(pluginId, onPopoutOpened);
     });
 }

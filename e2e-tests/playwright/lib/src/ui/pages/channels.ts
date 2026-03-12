@@ -7,6 +7,8 @@ import {waitUntil} from 'async-wait-until';
 import {
     ChannelsPost,
     ChannelSettingsModal,
+    CreateTeamForm,
+    NewChannelModal,
     SettingsModal,
     TeamSettingsModal,
     components,
@@ -30,8 +32,10 @@ export default class ChannelsPage {
     readonly messagePriority;
 
     readonly channelSettingsModal;
+    readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
+    readonly newChannelModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -39,6 +43,7 @@ export default class ChannelsPage {
     readonly teamSettingsModal;
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
+    readonly archivedChannelMessage;
 
     readonly postContainer;
     readonly postDotMenu;
@@ -64,8 +69,10 @@ export default class ChannelsPage {
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
+        this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+        this.newChannelModal = new NewChannelModal(page.locator('#new-channel-modal'));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
@@ -87,6 +94,7 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
+        this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
         page.locator('#channelHeaderDropdownMenu');
     }
@@ -130,6 +138,14 @@ export default class ChannelsPage {
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
+        await this.page.goto(channelsUrl);
+
+        return channelsUrl;
+    }
+
+    // Force the /messages route for group-message slugs that do not start with '@'.
+    async gotoMessage(teamName: string, channelName: string) {
+        const channelsUrl = `/${teamName}/messages/${channelName}`;
         await this.page.goto(channelsUrl);
 
         return channelsUrl;
@@ -190,18 +206,34 @@ export default class ChannelsPage {
         return this.settingsModal;
     }
 
-    async newChannel(name: string, channelType: string) {
-        await this.page.locator('#browseOrAddChannelMenuButton').click();
+    async openNewChannelModal(): Promise<NewChannelModal> {
+        await this.sidebarLeft.browseOrCreateChannelButton.click();
         await this.page.locator('#createNewChannelMenuItem').click();
-        await this.page.locator('#input_new-channel-modal-name').fill(name);
+        await this.newChannelModal.toBeVisible();
+
+        return this.newChannelModal;
+    }
+
+    async openCreateTeamForm(): Promise<CreateTeamForm> {
+        await this.sidebarLeft.teamMenuButton.click();
+        await this.teamMenu.toBeVisible();
+        await this.teamMenu.clickCreateTeam();
+        await this.createTeamForm.toBeVisible();
+
+        return this.createTeamForm;
+    }
+
+    async newChannel(name: string, channelType: string) {
+        const newChannelModal = await this.openNewChannelModal();
+        await newChannelModal.displayNameInput.fill(name);
 
         if (channelType === 'P') {
-            await this.page.locator('#public-private-selector-button-P').click();
+            await newChannelModal.privateTypeButton.click();
         } else {
-            await this.page.locator('#public-private-selector-button-O').click();
+            await newChannelModal.publicTypeButton.click();
         }
 
-        await this.page.getByText('Create channel').click();
+        await newChannelModal.create();
     }
 
     async openUserAccountMenu() {
