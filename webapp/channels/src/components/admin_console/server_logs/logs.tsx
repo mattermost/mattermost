@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {
@@ -93,6 +93,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
+    // Refs for latest date values (used by reload during live tail)
+    const dateFromRef = useRef(dateFrom);
+    const dateToRef = useRef(dateTo);
+    dateFromRef.current = dateFrom;
+    dateToRef.current = dateTo;
+
     // Plain log pagination
     const [plainPage, setPlainPage] = useState(0);
     const [perPage] = useState(1000);
@@ -105,28 +111,45 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     // Active time preset
     const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
 
+    // Ref for active time preset so reload can recompute dates dynamically
+    const activeTimePresetRef = useRef<number | null>(null);
+
     const reload = useCallback(async () => {
         setLoading(true);
         if (isPlainLogs) {
             await actions.getPlainLogs(plainPage, perPage);
         } else {
+            // If a time preset is active, recompute the date range for fresh data
+            let effectiveDateFrom = dateFromRef.current;
+            let effectiveDateTo = dateToRef.current;
+            if (activeTimePresetRef.current !== null) {
+                const now = new Date();
+                const from = new Date(now.getTime() - (activeTimePresetRef.current * 60 * 1000));
+                const pad = (n: number) => String(n).padStart(2, '0');
+                const formatDate = (d: Date) => {
+                    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000 +00:00`;
+                };
+                effectiveDateFrom = formatDate(from);
+                effectiveDateTo = formatDate(now);
+            }
             await actions.getLogs({
                 serverNames,
                 logLevels,
-                dateFrom,
-                dateTo,
+                dateFrom: effectiveDateFrom,
+                dateTo: effectiveDateTo,
             });
         }
         setLoading(false);
-    }, [isPlainLogs, plainPage, perPage, serverNames, logLevels, dateFrom, dateTo, actions]);
+    }, [isPlainLogs, plainPage, perPage, serverNames, logLevels, actions]);
 
-    // Initial load
+    // Initial load + reload when plain page changes
+    const hasMountedRef = useRef(false);
     useEffect(() => {
-        reload();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Reload when plain page changes
-    useEffect(() => {
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            reload();
+            return;
+        }
         if (isPlainLogs) {
             reload();
         }
@@ -192,6 +215,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         const newDateTo = formatDate(now);
 
         setActiveTimePreset(minutes);
+        activeTimePresetRef.current = minutes;
         setDateFrom(newDateFrom);
         setDateTo(newDateTo);
 
@@ -206,6 +230,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     const clearTimePreset = useCallback(() => {
         setActiveTimePreset(null);
+        activeTimePresetRef.current = null;
         setDateFrom('');
         setDateTo('');
         setLoading(true);

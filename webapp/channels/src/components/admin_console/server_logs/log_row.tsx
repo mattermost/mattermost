@@ -8,8 +8,8 @@ import type {LogObjectWithAdditionalInfo} from './types';
 
 import './log_list.scss';
 
-function copyToClipboard(text: string): void {
-    navigator.clipboard.writeText(text).catch(() => {
+function copyToClipboard(text: string): Promise<void> {
+    return navigator.clipboard.writeText(text).catch(() => {
         // Fallback: noop if clipboard API unavailable (e.g. non-HTTPS)
     });
 }
@@ -164,28 +164,36 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        copyToClipboard(JSON.stringify(log, undefined, 2));
-        setCopyJsonSuccess(true);
-        setTimeout(() => setCopyJsonSuccess(false), 2000);
+        copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
+            setCopyJsonSuccess(true);
+            setTimeout(() => setCopyJsonSuccess(false), 2000);
+        });
     }, [log]);
 
     const handleCopyLine = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         const line = `${log.timestamp} [${log.level?.toUpperCase()}] ${log.msg} (${log.caller})`;
-        copyToClipboard(line);
-        setCopyLineSuccess(true);
-        setTimeout(() => setCopyLineSuccess(false), 2000);
+        copyToClipboard(line).then(() => {
+            setCopyLineSuccess(true);
+            setTimeout(() => setCopyLineSuccess(false), 2000);
+        });
     }, [log]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        // Ignore events from interactive descendants (buttons, links)
+        const target = e.target as HTMLElement;
+        if (target !== e.currentTarget && (target.tagName === 'BUTTON' || target.tagName === 'A' || target.tagName === 'INPUT')) {
+            return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onToggleExpand(log);
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
-            copyToClipboard(JSON.stringify(log, undefined, 2));
-            setCopyJsonSuccess(true);
-            setTimeout(() => setCopyJsonSuccess(false), 2000);
+            copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
+                setCopyJsonSuccess(true);
+                setTimeout(() => setCopyJsonSuccess(false), 2000);
+            });
         }
     }, [log, onToggleExpand]);
 
@@ -202,7 +210,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     // Collect extra fields (not timestamp, level, msg, caller)
     const extraFields: Array<[string, string]> = [];
     for (const [key, value] of Object.entries(log)) {
-        if (!KNOWN_KEYS.has(key) && value) {
+        if (!KNOWN_KEYS.has(key) && value != null) {
             extraFields.push([key, String(value)]);
         }
     }

@@ -160,12 +160,12 @@ export default function LogList({
     const endIndex = Math.min(startIndex + pageSize, processedLogs.length);
     const visibleLogs = processedLogs.slice(startIndex, endIndex);
 
-    // Reset page when filters change
+    // Reset page when filters or logs dataset change
     useEffect(() => {
         setPage(0);
         setExpandedIndex(null);
         setFocusedIndex(null);
-    }, [search, enabledLevels, sortAsc]);
+    }, [search, enabledLevels, sortAsc, logs]);
 
     const toggleLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
@@ -312,6 +312,7 @@ export default function LogList({
                             type='button'
                             className='LogViewer__action-btn LogViewer__action-btn--icon'
                             onClick={onClearTimePreset}
+                            aria-label={intl.formatMessage({id: 'admin.logs.clearTimePreset', defaultMessage: 'Clear time preset'})}
                         >
                             <i className='icon icon-close'/>
                         </button>
@@ -418,7 +419,7 @@ export default function LogList({
                         <span className='LogViewer__match-count'>
                             <FormattedMessage
                                 id='admin.logs.matchCount'
-                                defaultMessage='{count} of {total}'
+                                defaultMessage='{count, number} of {total, number}'
                                 values={{count: matchCount, total: totalCount}}
                             />
                         </span>
@@ -563,7 +564,7 @@ export default function LogList({
                     <span className='LogViewer__footer-info'>
                         <FormattedMessage
                             id='admin.logs.showing'
-                            defaultMessage='{start}-{end} of {total}'
+                            defaultMessage='{start, number}-{end, number} of {total, number}'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,
@@ -577,13 +578,14 @@ export default function LogList({
                             onClick={goPrevPage}
                             disabled={page === 0}
                             type='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
                         >
                             <i className='icon icon-chevron-left'/>
                         </button>
                         <span className='LogViewer__page-indicator'>
                             <FormattedMessage
                                 id='admin.logs.pageOf'
-                                defaultMessage='Page {page} of {total}'
+                                defaultMessage='Page {page, number} of {total, number}'
                                 values={{page: page + 1, total: totalPages}}
                             />
                         </span>
@@ -592,6 +594,7 @@ export default function LogList({
                             onClick={goNextPage}
                             disabled={page >= totalPages - 1}
                             type='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
                         >
                             <i className='icon icon-chevron-right'/>
                         </button>

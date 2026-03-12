@@ -35,6 +35,9 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
             }
         };
 
+        // Immediate fetch when enabling
+        tick();
+
         intervalRef.current = setInterval(tick, intervalMs);
 
         return stop;
@@ -49,9 +52,8 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 stop();
-            } else {
-                // Resume polling when tab becomes visible again
-                stop(); // Clear any existing interval first
+            } else if (!intervalRef.current) {
+                // Resume polling when tab becomes visible again (only if not already running)
                 const tick = async () => {
                     await fetchRef.current();
                     setLastUpdated(Date.now());

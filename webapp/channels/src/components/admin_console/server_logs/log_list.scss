@@ -635,7 +635,7 @@
     &__highlight {
         padding: 0 1px;
         border-radius: 2px;
-        background: rgba(255, 213, 0, 0.4);
+        background: rgba(var(--mention-highlight-bg-rgb, 255, 213, 0), 0.4);
     }
 
     // Expanded details

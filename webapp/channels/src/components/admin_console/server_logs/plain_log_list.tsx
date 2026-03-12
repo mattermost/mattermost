@@ -34,6 +34,21 @@ function highlightLogLine(line: string): React.ReactNode {
     return highlightPlainLog(line);
 }
 
+// Returns true if the character at position i is not a JSON structural token or number-starter
+function isPlainChar(text: string, i: number): boolean {
+    const ch = text[i];
+    if (ch === '"' || '{}[]'.includes(ch)) {
+        return false;
+    }
+    if (ch === '-' && (/\d/).test(text[i + 1] || '')) {
+        return false;
+    }
+    if ((/\d/).test(ch)) {
+        return false;
+    }
+    return true;
+}
+
 function highlightJson(text: string): React.ReactNode {
     const parts: React.ReactNode[] = [];
     let i = 0;
@@ -107,9 +122,9 @@ function highlightJson(text: string): React.ReactNode {
             continue;
         }
 
-        // Accumulate plain text
+        // Accumulate plain text (characters that aren't JSON structural tokens or number-starters)
         let plain = '';
-        while (i < text.length && text[i] !== '"' && !'{}[]'.includes(text[i]) && !(text[i] === '-' && (/\d/).test(text[i + 1] || '')) && !(/\d/).test(text[i])) {
+        while (i < text.length && isPlainChar(text, i)) {
             plain += text[i];
             i++;
         }
@@ -217,6 +232,41 @@ function highlightPlainLog(line: string): React.ReactNode {
     return <>{parts}</>;
 }
 
+function getCopyIconClass(success: boolean, failed: boolean): string {
+    if (success) {
+        return 'icon icon-check';
+    }
+    if (failed) {
+        return 'icon icon-alert-outline';
+    }
+    return 'icon icon-content-copy';
+}
+
+function getCopyLabel(success: boolean, failed: boolean): React.ReactNode {
+    if (success) {
+        return (
+            <FormattedMessage
+                id='admin.logs.copied'
+                defaultMessage='Copied!'
+            />
+        );
+    }
+    if (failed) {
+        return (
+            <FormattedMessage
+                id='admin.logs.copyFailed'
+                defaultMessage='Copy failed'
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='admin.logs.copyAll'
+            defaultMessage='Copy all'
+        />
+    );
+}
+
 export default function PlainLogList({
     loading, logs: rawLogs, page, perPage, nextPage, previousPage, goToPage, onReload, downloadUrl,
 }: Props) {
@@ -257,12 +307,16 @@ export default function PlainLogList({
         }
     }, [followTail]);
 
+    const [copyFailed, setCopyFailed] = useState(false);
+
     const handleCopyAll = useCallback(() => {
-        navigator.clipboard.writeText(displayLogs.join('\n')).catch(() => {
-            // Fallback: noop if clipboard API unavailable
+        navigator.clipboard.writeText(displayLogs.join('\n')).then(() => {
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        }).catch(() => {
+            setCopyFailed(true);
+            setTimeout(() => setCopyFailed(false), 2000);
         });
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
     }, [displayLogs]);
 
     const handleGoToPage = useCallback(() => {
@@ -387,18 +441,8 @@ export default function PlainLogList({
                         className='PlainLogViewer__action-btn'
                         onClick={handleCopyAll}
                     >
-                        <i className={copySuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
-                        {copySuccess ? (
-                            <FormattedMessage
-                                id='admin.logs.copied'
-                                defaultMessage='Copied!'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.logs.copyAll'
-                                defaultMessage='Copy all'
-                            />
-                        )}
+                        <i className={getCopyIconClass(copySuccess, copyFailed)}/>
+                        {getCopyLabel(copySuccess, copyFailed)}
                     </button>
                 </div>
             </div>
@@ -461,7 +505,7 @@ export default function PlainLogList({
                     <span className='PlainLogViewer__footer-info'>
                         <FormattedMessage
                             id='admin.logs.plain.pageInfo'
-                            defaultMessage='Page {page} · {count} lines'
+                            defaultMessage='Page {page, number} · {count, number} lines'
                             values={{page: page + 1, count: totalShowing}}
                         />
                     </span>

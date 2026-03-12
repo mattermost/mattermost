@@ -140,19 +140,19 @@
     // ============================
 
     &__json-key {
-        color: #0550ae;
+        color: var(--button-bg, #0550ae);
     }
 
     &__json-string {
-        color: #0a3069;
+        color: rgba(var(--center-channel-color-rgb), 0.80);
     }
 
     &__json-number {
-        color: #953800;
+        color: var(--away-indicator, #953800);
     }
 
     &__json-bool {
-        color: #953800;
+        color: var(--away-indicator, #953800);
         font-weight: 600;
     }
 
@@ -173,15 +173,15 @@
         font-weight: 700;
 
         &--error {
-            color: #cf222e;
+            color: var(--dnd-indicator, #cf222e);
         }
 
         &--warn {
-            color: #9a6700;
+            color: var(--away-indicator, #9a6700);
         }
 
         &--info {
-            color: #0550ae;
+            color: var(--button-bg, #0550ae);
         }
 
         &--debug {
@@ -190,7 +190,7 @@
     }
 
     &__log-key {
-        color: #0550ae;
+        color: var(--button-bg, #0550ae);
     }
 
     &__log-equals {
