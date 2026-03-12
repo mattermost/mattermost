@@ -30,6 +30,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -111,17 +112,17 @@ type Props = {
         /**
          * Function flag the post
          */
-        flagPost: (postId: string) => void;
+        flagPost: (postId: string) => Promise<ActionResult>;
 
         /**
          * Function to unflag the post
          */
-        unflagPost: (postId: string) => void;
+        unflagPost: (postId: string) => Promise<ActionResult>;
 
         /**
          * Function to set the editing post
          */
-        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => void;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => Promise<ActionResult>;
 
         /**
          * Function to pin the post
@@ -151,7 +152,7 @@ type Props = {
         /**
          * Function to set the thread as followed/unfollowed
          */
-        setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+        setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => Promise<ActionResult>;
 
         /**
          * Function to burn a BoR post now
@@ -360,9 +361,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(forwardPostModalData);
     };
 
-    handleEditMenuItemActivated = (): void => {
+    handleEditMenuItemActivated = async (): Promise<void> => {
         this.props.handleDropdownOpened?.(false);
-        this.props.actions.setEditingPost(
+        await this.props.actions.setEditingPost(
             this.props.post.id,
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
@@ -392,7 +393,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
+    handleMenuKeydown = async (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
         event.preventDefault();
 
         if (!forceCloseMenu) {
@@ -413,7 +414,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
             if (this.state.canEdit) {
                 forceCloseMenu();
-                this.handleEditMenuItemActivated();
+                await this.handleEditMenuItemActivated();
             }
             break;
 

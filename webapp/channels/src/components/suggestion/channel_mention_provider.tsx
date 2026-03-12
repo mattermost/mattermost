@@ -105,6 +105,10 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
 });
 ChannelMentionSuggestion.displayName = 'ChannelMentionSuggestion';
 
+function getChannelMentionTerm(channel: Channel): string {
+    return '~' + channel?.name;
+}
+
 export default class ChannelMentionProvider extends Provider {
     private lastPrefixTrimmed: string;
     private lastPrefixWithNoResults: string;
@@ -287,7 +291,7 @@ export default class ChannelMentionProvider extends Provider {
 }
 
 export function myChannelsGroup(items: Channel[]) {
-    const terms = items.map((channel) => '~' + channel?.name);
+    const terms = items.map((channel) => getChannelMentionTerm(channel));
 
     return {
         key: 'myChannels',
@@ -313,7 +317,7 @@ export function moreChannelsGroup(items: Channel[], loading: boolean) {
         };
     }
 
-    const terms = items.map((channel) => '~' + channel?.name);
+    const terms = items.map((channel) => getChannelMentionTerm(channel));
 
     return {
         key: 'moreChannels',

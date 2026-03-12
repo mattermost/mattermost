@@ -2645,6 +2645,14 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
+                            type: 'bool',
+                            key: 'PrivacySettings.UseSecureURLs',
+                            label: defineMessage({id: 'admin.privacy.useSecureURLsTitle', defaultMessage: 'Use secure channel and team URLs:'}),
+                            help_text: defineMessage({id: 'admin.privacy.useSecureURLsDescription', defaultMessage: 'When true, newly created channels and teams use randomized, non-descriptive identifiers in their URLs instead of human-readable name slugs. This prevents channel and team names from being exposed when team, channel, or message URLs are shared. **Note:** Enabling this setting does not change the URLs of existing teams and channels. To update existing URLs to use secure identifiers, use the mmctl command line tool or update them manually.'}),
+                            help_text_markdown: true,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'TeamSettings.TeammateNameDisplay',
                             label: defineMessage({id: 'admin.team.teammateNameDisplay', defaultMessage: 'Teammate Name Display:'}),

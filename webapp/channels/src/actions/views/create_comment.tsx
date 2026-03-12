@@ -10,9 +10,9 @@ import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-re
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {PostTypes} from 'mattermost-redux/constants/posts';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
     getLatestInteractablePostId,
@@ -30,11 +30,12 @@ import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
 
+import {resolveDisplayMentionsToSlugs} from 'utils/channel_mention_utils';
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 export function submitPost(
@@ -69,6 +70,13 @@ export function submitPost(
             },
             props: {...draft.props},
         } as unknown as Post;
+
+        // Resolve display-name channel mentions back to real slugs when secure URLs are enabled
+        const config = getConfig(state);
+        if (config.UseSecureURLs === 'true') {
+            const allChannelsList = Object.values(getAllChannels(state));
+            post.message = resolveDisplayMentionsToSlugs(post.message, allChannelsList);
+        }
 
         const channel = getChannel(state, channelId);
         if (!channel) {
@@ -208,8 +216,8 @@ export function onSubmit(
     };
 }
 
-export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean, GlobalState> {
-    return (dispatch, getState) => {
+export function editLatestPost(channelId: string, rootId = ''): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const lastPostId = getLatestPostToEdit(state, channelId, rootId);
