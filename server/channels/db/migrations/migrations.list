@@ -319,3 +319,7 @@ channels/db/migrations/postgres/000160_create_property_fields_typed_index.down.s
 channels/db/migrations/postgres/000160_create_property_fields_typed_index.up.sql
 channels/db/migrations/postgres/000161_add_protected_and_permissions_to_property_fields.down.sql
 channels/db/migrations/postgres/000161_add_protected_and_permissions_to_property_fields.up.sql
+channels/db/migrations/postgres/000162_create_views.down.sql
+channels/db/migrations/postgres/000162_create_views.up.sql
+channels/db/migrations/postgres/000163_create_views_channel_id_delete_at_index.down.sql
+channels/db/migrations/postgres/000163_create_views_channel_id_delete_at_index.up.sql

@@ -7,14 +7,14 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji} from '@mattermost/types/emojis';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import {scheduledPostToPost} from '@mattermost/types/schedule_post';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
@@ -26,6 +26,7 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {unifiedToUnicode} from 'utils/emoji_utils';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -502,13 +503,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const emojiAlias = getEmojiName(emoji);
-        if (!emojiAlias) {
-            //Oops.. There went something wrong
-            return;
+        let emojiText: string;
+        if (isSystemEmoji(emoji)) {
+            emojiText = unifiedToUnicode((emoji as SystemEmoji).unified);
+        } else {
+            const emojiAlias = getEmojiName(emoji);
+            if (!emojiAlias) {
+                return;
+            }
+            emojiText = `:${emojiAlias}:`;
         }
 
-        let newMessage = `:${emojiAlias}: `;
+        const isUnicode = isSystemEmoji(emoji);
+        let newMessage = isUnicode ? emojiText : `${emojiText} `;
         let newCaretPosition = newMessage.length;
 
         if (editText.length > 0) {
@@ -517,10 +524,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 editText,
             );
 
-            // check whether the first piece of the message is empty when cursor
-            // is placed at beginning of message and avoid adding an empty string at the beginning of the message
-            newMessage = firstPiece === '' ? `:${emojiAlias}: ${lastPiece}` : `${firstPiece} :${emojiAlias}: ${lastPiece}`;
-            newCaretPosition = firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
+            if (isUnicode) {
+                newMessage = firstPiece + emojiText + lastPiece;
+                newCaretPosition = firstPiece.length + emojiText.length;
+            } else {
+                newMessage = firstPiece === '' ? `${emojiText} ${lastPiece}` : `${firstPiece} ${emojiText} ${lastPiece}`;
+                newCaretPosition = firstPiece === '' ? `${emojiText} `.length : `${firstPiece} ${emojiText} `.length;
+            }
         }
 
         draftRef.current = {

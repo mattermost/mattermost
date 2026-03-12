@@ -90,6 +90,7 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	View() ViewStore
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
@@ -492,6 +493,7 @@ type UserStore interface {
 	AnalyticsGetExternalUsers(hostDomain string) (bool, error)
 	AnalyticsGetSystemAdminCount() (int64, error)
 	AnalyticsGetGuestCount() (int64, error)
+	AnalyticsGetSingleChannelGuestCount() (int64, error)
 	GetProfilesNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetEtagForProfilesNotInTeam(teamID string) string
 	ClearAllCustomRoleAssignments() error
@@ -1101,6 +1103,14 @@ type ChannelBookmarkStore interface {
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
+type ViewStore interface {
+	Save(view *model.View) (*model.View, error)
+	Get(id string) (*model.View, error)
+	GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error)
+	Update(view *model.View) (*model.View, error)
+	Delete(viewID string, deleteAt int64) error
+}
+
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
 	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
@@ -1151,6 +1161,7 @@ type AccessControlPolicyStore interface {
 	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
 }
 
 type AttributesStore interface {
