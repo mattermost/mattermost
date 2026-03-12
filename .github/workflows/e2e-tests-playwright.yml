@@ -58,6 +58,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      ANTHROPIC_API_KEY:
+        required: false
 
 jobs:
   generate-build-variables:

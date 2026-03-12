@@ -176,6 +176,9 @@ test('Reply posted in thread popout appears in the thread', async ({pw}) => {
     // Verify the reply appears in the popout
     await expect(popoutPage.getByText(popoutReply)).toBeVisible({timeout: 10000});
 
+    // Verify the reply also appears in the original thread RHS
+    await expect(channelsPage.sidebarRight.container.getByText(popoutReply)).toBeVisible({timeout: 10000});
+
     await popoutPage.close();
 });
 
@@ -223,8 +226,8 @@ test('Thread popout shows Following button and channel link', async ({pw}) => {
     // Verify Follow button is present (user hasn't replied, so it shows "Follow" not "Following")
     await expect(popoutPage.getByText('Follow', {exact: true})).toBeVisible({timeout: 10000});
 
-    // Verify the channel name is displayed in the popout header
-    await expect(popoutPage.getByText(channel.display_name)).toBeVisible();
+    // Verify the channel name is displayed as a link in the popout header
+    await expect(popoutPage.getByRole('link', {name: channel.display_name})).toBeVisible();
 
     // Verify header shows "Thread" label
     await expect(popoutPage.getByText('Thread', {exact: true}).first()).toBeVisible();

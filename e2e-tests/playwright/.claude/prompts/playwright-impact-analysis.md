@@ -13,7 +13,7 @@ Steps:
    npx e2e-ai-agents plan --config ./e2e-ai-agents.config.json --since <since-ref> --no-ai
    (Drop --no-ai if AI enrichment requested and ANTHROPIC_API_KEY is set)
 
-2. Read e2e-tests/playwright/.e2e-ai-agents/plan.json
+2. Read .e2e-ai-agents/plan.json
 
 3. Present:
    - Decision: safe-to-merge / run-now / must-add-tests
