@@ -338,12 +338,13 @@ func TestScheduledPostToPost(t *testing.T) {
 	})
 
 	t.Run("with metadata but no priority preserves metadata", func(t *testing.T) {
+		embeds := []*PostEmbed{{Type: PostEmbedImage, URL: "http://example.com/img.png"}}
 		s := ScheduledPost{
 			Draft: Draft{
 				UserId:    NewId(),
 				ChannelId: NewId(),
 				Message:   "test",
-				Metadata:  &PostMetadata{},
+				Metadata:  &PostMetadata{Embeds: embeds},
 			},
 			Id: NewId(),
 		}
@@ -352,6 +353,7 @@ func TestScheduledPostToPost(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, post.Metadata)
 		assert.Nil(t, post.Metadata.Priority)
+		assert.Equal(t, embeds, post.Metadata.Embeds)
 	})
 
 	t.Run("with valid priority", func(t *testing.T) {
@@ -382,12 +384,13 @@ func TestScheduledPostToPost(t *testing.T) {
 	})
 
 	t.Run("with valid priority and existing metadata", func(t *testing.T) {
+		embeds := []*PostEmbed{{Type: PostEmbedLink, URL: "http://example.com"}}
 		s := ScheduledPost{
 			Draft: Draft{
 				UserId:    NewId(),
 				ChannelId: NewId(),
 				Message:   "test",
-				Metadata:  &PostMetadata{},
+				Metadata:  &PostMetadata{Embeds: embeds},
 				Priority: StringInterface{
 					"priority":                 "important",
 					"requested_ack":            false,
@@ -403,6 +406,7 @@ func TestScheduledPostToPost(t *testing.T) {
 		require.NotNil(t, post.Metadata.Priority)
 		require.NotNil(t, post.Metadata.Priority.Priority)
 		assert.Equal(t, "important", *post.Metadata.Priority.Priority)
+		assert.Equal(t, embeds, post.Metadata.Embeds)
 	})
 
 	t.Run("error when priority is not a string", func(t *testing.T) {
