@@ -47,7 +47,7 @@ type MenuButtonProps = {
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
-    as?: keyof JSX.IntrinsicElements;
+    as?: 'button' | 'div';
     children: ReactNode;
 }
 
@@ -134,6 +134,10 @@ export function Menu(props: Props) {
     const dispatch = useDispatch();
 
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
+    const menuButtonRef = useRef<HTMLElement | null>(null);
+    const menuButtonCallbackRef = useCallback((node: HTMLElement | null) => {
+        menuButtonRef.current = node;
+    }, []);
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
@@ -242,6 +246,7 @@ export function Menu(props: Props) {
 
         const triggerElement = (
             <MenuButtonComponent
+                ref={menuButtonCallbackRef}
                 id={props.menuButton.id}
                 data-testid={props.menuButton.dataTestId}
                 aria-controls={props.menu.id}
@@ -285,9 +290,8 @@ export function Menu(props: Props) {
         prevIsMenuOpenRef.current = props.menu.isMenuOpen;
 
         if (props.menu.isMenuOpen === true && !anchorElement) {
-            const button = document.getElementById(props.menuButton.id);
-            if (button) {
-                setAnchorElement(button);
+            if (menuButtonRef.current) {
+                setAnchorElement(menuButtonRef.current);
             }
         } else if (props.menu.isMenuOpen === false && anchorElement) {
             setAnchorElement(null);
