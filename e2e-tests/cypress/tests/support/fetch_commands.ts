@@ -3,6 +3,12 @@
 
 import {ChainableT} from 'tests/types';
 
+declare global {
+    interface Window {
+        mockWebsockets: any[];
+    }
+}
+
 function delayRequestToRoutes(routes: string[] = [], delay = 0) {
     cy.on('window:before:load', (win) => addDelay(win, routes, delay));
 }
@@ -46,8 +52,8 @@ const mockWebsocketsFn = (win) => {
             send(data) {
                 if (this.wrappedSocket) {
                     this.wrappedSocket.send(data);
-                } else {
-                    onerror();
+                } else if (this.onerror) {
+                    this.onerror(new Event('error'));
                 }
             },
             close() {
