@@ -41,6 +41,10 @@ const (
 	PermissionLevelNone     PermissionLevel = "none"
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
+
+	PropertyFieldObjectTypePost    = "post"
+	PropertyFieldObjectTypeChannel = "channel"
+	PropertyFieldObjectTypeUser    = "user"
 )
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
@@ -48,6 +52,13 @@ var validPSAv2TargetTypes = []string{
 	string(PropertyFieldTargetLevelSystem),
 	string(PropertyFieldTargetLevelTeam),
 	string(PropertyFieldTargetLevelChannel),
+}
+
+// validPropertyFieldObjectTypes contains all valid ObjectType values for PSAv2 properties.
+var validPropertyFieldObjectTypes = []string{
+	PropertyFieldObjectTypePost,
+	PropertyFieldObjectTypeChannel,
+	PropertyFieldObjectTypeUser,
 }
 
 type PropertyField struct {
@@ -296,9 +307,15 @@ func (pf *PropertyField) IsPSAv1() bool {
 }
 
 // IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
-// PSAv2 target level (system, team, or channel).
+// PSAv2 target level
 func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {
 	return slices.Contains(validPSAv2TargetTypes, targetType)
+}
+
+// IsValidPropertyFieldObjectType checks if the given ObjectType string is a valid
+// property field object type
+func IsValidPropertyFieldObjectType(objectType string) bool {
+	return slices.Contains(validPropertyFieldObjectTypes, objectType)
 }
 
 type PropertyFieldSearchCursor struct {
@@ -323,6 +340,16 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 		return errors.New("property field id is invalid")
 	}
 	return nil
+}
+
+// PropertyFieldSearch captures the parameters provided by a client for
+// searching property fields
+type PropertyFieldSearch struct {
+	TargetType     string `json:"target_type,omitempty"`
+	TargetID       string `json:"target_id,omitempty"`
+	CursorID       string `json:"cursor_id,omitempty"`
+	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
+	PerPage        int    `json:"per_page"`
 }
 
 type PropertyFieldSearchOpts struct {

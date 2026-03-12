@@ -1,12 +1,18 @@
-  "/api/v4/properties/{object_type}/fields":
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields":
     post:
       tags:
         - properties
       summary: Create a property field
       description: >
-        Create a new property field for a specific object type (e.g., 'post', 'channel').
+        Create a new property field for a specific group and object type.
       operationId: CreatePropertyField
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
           description: The type of object this property field applies to
@@ -19,29 +25,43 @@
             schema:
               type: object
               required:
-                - group_id
                 - name
                 - type
                 - target_type
               properties:
-                group_id:
-                  type: string
-                  description: The ID of the group this property field belongs to
                 name:
                   type: string
                   description: The name of the property field
                 type:
                   type: string
-                  description: The type of property
+                  description: The type of property field
                 attrs:
                   type: object
                   description: Additional attributes for the property field
                 target_type:
                   type: string
-                  description: The scope level of the property ('system', 'team', or 'channel')
+                  description: The scope level of the property
                 target_id:
                   type: string
-                  description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
+                  description: The ID of the target
+                permission_field:
+                  type: string
+                  description: >
+                    Permission level for editing the field definition.
+                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_values:
+                  type: string
+                  description: >
+                    Permission level for setting values on objects.
+                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_options:
+                  type: string
+                  description: >
+                    Permission level for managing options on select/multiselect fields.
+                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                  default: member
         description: Property field object to create
         required: true
       responses:
@@ -62,36 +82,42 @@
         - properties
       summary: Get property fields
       description: >
-        Get a list of property fields for a specific object type. Filter by target_type and target_id to narrow results.
+        Get a list of property fields for a specific group and object type. Filter by target_type and target_id to narrow results. Uses cursor-based pagination.
       operationId: GetPropertyFields
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
-          description: The type of object to retrieve property fields for (e.g., 'post', 'channel')
+          description: The type of object to retrieve property fields for
           required: true
           schema:
             type: string
         - name: target_type
           in: query
-          description: Filter by target type ('system', 'team', or 'channel')
+          description: Filter by target type
           schema:
             type: string
         - name: target_id
           in: query
-          description: Filter by target ID (team ID or channel ID)
+          description: Filter by target ID. Required when target_type is 'channel' or 'team'.
           schema:
             type: string
-        - name: group_id
+        - name: cursor_id
           in: query
-          description: Filter by group ID
+          description: The ID of the last property field from the previous page, for cursor-based pagination.
           schema:
             type: string
-        - name: page
+        - name: cursor_create_at
           in: query
-          description: The page to select.
+          description: The create_at timestamp of the last property field from the previous page. Must be provided together with cursor_id.
           schema:
             type: integer
-            default: 0
+            format: int64
         - name: per_page
           in: query
           description: The number of property fields per page.
@@ -113,7 +139,7 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-  "/api/v4/properties/{object_type}/fields/{field_id}":
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
     patch:
       tags:
         - properties
@@ -122,9 +148,15 @@
         Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
       operationId: UpdatePropertyField
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
-          description: The type of object this property field applies to (e.g., 'post', 'channel')
+          description: The type of object this property field applies to
           required: true
           schema:
             type: string
@@ -164,9 +196,15 @@
         Deletes a property field and all its associated values.
       operationId: DeletePropertyField
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
-          description: The type of object this property field applies to (e.g., 'post', 'channel')
+          description: The type of object this property field applies to
           required: true
           schema:
             type: string
@@ -191,27 +229,50 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/properties/{object_type}/values/{target_id}":
+  "/api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}":
     get:
       tags:
         - properties
       summary: Get property values for a target
       description: >
-        Get all property values for a specific target (e.g., all property values for a specific post).
+        Get all property values for a specific target within a group.
       operationId: GetPropertyValues
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
-          description: The type of object (e.g., 'post', 'channel')
+          description: The type of object
           required: true
           schema:
             type: string
         - name: target_id
           in: path
-          description: The ID of the target object (e.g., post ID, channel ID)
+          description: The ID of the target object
           required: true
           schema:
             type: string
+        - name: cursor_id
+          in: query
+          description: The ID of the last property value from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: The create_at timestamp of the last property value from the previous page. Must be provided together with cursor_id.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property values per page.
+          schema:
+            type: integer
+            default: 60
       responses:
         "200":
           description: Property values retrieval successful
@@ -227,25 +288,29 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
     patch:
       tags:
         - properties
       summary: Update property values for a target
       description: >
-        Update one or more property values for a specific target. Only the provided property values will be updated; others remain unchanged.
+        Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
       operationId: UpdatePropertyValues
       parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
         - name: object_type
           in: path
-          description: The type of object (e.g., 'post', 'channel')
+          description: The type of object
           required: true
           schema:
             type: string
         - name: target_id
           in: path
-          description: The ID of the target object (e.g., post ID, channel ID)
+          description: The ID of the target object
           required: true
           schema:
             type: string
@@ -264,8 +329,7 @@
                     type: string
                     description: The ID of the property field
                   value:
-                    type: string
-                    description: The value to set for this property
+                    description: The value to set for this property. Can be any JSON type.
         description: Array of property values to update
         required: true
       responses:
@@ -283,5 +347,3 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"

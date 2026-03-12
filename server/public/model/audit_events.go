@@ -127,6 +127,20 @@ const (
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
 )
 
+// Property Fields
+const (
+	AuditEventCreatePropertyField = "createPropertyField" // create property field
+	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
+	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
+	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Values
+const (
+	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
+	AuditEventPatchPropertyValues = "patchPropertyValues"  // update property values for target
+)
+
 // Data Retention Policies
 const (
 	AuditEventAddChannelsToPolicy      = "addChannelsToPolicy"      // add channels to data retention policy

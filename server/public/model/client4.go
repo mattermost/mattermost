@@ -661,6 +661,18 @@ func (c *Client4) customProfileAttributeValuesRoute() clientRoute {
 	return c.customProfileAttributesRoute().Join("values")
 }
 
+func (c *Client4) propertyFieldsRoute(groupName, objectType string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "fields")
+}
+
+func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
+}
+
+func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
+}
+
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
 	return newClientRoute("access_control_policies")
 }
@@ -7787,6 +7799,79 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
+}
+
+func (c *Client4) CreatePropertyField(ctx context.Context, groupName, objectType string, field *PropertyField) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsRoute(groupName, objectType), field)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+// GetPropertyFields returns property fields matching the given search parameters.
+func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	values := url.Values{}
+	values.Set("per_page", strconv.Itoa(search.PerPage))
+	if search.TargetType != "" {
+		values.Set("target_type", search.TargetType)
+	}
+	if search.TargetID != "" {
+		values.Set("target_id", search.TargetID)
+	}
+	if search.CursorID != "" {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) PatchPropertyField(ctx context.Context, groupName, objectType, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldRoute(groupName, objectType, fieldID), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType, fieldID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.propertyFieldRoute(groupName, objectType, fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	values.Set("per_page", strconv.Itoa(search.PerPage))
+	if search.CursorID != "" {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType, targetID string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyValuesRoute(groupName, objectType, targetID), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
 }
 
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {

@@ -121,6 +121,11 @@ type Params struct {
 
 	// Custom Profile Attributes
 	FieldId string
+
+	// Properties
+	GroupName  string
+	ObjectType string
+	TargetId   string
 }
 
 var getChannelMembersForUserRegex = regexp.MustCompile("/api/v4/users/[A-Za-z0-9]{26}/channel_members")
@@ -193,6 +198,9 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
 	params.FieldId = props["field_id"]
+	params.GroupName = props["group_name"]
+	params.ObjectType = props["object_type"]
+	params.TargetId = props["target_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || (val < 0 && params.UserId == "" && !getChannelMembersForUserRegex.MatchString(r.URL.Path)) {
