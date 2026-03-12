@@ -607,17 +607,17 @@
         &__format {
             display: flex;
             align-items: center;
-            gap: 12px;
             font-size: 13px;
+            gap: 12px;
             white-space: nowrap;
 
             label {
                 display: flex;
                 align-items: center;
-                gap: 4px;
                 margin: 0;
                 cursor: pointer;
                 font-weight: 400;
+                gap: 4px;
             }
 
             input[type='radio'] {

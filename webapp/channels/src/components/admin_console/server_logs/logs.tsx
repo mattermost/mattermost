@@ -221,7 +221,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     ) : (
         <LogList
             loading={loading}
-            logs={displayLogs as Array<LogObject & {[key: string]: string}>}
+            logs={displayLogs as LogObjectWithAdditionalInfo[]}
             onSearchChange={onSearchChange}
             search={search}
             onReload={reload}

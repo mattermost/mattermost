@@ -6,13 +6,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 
+import './log_list.scss';
+
 function copyToClipboard(text: string): void {
-    copyToClipboard(text).catch(() => {
+    navigator.clipboard.writeText(text).catch(() => {
         // Fallback: noop if clipboard API unavailable (e.g. non-HTTPS)
     });
 }
-
-import './log_list.scss';
 
 type Props = {
     log: LogObjectWithAdditionalInfo;
