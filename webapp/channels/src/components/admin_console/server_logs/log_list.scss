@@ -101,6 +101,11 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
+
+        &:focus-within {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 1px var(--button-bg);
+        }
     }
 
     &__search-icon {
