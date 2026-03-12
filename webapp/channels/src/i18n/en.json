@@ -1787,7 +1787,7 @@
   "admin.logs.pageOf": "Page {page, number} of {total, number}",
   "admin.logs.plain.loading": "Loading...",
   "admin.logs.plain.noLogs": "No logs to display.",
-  "admin.logs.plain.pageInfo": "Page {page, number} · {count, number} lines",
+  "admin.logs.plain.pageInfo": "Page {page, number} · {count, plural, one {# line} other {# lines}}",
   "admin.logs.prevPage": "Previous page",
   "admin.logs.refreshing": "Refreshing...",
   "admin.logs.reload": "Reload",
