@@ -153,8 +153,7 @@ func extractPortFromConfig(configPath string) string {
 	}
 
 	// Handle :port format (most common)
-	if strings.HasPrefix(addr, ":") {
-		port := strings.TrimPrefix(addr, ":")
+	if port, ok := strings.CutPrefix(addr, ":"); ok {
 		// Check if it's a numeric port (not a service name like :http)
 		if port != "" && port[0] >= '0' && port[0] <= '9' {
 			return port
@@ -348,7 +347,7 @@ func createTarGzArchive(sourceDir string, outputPath string) error {
 		header.Mode = 0600
 
 		// Write header
-		if err := tarWriter.WriteHeader(header); err != nil {
+		if err = tarWriter.WriteHeader(header); err != nil {
 			return fmt.Errorf("failed to write tar header for %s: %w", relPath, err)
 		}
 

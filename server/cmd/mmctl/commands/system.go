@@ -279,7 +279,7 @@ func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
 			// Preserve temp directory so user can manually recover collected files
 			return
 		}
-		if err := os.RemoveAll(tempDir); err != nil {
+		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
 			printer.PrintError(fmt.Sprintf("Warning: Failed to cleanup temporary directory: %s", tempDir))
 		}
 	}()
