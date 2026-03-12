@@ -62,7 +62,6 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 }
 
 // GetEffectiveLimits returns the resolved recap limits for a given user.
-// Currently returns system defaults; Phase 8 will add group/user resolution.
 func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError) {
 	config := a.Config()
 	settings := &config.AIRecapSettings
