@@ -3,6 +3,7 @@
 
 import React, {useCallback, useState, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 
@@ -130,15 +131,15 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     return (
         <span className='LogRow__detail-value LogRow__detail-value--mono'>
             {isLinkable ? (
-                <a
+                <Link
                     className='LogRow__detail-link'
-                    href={adminPath + value}
+                    to={adminPath + value}
                     onClick={(e) => e.stopPropagation()}
                     title={intl.formatMessage({id: 'admin.logs.viewInAdmin', defaultMessage: 'View in admin console'})}
                 >
                     {value}
                     <i className='icon icon-open-in-new LogRow__detail-link-icon'/>
-                </a>
+                </Link>
             ) : (
                 value
             )}
