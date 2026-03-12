@@ -1796,7 +1796,7 @@
   "admin.logs.scrollToBottom": "Scroll to bottom",
   "admin.logs.search.clear": "Clear search",
   "admin.logs.search.placeholder": "Search logs...",
-  "admin.logs.secondsAgo": "{n}s ago",
+  "admin.logs.secondsAgo": "{n, number}s ago",
   "admin.logs.showing": "{start, number}-{end, number} of {total, number}",
   "admin.logs.title": "Server Logs",
   "admin.logs.viewInAdmin": "View in admin console",
