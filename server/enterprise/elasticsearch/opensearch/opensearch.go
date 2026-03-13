@@ -495,22 +495,61 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 
 		if params.IsHashtag {
 			if params.Terms != "" {
-				query := types.Query{
+				hashtagQuery := types.Query{
 					SimpleQueryString: &types.SimpleQueryStringQuery{
 						Query:           params.Terms,
 						Fields:          []string{"hashtags"},
 						DefaultOperator: &termOperator,
 					},
 				}
+				// Also search message and attachments so that hashtag-like
+				// strings inside attachment content (e.g. footer) are found.
+				query := types.Query{
+					Bool: &types.BoolQuery{Should: []types.Query{
+						hashtagQuery,
+						{
+							SimpleQueryString: &types.SimpleQueryStringQuery{
+								Query:           params.Terms,
+								Fields:          os.getFieldVariants("message", params.Terms),
+								DefaultOperator: &termOperator,
+							},
+						},
+						{
+							SimpleQueryString: &types.SimpleQueryStringQuery{
+								Query:           params.Terms,
+								Fields:          os.getFieldVariants("attachments", params.Terms),
+								DefaultOperator: &termOperator,
+							},
+						},
+					}},
+				}
 				termQueries = append(termQueries, query)
 				highlightQueries = append(highlightQueries, query)
 			} else if params.ExcludedTerms != "" {
 				query := types.Query{
-					SimpleQueryString: &types.SimpleQueryStringQuery{
-						Query:           params.ExcludedTerms,
-						Fields:          []string{"hashtags"},
-						DefaultOperator: &termOperator,
-					},
+					Bool: &types.BoolQuery{Should: []types.Query{
+						{
+							SimpleQueryString: &types.SimpleQueryStringQuery{
+								Query:           params.ExcludedTerms,
+								Fields:          []string{"hashtags"},
+								DefaultOperator: &termOperator,
+							},
+						},
+						{
+							SimpleQueryString: &types.SimpleQueryStringQuery{
+								Query:           params.ExcludedTerms,
+								Fields:          os.getFieldVariants("message", params.ExcludedTerms),
+								DefaultOperator: &termOperator,
+							},
+						},
+						{
+							SimpleQueryString: &types.SimpleQueryStringQuery{
+								Query:           params.ExcludedTerms,
+								Fields:          os.getFieldVariants("attachments", params.ExcludedTerms),
+								DefaultOperator: &termOperator,
+							},
+						},
+					}},
 				}
 				notTermQueries = append(notTermQueries, query)
 			}
