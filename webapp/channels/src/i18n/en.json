@@ -6308,7 +6308,7 @@
   "team_members_dropdown.teamAdmins": "Team Admins",
   "team_members_dropdown.teamMembers": "Team Members",
   "team_settings_modal.accessPoliciesTab": "Membership Policies",
-  "team_settings_modal.accessTab": "Membership",
+  "team_settings_modal.accessTab": "Access",
   "team_settings_modal.infoTab": "Info",
   "team_settings_modal.title": "Team Settings",
   "team_settings.access_policies.add_policy": "Add policy",

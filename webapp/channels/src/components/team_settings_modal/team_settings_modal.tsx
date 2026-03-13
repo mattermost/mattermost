@@ -114,7 +114,7 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
         },
         {
             name: 'access',
-            uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Membership'}),
+            uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}),
             icon: 'icon icon-account-multiple-outline',
             iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'}),
             display: canInviteUsers,

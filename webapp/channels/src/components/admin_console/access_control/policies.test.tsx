@@ -112,7 +112,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
         });
 
         // Open the three-dot menu
-        const menuButton = screen.getByRole('button', {name: 'Policy actions menu'});
+        const menuButton = document.getElementById('policy-menu-policy1')!;
         await userEvent.click(menuButton);
 
         // Edit should be present, Delete should not
@@ -135,7 +135,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
         });
 
         // Open the three-dot menu
-        const menuButton = screen.getByRole('button', {name: 'Policy actions menu'});
+        const menuButton = document.getElementById('policy-menu-policy1')!;
         await userEvent.click(menuButton);
 
         // Both Edit and Delete should be present

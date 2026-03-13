@@ -285,8 +285,15 @@ export default function TeamPolicyEditor({
                 }
             }
 
-            // Always trigger sync on save
-            await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
+            // Trigger sync only when rules or channels changed
+            const hasRuleOrChannelChanges = expression !== originalExpression ||
+                Object.keys(channelChanges.added).length > 0 ||
+                channelChanges.removedCount > 0 ||
+                policyActiveStatusChanges.length > 0 ||
+                !policyId;
+            if (hasRuleOrChannelChanges) {
+                await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
+            }
 
             setShowConfirmationModal(false);
             onNavigateBack(policyId ? formatMessage({id: 'team_settings.policy_editor.policy_updated', defaultMessage: 'Policy updated'}) : formatMessage({id: 'team_settings.policy_editor.policy_saved', defaultMessage: 'Policy saved'}));
@@ -297,15 +304,24 @@ export default function TeamPolicyEditor({
         } finally {
             setSaving(false);
         }
-    }, [validateForm, policyId, policyName, expression, channelChanges, policyActiveStatusChanges, actions, abacActions, teamId, onNavigateBack]);
+    }, [validateForm, policyId, policyName, expression, originalExpression, channelChanges, policyActiveStatusChanges, actions, abacActions, teamId, onNavigateBack, formatMessage]);
 
     const handleSaveChanges = useCallback(async () => {
         setFormError('');
         if (!await validateForm()) {
             return;
         }
-        setShowConfirmationModal(true);
-    }, [validateForm]);
+        const hasRuleOrChannelChanges = expression !== originalExpression ||
+            Object.keys(channelChanges.added).length > 0 ||
+            channelChanges.removedCount > 0 ||
+            policyActiveStatusChanges.length > 0 ||
+            !policyId;
+        if (hasRuleOrChannelChanges) {
+            setShowConfirmationModal(true);
+        } else {
+            await handleSave();
+        }
+    }, [validateForm, expression, originalExpression, channelChanges, policyActiveStatusChanges, policyId, handleSave]);
 
     const handleCancel = useCallback(() => {
         setPolicyName(originalName);
@@ -356,7 +372,7 @@ export default function TeamPolicyEditor({
                     className='style--none TeamPolicyEditor__back-btn'
                     onClick={() => onNavigateBack()}
                 >
-                    <i className='fa fa-angle-left'/>
+                    <i className='icon icon-arrow-left'/>
                     <FormattedMessage
                         id={policyId ? 'team_settings.policy_editor.edit_title' : 'team_settings.policy_editor.add_title'}
                         defaultMessage={policyId ? 'Edit membership policy' : 'Add membership policy'}
@@ -442,7 +458,7 @@ export default function TeamPolicyEditor({
                         </h4>
                         <p className='TeamPolicyEditor__section-subtitle'>
                             <FormattedMessage
-                                id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
+                                id='team_settings.policy_editor.channel_selector.subtitle'
                                 defaultMessage='Add channels that this membership policy will apply to.'
                             />
                         </p>
