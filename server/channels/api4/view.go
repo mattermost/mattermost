@@ -363,33 +363,8 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 // checkViewWritePermission checks that the user has permission to write (create/update/delete) views
 // in the given channel. Returns true if permission is granted, false otherwise (with c.Err set).
 func checkViewWritePermission(c *Context, channel *model.Channel) bool {
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelProperties); !ok {
-			c.SetPermissionError(model.PermissionManagePublicChannelProperties)
-			return false
-		}
-	case model.ChannelTypePrivate:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelProperties); !ok {
-			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
-			return false
-		}
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("checkViewWritePermission", "api.view.write.dm_gm.forbidden.app_error", nil, "", http.StatusForbidden).Wrap(errGet)
-			return false
-		}
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return false
-		}
-		if user.IsGuest() {
-			c.Err = model.NewAppError("checkViewWritePermission", "api.view.write.guest.forbidden.app_error", nil, "", http.StatusForbidden)
-			return false
-		}
-	default:
-		c.Err = model.NewAppError("checkViewWritePermission", "api.view.write.forbidden.app_error", nil, "", http.StatusForbidden)
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost); !ok {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return false
 	}
 	return true

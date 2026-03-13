@@ -108,37 +108,12 @@ func TestCreateView(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("permission denied on public channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	t.Run("permission denied without create_post", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		view := makeTestViewForAPI()
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("permission denied on private channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-
-		view := makeTestViewForAPI()
-		_, resp, err := th.Client.CreateView(context.Background(), th.BasicPrivateChannel.Id, view)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("guest in DM/GM is rejected", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		guest, guestClient := th.CreateGuestAndClient(t)
-
-		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
-		require.Nil(t, appErr)
-
-		view := makeTestViewForAPI()
-		_, resp, err := guestClient.CreateView(context.Background(), dm.Id, view)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -436,9 +411,9 @@ func TestUpdateView(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("permission denied on public channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	t.Run("permission denied without create_post", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicChannel.Id, view)
@@ -446,20 +421,6 @@ func TestUpdateView(t *testing.T) {
 
 		newTitle := "Title"
 		_, resp, err := th.Client.UpdateView(context.Background(), th.BasicChannel.Id, created.Id, &model.ViewPatch{Title: &newTitle})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("permission denied on private channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-
-		view := makeTestViewForAPI()
-		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicPrivateChannel.Id, view)
-		require.NoError(t, err)
-
-		newTitle := "Title"
-		_, resp, err := th.Client.UpdateView(context.Background(), th.BasicPrivateChannel.Id, created.Id, &model.ViewPatch{Title: &newTitle})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -515,28 +476,15 @@ func TestDeleteView(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("permission denied on public channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	t.Run("permission denied without create_post", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
 		resp, err := th.Client.DeleteView(context.Background(), th.BasicChannel.Id, created.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("permission denied on private channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-
-		view := makeTestViewForAPI()
-		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicPrivateChannel.Id, view)
-		require.NoError(t, err)
-
-		resp, err := th.Client.DeleteView(context.Background(), th.BasicPrivateChannel.Id, created.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -614,9 +562,9 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("permission denied on public channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	t.Run("permission denied without create_post", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		channel := th.CreatePublicChannel(t)
 		v := makeTestViewForAPI()
@@ -624,19 +572,6 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), channel.Id, created.Id, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("permission denied on private channel", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-
-		v := makeTestViewForAPI()
-		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicPrivateChannel.Id, v)
-		require.NoError(t, err)
-
-		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), th.BasicPrivateChannel.Id, created.Id, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

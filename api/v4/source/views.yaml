@@ -78,10 +78,7 @@
         __Minimum server version__: 11.6
 
         ##### Permissions
-        Must have the `manage_public_channel_properties` or
-        `manage_private_channel_properties` permission depending
-        on the channel type. If the channel is a DM or GM, must
-        be a non-guest member.
+        Must have `create_post` permission for the channel.
       operationId: CreateChannelView
       parameters:
         - name: channel_id
@@ -198,10 +195,7 @@
         __Minimum server version__: 11.6
 
         ##### Permissions
-        Must have the `manage_public_channel_properties` or
-        `manage_private_channel_properties` permission depending
-        on the channel type. If the channel is a DM or GM, must
-        be a non-guest member.
+        Must have `create_post` permission for the channel.
       operationId: UpdateChannelView
       parameters:
         - name: channel_id
@@ -251,10 +245,7 @@
         __Minimum server version__: 11.6
 
         ##### Permissions
-        Must have the `manage_public_channel_properties` or
-        `manage_private_channel_properties` permission depending
-        on the channel type. If the channel is a DM or GM, must
-        be a non-guest member.
+        Must have `create_post` permission for the channel.
       operationId: DeleteChannelView
       parameters:
         - name: channel_id
@@ -300,10 +291,7 @@
         __Minimum server version__: 11.6
 
         ##### Permissions
-        Must have the `manage_public_channel_properties` or
-        `manage_private_channel_properties` permission depending
-        on the channel type. If the channel is a DM or GM, must
-        be a non-guest member.
+        Must have `create_post` permission for the channel.
       operationId: UpdateChannelViewSortOrder
       parameters:
         - name: channel_id
