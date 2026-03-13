@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -239,6 +241,24 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("workers exceeds max", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		tooMany := runtime.NumCPU()*4 + 1
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		_ = cmd.Flags().Set("workers", strconv.Itoa(tooMany))
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "exceeds maximum allowed")
+		s.Empty(printer.GetLines())
+		s.Empty(printer.GetErrorLines())
 	})
 
 	s.Run("custom workers", func() {
