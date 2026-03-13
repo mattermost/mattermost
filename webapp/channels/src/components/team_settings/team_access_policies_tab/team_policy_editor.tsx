@@ -14,12 +14,9 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
 import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import Input from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -35,21 +32,6 @@ import './team_policy_editor.scss';
 const SAVE_RESULT_SAVED = 'saved' as const;
 const SAVE_RESULT_ERROR = 'error' as const;
 const DEFAULT_PAGE_SIZE = 10;
-
-function isSimpleExpression(expr: string): boolean {
-    if (!expr) {
-        return true;
-    }
-    return expr.split('&&').every((condition) => {
-        const trimmed = condition.trim();
-        return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-               trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-               trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
-               trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-               trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-               trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
-    });
-}
 
 interface ChannelChanges {
     removed: Record<string, ChannelWithTeamData>;
@@ -68,7 +50,7 @@ type Props = {
     accessControlSettings: AccessControlSettings;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
-    onNavigateBack: () => void;
+    onNavigateBack: (successMessage?: string) => void;
     actions: {
         fetchPolicy: (id: string) => Promise<ActionResult>;
         createPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
@@ -98,9 +80,6 @@ export default function TeamPolicyEditor({
     const [originalName, setOriginalName] = useState('');
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
-
-    // Editor mode
-    const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
 
     // Channel state
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({removed: {}, added: {}, removedCount: 0});
@@ -310,7 +289,7 @@ export default function TeamPolicyEditor({
             await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
 
             setShowConfirmationModal(false);
-            onNavigateBack();
+            onNavigateBack(policyId ? formatMessage({id: 'team_settings.policy_editor.policy_updated', defaultMessage: 'Policy updated'}) : formatMessage({id: 'team_settings.policy_editor.policy_saved', defaultMessage: 'Policy saved'}));
         } catch (error: any) {
             setFormError(error.message || 'An error occurred');
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
@@ -359,24 +338,12 @@ export default function TeamPolicyEditor({
             if (result.error?.server_error_id) {
                 throw new Error(result.error.message || 'Failed to delete policy');
             }
-            onNavigateBack();
+            onNavigateBack(formatMessage({id: 'team_settings.policy_editor.policy_deleted', defaultMessage: 'Policy deleted'}));
         } catch (error: any) {
             setFormError(error.message || 'Error deleting policy');
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
         }
-    }, [policyId, actions, onNavigateBack, channelChanges]);
-
-    const filteredAttributes = useMemo(() => {
-        return autocompleteResult.filter((attr) => {
-            if (accessControlSettings.EnableUserManagedAttributes) {
-                return true;
-            }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return isSynced || isAdminManaged || isProtected;
-        }).map((attr) => ({attribute: attr.name, values: []}));
-    }, [autocompleteResult, accessControlSettings.EnableUserManagedAttributes]);
+    }, [policyId, actions, onNavigateBack, channelChanges, formatMessage]);
 
     const hasErrors = formError.length > 0;
     const nameHasError = hasErrors && policyName.length === 0;
@@ -387,15 +354,17 @@ export default function TeamPolicyEditor({
             <div className='TeamPolicyEditor__header'>
                 <button
                     className='style--none TeamPolicyEditor__back-btn'
-                    onClick={onNavigateBack}
+                    onClick={() => onNavigateBack()}
                 >
                     <i className='fa fa-angle-left'/>
                     <FormattedMessage
                         id={policyId ? 'team_settings.policy_editor.edit_title' : 'team_settings.policy_editor.add_title'}
-                        defaultMessage={policyId ? 'Edit Access Policy' : 'Create Access Policy'}
+                        defaultMessage={policyId ? 'Edit membership policy' : 'Add membership policy'}
                     />
                 </button>
             </div>
+
+            <hr className='TeamPolicyEditor__divider TeamPolicyEditor__divider--full-width'/>
 
             <div className='TeamPolicyEditor__name-input'>
                 <Input
@@ -426,148 +395,120 @@ export default function TeamPolicyEditor({
                 </p>
             </div>
 
-            <Card
-                expanded={true}
-                className='TeamPolicyEditor__card'
-            >
-                <Card.Header>
-                    <TitleAndButtonCardHeader
-                        title={
+            <hr className='TeamPolicyEditor__divider'/>
+
+            <div className='TeamPolicyEditor__section'>
+                <div className='TeamPolicyEditor__section-header'>
+                    <div>
+                        <h4 className='TeamPolicyEditor__section-title'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_title'
                                 defaultMessage='Access rules'
                             />
-                        }
-                        subtitle={
+                        </h4>
+                        <p className='TeamPolicyEditor__section-subtitle'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_subtitle'
-                                defaultMessage='Select user attributes and values as rules to restrict access.'
+                                defaultMessage='Select user attributes and values as rules to restrict access'
                             />
-                        }
-                        buttonText={
-                            editorMode === 'table' ? (
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.switch_to_advanced'
-                                    defaultMessage='Switch to Advanced Mode'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.switch_to_simple'
-                                    defaultMessage='Switch to Simple Mode'
-                                />
-                            )
-                        }
-                        onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                        isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
-                    />
-                </Card.Header>
-                <Card.Body>
-                    {editorMode === 'cel' ? (
-                        <CELEditor
-                            value={expression}
-                            onChange={handleExpressionChange}
-                            onValidate={() => {}}
-                            disabled={noUsableAttributes}
-                            teamId={teamId}
-                            userAttributes={filteredAttributes}
-                        />
-                    ) : (
-                        <TableEditor
-                            value={expression}
-                            onChange={handleExpressionChange}
-                            onValidate={() => {}}
-                            disabled={noUsableAttributes}
-                            userAttributes={autocompleteResult}
-                            onParseError={() => setEditorMode('cel')}
-                            enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
-                            actions={abacActions}
-                            teamId={teamId}
-                            isSystemAdmin={false}
-                            validateExpressionAgainstRequester={abacActions.validateExpressionAgainstRequester}
-                        />
-                    )}
-                </Card.Body>
-            </Card>
+                        </p>
+                    </div>
+                </div>
+                <TableEditor
+                    value={expression}
+                    onChange={handleExpressionChange}
+                    onValidate={() => {}}
+                    disabled={noUsableAttributes}
+                    userAttributes={autocompleteResult}
+                    onParseError={() => {}}
+                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
+                    actions={abacActions}
+                    teamId={teamId}
+                    isSystemAdmin={false}
+                    validateExpressionAgainstRequester={abacActions.validateExpressionAgainstRequester}
+                />
+            </div>
 
-            <Card
-                expanded={true}
-                className='TeamPolicyEditor__card'
-            >
-                <Card.Header>
-                    <TitleAndButtonCardHeader
-                        title={
+            <hr className='TeamPolicyEditor__divider'/>
+
+            <div className='TeamPolicyEditor__section'>
+                <div className='TeamPolicyEditor__section-header'>
+                    <div>
+                        <h4 className='TeamPolicyEditor__section-title'>
                             <FormattedMessage
                                 id='admin.access_control.policy.edit_policy.channel_selector.title'
                                 defaultMessage='Assigned channels'
                             />
-                        }
-                        subtitle={
+                        </h4>
+                        <p className='TeamPolicyEditor__section-subtitle'>
                             <FormattedMessage
                                 id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                                defaultMessage='Add channels that this membership policy will apply to.'
                             />
-                        }
-                        buttonText={
-                            <FormattedMessage
-                                id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
-                                defaultMessage='Add channels'
-                            />
-                        }
+                        </p>
+                    </div>
+                    <button
+                        className='btn btn-primary'
                         onClick={() => setAddChannelOpen(true)}
-                    />
-                </Card.Header>
-                <Card.Body expanded={true}>
-                    <ChannelList
-                        onRemoveCallback={addToRemovedChannels}
-                        channelsToRemove={channelChanges.removed}
-                        channelsToAdd={channelChanges.added}
-                        policyId={policyId}
-                        policyActiveStatusChanges={policyActiveStatusChanges}
-                        onPolicyActiveStatusChange={setPolicyActiveStatusChanges}
-                        saving={saving}
-                        hideTeamColumn={true}
-                        teamId={teamId}
-                    />
-                </Card.Body>
-            </Card>
+                    >
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
+                            defaultMessage='Add channels'
+                        />
+                    </button>
+                </div>
+                <ChannelList
+                    onRemoveCallback={addToRemovedChannels}
+                    channelsToRemove={channelChanges.removed}
+                    channelsToAdd={channelChanges.added}
+                    policyId={policyId}
+                    policyActiveStatusChanges={policyActiveStatusChanges}
+                    onPolicyActiveStatusChange={setPolicyActiveStatusChanges}
+                    saving={saving}
+                    hideTeamColumn={true}
+                    teamId={teamId}
+                />
+            </div>
 
             {policyId && (
-                <Card
-                    expanded={true}
-                    className='TeamPolicyEditor__card TeamPolicyEditor__delete-section'
-                >
-                    <Card.Header>
-                        <TitleAndButtonCardHeader
-                            title={
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.delete_policy.title'
-                                    defaultMessage='Delete policy'
-                                />
-                            }
-                            subtitle={
-                                hasChannels() ? (
+                <>
+                    <hr className='TeamPolicyEditor__divider'/>
+                    <div className='TeamPolicyEditor__section TeamPolicyEditor__section--delete'>
+                        <div className='TeamPolicyEditor__section-header'>
+                            <div>
+                                <h4 className='TeamPolicyEditor__section-title'>
                                     <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                        defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                        id='admin.access_control.policy.edit_policy.delete_policy.title'
+                                        defaultMessage='Delete policy'
                                     />
-                                ) : (
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.delete_policy.subtitle'
-                                        defaultMessage='This policy will be deleted and cannot be recovered.'
-                                    />
-                                )
-                            }
-                            buttonText={
+                                </h4>
+                                <p className='TeamPolicyEditor__section-subtitle'>
+                                    {hasChannels() ? (
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
+                                            defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                        />
+                                    ) : (
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.delete_policy.subtitle'
+                                            defaultMessage='This policy will be deleted and cannot be recovered.'
+                                        />
+                                    )}
+                                </p>
+                            </div>
+                            <button
+                                className='btn btn-danger'
+                                onClick={() => setShowDeleteModal(true)}
+                                disabled={hasChannels()}
+                            >
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
                                     defaultMessage='Delete'
                                 />
-                            }
-                            onClick={() => (hasChannels() ? undefined : setShowDeleteModal(true))}
-                            isDisabled={hasChannels()}
-                        />
-                    </Card.Header>
-                </Card>
+                            </button>
+                        </div>
+                    </div>
+                </>
             )}
 
             {addChannelOpen && (

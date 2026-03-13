@@ -185,3 +185,20 @@
     justify-content: flex-end !important;
     text-align: right;
 }
+
+.PolicyList__no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.PolicyList__no-results-hint {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 400;
+}

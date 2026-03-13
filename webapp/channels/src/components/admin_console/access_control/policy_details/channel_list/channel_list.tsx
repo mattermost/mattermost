@@ -402,14 +402,14 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'autoAdd',
                 textAlign: 'center',
                 fixed: true,
-                width: 8,
+                width: this.props.hideTeamColumn ? 9 : 8,
             },
             {
                 name: '',
                 field: 'remove',
                 textAlign: 'right',
                 fixed: true,
-                width: this.props.hideTeamColumn ? 4 : 3,
+                width: this.props.hideTeamColumn ? 3 : 3,
             },
         );
 

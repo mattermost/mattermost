@@ -55,6 +55,21 @@ export async function assignChannelsToPolicy(client: Client4, policyId: string, 
     }
 }
 
+export async function setUserAttribute(adminClient: Client4, userId: string, fieldName: string, value: string) {
+    // Get all fields to find the field ID
+    const fields: any[] = await (adminClient as any).doFetch(
+        `${adminClient.getBaseRoute()}/custom_profile_attributes/fields`,
+        {
+            method: 'GET',
+        },
+    );
+    const field = fields.find((f: any) => f.name === fieldName);
+    if (!field) {
+        throw new Error(`Field "${fieldName}" not found`);
+    }
+    await adminClient.updateUserCustomProfileAttributesValues(userId, {[field.id]: value});
+}
+
 export async function createPrivateChannel(client: Client4, teamId: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     return client.createChannel({team_id: teamId, name: `abac-${id}`, display_name: `ABAC-${id}`, type: 'P'} as any);

@@ -54,10 +54,10 @@
 
     // SaveChangesPanel width override
     .SaveChangesPanel {
-        width: calc(65%);
+        width: calc(70%);
 
         @media screen and (max-width: 768px) {
-            width: calc(70%);
+            width: calc(60%);
         }
     }
 

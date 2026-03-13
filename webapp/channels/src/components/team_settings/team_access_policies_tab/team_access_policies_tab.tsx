@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
@@ -13,6 +13,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import PolicyList from 'components/admin_console/access_control/policies';
+import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import TeamPolicyEditor from './team_policy_editor';
 
@@ -76,6 +77,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) =>
             actions.updateAccessControlPoliciesActive(states, team.id),
 
+    // `actions` from connect() is stable — safe to omit
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [team.id]);
 
@@ -89,12 +91,25 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         setView('create');
     }, []);
 
-    const handleNavigateBack = useCallback(() => {
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    const handleNavigateBack = useCallback((message?: string) => {
         setView('list');
         setSelectedPolicyId(undefined);
         setAreThereUnsavedChanges(false);
         setRefreshKey((prev) => prev + 1);
+        if (message) {
+            setSuccessMessage(message);
+        }
     }, [setAreThereUnsavedChanges]);
+
+    useEffect(() => {
+        if (!successMessage) {
+            return undefined;
+        }
+        const timer = setTimeout(() => setSuccessMessage(null), 2500);
+        return () => clearTimeout(timer);
+    }, [successMessage]);
 
     if (view === 'create' || view === 'edit') {
         return (
@@ -150,6 +165,15 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}
             />
+            {successMessage && (
+                <SaveChangesPanel
+                    handleSubmit={() => {}}
+                    handleCancel={() => {}}
+                    handleClose={() => setSuccessMessage(null)}
+                    state={'saved'}
+                    customSavedMessage={successMessage}
+                />
+            )}
         </div>
     );
 };

@@ -15,6 +15,7 @@ import {
     assignChannelsToPolicy,
     createPrivateChannel,
     createTeamAdmin,
+    setUserAttribute,
 } from './helpers';
 
 test.describe('Team Settings Modal - Policy Editor', () => {
@@ -50,10 +51,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Create private channel and team admin, add admin to channel so it appears in selector
+        // # Create private channel and team admin with Department=Engineering
         const channel = await createPrivateChannel(adminClient, team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         await adminClient.addToChannel(teamAdmin.id, channel.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -70,20 +72,31 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policyName = `TA Policy ${Date.now()}`;
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
-        // # Switch to Advanced Mode and enter CEL expression
-        await teamSettings.container.getByRole('button', {name: /Switch to Advanced Mode/}).click();
-        await teamSettings.container.locator('.cel-editor__input').click();
-        await page.keyboard.type('true');
+        // # Add a rule row and fill in a value
+        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
+        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
+        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+        await addAttrBtn.click();
+        await page.waitForTimeout(500);
+
+        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
+        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
+        if (await backdrop.isVisible({timeout: 2000})) {
+            await backdrop.click();
+            await page.waitForTimeout(500);
+        }
+
+        // Fill value in the simple input (text-type attribute renders direct input)
+        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
+        await valueInput.waitFor({state: 'visible', timeout: 10000});
+        await valueInput.fill('Engineering');
 
         // # Add channel via channel selector
         await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
         const channelModal = page.locator('.channel-selector-modal');
         await channelModal.waitFor();
         await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal
-            .locator('.more-modal__row')
-            .filter({hasText: channel.display_name})
-            .click();
+        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
         await channelModal.getByRole('button', {name: 'Add'}).click();
 
         // # Save via SaveChangesPanel
@@ -264,8 +277,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Remove the channel to enable delete (click Remove link in channel list)
         await teamSettings.container.getByText('Remove').first().click();
 
-        // # Click Delete in the delete section (TitleAndButtonCardHeader button)
-        await teamSettings.container.locator('.TeamPolicyEditor__delete-section button').filter({hasText: 'Delete'}).click();
+        // # Click Delete in the delete section
+        await teamSettings.container
+            .locator('.TeamPolicyEditor__section--delete button')
+            .filter({hasText: 'Delete'})
+            .click();
 
         // # Confirm in delete confirmation modal
         await page.locator('.TeamPolicyEditor__delete-modal').waitFor();
@@ -280,14 +296,206 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
     // Delete action is hidden in the team settings three-dot menu (all listed policies have channels).
 
-    test('MM-67594_9 System Admin can also create policy from Team Settings', async ({pw}) => {
+    test('MM-67594_8 Save without name shows validation error', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, channel.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open create editor, add rule + channel but leave name empty
+        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
+        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
+        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+        await addAttrBtn.click();
+        await page.waitForTimeout(500);
+
+        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
+        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
+        if (await backdrop.isVisible({timeout: 2000})) {
+            await backdrop.click();
+            await page.waitForTimeout(500);
+        }
+
+        // Fill value in the simple input (text-type attribute renders direct input)
+        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
+        await valueInput.waitFor({state: 'visible', timeout: 10000});
+        await valueInput.fill('Engineering');
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
+        await channelModal.getByRole('button', {name: 'Add'}).click();
+
+        // # Click Save
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // * Error state shown in SaveChangesPanel (name required)
+        await expect(teamSettings.container.locator('.SaveChangesPanel.error')).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_10 Save without channels shows validation error', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open create editor, add name + rule but no channels
+        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.container.locator('#input_policyName').fill(`No Channels ${Date.now()}`);
+        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
+        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
+        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+        await addAttrBtn.click();
+        await page.waitForTimeout(500);
+
+        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
+        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
+        if (await backdrop.isVisible({timeout: 2000})) {
+            await backdrop.click();
+            await page.waitForTimeout(500);
+        }
+
+        // Fill value in the simple input (text-type attribute renders direct input)
+        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
+        await valueInput.waitFor({state: 'visible', timeout: 10000});
+        await valueInput.fill('Engineering');
+
+        // # Click Save
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // * Error state shown in SaveChangesPanel (channels required)
+        await expect(teamSettings.container.locator('.SaveChangesPanel.error')).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_11 Delete button disabled when policy has channels', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `TA HasChannels ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open editor
+        await teamSettings.container.getByText(policy.name).click();
+        await page.waitForLoadState('networkidle');
+
+        // * Delete button is disabled (policy has channels)
+        const deleteBtn = teamSettings.container
+            .locator('.TeamPolicyEditor__section--delete button')
+            .filter({hasText: 'Delete'});
+        await expect(deleteBtn).toBeDisabled();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_12 Success message shown after creating policy', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, channel.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Create policy
+        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.container.locator('#input_policyName').fill(`Toast Test ${Date.now()}`);
+        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
+        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
+        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+        await addAttrBtn.click();
+        await page.waitForTimeout(500);
+
+        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
+        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
+        if (await backdrop.isVisible({timeout: 2000})) {
+            await backdrop.click();
+            await page.waitForTimeout(500);
+        }
+
+        // Fill value in the simple input (text-type attribute renders direct input)
+        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
+        await valueInput.waitFor({state: 'visible', timeout: 10000});
+        await valueInput.fill('Engineering');
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
+        await channelModal.getByRole('button', {name: 'Add'}).click();
+
+        // # Save
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor();
+        await page.getByRole('button', {name: /Apply policy/}).click();
+        await page.waitForLoadState('networkidle');
+
+        // * Success message visible on list view
+        await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
+        await expect(teamSettings.container.getByText('Policy saved')).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_13 System Admin can also create policy from Team Settings', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Create private channel for assignment
+        // # Create private channel and set admin's Department attribute
         const channel = await createPrivateChannel(adminClient, team.id);
+        await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -303,20 +511,31 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policyName = `SysAdmin Policy ${Date.now()}`;
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
-        // # Switch to Advanced Mode and enter CEL expression
-        await teamSettings.container.getByRole('button', {name: /Switch to Advanced Mode/}).click();
-        await teamSettings.container.locator('.cel-editor__input').click();
-        await page.keyboard.type('true');
+        // # Add a rule row and fill in a value
+        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
+        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
+        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+        await addAttrBtn.click();
+        await page.waitForTimeout(500);
+
+        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
+        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
+        if (await backdrop.isVisible({timeout: 2000})) {
+            await backdrop.click();
+            await page.waitForTimeout(500);
+        }
+
+        // Fill value in the simple input (text-type attribute renders direct input)
+        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
+        await valueInput.waitFor({state: 'visible', timeout: 10000});
+        await valueInput.fill('Engineering');
 
         // # Add channel via channel selector
         await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
         const channelModal = page.locator('.channel-selector-modal');
         await channelModal.waitFor();
         await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal
-            .locator('.more-modal__row')
-            .filter({hasText: channel.display_name})
-            .click();
+        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
         await channelModal.getByRole('button', {name: 'Add'}).click();
 
         // # Save via SaveChangesPanel

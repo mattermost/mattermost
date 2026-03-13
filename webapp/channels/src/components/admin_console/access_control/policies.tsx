@@ -299,12 +299,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const columns: Column[] = getColumns();
     const {startCount, endCount} = getPaginationProps();
 
-    let placeholderEmpty: JSX.Element = (
-        <FormattedMessage
-            id='admin.user_settings.policy_list.no_policies_found'
-            defaultMessage='No policies found'
-        />
-    );
+    let placeholderEmpty: JSX.Element;
 
     if (searchErrored) {
         placeholderEmpty = (
@@ -312,6 +307,37 @@ export default function PolicyList(props: Props): JSX.Element {
                 id='admin.user_settings.policy_list.search_policy_errored'
                 defaultMessage='Something went wrong. Try again'
             />
+        );
+    } else if (search && policies.length === 0) {
+        placeholderEmpty = (
+            <div className='PolicyList__no-results'>
+                <FormattedMessage
+                    id='admin.user_settings.policy_list.no_results_for'
+                    defaultMessage='No results for "{term}"'
+                    values={{term: search}}
+                />
+                <span className='PolicyList__no-results-hint'>
+                    <FormattedMessage
+                        id='admin.user_settings.policy_list.no_results_hint'
+                        defaultMessage='Check the spelling or try another search.'
+                    />
+                </span>
+            </div>
+        );
+    } else {
+        placeholderEmpty = (
+            <div className='PolicyList__no-results'>
+                <FormattedMessage
+                    id='admin.user_settings.policy_list.no_policies_found'
+                    defaultMessage='No policies found'
+                />
+                <span className='PolicyList__no-results-hint'>
+                    <FormattedMessage
+                        id='admin.user_settings.policy_list.no_policies_hint'
+                        defaultMessage='Add a new policy to get started'
+                    />
+                </span>
+            </div>
         );
     }
 

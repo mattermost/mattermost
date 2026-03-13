@@ -20,6 +20,7 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
     customErrorMessage?: string;
+    customSavedMessage?: string;
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
 }
@@ -30,6 +31,7 @@ function SaveChangesPanel({
     tabChangeError = false,
     state = 'editing',
     customErrorMessage,
+    customSavedMessage,
     saveButtonText,
     cancelButtonText,
 }: Props) {
@@ -72,6 +74,9 @@ function SaveChangesPanel({
             );
         }
 
+        if (customSavedMessage) {
+            return <span>{customSavedMessage}</span>;
+        }
         return (
             <FormattedMessage
                 id='saveChangesPanel.saved'
