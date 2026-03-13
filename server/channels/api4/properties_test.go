@@ -1535,7 +1535,6 @@ func TestGetPropertyValues(t *testing.T) {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
 	})
-
 }
 
 func TestPatchPropertyValues(t *testing.T) {
@@ -1887,7 +1886,6 @@ func TestPatchPropertyValues(t *testing.T) {
 		// Value should be updated
 		require.Equal(t, json.RawMessage(`"second"`), u.Value)
 	})
-
 }
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
