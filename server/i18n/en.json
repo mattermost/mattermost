@@ -11825,6 +11825,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Provided guest filter is not valid."
+  },
+  {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Provided sort column is not valid."
   },

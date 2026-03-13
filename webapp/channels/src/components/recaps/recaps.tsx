@@ -10,7 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
-import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps, getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
+import {getAllRecaps, getUnreadRecaps, getReadRecaps, getAllScheduledRecaps, getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
@@ -25,6 +25,7 @@ import {useQuery} from 'utils/http_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
+import AICopilotIntroSvg from './ai_copilot_intro_svg';
 import RecapUsageBadge from './recap_usage_badge';
 import RecapsList from './recaps_list';
 import ScheduledRecapsList from './scheduled_recaps_list';
@@ -48,15 +49,21 @@ const Recaps = () => {
     const [activeTab, setActiveTab] = useState<TabName>(() => {
         return isValidTab(tabParam) ? tabParam : 'unread';
     });
+    const [isLoading, setIsLoading] = useState(true);
+    const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
+    const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
-    // Handle tab change: update state and URL
+    const allRecaps = useSelector(getAllRecaps);
+    const unreadRecaps = useSelector(getUnreadRecaps);
+    const readRecaps = useSelector(getReadRecaps);
+    const scheduledRecaps = useSelector(getAllScheduledRecaps);
+    const limitStatus = useSelector(getRecapLimitStatus);
+
     const handleTabChange = useCallback((tab: TabName) => {
         setActiveTab(tab);
 
-        // Update URL with the new tab parameter using replace to avoid polluting history
         const newSearchParams = new URLSearchParams(location.search);
         if (tab === 'unread') {
-            // Remove tab param for default tab to keep URL clean
             newSearchParams.delete('tab');
         } else {
             newSearchParams.set('tab', tab);
@@ -65,49 +72,43 @@ const Recaps = () => {
         const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
         history.replace(newUrl);
     }, [history, location.pathname, location.search]);
-    const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
-    const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
-    const unreadRecaps = useSelector(getUnreadRecaps);
-    const readRecaps = useSelector(getReadRecaps);
-    const scheduledRecaps = useSelector(getAllScheduledRecaps);
-    const limitStatus = useSelector(getRecapLimitStatus);
-
-    // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
     useEffect(() => {
         const urlTab = isValidTab(tabParam) ? tabParam : 'unread';
         setActiveTab(urlTab);
     }, [tabParam]);
 
+    const hasNoRecaps = !isLoading && allRecaps.length === 0 && scheduledRecaps.length === 0;
+
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
-        dispatch(getRecaps(0, 60));
-        dispatch(getScheduledRecaps(0, 60));
+
+        const fetchData = async () => {
+            await Promise.all([
+                dispatch(getRecaps(0, 60)),
+                dispatch(getScheduledRecaps(0, 60)),
+            ]);
+            setIsLoading(false);
+        };
+
+        void fetchData();
         dispatch(getAgents());
         dispatch(fetchRecapLimitStatus());
     }, [dispatch]);
 
-    // Calculate if creation is blocked
     const isCreationBlocked = useMemo(() => {
         if (!limitStatus) {
             return false;
         }
 
-        // Blocked by cooldown (for manual recaps)
         if (limitStatus.cooldown.is_active) {
             return true;
         }
 
-        // Blocked by daily limit
         const {daily} = limitStatus;
-        if (daily.limit !== -1 && daily.used >= daily.limit) {
-            return true;
-        }
-
-        return false;
+        return daily.limit !== -1 && daily.used >= daily.limit;
     }, [limitStatus]);
 
-    // Tooltip for blocked state
     const blockedTooltip = useMemo(() => {
         if (!limitStatus || !isCreationBlocked) {
             return '';
@@ -126,9 +127,8 @@ const Recaps = () => {
             {id: 'recaps.addRecap.limitReachedTooltip', defaultMessage: 'Daily limit reached. Resets at {time}'},
             {time: formatTime(resetTime, {hour: 'numeric', minute: '2-digit'})},
         );
-    }, [limitStatus, isCreationBlocked, formatMessage, formatTime]);
+    }, [formatMessage, formatTime, isCreationBlocked, limitStatus]);
 
-    // Redirect if feature flag is disabled
     if (enableAIRecaps !== 'true') {
         return <Redirect to='/'/>;
     }
@@ -141,7 +141,6 @@ const Recaps = () => {
     };
 
     const handleEditScheduledRecap = (id: string) => {
-        // Find the scheduled recap to edit
         const scheduledRecapToEdit = scheduledRecaps.find((sr) => sr.id === id);
 
         if (!scheduledRecapToEdit) {
@@ -170,28 +169,30 @@ const Recaps = () => {
                         </h1>
                         <RecapUsageBadge/>
                     </div>
-                    <div className='recaps-tabs'>
-                        <button
-                            className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
-                            onClick={() => handleTabChange('unread')}
-                        >
-                            {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
-                        </button>
-                        <button
-                            className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
-                            onClick={() => handleTabChange('read')}
-                        >
-                            {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
-                        </button>
-                        <button
-                            className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
-                            onClick={() => handleTabChange('scheduled')}
-                        >
-                            {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
-                        </button>
-                    </div>
+                    {!hasNoRecaps && (
+                        <div className='recaps-tabs'>
+                            <button
+                                className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
+                                onClick={() => handleTabChange('unread')}
+                            >
+                                {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
+                            </button>
+                            <button
+                                className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
+                                onClick={() => handleTabChange('read')}
+                            >
+                                {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
+                            </button>
+                            <button
+                                className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
+                                onClick={() => handleTabChange('scheduled')}
+                            >
+                                {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
+                            </button>
+                        </div>
+                    )}
                 </div>
-                {isCreationBlocked ? (
+                {!hasNoRecaps && (isCreationBlocked ? (
                     <WithTooltip
                         id='recap-add-blocked-tooltip'
                         title={blockedTooltip}
@@ -218,11 +219,47 @@ const Recaps = () => {
                         <PlusIcon size={12}/>
                         {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
                     </button>
-                )}
+                ))}
             </div>
 
             <div className='recaps-content'>
-                {activeTab === 'scheduled' ? (
+                {hasNoRecaps ? (
+                    <div className='recaps-placeholder'>
+                        <AICopilotIntroSvg/>
+                        <h2 className='recaps-placeholder-title'>
+                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
+                        </h2>
+                        <p className='recaps-placeholder-description'>
+                            {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
+                        </p>
+                        {isCreationBlocked ? (
+                            <WithTooltip
+                                id='recap-placeholder-blocked-tooltip'
+                                title={blockedTooltip}
+                                forcedPlacement='bottom'
+                            >
+                                <span className='recap-add-button-wrapper'>
+                                    <button
+                                        className='btn btn-primary recaps-placeholder-button'
+                                        disabled={true}
+                                        aria-disabled={true}
+                                    >
+                                        {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                                    </button>
+                                </span>
+                            </WithTooltip>
+                        ) : (
+                            <button
+                                className='btn btn-primary recaps-placeholder-button'
+                                onClick={handleAddRecap}
+                                disabled={!agentsBridgeEnabled.available}
+                                title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                            >
+                                {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                            </button>
+                        )}
+                    </div>
+                ) : activeTab === 'scheduled' ? (
                     <ScheduledRecapsList
                         scheduledRecaps={scheduledRecaps}
                         onEdit={handleEditScheduledRecap}

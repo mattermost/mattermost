@@ -36,6 +36,7 @@ jest.mock('mattermost-redux/actions/recaps', () => ({
 }));
 
 jest.mock('mattermost-redux/selectors/entities/recaps', () => ({
+    getAllRecaps: jest.fn(() => []),
     getUnreadRecaps: jest.fn(() => []),
     getReadRecaps: jest.fn(() => []),
     getAllScheduledRecaps: jest.fn(() => []),

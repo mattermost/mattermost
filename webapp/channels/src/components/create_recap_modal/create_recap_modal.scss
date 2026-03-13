@@ -14,7 +14,6 @@
     .create-recap-modal-body {
         max-height: 500px;
         padding: 0px 0px;
-        overflow-y: auto;
     }
 
     .create-recap-modal-header {
@@ -22,6 +21,7 @@
         width: 100%;
         align-items: center;
         justify-content: space-between;
+        margin-top: -9px;
 
         .create-recap-modal-header-actions {
             display: flex;
@@ -137,13 +137,15 @@
             .input-container {
                 position: relative;
                 display: flex;
-                align-items: center;
+                flex-direction: column;
 
                 .icon {
                     position: absolute;
+                    top: 50%;
                     left: 16px;
                     color: rgba(var(--center-channel-color-rgb), 0.64);
                     font-size: 16px;
+                    transform: translateY(-50%);
                 }
 
                 .form-control {
@@ -153,6 +155,36 @@
 
                     &:focus {
                         border-color: var(--button-bg);
+                    }
+
+                    &.input-error {
+                        border-color: var(--error-text);
+
+                        &:focus {
+                            border-color: var(--error-text);
+                            box-shadow: 0 0 0 1px var(--error-text);
+                        }
+                    }
+                }
+
+                &.has-error {
+                    .icon {
+                        color: var(--error-text);
+                    }
+                }
+
+                .input-error-message {
+                    display: flex;
+                    align-items: center;
+                    margin-top: 6px;
+                    color: var(--error-text);
+                    font-size: 12px;
+                    gap: 4px;
+
+                    .icon {
+                        position: static;
+                        font-size: 14px;
+                        transform: none;
                     }
                 }
             }

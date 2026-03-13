@@ -154,6 +154,7 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 		HideActive:   hideActive,
 		HideInactive: hideInactive,
 		SearchTerm:   values.Get("search_term"),
+		GuestFilter:  values.Get("guest_filter"),
 	}, nil
 }
 
