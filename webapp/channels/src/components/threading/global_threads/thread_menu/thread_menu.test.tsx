@@ -98,6 +98,11 @@ describe('components/threading/common/thread_menu', () => {
                     },
                 },
             },
+            views: {
+                browser: {
+                    windowSize: '',
+                },
+            },
         } as unknown as GlobalState;
 
         mockDispatch.mockClear();
