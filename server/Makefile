@@ -106,7 +106,7 @@ ifeq ($(HOME),/)
 endif
 
 # Go Flags
-# Use -buildvcs=false to avoid embedding VCS info which can cause false positives in container scanning tools
+# Use -buildvcs=false to avoid embedding VCS info which can cause false positives in container scanning
 GOFLAGS ?= -buildvcs=false
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
