@@ -123,7 +123,6 @@ function makeMapStateToProps() {
             threadId,
             isFollowingThread,
             isMentionedInRootPost,
-            isCollapsedThreadsEnabled: collapsedThreads,
             threadReplyCount,
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),

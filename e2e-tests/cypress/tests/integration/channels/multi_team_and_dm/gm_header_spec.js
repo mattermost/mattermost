@@ -61,7 +61,7 @@ describe('Multi-user group header', () => {
         cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
         // # Add the header in the modal
-        cy.findByPlaceholderText('Edit the Channel Header...').should('be.visible').type(`${header}{enter}`);
+        cy.findByPlaceholderText('Enter the Channel Header').should('be.visible').type(`${header}{enter}`);
 
         // # Wait for modal to disappear
         cy.waitUntil(() => cy.get('#editChannelHeaderModalLabel').should('not.be.visible'));

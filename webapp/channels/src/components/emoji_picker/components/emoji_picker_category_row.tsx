@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
-import {emojiCategories} from '../constants';
+import {EMOJI_CATEGORIES} from '../constants';
 
 interface Props {
     categoryName: EmojiCategory;
@@ -15,7 +15,7 @@ interface Props {
 }
 
 function EmojiPickerCategoryRow({categoryName, style}: Props) {
-    const category = emojiCategories[categoryName];
+    const category = EMOJI_CATEGORIES[categoryName];
 
     return (
         <div

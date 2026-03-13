@@ -14,6 +14,7 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "jsx": "react",
+        "preserveConstEnums": true,
         "outDir": "./lib",
         "rootDir": "../../channels/src/packages/mattermost-redux/src",
         "composite": true,

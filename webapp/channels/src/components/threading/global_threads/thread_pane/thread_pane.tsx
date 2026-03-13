@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
@@ -15,6 +16,7 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 
 import {focusPost} from 'components/permalink_view/actions';
 import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
 
@@ -35,11 +37,13 @@ const getPostsForThread = makeGetPostsForThread();
 type Props = {
     thread: UserThread | UserThreadSynthetic;
     children?: ReactNode;
+    backAction?: () => void;
 };
 
 const ThreadPane = ({
     thread,
     children,
+    backAction,
 }: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -65,7 +69,13 @@ const ThreadPane = ({
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
-    const selectHandler = useCallback(() => select(), []);
+    const selectHandler = useCallback(() => {
+        if (backAction) {
+            backAction();
+            return;
+        }
+        select();
+    }, [select, backAction]);
     let unreadTimestamp = post.edit_at || post.create_at;
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
@@ -83,9 +93,13 @@ const ThreadPane = ({
     }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team, (postId, returnTo) => {
-            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
-        });
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
     }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
@@ -98,7 +112,7 @@ const ThreadPane = ({
                 heading={(
                     <>
                         <Button
-                            className='Button___icon Button___large back'
+                            className={classNames('Button___icon Button___large back', {hasBackAction: backAction})}
                             onClick={selectHandler}
                         >
                             <i className='icon icon-arrow-back-ios'/>

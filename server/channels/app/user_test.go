@@ -71,9 +71,11 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		// mock oAuth Provider, return data
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockSSOSettings := &model.SSOSettings{}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
-		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("GetSSOSettings", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockSSOSettings, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
@@ -2287,9 +2289,9 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
+		replyPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
@@ -2685,14 +2687,17 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
-			appErr := th.App.DeleteToken(token)
-			require.Nil(t, appErr)
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
 		}()
 
 		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail on wrong token type")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.guest_magic_link.invalid_token_type.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
+
+		// Verify token was NOT consumed (wrong type should not delete it)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.NoError(t, nErr, "Token with wrong type should still exist")
 	})
 
 	t.Run("user already exists returns generic error", func(t *testing.T) {

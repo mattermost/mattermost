@@ -152,7 +152,6 @@ func TestChannelBannerBackgroundColorValidation(t *testing.T) {
 func TestChannelPreSave(t *testing.T) {
 	o := Channel{Name: "test"}
 	o.PreSave()
-	o.Etag()
 }
 
 func TestChannelPreUpdate(t *testing.T) {

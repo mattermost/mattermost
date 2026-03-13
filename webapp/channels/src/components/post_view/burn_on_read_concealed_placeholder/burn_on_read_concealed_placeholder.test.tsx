@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
 
@@ -13,10 +13,6 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         authorName: 'john.doe',
         onReveal: jest.fn(),
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('should render with concealed placeholder text', () => {
         renderWithContext(
@@ -28,47 +24,50 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.getByRole('button')).toHaveClass('BurnOnReadConcealedPlaceholder');
     });
 
-    it('should call onReveal when clicked', () => {
+    it('should call onReveal when clicked', async () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
         const placeholder = screen.getByRole('button');
-        fireEvent.click(placeholder);
+        await userEvent.click(placeholder);
 
         expect(baseProps.onReveal).toHaveBeenCalledWith('post123');
         expect(baseProps.onReveal).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onReveal when Enter key is pressed', () => {
+    it('should call onReveal when Enter key is pressed', async () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
         const placeholder = screen.getByRole('button');
-        fireEvent.keyDown(placeholder, {key: 'Enter'});
+        placeholder.focus();
+        await userEvent.keyboard('{Enter}');
 
         expect(baseProps.onReveal).toHaveBeenCalledWith('post123');
     });
 
-    it('should call onReveal when Space key is pressed', () => {
+    it('should call onReveal when Space key is pressed', async () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
         const placeholder = screen.getByRole('button');
-        fireEvent.keyDown(placeholder, {key: ' '});
+        placeholder.focus();
+        await userEvent.keyboard(' ');
 
         expect(baseProps.onReveal).toHaveBeenCalledWith('post123');
     });
 
-    it('should not call onReveal when other keys are pressed', () => {
+    it('should not call onReveal when other keys are pressed', async () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
         const placeholder = screen.getByRole('button');
-        fireEvent.keyDown(placeholder, {key: 'a'});
+        placeholder.focus();
+        await userEvent.keyboard('a');
 
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });
@@ -85,7 +84,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.queryByText('Click to Reveal')).not.toBeInTheDocument();
     });
 
-    it('should not trigger onReveal when loading', () => {
+    it('should not trigger onReveal when loading', async () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
@@ -94,7 +93,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         );
 
         const placeholder = screen.getByRole('button');
-        fireEvent.click(placeholder);
+        await userEvent.click(placeholder);
 
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });

@@ -1,188 +1,427 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
-<GenericModal
-  autoCloseOnCancelButton={false}
-  autoCloseOnConfirmButton={true}
-  cancelButtonText={null}
-  className="productNotices"
-  compassDesign={true}
-  confirmButtonText={
-    <span>
-      Download
-    </span>
-  }
-  handleConfirm={[Function]}
-  handleEnterKeyPress={[Function]}
-  modalHeaderText={
-    <span>
-      title
-    </span>
-  }
-  onExited={[Function]}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <span
-    className="productNotices__helpText"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <Connect(Markdown)
-      message="descr"
+    <div
+      class="fade modal-backdrop in"
     />
-  </span>
-  <div
-    className="productNotices__imageDiv"
-  />
-  <div
-    className="productNotices__info"
-  />
-</GenericModal>
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="genericModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign productNotices modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    <span>
+                      title
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <span
+                  class="productNotices__helpText"
+                >
+                  <p>
+                    descr
+                  </p>
+                </span>
+                <div
+                  class="productNotices__imageDiv"
+                />
+                <div
+                  class="productNotices__info"
+                />
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="GenericModal__button btn btn-primary confirm"
+                type="submit"
+              >
+                <span>
+                  Download
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
-<GenericModal
-  autoCloseOnCancelButton={false}
-  autoCloseOnConfirmButton={true}
-  cancelButtonText={
-    <React.Fragment>
-      <Memo(PreviousIcon) />
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Previous"
-        id="generic.previous"
-      />
-    </React.Fragment>
-  }
-  className="productNotices"
-  compassDesign={true}
-  confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Done"
-      id="generic.done"
-    />
-  }
-  handleCancel={[Function]}
-  handleConfirm={[Function]}
-  handleEnterKeyPress={[Function]}
-  modalHeaderText={
-    <span>
-      title
-    </span>
-  }
-  onExited={[Function]}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <span
-    className="productNotices__helpText"
-  >
-    <Connect(Markdown)
-      message="descr"
-    />
-  </span>
-  <ForwardRef
-    className="GenericModal__button actionButton"
-    href="http://download.com/path"
-    id="actionButton"
-    location="product_notices_modal"
-  >
-    Download
-  </ForwardRef>
   <div
-    className="productNotices__imageDiv"
+    aria-hidden="true"
   />
   <div
-    className="productNotices__info"
+    role="none"
   >
-    <span
-      className="tutorial__circles"
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="genericModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <span
-        className="circle"
-        data-screen={0}
-        id="tutorialIntroCircle0"
-        key="circle0"
-      />
-      <span
-        className="circle active"
-        data-screen={1}
-        id="tutorialIntroCircle1"
-        key="circle1"
-      />
-    </span>
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign productNotices modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    <span>
+                      title
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <span
+                  class="productNotices__helpText"
+                >
+                  <p>
+                    descr
+                  </p>
+                </span>
+                <a
+                  class="GenericModal__button actionButton"
+                  href="http://download.com/path"
+                  id="actionButton"
+                  location="product_notices_modal"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Download
+                </a>
+                <div
+                  class="productNotices__imageDiv"
+                />
+                <div
+                  class="productNotices__info"
+                >
+                  <span
+                    class="tutorial__circles"
+                  >
+                    <span
+                      class="circle"
+                      data-screen="0"
+                      id="tutorialIntroCircle0"
+                    />
+                    <span
+                      class="circle active"
+                      data-screen="1"
+                      id="tutorialIntroCircle1"
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="GenericModal__button btn btn-tertiary"
+                type="button"
+              >
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
+                Previous
+              </button>
+              <button
+                class="GenericModal__button btn btn-primary confirm"
+                type="submit"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</GenericModal>
+</body>
 `;
 
 exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] = `
-<GenericModal
-  autoCloseOnCancelButton={false}
-  autoCloseOnConfirmButton={false}
-  cancelButtonText={null}
-  className="productNotices"
-  compassDesign={true}
-  confirmButtonText={
-    <React.Fragment>
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Next"
-        id="generic.next"
-      />
-      <Memo(NextIcon) />
-    </React.Fragment>
-  }
-  handleConfirm={[Function]}
-  handleEnterKeyPress={[Function]}
-  modalHeaderText={
-    <span>
-      for sysadmin
-    </span>
-  }
-  onExited={[Function]}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <span
-    className="productNotices__helpText"
-  >
-    <Connect(Markdown)
-      message="your eyes only! [test](https://test.com)"
-    />
-  </span>
-  <ForwardRef
-    className="GenericModal__button actionButton"
-    href="http://download.com/path"
-    id="actionButton"
-    location="product_notices_modal"
-  >
-    Download
-  </ForwardRef>
   <div
-    className="productNotices__imageDiv"
-  >
-    <img
-      className="productNotices__img"
-      src="https://raw.githubusercontent.com/reflog/notices-experiment/master/images/2020-08-11_11-42.png"
-    />
-  </div>
+    aria-hidden="true"
+  />
   <div
-    className="productNotices__info"
+    role="none"
   >
-    <span
-      className="tutorial__circles"
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="genericModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <span
-        className="circle active"
-        data-screen={0}
-        id="tutorialIntroCircle0"
-        key="circle0"
-      />
-      <span
-        className="circle"
-        data-screen={1}
-        id="tutorialIntroCircle1"
-        key="circle1"
-      />
-    </span>
-    <AdminEyeIcon />
-    <MemoizedFormattedMessage
-      defaultMessage="Visible to Admins only"
-      id="inProduct_notices.adminOnlyMessage"
-    />
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign productNotices modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    <span>
+                      for sysadmin
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <span
+                  class="productNotices__helpText"
+                >
+                  <p>
+                    your eyes only! 
+                    <a
+                      class="theme markdown__link"
+                      href="https://test.com"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      test
+                    </a>
+                  </p>
+                </span>
+                <a
+                  class="GenericModal__button actionButton"
+                  href="http://download.com/path"
+                  id="actionButton"
+                  location="product_notices_modal"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Download
+                </a>
+                <div
+                  class="productNotices__imageDiv"
+                >
+                  <img
+                    class="productNotices__img"
+                    src="https://raw.githubusercontent.com/reflog/notices-experiment/master/images/2020-08-11_11-42.png"
+                  />
+                </div>
+                <div
+                  class="productNotices__info"
+                >
+                  <span
+                    class="tutorial__circles"
+                  >
+                    <span
+                      class="circle active"
+                      data-screen="0"
+                      id="tutorialIntroCircle0"
+                    />
+                    <span
+                      class="circle"
+                      data-screen="1"
+                      id="tutorialIntroCircle1"
+                    />
+                  </span>
+                  <span>
+                    <svg
+                      aria-label="Admin View Only Icon"
+                      fill="none"
+                      height="10"
+                      role="img"
+                      viewBox="0 0 14 10"
+                      width="14"
+                    >
+                      <path
+                        d="M7 3.21005C7.3264 3.21005 7.624 3.29165 7.8928 3.45485C8.1712 3.61805 8.392 3.83885 8.5552 4.11725C8.7184 4.38605 8.8 4.68365 8.8 5.01005C8.8 5.33645 8.7184 5.63885 8.5552 5.91725C8.392 6.18605 8.1712 6.40205 7.8928 6.56525C7.624 6.72845 7.3264 6.81005 7 6.81005C6.6736 6.81005 6.3712 6.72845 6.0928 6.56525C5.824 6.40205 5.608 6.18605 5.4448 5.91725C5.2816 5.63885 5.2 5.33645 5.2 5.01005C5.2 4.68365 5.2816 4.38605 5.4448 4.11725C5.608 3.83885 5.824 3.61805 6.0928 3.45485C6.3712 3.29165 6.6736 3.21005 7 3.21005ZM7 0.502848C7.9792 0.502848 8.9152 0.694848 9.808 1.07885C10.672 1.46285 11.4304 1.99565 12.0832 2.67725C12.7456 3.35885 13.2496 4.13645 13.5952 5.01005C13.2496 5.88365 12.7456 6.66125 12.0832 7.34285C11.4304 8.02445 10.672 8.55245 9.808 8.92685C8.9152 9.31085 7.9792 9.50285 7 9.50285C6.0208 9.50285 5.0848 9.31085 4.192 8.92685C3.328 8.55245 2.5648 8.02445 1.9024 7.34285C1.2496 6.66125 0.7504 5.88365 0.4048 5.01005C0.7504 4.13645 1.2496 3.35885 1.9024 2.67725C2.5648 1.99565 3.328 1.46285 4.192 1.07885C5.0848 0.694848 6.0208 0.502848 7 0.502848ZM1.7152 5.01005C2.0416 5.67245 2.4736 6.25325 3.0112 6.75245C3.5488 7.25165 4.1584 7.63565 4.84 7.90445C5.5312 8.17325 6.2512 8.30765 7 8.30765C8.1328 8.30765 9.1744 8.01005 10.1248 7.41485C11.0752 6.81965 11.8 6.01805 12.2992 5.01005C11.8 4.00205 11.0752 3.20045 10.1248 2.60525C9.1744 2.01005 8.1328 1.71245 7 1.71245C6.2512 1.71245 5.5312 1.84685 4.84 2.11565C4.1584 2.38445 3.5488 2.76845 3.0112 3.26765C2.4736 3.76685 2.0416 4.34765 1.7152 5.01005Z"
+                        fill="rgba(var(--center-channel-color-rgb), 0.75)"
+                        fill-opacity="0.48"
+                      />
+                    </svg>
+                  </span>
+                  Visible to Admins only
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="GenericModal__button btn btn-primary confirm"
+                type="submit"
+              >
+                Next
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</GenericModal>
+</body>
 `;
 
-exports[`ProductNoticesModal Should match snapshot when there are no notices 1`] = `""`;
+exports[`ProductNoticesModal Should match snapshot when there are no notices 1`] = `
+<body>
+  <div />
+</body>
+`;

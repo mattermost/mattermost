@@ -125,6 +125,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	auditRec.Success()
+
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -316,8 +318,8 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -362,8 +364,8 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -449,8 +451,8 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -528,13 +530,13 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequireRemoteId()
+	if c.Err != nil {
 		return
 	}
 
@@ -575,7 +577,10 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	inviteCode, invErr := c.App.CreateRemoteClusterInvite(rc.RemoteId, url, rc.Token, password)
 	if invErr != nil {
 		c.Err = invErr
+		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
@@ -584,8 +589,8 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -613,8 +618,8 @@ func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -664,13 +669,13 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequireRemoteId()
+	if c.Err != nil {
 		return
 	}
 

@@ -36,6 +36,23 @@ func setBaseConfig(th *TestHelper) *model.AppError {
 	return nil
 }
 
+func searchPropertyValue(t *testing.T, th *TestHelper, postId, fieldName string) []*model.PropertyValue {
+	t.Helper()
+	groupId, appErr := th.App.ContentFlaggingGroupId()
+	require.Nil(t, appErr)
+
+	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+	require.Nil(t, appErr)
+
+	values, err := th.Server.propertyAccessService.SearchPropertyValues("", groupId, model.PropertyValueSearchOpts{
+		TargetIDs: []string{postId},
+		PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+		FieldID:   mappedFields[fieldName].ID,
+	})
+	require.NoError(t, err)
+	return values
+}
+
 func setupFlaggedPost(t *testing.T, th *TestHelper) *model.Post {
 	post := th.CreatePost(t, th.BasicChannel)
 
@@ -186,7 +203,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -221,7 +238,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -265,7 +282,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -295,7 +312,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reviewerValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
@@ -325,7 +342,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Assigned
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -337,7 +354,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Removed
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -349,7 +366,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Retained
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -645,7 +662,7 @@ func TestGetContentReviewChannels(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -844,7 +861,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
@@ -988,10 +1005,10 @@ func TestCanFlagPost(t *testing.T) {
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", ContentFlaggingPropertyNameStatus)
+		statusField, err := th.Server.propertyAccessService.GetPropertyFieldByName(anonymousCallerId, groupId, "", ContentFlaggingPropertyNameStatus)
 		require.NoError(t, err)
 
-		propertyValue, err := th.Server.propertyService.CreatePropertyValue(&model.PropertyValue{
+		propertyValue, err := th.Server.propertyAccessService.CreatePropertyValue(anonymousCallerId, &model.PropertyValue{
 			TargetID:   post.Id,
 			GroupID:    groupId,
 			FieldID:    statusField.ID,
@@ -1003,11 +1020,11 @@ func TestCanFlagPost(t *testing.T) {
 		// Can't fleg when post already flagged in pending status
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 
 		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1015,7 +1032,7 @@ func TestCanFlagPost(t *testing.T) {
 
 		// Can't fleg when post already flagged in retained status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRetained + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1023,7 +1040,7 @@ func TestCanFlagPost(t *testing.T) {
 
 		// Can't fleg when post already flagged in removed status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRemoved + `"`)
-		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, propertyValue)
 		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -1069,7 +1086,7 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check status property
-		statusValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		statusValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[ContentFlaggingPropertyNameStatus].ID,
@@ -1079,7 +1096,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusPending+`"`, string(statusValues[0].Value))
 
 		// Check reporting user property
-		userValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		userValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
@@ -1089,7 +1106,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(userValues[0].Value))
 
 		// Check reason property
-		reasonValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		reasonValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingReason].ID,
@@ -1099,7 +1116,7 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, `"spam"`, string(reasonValues[0].Value))
 
 		// Check comment property
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
@@ -1122,7 +1139,7 @@ func TestFlagPost(t *testing.T) {
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.reason_invalid", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.reason_invalid", appErr.Id)
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
@@ -1160,7 +1177,7 @@ func TestFlagPost(t *testing.T) {
 		// Try to flag the same post again
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
@@ -1253,7 +1270,7 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
@@ -1287,7 +1304,7 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		timeValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameReportingTime].ID,
@@ -1424,7 +1441,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search for team admin
@@ -1461,7 +1478,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search with empty term should return all reviewers
@@ -1931,7 +1948,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -1944,7 +1961,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply to the flag review post
 
 		// Verify author message
-		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was quarantined for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var authorPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == authorMessage {
@@ -1956,7 +1973,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
 
 		// Verify reporter message
-		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you quarantined for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var reporterPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reporterMessage {
@@ -1994,7 +2011,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2013,7 +2030,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2033,7 +2050,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
@@ -2066,7 +2083,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reviewer message
-		reviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		reviewerMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
 		var reviewerPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reviewerMessage {
@@ -2079,7 +2096,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply
 
 		// Verify author message
-		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was quarantined for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var authorPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == authorMessage {
@@ -2091,7 +2108,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
 
 		// Verify reporter message
-		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you quarantined for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		var reporterPost *model.Post
 		for _, p := range createdPosts {
 			if p.Message == reporterMessage {
@@ -2124,7 +2141,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2143,7 +2160,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s", th.SystemAdminUser.Username)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2163,7 +2180,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 
@@ -2183,7 +2200,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.Len(t, createdPosts, 1)
 
-		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
+		expectedMessage := fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
 		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
@@ -2223,7 +2240,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check actor user property
-		actorValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		actorValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorUserID].ID,
@@ -2233,7 +2250,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"`+th.SystemAdminUser.Id+`"`, string(actorValues[0].Value))
 
 		// Check actor comment property
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,
@@ -2243,7 +2260,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"This post violates community guidelines"`, string(commentValues[0].Value))
 
 		// Check action time property
-		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		timeValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActionTime].ID,
@@ -2309,7 +2326,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2318,7 +2335,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2333,7 +2350,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2342,7 +2359,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -2375,7 +2392,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,
@@ -2403,7 +2420,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+		commentValues, err := th.Server.propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{
 			TargetIDs: []string{post.Id},
 			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID:   mappedFields[contentFlaggingPropertyNameActorComment].ID,
@@ -2446,7 +2463,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		// Update post to include file IDs
 		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-		_, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2465,7 +2482,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was deleted and status updated
@@ -2487,7 +2504,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		editedPost.Message = "Edited message"
 		editedPost.EditAt = model.GetMillis()
 
-		_, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2506,7 +2523,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Eventually(t, func() bool {
 			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
 			require.Nil(t, appErr)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated
@@ -2545,7 +2562,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 			deletedPost, appErr = th.App.GetSinglePost(th.Context, post.Id, true)
 			require.Nil(t, appErr)
 			require.True(t, deletedPost.DeleteAt > 0)
-			return true
+			return appErr == nil
 		}, 5*time.Second, 200*time.Millisecond)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2565,5 +2582,510 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+	})
+}
+
+func TestKeepFlaggedPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.Nil(t, setBaseConfig(th))
+
+	t.Run("should successfully keep pending flagged post", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "This post is acceptable after review",
+		}
+
+		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Verify post still exists and is not deleted
+		updatedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, int64(0), updatedPost.DeleteAt)
+
+		// Verify status was updated to retained
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
+
+		// Verify actor properties were created
+		// Check actor user property
+		actorValues := searchPropertyValue(t, th, post.Id, contentFlaggingPropertyNameActorUserID)
+		require.Len(t, actorValues, 1)
+		require.Equal(t, `"`+th.SystemAdminUser.Id+`"`, string(actorValues[0].Value))
+
+		// Check actor comment property
+		commentValues := searchPropertyValue(t, th, post.Id, contentFlaggingPropertyNameActorComment)
+		require.Len(t, commentValues, 1)
+		require.Equal(t, `"This post is acceptable after review"`, string(commentValues[0].Value))
+
+		// Check action time property
+		timeValues := searchPropertyValue(t, th, post.Id, contentFlaggingPropertyNameActionTime)
+		require.Len(t, timeValues, 1)
+
+		var actionTime int64
+		err := json.Unmarshal(timeValues[0].Value, &actionTime)
+		require.NoError(t, err)
+		require.True(t, actionTime > 0)
+	})
+
+	t.Run("should successfully keep and restore hidden flagged post", func(t *testing.T) {
+		baseConfig := getBaseConfig(th)
+		baseConfig.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(baseConfig)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t, th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		// Flag the post (this will hide/delete it due to HideFlaggedContent setting)
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		var hiddenPost *model.Post
+
+		require.Eventually(t, func() bool {
+			// Get the updated post (should be deleted/hidden)
+			hiddenPost, appErr = th.App.GetSinglePost(th.Context, post.Id, true)
+			require.Nil(t, appErr)
+			return hiddenPost.DeleteAt > 0
+		}, 5*time.Second, 200*time.Millisecond)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Restoring this post after review",
+		}
+
+		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, hiddenPost)
+		require.Nil(t, appErr)
+
+		// Verify post was restored (DeleteAt should be 0)
+		restoredPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, int64(0), restoredPost.DeleteAt)
+
+		// Verify status was updated to retained
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
+	})
+
+	t.Run("should successfully keep assigned flagged post", func(t *testing.T) {
+		// Reset config to not hide flagged content
+		require.Nil(t, setBaseConfig(th))
+
+		post := setupFlaggedPost(t, th)
+
+		// Assign the post to a reviewer first
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Assigned post is acceptable",
+		}
+
+		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Verify status was updated to retained
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
+	})
+
+	t.Run("should fail when trying to keep already removed post", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		// Set status to removed
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
+		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		require.NoError(t, err)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Trying to keep already removed post",
+		}
+
+		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should fail when trying to keep already retained post", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		// Set status to retained
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		require.NoError(t, err)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Trying to keep already retained post",
+		}
+
+		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.data_spillage.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should fail when trying to keep non-flagged post", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Trying to keep non-flagged post",
+		}
+
+		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("should handle empty comment", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "",
+		}
+
+		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Verify empty comment was stored
+		commentValues := searchPropertyValue(t, th, post.Id, contentFlaggingPropertyNameActorComment)
+		require.Len(t, commentValues, 1)
+		require.Equal(t, `""`, string(commentValues[0].Value))
+	})
+
+	t.Run("should handle special characters in comment", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		specialComment := "Comment with @mentions #channels ~teams & <script>alert('xss')</script>"
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: specialComment,
+		}
+
+		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Verify special characters were properly escaped and stored
+		commentValues := searchPropertyValue(t, th, post.Id, contentFlaggingPropertyNameActorComment)
+		require.Len(t, commentValues, 1)
+
+		var storedComment string
+		err := json.Unmarshal(commentValues[0].Value, &storedComment)
+		require.NoError(t, err)
+		require.Equal(t, specialComment, storedComment)
+	})
+
+	t.Run("should preserve file attachments when keeping flagged post", func(t *testing.T) {
+		// Create a post with file attachments
+		post := th.CreatePost(t, th.BasicChannel)
+
+		// Create some file infos and associate them with the post
+		fileInfo1 := &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    post.Id,
+			CreatorId: post.UserId,
+			Path:      "test/file1.txt",
+			Name:      "file1.txt",
+			Size:      100,
+		}
+		fileInfo2 := &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    post.Id,
+			CreatorId: post.UserId,
+			Path:      "test/file2.txt",
+			Name:      "file2.txt",
+			Size:      200,
+		}
+
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
+		require.NoError(t, err)
+
+		// Update post to include file IDs
+		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
+		_, _, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+
+		// Flag the post
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Post with files is acceptable",
+		}
+
+		require.Eventually(t, func() bool {
+			appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+			require.Nil(t, appErr)
+			return appErr == nil
+		}, 5*time.Second, 200*time.Millisecond)
+
+		// Verify post was retained
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
+
+		// Verify file infos are still present (not deleted)
+		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, false, false)
+		require.NoError(t, err)
+		require.Len(t, files, 2, "File attachments should be preserved when keeping flagged post")
+	})
+
+	t.Run("should preserve edit history when keeping flagged post", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+
+		// Create edit history for the post
+		editedPost := post.Clone()
+		editedPost.Message = "Edited message"
+		editedPost.EditAt = model.GetMillis()
+
+		_, _, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+
+		// Verify edit history exists before flagging
+		editHistoryBefore, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, editHistoryBefore)
+		editHistoryPostId := editHistoryBefore[0].Id
+
+		// Flag the post
+		flagData := model.FlagContentRequest{
+			Reason:  "inappropriate",
+			Comment: "This post is inappropriate",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Post with edit history is acceptable",
+		}
+
+		require.Eventually(t, func() bool {
+			appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
+			require.Nil(t, appErr)
+			return appErr == nil
+		}, 5*time.Second, 200*time.Millisecond)
+
+		// Verify status was updated to retained
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(editedPost.Id, ContentFlaggingPropertyNameStatus)
+		require.Nil(t, appErr)
+
+		var stringValue string
+		err := json.Unmarshal(statusValue.Value, &stringValue)
+		require.NoError(t, err)
+		require.Equal(t, model.ContentFlaggingStatusRetained, stringValue)
+
+		// Verify edit history is still present (not deleted)
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr, "Edit history should be preserved when keeping flagged post")
+		require.NotEmpty(t, editHistoryAfter)
+		require.Equal(t, editHistoryPostId, editHistoryAfter[0].Id)
+	})
+}
+
+func TestScrubPost(t *testing.T) {
+	expectedMessage := "*Content deleted as part of Content Flagging review process*"
+
+	t.Run("should scrub all post content fields", func(t *testing.T) {
+		post := &model.Post{
+			Id:            model.NewId(),
+			Message:       "This is the original message with sensitive content",
+			MessageSource: "This is the original message source",
+			Hashtags:      "#hashtag1 #hashtag2",
+			FileIds:       []string{"file1", "file2", "file3"},
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: "link", URL: "https://example.com"},
+				},
+				Files: []*model.FileInfo{
+					{Id: "file1", Name: "test.png"},
+				},
+			},
+		}
+		post.SetProps(map[string]any{
+			"custom_prop":    "custom_value",
+			"another_prop":   123,
+			"sensitive_data": "should be removed",
+		})
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.Equal(t, expectedMessage, post.MessageSource)
+		require.Equal(t, "", post.Hashtags)
+		require.Nil(t, post.Metadata)
+		require.Empty(t, post.FileIds)
+		require.NotNil(t, post.GetProps())
+		require.Empty(t, post.GetProps())
+	})
+
+	t.Run("should handle post with empty fields", func(t *testing.T) {
+		post := &model.Post{
+			Id:            model.NewId(),
+			Message:       "",
+			MessageSource: "",
+			Hashtags:      "",
+			FileIds:       []string{},
+			Metadata:      nil,
+		}
+		post.SetProps(make(map[string]any))
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.Equal(t, expectedMessage, post.MessageSource)
+		require.Equal(t, "", post.Hashtags)
+		require.Nil(t, post.Metadata)
+		require.Empty(t, post.FileIds)
+		require.NotNil(t, post.GetProps())
+		require.Empty(t, post.GetProps())
+	})
+
+	t.Run("should handle post with nil FileIds", func(t *testing.T) {
+		post := &model.Post{
+			Id:      model.NewId(),
+			Message: "Test message",
+			FileIds: nil,
+		}
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.NotNil(t, post.FileIds)
+		require.Empty(t, post.FileIds)
+	})
+
+	t.Run("should handle post with nil Props", func(t *testing.T) {
+		post := &model.Post{
+			Id:      model.NewId(),
+			Message: "Test message",
+		}
+		// Props is nil by default
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.NotNil(t, post.GetProps())
+		require.Empty(t, post.GetProps())
+	})
+
+	t.Run("should preserve non-content fields", func(t *testing.T) {
+		postId := model.NewId()
+		userId := model.NewId()
+		channelId := model.NewId()
+		rootId := model.NewId()
+		createAt := model.GetMillis()
+		updateAt := model.GetMillis()
+		editAt := model.GetMillis()
+
+		post := &model.Post{
+			Id:            postId,
+			CreateAt:      createAt,
+			UpdateAt:      updateAt,
+			EditAt:        editAt,
+			DeleteAt:      0,
+			UserId:        userId,
+			ChannelId:     channelId,
+			RootId:        rootId,
+			OriginalId:    "",
+			Message:       "Original message to be scrubbed",
+			MessageSource: "Original source",
+			Type:          model.PostTypeDefault,
+			Hashtags:      "#test",
+			FileIds:       []string{"file1"},
+		}
+		post.SetProps(map[string]any{"key": "value"})
+
+		scrubPost(post)
+
+		// Verify content fields are scrubbed
+		require.Equal(t, expectedMessage, post.Message)
+		require.Equal(t, expectedMessage, post.MessageSource)
+		require.Equal(t, "", post.Hashtags)
+		require.Nil(t, post.Metadata)
+		require.Empty(t, post.FileIds)
+		require.Empty(t, post.GetProps())
+
+		// Verify non-content fields are preserved
+		require.Equal(t, postId, post.Id)
+		require.Equal(t, createAt, post.CreateAt)
+		require.Equal(t, updateAt, post.UpdateAt)
+		require.Equal(t, editAt, post.EditAt)
+		require.Equal(t, userId, post.UserId)
+		require.Equal(t, channelId, post.ChannelId)
+		require.Equal(t, rootId, post.RootId)
+		require.Equal(t, model.PostTypeDefault, post.Type)
+	})
+
+	t.Run("should handle post with special characters in message", func(t *testing.T) {
+		post := &model.Post{
+			Id:            model.NewId(),
+			Message:       "Message with <script>alert('xss')</script> and @mentions #hashtags ~channels",
+			MessageSource: "Source with unicode: 你好世界 🎉 émojis",
+			Hashtags:      "#特殊 #émoji",
+		}
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.Equal(t, expectedMessage, post.MessageSource)
+		require.Equal(t, "", post.Hashtags)
+	})
+
+	t.Run("should handle post with complex Metadata", func(t *testing.T) {
+		post := &model.Post{
+			Id:      model.NewId(),
+			Message: "Test message",
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: "link", URL: "https://example1.com"},
+					{Type: "link", URL: "https://example2.com"},
+				},
+				Emojis: []*model.Emoji{
+					{Id: "emoji1", Name: "custom_emoji"},
+				},
+				Files: []*model.FileInfo{
+					{Id: "file1", Name: "document.pdf", Size: 1024},
+					{Id: "file2", Name: "image.png", Size: 2048},
+				},
+				Reactions: []*model.Reaction{
+					{UserId: "user1", PostId: "post1", EmojiName: "thumbsup"},
+				},
+			},
+		}
+
+		scrubPost(post)
+
+		require.Equal(t, expectedMessage, post.Message)
+		require.Nil(t, post.Metadata)
 	})
 }

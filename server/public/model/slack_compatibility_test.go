@@ -23,7 +23,7 @@ func TestSlackCompatibleBool_UnmarshalJSON_True(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			field := &SlackAttachmentField{}
+			field := &MessageAttachmentField{}
 
 			err := json.Unmarshal([]byte(tt.payload), field)
 
@@ -46,7 +46,7 @@ func TestSlackCompatibleBool_UnmarshalJSON_False(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			field := &SlackAttachmentField{}
+			field := &MessageAttachmentField{}
 
 			err := json.Unmarshal([]byte(tt.payload), field)
 

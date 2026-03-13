@@ -162,7 +162,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                 header={
                     <FormattedMessage
                         id='installed_outgoing_webhooks.header'
-                        defaultMessage='Installed Outgoing Webhooks'
+                        defaultMessage='Outgoing Webhooks'
                     />
                 }
                 addText={
@@ -186,6 +186,9 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_outgoing_webhooks.search.empty'
+
+                        // searchTerm provided by BackstageList
+                        // eslint-disable-next-line formatjs/enforce-placeholders
                         defaultMessage='No outgoing webhooks match <b>{searchTerm}</b>'
                         values={{
                             b: (chunks) => <b>{chunks}</b>,

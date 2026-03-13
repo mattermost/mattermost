@@ -50,6 +50,11 @@ describe('Utils.getFileType', () => {
         expect(getFileType('txt')).toBe(FileTypes.TEXT);
     });
 
+    test('should not classify PSD files as images (MM-67077)', () => {
+        // PSD preview support was removed due to memory vulnerability in oov/psd package
+        expect(getFileType('psd')).toBe(FileTypes.OTHER);
+    });
+
     test('should handle null or undefined input', () => {
         expect(getFileType(null as any)).toBe(FileTypes.OTHER);
         expect(getFileType(undefined as any)).toBe(FileTypes.OTHER);

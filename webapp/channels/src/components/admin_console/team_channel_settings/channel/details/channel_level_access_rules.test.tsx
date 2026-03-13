@@ -37,7 +37,6 @@ jest.mock('../../../../channel_settings_modal/channel_access_rules_confirm_modal
 // Mock Redux selectors with stable references
 const mockAccessControlSettings = {
     EnableAttributeBasedAccessControl: true,
-    EnableChannelScopeAccessControl: true,
     EnableUserManagedAttributes: true,
 };
 
@@ -116,10 +115,6 @@ describe('ChannelLevelAccessRules', () => {
         initialAutoSync: false,
         isDisabled: false,
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('should render the component with correct title and subtitle', () => {
         renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);

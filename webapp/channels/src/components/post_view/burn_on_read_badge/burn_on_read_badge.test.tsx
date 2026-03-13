@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import BurnOnReadBadge from './burn_on_read_badge';
@@ -105,7 +104,7 @@ describe('BurnOnReadBadge', () => {
         expect(badge).toHaveClass('BurnOnReadBadge');
     });
 
-    it('should call onSenderDelete when sender clicks badge', () => {
+    it('should call onSenderDelete when sender clicks badge', async () => {
         const onSenderDelete = jest.fn();
         renderWithContext(
             <BurnOnReadBadge
@@ -116,12 +115,12 @@ describe('BurnOnReadBadge', () => {
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        fireEvent.click(badge);
+        await userEvent.click(badge);
 
         expect(onSenderDelete).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onSenderDelete when recipient clicks badge', () => {
+    it('should not call onSenderDelete when recipient clicks badge', async () => {
         const onSenderDelete = jest.fn();
         const onReveal = jest.fn();
         renderWithContext(
@@ -135,7 +134,7 @@ describe('BurnOnReadBadge', () => {
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        fireEvent.click(badge);
+        await userEvent.click(badge);
 
         expect(onSenderDelete).not.toHaveBeenCalled();
         expect(onReveal).toHaveBeenCalledWith('post123');

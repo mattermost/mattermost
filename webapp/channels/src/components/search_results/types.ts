@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
-import type {IntlShape} from 'react-intl';
-
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -12,31 +9,32 @@ import type {SearchFilterType} from 'components/search/types';
 import type {SearchType} from 'types/store/rhs';
 
 export type OwnProps = {
-    [key: string]: any;
-    isSideBarExpanded: boolean;
-    isMentionSearch: boolean;
-    isFlaggedPosts: boolean;
-    isPinnedPosts: boolean;
-    updateSearchTerms: (terms: string) => void;
-    getMorePostsForSearch: () => void;
-    getMoreFilesForSearch: () => void;
-    shrink: () => void;
-    isCard?: boolean;
-    isOpened?: boolean;
     channelDisplayName?: string;
-    children?: React.ReactNode;
-    searchType: SearchType;
-    setSearchType: (searchType: SearchType) => void;
+    crossTeamSearchEnabled: boolean;
+    isCard?: boolean;
+    isChannelFiles: boolean;
+    isFlaggedPosts: boolean;
+    isMentionSearch: boolean;
+    isOpened?: boolean;
+    isPinnedPosts: boolean;
+    isSideBarExpanded: boolean;
     searchFilterType: SearchFilterType;
+    searchType: SearchType;
+
+    getMoreFilesForSearch: () => void;
+    getMorePostsForSearch: () => void;
+    handleSearchHintSelection?: () => void;
     setSearchFilterType: (filterType: SearchFilterType) => void;
     updateSearchTeam: (teamId: string) => void;
-    crossTeamSearchEnabled: boolean;
+    updateSearchTerms: (terms: string) => void;
 };
 
 export type StateProps = {
+    currentTeamName: string;
     results: Array<Post|string>;
     fileResults: FileInfo[];
     matches: Record<string, string[]>;
+    searchPage: number;
     searchTerms: string;
     searchSelectedType: string;
     isSearchingTerm: boolean;
@@ -47,8 +45,4 @@ export type StateProps = {
     isSearchFilesAtEnd: boolean;
 };
 
-export type IntlProps = {
-    intl: IntlShape;
-};
-
-export type Props = OwnProps & StateProps & IntlProps;
+export type Props = OwnProps & StateProps;

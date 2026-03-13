@@ -53,7 +53,7 @@ const SidebarCategorySortingMenu = ({
     let sortDirectMessagesSelectedValue = (
         <FormattedMessage
             id='user.settings.sidebar.recent'
-            defaultMessage='Recent Activity'
+            defaultMessage='Recent activity'
         />
     );
     if (category.sorting === CategorySorting.Alphabetical) {
@@ -100,7 +100,7 @@ const SidebarCategorySortingMenu = ({
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
-                        defaultMessage='Recent Activity'
+                        defaultMessage='Recent activity'
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
@@ -190,12 +190,12 @@ const SidebarCategorySortingMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategorySortingMenu-Button-${category.id}`,
-                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
+                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
                     class: 'SidebarMenu_menuButton sortingMenu',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
+                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
                     class: 'hidden-xs',
                 }}
                 menu={{

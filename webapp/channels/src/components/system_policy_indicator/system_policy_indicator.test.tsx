@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SystemPolicyIndicator from './system_policy_indicator';
@@ -224,7 +224,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     });
 
     // Test more button functionality
-    test('should call onMorePoliciesClick when more button is clicked', () => {
+    test('should call onMorePoliciesClick when more button is clicked', async () => {
         const mockPolicy3: AccessControlPolicy = {
             id: 'policy3',
             name: 'Test Policy 3',
@@ -248,12 +248,12 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         const moreButton = screen.getByText('1 more');
-        fireEvent.click(moreButton);
+        await userEvent.click(moreButton);
 
         expect(onMorePoliciesClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onMorePoliciesClick when more button is activated with Enter key', () => {
+    test('should call onMorePoliciesClick when more button is activated with Enter key', async () => {
         const mockPolicy3: AccessControlPolicy = {
             id: 'policy3',
             name: 'Test Policy 3',
@@ -277,7 +277,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         const moreButton = screen.getByText('1 more');
-        fireEvent.keyDown(moreButton, {key: 'Enter', code: 'Enter'});
+        moreButton.focus();
+        await userEvent.keyboard('{Enter}');
 
         expect(onMorePoliciesClick).toHaveBeenCalledTimes(1);
     });
@@ -315,7 +316,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.getByText('policy1')).toBeInTheDocument();
     });
 
-    test('should prevent default action and stop propagation on click', () => {
+    test('should prevent default action and stop propagation on click', async () => {
         const mockPolicy3: AccessControlPolicy = {
             id: 'policy3',
             name: 'Test Policy 3',
@@ -329,8 +330,6 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         };
 
         const onMorePoliciesClick = jest.fn();
-        const mockPreventDefault = jest.fn();
-        const mockStopPropagation = jest.fn();
 
         renderWithContext(
             <SystemPolicyIndicator
@@ -342,10 +341,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         const moreButton = screen.getByText('1 more');
 
-        fireEvent.click(moreButton, {
-            preventDefault: mockPreventDefault,
-            stopPropagation: mockStopPropagation,
-        });
+        await userEvent.click(moreButton);
 
         expect(onMorePoliciesClick).toHaveBeenCalledTimes(1);
     });

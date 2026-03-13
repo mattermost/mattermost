@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {CloudUsage} from '@mattermost/types/cloud';
@@ -10,6 +9,8 @@ import type {Team} from '@mattermost/types/teams';
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import SelectTeam, {TEAMS_PER_PAGE} from 'components/select_team/select_team';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('actions/global_actions', () => ({
     emitUserLoggedOutEvent: jest.fn(),
@@ -51,8 +52,8 @@ describe('components/select_team/SelectTeam', () => {
 
     test('should match snapshot', () => {
         const props = {...baseProps};
-        const wrapper = shallow(<SelectTeam {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        expect(container).toMatchSnapshot();
 
         // on componentDidMount
         expect(props.actions.getTeams).toHaveBeenCalledTimes(1);
@@ -60,71 +61,121 @@ describe('components/select_team/SelectTeam', () => {
         expect(props.actions.loadRolesIfNeeded).toHaveBeenCalledWith(baseProps.currentUserRoles.split(' '));
     });
 
-    test('should match snapshot, on loading', () => {
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...baseProps}/>,
-        );
-        wrapper.setState({loadingTeamId: 'loading_team_id'});
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot, on loading', async () => {
+        const addUserToTeam = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves to keep loading state
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUserToTeam,
+            },
+        };
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+
+        // Click on a team to trigger loading state
+        await userEvent.click(screen.getByText('Team A'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Loading')).toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on error', () => {
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...baseProps}/>,
-        );
-        wrapper.setState({error: {message: 'error message'}});
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot, on error', async () => {
+        const addUserToTeam = jest.fn().mockResolvedValue({error: {message: 'error message'}});
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUserToTeam,
+            },
+        };
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+
+        // Click on a team to trigger error state
+        await userEvent.click(screen.getByText('Team A'));
+
+        await waitFor(() => {
+            expect(screen.getByText('error message')).toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on no joinable team but can create team', () => {
         const props = {...baseProps, listableTeams: []};
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on no joinable team and is not system admin nor can create team', () => {
         const props = {...baseProps, listableTeams: [], currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on no joinable team and user is guest', () => {
         const props = {...baseProps, listableTeams: [], currentUserRoles: '', currentUserIsGuest: true, canManageSystem: false, canCreateTeams: false};
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match state and call addUserToTeam on handleTeamClick', async () => {
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...baseProps}/>,
-        );
-        await wrapper.instance().handleTeamClick({id: 'team_id'} as any);
-        expect(wrapper.state('loadingTeamId')).toEqual('team_id');
-        expect(baseProps.actions.addUserToTeam).toHaveBeenCalledTimes(1);
+    test('should match state and call addUserToTeam on team click', async () => {
+        const addUserToTeam = jest.fn().mockResolvedValue({data: true});
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUserToTeam,
+            },
+        };
+        renderWithContext(<SelectTeam {...props}/>);
+
+        // Click on the first team
+        await userEvent.click(screen.getByText('Team A'));
+
+        await waitFor(() => {
+            expect(addUserToTeam).toHaveBeenCalledTimes(1);
+        });
+        expect(addUserToTeam).toHaveBeenCalledWith('team_id_1', 'test');
     });
 
-    test('should call emitUserLoggedOutEvent on handleLogoutClick', () => {
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...baseProps}/>,
-        );
-        wrapper.instance().handleLogoutClick({preventDefault: jest.fn()} as any);
+    test('should call emitUserLoggedOutEvent on logout', async () => {
+        const props = {...baseProps, isMemberOfTeam: false};
+        renderWithContext(<SelectTeam {...props}/>);
+
+        // Click the logout link (shown when user is not a member of a team)
+        await userEvent.click(screen.getByRole('link', {name: /logout/i}));
+
         expect(emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
         expect(emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
     });
 
-    test('should match state on clearError', () => {
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...baseProps}/>,
-        );
-        wrapper.setState({error: {message: 'error message'}});
-        wrapper.instance().clearError({preventDefault: jest.fn()} as any);
-        expect(wrapper.state('error')).toBeNull();
+    test('should match clear error on click to back link', async () => {
+        const addUserToTeam = jest.fn().mockResolvedValue({error: {message: 'error message'}});
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUserToTeam,
+            },
+        };
+        renderWithContext(<SelectTeam {...props}/>);
+
+        // Trigger error by clicking a team
+        await userEvent.click(screen.getByText('Team A'));
+
+        await waitFor(() => {
+            expect(screen.getByText('error message')).toBeInTheDocument();
+        });
+
+        // Click the back link to clear error
+        await userEvent.click(screen.getByRole('link', {name: /back/i}));
+
+        await waitFor(() => {
+            expect(screen.queryByText('error message')).not.toBeInTheDocument();
+        });
     });
 
     test('should match snapshot, on create team restricted', () => {
@@ -139,11 +190,9 @@ describe('components/select_team/SelectTeam', () => {
             } as CloudUsage,
         };
 
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...props}/>,
-        );
+        const {container} = renderWithContext(<SelectTeam {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should filter out group-constrained teams from joinable teams list', () => {
@@ -157,19 +206,12 @@ describe('components/select_team/SelectTeam', () => {
             ],
         };
 
-        const wrapper = shallow<SelectTeam>(
-            <SelectTeam {...props}/>,
-        );
+        renderWithContext(<SelectTeam {...props}/>);
 
         // Should show teams that are not group-constrained (false, undefined, null)
-        const teamItems = wrapper.find('Memo(SelectTeamItem)');
-        expect(teamItems).toHaveLength(3);
-
-        // Check that only non-group-constrained teams are rendered
-        const renderedTeamIds = teamItems.map((item) => (item.prop('team') as Team).id);
-        expect(renderedTeamIds).toContain('team_id_1'); // group_constrained: false
-        expect(renderedTeamIds).toContain('team_id_3'); // group_constrained: false
-        expect(renderedTeamIds).toContain('team_id_4'); // group_constrained: undefined
-        expect(renderedTeamIds).not.toContain('team_id_2'); // group_constrained: true
+        expect(screen.getByText('Team A')).toBeInTheDocument(); // group_constrained: false
+        expect(screen.getByText('Team C')).toBeInTheDocument(); // group_constrained: false
+        expect(screen.getByText('Team D')).toBeInTheDocument(); // group_constrained: undefined
+        expect(screen.queryByText('Team B')).not.toBeInTheDocument(); // group_constrained: true
     });
 });

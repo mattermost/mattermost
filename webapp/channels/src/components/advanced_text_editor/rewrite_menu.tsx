@@ -118,7 +118,7 @@ export default function RewriteMenu({
             placeholderText = prompt;
         } else if (draftMessage.trim()) {
             placeholderText = formatMessage({
-                id: 'texteditor.rewrite.rewriting',
+                id: 'texteditor.rewrite.placeholder.rewriting',
                 defaultMessage: 'Rewriting...',
             });
         }
@@ -144,6 +144,7 @@ export default function RewriteMenu({
                             onBotSelect={setSelectedAgentId}
                             bots={agents}
                             disabled={isProcessing}
+                            showLabel={true}
                         />
                     )}
                     {isProcessing &&
@@ -170,6 +171,7 @@ export default function RewriteMenu({
                         <Input
                             ref={customPromptRef}
                             inputPrefix={<CreationOutlineIcon size={18}/>}
+                            label={placeholderText}
                             placeholder={placeholderText}
                             disabled={isProcessing}
                             value={prompt}
@@ -264,4 +266,3 @@ export default function RewriteMenu({
         </Menu.Container>
     );
 }
-

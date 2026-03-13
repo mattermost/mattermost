@@ -15,7 +15,6 @@ export type ThreeDaysLeftTrialCardProps = {
     svgElement: React.ReactNode;
     buttonLabel?: string;
     pageURL?: string;
-    isCloud?: boolean;
     onClose?: () => void;
 }
 

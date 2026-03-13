@@ -72,6 +72,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["ShowEmailAddress"] = strconv.FormatBool(*c.PrivacySettings.ShowEmailAddress)
 	props["ShowFullName"] = strconv.FormatBool(*c.PrivacySettings.ShowFullName)
+	props["UseAnonymousURLs"] = strconv.FormatBool(*c.PrivacySettings.UseAnonymousURLs)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
@@ -159,7 +160,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
 	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
-	props["EnableChannelScopeAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelScopeAccessControl)
 	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
 
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
@@ -249,6 +249,12 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslation && *c.AutoTranslationSettings.Enable)
+			if c.FeatureFlags.AutoTranslation {
+				props["AutoTranslationLanguages"] = strings.Join(*c.AutoTranslationSettings.TargetLanguages, ",")
+			} else {
+				props["AutoTranslationLanguages"] = ""
+			}
+			props["RestrictDMAndGMAutotranslation"] = strconv.FormatBool(*c.AutoTranslationSettings.RestrictDMAndGM)
 		}
 	}
 

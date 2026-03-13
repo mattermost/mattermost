@@ -1,1041 +1,695 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SettingItemMin should match snapshot with active Save button 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
-      >
-        <img
-          alt="profile image"
-          className="profile-img"
-          src="http://localhost:8065/api/v4/users/src_id"
-        />
-      </li>
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
       <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-primary"
-            data-testid="saveSettingPicture"
-            disabled={false}
-            onClick={[Function]}
-            tabIndex={0}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
           />
-        </button>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-primary"
+              data-testid="saveSettingPicture"
+              tabindex="0"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
-exports[`components/SettingItemMin should match snapshot with active Save button 2`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+exports[`components/SettingItemMin should match snapshot with removeSrc state active 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
     <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+      class="col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-primary"
-            data-testid="saveSettingPicture"
-            disabled={false}
-            onClick={[Function]}
-            tabIndex={0}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
-          />
-        </button>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-primary"
+              data-testid="saveSettingPicture"
+              tabindex="0"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, on loading picture 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
-      >
-        <img
-          alt="profile image"
-          className="profile-img"
-          src="http://localhost:8065/api/v4/users/src_id"
-        />
-      </li>
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
       <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={true}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={true}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Uploading..."
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={true}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
           />
-        </button>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              disabled=""
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+              disabled=""
+            >
+              Select
+            </button>
+            <button
+              aria-label="Uploading..."
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  class="fa fa-spinner fa-fw fa-pulse spinner"
+                  title="Loading Icon"
+                />
+                Uploading...
+              </span>
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, profile picture on file 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <div
-          className="profile-img-preview"
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
           <div
-            className="img-preview__image"
+            class="profile-img-preview"
           >
             <div
-              className="profile-img-preview"
-              style={
-                Object {
-                  "backgroundImage": "url(null)",
-                }
-              }
-            />
-          </div>
-        </div>
-      </li>
-      <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
+              class="img-preview__image"
             >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
+              <div
+                class="profile-img-preview"
+                style="background-image: url(\\"null\\");"
               />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+            </div>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
-          />
-        </button>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, profile picture on source 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
-      >
-        <img
-          alt="profile image"
-          className="profile-img"
-          src="http://localhost:8065/api/v4/users/src_id"
-        />
-      </li>
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
       <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
           />
-        </button>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, team icon on file 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <div
-          className="team-img-preview"
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
           <div
-            className="img-preview__image"
+            class="team-img-preview"
           >
             <div
-              className="team-img-preview"
-              style={
-                Object {
-                  "backgroundImage": "url(null)",
-                }
-              }
-            />
-          </div>
-        </div>
-      </li>
-      <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
+              class="img-preview__image"
             >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
+              <div
+                class="team-img-preview"
+                style="background-image: url(\\"null\\");"
               />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+            </div>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
-          />
-        </button>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, team icon on source 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <div
-          className="team-img__container"
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
           <div
-            aria-hidden={true}
-            className="img-preview__image"
+            class="team-img__container"
           >
-            <img
-              alt="team image"
-              className="team-img"
-              src="http://localhost:8065/api/v4/users/src_id"
-            />
-          </div>
-          <WithTooltip
-            disabled={false}
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove This Icon"
-                id="setting_picture.remove"
+            <div
+              aria-hidden="true"
+              class="img-preview__image"
+            >
+              <img
+                alt="team image"
+                class="team-img"
+                src="http://localhost:8065/api/v4/users/src_id"
               />
-            }
-          >
+            </div>
             <button
-              className="team-img__remove"
+              class="team-img__remove"
               data-testid="removeSettingPicture"
-              onClick={[Function]}
             >
               <span
-                aria-hidden={true}
+                aria-hidden="true"
               >
                 ×
               </span>
               <span
-                className="sr-only"
+                class="sr-only"
               >
-                <MemoizedFormattedMessage
-                  defaultMessage="Remove This Icon"
-                  id="setting_picture.remove"
-                />
+                Remove This Icon
               </span>
             </button>
-          </WithTooltip>
-        </div>
-      </li>
-      <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
-          />
-        </button>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;
 
 exports[`components/SettingItemMin should match snapshot, user icon on source 1`] = `
-<section
-  className="section-max form-horizontal"
->
-  <h4
-    className="col-xs-12 section-title"
+<div>
+  <section
+    class="section-max form-horizontal"
   >
-    Profile Picture
-  </h4>
-  <div
-    className="col-sm-10 col-sm-offset-2"
-  >
-    <div
-      aria-describedby="setting-picture__helptext"
-      aria-label="Profile Picture"
-      className="setting-list"
-      tabIndex={-1}
+    <h4
+      class="col-xs-12 section-title"
     >
-      <li
-        className="setting-list-item"
-        role="presentation"
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
       >
-        <div
-          className="profile-img__container"
+        <li
+          class="setting-list-item"
+          role="presentation"
         >
           <div
-            aria-hidden={true}
-            className="img-preview__image"
+            class="profile-img__container"
           >
-            <img
-              alt="profile image"
-              className="profile-img"
-              src="http://localhost:8065/api/v4/users/src_id"
-            />
-          </div>
-          <WithTooltip
-            disabled={false}
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove Profile Picture"
-                id="setting_picture.remove_profile_picture"
+            <div
+              aria-hidden="true"
+              class="img-preview__image"
+            >
+              <img
+                alt="profile image"
+                class="profile-img"
+                src="http://localhost:8065/api/v4/users/src_id"
               />
-            }
-          >
+            </div>
             <button
-              className="profile-img__remove"
+              class="profile-img__remove"
               data-testid="removeSettingPicture"
-              onClick={[Function]}
             >
               <span
-                aria-hidden={true}
+                aria-hidden="true"
               >
                 ×
               </span>
               <span
-                className="sr-only"
+                class="sr-only"
               >
-                <MemoizedFormattedMessage
-                  defaultMessage="Remove Profile Picture"
-                  id="setting_picture.remove_profile_picture"
-                />
+                Remove Profile Picture
               </span>
             </button>
-          </WithTooltip>
-        </div>
-      </li>
-      <div
-        className="setting-list-item pt-3"
-        id="setting-picture__helptext"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile.example"
-          values={
-            Object {
-              "max": 52428800,
-            }
-          }
-        />
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              "",
-            ]
-          }
-          type="modal"
-        />
-        <span>
-          <input
-            accept=".jpeg,.jpg,.png,.bmp"
-            aria-hidden={true}
-            className="hidden"
-            data-testid="uploadPicture"
-            disabled={false}
-            onChange={[Function]}
-            tabIndex={-1}
-            type="file"
-          />
-          <button
-            aria-label="Select"
-            className="btn btn-primary btn-file"
-            data-testid="inputSettingPictureButton"
-            disabled={false}
-            onClick={[Function]}
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Select"
-              id="setting_picture.select"
-            />
-          </button>
-          <button
-            aria-label="Save"
-            className="btn btn-inactive disabled"
-            data-testid="saveSettingPicture"
-            disabled={true}
-            onClick={[Function]}
-            tabIndex={-1}
-          >
-            <Memo(LoadingWrapper)
-              loading={false}
-              text={
-                Object {
-                  "defaultMessage": "Uploading...",
-                  "id": "setting_picture.uploading",
-                }
-              }
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Save"
-                id="setting_picture.save"
-              />
-            </Memo(LoadingWrapper)>
-          </button>
-        </span>
-        <button
-          aria-label="Cancel"
-          className="btn btn-tertiary theme ml-2"
-          data-testid="cancelSettingPicture"
-          onClick={[Function]}
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_picture.cancel"
-          />
-        </button>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 `;

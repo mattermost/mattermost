@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useParams} from 'react-router-dom';
+import {useLocation, useParams} from 'react-router-dom';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
@@ -12,35 +15,70 @@ import {extractUserIdsAndMentionsFromPosts} from 'mattermost-redux/actions/statu
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadStatusesByIds} from 'actions/status_actions';
+import {selectPost} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
 
 import {usePost} from 'components/common/hooks/usePost';
+import {useUser} from 'components/common/hooks/useUser';
 import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
+import usePopoutTitle from 'utils/popouts/use_popout_title';
+import {isDesktopApp} from 'utils/user_agent';
+
 import type {GlobalState} from 'types/store';
+
+const THREAD_POPOUT_TITLE = defineMessage({
+    id: 'thread_popout.title',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- provided later
+    defaultMessage: 'Thread - {channelName} - {teamName} - {serverName}',
+});
+const THREAD_POPOUT_TITLE_DM = defineMessage({
+    id: 'thread_popout.title.dm',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- provided later
+    defaultMessage: 'Thread - {channelName} - {serverName}',
+});
+export function getThreadPopoutTitle(channel?: Channel) {
+    return channel?.type === 'D' || channel?.type === 'G' ? THREAD_POPOUT_TITLE_DM : THREAD_POPOUT_TITLE;
+}
 
 export default function ThreadPopout() {
     const dispatch = useDispatch();
     const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
 
     const {postId, team: teamName} = useParams<{team: string; postId: string}>();
+    const location = useLocation();
+    const returnTo = new URLSearchParams(location.search).get('returnTo');
     const currentUserId = useSelector(getCurrentUserId);
 
     const post = usePost(postId);
     const team = useSelector((state: GlobalState) => getTeamByName(state, teamName));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id ?? ''));
+    const currentChannel = useSelector(getCurrentChannel);
+    useUser(currentChannel?.type === Constants.DM_CHANNEL && currentChannel.teammate_id ? currentChannel.teammate_id : '');
     const thread = useSelector((state: GlobalState) => {
         if (!post) {
             return undefined;
         }
         return getThreadOrSynthetic(state, post);
     });
+
+    usePopoutTitle(getThreadPopoutTitle(channel));
+
+    useEffect(() => {
+        if (post) {
+            dispatch(selectPost(post));
+        }
+    }, [dispatch, post]);
 
     const channelId = post?.channel_id;
     useEffect(() => {
@@ -98,15 +136,22 @@ export default function ThreadPopout() {
         };
     }, []);
 
+    const backAction = useCallback(() => {
+        if (returnTo) {
+            getHistory().replace(returnTo);
+        }
+    }, [returnTo]);
+
     if (!thread) {
         return null;
     }
 
     return (
         <>
-            <UnreadsStatusHandler/>
+            {isDesktopApp() && <UnreadsStatusHandler/>}
             <ThreadPane
                 thread={thread}
+                backAction={returnTo ? backAction : undefined}
             >
                 <ThreadViewer
                     rootPostId={postId}

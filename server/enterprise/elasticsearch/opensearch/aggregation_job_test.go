@@ -206,7 +206,7 @@ func indexPost(t *testing.T, th *api4.TestHelper, esImpl *OpensearchInterfaceImp
 		createTime.Add(-1*24*time.Hour),
 		model.GetMillisForTime(createTime),
 	)
-	searchPost, err := common.ESPostFromPost(post, "teamID")
+	searchPost, err := common.ESPostFromPost(post, "teamID", "O")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Duration(*esImpl.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)

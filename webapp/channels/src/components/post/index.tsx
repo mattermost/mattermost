@@ -11,8 +11,9 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
@@ -37,7 +38,8 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
-import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
+import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -51,6 +53,7 @@ type OwnProps = {
     postId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
+    preventClickInteraction?: boolean;
 };
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {
@@ -68,7 +71,7 @@ function isFirstReply(post: Post, previousPost?: Post | null): boolean {
     return false;
 }
 
-function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
+function isConsecutivePost(state: GlobalState, ownProps: OwnProps, locale: string) {
     let post;
     if (ownProps.postId) {
         post = getPost(state, ownProps.postId);
@@ -82,6 +85,15 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
     if (previousPost && post && !post.metadata?.priority?.priority) {
         consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
     }
+
+    if (previousPost && post && consecutivePost && isMyChannelAutotranslated(state, post.channel_id)) {
+        const translation = getPostTranslation(post, locale);
+        const previousTranslation = getPostTranslation(previousPost, locale);
+        if (translation?.state !== previousTranslation?.state) {
+            consecutivePost = false;
+        }
+    }
+
     return consecutivePost;
 }
 
@@ -111,6 +123,9 @@ function makeMapStateToProps() {
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
         const channel = state.entities.channels.channels[post.channel_id];
+        if (!channel) {
+            return null;
+        }
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
 
         const user = getUser(state, post.user_id);
@@ -154,7 +169,8 @@ function makeMapStateToProps() {
         }
 
         const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
-        const canReply = !isPostBurnOnRead && (isDMorGM || (channel.team_id === currentTeam?.id));
+        const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
+        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -171,6 +187,8 @@ function makeMapStateToProps() {
             Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === 'true',
         );
 
+        const locale = getCurrentUserLocale(state);
+
         return {
             enableEmojiPicker,
             enablePostUsernameOverride,
@@ -184,7 +202,7 @@ function makeMapStateToProps() {
             pluginPostTypes: state.plugins.postTypes,
             channelIsArchived: isArchivedChannel(channel),
             channelIsShared: channel?.shared,
-            isConsecutivePost: isConsecutivePost(state, ownProps),
+            isConsecutivePost: isConsecutivePost(state, ownProps, locale),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
