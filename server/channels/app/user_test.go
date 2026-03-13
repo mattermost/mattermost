@@ -8,6 +8,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,6 +27,7 @@ import (
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -140,11 +144,34 @@ func TestAdjustProfileImage(t *testing.T) {
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, appErr := th.App.GetDefaultProfileImage(user)
+	defaultImg, appErr := th.App.GetDefaultProfileImage(user)
 	require.Nil(t, appErr)
-	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(image))
+	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(defaultImg))
 	require.Nil(t, appErr)
-	assert.Equal(t, image, image2.Bytes())
+	assert.Equal(t, defaultImg, image2.Bytes())
+
+	// EXIF orientation should be corrected: right.jpg has orientation=RotatedCW (8),
+	// meaning the raw pixels are stored sideways and must be rotated upright.
+	// After AdjustImage the result should still be the standard 128×128 profile square.
+	t.Run("EXIF orientation is applied for rotated images", func(t *testing.T) {
+		imgDir, ok := fileutils.FindDir("tests/exif_samples")
+		require.True(t, ok, "failed to find exif_samples test directory")
+
+		rawData, err := os.ReadFile(filepath.Join(imgDir, "right.jpg"))
+		require.NoError(t, err)
+
+		adjusted, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(rawData))
+		require.Nil(t, appErr)
+		require.NotEmpty(t, adjusted.Bytes())
+
+		// The output is a PNG (AdjustImage encodes as PNG).
+		// After uprighting + FillCenter the image must be a 128×128 square.
+		adjustedImg, _, err := image.Decode(adjusted)
+		require.NoError(t, err)
+		bounds := adjustedImg.Bounds()
+		require.Equal(t, 128, bounds.Dx(), "adjusted profile image width must be 128")
+		require.Equal(t, 128, bounds.Dy(), "adjusted profile image height must be 128")
+	})
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
