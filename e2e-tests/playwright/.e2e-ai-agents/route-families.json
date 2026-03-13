@@ -11,7 +11,8 @@
                 "webapp/channels/src/components/create_post/**",
                 "webapp/channels/src/components/rhs*/**",
                 "webapp/channels/src/components/threading/**",
-                "webapp/channels/src/components/file_*/**"
+                "webapp/channels/src/components/file_*/**",
+                "webapp/channels/src/actions/notification_actions.*"
             ],
             "serverPaths": [
                 "server/channels/api4/channel*.go",
@@ -42,15 +43,34 @@
                 },
                 {
                     "id": "channels/notifications",
-                    "webappPaths": ["webapp/channels/src/components/notify_*/**"],
+                    "priority": "P1",
+                    "webappPaths": [
+                        "webapp/channels/src/components/notify_*/**",
+                        "webapp/channels/src/actions/notification_actions.*"
+                    ],
                     "serverPaths": ["server/channels/app/notification*.go"],
-                    "specDirs": ["specs/functional/channels/notifications"]
+                    "specDirs": ["specs/functional/channels/notifications"],
+                    "userFlows": [
+                        "Receive desktop notification for @mention in channel",
+                        "Notification preferences per-channel override global settings",
+                        "Do Not Disturb mode suppresses all notifications",
+                        "Keyword-triggered notifications fire for custom words",
+                        "Notification sound plays for new messages in focused channel"
+                    ]
                 },
                 {
                     "id": "channels/search",
+                    "priority": "P0",
                     "webappPaths": ["webapp/channels/src/components/search*/**"],
                     "serverPaths": ["server/channels/api4/search*.go"],
-                    "specDirs": ["specs/functional/channels/search"]
+                    "specDirs": ["specs/functional/channels/search"],
+                    "userFlows": [
+                        "Search for messages by keyword and verify results appear",
+                        "Filter search results by date range",
+                        "Search using modifiers (in:channel, from:user, on:date)",
+                        "Navigate to a message from search results",
+                        "Search highlights matching terms in results"
+                    ]
                 },
                 {
                     "id": "channels/emoji",
@@ -66,6 +86,26 @@
                     "webappPaths": ["webapp/channels/src/components/scheduled*/**"],
                     "serverPaths": ["server/channels/api4/scheduled*.go", "server/channels/app/scheduled*.go"],
                     "specDirs": ["specs/functional/channels/scheduled_messages"]
+                },
+                {
+                    "id": "channels/popout",
+                    "priority": "P1",
+                    "webappPaths": [
+                        "webapp/channels/src/components/rhs_popout/**",
+                        "webapp/channels/src/components/rhs_search_popout/**",
+                        "webapp/channels/src/components/popout_controller/**",
+                        "webapp/channels/src/components/thread_popout/**",
+                        "webapp/channels/src/utils/popouts/**"
+                    ],
+                    "specDirs": ["specs/functional/channels/search"],
+                    "userFlows": [
+                        "Open search results in a popout window and verify results display",
+                        "Open thread in popout window and post a reply",
+                        "Popout window syncs with main window in real-time",
+                        "Close popout window and verify main window state is unchanged",
+                        "Multiple popout windows can be open simultaneously"
+                    ],
+                    "tags": ["popout", "multi-window"]
                 }
             ]
         },
@@ -109,10 +149,23 @@
                 },
                 {
                     "id": "system_console/system_users",
+                    "priority": "P1",
                     "routes": ["/admin_console/user_management/users/**"],
                     "webappPaths": ["webapp/channels/src/components/admin_console/system_users/**"],
-                    "serverPaths": ["server/channels/api4/user*.go", "server/channels/app/user*.go"],
-                    "specDirs": ["specs/functional/system_console/system_users"]
+                    "serverPaths": [
+                        "server/channels/api4/user*.go",
+                        "server/channels/app/user*.go",
+                        "server/channels/api4/report*.go",
+                        "server/channels/app/report*.go"
+                    ],
+                    "specDirs": ["specs/functional/system_console/system_users"],
+                    "userFlows": [
+                        "Filter users by role (admin, member, guest) and verify table updates",
+                        "Toggle column visibility and verify columns appear/disappear",
+                        "Export filtered user list to CSV and verify content",
+                        "Search for a user by name or email in system users table",
+                        "Sort users by column header and verify order"
+                    ]
                 },
                 {
                     "id": "system_console/abac",
@@ -134,7 +187,29 @@
             "tags": ["navigation", "product-switcher"]
         },
         {
+            "id": "recaps",
+            "priority": "P1",
+            "routes": ["/{team}/recaps"],
+            "components": ["Recaps", "RecapsLink", "CreateRecapModal", "ChannelSelector"],
+            "webappPaths": [
+                "webapp/channels/src/components/recaps/**",
+                "webapp/channels/src/components/recaps_link/**",
+                "webapp/channels/src/components/create_recap_modal/**"
+            ],
+            "specDirs": [],
+            "tags": ["recaps", "ai"],
+            "userFlows": [
+                "Open Recaps from LHS sidebar and verify recap list loads",
+                "Create a new recap by selecting channels and confirming",
+                "Select and deselect channels in recap creation modal",
+                "View a recap summary and verify content is relevant to selected channels",
+                "Delete a recap and verify it is removed from the list",
+                "Recaps LHS sidebar icon is visible and correctly aligned"
+            ]
+        },
+        {
             "id": "auth",
+            "priority": "P0",
             "routes": ["/login", "/signup", "/reset_password"],
             "webappPaths": [
                 "webapp/channels/src/components/login/**",
@@ -152,7 +227,14 @@
                 "server/channels/app/authentication*.go"
             ],
             "specDirs": [],
-            "unmapped": true
+            "unmapped": true,
+            "userFlows": [
+                "Login with valid email and password",
+                "Login fails with incorrect password and shows error",
+                "Sign up a new user with email and verify account creation",
+                "Reset password via email link and login with new password",
+                "Session expires and user is redirected to login page"
+            ]
         },
         {
             "id": "migrations/permissions",
@@ -205,6 +287,20 @@
             ],
             "specDirs": [],
             "unmapped": true
+        },
+        {
+            "id": "shared",
+            "priority": "P2",
+            "routes": [],
+            "webappPaths": [
+                "webapp/channels/src/i18n/**",
+                "webapp/channels/src/utils/text_formatting.*",
+                "webapp/channels/src/utils/markdown/**",
+                "webapp/channels/src/utils/url.*",
+                "webapp/channels/src/components/dropdown_input.*"
+            ],
+            "specDirs": [],
+            "tags": ["shared", "utilities"]
         }
     ]
 }
