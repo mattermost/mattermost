@@ -3103,6 +3103,10 @@
     "translation": "The provided object type is not valid."
   },
   {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "The request contains duplicate field IDs."
+  },
+  {
     "id": "api.property_value.patch.empty_body.app_error",
     "translation": "Request body must contain at least one property value update."
   },
@@ -3113,10 +3117,6 @@
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
     "translation": "One or more field IDs in the request are invalid."
-  },
-  {
-    "id": "api.property_value.patch.duplicate_field_id.app_error",
-    "translation": "The request contains duplicate field IDs."
   },
   {
     "id": "api.property_value.patch.no_values_permission.app_error",
