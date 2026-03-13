@@ -125,13 +125,31 @@
         },
         {
             "id": "global_header",
+            "priority": "P1",
             "routes": ["/{team}/channels/{channel}", "/{team}/messages/{user}", "/admin_console/**"],
             "components": ["GlobalHeader", "ProductMenu", "ProductMenuItem"],
             "webappPaths": [
                 "webapp/channels/src/components/global_header/**"
             ],
             "specDirs": [],
-            "tags": ["navigation", "product-switcher"]
+            "tags": ["navigation", "product-switcher"],
+            "features": [
+                {
+                    "id": "global_header/product_switcher",
+                    "priority": "P1",
+                    "webappPaths": [
+                        "webapp/channels/src/components/global_header/left_controls/product_menu/**"
+                    ],
+                    "specDirs": [],
+                    "userFlows": [
+                        "Open product switcher menu and verify all product links are visible",
+                        "Click a product link in the switcher and verify navigation",
+                        "Open product in new tab via the open-in-new-tab button",
+                        "Verify active product is highlighted in the switcher menu",
+                        "Close product switcher menu by clicking outside or pressing Escape"
+                    ]
+                }
+            ]
         },
         {
             "id": "auth",
