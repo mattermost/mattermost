@@ -779,6 +779,17 @@ func (c *Context) RequireRecapId() *Context {
 	return c
 }
 
+func (c *Context) RequireViewId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ViewId) {
+		c.SetInvalidURLParam("view_id")
+	}
+	return c
+}
+
 func (c *Context) RequirePermissionToManageSecureConnections() *Context {
 	if c.Err != nil {
 		return c

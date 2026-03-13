@@ -357,6 +357,106 @@ components:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
         deleted:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the view
+        channel_id:
+          type: string
+          description: The ID of the channel this view belongs to
+        type:
+          type: string
+          enum: [board]
+        creator_id:
+          type: string
+          description: The ID of the user who created this view
+        title:
+          type: string
+          description: The title of the view
+        description:
+          type: string
+          description: The description of the view
+        icon:
+          type: string
+          description: The icon for the view
+        sort_order:
+          type: integer
+          description: The display order of the view within the channel
+        props:
+          $ref: "#/components/schemas/ViewBoardProps"
+        create_at:
+          description: The time in milliseconds the view was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds the view was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds the view was deleted
+          type: integer
+          format: int64
+    ViewBoardProps:
+      type: object
+      description: Properties specific to board-type views
+      required:
+        - linked_properties
+        - subviews
+      properties:
+        linked_properties:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            description: 26-character alphanumeric Mattermost ID of a custom property
+          description: IDs of custom properties linked to this board view
+        subviews:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Subview"
+    Subview:
+      type: object
+      required:
+        - title
+        - type
+      properties:
+        id:
+          type: string
+          description: Auto-generated on creation
+        title:
+          type: string
+        type:
+          type: string
+          enum: [kanban]
+    ViewPatch:
+      type: object
+      description: Fields that can be updated on a view via PATCH
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        sort_order:
+          type: integer
+        props:
+          $ref: "#/components/schemas/ViewBoardProps"
+    ViewsWithCount:
+      type: object
+      description: Paginated list of views with total count
+      properties:
+        views:
+          type: array
+          items:
+            $ref: "#/components/schemas/View"
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of views matching the query (ignoring pagination)
     Post:
       type: object
       properties:
@@ -4477,66 +4577,6 @@ components:
           items:
             $ref: "#/components/schemas/Condition"
           description: The visual AST for the CEL expression
-    View:
-      type: object
-      properties:
-        id:
-          type: string
-          description: The unique identifier for the view
-        channel_id:
-          type: string
-          description: The ID of the channel this view belongs to
-        type:
-          type: string
-          description: The type of view
-        creator_id:
-          description: The Id of the user who created the view
-          type: string
-        title:
-          type: string
-          description: The title of the view
-        description:
-          type: string
-          description: A description of the view
-        icon:
-          type: string
-          description: The icon identifier for the view
-        sort_order:
-          type: integer
-          description: The sort order of the view within the channel
-        props:
-          type: object
-          description: Additional properties for the view stored as JSON (includes subviews and other type-specific configuration)
-        create_at:
-          type: integer
-          format: int64
-          description: The time in milliseconds the view was created
-        update_at:
-          type: integer
-          format: int64
-          description: The time in milliseconds the view was last updated
-        delete_at:
-          type: integer
-          format: int64
-          description: The time in milliseconds the view was deleted, 0 if not deleted
-    ViewPatch:
-      type: object
-      properties:
-        title:
-          type: string
-          description: The title of the view
-        description:
-          type: string
-          description: A description of the view
-        icon:
-          type: string
-          description: The icon identifier for the view
-        sort_order:
-          type: integer
-          description: The sort order of the view within the channel
-        props:
-          type: object
-          description: Additional properties for the view stored as JSON
     Condition:
       type: object
       properties:

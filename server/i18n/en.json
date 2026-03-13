@@ -4827,6 +4827,42 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Cannot create a view in a deleted channel."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Cannot delete a view in a deleted channel."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Cannot get a view from a deleted channel."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Cannot list views for a deleted channel."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Cannot update a view in a deleted channel."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Cannot update view sort order in a deleted channel."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -8501,16 +8537,44 @@
     "translation": "Password is not valid"
   },
   {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
     "id": "app.view.create.app_error",
     "translation": "Unable to create the view."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "This channel has reached the maximum number of views."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is required."
   },
   {
     "id": "app.view.delete.app_error",
     "translation": "Unable to delete the view."
   },
   {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
     "id": "app.view.get.app_error",
     "translation": "Unable to get the view."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.view.get_for_channel.app_error",
@@ -8523,6 +8587,26 @@
   {
     "id": "app.view.update.app_error",
     "translation": "Unable to update the view."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Unable to update the view sort order."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Invalid input for view sort order update."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -11395,6 +11479,10 @@
   {
     "id": "model.subview.is_valid.title.app_error",
     "translation": "Subview title is required."
+  },
+  {
+    "id": "model.subview.is_valid.title_length.app_error",
+    "translation": "Subview title is too long."
   },
   {
     "id": "model.subview.is_valid.type.app_error",

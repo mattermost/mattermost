@@ -52,6 +52,8 @@ type Routes struct {
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
 	ChannelBookmarks         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks'
 	ChannelBookmark          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks/{bookmark_id:[A-Za-z0-9]+}'
+	ChannelViews             *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views'
+	ChannelView              *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views/{view_id:[A-Za-z0-9]+}'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -216,6 +218,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()
 	api.BaseRoutes.ChannelBookmarks = api.BaseRoutes.Channel.PathPrefix("/bookmarks").Subrouter()
 	api.BaseRoutes.ChannelBookmark = api.BaseRoutes.ChannelBookmarks.PathPrefix("/{bookmark_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelViews = api.BaseRoutes.Channel.PathPrefix("/views").Subrouter()
+	api.BaseRoutes.ChannelView = api.BaseRoutes.ChannelViews.PathPrefix("/{view_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -365,6 +369,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
+	api.InitView()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()

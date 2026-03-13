@@ -47,6 +47,16 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Views
+const (
+	AuditEventCreateView          = "createView"          // create view in channel
+	AuditEventGetView             = "getView"             // get view by ID
+	AuditEventUpdateView          = "updateView"          // update view
+	AuditEventDeleteView          = "deleteView"          // delete view
+	AuditEventListViewsForChannel = "listViewsForChannel" // list views for channel
+	AuditEventUpdateViewSortOrder = "updateViewSortOrder" // update view sort order
+)
+
 // Channel Categories
 const (
 	AuditEventCreateCategoryForTeamForUser      = "createCategoryForTeamForUser"      // create channel category for user
