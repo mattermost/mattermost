@@ -146,6 +146,7 @@
       summary: Update a property field
       description: >
         Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
+        The `attrs` object uses merge semantics: only the keys present in the patch are updated; omitted keys are preserved. Setting a key to `null` removes it from attrs.
       operationId: UpdatePropertyField
       parameters:
         - name: group_name

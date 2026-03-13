@@ -276,7 +276,10 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 	return nil
 }
 
-func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
+// Patch applies a PropertyFieldPatch to the field. When mergeAttrs is true,
+// only the keys present in the patch are updated in Attrs, with nil values
+// deleting keys. When false, Attrs is replaced wholesale.
+func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 	if patch.Name != nil {
 		pf.Name = *patch.Name
 	}
@@ -286,7 +289,20 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	}
 
 	if patch.Attrs != nil {
-		pf.Attrs = *patch.Attrs
+		if mergeAttrs {
+			if pf.Attrs == nil {
+				pf.Attrs = make(StringInterface)
+			}
+			for key, value := range *patch.Attrs {
+				if value == nil {
+					delete(pf.Attrs, key)
+				} else {
+					pf.Attrs[key] = value
+				}
+			}
+		} else {
+			pf.Attrs = *patch.Attrs
+		}
 	}
 
 	if patch.TargetID != nil {

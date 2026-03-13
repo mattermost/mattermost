@@ -542,7 +542,7 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 }
 
 func TestPropertyField_Patch(t *testing.T) {
-	t.Run("patches all fields", func(t *testing.T) {
+	t.Run("replace mode patches all fields", func(t *testing.T) {
 		pf := &PropertyField{
 			Name:       "original name",
 			Type:       PropertyFieldTypeText,
@@ -558,7 +558,7 @@ func TestPropertyField_Patch(t *testing.T) {
 			Attrs:      &StringInterface{"key": "value"},
 		}
 
-		pf.Patch(patch)
+		pf.Patch(patch, false)
 
 		assert.Equal(t, "new name", pf.Name)
 		assert.Equal(t, PropertyFieldTypeSelect, pf.Type)
@@ -579,12 +579,97 @@ func TestPropertyField_Patch(t *testing.T) {
 			Name: NewPointer("new name"),
 		}
 
-		pf.Patch(patch)
+		pf.Patch(patch, false)
 
 		assert.Equal(t, "new name", pf.Name)
 		assert.Equal(t, PropertyFieldTypeText, pf.Type)
 		assert.Equal(t, "original_target", pf.TargetID)
 		assert.Equal(t, "original_type", pf.TargetType)
+	})
+
+	t.Run("replace mode replaces attrs entirely", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red", "blue"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"options": []any{"green"}},
+		}
+
+		pf.Patch(patch, false)
+
+		assert.Equal(t, StringInterface{"options": []any{"green"}}, pf.Attrs)
+		assert.Nil(t, pf.Attrs["subtype"])
+	})
+
+	t.Run("merge preserves existing keys when patching a subset", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red", "blue"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"options": []any{"green"}},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, "color", pf.Attrs["subtype"])
+		assert.EqualValues(t, []any{"green"}, pf.Attrs["options"])
+	})
+
+	t.Run("merge with nil value deletes a key", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"subtype": nil},
+		}
+
+		pf.Patch(patch, true)
+
+		_, exists := pf.Attrs["subtype"]
+		assert.False(t, exists)
+		assert.EqualValues(t, []any{"red"}, pf.Attrs["options"])
+	})
+
+	t.Run("merge on nil existing attrs initializes the map", func(t *testing.T) {
+		pf := &PropertyField{
+			Name: "test",
+			Type: PropertyFieldTypeText,
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"key": "value"},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, StringInterface{"key": "value"}, pf.Attrs)
+	})
+
+	t.Run("merge on nil existing attrs with a nil key in the patch doesn't store the nil key", func(t *testing.T) {
+		pf := &PropertyField{
+			Name: "test",
+			Type: PropertyFieldTypeText,
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"keep": "value", "remove": nil},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, "value", pf.Attrs["keep"])
+		_, exists := pf.Attrs["remove"]
+		assert.False(t, exists)
+		assert.Len(t, pf.Attrs, 1)
 	})
 }
 

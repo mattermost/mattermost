@@ -1176,6 +1176,46 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Equal(t, "system", updatedField.TargetType)
 	})
 
+	t.Run("options-only patch should preserve other attrs keys via merge semantics", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"subtype": "color",
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option 1"},
+				},
+			},
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(field, false)
+		require.NoError(t, appErr)
+
+		th.LoginBasic(t)
+		newOptionID := model.NewId()
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []map[string]any{
+					{"id": newOptionID, "name": "New Option"},
+				},
+			},
+		}
+
+		updatedField, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// The "subtype" key should be preserved even though only "options" was patched
+		require.Equal(t, "color", updatedField.Attrs["subtype"])
+		// The "options" key should be updated
+		require.NotNil(t, updatedField.Attrs["options"])
+	})
+
 	t.Run("PSAv1 field should not be patchable", func(t *testing.T) {
 		// Create a PSAv1 field (empty ObjectType) directly via the service
 		v1Field := &model.PropertyField{

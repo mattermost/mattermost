@@ -326,7 +326,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Apply patch
-	existingField.Patch(patch)
+	existingField.Patch(patch, true)
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 
 	updatedField, err := c.App.UpdatePropertyField(groupID, existingField, false)
