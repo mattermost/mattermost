@@ -212,7 +212,7 @@ func TestSendPersistentNotifications(t *testing.T) {
 			},
 		},
 	}
-	_, appErr = th.App.CreatePost(th.Context, p1, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, p1, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	err := th.App.SendPersistentNotifications()
@@ -256,7 +256,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 			// Simulate old timestamp so persistent notifications are sent right away
 			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
 		}
-		post, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
@@ -307,7 +307,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 			},
 			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
 		}
-		post, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {

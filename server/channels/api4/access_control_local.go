@@ -21,7 +21,6 @@ func (api *API) InitAccessControlPolicyLocal() {
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(deleteAccessControlPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APILocal(updateActiveStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APILocal(assignAccessPolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APILocal(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APILocal(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)

@@ -7,14 +7,14 @@ import {isDesktopApp} from 'utils/user_agent';
 const ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE = 'LoadingAnimation__compass-shrink';
 const ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE = 'LoadingAnimation__shrink';
 
-const LOADING_CLASS_FOR_SCREEN = 'LoadingScreen LoadingScreen--darkMode';
-const LOADING_COMPLETE_CLASS_FOR_SCREEN = 'LoadingScreen LoadingScreen--darkMode LoadingScreen--loaded';
-
-const STATIC_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--darkMode';
-const LOADING_CLASS_FOR_ANIMATION = STATIC_CLASS_FOR_ANIMATION + ' LoadingAnimation--spinning LoadingAnimation--loading';
-const LOADING_COMPLETE_CLASS_FOR_ANIMATION = STATIC_CLASS_FOR_ANIMATION + ' LoadingAnimation--spinning LoadingAnimation--loaded';
-
 const DESTROY_DELAY_AFTER_ANIMATION_END = 1000;
+const MINIMUM_LOADING_TIME = 1000; // Minimum time to show the loading screen (in ms)
+
+const LOADING_CLASS_FOR_SCREEN = 'LoadingScreen';
+const LOADING_COMPLETE_CLASS_FOR_SCREEN = 'LoadingScreen LoadingScreen--loaded';
+const STATIC_CLASS_FOR_ANIMATION = 'LoadingAnimation';
+const LOADING_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--spinning LoadingAnimation--loading';
+const LOADING_COMPLETE_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--spinning LoadingAnimation--loaded';
 
 export class InitialLoadingScreenClass {
     private isLoading: boolean | null = true;
@@ -23,6 +23,7 @@ export class InitialLoadingScreenClass {
     private loadingAnimationElement: HTMLElement | null;
 
     private initialLoadingScreenCSS: HTMLLinkElement | null;
+    private startTime: number | null = null;
 
     constructor() {
         this.loadingScreenElement = document.getElementById('initialPageLoadingScreen');
@@ -111,6 +112,7 @@ export class InitialLoadingScreenClass {
         }
 
         this.isLoading = true;
+        this.startTime = Date.now();
 
         this.loadingScreenElement.className = LOADING_CLASS_FOR_SCREEN;
         this.loadingAnimationElement.className = LOADING_CLASS_FOR_ANIMATION;
@@ -121,11 +123,7 @@ export class InitialLoadingScreenClass {
             return;
         }
 
-        this.isLoading = false;
-
-        this.loadingScreenElement.className = LOADING_COMPLETE_CLASS_FOR_SCREEN;
-        this.loadingAnimationElement.className = LOADING_COMPLETE_CLASS_FOR_ANIMATION;
-
+        // Measure the actual load time before any artificial delays
         measureAndReport({
             name: Measure.SplashScreen,
             startMark: 0,
@@ -134,6 +132,22 @@ export class InitialLoadingScreenClass {
                 page_type: pageType,
             },
         });
+
+        // Calculate how long the loading screen has been visible
+        const elapsedTime = this.startTime ? Date.now() - this.startTime : 0;
+        const remainingTime = Math.max(0, MINIMUM_LOADING_TIME - elapsedTime);
+
+        // If minimum time hasn't elapsed, delay the stop
+        setTimeout(() => {
+            if (!this.loadingScreenElement || !this.loadingAnimationElement) {
+                return;
+            }
+
+            this.isLoading = false;
+
+            this.loadingScreenElement.className = LOADING_COMPLETE_CLASS_FOR_SCREEN;
+            this.loadingAnimationElement.className = LOADING_COMPLETE_CLASS_FOR_ANIMATION;
+        }, remainingTime);
     }
 }
 

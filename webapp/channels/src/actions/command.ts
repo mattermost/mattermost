@@ -25,14 +25,14 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import LeaveChannelModal from 'components/leave_channel_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import {AppCommandParser} from 'components/suggestion/command_provider/app_command_parser/app_command_parser';
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
-import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
+import {getUserIdFromChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
 
@@ -47,6 +47,7 @@ export type ExecuteCommandReturnType = {
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
+        const intl = getIntl();
         const state = getState();
 
         let msg = message;
@@ -64,7 +65,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             return {data: {frontendHandled: true}};
         case '/shortcuts':
             if (UserAgent.isMobile()) {
-                const error = {message: localizeMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device'})};
+                const error = {message: intl.formatMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device.'})};
                 return {error};
             }
 
@@ -118,12 +119,12 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/marketplace':
             // check if user has permissions to access the read plugins
             if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
-                return {error: {message: localizeMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
+                return {error: {message: intl.formatMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
             }
 
             // check config to see if marketplace is enabled
             if (!isMarketplaceEnabled(state)) {
-                return {error: {message: localizeMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
+                return {error: {message: intl.formatMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
             }
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal}));
@@ -139,7 +140,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             const createErrorMessage = (errMessage: string) => {
                 return {error: {message: errMessage}};
             };
-            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intlShim, args.channel_id, args.team_id, args.root_id);
+            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intl, args.channel_id, args.team_id, args.root_id);
             if (parser.isAppCommand(msg)) {
                 try {
                     const {creq, errorMessage} = await parser.composeCommandSubmitCall(msg);
@@ -147,11 +148,11 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                         return createErrorMessage(errorMessage!);
                     }
 
-                    const res = await dispatch(doAppSubmit(creq, intlShim));
+                    const res = await dispatch(doAppSubmit(creq, intl));
 
                     if (res.error) {
                         const errorResponse = res.error;
-                        return createErrorMessage(errorResponse.text || intlShim.formatMessage({
+                        return createErrorMessage(errorResponse.text || intl.formatMessage({
                             id: 'apps.error.unknown',
                             defaultMessage: 'Unknown error occurred.',
                         }));
@@ -172,7 +173,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                     case AppCallResponseTypes.NAVIGATE:
                         return {data: {appResponse: callResp}};
                     default:
-                        return createErrorMessage(intlShim.formatMessage(
+                        return createErrorMessage(intl.formatMessage(
                             {
                                 id: 'apps.error.responses.unknown_type',
                                 defaultMessage: 'App response type not supported. Response type: {type}.',
@@ -183,7 +184,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                         ));
                     }
                 } catch (err: any) {
-                    const message = err.message || intlShim.formatMessage({
+                    const message = err.message || intl.formatMessage({
                         id: 'apps.error.unknown',
                         defaultMessage: 'Unknown error occurred.',
                     });

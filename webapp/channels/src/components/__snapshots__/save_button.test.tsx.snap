@@ -1,128 +1,94 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
-<button
-  className="btn btn-primary  some-class"
-  data-testid="saveSetting"
-  disabled={false}
-  id="saveSetting"
-  type="submit"
->
-  <Memo(LoadingWrapper)
-    loading={false}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saving"
-        id="save_button.saving"
-      />
-    }
+<div>
+  <button
+    class="btn btn-primary  some-class"
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
   >
     <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
+      Save
     </span>
-  </Memo(LoadingWrapper)>
-</button>
+  </button>
+</div>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
-<button
-  className="btn btn-primary "
-  data-testid="saveSetting"
-  disabled={false}
-  id="saveSetting"
-  type="submit"
->
-  <Memo(LoadingWrapper)
-    loading={false}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saving"
-        id="save_button.saving"
-      />
-    }
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
   >
     <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
+      Save
     </span>
-  </Memo(LoadingWrapper)>
-</button>
+  </button>
+</div>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
-<button
-  className="btn btn-primary "
-  data-testid="saveSetting"
-  disabled={false}
-  id="saveSetting"
-  type="submit"
->
-  <Memo(LoadingWrapper)
-    loading={false}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saving"
-        id="save_button.saving"
-      />
-    }
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
   >
     <span>
       Go
     </span>
-  </Memo(LoadingWrapper)>
-</button>
+  </button>
+</div>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
-<button
-  className="btn btn-primary "
-  data-testid="saveSetting"
-  disabled={true}
-  id="saveSetting"
-  type="submit"
->
-  <Memo(LoadingWrapper)
-    loading={true}
-    text={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saving"
-        id="save_button.saving"
-      />
-    }
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    disabled=""
+    id="saveSetting"
+    type="submit"
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
+    <span
+      class="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
       />
+      Saving
     </span>
-  </Memo(LoadingWrapper)>
-</button>
+  </button>
+</div>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
-<button
-  className="btn btn-primary "
-  data-testid="saveSetting"
-  disabled={true}
-  id="saveSetting"
-  type="submit"
->
-  <Memo(LoadingWrapper)
-    loading={true}
-    text="Saving Config..."
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    disabled=""
+    id="saveSetting"
+    type="submit"
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
+    <span
+      class="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
       />
+      Saving Config...
     </span>
-  </Memo(LoadingWrapper)>
-</button>
+  </button>
+</div>
 `;

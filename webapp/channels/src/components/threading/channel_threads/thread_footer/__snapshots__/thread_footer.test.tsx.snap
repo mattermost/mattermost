@@ -1,1041 +1,118 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/channel_threads/thread_footer should match snapshot when a single message is followed 1`] = `
-<Memo(ThreadFooter)
-  threadId="singlemessageid"
->
-  <div
-    className="ThreadFooter"
-  >
+<body>
+  <div>
     <div
-      className="indicator"
-    />
-    <Memo(FollowButton)
-      className="separated"
-      isFollowing={true}
-      onClick={[Function]}
+      class="ThreadFooter"
     >
-      <Button
-        className="separated FollowButton"
-        disabled={false}
-        isActive={true}
-        onClick={[Function]}
+      <div
+        class="indicator"
+      />
+      <button
+        class="separated"
+        data-testid="mock-follow-button"
       >
-        <button
-          className="Button Button___transparent is-active separated FollowButton"
-          disabled={false}
-          onClick={[Function]}
-        >
-          <span
-            className="Button_label"
-          >
-            Following
-          </span>
-        </button>
-      </Button>
-    </Memo(FollowButton)>
+        Follow
+      </button>
+    </div>
   </div>
-</Memo(ThreadFooter)>
+</body>
 `;
 
 exports[`components/threading/channel_threads/thread_footer should report total number of replies 1`] = `
-<Memo(ThreadFooter)
-  threadId="postthreadid"
->
-  <div
-    className="ThreadFooter"
-  >
+<body>
+  <div>
     <div
-      className="indicator"
-    />
-    <Memo(Avatars)
-      size="sm"
-      userIds={
-        Array [
-          "5",
-          "4",
-          "3",
-          "2",
-          "1",
-        ]
-      }
+      class="ThreadFooter"
     >
       <div
-        className="Avatars Avatars___sm"
-      >
-        <UserAvatar
-          key="5"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="5"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/5/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="5"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last5"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/5/image?_=0"
-                  username="first.last5"
-                >
-                  <img
-                    alt="first.last5 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/5/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <UserAvatar
-          key="4"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="4"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/4/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="4"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last4"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/4/image?_=0"
-                  username="first.last4"
-                >
-                  <img
-                    alt="first.last4 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/4/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <UserAvatar
-          key="3"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="3"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/3/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="3"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last3"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/3/image?_=0"
-                  username="first.last3"
-                >
-                  <img
-                    alt="first.last3 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/3/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <WithTooltip
-          title="first.last2, first.last1"
-        >
-          <Avatar
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onMouseLeave={[Function]}
-            onMouseMove={[Function]}
-            onPointerDown={[Function]}
-            onPointerEnter={[Function]}
-            size="sm"
-            style={
-              Object {
-                "background": "rgb(240, 240, 241)",
-              }
-            }
-            tabIndex={0}
-            text="+2"
-          >
-            <div
-              className="Avatar Avatar-sm Avatar-plain"
-              data-content="+2"
-              onBlur={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onMouseLeave={[Function]}
-              onMouseMove={[Function]}
-              onPointerDown={[Function]}
-              onPointerEnter={[Function]}
-              style={
-                Object {
-                  "background": "rgb(240, 240, 241)",
-                }
-              }
-              tabIndex={0}
-            />
-          </Avatar>
-        </WithTooltip>
-      </div>
-    </Memo(Avatars)>
-    <Button
-      className="ReplyButton separated"
-      onClick={[Function]}
-      prepend={
-        <span
-          className="icon"
-        >
-          <i
-            className="icon-reply-outline"
-          />
-        </span>
-      }
-    >
+        class="indicator"
+      />
+      <div
+        data-testid="mock-avatars"
+      />
       <button
-        className="Button Button___transparent ReplyButton separated"
-        onClick={[Function]}
+        class="Button Button___transparent ReplyButton separated"
       >
         <span
-          className="Button_prepended"
+          class="Button_prepended"
         >
           <span
-            className="icon"
+            class="icon"
           >
             <i
-              className="icon-reply-outline"
+              class="icon-reply-outline"
             />
           </span>
         </span>
         <span
-          className="Button_label"
+          class="Button_label"
         >
-          <FormattedMessage
-            defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
-            id="threading.numReplies"
-            values={
-              Object {
-                "totalReplies": 9,
-              }
-            }
-          >
-            <span>
-              9 replies
-            </span>
-          </FormattedMessage>
+          9 replies
         </span>
       </button>
-    </Button>
-    <Memo(FollowButton)
-      className="separated"
-      isFollowing={true}
-      onClick={[Function]}
-    >
-      <Button
-        className="separated FollowButton"
-        disabled={false}
-        isActive={true}
-        onClick={[Function]}
+      <button
+        class="separated"
+        data-testid="mock-follow-button"
       >
-        <button
-          className="Button Button___transparent is-active separated FollowButton"
-          disabled={false}
-          onClick={[Function]}
-        >
-          <span
-            className="Button_label"
-          >
-            Following
-          </span>
-        </button>
-      </Button>
-    </Memo(FollowButton)>
-    <Connect(injectIntl(Timestamp))
-      day="numeric"
-      units={
-        Array [
-          "now",
-          "minute",
-          "hour",
-          "day",
-          "week",
-        ]
-      }
-      useTime={false}
-      value={1554161504000}
-    >
-      <injectIntl(Timestamp)
-        day="numeric"
-        dispatch={[Function]}
-        hourCycle="h12"
-        timeZone="UTC"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-        value={1554161504000}
-      >
-        <Timestamp
-          day="numeric"
-          dispatch={[Function]}
-          hour="numeric"
-          hourCycle="h12"
-          intl={
-            Object {
-              "$t": [Function],
-              "defaultFormats": Object {},
-              "defaultLocale": "en",
-              "defaultRichTextElements": undefined,
-              "fallbackOnEmptyString": true,
-              "formatDate": [Function],
-              "formatDateTimeRange": [Function],
-              "formatDateToParts": [Function],
-              "formatDisplayName": [Function],
-              "formatList": [Function],
-              "formatListToParts": [Function],
-              "formatMessage": [Function],
-              "formatNumber": [Function],
-              "formatNumberToParts": [Function],
-              "formatPlural": [Function],
-              "formatRelativeTime": [Function],
-              "formatTime": [Function],
-              "formatTimeToParts": [Function],
-              "formats": Object {},
-              "formatters": Object {
-                "getDateTimeFormat": [Function],
-                "getDisplayNames": [Function],
-                "getListFormat": [Function],
-                "getMessageFormat": [Function],
-                "getNumberFormat": [Function],
-                "getPluralRules": [Function],
-                "getRelativeTimeFormat": [Function],
-              },
-              "locale": "en",
-              "messages": Object {},
-              "onError": [Function],
-              "onWarn": [Function],
-              "textComponent": "span",
-              "timeZone": "Etc/UTC",
-              "wrapRichTextChunksInFragment": undefined,
-            }
-          }
-          minute="numeric"
-          month="long"
-          numeric="auto"
-          relNearest={1}
-          second="numeric"
-          style="long"
-          timeZone="UTC"
-          timeZoneName="short"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-              "week",
-            ]
-          }
-          useTime={false}
-          value={1554161504000}
-          weekday="long"
-          year="numeric"
-        >
-          <span
-            className="Timestamp separated alt-visible"
-          >
-            <FormattedMessage
-              defaultMessage="Last reply {formatted}"
-              id="threading.footer.lastReplyAt"
-              values={
-                Object {
-                  "formatted": <Memo(SemanticTime)
-                    value={2019-04-01T23:31:44.000Z}
-                  >
-                    April 1, 2019
-                  </Memo(SemanticTime)>,
-                }
-              }
-            >
-              <span>
-                Last reply 
-                <Memo(SemanticTime)
-                  key=".$.1"
-                  value={2019-04-01T23:31:44.000Z}
-                >
-                  <time
-                    dateTime="2019-04-01T23:31:44.000"
-                  >
-                    April 1, 2019
-                  </time>
-                </Memo(SemanticTime)>
-              </span>
-            </FormattedMessage>
-          </span>
-        </Timestamp>
-      </injectIntl(Timestamp)>
-    </Connect(injectIntl(Timestamp))>
+        Follow
+      </button>
+      <span
+        data-testid="mock-timestamp"
+      />
+    </div>
   </div>
-</Memo(ThreadFooter)>
+</body>
 `;
 
 exports[`components/threading/channel_threads/thread_footer should show unread indicator 1`] = `
-<Memo(ThreadFooter)
-  threadId="postthreadid"
->
-  <div
-    className="ThreadFooter"
-  >
-    <WithTooltip
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}"
-          id="threading.numNewMessages"
-          values={
-            Object {
-              "newReplies": 2,
-            }
-          }
-        />
-      }
+<body>
+  <div>
+    <div
+      class="ThreadFooter"
     >
       <div
-        className="indicator"
-        onBlur={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseMove={[Function]}
-        onPointerDown={[Function]}
-        onPointerEnter={[Function]}
-        tabIndex={0}
+        class="indicator"
+        tabindex="0"
       >
         <div
-          className="dot-unreads"
+          class="dot-unreads"
         />
       </div>
-    </WithTooltip>
-    <Memo(Avatars)
-      size="sm"
-      userIds={
-        Array [
-          "5",
-          "4",
-          "3",
-          "2",
-          "1",
-        ]
-      }
-    >
       <div
-        className="Avatars Avatars___sm"
-      >
-        <UserAvatar
-          key="5"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="5"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/5/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="5"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last5"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/5/image?_=0"
-                  username="first.last5"
-                >
-                  <img
-                    alt="first.last5 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/5/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <UserAvatar
-          key="4"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="4"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/4/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="4"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last4"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/4/image?_=0"
-                  username="first.last4"
-                >
-                  <img
-                    alt="first.last4 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/4/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <UserAvatar
-          key="3"
-          size="sm"
-          style={
-            Object {
-              "background": "rgb(240, 240, 241)",
-            }
-          }
-          userId="3"
-        >
-          <ProfilePopoverController
-            src="/api/v4/users/3/image?_=0"
-            triggerComponentAs="button"
-            triggerComponentClass="style--none btn-round"
-            userId="3"
-          >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              className="style--none btn-round"
-              onClick={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onPointerDown={[Function]}
-            >
-              <WithTooltip
-                title="first.last3"
-              >
-                <Avatar
-                  onBlur={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseMove={[Function]}
-                  onPointerDown={[Function]}
-                  onPointerEnter={[Function]}
-                  size="sm"
-                  style={
-                    Object {
-                      "background": "rgb(240, 240, 241)",
-                    }
-                  }
-                  tabIndex={-1}
-                  url="/api/v4/users/3/image?_=0"
-                  username="first.last3"
-                >
-                  <img
-                    alt="first.last3 profile image"
-                    className="Avatar Avatar-sm"
-                    loading="lazy"
-                    onBlur={[Function]}
-                    onError={[Function]}
-                    onFocus={[Function]}
-                    onKeyDown={[Function]}
-                    onMouseLeave={[Function]}
-                    onMouseMove={[Function]}
-                    onPointerDown={[Function]}
-                    onPointerEnter={[Function]}
-                    src="/api/v4/users/3/image?_=0"
-                    style={
-                      Object {
-                        "background": "rgb(240, 240, 241)",
-                      }
-                    }
-                    tabIndex={-1}
-                  />
-                </Avatar>
-              </WithTooltip>
-            </button>
-          </ProfilePopoverController>
-        </UserAvatar>
-        <WithTooltip
-          title="first.last2, first.last1"
-        >
-          <Avatar
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onMouseLeave={[Function]}
-            onMouseMove={[Function]}
-            onPointerDown={[Function]}
-            onPointerEnter={[Function]}
-            size="sm"
-            style={
-              Object {
-                "background": "rgb(240, 240, 241)",
-              }
-            }
-            tabIndex={0}
-            text="+2"
-          >
-            <div
-              className="Avatar Avatar-sm Avatar-plain"
-              data-content="+2"
-              onBlur={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onMouseLeave={[Function]}
-              onMouseMove={[Function]}
-              onPointerDown={[Function]}
-              onPointerEnter={[Function]}
-              style={
-                Object {
-                  "background": "rgb(240, 240, 241)",
-                }
-              }
-              tabIndex={0}
-            />
-          </Avatar>
-        </WithTooltip>
-      </div>
-    </Memo(Avatars)>
-    <Button
-      className="ReplyButton separated"
-      onClick={[Function]}
-      prepend={
-        <span
-          className="icon"
-        >
-          <i
-            className="icon-reply-outline"
-          />
-        </span>
-      }
-    >
+        data-testid="mock-avatars"
+      />
       <button
-        className="Button Button___transparent ReplyButton separated"
-        onClick={[Function]}
+        class="Button Button___transparent ReplyButton separated"
       >
         <span
-          className="Button_prepended"
+          class="Button_prepended"
         >
           <span
-            className="icon"
+            class="icon"
           >
             <i
-              className="icon-reply-outline"
+              class="icon-reply-outline"
             />
           </span>
         </span>
         <span
-          className="Button_label"
+          class="Button_label"
         >
-          <FormattedMessage
-            defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
-            id="threading.numReplies"
-            values={
-              Object {
-                "totalReplies": 9,
-              }
-            }
-          >
-            <span>
-              9 replies
-            </span>
-          </FormattedMessage>
+          9 replies
         </span>
       </button>
-    </Button>
-    <Memo(FollowButton)
-      className="separated"
-      isFollowing={true}
-      onClick={[Function]}
-    >
-      <Button
-        className="separated FollowButton"
-        disabled={false}
-        isActive={true}
-        onClick={[Function]}
+      <button
+        class="separated"
+        data-testid="mock-follow-button"
       >
-        <button
-          className="Button Button___transparent is-active separated FollowButton"
-          disabled={false}
-          onClick={[Function]}
-        >
-          <span
-            className="Button_label"
-          >
-            Following
-          </span>
-        </button>
-      </Button>
-    </Memo(FollowButton)>
-    <Connect(injectIntl(Timestamp))
-      day="numeric"
-      units={
-        Array [
-          "now",
-          "minute",
-          "hour",
-          "day",
-          "week",
-        ]
-      }
-      useTime={false}
-      value={1554161504000}
-    >
-      <injectIntl(Timestamp)
-        day="numeric"
-        dispatch={[Function]}
-        hourCycle="h12"
-        timeZone="UTC"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-        value={1554161504000}
-      >
-        <Timestamp
-          day="numeric"
-          dispatch={[Function]}
-          hour="numeric"
-          hourCycle="h12"
-          intl={
-            Object {
-              "$t": [Function],
-              "defaultFormats": Object {},
-              "defaultLocale": "en",
-              "defaultRichTextElements": undefined,
-              "fallbackOnEmptyString": true,
-              "formatDate": [Function],
-              "formatDateTimeRange": [Function],
-              "formatDateToParts": [Function],
-              "formatDisplayName": [Function],
-              "formatList": [Function],
-              "formatListToParts": [Function],
-              "formatMessage": [Function],
-              "formatNumber": [Function],
-              "formatNumberToParts": [Function],
-              "formatPlural": [Function],
-              "formatRelativeTime": [Function],
-              "formatTime": [Function],
-              "formatTimeToParts": [Function],
-              "formats": Object {},
-              "formatters": Object {
-                "getDateTimeFormat": [Function],
-                "getDisplayNames": [Function],
-                "getListFormat": [Function],
-                "getMessageFormat": [Function],
-                "getNumberFormat": [Function],
-                "getPluralRules": [Function],
-                "getRelativeTimeFormat": [Function],
-              },
-              "locale": "en",
-              "messages": Object {},
-              "onError": [Function],
-              "onWarn": [Function],
-              "textComponent": "span",
-              "timeZone": "Etc/UTC",
-              "wrapRichTextChunksInFragment": undefined,
-            }
-          }
-          minute="numeric"
-          month="long"
-          numeric="auto"
-          relNearest={1}
-          second="numeric"
-          style="long"
-          timeZone="UTC"
-          timeZoneName="short"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-              "week",
-            ]
-          }
-          useTime={false}
-          value={1554161504000}
-          weekday="long"
-          year="numeric"
-        >
-          <span
-            className="Timestamp separated alt-visible"
-          >
-            <FormattedMessage
-              defaultMessage="Last reply {formatted}"
-              id="threading.footer.lastReplyAt"
-              values={
-                Object {
-                  "formatted": <Memo(SemanticTime)
-                    value={2019-04-01T23:31:44.000Z}
-                  >
-                    April 1, 2019
-                  </Memo(SemanticTime)>,
-                }
-              }
-            >
-              <span>
-                Last reply 
-                <Memo(SemanticTime)
-                  key=".$.1"
-                  value={2019-04-01T23:31:44.000Z}
-                >
-                  <time
-                    dateTime="2019-04-01T23:31:44.000"
-                  >
-                    April 1, 2019
-                  </time>
-                </Memo(SemanticTime)>
-              </span>
-            </FormattedMessage>
-          </span>
-        </Timestamp>
-      </injectIntl(Timestamp)>
-    </Connect(injectIntl(Timestamp))>
+        Follow
+      </button>
+      <span
+        data-testid="mock-timestamp"
+      />
+    </div>
   </div>
-</Memo(ThreadFooter)>
+</body>
 `;

@@ -359,12 +359,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 
 	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
 		// if the policy is a parent, we need to update the child policies
-		var expr sq.Sqlizer
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
-		} else {
-			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
-		}
+		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
@@ -541,11 +536,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 	query := s.selectQueryBuilder
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
-		} else {
-			query = query.Where(sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID)))
-		}
+		query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
 	}
 
 	if opts.Type != "" {
@@ -697,4 +688,37 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	return policies, total, nil
+}
+
+// GetPoliciesByFieldID finds all policies whose CEL rule expressions reference the
+// given property field ID. It performs a text search on the serialized JSONB Data
+// column for the pattern "id_<fieldID>", which is how property fields are referenced
+// in CEL expressions (e.g., user.attributes.id_<fieldID>).
+//
+// This is a sequential scan over the policies table. At the expected scale (hundreds
+// to low thousands of admin-configured policies) this is well under 1ms.
+// If the table grows beyond ~10K rows or this query lands on a hot path, a GIN
+// trigram index on (Data::text) can accelerate it with no query changes.
+func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	if !model.IsValidId(fieldID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "fieldID", fieldID)
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Expr("Data::text LIKE ?", fmt.Sprintf("%%id\\_%s%%", fieldID)))
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies referencing field id=%s", fieldID)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	return policies, nil
 }

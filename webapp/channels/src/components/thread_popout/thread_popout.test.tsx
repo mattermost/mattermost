@@ -127,7 +127,6 @@ describe('ThreadPopout', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         Object.defineProperty(window, 'isActive', {
             writable: true,
             value: false,

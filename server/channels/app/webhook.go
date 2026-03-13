@@ -171,7 +171,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				if webhookResp.Text != nil {
 					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessMessageAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -261,14 +261,14 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	split.Message = remainingText
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
 			maps.Copy(newProps, lastSplit.GetProps())
-			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
+			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.MessageAttachment)
 			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
@@ -352,8 +352,8 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		for key, val := range props {
 			switch key {
 			case model.PostPropsAttachments:
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
 				model.PostPropsOverrideUsername,
@@ -371,7 +371,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -773,11 +773,11 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
 	text = a.ProcessSlackText(rctx, text)
-	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
+	req.Attachments = a.ProcessMessageAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments
-		webhookType = model.PostTypeSlackAttachment
+		webhookType = model.PostTypeMessageAttachment
 	}
 
 	var channel *model.Channel
@@ -847,7 +847,12 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": hook.UserId}, "", http.StatusForbidden).Wrap(resultU.NErr)
 	}
 
-	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(rctx, hook.UserId, channel.Id, model.PermissionReadChannelContent) {
+	restrictedChannel := false
+	if channel.Type != model.ChannelTypeOpen {
+		hasPermission, _ := a.HasPermissionToChannel(rctx, hook.UserId, channel.Id, model.PermissionReadChannelContent)
+		restrictedChannel = !hasPermission
+	}
+	if restrictedChannel {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 

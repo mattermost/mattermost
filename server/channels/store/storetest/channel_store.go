@@ -1019,9 +1019,7 @@ func testChannelStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) 
 		for _, channel := range channels {
 			ids = append(ids, channel.Id)
 		}
-		sort.Strings(ids)
-		sort.Strings(tc.ExpectedIds)
-		assert.Equal(t, tc.ExpectedIds, ids, "tc %v", index)
+		assert.ElementsMatch(t, tc.ExpectedIds, ids, "tc %v", index)
 	}
 
 	err := ss.Channel().Delete(o1.Id, model.GetMillis())
@@ -1076,9 +1074,7 @@ func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, rctx request.CTX, ss
 		for _, channel := range channels {
 			ids = append(ids, channel.Id)
 		}
-		sort.Strings(ids)
-		sort.Strings(tc.ExpectedIds)
-		assert.Equal(t, tc.ExpectedIds, ids, "tc %v", index)
+		assert.ElementsMatch(t, tc.ExpectedIds, ids, "tc %v", index)
 	}
 }
 
@@ -5994,21 +5990,6 @@ func testChannelStoreSearchMore(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 }
 
-type ByChannelDisplayName model.ChannelList
-
-func (s ByChannelDisplayName) Len() int { return len(s) }
-func (s ByChannelDisplayName) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-func (s ByChannelDisplayName) Less(i, j int) bool {
-	if s[i].DisplayName != s[j].DisplayName {
-		return s[i].DisplayName < s[j].DisplayName
-	}
-
-	return s[i].Id < s[j].Id
-}
-
 func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	otherTeamID := model.NewId()
@@ -6222,8 +6203,7 @@ func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store
 		t.Run("AutoCompleteInTeam/"+testCase.Description, func(t *testing.T) {
 			channels, err := ss.Channel().AutocompleteInTeam(rctx, testCase.TeamID, testCase.UserID, testCase.Term, testCase.IncludeDeleted, false)
 			require.NoError(t, err)
-			sort.Sort(ByChannelDisplayName(channels))
-			require.Equal(t, testCase.ExpectedResults, channels)
+			require.ElementsMatch(t, testCase.ExpectedResults, channels)
 		})
 	}
 }
@@ -6420,6 +6400,24 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames, "team names are not as expected")
 		})
 	}
+
+	// MM-67049: Verify that users removed from a team cannot see channels from that
+	// team, regardless of includeDeleted. The includeDeleted parameter should only
+	// affect channel deletion status, not team membership.
+	t.Run("MM-67049: removed team member cannot see channels regardless of includeDeleted", func(t *testing.T) {
+		// Sanity check: o5 is in leftTeamID and matches search term
+		require.Equal(t, leftTeamID, o5.TeamId)
+		require.Contains(t, o5.DisplayName, "ChannelA")
+
+		// m1.UserId was removed from leftTeamID (tm5.DeleteAt was set above in the test setup)
+		for _, includeDeleted := range []bool{false, true} {
+			channels, err2 := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", includeDeleted, false)
+			require.NoError(t, err2)
+			for _, ch := range channels {
+				require.NotEqual(t, o5.Id, ch.Id, "includeDeleted=%v: channel from left team should not be returned", includeDeleted)
+			}
+		}
+	})
 
 	t.Run("Limit", func(t *testing.T) {
 		for i := range model.ChannelSearchDefaultLimit + 10 {

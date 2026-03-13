@@ -91,7 +91,7 @@ describe('Signin/Authentication', () => {
             cy.url().should('contain', '/login?extra=password_change');
 
             // * Should show that the password is updated successfully
-            cy.get('.AlertBanner.success').should('be.visible').and('have.text', ' Password updated successfully');
+            cy.get('.AlertBanner.success').should('be.visible').and('have.text', 'Password updated successfully');
 
             // # Type email and new password, then click login button
             cy.get('#input_loginId').should('be.visible').type(testUser.username);

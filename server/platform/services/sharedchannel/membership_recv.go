@@ -152,6 +152,10 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
+	if user.GetRemoteID() != rc.RemoteId {
+		return fmt.Errorf("membership add sync failed: %w", ErrRemoteIDMismatch)
+	}
+
 	// Check user permissions for private channels
 	if channel.Type == model.ChannelTypePrivate {
 		// Add user to team if needed for private channel

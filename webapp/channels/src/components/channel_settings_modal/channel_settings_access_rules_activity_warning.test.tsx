@@ -146,10 +146,9 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         getChannelMembers: jest.fn().mockResolvedValue({data: []}),
         createJob: jest.fn().mockResolvedValue({data: {}}),
         createAccessControlSyncJob: jest.fn().mockResolvedValue({data: {}}),
-        updateAccessControlPolicyActive: jest.fn().mockResolvedValue({data: {}}),
+        updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
         validateExpressionAgainstRequester: jest.fn().mockResolvedValue({data: {requester_matches: true}}),
         savePreferences: jest.fn().mockResolvedValue({data: {}}),
-        updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
     };
 
     const defaultProps = {
@@ -186,8 +185,6 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Set up default mock implementations
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({

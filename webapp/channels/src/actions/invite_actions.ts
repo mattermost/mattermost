@@ -121,6 +121,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
                             email,
                             reason: defineMessage({
                                 id: 'admin.environment.smtp.smtpFailure',
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                 defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                             }),
                             path: ConsolePages.SMTP,
@@ -229,6 +230,7 @@ export async function sendGuestInviteForUser(
             user,
             reason: defineMessage({
                 id: 'invite.guests.new-member',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- count provided via values property, consumed by FormattedMessage in result_table
                 defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
                 values: {
                     count: channels.length,
@@ -301,6 +303,7 @@ export function sendGuestsInvites(
                                 email: res.email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,
@@ -445,6 +448,7 @@ export function sendMembersInvitesToChannels(
                                 email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,

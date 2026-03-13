@@ -46,7 +46,6 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
         }
 
         const itemRef = setItemRef ? (ref: HTMLElement) => setItemRef(term, ref) : undefined;
-
         return (
             <Component
                 key={term}
@@ -212,9 +211,20 @@ function GroupedSuggestionsGroup({
 }: {
     children: React.ReactNode;
     groupKey: string | undefined;
-    labelMessage: MessageDescriptor | string;
+    labelMessage?: MessageDescriptor | string;
 }) {
     const labelId = `suggestionListGroup-${groupKey}`;
+
+    // If no label is provided, render the group without a header
+    if (!labelMessage) {
+        return (
+            <ul
+                role='group'
+            >
+                {children}
+            </ul>
+        );
+    }
 
     return (
         <ul

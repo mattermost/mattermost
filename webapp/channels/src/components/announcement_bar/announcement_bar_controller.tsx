@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
@@ -18,6 +18,7 @@ import PaymentAnnouncementBar from './payment_announcement_bar';
 import PostHistoryLimitBanner from './post_history_limit_banner';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
+import SingleChannelGuestLimitBanner from './single_channel_guest_limit_banner';
 import TextDismissableBar from './text_dismissable_bar';
 import UsersLimitsAnnouncementBar from './users_limits_announcement_bar';
 import VersionBar from './version_bar';
@@ -30,7 +31,6 @@ type Props = {
     latestError?: {
         error: any;
     };
-    warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissError: (index: number) => void;
         getCloudSubscription: () => void;
@@ -119,6 +119,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
+                <SingleChannelGuestLimitBanner userIsAdmin={this.props.userIsAdmin}/>
                 <PostHistoryLimitBanner/>
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>
@@ -127,7 +128,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                     config={this.props.config}
                     license={this.props.license}
                     canViewSystemErrors={this.props.canViewSystemErrors}
-                    warnMetricsStatus={this.props.warnMetricsStatus}
                 />
             </>
         );

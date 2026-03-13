@@ -169,11 +169,6 @@ func TestIsDatabaseDSN(t *testing.T) {
 		Expected bool
 	}{
 		{
-			Name:     "Mysql DSN",
-			DSN:      "mysql://localhost",
-			Expected: true,
-		},
-		{
 			Name:     "Postgresql 'postgres' DSN",
 			DSN:      "postgres://localhost",
 			Expected: true,
@@ -231,7 +226,6 @@ func TestIsJSONMap(t *testing.T) {
 		{name: "array json", data: `["test1", "test2"]`, want: false},
 		{name: "bad json", data: `{huh?}`, want: false},
 		{name: "filename", data: "/tmp/logger.conf", want: false},
-		{name: "mysql dsn", data: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s", want: false},
 		{name: "postgres dsn", data: "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10", want: false},
 	}
 	for _, tt := range tests {

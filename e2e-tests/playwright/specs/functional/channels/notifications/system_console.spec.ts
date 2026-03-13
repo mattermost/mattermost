@@ -12,7 +12,7 @@ test('Push Notification Contents setting displays correctly and saves all option
     const {adminUser, adminClient} = await pw.initSetup();
 
     // # Update to default config
-    await adminClient.updateConfigX({
+    await adminClient.patchConfig({
         EmailSettings: {
             PushNotificationContents: 'full',
             FeedbackName: 'Mattermost Test Team',
@@ -33,18 +33,18 @@ test('Push Notification Contents setting displays correctly and saves all option
     // # Visit Notifications admin console page
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.goToItem('Notifications');
+    await systemConsolePage.sidebar.notifications.click();
 
     // # Wait for Notifications section to load
     const notifications = systemConsolePage.notifications;
     await notifications.toBeVisible();
 
     // * Verify that setting is visible and matches text content
-    await notifications.pushNotificationContents.scrollIntoViewIfNeeded();
-    await expect(notifications.pushNotificationContents).toBeVisible();
+    await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
+    await notifications.pushNotificationContents.toBeVisible();
 
     // * Verify that the help text is visible and matches text content
-    const helpText = notifications.pushNotificationContentsHelpText;
+    const helpText = notifications.pushNotificationContents.helpText;
     await expect(helpText).toBeVisible();
 
     const contents = [
@@ -69,7 +69,7 @@ test('Push Notification Contents setting displays correctly and saves all option
     await expect(strongElements.nth(4)).toHaveText(contents[8]);
 
     // * Verify that the option/dropdown is visible and has default value
-    const dropdown = notifications.pushNotificationContentsDropdown;
+    const dropdown = notifications.pushNotificationContents.dropdown;
     await expect(dropdown).toBeVisible();
     await expect(dropdown).toHaveValue('full');
 
@@ -86,7 +86,7 @@ test('Push Notification Contents setting displays correctly and saves all option
         await dropdown.selectOption({label: option.label});
         await expect(dropdown).toHaveValue(option.value);
 
-        await notifications.saveButton.click();
+        await notifications.save();
 
         // * Verify config is saved
         const {adminClient} = await pw.getAdminClient();
@@ -111,31 +111,30 @@ test('MM-T1210 Can change Support Email setting', async ({pw}) => {
     // # Visit Notifications admin console page
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.goToItem('Notifications');
+    await systemConsolePage.sidebar.notifications.click();
 
     // # Wait for Notifications section to load
     const notifications = systemConsolePage.notifications;
     await notifications.toBeVisible();
 
     // # Scroll Support Email section into view and verify that it's visible
-    const supportEmailSetting = notifications.supportEmailAddress;
-    await supportEmailSetting.scrollIntoViewIfNeeded();
-    await expect(supportEmailSetting).toBeVisible();
+    await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
+    await notifications.supportEmailAddress.toBeVisible();
 
     // * Verify that the help text is visible and matches text content
-    await expect(notifications.supportEmailHelpText).toBeVisible();
-    await expect(notifications.supportEmailHelpText).toHaveText('Email address displayed on support emails.');
+    await expect(notifications.supportEmailAddress.helpText).toBeVisible();
+    await expect(notifications.supportEmailAddress.helpText).toHaveText('Email address displayed on support emails.');
 
     // # Clear and type new email
     const newEmail = 'changed_for_test_support@example.com';
-    await notifications.supportEmailAddressInput.clear();
-    await notifications.supportEmailAddressInput.fill(newEmail);
+    await notifications.supportEmailAddress.clear();
+    await notifications.supportEmailAddress.fill(newEmail);
 
     // * Verify that set value is visible and matches text
-    await expect(notifications.supportEmailAddressInput).toHaveValue(newEmail);
+    await expect(notifications.supportEmailAddress.input).toHaveValue(newEmail);
 
     // # Save setting
-    await notifications.saveButton.click();
+    await notifications.save();
 
     // * Verify that the config is correctly saved in the server
     const {adminClient} = await pw.getAdminClient();
@@ -158,29 +157,29 @@ test('MM-41671 cannot save the notifications page if mandatory fields are missin
     // # Visit Notifications admin console page
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.goToItem('Notifications');
+    await systemConsolePage.sidebar.notifications.click();
 
     // # Wait for Notifications section to load
     const notifications = systemConsolePage.notifications;
     await notifications.toBeVisible();
 
     const tests = [
-        {name: 'Support Email Address', fieldInput: notifications.supportEmailAddressInput},
-        {name: 'Notification Display Name', fieldInput: notifications.notificationDisplayNameInput},
-        {name: 'Notification From Address', fieldInput: notifications.notificationFromAddressInput},
+        {name: 'Support Email Address', field: notifications.supportEmailAddress},
+        {name: 'Notification Display Name', field: notifications.notificationDisplayName},
+        {name: 'Notification From Address', field: notifications.notificationFromAddress},
     ];
 
     for (const testCase of tests) {
         // # Clear the field
-        await expect(testCase.fieldInput).toBeVisible();
-        await testCase.fieldInput.clear();
+        await testCase.field.toBeVisible();
+        await testCase.field.clear();
 
         // * Error message is shown and save button is disabled
         await expect(notifications.errorMessage).toHaveText(`"${testCase.name}" is required`);
         await expect(notifications.saveButton).toBeDisabled();
 
         // # Insert something in the field
-        await testCase.fieldInput.fill('anything');
+        await testCase.field.fill('anything');
 
         // * Ensure no error message is shown and the save button is not disabled
         await expect(notifications.errorMessage).toHaveCount(0);

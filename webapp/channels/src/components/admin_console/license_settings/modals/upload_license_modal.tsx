@@ -19,7 +19,7 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import FileSvg from 'components/common/svg_images_components/file_svg';
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
-import UploadLicenseSvg from 'components/common/svg_images_components/upload_license';
+import UploadLicenseSvg from 'components/common/svg_images_components/upload_license_svg';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';

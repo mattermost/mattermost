@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5521-1 Should be able to search users with their first names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -22,17 +22,17 @@ test('MM-T5521-1 Should be able to search users with their first names', async (
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Enter the 'First Name' of the first user in the search box
-    await systemConsolePage.systemUsers.enterSearchText(user1.first_name);
+    await systemConsolePage.users.searchUsers(user1.first_name);
 
     // * Verify that the searched user i.e first user is found in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
 
     // * Verify that the second user doesnt appear in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
+    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
 });
 
 test('MM-T5521-2 Should be able to search users with their last names', async ({pw}) => {
@@ -54,17 +54,17 @@ test('MM-T5521-2 Should be able to search users with their last names', async ({
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Enter the 'Last Name' of the user in the search box
-    await systemConsolePage.systemUsers.enterSearchText(user1.last_name);
+    await systemConsolePage.users.searchUsers(user1.last_name);
 
     // * Verify that the searched user i.e first user is found in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
 
     //  * Verify that the second user doesnt appear in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
+    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
 });
 
 test('MM-T5521-3 Should be able to search users with their emails', async ({pw}) => {
@@ -86,17 +86,17 @@ test('MM-T5521-3 Should be able to search users with their emails', async ({pw})
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // * Enter the 'Email' of the first user in the search box
-    await systemConsolePage.systemUsers.enterSearchText(user1.email);
+    await systemConsolePage.users.searchUsers(user1.email);
 
     // * Verify that the searched user i.e first user is found in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
 
     //  * Verify that the second user doesnt appear in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
+    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
 });
 
 test('MM-T5521-4 Should be able to search users with their usernames', async ({pw}) => {
@@ -118,17 +118,17 @@ test('MM-T5521-4 Should be able to search users with their usernames', async ({p
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // # Enter the 'Username' of the first user in the search box
-    await systemConsolePage.systemUsers.enterSearchText(user1.username);
+    await systemConsolePage.users.searchUsers(user1.username);
 
     // * Verify that the searched user i.e first user is found in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
 
     //  * Verify that the another user is not visible
-    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
+    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
 });
 
 test('MM-T5521-5 Should be able to search users with their nick names', async ({pw}) => {
@@ -150,16 +150,16 @@ test('MM-T5521-5 Should be able to search users with their nick names', async ({
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
+    await systemConsolePage.sidebar.users.click();
 
     // # Enter the 'Nickname' of the first user in the search box
-    await systemConsolePage.systemUsers.enterSearchText(user1.nickname);
+    await systemConsolePage.users.searchUsers(user1.nickname);
 
     // * Verify that the searched user i.e first user is found in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
 
     //  * Verify that the second user doesnt appear in the list
-    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
+    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
 });
 
 test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({pw}) => {
@@ -177,10 +177,10 @@ test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
+    await systemConsolePage.sidebar.users.click();
 
     // # Enter random text in the search box
-    await systemConsolePage.systemUsers.enterSearchText(`!${pw.random.id(15)}_^^^_${pw.random.id(15)}!`);
+    await systemConsolePage.users.searchUsers(`!${pw.random.id(15)}_^^^_${pw.random.id(15)}!`);
 
-    await systemConsolePage.systemUsers.verifyRowWithTextIsFound('No data');
+    await expect(systemConsolePage.users.container.getByText('No data')).toBeVisible();
 });

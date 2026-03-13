@@ -21,6 +21,14 @@ This library provides:
 npm install @mattermost/playwright-lib
 ```
 
+### Peer Dependencies
+
+This library requires `@playwright/test` version 1.55.0 or higher:
+
+```bash
+npm install @playwright/test@^1.55.0
+```
+
 ## Usage
 
 Basic example of logging in and posting a message:

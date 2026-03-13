@@ -26,10 +26,6 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
         onExited: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal with user name in title', () => {
         renderWithContext(<ResetEmailModal {...baseProps}/>);
 

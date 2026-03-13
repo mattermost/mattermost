@@ -85,6 +85,69 @@ func TestGetUsersForReporting(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("should filter by guest_filter single_channel and return channel_count", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+
+		// Create a guest user with exactly one channel membership
+		singleChannelGuest := th.CreateUser(t)
+		_, appErr := th.App.UpdateUserRoles(th.Context, singleChannelGuest.Id, model.SystemGuestRoleId, false)
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, singleChannelGuest.Id, "")
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, singleChannelGuest, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		// Create a guest user with two channel memberships
+		multiChannelGuest := th.CreateUser(t)
+		_, appErr = th.App.UpdateUserRoles(th.Context, multiChannelGuest.Id, model.SystemGuestRoleId, false)
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, multiChannelGuest.Id, "")
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, multiChannelGuest, th.BasicChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, multiChannelGuest, th.BasicChannel2, false)
+		require.Nil(t, appErr)
+
+		options := &model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				PageSize: 100,
+			},
+			GuestFilter: model.GuestFilterSingleChannel,
+		}
+
+		userReports, resp, err := client.GetUsersForReporting(context.Background(), options)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundSingle := false
+		for _, report := range userReports {
+			require.Contains(t, report.Roles, "system_guest")
+			require.NotNil(t, report.ChannelCount)
+
+			if report.Id == singleChannelGuest.Id {
+				foundSingle = true
+				require.Equal(t, 1, *report.ChannelCount)
+			}
+			require.NotEqual(t, multiChannelGuest.Id, report.Id)
+		}
+		require.True(t, foundSingle, "single-channel guest not found in results")
+	})
+
+	t.Run("should reject invalid guest_filter value", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+
+		options := &model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				PageSize: 50,
+			},
+			GuestFilter: "invalid_value",
+		}
+
+		_, resp, err := client.GetUsersForReporting(context.Background(), options)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestFillReportingBaseOptions(t *testing.T) {
@@ -182,6 +245,45 @@ func TestFillUserReportOptions(t *testing.T) {
 
 		require.Equal(t, validTeamID, options.Team)
 	})
+
+	t.Run("guest_filter all", func(t *testing.T) {
+		values := url.Values{}
+		values.Set("guest_filter", "all")
+
+		options, appErr := fillUserReportOptions(values)
+
+		require.Nil(t, appErr)
+		require.Equal(t, "all", options.GuestFilter)
+	})
+
+	t.Run("guest_filter single_channel", func(t *testing.T) {
+		values := url.Values{}
+		values.Set("guest_filter", "single_channel")
+
+		options, appErr := fillUserReportOptions(values)
+
+		require.Nil(t, appErr)
+		require.Equal(t, "single_channel", options.GuestFilter)
+	})
+
+	t.Run("guest_filter multi_channel", func(t *testing.T) {
+		values := url.Values{}
+		values.Set("guest_filter", "multi_channel")
+
+		options, appErr := fillUserReportOptions(values)
+
+		require.Nil(t, appErr)
+		require.Equal(t, "multi_channel", options.GuestFilter)
+	})
+
+	t.Run("guest_filter defaults to empty when not provided", func(t *testing.T) {
+		values := url.Values{}
+
+		options, appErr := fillUserReportOptions(values)
+
+		require.Nil(t, appErr)
+		require.Equal(t, "", options.GuestFilter)
+	})
 }
 
 func TestGetPostsForReporting(t *testing.T) {
@@ -205,7 +307,7 @@ func TestGetPostsForReporting(t *testing.T) {
 			CreateAt:  baseTime + (int64(i) * 1000), // 1 second apart
 			UpdateAt:  baseTime + (int64(i) * 1000),
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		testPosts = append(testPosts, createdPost)
 	}
@@ -596,7 +698,7 @@ func TestGetPostsForReporting(t *testing.T) {
 				CreateAt:  baseTime + (int64(20+i) * 1000), // After all test posts
 				UpdateAt:  baseTime + (int64(20+i) * 1000),
 			}
-			_, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
+			_, _, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
 			require.Nil(t, appErr)
 		}
 

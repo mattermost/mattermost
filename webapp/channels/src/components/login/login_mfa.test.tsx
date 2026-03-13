@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import LoginMfa from 'components/login/login_mfa';
-import SaveButton from 'components/save_button';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/login/LoginMfa', () => {
     const baseProps = {
@@ -18,49 +16,43 @@ describe('components/login/LoginMfa', () => {
     const token = '123456';
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should handle token entered', () => {
-        const wrapper = mountWithIntl(
+    test('should handle token entered', async () => {
+        renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 
-        let input = wrapper.find('input').first();
-        expect(input.props().disabled).toEqual(false);
+        const input = screen.getByLabelText('MFA Token');
+        expect(input).not.toBeDisabled();
 
-        let button = wrapper.find(SaveButton).first();
-        expect(button.props().disabled).toEqual(true);
+        const button = screen.getByRole('button', {name: 'Submit'});
+        expect(button).toBeDisabled();
 
-        input.simulate('change', {target: {value: token}});
+        await userEvent.type(input, token);
 
-        button = wrapper.find(SaveButton).first();
-        expect(button.props().disabled).toEqual(false);
+        expect(screen.getByRole('button', {name: 'Submit'})).not.toBeDisabled();
 
-        input = wrapper.find('input').first();
-        expect(input.props().value).toEqual(token);
+        expect(input).toHaveValue(token);
     });
 
-    test('should handle submit', () => {
-        const wrapper = mountWithIntl(
+    test('should handle submit', async () => {
+        renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 
-        let input = wrapper.find('input').first();
-        input.simulate('change', {target: {value: token}});
+        const input = screen.getByLabelText('MFA Token');
+        await userEvent.type(input, token);
 
-        wrapper.find(SaveButton).simulate('click');
+        await userEvent.click(screen.getByRole('button', {name: 'Submit'}));
 
-        const saveButton = wrapper.find(SaveButton).first().props();
-        expect(saveButton.disabled).toEqual(false);
-        expect(saveButton.saving).toEqual(true);
-
-        input = wrapper.find('input').first();
-        expect(input.props().disabled).toEqual(true);
+        // After submit, input should be disabled (saving state)
+        expect(input).toBeDisabled();
 
         expect(baseProps.onSubmit).toHaveBeenCalledWith({loginId: baseProps.loginId, password: baseProps.password, token});
     });

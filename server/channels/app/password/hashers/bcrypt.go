@@ -73,6 +73,10 @@ func (b BCrypt) Hash(password string) (string, error) {
 // a [PasswordHasher]: it only uses the [PHC.Hash] field, and ignores anything
 // else in there.
 func (b BCrypt) CompareHashAndPassword(hash phcparser.PHC, password string) error {
+	if len(password) > PasswordMaxLengthBytes {
+		return ErrPasswordTooLong
+	}
+
 	err := bcrypt.CompareHashAndPassword([]byte(hash.Hash), []byte(password))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return ErrMismatchedHashAndPassword

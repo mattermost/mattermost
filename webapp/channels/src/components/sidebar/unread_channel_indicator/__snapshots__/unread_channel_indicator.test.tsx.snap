@@ -1,53 +1,109 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`UnreadChannelIndicator should match snapshot 1`] = `
-<div
-  className="nav-pills__unread-indicator"
-  id="unreadIndicatorundefined"
-  onClick={[MockFunction]}
->
-  <UnreadBelowIcon
-    className="icon icon__unread"
-  />
+<div>
+  <div
+    class="nav-pills__unread-indicator"
+    id="unreadIndicatorundefined"
+  >
+    <span
+      class="icon icon__unread"
+    >
+      <svg
+        aria-label="Down Arrow Icon"
+        height="16"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+        />
+      </svg>
+    </span>
+  </div>
 </div>
 `;
 
 exports[`UnreadChannelIndicator should match snapshot when content is an element 1`] = `
-<div
-  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
-  id="unreadIndicatorundefined"
-  onClick={[MockFunction]}
->
-  <UnreadBelowIcon
-    className="icon icon__unread"
-  />
-  <div>
-    foo
+<div>
+  <div
+    class="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+    id="unreadIndicatorundefined"
+  >
+    <span
+      class="icon icon__unread"
+    >
+      <svg
+        aria-label="Down Arrow Icon"
+        height="16"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+        />
+      </svg>
+    </span>
+    <div>
+      foo
+    </div>
   </div>
 </div>
 `;
 
 exports[`UnreadChannelIndicator should match snapshot when content is text 1`] = `
-<div
-  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
-  id="unreadIndicatorundefined"
-  onClick={[MockFunction]}
->
-  <UnreadBelowIcon
-    className="icon icon__unread"
-  />
-  foo
+<div>
+  <div
+    class="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+    id="unreadIndicatorundefined"
+  >
+    <span
+      class="icon icon__unread"
+    >
+      <svg
+        aria-label="Down Arrow Icon"
+        height="16"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+        />
+      </svg>
+    </span>
+    foo
+  </div>
 </div>
 `;
 
 exports[`UnreadChannelIndicator should match snapshot when show is set 1`] = `
-<div
-  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
-  id="unreadIndicatorundefined"
-  onClick={[MockFunction]}
->
-  <UnreadBelowIcon
-    className="icon icon__unread"
-  />
+<div>
+  <div
+    class="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+    id="unreadIndicatorundefined"
+  >
+    <span
+      class="icon icon__unread"
+    >
+      <svg
+        aria-label="Down Arrow Icon"
+        height="16"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+        />
+      </svg>
+    </span>
+  </div>
 </div>
 `;

@@ -20,12 +20,6 @@ on:
         type: boolean
         required: false
         default: true
-      # NB: the following toggles will skip individual steps, rather than the whole jobs,
-      #     to let the dependent jobs run even if these are false
-      run_preflight_checks:
-        type: boolean
-        required: false
-        default: true
       enable_reporting:
         type: boolean
         required: false
@@ -107,7 +101,7 @@ jobs:
   update-initial-status:
     runs-on: ubuntu-24.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -116,92 +110,6 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: pending
-
-  cypress-check:
-    runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
-    defaults:
-      run:
-        working-directory: e2e-tests/cypress
-    steps:
-      - name: ci/checkout-repo
-        if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/cypress/npm-install
-        if: "${{ inputs.run_preflight_checks }}"
-        run: |
-          npm ci
-      - name: ci/cypress/npm-check
-        if: "${{ inputs.run_preflight_checks }}"
-        run: |
-          npm run check
-
-  playwright-check:
-    runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
-    defaults:
-      run:
-        working-directory: e2e-tests/playwright
-    steps:
-      - name: ci/checkout-repo
-        if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/get-webapp-node-modules
-        if: "${{ inputs.run_preflight_checks }}"
-        working-directory: webapp
-        # requires build of client and types
-        run: |
-          make node_modules
-      - name: ci/playwright/npm-install
-        if: "${{ inputs.run_preflight_checks }}"
-        run: |
-          npm ci
-      - name: ci/playwright/npm-check
-        if: "${{ inputs.run_preflight_checks }}"
-        run: |
-          npm run check
-
-  shell-check:
-    runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
-    defaults:
-      run:
-        working-directory: e2e-tests
-    steps:
-      - name: ci/checkout-repo
-        if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/shell-check
-        if: "${{ inputs.run_preflight_checks }}"
-        run: make check-shell
 
   generate-build-variables:
     runs-on: ubuntu-24.04
@@ -215,7 +123,7 @@ jobs:
       node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
@@ -241,12 +149,12 @@ jobs:
       status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -290,9 +198,6 @@ jobs:
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 120
     needs:
-      - cypress-check
-      - playwright-check
-      - shell-check
       - generate-build-variables
       - generate-test-cycle
     defaults:
@@ -319,7 +224,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
@@ -333,7 +238,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -364,9 +269,11 @@ jobs:
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
           make
-          make cloud-teardown
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
       - name: ci/e2e-test-store-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
@@ -393,18 +300,18 @@ jobs:
       playwright_report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: e2e-test-results-${{ inputs.TEST }}-*
           path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -412,7 +319,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -427,17 +334,19 @@ jobs:
           SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
+          PR_NUMBER: "${{ inputs.PR_NUMBER }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
         run: |
+          echo "DEBUG: TYPE=${TYPE}, PR_NUMBER=${PR_NUMBER:-<not set>}"
           make report
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -448,7 +357,7 @@ jobs:
       # Configure AWS credentials
       - name: ci/aws-configure
         if: (inputs.TEST == 'playwright')
-        uses: aws-actions/configure-aws-credentials@v4.2.0
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -468,12 +377,6 @@ jobs:
           S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
 
           echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
-
-          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
-            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
-              --acl public-read \
-              --cache-control "no-cache"
-          fi
 
           if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
             aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
@@ -534,7 +437,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -557,7 +460,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

@@ -29,7 +29,9 @@ describe('components/new_channel_modal', () => {
     const initialState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    UseAnonymousURLs: 'false',
+                },
             },
             channels: {
                 currentChannelId: 'current_channel_id',
@@ -83,14 +85,10 @@ describe('components/new_channel_modal', () => {
                         permissions: [],
                     },
                     team_user: {
-                        permissions: [
-                            Permissions.CREATE_PRIVATE_CHANNEL,
-                        ],
+                        permissions: [Permissions.CREATE_PRIVATE_CHANNEL],
                     },
                     system_admin: {
-                        permissions: [
-                            Permissions.CREATE_PUBLIC_CHANNEL,
-                        ],
+                        permissions: [Permissions.CREATE_PUBLIC_CHANNEL],
                     },
                     system_user: {
                         permissions: [],
@@ -267,9 +265,11 @@ describe('components/new_channel_modal', () => {
         const ChannelPurposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
+        // Simulate user interaction with purpose field including focus/blur for validation - fireEvent used because userEvent doesn't have direct focus/blur methods
         await act(async () => {
             fireEvent.focus(ChannelPurposeTextArea);
-            fireEvent.change(ChannelPurposeTextArea, {target: {value}});
+            await userEvent.clear(ChannelPurposeTextArea);
+            await userEvent.type(ChannelPurposeTextArea, value);
             fireEvent.blur(ChannelPurposeTextArea);
         });
 
@@ -373,6 +373,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when server error', async () => {
+        // Mock createChannel to return an error
+        (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({error: {message: 'Something went wrong. Please try again.'}}));
+
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -399,10 +402,13 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => userEvent.click(createChannelButton));
+        await userEvent.click(createChannelButton);
 
-        const serverError = screen.getByText('Something went wrong. Please try again.');
-        expect(serverError).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            const serverError = screen.getByText('Something went wrong. Please try again.');
+            expect(serverError).toBeInTheDocument();
+        });
         expect(createChannelButton).toBeDisabled();
     });
 

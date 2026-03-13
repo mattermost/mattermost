@@ -80,7 +80,7 @@ func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// GetRemoteClusterForUser will only return a remote if the user is a member of at
 	// least one channel shared by the remote. All other cases return error.
-	rc, appErr := c.App.GetRemoteClusterForUser(c.Params.RemoteId, c.AppContext.Session().UserId)
+	rc, appErr := c.App.GetRemoteClusterForUser(c.Params.RemoteId, c.AppContext.Session().UserId, c.Params.IncludeDeleted)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -104,8 +104,8 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -150,8 +150,8 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSharedChannels)
+	c.RequirePermissionToManageSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -201,8 +201,8 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSharedChannels)
+	c.RequirePermissionToManageSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -235,6 +235,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	// if the channel is not shared with the remote, we return early
 	if !hasRemote {
+		auditRec.Success()
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -261,7 +262,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}

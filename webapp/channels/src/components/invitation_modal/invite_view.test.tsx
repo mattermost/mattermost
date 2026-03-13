@@ -118,6 +118,9 @@ describe('InviteView', () => {
                     },
                 },
             },
+            limits: {
+                serverLimits: {},
+            },
         },
     };
 

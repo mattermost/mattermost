@@ -177,4 +177,39 @@ func TestGetServerLimits(t *testing.T) {
 			require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
 		}
 	})
+
+	t.Run("non-admin users get zero single channel guest data", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, resp, err := th.Client.GetServerLimits(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestCount)
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestLimit)
+	})
+
+	t.Run("admin users get single channel guest data with eligible license", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, resp, err := th.SystemAdminClient.GetServerLimits(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int64(userLimit), serverLimits.SingleChannelGuestLimit)
+	})
 }

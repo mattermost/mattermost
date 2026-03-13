@@ -23,7 +23,6 @@ const TEAMS_PER_PAGE = 50;
 type TeamValue = (Team & Value);
 
 export type Props = {
-    currentSchemeId?: string;
     alreadySelected?: string[];
     intl: IntlShape;
     excludeGroupConstrained?: boolean;
@@ -37,7 +36,6 @@ export type Props = {
         setModalSearchTerm: (searchTerm: string) => void;
         searchTeams: (searchTerm: string) => void;
     };
-    data?: any;
     excludePolicyConstrained?: boolean;
 };
 
@@ -53,7 +51,6 @@ type State = {
 export class TeamSelectorModal extends React.PureComponent<Props, State> {
     private searchTimeoutId?: number;
     private selectedItemRef?: React.RefObject<HTMLDivElement> | undefined;
-    private currentSchemeId?: string;
 
     constructor(props: Props) {
         super(props);
@@ -253,7 +250,6 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
         let teams = [] as Team[];
         if (this.props.teams) {
             teams = this.props.teams.filter((team) => team.delete_at === 0);
-            teams = teams.filter((team) => team.scheme_id !== this.currentSchemeId);
             teams = this.props.excludeGroupConstrained ? teams.filter((team) => !team.group_constrained) : teams;
             if (this.props.alreadySelected) {
                 teams = teams.filter((team) => this.props.alreadySelected?.indexOf(team.id) === -1);

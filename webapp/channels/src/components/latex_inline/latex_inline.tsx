@@ -5,7 +5,7 @@ import type {KatexOptions} from 'katex';
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-type Katex = typeof import('katex');
+type Katex = typeof import('katex').default;
 
 type Props = {
     content: string;
@@ -58,7 +58,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
             >
                 <FormattedMessage
                     id='katex.error'
-                    defaultMessage='Could not compile your Latex code. Please review the syntax and try again.'
+                    defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
                 />
             </span>
         );

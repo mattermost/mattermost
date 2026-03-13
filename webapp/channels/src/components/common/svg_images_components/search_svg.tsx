@@ -15,7 +15,7 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 role='img'
                 aria-label={formatMessage({id: 'generic_icons.search', defaultMessage: 'Search Icon'})}
             >
-                <g clipPath='url(#clip0_4212_116720)'>
+                <g>
                     <rect
                         x='0.255005'
                         y='32'
@@ -43,11 +43,13 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fillOpacity='0.12'
                     />
                     <path
+                        fill='none'
                         d='M62.5814 6.60593C70.262 6.55738 77.3232 8.54646 83.755 12.5732C86.3956 14.2264 88.9301 16.223 91.3579 18.5631C94.3589 21.6787 96.7911 24.9905 98.653 28.5M62.5813 87.8542C53.6129 87.7863 45.4964 85.1063 38.255 79.7911C36.7377 78.6774 35.2587 77.4479 33.8185 76.1025C30.0784 72.0903 27.2249 67.8234 25.255 63.299M21.9572 47.2301C21.964 41.8688 22.9467 36.7921 24.9051 32C26.8843 27.1573 29.8599 22.6053 33.8322 18.3439M101.949 37C102.786 40.2642 103.206 43.6739 103.206 47.2301C103.2 51.5308 102.585 55.6211 101.358 59.5M100.495 32.5C100.769 33.1979 101.022 33.903 101.255 34.6153'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
                     />
                     <path
+                        fill='none'
                         d='M82.6551 5.72396C90.4991 9.4225 96.7179 14.8934 101.302 22.1318C103.184 25.1036 104.79 28.3733 106.12 31.9406'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.48'
@@ -69,6 +71,7 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         height='6.45395'
                         rx='0.5'
                         transform='rotate(45 89.8878 70.0587)'
+                        fill='none'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                     />
@@ -77,6 +80,7 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fill='var(--center-channel-bg)'
                     />
                     <path
+                        fill='none'
                         d='M62.5738 11.7232C72.0335 11.6634 80.418 15.1368 87.7227 22.1748C94.6257 29.3444 98.0773 37.6809 98.0773 47.2299C98.0652 56.7673 94.6251 65.1159 87.7228 72.2849C80.418 79.323 72.0576 82.7964 62.5738 82.7366C53.0959 82.6646 44.7093 79.2606 37.431 72.467C30.5135 65.0406 27.0759 56.6419 27.064 47.2294C27.0762 37.8176 30.5255 29.4072 37.4428 21.9809C44.7342 15.1984 53.109 11.783 62.5738 11.7232Z'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
@@ -95,6 +99,7 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fillOpacity='0.8'
                     />
                     <path
+                        fill='none'
                         d='M62.5736 11.7232C72.0333 11.6634 80.4179 15.1369 87.7225 22.1748C94.6255 29.3444 98.0771 37.681 98.0771 47.2299C98.065 56.7674 94.625 65.1159 87.7226 72.2849C80.4178 79.3231 72.0575 82.7964 62.5736 82.7366C53.0957 82.6647 44.7092 79.2607 37.4308 72.4671C30.5133 65.0407 27.0758 56.642 27.0638 47.2294C27.076 37.8176 30.5254 29.4072 37.4426 21.9809C44.734 15.1984 53.1088 11.783 62.5736 11.7232Z'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
@@ -107,40 +112,34 @@ export function SearchSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         fillOpacity='0.32'
                     />
                     <path
+                        fill='none'
                         d='M43.255 56H85.255'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M43.255 63H65.255'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M43.255 50H60.255'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeLinecap='round'
                     />
                     <path
+                        fill='none'
                         d='M65.255 50H80.255'
                         stroke='var(--center-channel-color)'
                         strokeOpacity='0.8'
                         strokeLinecap='round'
                     />
                 </g>
-                <defs>
-                    <clipPath id='clip0_4212_116720'>
-                        <rect
-                            width='122'
-                            height='99'
-                            fill='white'
-                            transform='translate(0.255005)'
-                        />
-                    </clipPath>
-                </defs>
             </svg>
         </span>
     );

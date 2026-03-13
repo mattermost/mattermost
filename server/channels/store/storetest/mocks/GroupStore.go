@@ -662,9 +662,9 @@ func (_m *GroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model
 	return r0, r1
 }
 
-// GetByNames provides a mock function with given fields: names, viewRestrictions
-func (_m *GroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
-	ret := _m.Called(names, viewRestrictions)
+// GetByNames provides a mock function with given fields: names, opts
+func (_m *GroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
+	ret := _m.Called(names, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByNames")
@@ -672,19 +672,19 @@ func (_m *GroupStore) GetByNames(names []string, viewRestrictions *model.ViewUse
 
 	var r0 []*model.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, *model.ViewUsersRestrictions) ([]*model.Group, error)); ok {
-		return rf(names, viewRestrictions)
+	if rf, ok := ret.Get(0).(func([]string, model.GroupSearchOpts) ([]*model.Group, error)); ok {
+		return rf(names, opts)
 	}
-	if rf, ok := ret.Get(0).(func([]string, *model.ViewUsersRestrictions) []*model.Group); ok {
-		r0 = rf(names, viewRestrictions)
+	if rf, ok := ret.Get(0).(func([]string, model.GroupSearchOpts) []*model.Group); ok {
+		r0 = rf(names, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(names, viewRestrictions)
+	if rf, ok := ret.Get(1).(func([]string, model.GroupSearchOpts) error); ok {
+		r1 = rf(names, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
