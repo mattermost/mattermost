@@ -126,7 +126,7 @@ func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.
 	}
 
 	if len(values) < len(ids) {
-		return nil, fmt.Errorf("missmatch results: got %d results of the %d ids passed", len(values), len(ids))
+		return nil, store.NewErrResultsMismatch(len(values), len(ids))
 	}
 
 	return values, nil

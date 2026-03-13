@@ -151,7 +151,7 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 	pf := c.ToPropertyField()
 
 	// Apply the patch using PropertyField's patch logic
-	pf.Patch(patch)
+	pf.Patch(patch, false)
 
 	// Convert back to CPAField
 	patched, err := NewCPAFieldFromPropertyField(pf)
