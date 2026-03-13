@@ -4863,18 +4863,6 @@
     "translation": "Cannot update view sort order in a deleted channel."
   },
   {
-    "id": "api.view.write.dm_gm.forbidden.app_error",
-    "translation": "You do not have permission to manage views in this conversation."
-  },
-  {
-    "id": "api.view.write.forbidden.app_error",
-    "translation": "You do not have permission to manage views in this channel."
-  },
-  {
-    "id": "api.view.write.guest.forbidden.app_error",
-    "translation": "Guests are not allowed to manage views in direct or group messages."
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
