@@ -4845,6 +4845,7 @@
   "image_gallery.focus_image": "Focused on image {current} of {total}: {filename}",
   "image_gallery.hide_images": "{count} images",
   "image_gallery.instructions": "Use arrow keys to navigate between images, Enter or Space to open image viewer",
+  "image_gallery.item_label": "Image {current} of {total}: {filename}. Press Enter or Space to open in image viewer.",
   "image_gallery.list_label": "Image gallery with {count} images",
   "image_gallery.show_images": "Show {count} images",
   "incoming_webhooks.header": "Incoming Webhooks",

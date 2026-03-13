@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -41,6 +42,8 @@ const ImageGalleryItem = ({
     onClick,
     compactDisplay,
 }: Props) => {
+    const {formatMessage} = useIntl();
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -53,8 +56,10 @@ const ImageGalleryItem = ({
         onFocus?.();
     };
 
-    // Generate comprehensive aria-label for screen readers
-    const ariaLabel = `Image ${index + 1} of ${totalImages}${fileInfo.name ? `: ${fileInfo.name}` : ''}${fileInfo.extension ? ` (${fileInfo.extension.toUpperCase()})` : ''}. Press Enter or Space to open in image viewer.`;
+    const ariaLabel = formatMessage(
+        {id: 'image_gallery.item_label', defaultMessage: 'Image {current} of {total}: {filename}. Press Enter or Space to open in image viewer.'},
+        {current: index + 1, total: totalImages, filename: fileInfo.name || ''},
+    );
 
     return (
         <div

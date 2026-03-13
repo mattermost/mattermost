@@ -394,7 +394,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     fileInfo={fileInfo}
                                     fileURL={fileURL}
                                     handleSmallImageContainer={true}
-                                    smallImageThreshold={SMALL_IMAGE_THRESHOLD}
+                                    smallImageThreshold={this.props.smallImageThreshold ?? SMALL_IMAGE_THRESHOLD}
                                     minContainerSize={PREVIEW_IMAGE_MIN_DIMENSION}
                                     showLoader={true}
                                     enablePublicLink={this.props.enablePublicLink}
