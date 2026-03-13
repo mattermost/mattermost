@@ -6995,10 +6995,6 @@
     "translation": "Could not get channel members to remove."
   },
   {
-    "id": "app.pap.get_policies_for_field_ids.app_error",
-    "translation": "Could not get policies for the given field IDs."
-  },
-  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
   },
@@ -11823,6 +11819,10 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Provided guest filter is not valid."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",

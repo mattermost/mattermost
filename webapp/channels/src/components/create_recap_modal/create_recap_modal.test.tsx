@@ -321,6 +321,27 @@ describe('CreateRecapModal', () => {
         });
     });
 
+    test('should not advance to next step when name is empty and show validation error', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('Agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
+        // Select a recap type but leave the name empty
+        const allUnreadsButton = screen.getByText('Recap all my unreads');
+        await userEvent.click(allUnreadsButton);
+
+        // Next button should be disabled since name is empty
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        expect(nextButton).toBeDisabled();
+
+        // We should still be on step 1
+        expect(screen.getByText('Give your recap a name')).toBeInTheDocument();
+        expect(screen.getByText('What type of recap would you like?')).toBeInTheDocument();
+    });
+
     test('should enable Next on channel selection step when a checkbox is clicked', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
