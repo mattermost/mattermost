@@ -74,6 +74,40 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     },
 );
 
+const getChannelSettingsTabsShouldRender = createSelector(
+    'getChannelSettingsTabsShouldRender',
+    (state: GlobalState) => state,
+    (state: GlobalState, channelId: string) => state.entities.channels.channels[channelId],
+    (state: GlobalState) => state.plugins.components.ChannelSettingsTab,
+    (state, channel, channelSettingsTabs = []) => {
+        if (!channel) {
+            return [];
+        }
+
+        return channelSettingsTabs.map((component) => {
+            if (typeof component.shouldRender === 'function') {
+                return component.shouldRender(state, channel);
+            }
+
+            return true;
+        });
+    },
+);
+
+export const getVisibleChannelSettingsTabs = createShallowSelector(
+    'getVisibleChannelSettingsTabs',
+    getChannelSettingsTabsShouldRender,
+    (state: GlobalState, channelId: string) => state.entities.channels.channels[channelId],
+    (state: GlobalState) => state.plugins.components.ChannelSettingsTab,
+    (componentShouldRender = [], channel, channelSettingsTabs = []) => {
+        if (!channel) {
+            return [];
+        }
+
+        return channelSettingsTabs.filter((component, idx) => componentShouldRender[idx]);
+    },
+);
+
 export const getChannelMobileHeaderPluginButtons = createSelector(
     'getChannelMobileHeaderPluginButtons',
     (state: GlobalState) => state.plugins.components.MobileChannelHeaderButton,

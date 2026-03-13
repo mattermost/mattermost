@@ -21,6 +21,8 @@ export type Props = {
     activeTab?: string;
     tabs: Tab[];
     pluginTabs?: Tab[];
+    pluginSectionLabel?: string;
+    pluginSectionHeadingId?: string;
     updateTab: (name: string) => void;
     isMobileView: boolean;
 };
@@ -159,24 +161,27 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         if (this.props.pluginTabs?.length) {
             const visiblePluginTabs = this.props.pluginTabs.filter((tab) => tab.display !== false);
             if (visiblePluginTabs.length) {
+                const pluginSectionHeadingId = this.props.pluginSectionHeadingId ?? 'settingsSidebar_pluginSection_header';
                 pluginTabList = (
                     <>
                         <hr/>
                         <div
                             role='group'
-                            aria-labelledby='userSettingsModal.pluginPreferences.header'
+                            aria-labelledby={pluginSectionHeadingId}
                         >
                             <div
                                 key={'plugin preferences heading'}
                                 role='heading'
                                 className={'header'}
                                 aria-level={3}
-                                id='userSettingsModal_pluginPreferences_header'
+                                id={pluginSectionHeadingId}
                             >
-                                <FormattedMessage
-                                    id={'userSettingsModal.pluginPreferences.header'}
-                                    defaultMessage={'PLUGIN PREFERENCES'}
-                                />
+                                {this.props.pluginSectionLabel || (
+                                    <FormattedMessage
+                                        id={'userSettingsModal.pluginPreferences.header'}
+                                        defaultMessage={'PLUGIN PREFERENCES'}
+                                    />
+                                )}
                             </div>
                             {visiblePluginTabs.map((tab) => this.renderTab(tab))}
                         </div>

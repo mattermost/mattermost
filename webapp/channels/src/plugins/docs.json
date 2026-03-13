@@ -32,5 +32,25 @@
     "MobileChannelHeaderButton": {
         "desc": "Same as ChannelHeaderButton, except shown in mobile view when the screen is less than 768 pixels wide.",
         "props": {}
+    },
+    "ChannelSettingsTab": {
+        "desc": "A component-based channel settings tab surface whose component renders in the modal content pane when selected.",
+        "props": {
+            "channel": {
+                "type": { "name": "object" },
+                "required": true,
+                "desc": "The current channel"
+            },
+            "setAreThereUnsavedChanges": {
+                "type": { "name": "function" },
+                "required": false,
+                "desc": "Callback to inform the modal whether unsaved changes exist"
+            },
+            "showTabSwitchError": {
+                "type": { "name": "bool" },
+                "required": false,
+                "desc": "Flag indicating a blocked tab-switch attempt because unsaved changes must be resolved first"
+            }
+        }
     }
 }

@@ -21,6 +21,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {ChannelSettingsTab, ChannelSettingsTabProps} from 'types/plugins/channel_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
@@ -41,6 +42,7 @@ export type PluginsState = {
         UserGuideDropdown: UserGuideDropdownAction[];
         FileUploadMethod: FileUploadMethodAction[];
         ChannelIntroButton: ChannelIntroButtonAction[];
+        ChannelSettingsTab: ChannelSettingsTabComponent[];
         FilesDropdown: FilesDropdownAction[];
         Product: ProductComponent[];
         PostDropdownMenuItem: PostDropdownMenuItemComponent[];
@@ -197,6 +199,13 @@ export type ChannelIntroButtonAction = PluginComponent & {
     text: PluggableText;
     action: (channel: Channel, member: ChannelMembership) => void;
     icon: React.ReactNode;
+};
+
+export type ChannelSettingsTabComponent = PluginComponent & {
+    uiName: ChannelSettingsTab['uiName'];
+    icon?: ChannelSettingsTab['icon'];
+    shouldRender: NonNullable<ChannelSettingsTab['shouldRender']>;
+    component: React.ComponentType<BasePluggableProps & ChannelSettingsTabProps>;
 };
 
 export type UserGuideDropdownAction = PluginComponent & {

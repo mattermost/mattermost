@@ -6,6 +6,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Permissions} from 'mattermost-redux/constants';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelSettingsTabComponent} from 'types/store/plugins';
 
 import {canAccessChannelSettings} from './channel_settings';
 
@@ -16,6 +17,17 @@ describe('Selectors.Views.ChannelSettings', () => {
     const privateChannelId = 'private_channel1';
     const dmChannelId = 'dm_channel1';
     const gmChannelId = 'gm_channel1';
+    const DummyChannelSettingsTab = () => null;
+
+    function createPluginTab(shouldRender = jest.fn(() => true)): ChannelSettingsTabComponent {
+        return {
+            id: 'plugin-tab',
+            pluginId: 'plugin-id',
+            uiName: 'Plugin Tab',
+            shouldRender,
+            component: DummyChannelSettingsTab,
+        };
+    }
 
     function getBaseState(): GlobalState {
         const state: DeepPartial<GlobalState> = {
@@ -77,6 +89,11 @@ describe('Selectors.Views.ChannelSettings', () => {
                             name: 'test-team',
                         },
                     },
+                },
+            },
+            plugins: {
+                components: {
+                    ChannelSettingsTab: [],
                 },
             },
         };
@@ -149,13 +166,7 @@ describe('Selectors.Views.ChannelSettings', () => {
     });
 
     it('should return false when user has no permissions', () => {
-        // For this test, we need to ensure all permissions return false
-        // We need to mock the implementation to check the permission parameter
-        const mockFunction = require('mattermost-redux/selectors/entities/roles').haveIChannelPermission as jest.Mock;
-        mockFunction.mockImplementation(() => false);
-
-        // Skip using the selector and just test the mock directly
-        const result = false;
+        const result = canAccessChannelSettings(getBaseState(), channelId);
         expect(result).toBe(false);
     });
 
@@ -212,6 +223,45 @@ describe('Selectors.Views.ChannelSettings', () => {
             state.entities.general.config.RestrictDMAndGMAutotranslation = 'true';
             const result = canAccessChannelSettings(state, gmChannelId);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('plugin-driven access', () => {
+        it('returns true when a visible plugin tab exists and built-in public-channel permissions are all false', () => {
+            const state = getBaseState();
+            state.plugins.components.ChannelSettingsTab = [createPluginTab(jest.fn(() => true))];
+
+            expect(canAccessChannelSettings(state, channelId)).toBe(true);
+        });
+
+        it('returns true for a default channel when only a visible plugin tab exists', () => {
+            const state = getBaseState();
+            state.plugins.components.ChannelSettingsTab = [createPluginTab(jest.fn(() => true))];
+
+            expect(canAccessChannelSettings(state, defaultChannelId)).toBe(true);
+        });
+
+        it('returns true for a DM channel when built-in auto-translation access is false but a visible plugin tab exists', () => {
+            const state = getBaseState();
+            state.entities.general.config.EnableAutoTranslation = 'false';
+            state.plugins.components.ChannelSettingsTab = [createPluginTab(jest.fn(() => true))];
+
+            expect(canAccessChannelSettings(state, dmChannelId)).toBe(true);
+        });
+
+        it('returns true for a GM channel when built-in auto-translation access is false but a visible plugin tab exists', () => {
+            const state = getBaseState();
+            state.entities.general.config.EnableAutoTranslation = 'false';
+            state.plugins.components.ChannelSettingsTab = [createPluginTab(jest.fn(() => true))];
+
+            expect(canAccessChannelSettings(state, gmChannelId)).toBe(true);
+        });
+
+        it('returns false when plugin tabs are hidden and built-in access is absent', () => {
+            const state = getBaseState();
+            state.plugins.components.ChannelSettingsTab = [createPluginTab(jest.fn(() => false))];
+
+            expect(canAccessChannelSettings(state, channelId)).toBe(false);
         });
     });
 });

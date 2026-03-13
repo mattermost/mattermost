@@ -202,6 +202,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelHeader: [],
     ChannelHeaderIcon: [],
     ChannelIntroButton: [],
+    ChannelSettingsTab: [],
     CustomRouteComponent: [],
     FilesDropdown: [],
     FileUploadMethod: [],

@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {
+    useEffect,
+    useMemo,
     useState,
     useRef,
 } from 'react';
@@ -21,10 +23,15 @@ import {
     setShowPreviewOnChannelSettingsPurposeModal,
 } from 'actions/views/textbox';
 import {isChannelAccessControlEnabled} from 'selectors/general';
+import {getVisibleChannelSettingsTabs} from 'selectors/plugins';
 
+import type {Tab as SidebarTab} from 'components/settings_sidebar/settings_sidebar';
+
+import Pluggable from 'plugins/pluggable';
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
+import {isValidUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -45,19 +52,50 @@ type ChannelSettingsModalProps = {
     focusOriginElement?: string;
 };
 
-enum ChannelSettingsTabs {
-    INFO = 'info',
-    ACCESS_RULES = 'access_rules',
-    CONFIGURATION = 'configuration',
-    ARCHIVE = 'archive',
-}
+const BuiltInTabIds = {
+    INFO: 'info',
+    ACCESS_RULES: 'access_rules',
+    CONFIGURATION: 'configuration',
+    ARCHIVE: 'archive',
+} as const;
+type BuiltInTabId = typeof BuiltInTabIds[keyof typeof BuiltInTabIds];
+
+const builtInTabIdSet = new Set<BuiltInTabId>(Object.values(BuiltInTabIds));
+const PLUGIN_TAB_PREFIX = 'plugin_';
 
 const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
+
+function getPluginTabName(registrationId: string): string {
+    return `${PLUGIN_TAB_PREFIX}${registrationId}`;
+}
+
+function getPluginRegistrationId(tabName: string): string | undefined {
+    if (!tabName.startsWith(PLUGIN_TAB_PREFIX)) {
+        return undefined;
+    }
+
+    const registrationId = tabName.slice(PLUGIN_TAB_PREFIX.length);
+    return registrationId || undefined;
+}
+
+function isBuiltInTabId(tabName: string): tabName is BuiltInTabId {
+    return builtInTabIdSet.has(tabName as BuiltInTabId);
+}
+
+function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab[], visiblePluginTabs: SidebarTab[]): string {
+    const visibleTabNames = [...visibleBuiltInTabs, ...visiblePluginTabs].map((tab) => tab.name);
+    if (visibleTabNames.includes(activeTab)) {
+        return activeTab;
+    }
+
+    return visibleBuiltInTabs[0]?.name ?? visiblePluginTabs[0]?.name ?? BuiltInTabIds.INFO;
+}
 
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const visiblePluginTabRegistrations = useSelector((state: GlobalState) => getVisibleChannelSettingsTabs(state, channelId));
     const channelBannerEnabled = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
 
     const canManagePublicChannelBanner = useSelector((state: GlobalState) =>
@@ -105,7 +143,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const [show, setShow] = useState(isOpen);
 
     // Active tab
-    const [activeTab, setActiveTab] = useState<ChannelSettingsTabs>(ChannelSettingsTabs.INFO);
+    const [activeTab, setActiveTab] = useState<string>(BuiltInTabIds.INFO);
 
     // State for showing error in the save changes panel when trying to switch tabs with unsaved changes
     const [showTabSwitchError, setShowTabSwitchError] = useState(false);
@@ -118,6 +156,91 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
+    const pluginSectionLabel = formatMessage({
+        id: 'channel_settings.sidebar.plugin_settings',
+        defaultMessage: 'PLUGIN SETTINGS',
+    });
+
+    const tabs = useMemo((): SidebarTab[] => {
+        return [
+            {
+                name: BuiltInTabIds.INFO,
+                uiName: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'}),
+                icon: 'icon icon-information-outline',
+                iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
+            },
+            {
+                name: BuiltInTabIds.ACCESS_RULES,
+                uiName: formatMessage({id: 'channel_settings.tab.access_control', defaultMessage: 'Access Control'}),
+                icon: 'icon icon-shield-outline',
+                iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+                display: shouldShowAccessRulesTab,
+            },
+            {
+                name: BuiltInTabIds.CONFIGURATION,
+                uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
+                icon: 'icon icon-cog-outline',
+                iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
+                display: shouldShowConfigurationTab,
+            },
+            {
+                name: BuiltInTabIds.ARCHIVE,
+                uiName: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
+                icon: 'icon icon-archive-outline',
+                iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
+                display: channel.name !== Constants.DEFAULT_CHANNEL &&
+                    ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
+                    (channel.type === Constants.OPEN_CHANNEL && canArchivePublicChannels)),
+            },
+        ];
+    }, [
+        canArchivePrivateChannels,
+        canArchivePublicChannels,
+        channel.name,
+        channel.type,
+        formatMessage,
+        shouldShowAccessRulesTab,
+        shouldShowConfigurationTab,
+    ]);
+
+    const pluginTabs = useMemo((): SidebarTab[] => {
+        return visiblePluginTabRegistrations.map((registration) => {
+            let icon: SidebarTab['icon'] = 'icon icon-power-plug-outline';
+            if (registration.icon) {
+                if (isValidUrl(registration.icon) || registration.icon.startsWith('/')) {
+                    icon = {url: registration.icon};
+                } else {
+                    icon = `icon ${registration.icon}`;
+                }
+            }
+
+            return {
+                name: getPluginTabName(registration.id),
+                uiName: registration.uiName,
+                iconTitle: registration.uiName,
+                icon,
+            };
+        });
+    }, [visiblePluginTabRegistrations]);
+
+    const visibleBuiltInTabs = useMemo(() => tabs.filter((tab) => tab.display !== false), [tabs]);
+    const visiblePluginTabs = useMemo(() => pluginTabs.filter((tab) => tab.display !== false), [pluginTabs]);
+    const visibleTabNames = useMemo(() => [...visibleBuiltInTabs, ...visiblePluginTabs].map((tab) => tab.name), [visibleBuiltInTabs, visiblePluginTabs]);
+    const preferredActiveTab = useMemo(() => getPreferredActiveTab(activeTab, visibleBuiltInTabs, visiblePluginTabs), [activeTab, visibleBuiltInTabs, visiblePluginTabs]);
+    const activePluginRegistration = useMemo(() => {
+        const registrationId = getPluginRegistrationId(activeTab);
+        if (!registrationId) {
+            return undefined;
+        }
+
+        return visiblePluginTabRegistrations.find((registration) => registration.id === registrationId);
+    }, [activeTab, visiblePluginTabRegistrations]);
+
+    useEffect(() => {
+        if (preferredActiveTab !== activeTab) {
+            setActiveTab(preferredActiveTab);
+        }
+    }, [activeTab, preferredActiveTab, visibleTabNames]);
 
     // Called to set the active tab, prompting save changes panel if there are unsaved changes
     const updateTab = (newTab: string) => {
@@ -134,8 +257,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             return;
         }
 
-        const tab = newTab as ChannelSettingsTabs;
-        setActiveTab(tab);
+        setActiveTab(newTab);
 
         if (modalBodyRef.current) {
             modalBodyRef.current.scrollTop = 0;
@@ -167,28 +289,12 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // Called after the fade-out completes
     const handleExited = () => {
         // Clear anything if needed
-        setActiveTab(ChannelSettingsTabs.INFO);
+        setActiveTab(BuiltInTabIds.INFO);
         setHasBeenWarned(false);
         if (focusOriginElement) {
             focusElement(focusOriginElement, true);
         }
         onExited();
-    };
-
-    // Renders content based on active tab
-    const renderTabContent = () => {
-        switch (activeTab) {
-        case ChannelSettingsTabs.INFO:
-            return renderInfoTab();
-        case ChannelSettingsTabs.ACCESS_RULES:
-            return renderAccessRulesTab();
-        case ChannelSettingsTabs.CONFIGURATION:
-            return renderConfigurationTab();
-        case ChannelSettingsTabs.ARCHIVE:
-            return renderArchiveTab();
-        default:
-            return renderInfoTab();
-        }
     };
 
     const renderInfoTab = () => {
@@ -232,39 +338,39 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         );
     };
 
-    // Define tabs for the settings sidebar
-    const tabs = [
-        {
-            name: ChannelSettingsTabs.INFO,
-            uiName: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'}),
-            icon: 'icon icon-information-outline',
-            iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
-        },
-        {
-            name: ChannelSettingsTabs.ACCESS_RULES,
-            uiName: formatMessage({id: 'channel_settings.tab.access_control', defaultMessage: 'Access Control'}),
-            icon: 'icon icon-shield-outline',
-            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
-            display: shouldShowAccessRulesTab,
-        },
-        {
-            name: ChannelSettingsTabs.CONFIGURATION,
-            uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
-            icon: 'icon icon-cog-outline',
-            iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
-            display: shouldShowConfigurationTab,
-        },
-        {
-            name: ChannelSettingsTabs.ARCHIVE,
-            uiName: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
-            icon: 'icon icon-archive-outline',
-            iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
-            newGroup: true,
-            display: channel.name !== Constants.DEFAULT_CHANNEL && // archive is not available for the default channel
-                ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
-                (channel.type === Constants.OPEN_CHANNEL && canArchivePublicChannels)),
-        },
-    ];
+    const renderBuiltInTabContent = (tab: BuiltInTabId) => {
+        switch (tab) {
+        case BuiltInTabIds.INFO:
+            return renderInfoTab();
+        case BuiltInTabIds.ACCESS_RULES:
+            return renderAccessRulesTab();
+        case BuiltInTabIds.CONFIGURATION:
+            return renderConfigurationTab();
+        case BuiltInTabIds.ARCHIVE:
+            return renderArchiveTab();
+        default: {
+            const exhaustiveCheck: never = tab;
+            return exhaustiveCheck;
+        }
+        }
+    };
+
+    // Renders content based on active tab
+    const renderTabContent = () => {
+        if (activePluginRegistration) {
+            return (
+                <Pluggable
+                    pluggableName='ChannelSettingsTab'
+                    pluggableId={activePluginRegistration.id}
+                    channel={channel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                    showTabSwitchError={showTabSwitchError}
+                />
+            );
+        }
+
+        return renderBuiltInTabContent(isBuiltInTabId(activeTab) ? activeTab : BuiltInTabIds.INFO);
+    };
 
     // Renders the body: left sidebar for tabs, the content on the right
     const renderModalBody = () => {
@@ -277,6 +383,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                     <React.Suspense fallback={null}>
                         <SettingsSidebar
                             tabs={tabs}
+                            pluginTabs={pluginTabs}
+                            pluginSectionLabel={pluginSectionLabel}
+                            pluginSectionHeadingId='channelSettingsModal_pluginSettings_header'
                             activeTab={activeTab}
                             updateTab={updateTab}
                         />

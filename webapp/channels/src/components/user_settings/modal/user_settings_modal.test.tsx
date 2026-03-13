@@ -40,6 +40,37 @@ jest.mock('@mattermost/client', () => ({
     },
 }));
 
+jest.mock('utils/url', () => ({
+    isValidUrl: jest.fn((url = '') => (/^https?:\/\//i).test(url)),
+}));
+
+jest.mock('utils/utils', () => ({
+    getDisplayName: jest.fn(() => 'Test User'),
+}));
+
+jest.mock('components/user_settings', () => {
+    return function MockUserSettings({
+        activeTab,
+        pluginSettings,
+    }: {
+        activeTab?: string;
+        pluginSettings: Record<string, {uiName: string}>;
+    }) {
+        const activePluginSettings = activeTab ? pluginSettings[activeTab] : undefined;
+
+        return (
+            <div data-testid='user-settings'>
+                {activePluginSettings && (
+                    <>
+                        <div>{`${activePluginSettings.uiName} Settings`}</div>
+                        <div>{`${activePluginSettings.uiName} Settings`}</div>
+                    </>
+                )}
+            </div>
+        );
+    };
+});
+
 describe('do first render to avoid other testing issues', () => {
     // For some reason, the first time we render, the modal does not
     // completly renders. This makes it so further tests go properly
@@ -106,6 +137,24 @@ describe('tabs are properly rendered', () => {
 
         expect(screen.queryByText(uiName1)).toBeInTheDocument();
         expect(screen.queryByText(uiName2)).toBeInTheDocument();
+    });
+
+    it('retains the plugin preferences heading for content product settings with plugin tabs', () => {
+        const state: DeepPartial<GlobalState> = {
+            plugins: {
+                userSettings: {
+                    plugin_a: {
+                        id: 'plugin_a',
+                        sections: [],
+                        uiName: 'plugin_a',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+
+        expect(screen.getByText('PLUGIN PREFERENCES')).toBeInTheDocument();
     });
 
     it('plugin settings tabs can be selected', async () => {

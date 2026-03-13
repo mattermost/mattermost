@@ -118,3 +118,116 @@ describe('user settings', () => {
         expect(nextState.userSettings).toEqual({});
     });
 });
+
+describe('generic component registration', () => {
+    const DummyChannelSettingsTab = () => null;
+
+    it('adds a channel settings tab registration', () => {
+        const state = getBaseState();
+        const shouldRender = jest.fn(() => false);
+        const registration = {
+            id: 'tab-1',
+            pluginId: 'plugin-b',
+            uiName: 'Plugin Tab',
+            icon: 'icon-plugin-tab',
+            shouldRender,
+            component: DummyChannelSettingsTab,
+        };
+
+        const nextState = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelSettingsTab',
+            data: registration,
+        });
+
+        expect(nextState.components.ChannelSettingsTab).toEqual([registration]);
+    });
+
+    it('sorts channel settings tab registrations by pluginId', () => {
+        const state = getBaseState();
+        const pluginBRegistration = {
+            id: 'tab-1',
+            pluginId: 'plugin-b',
+            uiName: 'Plugin B Tab',
+            icon: 'icon-plugin-b-tab',
+            shouldRender: jest.fn(() => true),
+            component: DummyChannelSettingsTab,
+        };
+        const pluginARegistration = {
+            id: 'tab-2',
+            pluginId: 'plugin-a',
+            uiName: 'Plugin A Tab',
+            icon: 'icon-plugin-a-tab',
+            shouldRender: jest.fn(() => true),
+            component: DummyChannelSettingsTab,
+        };
+
+        const intermediateState = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelSettingsTab',
+            data: pluginBRegistration,
+        });
+        const nextState = pluginReducers(intermediateState, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelSettingsTab',
+            data: pluginARegistration,
+        });
+
+        expect(nextState.components.ChannelSettingsTab).toEqual([
+            pluginARegistration,
+            pluginBRegistration,
+        ]);
+    });
+
+    it('removes channel settings tab registrations when the owning plugin is removed', () => {
+        const pluginARegistration = {
+            id: 'tab-1',
+            pluginId: 'plugin-a',
+            uiName: 'Plugin A Tab',
+            icon: 'icon-plugin-a-tab',
+            shouldRender: jest.fn(() => true),
+            component: DummyChannelSettingsTab,
+        };
+        const pluginBRegistration = {
+            id: 'tab-2',
+            pluginId: 'plugin-b',
+            uiName: 'Plugin B Tab',
+            icon: 'icon-plugin-b-tab',
+            shouldRender: jest.fn(() => true),
+            component: DummyChannelSettingsTab,
+        };
+        const state = getBaseState();
+        state.components = {
+            ChannelSettingsTab: [pluginARegistration, pluginBRegistration],
+        } as any;
+
+        const nextState = pluginReducers(state, {
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {
+                id: 'plugin-a',
+            },
+        });
+
+        expect(nextState.components.ChannelSettingsTab).toEqual([pluginBRegistration]);
+    });
+
+    it('resets channel settings tab registrations on logout', () => {
+        const state = getBaseState();
+        state.components = {
+            ChannelSettingsTab: [{
+                id: 'tab-1',
+                pluginId: 'plugin-a',
+                uiName: 'Plugin A Tab',
+                icon: 'icon-plugin-a-tab',
+                shouldRender: jest.fn(() => true),
+                component: DummyChannelSettingsTab,
+            }],
+        } as any;
+
+        const nextState = pluginReducers(state, {
+            type: UserTypes.LOGOUT_SUCCESS,
+        });
+
+        expect(nextState.components.ChannelSettingsTab).toEqual([]);
+    });
+});
