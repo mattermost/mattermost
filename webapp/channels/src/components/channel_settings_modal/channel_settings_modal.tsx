@@ -22,7 +22,7 @@ import {
     setShowPreviewOnChannelSettingsHeaderModal,
     setShowPreviewOnChannelSettingsPurposeModal,
 } from 'actions/views/textbox';
-import {isChannelAccessControlEnabled} from 'selectors/general';
+import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getVisibleChannelSettingsTabs} from 'selectors/plugins';
 
 import type {Tab as SidebarTab} from 'components/settings_sidebar/settings_sidebar';
@@ -136,6 +136,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
     );
 
+    const basePath = useSelector(getBasePath);
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
 
     const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
@@ -207,8 +208,11 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         return visiblePluginTabRegistrations.map((registration) => {
             let icon: SidebarTab['icon'] = 'icon icon-power-plug-outline';
             if (registration.icon) {
-                if (isValidUrl(registration.icon) || registration.icon.startsWith('/')) {
+                if (isValidUrl(registration.icon)) {
                     icon = {url: registration.icon};
+                } else if (registration.icon.startsWith('/')) {
+                    const normalizedBase = basePath === '/' ? '' : basePath;
+                    icon = {url: `${normalizedBase}${registration.icon}`};
                 } else {
                     icon = `icon ${registration.icon}`;
                 }
@@ -221,7 +225,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 icon,
             };
         });
-    }, [visiblePluginTabRegistrations]);
+    }, [basePath, visiblePluginTabRegistrations]);
 
     const visibleBuiltInTabs = useMemo(() => tabs.filter((tab) => tab.display !== false), [tabs]);
     const visiblePluginTabs = useMemo(() => pluginTabs.filter((tab) => tab.display !== false), [pluginTabs]);
@@ -236,11 +240,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         return visiblePluginTabRegistrations.find((registration) => registration.id === registrationId);
     }, [activeTab, visiblePluginTabRegistrations]);
 
+    const lastActivePluginRegistrationRef = useRef(activePluginRegistration);
+    if (activePluginRegistration) {
+        lastActivePluginRegistrationRef.current = activePluginRegistration;
+    }
+
     useEffect(() => {
-        if (preferredActiveTab !== activeTab) {
+        if (preferredActiveTab !== activeTab && !areThereUnsavedChanges) {
             setActiveTab(preferredActiveTab);
         }
-    }, [activeTab, preferredActiveTab, visibleTabNames]);
+    }, [activeTab, preferredActiveTab, visibleTabNames, areThereUnsavedChanges]);
 
     // Called to set the active tab, prompting save changes panel if there are unsaved changes
     const updateTab = (newTab: string) => {
@@ -357,11 +366,14 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     // Renders content based on active tab
     const renderTabContent = () => {
-        if (activePluginRegistration) {
+        const pluginRegistration = activePluginRegistration ??
+            (areThereUnsavedChanges && getPluginRegistrationId(activeTab) ? lastActivePluginRegistrationRef.current : undefined);
+
+        if (pluginRegistration) {
             return (
                 <Pluggable
                     pluggableName='ChannelSettingsTab'
-                    pluggableId={activePluginRegistration.id}
+                    pluggableId={pluginRegistration.id}
                     channel={channel}
                     setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                     showTabSwitchError={showTabSwitchError}
