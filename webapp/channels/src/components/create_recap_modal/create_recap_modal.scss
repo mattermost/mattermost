@@ -26,6 +26,7 @@
         .create-recap-modal-header-actions {
             display: flex;
             align-items: center;
+            gap: 12px;
         }
     }
 
@@ -244,6 +245,34 @@
                 }
             }
         }
+
+        // Run once toggle
+        .run-once-group {
+            padding-top: 20px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-top: 24px;
+
+            .run-once-toggle {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .run-once-label {
+                    margin: 0;
+                    color: var(--center-channel-color);
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+            }
+
+            .run-once-description {
+                margin-top: 4px;
+                margin-left: 52px; // Align with label (toggle width + gap)
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+            }
+        }
     }
 
     // Step Two Channel Selector Styles
@@ -382,6 +411,159 @@
                 color: var(--center-channel-color);
                 font-size: 14px;
                 line-height: 20px;
+            }
+        }
+    }
+
+    // Day of Week Selector Styles
+    .day-of-week-selector {
+        display: flex;
+        gap: 8px;
+
+        &.error {
+            .day-button:not(.selected) {
+                border-color: var(--error-text);
+            }
+        }
+
+        .day-button {
+            display: flex;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+
+            &:hover:not(.disabled) {
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            &:focus-visible {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.12);
+                outline: none;
+            }
+
+            &.selected {
+                border-color: var(--button-bg);
+                background-color: var(--button-bg);
+                color: var(--button-color);
+
+                &:hover:not(.disabled) {
+                    background-color: var(--button-bg-hover, var(--button-bg));
+                }
+            }
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+        }
+    }
+
+    // Step Three Schedule Configuration Styles
+    .step-three {
+        display: flex;
+        flex-direction: column;
+        gap: 28px; // Gap between sections (matches Figma content gap)
+
+        // Schedule section groups related form elements
+        .schedule-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; // Tight gap within sections
+
+            .section-title {
+                margin: 0 0 8px;
+                color: var(--center-channel-color);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+            }
+
+            .section-subtitle {
+                display: block;
+                margin-bottom: 8px;
+                color: var(--center-channel-color);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+
+                // When DropdownInput immediately follows section-subtitle, reduce top margin
+                // to achieve 12px total spacing (8px subtitle margin-bottom + 4px = 12px)
+                + .DropdownInput {
+                    margin-top: 4px;
+                }
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0; // Override default form-group margin
+
+            .form-label {
+                margin-bottom: 8px;
+                color: var(--center-channel-color);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .form-error {
+                margin-top: 4px;
+                color: var(--error-text);
+                font-size: 12px;
+            }
+
+            // Days group needs spacing below for the time selector
+            &.days-group {
+                margin-bottom: 16px;
+            }
+        }
+
+        // Time selection group with integrated next-run preview
+        .time-selection-group {
+            // Container reserves space even when preview is hidden
+            .next-run-preview-container {
+                min-height: 24px; // Reserve space for preview (16px line + 8px margin)
+            }
+
+            .next-run-preview {
+                margin-top: 8px; // Small gap below time selector, matching Figma helper text spacing
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+                line-height: 16px;
+
+                // Use visibility to reserve space even when hidden, preventing modal height jumping
+                &.hidden {
+                    visibility: hidden;
+                }
+            }
+        }
+
+        // Override Input widget styles for textarea
+        .Input_container {
+            .Input_fieldset {
+                textarea.Input {
+                    min-height: 80px;
+                    resize: vertical;
+                }
+
+                // Remove duplicate border - the Input_fieldset provides the border,
+                // but GenericModal adds a border to all .form-control elements
+                .Input_wrapper textarea.form-control {
+                    border: none;
+                }
             }
         }
     }
