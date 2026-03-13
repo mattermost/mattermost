@@ -3039,6 +3039,10 @@
     "translation": "An error occurred while processing the property field request."
   },
   {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "The provided target type is not valid."
+  },
+  {
     "id": "api.property_field.create.protected_via_api.app_error",
     "translation": "Cannot create a protected property field via API."
   },
@@ -3093,6 +3097,10 @@
   {
     "id": "api.property_value.invalid_group_name.app_error",
     "translation": "The provided group name is not valid or does not exist."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "The provided object type is not valid."
   },
   {
     "id": "api.property_value.patch.empty_body.app_error",
