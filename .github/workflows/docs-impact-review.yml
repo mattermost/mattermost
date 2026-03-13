@@ -79,7 +79,7 @@ jobs:
             - `webapp/channels/src/i18n/` — Internationalization strings → new user-facing strings suggest new features
             - `webapp/platform/` — Platform-level webapp code
             - `server/public/model/audit_events.go` - Audit events → need documentation
-            - `server/channels/app/support_packet.go` and “server/public/model/support_packet.go` - Support packet → may need docs
+            - `server/public/model/support_packet.go` - Support packet → may need docs
             - `server/Makefile` - Pre-packaged plugins → major and minor version updates of plugin releases may need docs
             </monorepo_paths>
 
