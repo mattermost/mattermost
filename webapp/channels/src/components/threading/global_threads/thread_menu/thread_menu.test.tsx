@@ -31,6 +31,7 @@ jest.mock('hooks/useReadout', () => ({
 }));
 jest.mock('utils/popouts/popout_windows', () => ({
     canPopout: jest.fn(() => true),
+    isThreadPopoutWindow: jest.fn(() => false),
     popoutThread: jest.fn(),
 }));
 
