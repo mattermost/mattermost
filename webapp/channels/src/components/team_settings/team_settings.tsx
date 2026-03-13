@@ -56,7 +56,13 @@ const TeamSettings = ({
         break;
     case 'access_policies':
         result = (
-            <AccessPoliciesTab team={team}/>
+            <AccessPoliciesTab
+                team={team}
+                areThereUnsavedChanges={areThereUnsavedChanges}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+                setShowTabSwitchError={setShowTabSwitchError}
+            />
         );
         break;
     default:

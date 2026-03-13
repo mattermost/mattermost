@@ -4,13 +4,12 @@
 import type {Client4} from '@mattermost/client';
 
 export async function enableABACConfig(client: Client4) {
-    const config = await client.getConfig();
-    config.AccessControlSettings = {
-        ...config.AccessControlSettings,
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
-    };
-    await client.updateConfig(config);
+    await client.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
+    });
 }
 
 export async function ensureDepartmentAttribute(client: Client4) {
@@ -54,6 +53,21 @@ export async function assignChannelsToPolicy(client: Client4, policyId: string, 
     if (!response.ok) {
         throw new Error(`assignChannelsToPolicy failed: ${response.status}`);
     }
+}
+
+export async function setUserAttribute(adminClient: Client4, userId: string, fieldName: string, value: string) {
+    // Get all fields to find the field ID
+    const fields: any[] = await (adminClient as any).doFetch(
+        `${adminClient.getBaseRoute()}/custom_profile_attributes/fields`,
+        {
+            method: 'GET',
+        },
+    );
+    const field = fields.find((f: any) => f.name === fieldName);
+    if (!field) {
+        throw new Error(`Field "${fieldName}" not found`);
+    }
+    await adminClient.updateUserCustomProfileAttributesValues(userId, {[field.id]: value});
 }
 
 export async function createPrivateChannel(client: Client4, teamId: string) {

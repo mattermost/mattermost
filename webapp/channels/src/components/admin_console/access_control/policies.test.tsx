@@ -92,6 +92,57 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(mockSearchPolicies).not.toHaveBeenCalled();
     });
 
+    test('should hide delete menu item when hideDeleteAction is true', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [
+                    {id: 'policy1', name: 'Policy 1', props: {child_ids: ['ch1']}} as unknown as AccessControlPolicy,
+                ],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(
+            <PolicyList
+                {...defaultProps}
+                hideDeleteAction={true}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        // Open the three-dot menu
+        const menuButton = document.getElementById('policy-menu-policy1')!;
+        await userEvent.click(menuButton);
+
+        // Edit should be present, Delete should not
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+    });
+
+    test('should show delete menu item by default', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [
+                    {id: 'policy1', name: 'Policy 1', props: {child_ids: ['ch1']}} as unknown as AccessControlPolicy,
+                ],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        // Open the three-dot menu
+        const menuButton = document.getElementById('policy-menu-policy1')!;
+        await userEvent.click(menuButton);
+
+        // Both Edit and Delete should be present
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Delete')).toBeInTheDocument();
+    });
+
     test('should get columns correctly', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
         renderWithContext(<PolicyList {...defaultProps}/>);

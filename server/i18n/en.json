@@ -7917,6 +7917,14 @@
     "translation": "At least one channel is required."
   },
   {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.team.access_policies.policy_not_in_team.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.team.access_policies.self_exclusion.app_error",
     "translation": "You cannot create a policy that would exclude yourself."
   },

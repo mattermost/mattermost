@@ -74,6 +74,7 @@ interface CELEditorProps {
     placeholder?: string;
     className?: string;
     channelId?: string;
+    teamId?: string;
     disabled?: boolean;
     userAttributes: Array<{
         attribute: string;
@@ -90,6 +91,7 @@ function CELEditor({
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
     channelId,
+    teamId,
     disabled = false,
     userAttributes,
 }: CELEditorProps): JSX.Element {
@@ -151,7 +153,7 @@ function CELEditor({
         setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
-            const errors = await Client4.checkAccessControlExpression(expression, channelId);
+            const errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
             const isValid = errors.length === 0;
             setEditorState((prev) => ({
                 ...prev,
@@ -402,7 +404,7 @@ function CELEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
-                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId);
+                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId, teamId);
                         },
                     }}
                 />

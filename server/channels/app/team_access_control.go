@@ -11,26 +11,33 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// SearchTeamAccessPolicies returns parent policies visible to the given Team Admin.
-// A policy is visible only if:
-//  1. It is a parent policy
-//  2. All its assigned channels belong to the given team (team-scoped)
-//  3. The requesting admin satisfies the policy's access rules (self-inclusion)
-//
-// Team scope is resolved at the store layer via a single SQL query that joins
-// channel policies with the channels table and groups by parent, filtering to
-// parents whose channels all belong to the requested team.
+const (
+	teamPoliciesDefaultPerPage = 10
+	teamPoliciesMaxFetch       = 1000
+)
+
+// SearchTeamAccessPolicies returns team-scoped parent policies that the requester
+// satisfies. Fetches all matching policies first, applies self-inclusion filtering,
+// then paginates the result to keep totals accurate.
 func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID string, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, *model.AppError) {
+	requestedCursor := opts.Cursor
+	requestedLimit := opts.Limit
+	if requestedLimit <= 0 {
+		requestedLimit = teamPoliciesDefaultPerPage
+	}
+
 	opts.TeamID = teamID
 	opts.Type = model.AccessControlPolicyTypeParent
 	opts.IncludeChildren = true
+	opts.Cursor = model.AccessControlPolicyCursor{}
+	opts.Limit = teamPoliciesMaxFetch
 
 	policies, _, appErr := a.SearchAccessControlPolicies(rctx, opts)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
 
-	// Post-filter by self-inclusion (requester must satisfy the policy's rules).
+	// Filter by self-inclusion.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
 		if len(policy.Rules) > 0 {
@@ -48,7 +55,52 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 		filtered = append(filtered, policy)
 	}
 
-	return filtered, int64(len(filtered)), nil
+	total := int64(len(filtered))
+
+	// Paginate the filtered results. If the cursor ID was removed by
+	// self-inclusion filtering, startIdx stays 0 (resets to first page).
+	startIdx := 0
+	if !requestedCursor.IsEmpty() {
+		for i, p := range filtered {
+			if p.ID == requestedCursor.ID {
+				startIdx = i + 1
+				break
+			}
+		}
+	}
+
+	endIdx := startIdx + requestedLimit
+	if endIdx > len(filtered) {
+		endIdx = len(filtered)
+	}
+
+	return filtered[startIdx:endIdx], total, nil
+}
+
+// ValidateTeamAdminPolicyOwnership verifies that a policy is team-scoped to the
+// given team. Returns an error if the policy doesn't exist, spans multiple teams,
+// or belongs to a different team.
+func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) *model.AppError {
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		IDs:    []string{policyID},
+		Type:   model.AccessControlPolicyTypeParent,
+		TeamID: teamID,
+		Limit:  1,
+	})
+	if err != nil {
+		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(policies) == 0 {
+		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
+			"app.team.access_policies.policy_not_in_team.app_error",
+			map[string]any{"PolicyId": policyID, "TeamId": teamID},
+			"policy is not scoped to this team", http.StatusForbidden)
+	}
+
+	return nil
 }
 
 // ValidateTeamScopePolicyChannelAssignment validates that all channels are eligible

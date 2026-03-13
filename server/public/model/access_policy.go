@@ -100,6 +100,7 @@ type AccessControlPolicyActiveUpdate struct {
 // AccessControlPolicyActiveUpdateRequest is used in the API to update active status for multiple policies.
 type AccessControlPolicyActiveUpdateRequest struct {
 	Entries []AccessControlPolicyActiveUpdate `json:"entries"`
+	TeamID  string                            `json:"team_id,omitempty"`
 }
 
 func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {

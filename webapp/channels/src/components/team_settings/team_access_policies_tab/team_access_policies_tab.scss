@@ -1,6 +1,4 @@
 .TeamAccessPoliciesTab {
-    padding: 16px 24px;
-
     &__header {
         display: flex;
         align-items: center;
@@ -16,33 +14,6 @@
         line-height: 28px;
     }
 
-    &__header-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    &__refresh-btn {
-        display: flex;
-        width: 32px;
-        height: 32px;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        cursor: pointer;
-        font-size: 18px;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        &:active {
-            background-color: rgba(var(--center-channel-color-rgb), 0.16);
-        }
-    }
-
     &__add-btn {
         display: flex;
         align-items: center;
@@ -52,11 +23,6 @@
 
         .icon {
             font-size: 16px;
-        }
-
-        &:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
         }
     }
 }

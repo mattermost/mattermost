@@ -18,8 +18,24 @@ describe('TeamAccessPoliciesTab', () => {
 
     const defaultProps: ComponentProps<typeof TeamAccessPoliciesTab> = {
         team,
+        accessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: false,
+        },
+        areThereUnsavedChanges: false,
+        setAreThereUnsavedChanges: jest.fn(),
+        showTabSwitchError: false,
+        setShowTabSwitchError: jest.fn(),
         actions: {
             searchTeamPolicies: jest.fn().mockResolvedValue({data: {policies: [], total: 0}}),
+            fetchPolicy: jest.fn().mockResolvedValue({data: {}}),
+            createPolicy: jest.fn().mockResolvedValue({data: {}}),
+            deletePolicy: jest.fn().mockResolvedValue({data: {}}),
+            searchChannels: jest.fn().mockResolvedValue({data: {}}),
+            assignChannelsToAccessControlPolicy: jest.fn().mockResolvedValue({data: {}}),
+            unassignChannelsFromAccessControlPolicy: jest.fn().mockResolvedValue({data: {}}),
+            createJob: jest.fn().mockResolvedValue({data: {}}),
+            updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
         },
     };
 
@@ -31,7 +47,7 @@ describe('TeamAccessPoliciesTab', () => {
         const searchTeamPolicies = jest.fn().mockResolvedValue({data: {policies: [], total: 0}});
         const props = {
             ...defaultProps,
-            actions: {searchTeamPolicies},
+            actions: {...defaultProps.actions, searchTeamPolicies},
         };
 
         renderWithContext(<TeamAccessPoliciesTab {...props}/>);
@@ -64,6 +80,7 @@ describe('TeamAccessPoliciesTab', () => {
         const props = {
             ...defaultProps,
             actions: {
+                ...defaultProps.actions,
                 searchTeamPolicies: jest.fn().mockResolvedValue({data: {policies, total: 2}}),
             },
         };
@@ -87,6 +104,7 @@ describe('TeamAccessPoliciesTab', () => {
         const props = {
             ...defaultProps,
             actions: {
+                ...defaultProps.actions,
                 searchTeamPolicies: jest.fn().mockResolvedValue({data: {policies, total: 1}}),
             },
         };
@@ -117,6 +135,7 @@ describe('TeamAccessPoliciesTab', () => {
         const props = {
             ...defaultProps,
             actions: {
+                ...defaultProps.actions,
                 searchTeamPolicies: jest.fn().mockRejectedValue(new Error('network error')),
             },
         };
