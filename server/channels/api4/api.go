@@ -169,9 +169,9 @@ type Routes struct {
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
 	Properties     *mux.Router // 'api/v4/properties'
-	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields'
-	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}'
-	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}'
+	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
