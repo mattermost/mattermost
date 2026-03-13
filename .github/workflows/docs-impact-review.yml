@@ -78,11 +78,14 @@ jobs:
             - `webapp/channels/src/components/` — UI components → end-user guide if user-facing
             - `webapp/channels/src/i18n/` — Internationalization strings → new user-facing strings suggest new features
             - `webapp/platform/` — Platform-level webapp code
+            - `server/public/model/audit_events.go` - Audit events → need documentation
+            - `server/channels/app/support_packet.go` and “server/public/model/support_packet.go` - Support packet → may need docs
+            - `server/Makefile` - Pre-packaged plugins → major and minor version updates of plugin releases may need docs
             </monorepo_paths>
 
             <docs_directories>
             ### Documentation Directories (`./docs/source/`)
-            - `administration-guide/` — Server config, admin console, upgrade notes, CLI, server management
+            - `administration-guide/` — Server config, admin console, upgrade notes, CLI, server management, support packet, audit events
             - `deployment-guide/` — Installation, deployment, scaling, high availability
             - `end-user-guide/` — User-facing features, messaging, channels, search, notifications
             - `integrations-guide/` — Webhooks, slash commands, plugins, bots, API usage
@@ -91,6 +94,7 @@ jobs:
             - `get-help/` — Troubleshooting guides
             - `product-overview/` — Product overview and feature descriptions
             - `use-case-guide/` — Use case specific guides
+
             </docs_directories>
 
             ## Documentation Personas
@@ -102,7 +106,7 @@ jobs:
             Deploys, configures, and maintains Mattermost servers.
             - **Reads:** `administration-guide/`, `deployment-guide/`, `security-guide/`
             - **Cares about:** config settings, CLI commands (mmctl), database migrations, upgrade procedures, scaling, HA, environment variables, performance tuning
-            - **Impact signals:** changes to `model/config.go`, `db/migrations/`, `server/cmd/`, `einterfaces/`
+            - **Impact signals:** changes to `model/config.go`, `db/migrations/`, `server/cmd/`, `einterfaces/`, `audit_events.go`, `support_packet.go`
 
             ### End User
             Uses Mattermost daily for messaging, collaboration, and workflows.
@@ -114,7 +118,7 @@ jobs:
             Builds integrations, plugins, bots, and custom tools on top of Mattermost.
             - **Reads:** `integrations-guide/`, API reference (`api/v4/source/`)
             - **Cares about:** REST API endpoints, request/response schemas, webhook payloads, WebSocket events, plugin APIs, bot account behavior, OAuth/authentication flows
-            - **Impact signals:** changes to `api4/` handlers, `api/v4/source/` specs, `model/websocket_message.go`, plugin interfaces
+            - **Impact signals:** changes to `api4/` handlers, `api/v4/source/` specs, `model/websocket_message.go`, plugin interfaces, `server/Makefile`
 
             ### Security / Compliance Officer
             Evaluates and enforces security and regulatory requirements.
@@ -130,12 +134,15 @@ jobs:
             1. **Read the PR diff** using `gh pr diff ${{ github.event.issue.number }}` to understand what changed.
             2. **Categorize each changed file** by documentation relevance using one or more of these labels:
               - API changes (new endpoints, changed parameters, changed responses)
-              - Configuration changes (new or modified settings in `config.go` or `feature_flags.go`)
+              - Configuration changes (new or modified settings in `config.go`)
               - Database schema changes (new migrations)
               - WebSocket event changes
               - CLI command changes
               - User-facing behavioral changes
               - UI changes
+              - Audit event changes
+              - Support packet changes
+              - Plugin changes
             3. **Identify affected personas** for each documentation-relevant change using the impact signals defined above.
             4. **Search `./docs/source/`** for existing documentation covering each affected feature/area. Search for related RST files by name patterns and content.
             5. **Evaluate documentation impact** for each change by applying these two criteria:
