@@ -307,6 +307,140 @@
             "unmapped": true
         },
         {
+            "id": "teams",
+            "priority": "P1",
+            "routes": ["/create_team", "/select_team"],
+            "webappPaths": [
+                "webapp/channels/src/components/create_team/**",
+                "webapp/channels/src/components/team_members_modal/**",
+                "webapp/channels/src/components/backstage/**"
+            ],
+            "specDirs": [],
+            "tags": ["teams"],
+            "userFlows": [
+                "Create a new team with display name and URL",
+                "Team URL validation rejects invalid characters",
+                "Join an existing team via invite link",
+                "Switch between teams using team sidebar",
+                "View and manage team members"
+            ]
+        },
+        {
+            "id": "invitations",
+            "priority": "P1",
+            "routes": [],
+            "webappPaths": [
+                "webapp/channels/src/components/invitation_modal/**"
+            ],
+            "specDirs": [],
+            "tags": ["invitations", "onboarding"],
+            "userFlows": [
+                "Invite users by email and verify invitation sent",
+                "Invite user as guest with channel restriction",
+                "Copy invite link from invitation modal",
+                "Revoke a pending invitation",
+                "Overage banner appears when exceeding user limits"
+            ]
+        },
+        {
+            "id": "system_console/license",
+            "priority": "P1",
+            "routes": ["/admin_console/about/license"],
+            "webappPaths": [
+                "webapp/channels/src/components/admin_console/license_settings/**",
+                "webapp/channels/src/components/analytics/**",
+                "webapp/channels/src/components/announcement_bar/**"
+            ],
+            "serverPaths": [
+                "server/channels/api4/license*.go",
+                "server/channels/api4/limits*.go",
+                "server/channels/app/license*.go",
+                "server/channels/app/limits*.go",
+                "server/channels/app/analytics*.go"
+            ],
+            "specDirs": [],
+            "tags": ["license", "analytics", "billing"],
+            "userFlows": [
+                "View license details and active user count in System Console",
+                "Overage users banner appears when user count exceeds license limit",
+                "Single-channel guest limit banner displays when threshold reached",
+                "System analytics dashboard shows correct user and post counts",
+                "Upload and apply a new license key"
+            ]
+        },
+        {
+            "id": "channels/dot_menu",
+            "priority": "P1",
+            "webappPaths": [
+                "webapp/channels/src/components/dot_menu/**"
+            ],
+            "specDirs": ["specs/functional/channels"],
+            "userFlows": [
+                "Open dot menu on a post and verify all options visible",
+                "Pin a message via dot menu and verify pin indicator",
+                "Save/unsave a message via dot menu",
+                "Copy message link via dot menu",
+                "Reply to a message via dot menu opens RHS thread"
+            ]
+        },
+        {
+            "id": "channels/modals",
+            "priority": "P2",
+            "webappPaths": [
+                "webapp/channels/src/components/channel_name_form_field/**",
+                "webapp/channels/src/components/convert_gm_to_channel_modal/**",
+                "webapp/channels/src/components/more_direct_channels/**",
+                "webapp/channels/src/components/new_channel_modal/**",
+                "webapp/channels/src/components/channel_members_modal/**",
+                "webapp/channels/src/components/channel_members_dropdown/**"
+            ],
+            "specDirs": ["specs/functional/channels"],
+            "userFlows": [
+                "Create a new channel via modal with name and purpose",
+                "Open DM with a user from the Direct Messages modal",
+                "Convert a group message to a channel",
+                "View and manage channel members from channel modal",
+                "Channel name validation rejects duplicate or invalid names"
+            ]
+        },
+        {
+            "id": "user_groups",
+            "priority": "P2",
+            "webappPaths": [
+                "webapp/channels/src/components/user_groups_modal/**",
+                "webapp/channels/src/components/user_group_popover/**",
+                "webapp/channels/src/components/view_user_group_modal/**",
+                "webapp/channels/src/components/update_user_group_modal/**",
+                "webapp/channels/src/components/add_users_to_group_modal/**"
+            ],
+            "specDirs": ["specs/functional/ai-assisted"],
+            "tags": ["user-groups"],
+            "userFlows": [
+                "View list of user groups in user groups modal",
+                "Create a new custom user group with members",
+                "View group details and member list in popover",
+                "Add and remove members from a user group",
+                "@mention a user group in a message and verify notification"
+            ]
+        },
+        {
+            "id": "advanced_editor",
+            "priority": "P1",
+            "webappPaths": [
+                "webapp/channels/src/components/advanced_text_editor/**",
+                "webapp/channels/src/components/suggestion/**"
+            ],
+            "specDirs": ["specs/functional/channels"],
+            "tags": ["editor", "compose"],
+            "userFlows": [
+                "Type and send a message in the advanced text editor",
+                "Use @mention autocomplete to mention a user",
+                "Use slash command autocomplete to run a command",
+                "AI rewrite suggestion appears and can be accepted or dismissed",
+                "Format text with markdown toolbar buttons (bold, italic, code)"
+            ]
+        },
+        {
             "id": "shared",
             "priority": "P2",
             "routes": [],
@@ -315,7 +449,19 @@
                 "webapp/channels/src/utils/text_formatting.*",
                 "webapp/channels/src/utils/markdown/**",
                 "webapp/channels/src/utils/url.*",
-                "webapp/channels/src/components/dropdown_input.*"
+                "webapp/channels/src/components/dropdown_input.*",
+                "webapp/channels/src/components/product_notices_modal/**",
+                "webapp/channels/src/components/keyboard_shortcuts/**",
+                "webapp/channels/src/components/terms_of_service/**",
+                "webapp/channels/src/components/timestamp/**",
+                "webapp/channels/src/components/logged_in/**",
+                "webapp/channels/src/components/header_footer_route/**",
+                "webapp/channels/src/components/intl_provider/**",
+                "webapp/channels/src/components/user_list.*",
+                "webapp/channels/src/components/cloud_start_trial/**",
+                "webapp/channels/src/components/trial_benefits_modal/**",
+                "webapp/channels/src/components/get_public_link_modal/**",
+                "webapp/channels/src/components/claim/**"
             ],
             "specDirs": [],
             "tags": ["shared", "utilities"]
