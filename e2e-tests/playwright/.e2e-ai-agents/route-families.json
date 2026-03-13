@@ -12,7 +12,10 @@
                 "webapp/channels/src/components/rhs*/**",
                 "webapp/channels/src/components/threading/**",
                 "webapp/channels/src/components/file_*/**",
-                "webapp/channels/src/actions/notification_actions.*"
+                "webapp/channels/src/actions/notification_actions.*",
+                "webapp/channels/src/actions/websocket_actions.*",
+                "webapp/channels/src/components/flag_message_modal/**",
+                "webapp/channels/src/components/remove_flagged_message_confirmation_modal/**"
             ],
             "serverPaths": [
                 "server/channels/api4/channel*.go",
@@ -21,7 +24,11 @@
                 "server/channels/api4/reaction*.go",
                 "server/channels/app/channel*.go",
                 "server/channels/app/post*.go",
-                "server/channels/app/file*.go"
+                "server/channels/app/file*.go",
+                "server/channels/app/command*.go",
+                "server/public/model/post*.go",
+                "server/public/model/channel*.go",
+                "server/public/model/command*.go"
             ],
             "specDirs": ["specs/functional/channels"],
             "features": [
@@ -46,9 +53,13 @@
                     "priority": "P1",
                     "webappPaths": [
                         "webapp/channels/src/components/notify_*/**",
-                        "webapp/channels/src/actions/notification_actions.*"
+                        "webapp/channels/src/actions/notification_actions.*",
+                        "webapp/channels/src/components/at_sum_members_mention/**"
                     ],
-                    "serverPaths": ["server/channels/app/notification*.go"],
+                    "serverPaths": [
+                        "server/channels/app/notification*.go",
+                        "server/channels/app/email/notification_email*.go"
+                    ],
                     "specDirs": ["specs/functional/channels/notifications"],
                     "userFlows": [
                         "Receive desktop notification for @mention in channel",
@@ -61,8 +72,17 @@
                 {
                     "id": "channels/search",
                     "priority": "P0",
-                    "webappPaths": ["webapp/channels/src/components/search*/**"],
-                    "serverPaths": ["server/channels/api4/search*.go"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/search*/**",
+                        "webapp/channels/src/components/new_search/**",
+                        "webapp/channels/src/components/common/hooks/use_search_results_actions.*",
+                        "webapp/channels/src/packages/mattermost-redux/src/actions/search.*"
+                    ],
+                    "serverPaths": [
+                        "server/channels/api4/search*.go",
+                        "server/channels/app/platform/search*.go",
+                        "server/enterprise/elasticsearch/**"
+                    ],
                     "specDirs": ["specs/functional/channels/search"],
                     "userFlows": [
                         "Search for messages by keyword and verify results appear",
@@ -76,14 +96,18 @@
                     "id": "channels/emoji",
                     "webappPaths": [
                         "webapp/channels/src/components/emoji*/**",
-                        "webapp/channels/src/components/gif*/**"
+                        "webapp/channels/src/components/gif*/**",
+                        "webapp/channels/src/utils/emoji_utils.*"
                     ],
                     "serverPaths": ["server/channels/api4/emoji*.go"],
                     "specDirs": ["specs/functional/channels/emoji_picker", "specs/functional/channels/gif_picker"]
                 },
                 {
                     "id": "channels/scheduled_messages",
-                    "webappPaths": ["webapp/channels/src/components/scheduled*/**"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/scheduled*/**",
+                        "webapp/channels/src/components/edit_scheduled_post/**"
+                    ],
                     "serverPaths": ["server/channels/api4/scheduled*.go", "server/channels/app/scheduled*.go"],
                     "specDirs": ["specs/functional/channels/scheduled_messages"]
                 },
@@ -113,13 +137,19 @@
             "id": "system_console",
             "routes": ["/admin_console/**"],
             "pageObjects": ["SystemConsolePage"],
-            "webappPaths": ["webapp/channels/src/components/admin_console/**"],
+            "webappPaths": [
+                "webapp/channels/src/components/admin_console/**",
+                "webapp/channels/src/actions/admin_actions.*",
+                "webapp/channels/src/reducers/views/admin.*"
+            ],
             "serverPaths": [
                 "server/channels/api4/config*.go",
                 "server/channels/api4/system*.go",
                 "server/channels/api4/license*.go",
                 "server/channels/app/config*.go",
-                "server/channels/app/license*.go"
+                "server/channels/app/license*.go",
+                "server/channels/app/platform/service*.go",
+                "server/channels/web/**"
             ],
             "specDirs": ["specs/functional/system_console"],
             "features": [
@@ -128,7 +158,8 @@
                     "routes": ["/admin_console/user_management/permissions/**"],
                     "webappPaths": [
                         "webapp/channels/src/components/admin_console/**/permission*/**",
-                        "webapp/channels/src/components/admin_console/**/system_role*/**"
+                        "webapp/channels/src/components/admin_console/**/system_role*/**",
+                        "webapp/channels/src/components/admin_console/**/access_control/**"
                     ],
                     "serverPaths": [
                         "server/channels/api4/role*.go",
@@ -136,7 +167,8 @@
                         "server/channels/app/permissions*.go",
                         "server/public/model/permission*.go",
                         "server/public/model/role*.go",
-                        "server/channels/app/authorization*.go"
+                        "server/channels/app/authorization*.go",
+                        "server/channels/store/sqlstore/access_control*.go"
                     ],
                     "specDirs": ["specs/functional/system_console/permissions"]
                 },
@@ -151,12 +183,18 @@
                     "id": "system_console/system_users",
                     "priority": "P1",
                     "routes": ["/admin_console/user_management/users/**"],
-                    "webappPaths": ["webapp/channels/src/components/admin_console/system_users/**"],
+                    "webappPaths": [
+                        "webapp/channels/src/components/admin_console/system_users/**",
+                        "webapp/channels/src/components/user_profile/**"
+                    ],
                     "serverPaths": [
                         "server/channels/api4/user*.go",
                         "server/channels/app/user*.go",
                         "server/channels/api4/report*.go",
-                        "server/channels/app/report*.go"
+                        "server/channels/app/report*.go",
+                        "server/channels/jobs/export_users_to_csv/**",
+                        "server/channels/store/sqlstore/user_store*.go",
+                        "server/public/model/report*.go"
                     ],
                     "specDirs": ["specs/functional/system_console/system_users"],
                     "userFlows": [
@@ -171,8 +209,24 @@
                     "id": "system_console/abac",
                     "routes": ["/admin_console/feature_flags/**"],
                     "webappPaths": ["webapp/channels/src/components/admin_console/**/attribute_based*/**"],
-                    "serverPaths": ["server/channels/app/feature_flags*.go"],
+                    "serverPaths": [
+                        "server/channels/app/feature_flags*.go",
+                        "server/einterfaces/pap*.go"
+                    ],
                     "specDirs": ["specs/functional/system_console/abac"]
+                },
+                {
+                    "id": "system_console/elasticsearch",
+                    "priority": "P2",
+                    "routes": ["/admin_console/environment/elasticsearch"],
+                    "webappPaths": [],
+                    "serverPaths": [
+                        "server/enterprise/elasticsearch/**",
+                        "server/platform/services/searchengine/**",
+                        "server/channels/store/searchlayer/**"
+                    ],
+                    "specDirs": [],
+                    "tags": ["elasticsearch", "search-backend"]
                 }
             ]
         },
@@ -214,6 +268,10 @@
                 "webapp/channels/src/components/recaps_link/**",
                 "webapp/channels/src/components/create_recap_modal/**"
             ],
+            "serverPaths": [
+                "server/channels/jobs/recap/**",
+                "server/channels/app/summarization*.go"
+            ],
             "specDirs": [],
             "tags": ["recaps", "ai"],
             "userFlows": [
@@ -232,7 +290,8 @@
             "webappPaths": [
                 "webapp/channels/src/components/login/**",
                 "webapp/channels/src/components/signup/**",
-                "webapp/channels/src/components/password_reset/**"
+                "webapp/channels/src/components/password_reset/**",
+                "webapp/channels/src/components/user_settings/security/**"
             ],
             "serverPaths": [
                 "server/channels/api4/user*.go",
@@ -251,7 +310,8 @@
                 "Login fails with incorrect password and shows error",
                 "Sign up a new user with email and verify account creation",
                 "Reset password via email link and login with new password",
-                "Session expires and user is redirected to login page"
+                "Session expires and user is redirected to login page",
+                "Change password from security settings"
             ]
         },
         {
@@ -277,17 +337,25 @@
             "id": "plugins",
             "routes": ["/marketplace"],
             "webappPaths": ["webapp/channels/src/plugins/**", "webapp/channels/src/components/plugin*/**"],
-            "serverPaths": ["server/channels/api4/plugin*.go", "server/channels/app/plugin*.go"],
+            "serverPaths": [
+                "server/channels/api4/plugin*.go",
+                "server/channels/app/plugin*.go",
+                "server/public/plugin/**"
+            ],
             "specDirs": ["specs/functional/plugins"]
         },
         {
             "id": "remote_clusters",
             "routes": [],
+            "webappPaths": [
+                "webapp/channels/src/packages/mattermost-redux/src/actions/shared_channels.*"
+            ],
             "serverPaths": [
                 "server/channels/api4/remote_cluster*.go",
                 "server/channels/api4/shared_channel*.go",
                 "server/channels/app/remote_cluster*.go",
-                "server/channels/app/shared_channel*.go"
+                "server/channels/app/shared_channel*.go",
+                "server/channels/store/sqlstore/shared_channel*.go"
             ],
             "specDirs": [],
             "unmapped": true
@@ -301,7 +369,10 @@
                 "server/channels/api4/integration*.go",
                 "server/channels/app/webhook*.go",
                 "server/channels/app/incoming_webhook*.go",
-                "server/channels/app/outgoing_webhook*.go"
+                "server/channels/app/outgoing_webhook*.go",
+                "server/public/model/incoming_webhook*.go",
+                "server/public/model/outgoing_webhook*.go",
+                "server/public/model/integration_action*.go"
             ],
             "specDirs": [],
             "unmapped": true
@@ -314,6 +385,9 @@
                 "webapp/channels/src/components/create_team/**",
                 "webapp/channels/src/components/team_members_modal/**",
                 "webapp/channels/src/components/backstage/**"
+            ],
+            "serverPaths": [
+                "server/channels/api4/team*.go"
             ],
             "specDirs": [],
             "tags": ["teams"],
@@ -349,14 +423,17 @@
             "webappPaths": [
                 "webapp/channels/src/components/admin_console/license_settings/**",
                 "webapp/channels/src/components/analytics/**",
-                "webapp/channels/src/components/announcement_bar/**"
+                "webapp/channels/src/components/announcement_bar/**",
+                "webapp/channels/src/packages/mattermost-redux/src/actions/limits.*",
+                "webapp/channels/src/packages/mattermost-redux/src/constants/stats.*"
             ],
             "serverPaths": [
                 "server/channels/api4/license*.go",
                 "server/channels/api4/limits*.go",
                 "server/channels/app/license*.go",
                 "server/channels/app/limits*.go",
-                "server/channels/app/analytics*.go"
+                "server/channels/app/analytics*.go",
+                "server/channels/app/platform/license*.go"
             ],
             "specDirs": [],
             "tags": ["license", "analytics", "billing"],
@@ -449,6 +526,9 @@
                 "webapp/channels/src/utils/text_formatting.*",
                 "webapp/channels/src/utils/markdown/**",
                 "webapp/channels/src/utils/url.*",
+                "webapp/channels/src/utils/constants.*",
+                "webapp/channels/src/utils/emoji_utils.*",
+                "webapp/channels/src/utils/dialog_conversion.*",
                 "webapp/channels/src/components/dropdown_input.*",
                 "webapp/channels/src/components/product_notices_modal/**",
                 "webapp/channels/src/components/keyboard_shortcuts/**",
@@ -461,10 +541,78 @@
                 "webapp/channels/src/components/cloud_start_trial/**",
                 "webapp/channels/src/components/trial_benefits_modal/**",
                 "webapp/channels/src/components/get_public_link_modal/**",
-                "webapp/channels/src/components/claim/**"
+                "webapp/channels/src/components/claim/**",
+                "webapp/channels/src/components/common/hooks/use_external_link.*",
+                "webapp/channels/src/components/help/**",
+                "webapp/channels/src/components/properties_card_view/**",
+                "webapp/channels/src/selectors/config.*",
+                "webapp/channels/src/packages/mattermost-redux/src/utils/**",
+                "webapp/channels/src/packages/mattermost-redux/src/constants/general.*",
+                "webapp/channels/src/packages/mattermost-redux/src/reducers/entities/admin.*",
+                "webapp/platform/types/src/**",
+                "webapp/platform/client/src/**"
+            ],
+            "serverPaths": [
+                "server/public/model/config*.go",
+                "server/public/model/system*.go",
+                "server/public/model/version*.go",
+                "server/public/model/unicode*.go",
+                "server/public/model/feature_flags*.go",
+                "server/config/client*.go",
+                "server/i18n/**"
             ],
             "specDirs": [],
             "tags": ["shared", "utilities"]
+        },
+        {
+            "id": "content_flagging",
+            "priority": "P2",
+            "routes": [],
+            "webappPaths": [],
+            "serverPaths": [
+                "server/channels/api4/content_flagging*.go",
+                "server/channels/app/content_flagging*.go",
+                "server/public/model/content_flagging*.go"
+            ],
+            "specDirs": [],
+            "tags": ["content-flagging", "moderation"]
+        },
+        {
+            "id": "imports",
+            "priority": "P2",
+            "routes": [],
+            "webappPaths": [],
+            "serverPaths": [
+                "server/channels/app/imports/**",
+                "server/channels/app/slack*.go",
+                "server/channels/jobs/import_process/**",
+                "server/platform/services/slackimport/**",
+                "server/cmd/mmctl/commands/importer/**",
+                "server/public/model/slack_attachment*.go",
+                "server/public/model/slack_compatibility*.go",
+                "server/public/model/message_attachment*.go"
+            ],
+            "specDirs": [],
+            "tags": ["import", "slack"],
+            "unmapped": true
+        },
+        {
+            "id": "desktop_app",
+            "priority": "P1",
+            "routes": [],
+            "webappPaths": [
+                "webapp/channels/src/components/unsupported_desktop_app/**"
+            ],
+            "serverPaths": [
+                "server/channels/web/unsupported_desktop_app*.go",
+                "server/channels/web/unsupported_browser*.go"
+            ],
+            "specDirs": [],
+            "tags": ["desktop"],
+            "userFlows": [
+                "Unsupported desktop app version shows upgrade prompt",
+                "Unsupported browser shows fallback page"
+            ]
         }
     ]
 }
