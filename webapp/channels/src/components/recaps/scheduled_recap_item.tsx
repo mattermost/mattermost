@@ -29,6 +29,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {formatSchedule, formatNextRun, formatLastRun, formatRunCount} = useScheduleDisplay();
 
@@ -38,7 +39,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
     const runCountText = formatRunCount(scheduledRecap.run_count);
 
     const handleToggle = useCallback(async () => {
-        if (isToggling) {
+        if (isToggling || isDeleting) {
             return;
         }
         setIsToggling(true);
@@ -54,17 +55,20 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
         } finally {
             setIsToggling(false);
         }
-    }, [dispatch, scheduledRecap.id, scheduledRecap.enabled, isToggling]);
+    }, [dispatch, scheduledRecap.id, scheduledRecap.enabled, isToggling, isDeleting]);
 
     const handleDelete = useCallback(async () => {
-        const result = await dispatch(deleteScheduledRecap(scheduledRecap.id)) as unknown as {error?: unknown};
-        if (result?.error) {
+        if (isToggling || isDeleting) {
             return;
         }
-        setShowDeleteConfirm(false);
-
-        // TODO: Show toast "Schedule deleted"
-    }, [dispatch, scheduledRecap.id]);
+        setIsDeleting(true);
+        try {
+            await dispatch(deleteScheduledRecap(scheduledRecap.id));
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteConfirm(false);
+        }
+    }, [dispatch, scheduledRecap.id, isToggling, isDeleting]);
 
     const handleEdit = useCallback(() => {
         onEdit(scheduledRecap.id);
@@ -107,7 +111,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                             id={`toggle-${scheduledRecap.id}`}
                             toggled={scheduledRecap.enabled}
                             onToggle={handleToggle}
-                            disabled={isToggling}
+                            disabled={isToggling || isDeleting}
                             size='btn-sm'
                             toggleClassName='btn-toggle-primary'
                             ariaLabel={scheduledRecap.enabled ?

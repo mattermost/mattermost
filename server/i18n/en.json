@@ -7504,7 +7504,7 @@
   },
   {
     "id": "app.recap.cooldown_active.app_error",
-    "translation": "Your organization's policy requires {{.CooldownMinutes}} minutes between recaps. You can create another recap in {{.RetryAfterMinutes}} minutes."
+    "translation": "Your organization's policy requires {{.CooldownMinutes}} minute(s) between recaps. You can create another recap in {{.RetryAfterMinutes}} minute(s)."
   },
   {
     "id": "app.recap.cooldown_check_failed.app_error",
@@ -7818,11 +7818,11 @@
   },
   {
     "id": "app.scheduled_recap.max_channels_exceeded.app_error",
-    "translation": "Your organization's policy limits recaps to {{.Limit}} channels. You requested {{.Requested}} channels."
+    "translation": "Your organization's policy limits recaps to {{.Limit}} channel(s). You requested {{.Requested}} channel(s)."
   },
   {
     "id": "app.scheduled_recap.max_scheduled_reached.app_error",
-    "translation": "Your organization's policy limits you to {{.Limit}} scheduled recaps. Please delete an existing scheduled recap before creating a new one."
+    "translation": "Your organization's policy limits you to {{.Limit}} scheduled recap(s). Please delete an existing scheduled recap before creating a new one."
   },
   {
     "id": "app.scheduled_recap.no_channels.app_error",

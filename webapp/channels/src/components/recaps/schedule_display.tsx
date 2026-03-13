@@ -22,6 +22,16 @@ const DAYS: DayInfo[] = [
     {bit: Saturday, key: 'sat'},
 ];
 
+const DAY_MESSAGES: Record<string, {id: string; defaultMessage: string}> = {
+    sun: {id: 'recaps.scheduled.days.sun', defaultMessage: 'Sun'},
+    mon: {id: 'recaps.scheduled.days.mon', defaultMessage: 'Mon'},
+    tue: {id: 'recaps.scheduled.days.tue', defaultMessage: 'Tue'},
+    wed: {id: 'recaps.scheduled.days.wed', defaultMessage: 'Wed'},
+    thu: {id: 'recaps.scheduled.days.thu', defaultMessage: 'Thu'},
+    fri: {id: 'recaps.scheduled.days.fri', defaultMessage: 'Fri'},
+    sat: {id: 'recaps.scheduled.days.sat', defaultMessage: 'Sat'},
+};
+
 export function useScheduleDisplay() {
     const {formatMessage, formatDate, formatTime} = useIntl();
 
@@ -40,7 +50,7 @@ export function useScheduleDisplay() {
         // Build abbreviated day list
         const selectedDays = DAYS.
             filter((day) => (daysOfWeek & day.bit) !== 0).
-            map((day) => formatMessage({id: `recaps.scheduled.days.${day.key}`, defaultMessage: day.key.charAt(0).toUpperCase() + day.key.slice(1)}));
+            map((day) => formatMessage(DAY_MESSAGES[day.key]));
 
         return selectedDays.join(', ');
     };

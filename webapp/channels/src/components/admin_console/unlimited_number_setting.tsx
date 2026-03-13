@@ -42,6 +42,7 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
     const isUnlimited = value === -1;
 
     const [inputValue, setInputValue] = useState<string>(isUnlimited ? '' : String(value));
+    const [lastFiniteValue, setLastFiniteValue] = useState<number>(isUnlimited ? defaultValue : value);
 
     useEffect(() => {
         setInputValue(isUnlimited ? '' : String(value));
@@ -52,7 +53,7 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
         if (checked) {
             onChange(id, -1);
         } else {
-            onChange(id, defaultValue);
+            onChange(id, lastFiniteValue);
         }
     };
 
@@ -62,6 +63,7 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
 
         const parsed = parseInt(newValue, 10);
         if (!isNaN(parsed) && parsed >= 1) {
+            setLastFiniteValue(parsed);
             onChange(id, parsed);
         }
     };

@@ -219,7 +219,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 title: recapName,
                 days_of_week: daysOfWeek,
                 time_of_day: timeOfDay,
-                timezone: userTimezone || 'UTC',
+                timezone: (isEditMode && editScheduledRecap) ? editScheduledRecap.timezone : (userTimezone || 'UTC'),
                 time_period: timePeriod,
                 channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
                 channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
@@ -348,6 +348,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     daysError={daysError}
                     timeError={timeError}
                     agentName={agentName}
+                    timezone={(isEditMode && editScheduledRecap) ? editScheduledRecap.timezone : (userTimezone || 'UTC')}
                 />
             );
         }

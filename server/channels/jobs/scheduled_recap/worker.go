@@ -30,23 +30,22 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		return cfg.FeatureFlags.EnableAIRecaps
 	}
 
-	// advanceSchedule computes the next run time and marks the scheduled recap as executed.
-	// If the next run time can't be computed, the recap is disabled.
-	advanceSchedule := func(logger mlog.LoggerIFace, sr *model.ScheduledRecap) {
+	advanceSchedule := func(logger mlog.LoggerIFace, sr *model.ScheduledRecap) error {
 		nextRunAt, computeErr := sr.ComputeNextRunAt(time.Now())
 		if computeErr != nil {
 			logger.Error("Failed to compute next run time",
 				mlog.String("scheduled_recap_id", sr.Id),
 				mlog.Err(computeErr))
-			_ = storeInstance.ScheduledRecap().SetEnabled(sr.Id, false)
-			return
+			if disableErr := storeInstance.ScheduledRecap().SetEnabled(sr.Id, false); disableErr != nil {
+				return fmt.Errorf("failed to disable scheduled recap after compute error: %w", disableErr)
+			}
+			return nil
 		}
 
 		if markErr := storeInstance.ScheduledRecap().MarkExecuted(sr.Id, model.GetMillis(), nextRunAt); markErr != nil {
-			logger.Error("Failed to mark as executed",
-				mlog.String("scheduled_recap_id", sr.Id),
-				mlog.Err(markErr))
+			return fmt.Errorf("failed to mark scheduled recap as executed: %w", markErr)
 		}
+		return nil
 	}
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
@@ -117,7 +116,9 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 					mlog.Int("daily_count", int(count)),
 					mlog.Int("limit", limits.MaxRecapsPerDay))
 
-				advanceSchedule(logger, sr)
+				if advErr := advanceSchedule(logger, sr); advErr != nil {
+					logger.Error("Failed to advance schedule after daily limit skip", mlog.Err(advErr))
+				}
 				return nil
 			}
 		}
@@ -129,13 +130,17 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 			return fmt.Errorf("failed to create recap from schedule: %w", appErr)
 		}
 
-		advanceSchedule(logger, sr)
+		if advErr := advanceSchedule(logger, sr); advErr != nil {
+			logger.Error("Failed to advance schedule", mlog.Err(advErr))
+		}
 
 		// Handle non-recurring schedules
 		if !sr.IsRecurring {
 			logger.Info("Disabling non-recurring scheduled recap",
 				mlog.String("scheduled_recap_id", scheduledRecapID))
-			_ = storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false)
+			if disableErr := storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false); disableErr != nil {
+				logger.Error("Failed to disable non-recurring scheduled recap", mlog.Err(disableErr))
+			}
 		}
 
 		logger.Info("Scheduled recap executed successfully",

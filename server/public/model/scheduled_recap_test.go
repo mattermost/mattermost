@@ -203,8 +203,10 @@ func TestScheduledRecapComputeNextRunAt(t *testing.T) {
 	})
 
 	t.Run("DST fall back - November 2024", func(t *testing.T) {
-		// In America/New_York, on November 3, 2024, 1:30 AM occurs twice
-		// Go's time.Date picks the first occurrence (before DST ends)
+		// In America/New_York, on November 3, 2024, 1:30 AM occurs twice:
+		// once in EDT (UTC-4) and once in EST (UTC-5). Go's time.Date picks
+		// one occurrence; which one is an implementation detail. We accept
+		// either by checking the result falls within a 1-hour tolerance.
 		sr := &ScheduledRecap{
 			DaysOfWeek: Sunday,
 			TimeOfDay:  "01:30",
@@ -221,10 +223,13 @@ func TestScheduledRecapComputeNextRunAt(t *testing.T) {
 		result := time.UnixMilli(nextRunAt)
 		localResult := result.In(loc)
 
-		// Should be Sunday at 1:30 AM (first occurrence, still in DST)
 		assert.Equal(t, time.Sunday, localResult.Weekday())
 		assert.Equal(t, 1, localResult.Hour())
 		assert.Equal(t, 30, localResult.Minute())
+
+		edtOccurrence := time.Date(2024, 11, 3, 5, 30, 0, 0, time.UTC).UnixMilli()
+		assert.InDelta(t, edtOccurrence, nextRunAt, float64(3600000),
+			"expected nextRunAt within 1 hour of EDT 1:30 AM occurrence (either DST offset is valid)")
 	})
 
 	t.Run("error on invalid timezone", func(t *testing.T) {
@@ -387,11 +392,11 @@ func TestScheduledRecapIsValid(t *testing.T) {
 		assert.NotNil(t, sr.IsValid())
 	})
 
-	t.Run("all unreads mode with empty channel ids passes", func(t *testing.T) {
+	t.Run("all unreads mode is rejected for scheduled recaps", func(t *testing.T) {
 		sr := validRecap()
 		sr.ChannelMode = ChannelModeAllUnreads
 		sr.ChannelIds = []string{}
-		assert.Nil(t, sr.IsValid())
+		assert.NotNil(t, sr.IsValid())
 	})
 
 	t.Run("empty agent id fails", func(t *testing.T) {

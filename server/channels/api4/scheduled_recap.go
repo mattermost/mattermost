@@ -45,40 +45,36 @@ func createScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var recap model.ScheduledRecap
-	if err := json.NewDecoder(r.Body).Decode(&recap); err != nil {
+	type createScheduledRecapRequest struct {
+		Title              string   `json:"title"`
+		DaysOfWeek         int      `json:"days_of_week"`
+		TimeOfDay          string   `json:"time_of_day"`
+		Timezone           string   `json:"timezone"`
+		TimePeriod         string   `json:"time_period"`
+		ChannelMode        string   `json:"channel_mode"`
+		ChannelIds         []string `json:"channel_ids,omitempty"`
+		AgentId            string   `json:"agent_id"`
+		IsRecurring        bool     `json:"is_recurring"`
+		CustomInstructions string   `json:"custom_instructions,omitempty"`
+	}
+
+	var req createScheduledRecapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("body", err)
 		return
 	}
 
-	// Validate required fields
-	if recap.Title == "" {
-		c.SetInvalidParam("title")
-		return
-	}
-	if recap.DaysOfWeek == 0 {
-		c.SetInvalidParam("days_of_week")
-		return
-	}
-	if recap.TimeOfDay == "" {
-		c.SetInvalidParam("time_of_day")
-		return
-	}
-	if recap.Timezone == "" {
-		c.SetInvalidParam("timezone")
-		return
-	}
-	if recap.TimePeriod == "" {
-		c.SetInvalidParam("time_period")
-		return
-	}
-	if recap.ChannelMode == "" {
-		c.SetInvalidParam("channel_mode")
-		return
-	}
-	if recap.AgentId == "" {
-		c.SetInvalidParam("agent_id")
-		return
+	recap := &model.ScheduledRecap{
+		Title:              req.Title,
+		DaysOfWeek:         req.DaysOfWeek,
+		TimeOfDay:          req.TimeOfDay,
+		Timezone:           req.Timezone,
+		TimePeriod:         req.TimePeriod,
+		ChannelMode:        req.ChannelMode,
+		ChannelIds:         req.ChannelIds,
+		AgentId:            req.AgentId,
+		IsRecurring:        req.IsRecurring,
+		CustomInstructions: req.CustomInstructions,
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateScheduledRecap, model.AuditStatusFail)
@@ -88,7 +84,7 @@ func createScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "agent_id", recap.AgentId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_mode", recap.ChannelMode)
 
-	savedRecap, err := c.App.CreateScheduledRecap(c.AppContext, &recap)
+	savedRecap, err := c.App.CreateScheduledRecap(c.AppContext, recap)
 	if err != nil {
 		c.Err = err
 		return
@@ -187,6 +183,11 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Preserve fields that shouldn't be changed via update
 	recap.UserId = existingRecap.UserId
 	recap.CreateAt = existingRecap.CreateAt
+	recap.Enabled = existingRecap.Enabled
+	recap.NextRunAt = existingRecap.NextRunAt
+	recap.LastRunAt = existingRecap.LastRunAt
+	recap.RunCount = existingRecap.RunCount
+	recap.DeleteAt = existingRecap.DeleteAt
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)

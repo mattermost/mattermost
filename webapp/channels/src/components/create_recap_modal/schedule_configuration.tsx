@@ -4,9 +4,6 @@
 import moment from 'moment-timezone';
 import React, {useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
@@ -25,6 +22,7 @@ type Props = {
     daysError?: boolean;
     timeError?: boolean;
     agentName?: string;
+    timezone: string;
 };
 
 // Generate time options in 30-minute intervals
@@ -54,9 +52,9 @@ const ScheduleConfiguration = ({
     daysError,
     timeError,
     agentName,
+    timezone,
 }: Props) => {
     const {formatMessage, formatTime, formatDate} = useIntl();
-    const userTimezone = useSelector(getCurrentTimezone);
 
     // Time period options - must match server model constants
     const timePeriodOptions = useMemo(() => [
@@ -67,16 +65,20 @@ const ScheduleConfiguration = ({
 
     // Time dropdown options with locale-aware labels
     const timeOptions = useMemo(() => {
+        const tz = moment.tz.zone(timezone) ? timezone : undefined;
         return TIME_OPTIONS.map((time) => {
             const [hours, minutes] = time.split(':').map(Number);
-            const date = new Date();
-            date.setHours(hours, minutes, 0, 0);
+            const m = tz ? moment.tz({hour: hours, minute: minutes}, tz) : moment({hour: hours, minute: minutes});
             return {
                 value: time,
-                label: formatTime(date, {hour: 'numeric', minute: '2-digit'}),
+                label: formatTime(m.toDate(), {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    ...(tz ? {timeZone: tz} : {}),
+                }),
             };
         });
-    }, [formatTime]);
+    }, [formatTime, timezone]);
 
     // Calculate next run preview
     const nextRunPreview = useMemo(() => {
@@ -85,7 +87,7 @@ const ScheduleConfiguration = ({
         }
 
         const [hours, minutes] = timeOfDay.split(':').map(Number);
-        const previewTimeZone = moment.tz.zone(userTimezone) ? userTimezone : undefined;
+        const previewTimeZone = moment.tz.zone(timezone) ? timezone : undefined;
         const now = previewTimeZone ? moment.tz(previewTimeZone) : moment();
         const startOfToday = now.clone().startOf('day');
 
@@ -168,7 +170,7 @@ const ScheduleConfiguration = ({
         }
 
         return null;
-    }, [daysOfWeek, timeOfDay, formatMessage, formatTime, formatDate, userTimezone]);
+    }, [daysOfWeek, timeOfDay, formatMessage, formatTime, formatDate, timezone]);
 
     return (
         <div className='step-three'>

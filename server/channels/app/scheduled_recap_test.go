@@ -122,11 +122,12 @@ func TestScheduledRecap_OverLimitCanManageExisting(t *testing.T) {
 	})
 
 	t.Run("over-limit user can resume existing scheduled recap", func(t *testing.T) {
-		// ENF-07: Resume operations should NOT check limits
-		resumedRecap, resumeErr := th.App.ResumeScheduledRecap(ctx, savedRecap.Id)
-		require.Nil(t, resumeErr, "ResumeScheduledRecap should succeed regardless of limits")
-		require.NotNil(t, resumedRecap)
-		assert.True(t, resumedRecap.Enabled)
+		// Resume now enforces MaxScheduledRecaps: since secondRecap is still
+		// enabled, CountForUser returns 1 which equals the limit of 1, so
+		// resuming savedRecap is blocked.
+		_, resumeErr := th.App.ResumeScheduledRecap(ctx, savedRecap.Id)
+		require.NotNil(t, resumeErr, "ResumeScheduledRecap should fail when enabled count is at limit")
+		assert.Equal(t, "app.scheduled_recap.max_scheduled_reached.app_error", resumeErr.Id)
 	})
 
 	t.Run("over-limit user can delete existing scheduled recap", func(t *testing.T) {

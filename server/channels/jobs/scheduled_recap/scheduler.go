@@ -48,6 +48,9 @@ func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJo
 }
 
 // ScheduleJob polls for due scheduled recaps and creates jobs for each.
+// CreateJobOnce deduplicates by job type, so multiple due recaps in the same
+// polling cycle are batched into individual jobs without duplicates. This is
+// intentional; see MM-67284 for future batching improvements.
 func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastJob *model.Job) (*model.Job, *model.AppError) {
 	now := model.GetMillis()
 	dueRecaps, err := s.store.ScheduledRecap().GetDueBefore(now, 100)

@@ -86,12 +86,12 @@ const Recaps = () => {
         const fetchData = async () => {
             await Promise.all([
                 dispatch(getRecaps(0, 60)),
-                dispatch(getScheduledRecaps(0, 60)),
+                dispatch(getScheduledRecaps(0, 200)),
             ]);
             setIsLoading(false);
         };
 
-        void fetchData();
+        fetchData();
         dispatch(getAgents());
         dispatch(fetchRecapLimitStatus());
     }, [dispatch]);
@@ -158,6 +158,61 @@ const Recaps = () => {
 
     const displayedRecaps = activeTab === 'unread' ? unreadRecaps : readRecaps;
 
+    const renderContent = () => {
+        if (hasNoRecaps) {
+            return (
+                <div className='recaps-placeholder'>
+                    <AICopilotIntroSvg/>
+                    <h2 className='recaps-placeholder-title'>
+                        {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
+                    </h2>
+                    <p className='recaps-placeholder-description'>
+                        {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
+                    </p>
+                    {isCreationBlocked ? (
+                        <WithTooltip
+                            id='recap-placeholder-blocked-tooltip'
+                            title={blockedTooltip}
+                            forcedPlacement='bottom'
+                        >
+                            <span className='recap-add-button-wrapper'>
+                                <button
+                                    className='btn btn-primary recaps-placeholder-button'
+                                    disabled={true}
+                                    aria-disabled={true}
+                                >
+                                    {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                                </button>
+                            </span>
+                        </WithTooltip>
+                    ) : (
+                        <button
+                            className='btn btn-primary recaps-placeholder-button'
+                            onClick={handleAddRecap}
+                            disabled={!agentsBridgeEnabled.available}
+                            title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                        >
+                            {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeTab === 'scheduled') {
+            return (
+                <ScheduledRecapsList
+                    scheduledRecaps={scheduledRecaps}
+                    onEdit={handleEditScheduledRecap}
+                    onCreateClick={handleAddRecap}
+                    createDisabled={!agentsBridgeEnabled.available || isCreationBlocked}
+                />
+            );
+        }
+
+        return <RecapsList recaps={displayedRecaps}/>;
+    };
+
     return (
         <div className='recaps-container'>
             <div className='recaps-header'>
@@ -223,52 +278,7 @@ const Recaps = () => {
             </div>
 
             <div className='recaps-content'>
-                {hasNoRecaps ? (
-                    <div className='recaps-placeholder'>
-                        <AICopilotIntroSvg/>
-                        <h2 className='recaps-placeholder-title'>
-                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
-                        </h2>
-                        <p className='recaps-placeholder-description'>
-                            {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
-                        </p>
-                        {isCreationBlocked ? (
-                            <WithTooltip
-                                id='recap-placeholder-blocked-tooltip'
-                                title={blockedTooltip}
-                                forcedPlacement='bottom'
-                            >
-                                <span className='recap-add-button-wrapper'>
-                                    <button
-                                        className='btn btn-primary recaps-placeholder-button'
-                                        disabled={true}
-                                        aria-disabled={true}
-                                    >
-                                        {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
-                                    </button>
-                                </span>
-                            </WithTooltip>
-                        ) : (
-                            <button
-                                className='btn btn-primary recaps-placeholder-button'
-                                onClick={handleAddRecap}
-                                disabled={!agentsBridgeEnabled.available}
-                                title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                            >
-                                {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
-                            </button>
-                        )}
-                    </div>
-                ) : activeTab === 'scheduled' ? (
-                    <ScheduledRecapsList
-                        scheduledRecaps={scheduledRecaps}
-                        onEdit={handleEditScheduledRecap}
-                        onCreateClick={handleAddRecap}
-                        createDisabled={!agentsBridgeEnabled.available || isCreationBlocked}
-                    />
-                ) : (
-                    <RecapsList recaps={displayedRecaps}/>
-                )}
+                {renderContent()}
             </div>
         </div>
     );

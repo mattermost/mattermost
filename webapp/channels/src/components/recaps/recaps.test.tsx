@@ -75,7 +75,7 @@ describe('components/recaps/Recaps', () => {
 
         expect(mockSelectLhsItem).toHaveBeenCalledWith(LhsItemType.Page, LhsPage.Recaps);
         expect(mockGetRecaps).toHaveBeenCalledWith(0, 60);
-        expect(mockGetScheduledRecaps).toHaveBeenCalledWith(0, 60);
+        expect(mockGetScheduledRecaps).toHaveBeenCalledWith(0, 200);
         expect(mockGetAgents).toHaveBeenCalled();
         expect(mockFetchRecapLimitStatus).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'SELECT_LHS_ITEM'}));

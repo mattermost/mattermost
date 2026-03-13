@@ -19,6 +19,7 @@ describe('ScheduleConfiguration', () => {
         setTimePeriod: jest.fn(),
         customInstructions: '',
         setCustomInstructions: jest.fn(),
+        timezone: 'America/New_York',
     };
 
     const getInitialState = (timezone: string) => ({
@@ -44,6 +45,7 @@ describe('ScheduleConfiguration', () => {
         return renderWithContext(
             <ScheduleConfiguration
                 {...baseProps}
+                timezone={timezone}
                 {...props}
             />,
             getInitialState(timezone),

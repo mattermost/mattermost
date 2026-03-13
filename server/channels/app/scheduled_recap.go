@@ -194,11 +194,14 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 	}
 
 	// Create recap job to trigger processing
+	// TODO(MM-67284): Use sr.TimePeriod to determine the post fetch window
+	// instead of always falling back to GetMemberLastViewedAt in FetchAndTruncatePostsForRecap.
 	jobData := map[string]string{
 		"recap_id":    savedRecap.Id,
 		"user_id":     sr.UserId,
 		"channel_ids": strings.Join(channelIDs, ","),
 		"agent_id":    sr.AgentId,
+		"time_period": sr.TimePeriod,
 	}
 
 	_, jobErr := a.CreateJob(rctx, &model.Job{
@@ -258,6 +261,25 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 			return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
+		count, storeErr := a.Srv().Store().ScheduledRecap().CountForUser(recap.UserId)
+		if storeErr != nil {
+			return nil, model.NewAppError("ResumeScheduledRecap",
+				"app.scheduled_recap.count_failed.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+		if count >= int64(limits.MaxScheduledRecaps) {
+			return nil, model.NewAppError("ResumeScheduledRecap",
+				"app.scheduled_recap.max_scheduled_reached.app_error",
+				map[string]any{"Limit": limits.MaxScheduledRecaps},
+				"", http.StatusBadRequest)
+		}
 	}
 
 	// Compute new NextRunAt

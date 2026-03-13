@@ -77,7 +77,7 @@ func TestCreateRecap(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, recap)
 		assert.Equal(t, "app.recap.cooldown_active.app_error", err.Id)
-		assert.Contains(t, err.SystemMessage(i18n.GetUserTranslations("en")), "another recap in 2 minutes")
+		assert.Contains(t, err.SystemMessage(i18n.GetUserTranslations("en")), "another recap in 2 minute(s)")
 	})
 
 	t.Run("cooldown still applies after soft deleting last recap", func(t *testing.T) {
@@ -434,7 +434,9 @@ func TestTruncatePostsProportionally(t *testing.T) {
 
 	t.Run("channels with small proportions may receive zero posts", func(t *testing.T) {
 		// 3 channels: 1, 2, 100 posts, limit 10
-		// Proportional floor: ch1 = floor(1/103*10) = 0, ch2 = floor(2/103*10) = 0, ch3 = floor(100/103*10) = 9
+		// Proportional floor: ch1 = 0, ch2 = 0, ch3 = 9
+		// Floor guarantee (maxPosts 10 >= 3 channels): ch1 bumped to 1, ch2 bumped to 1
+		// Budget rebalance: ch3 reduced from 9 to 8 so total = 10
 		postsByChannel := map[string][]*model.Post{
 			"ch1": makePosts(1, "ch1"),
 			"ch2": makePosts(2, "ch2"),
@@ -443,9 +445,9 @@ func TestTruncatePostsProportionally(t *testing.T) {
 
 		result, wasTruncated := truncatePostsProportionally(postsByChannel, 10)
 		assert.True(t, wasTruncated)
-		assert.Equal(t, 0, len(result["ch1"]), "ch1 gets 0 posts from floor division")
-		assert.Equal(t, 0, len(result["ch2"]), "ch2 gets 0 posts from floor division")
-		assert.Equal(t, 9, len(result["ch3"]), "ch3 gets the bulk of posts")
+		assert.Equal(t, 1, len(result["ch1"]), "ch1 gets floor guarantee of 1 post")
+		assert.Equal(t, 1, len(result["ch2"]), "ch2 gets floor guarantee of 1 post")
+		assert.Equal(t, 8, len(result["ch3"]), "ch3 reduced to keep total at maxPosts")
 	})
 
 	t.Run("more channels than maxPosts enforces cap", func(t *testing.T) {

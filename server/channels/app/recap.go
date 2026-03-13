@@ -381,6 +381,30 @@ func truncatePostsProportionally(postsByChannel map[string][]*model.Post, maxPos
 		totalAllocated--
 	}
 
+	if maxPosts >= len(postsByChannel) {
+		for channelID, posts := range postsByChannel {
+			if len(posts) > 0 && shares[channelID] == 0 {
+				shares[channelID] = 1
+				totalAllocated++
+			}
+		}
+		for totalAllocated > maxPosts {
+			largestID := ""
+			largestShare := 1
+			for id, s := range shares {
+				if s > largestShare {
+					largestID = id
+					largestShare = s
+				}
+			}
+			if largestID == "" {
+				break
+			}
+			shares[largestID]--
+			totalAllocated--
+		}
+	}
+
 	// Build result: take most recent posts (assuming newest-first ordering)
 	result := make(map[string][]*model.Post, len(postsByChannel))
 	for channelID, posts := range postsByChannel {
@@ -466,6 +490,8 @@ func truncateToTokenLimit(postsByChannel map[string][]*model.Post, maxTokens int
 	return result, true
 }
 
+const maxFetchPostsPerChannel = 1000
+
 // FetchAndTruncatePostsForRecap fetches posts for multiple channels and applies truncation limits.
 // This is used by recap generation to ensure LLM context limits are respected.
 // Posts are distributed proportionally across channels (busier channels get more posts).
@@ -492,7 +518,7 @@ func (a *App) FetchAndTruncatePostsForRecap(rctx request.CTX, channelIDs []strin
 			continue
 		}
 
-		posts, err := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 1000) // Fetch more, truncate later
+		posts, err := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, maxFetchPostsPerChannel)
 		if err != nil {
 			hadFetchFailure = true
 			rctx.Logger().Warn("Failed to fetch posts for channel",

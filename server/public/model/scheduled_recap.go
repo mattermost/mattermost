@@ -174,7 +174,11 @@ func (sr *ScheduledRecap) IsValid() *AppError {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.time_period.app_error", nil, "time_period="+sr.TimePeriod, http.StatusBadRequest)
 	}
 
-	if sr.ChannelMode != ChannelModeSpecific && sr.ChannelMode != ChannelModeAllUnreads {
+	if sr.ChannelMode == ChannelModeAllUnreads {
+		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_mode_all_unreads.app_error", nil, "channel_mode=all_unreads", http.StatusBadRequest)
+	}
+
+	if sr.ChannelMode != ChannelModeSpecific {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_mode.app_error", nil, "channel_mode="+sr.ChannelMode, http.StatusBadRequest)
 	}
 
