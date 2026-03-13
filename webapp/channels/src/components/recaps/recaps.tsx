@@ -10,7 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
-import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
+import {getAllRecaps, getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
@@ -23,6 +23,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
+import AICopilotIntroSvg from './ai_copilot_intro_svg';
 import RecapsList from './recaps_list';
 
 import './recaps.scss';
@@ -31,15 +32,23 @@ const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
+    const [isLoading, setIsLoading] = useState(true);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
+    const allRecaps = useSelector(getAllRecaps);
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
 
+    const hasNoRecaps = !isLoading && allRecaps.length === 0;
+
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
-        dispatch(getRecaps(0, 60));
+        const fetchData = async () => {
+            await dispatch(getRecaps(0, 60));
+            setIsLoading(false);
+        };
+        fetchData();
         dispatch(getAgents());
     }, [dispatch]);
 
@@ -67,34 +76,58 @@ const Recaps = () => {
                             {formatMessage({id: 'recaps.title', defaultMessage: 'Recaps'})}
                         </h1>
                     </div>
-                    <div className='recaps-tabs'>
-                        <button
-                            className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('unread')}
-                        >
-                            {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
-                        </button>
-                        <button
-                            className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('read')}
-                        >
-                            {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
-                        </button>
-                    </div>
+                    {!hasNoRecaps && (
+                        <div className='recaps-tabs'>
+                            <button
+                                className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('unread')}
+                            >
+                                {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
+                            </button>
+                            <button
+                                className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('read')}
+                            >
+                                {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
+                            </button>
+                        </div>
+                    )}
                 </div>
-                <button
-                    className='btn btn-tertiary recap-add-button'
-                    onClick={handleAddRecap}
-                    disabled={!agentsBridgeEnabled.available}
-                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                >
-                    <PlusIcon size={12}/>
-                    {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                </button>
+                {!hasNoRecaps && (
+                    <button
+                        className='btn btn-tertiary recap-add-button'
+                        onClick={handleAddRecap}
+                        disabled={!agentsBridgeEnabled.available}
+                        title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                    >
+                        <PlusIcon size={12}/>
+                        {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
+                    </button>
+                )}
             </div>
 
             <div className='recaps-content'>
-                <RecapsList recaps={displayedRecaps}/>
+                {hasNoRecaps ? (
+                    <div className='recaps-placeholder'>
+                        <AICopilotIntroSvg/>
+                        <h2 className='recaps-placeholder-title'>
+                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
+                        </h2>
+                        <p className='recaps-placeholder-description'>
+                            {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
+                        </p>
+                        <button
+                            className='btn btn-primary recaps-placeholder-button'
+                            onClick={handleAddRecap}
+                            disabled={!agentsBridgeEnabled.available}
+                            title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                        >
+                            {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                        </button>
+                    </div>
+                ) : (
+                    <RecapsList recaps={displayedRecaps}/>
+                )}
             </div>
         </div>
     );
