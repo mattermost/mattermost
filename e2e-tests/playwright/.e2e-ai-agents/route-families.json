@@ -124,6 +124,16 @@
             ]
         },
         {
+            "id": "global_header",
+            "routes": ["/{team}/channels/{channel}", "/{team}/messages/{user}", "/admin_console/**"],
+            "components": ["GlobalHeader", "ProductMenu", "ProductMenuItem"],
+            "webappPaths": [
+                "webapp/channels/src/components/global_header/**"
+            ],
+            "specDirs": [],
+            "tags": ["navigation", "product-switcher"]
+        },
+        {
             "id": "auth",
             "routes": ["/login", "/signup", "/reset_password"],
             "webappPaths": [
