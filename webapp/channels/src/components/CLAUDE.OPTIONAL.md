@@ -79,6 +79,9 @@ const intl = useIntl();
 - Prefer `userEvent` and accessible queries (`getByRole`) over implementation-specific selectors.
 - Avoid snapshots; assert visible behavior instead.
 
+## Icons
+- **Menu items and components should use Compass icon components** from `@mattermost/compass-icons/components` (e.g., `<DockWindowIcon size={18}/>`), not raw `<i className="icon icon-..."/>` elements.
+
 ## Useful Examples
 - `channel_view/channel_view.tsx` – full-page component structure with co-located SCSS.
 - `post_view/post_list_virtualized/post_list_virtualized.tsx` – virtualization + hooks pattern.
