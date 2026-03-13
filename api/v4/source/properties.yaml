@@ -35,6 +35,7 @@
                 type:
                   type: string
                   description: The type of property field
+                  enum: [text, select, multiselect, date, user, multiuser]
                 attrs:
                   type: object
                   description: Additional attributes for the property field
@@ -46,21 +47,24 @@
                   description: The ID of the target
                 permission_field:
                   type: string
+                  enum: [none, sysadmin, member]
                   description: >
                     Permission level for editing the field definition.
-                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                    Only system admins can set this; ignored for non-admin users.
                   default: member
                 permission_values:
                   type: string
+                  enum: [none, sysadmin, member]
                   description: >
                     Permission level for setting values on objects.
-                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                    Only system admins can set this; ignored for non-admin users.
                   default: member
                 permission_options:
                   type: string
+                  enum: [none, sysadmin, member]
                   description: >
                     Permission level for managing options on select/multiselect fields.
-                    Defaults to 'member'. Only system admins can set this; ignored for non-admin users.
+                    Only system admins can set this; ignored for non-admin users.
                   default: member
         description: Property field object to create
         required: true
