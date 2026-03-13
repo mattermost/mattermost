@@ -1124,6 +1124,26 @@ func (_m *Store) ScheduledPost() store.ScheduledPostStore {
 	return r0
 }
 
+// ScheduledRecap provides a mock function with no fields
+func (_m *Store) ScheduledRecap() store.ScheduledRecapStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScheduledRecap")
+	}
+
+	var r0 store.ScheduledRecapStore
+	if rf, ok := ret.Get(0).(func() store.ScheduledRecapStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ScheduledRecapStore)
+		}
+	}
+
+	return r0
+}
+
 // Scheme provides a mock function with no fields
 func (_m *Store) Scheme() store.SchemeStore {
 	ret := _m.Called()
