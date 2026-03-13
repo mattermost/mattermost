@@ -3115,6 +3115,10 @@
     "translation": "One or more field IDs in the request are invalid."
   },
   {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "The request contains duplicate field IDs."
+  },
+  {
     "id": "api.property_value.patch.no_values_permission.app_error",
     "translation": "You do not have permission to set values on one or more fields."
   },

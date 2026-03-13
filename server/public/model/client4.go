@@ -7831,6 +7831,8 @@ func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType s
 	if search.CursorID != "" && search.CursorCreateAt > 0 {
 		values.Set("cursor_id", search.CursorID)
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
 	if err != nil {
@@ -7866,6 +7868,8 @@ func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, 
 	if search.CursorID != "" && search.CursorCreateAt > 0 {
 		values.Set("cursor_id", search.CursorID)
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
 	if err != nil {

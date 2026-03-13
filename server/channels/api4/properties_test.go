@@ -1926,6 +1926,18 @@ func TestPatchPropertyValues(t *testing.T) {
 		// Value should be updated
 		require.Equal(t, json.RawMessage(`"second"`), u.Value)
 	})
+
+	t.Run("duplicate field IDs should fail", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"first"`)},
+			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"second"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {

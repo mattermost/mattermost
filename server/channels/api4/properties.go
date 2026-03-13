@@ -489,13 +489,19 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Collect and validate field IDs
-	fieldIDs := make([]string, len(items))
-	for i, item := range items {
+	idMap := map[string]bool{}
+	fieldIDs := make([]string, 0, len(items))
+	for _, item := range items {
 		if !model.IsValidId(item.FieldID) {
 			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.invalid_field_id.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		fieldIDs[i] = item.FieldID
+		if idMap[item.FieldID] {
+			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.duplicate_field_id.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		idMap[item.FieldID] = true
+		fieldIDs = append(fieldIDs, item.FieldID)
 	}
 
 	// Load all fields and verify they belong to this group.
