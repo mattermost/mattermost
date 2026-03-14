@@ -17,7 +17,7 @@
   {
     "description": "postsQuery base builder excludes card posts by default",
     "how_to_test": "Any function using s.postsQuery should automatically exclude card posts. Verified transitively by testing each function below that uses postsQuery.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetSingle (line 909) uses postsQueryUnfiltered — returns card posts when fetched by ID",
