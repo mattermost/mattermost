@@ -2321,7 +2321,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		query += " WHERE"
 	}
 
-	query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ?
+	query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ? AND Posts.Type != 'card'
 		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
 		LIMIT 30`

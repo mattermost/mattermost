@@ -3110,11 +3110,21 @@ func testUserCountsWithPostsByDay(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Post().Save(rctx, o2a)
 	require.NoError(t, nErr)
 
+	// Card post should not inflate user counts
+	oCard := &model.Post{}
+	oCard.ChannelId = c1.Id
+	oCard.UserId = model.NewId()
+	oCard.CreateAt = o1.CreateAt
+	oCard.Message = NewTestID()
+	oCard.Type = model.PostTypeCard
+	_, nErr = ss.Post().Save(rctx, oCard)
+	require.NoError(t, nErr)
+
 	r1, err := ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id)
 	require.NoError(t, err)
 
 	row1 := r1[0]
-	require.Equal(t, float64(2), row1.Value, "wrong value")
+	require.Equal(t, float64(2), row1.Value, "wrong value — card post should not inflate count")
 
 	row2 := r1[1]
 	require.Equal(t, float64(1), row2.Value, "wrong value")

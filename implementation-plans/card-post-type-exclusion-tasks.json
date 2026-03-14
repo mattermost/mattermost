@@ -112,7 +112,7 @@
   {
     "description": "AnalyticsUserCountsWithPostsByDay (~line 2298) excludes card posts — add AND Posts.Type != 'card'",
     "how_to_test": "Insert card posts for a user on a given day. Call AnalyticsUserCountsWithPostsByDay — card posts should not inflate the count.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "Get() single post by ID (line 747, raw SQL) is LEFT UNFILTERED — returns card posts",
