@@ -27,3 +27,17 @@
 - **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetPosts/should_exclude_card_posts_from_getParentsPosts" -v -count=1` — PASS
 - **Notes**: Added `AND Posts.Type != 'card'` to the inner subquery WHERE clause and `AND q2.Type != 'card'` to the outer WHERE clause in `getParentsPosts`. Added test that creates a channel with a threaded conversation plus a card post, then verifies GetPosts (non-collapsed) excludes the card from results.
+
+## Session — getFlaggedPosts card exclusion
+- **Task**: getFlaggedPosts (line 525) excludes card posts — add AND Posts.Type != 'card' (line 553)
+- **Status**: PASS
+- **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetFlaggedPosts" -v -count=1` — all 3 subtests PASS
+- **Notes**: Added `AND Posts.Type != 'card'` to the raw SQL WHERE clause in `getFlaggedPosts`, alongside the existing `AND Posts.DeleteAt = 0`. Added test case at the end of `testPostStoreGetFlaggedPosts` that creates a card post, flags it, and verifies it doesn't appear in flagged post results.
+
+## Session — search() card exclusion
+- **Task**: search() function (line 2146) excludes card posts — add filter after system post filter (line 2161)
+- **Status**: PASS
+- **Changes**: `server/channels/store/sqlstore/post_store.go`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run TestSearchPostStore -v -count=1` — all subtests PASS
+- **Notes**: Added `Where(fmt.Sprintf("q2.Type != '%s'", model.PostTypeCard))` to the baseQuery builder in the `search()` function, right after the existing system message prefix filter. The search function builds its own query (not using `postsQuery`), so this explicit filter is needed. No new test added — existing search tests all pass, confirming the filter doesn't break anything.

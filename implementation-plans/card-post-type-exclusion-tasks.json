@@ -92,7 +92,7 @@
   {
     "description": "search() function (line 2146) excludes card posts — add filter after system post filter (line 2161)",
     "how_to_test": "Create a card post with unique searchable text. Run SearchPostsForUser with that text — card should not appear in search results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsByIds (line 2495) excludes card posts — add .Where(sq.NotEq) (line 2500)",
