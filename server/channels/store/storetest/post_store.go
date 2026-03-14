@@ -2455,6 +2455,40 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 			assert.Equal(t, []string{post5.Id}, postList.Order)
 		})
 	})
+	t.Run("should exclude card posts", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "GetPostsAroundCards",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+
+		post1, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "post1"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Card post between two normal posts
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "card post", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "post3"})
+		require.NoError(t, err)
+
+		// GetPostsBefore post3 should skip the card post
+		postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channel.Id, PostId: post3.Id, PerPage: 10}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{post1.Id}, postList.Order, "card post should be excluded from GetPostsBefore")
+
+		// GetPostsAfter post1 should skip the card post
+		postList, err = ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channel.Id, PostId: post1.Id, PerPage: 10}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{post3.Id}, postList.Order, "card post should be excluded from GetPostsAfter")
+	})
 }
 
 func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) {

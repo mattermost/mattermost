@@ -1730,6 +1730,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
+		sq.NotEq{"p.Type": model.PostTypeCard},
 	}
 
 	if !options.IncludeDeleted {

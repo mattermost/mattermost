@@ -67,7 +67,7 @@
   {
     "description": "getPostsAround (line 1687) excludes card posts — add sq.NotEq to conditions (line 1724)",
     "how_to_test": "Insert a card post between two normal posts. Call GetPostsBefore and GetPostsAfter — card should not appear in pagination results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostAfterTime (line 1836) excludes card posts via postsQuery",
