@@ -107,7 +107,7 @@
   {
     "description": "GetRepliesForExport (line 2719) excludes card posts via postsQuery",
     "how_to_test": "Create a thread with a card post as a reply. Call GetRepliesForExport — card reply should not appear in export.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "AnalyticsUserCountsWithPostsByDay (~line 2298) excludes card posts — add AND Posts.Type != 'card'",

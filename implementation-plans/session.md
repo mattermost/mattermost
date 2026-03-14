@@ -48,3 +48,17 @@
 - **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/GetPostsByIds" -v -count=1` — PASS (including new `excludes_card_posts` subtest)
 - **Notes**: Added `Where(sq.NotEq{"p.Type": model.PostTypeCard})` to the query builder in `GetPostsByIds`. Added test subtest that creates a card post and a normal post, calls GetPostsByIds with both IDs, and verifies only the normal post is returned.
+
+## Session — GetPostsBatchForIndexing card exclusion
+- **Task**: GetPostsBatchForIndexing (line 2530) excludes card posts — add AND Posts.Type != 'card' (line 2550)
+- **Status**: PASS
+- **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/GetPostsBatchForIndexing" -v -count=1` — PASS
+- **Notes**: Added `Posts.Type != 'card'` to the raw SQL WHERE clause in `GetPostsBatchForIndexing`. Added test case at the end of `testPostStoreGetPostsBatchForIndexing` that creates a card post and verifies it doesn't appear in indexing batch results.
+
+## Session — GetRepliesForExport card exclusion verification
+- **Task**: GetRepliesForExport (line 2719) excludes card posts via postsQuery
+- **Status**: PASS
+- **Changes**: `implementation-plans/card-post-type-exclusion-tasks.json`, `implementation-plans/session.md`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetRepliesForExport" -v -count=1` — PASS
+- **Notes**: No code change needed — GetRepliesForExport already uses `s.postsQuery` (line 2737) which excludes card posts via the base builder's `Where(sq.NotEq{"Posts.Type": model.PostTypeCard})`. Existing test passes.
