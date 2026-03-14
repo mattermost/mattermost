@@ -27,7 +27,7 @@
   {
     "description": "GetEditHistoryForPost (line 2514) uses postsQueryUnfiltered — returns edit history for card posts",
     "how_to_test": "Run: go test ./channels/store/sqlstore/ -run TestGetEditHistoryForPost -v — should pass. Also verify a card post's edit history is retrievable.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getPostWithCollapsedThreads (line 610) excludes card posts via postsQuery (line 643)",
