@@ -4328,6 +4328,21 @@ func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	posts, err = ss.Post().GetPostsByIds(postIds)
 	require.NoError(t, err)
 	require.Len(t, posts, 3, "Expected 3 posts in results. Got %v", len(posts))
+
+	t.Run("excludes card posts", func(t *testing.T) {
+		cardPost := &model.Post{}
+		cardPost.ChannelId = channel1.Id
+		cardPost.UserId = model.NewId()
+		cardPost.Message = "card post"
+		cardPost.Type = model.PostTypeCard
+		cardPost, err := ss.Post().Save(rctx, cardPost)
+		require.NoError(t, err)
+
+		posts, err := ss.Post().GetPostsByIds([]string{o2.Id, cardPost.Id})
+		require.NoError(t, err)
+		require.Len(t, posts, 1, "Card post should be excluded from GetPostsByIds results")
+		assert.Equal(t, o2.Id, posts[0].Id)
+	})
 }
 
 func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {

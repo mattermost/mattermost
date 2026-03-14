@@ -2510,6 +2510,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 		Column("(SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
 		From("Posts p").
 		Where(sq.Eq{"p.Id": postIds}).
+		Where(sq.NotEq{"p.Type": model.PostTypeCard}).
 		OrderBy("CreateAt DESC")
 
 	posts := []*model.Post{}

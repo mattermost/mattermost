@@ -41,3 +41,10 @@
 - **Changes**: `server/channels/store/sqlstore/post_store.go`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run TestSearchPostStore -v -count=1` — all subtests PASS
 - **Notes**: Added `Where(fmt.Sprintf("q2.Type != '%s'", model.PostTypeCard))` to the baseQuery builder in the `search()` function, right after the existing system message prefix filter. The search function builds its own query (not using `postsQuery`), so this explicit filter is needed. No new test added — existing search tests all pass, confirming the filter doesn't break anything.
+
+## Session — GetPostsByIds card exclusion
+- **Task**: GetPostsByIds (line 2495) excludes card posts — add .Where(sq.NotEq) (line 2500)
+- **Status**: PASS
+- **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/GetPostsByIds" -v -count=1` — PASS (including new `excludes_card_posts` subtest)
+- **Notes**: Added `Where(sq.NotEq{"p.Type": model.PostTypeCard})` to the query builder in `GetPostsByIds`. Added test subtest that creates a card post and a normal post, calls GetPostsByIds with both IDs, and verifies only the normal post is returned.

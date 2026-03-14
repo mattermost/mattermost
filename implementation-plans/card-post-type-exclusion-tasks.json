@@ -97,7 +97,7 @@
   {
     "description": "GetPostsByIds (line 2495) excludes card posts — add .Where(sq.NotEq) (line 2500)",
     "how_to_test": "Insert a card post and a normal post. Call GetPostsByIds with both IDs — only the normal post should be returned.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsBatchForIndexing (line 2530) excludes card posts — add AND Posts.Type != 'card' (line 2550)",
