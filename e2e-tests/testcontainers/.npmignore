@@ -1,0 +1,14 @@
+# Override .gitignore for npm pack/install
+# The "files" field in package.json explicitly includes "dist"
+# This empty file ensures .gitignore doesn't exclude dist when npm installs file: dependencies
+
+src/
+*.ts
+!*.d.ts
+tsconfig.json
+rollup.config.js
+eslint.config.mjs
+.prettierrc.json
+.prettierignore
+.tc.out
+.tc.*
