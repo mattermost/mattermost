@@ -142,7 +142,7 @@
   {
     "description": "SetPostReminder existence check (line 3177) is LEFT UNFILTERED — can set reminders on card posts",
     "how_to_test": "Insert a card post. Call SetPostReminder for that post — should succeed.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "Thread metadata subqueries (reply counts at lines 3097-3114) are LEFT UNFILTERED",

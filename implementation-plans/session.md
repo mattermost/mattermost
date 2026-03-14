@@ -104,3 +104,10 @@
 - **Changes**: `implementation-plans/card-post-type-exclusion-tasks.json`
 - **Tests run**: `cd server && go build ./...` — PASS (no store-level test exists for this function)
 - **Notes**: No code change needed — GetNthRecentPostTime already uses `sq.Eq{"p.Type": ""}` which only matches empty-string type posts (standard user posts for cloud limits). Card posts (Type="card") are naturally excluded. No dedicated store test exists; the only reference is in app_test.go via a mock. Build verification confirms no regressions.
+
+## Session — SetPostReminder unfiltered verification
+- **Task**: SetPostReminder existence check (line 3177) is LEFT UNFILTERED — can set reminders on card posts
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/SetPostReminder" -v -count=1` — PASS
+- **Notes**: No code change needed — SetPostReminder uses raw SQL `SELECT EXISTS (SELECT 1 FROM Posts WHERE Id=?)` without any type filter, which is intentional (should be able to set reminders on card posts). Added card post test case to existing `testSetPostReminder` that creates a card post and verifies SetPostReminder succeeds on it.

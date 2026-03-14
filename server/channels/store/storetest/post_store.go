@@ -5699,6 +5699,27 @@ func testSetPostReminder(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	require.NoError(t, ss.Post().SetPostReminder(reminder))
 	require.NoError(t, s.GetMaster().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
 	assert.Equal(t, reminder, &out)
+
+	// card post exclusion: verify SetPostReminder works on card posts (intentionally unfiltered)
+	cardPost := &model.Post{
+		UserId:    userID,
+		ChannelId: NewTestID(),
+		Message:   "card post for reminder test",
+		Type:      model.PostTypeCard,
+	}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	cardReminder := &model.PostReminder{
+		TargetTime: 9999,
+		PostId:     cardPost.Id,
+		UserId:     userID,
+	}
+	require.NoError(t, ss.Post().SetPostReminder(cardReminder), "SetPostReminder should succeed for card posts")
+
+	var cardOut model.PostReminder
+	require.NoError(t, s.GetMaster().Get(&cardOut, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, cardReminder.PostId, cardReminder.UserId))
+	assert.Equal(t, cardReminder, &cardOut)
 }
 
 func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
