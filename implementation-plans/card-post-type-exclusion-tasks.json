@@ -122,7 +122,7 @@
   {
     "description": "GetPostsCreatedAt (line 2483, raw SQL) is LEFT UNFILTERED — returns card posts",
     "how_to_test": "Insert a card post at a specific CreateAt. Call GetPostsCreatedAt with that timestamp and channel — should return the card post.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "Delete operations (PermanentDeleteByUser, PermanentDeleteByChannel, PermanentDeleteBatch) are LEFT UNFILTERED — can delete card posts",

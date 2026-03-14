@@ -4020,6 +4020,30 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Sto
 
 	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
+
+	// Card posts should be returned by GetPostsCreatedAt (intentionally unfiltered)
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channel1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post"
+	cardPost.Type = model.PostTypeCard
+	cardPost.CreateAt = createTime
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().GetPostsCreatedAt(channel1.Id, createTime)
+	require.NoError(t, err)
+	assert.Equal(t, 3, len(r2), "GetPostsCreatedAt should return card posts (unfiltered)")
+
+	// Verify the card post is actually in the results
+	foundCard := false
+	for _, p := range r2 {
+		if p.Id == cardPost.Id {
+			foundCard = true
+			break
+		}
+	}
+	assert.True(t, foundCard, "card post should be present in GetPostsCreatedAt results")
 }
 
 func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
