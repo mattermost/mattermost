@@ -8,6 +8,47 @@ This directory contains the E2E testing code for the Mattermost web client.
 
 Please refer to the [dedicated developer documentation](https://developers.mattermost.com/contribute/more-info/webapp/e2e-testing/) for instructions.
 
+##### For source-backed local bootstrapping
+
+Use `make run-local` from this directory to run E2E tests against a locally running Mattermost source checkout instead of a prebuilt Docker server image.
+
+For AI-agent usage, prefer `make run-agent`. It defaults to Playwright smoke coverage, supports `SPEC_FILES`, and writes the full runner output to `logs/agent/*.log` while keeping stdout compact.
+
+Examples:
+- `FRAMEWORK=playwright E2E_SCOPE=smoke make run-local`
+- `FRAMEWORK=cypress E2E_SCOPE=smoke make run-local`
+- `FRAMEWORK=all E2E_SCOPE=full make run-local`
+- `FRAMEWORK=cypress E2E_SCOPE=full SPEC_FILES=tests/integration/channels/enterprise/elasticsearch_autocomplete/channels_spec.ts make run-local`
+- `make run-agent`
+- `SPEC_FILES=specs/functional/channels/search/find_channels.spec.ts make run-agent`
+- `SPEC_FILES=tests/integration/channels/team_settings/create_a_team_spec.js make run-agent`
+
+What it does:
+- Starts the Mattermost source server automatically if `http://localhost:8065` is not already healthy.
+- Configures the local server for E2E usage with local mode, open signup, plugin uploads, and prepackaged plugins enabled.
+- Starts the required local dependency containers for the selected scope:
+  - `E2E_SCOPE=smoke`: `inbucket`
+  - `E2E_SCOPE=full`: `inbucket minio openldap elasticsearch keycloak`
+- Installs the framework dependencies that are needed for the selected runner.
+- Starts Cypress's local webhook helper on port `3000` when needed.
+- Writes framework summaries to `e2e-tests/playwright/results/summary.json` or `e2e-tests/cypress/results/summary.json`.
+
+Useful variables:
+- `FRAMEWORK`: `playwright`, `cypress`, or `all` (default: `all`)
+- `E2E_SCOPE`: `smoke` or `full` (default: `full`)
+- `SPEC_FILES`: optional comma-separated spec paths; when set, the wrapper runs only those specs
+- `PLAYWRIGHT_TEST_FILTER` / `CYPRESS_TEST_FILTER`: optional overrides for the default smoke/full filters
+- `ENABLED_DOCKER_SERVICES`: optional override for the default dependency set for the chosen scope
+
+Agent notes:
+- `make run-agent` defaults to `FRAMEWORK=playwright` and `E2E_SCOPE=smoke`.
+- `make run-agent` infers `FRAMEWORK=playwright` for `SPEC_FILES=specs/...` and `FRAMEWORK=cypress` for `SPEC_FILES=tests/integration/...`.
+- `make run-agent` writes the full bootstrap and test output to `logs/agent/*.log` and prints only a short summary to stdout.
+
+Notes:
+- `make run-local` leaves the local Mattermost server and dependency containers running for follow-up debugging. Run `make stop` when you want to tear down the generated dependency containers.
+- The wrapper assumes the local server is either fresh enough for the E2E harness to create `sysadmin`, or already accepts the default E2E admin login (`sysadmin` / `Sys@dmin-sample1`).
+
 ##### For pipeline debugging
 
 The E2E testing pipeline's scripts depend on the following tools being installed on your system: `docker`, `docker-compose`, `make`, `git`, `jq`, `node`, and some common utilities (`coreutils`, `findutils`, `bash`, `awk`, `sed`, `grep`)
@@ -22,7 +63,7 @@ Instructions, detailed:
   * `ENABLED_DOCKER_SERVICES`: a space-separated list of services to start alongside the server. Default to `postgres inbucket`, for smoke test purposes and for lightweight and faster start-up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
     - Cypress full tests require all services to be running: `postgres inbucket minio openldap elasticsearch keycloak`.
     - Cypress smoke tests require only the following: `postgres inbucket`.
-    - Playwright full tests require only the following: `postgres inbucket`.
+    - Playwright full tests in CI use the same broader set as Cypress: `postgres inbucket minio openldap elasticsearch keycloak`.
   * The following variables, will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset; required when `SERVER=cloud`), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
   * The following variables, which will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `BROWSER`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
   * The `SERVER_IMAGE` variable can also be set if you want to select a custom mattermost-server image. If not specified, the value of the `SERVER_IMAGE_DEFAULT` variable defined in file `.ci/.e2erc` is used.
