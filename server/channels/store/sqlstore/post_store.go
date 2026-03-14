@@ -1338,6 +1338,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC")
@@ -1421,6 +1422,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000)
 
@@ -1461,7 +1463,7 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	FROM
 	       Posts
 	WHERE
-	       UpdateAt > ? AND ChannelId = ?
+	       UpdateAt > ? AND ChannelId = ? AND Posts.Type != 'card'
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION

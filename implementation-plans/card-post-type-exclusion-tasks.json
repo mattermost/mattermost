@@ -32,27 +32,27 @@
   {
     "description": "getPostWithCollapsedThreads (line 610) excludes card posts via postsQuery (line 643)",
     "how_to_test": "Insert a card post in a channel. Call Get() with CollapsedThreads=true — the card post should not appear in the thread list returned.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getPostsCollapsedThreads (line 1312) excludes card posts — add .Where(sq.NotEq) after line 1331",
     "how_to_test": "Insert a card post in a channel. Call GetPosts with CollapsedThreads=true — card should not appear in results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getPostsSinceCollapsedThreads (line 1396) excludes card posts — add .Where(sq.NotEq) after line 1414",
     "how_to_test": "Insert a card post in a channel. Call GetPostsSince with CollapsedThreads=true — card should not appear in results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsSince CTE query (line 1452) excludes card posts — add AND Posts.Type != 'card' in CTE WHERE (line 1457)",
     "how_to_test": "Insert a card post in a channel. Call GetPostsSince without collapsed threads — card should not appear in results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsSinceForSync (line 1507) excludes card posts via postsQuery",
     "how_to_test": "Insert a card post. Call GetPostsSinceForSync — card should not appear in sync results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsForReporting (line 1590) excludes card posts via postsQuery",
