@@ -36,7 +36,11 @@ type SqlPostStore struct {
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 
+	// postsQueryUnfiltered is a starting point for queries that must see all post types (including cards).
+	postsQueryUnfiltered sq.SelectBuilder
+
 	// postsQuery is a starting point for queries that return one or more Posts.
+	// It excludes card posts by default.
 	postsQuery sq.SelectBuilder
 }
 
@@ -149,9 +153,12 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		maxPostSizeCached: model.PostMessageMaxRunesV1,
 	}
 
-	s.postsQuery = s.getQueryBuilder().
+	s.postsQueryUnfiltered = s.getQueryBuilder().
 		Select(postSliceColumnsWithName("Posts")...).
 		From("Posts")
+
+	s.postsQuery = s.postsQueryUnfiltered.
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard})
 
 	return s
 }
@@ -551,6 +558,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					)
 					CHANNEL_FILTER
 					AND Posts.DeleteAt = 0
+					AND Posts.Type != 'card'
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
@@ -906,7 +914,7 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 }
 
 func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
-	query := s.postsQuery.Where(sq.Eq{"Posts.Id": id})
+	query := s.postsQueryUnfiltered.Where(sq.Eq{"Posts.Id": id})
 
 	replyCountSubQuery := s.getQueryBuilder().
 		Select("COUNT(*)").
@@ -1331,6 +1339,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC")
@@ -1414,6 +1423,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000)
 
@@ -1454,7 +1464,7 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	FROM
 	       Posts
 	WHERE
-	       UpdateAt > ? AND ChannelId = ?
+	       UpdateAt > ? AND ChannelId = ? AND Posts.Type != 'card'
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
@@ -1721,6 +1731,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
+		sq.NotEq{"p.Type": model.PostTypeCard},
 	}
 
 	if !options.IncludeDeleted {
@@ -1863,14 +1874,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	postColumnsP := strings.Join(postSliceColumnsWithName("p"), ", ")
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	if skipFetchThreads {
-		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.Type != 'card' ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND p.Type != 'card' ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	} else {
-		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.Type != 'card' ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND Posts.Type != 'card' ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	}
 
@@ -1915,13 +1926,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+`
+                    Posts.ChannelId = ? AND Posts.Type != 'card' `+deleteAtSubQueryCondition+`
                 ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            q2.ChannelId = ? `+deleteAtQueryCondition+`
+            q2.ChannelId = ? AND q2.Type != 'card' `+deleteAtQueryCondition+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -2159,6 +2170,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		Where(fmt.Sprintf("q2.Type != '%s'", model.PostTypeCard)).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
@@ -2309,7 +2321,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		query += " WHERE"
 	}
 
-	query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ?
+	query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ? AND Posts.Type != 'card'
 		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
 		LIMIT 30`
@@ -2498,6 +2510,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 		Column("(SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
 		From("Posts p").
 		Where(sq.Eq{"p.Id": postIds}).
+		Where(sq.NotEq{"p.Type": model.PostTypeCard}).
 		OrderBy("CreateAt DESC")
 
 	posts := []*model.Post{}
@@ -2511,7 +2524,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 }
 
 func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
-	query := s.postsQuery.
+	query := s.postsQueryUnfiltered.
 		Where(sq.Eq{"Posts.OriginalId": postId}).
 		OrderBy("Posts.EditAt DESC")
 
@@ -2547,7 +2560,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 			ON
 				Posts.ChannelId = Channels.Id
 			WHERE
-				(Posts.CreateAt, Posts.Id) > (?, ?)
+				Posts.Type != 'card'
+				AND (Posts.CreateAt, Posts.Id) > (?, ?)
 			ORDER BY
 				Posts.CreateAt ASC, Posts.Id ASC
 			LIMIT
