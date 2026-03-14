@@ -76,3 +76,17 @@
 - **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/Get$" -v -count=1` — PASS
 - **Notes**: Added card post assertions to `testPostStoreGet` — saves a card post, calls Get() by ID, verifies it's returned with correct type. Confirms Get() is intentionally unfiltered for targeted lookups.
+
+## Session — GetPostsCreatedAt unfiltered verification
+- **Task**: GetPostsCreatedAt (line 2483, raw SQL) is LEFT UNFILTERED — returns card posts
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetPostsCreatedAt" -v -count=1` — PASS
+- **Notes**: No code change needed — GetPostsCreatedAt uses raw SQL without card filter, which is intentional (import dedup, targeted lookup). Added card post to existing test: creates a card post at the same CreateAt, verifies GetPostsCreatedAt returns it alongside normal posts (count goes from 2 to 3).
+
+## Session — Delete operations unfiltered verification
+- **Task**: Delete operations (PermanentDeleteByUser, PermanentDeleteByChannel, PermanentDeleteBatch) are LEFT UNFILTERED — can delete card posts
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/DeleteCardPosts" -v -count=1` — PASS (both subtests)
+- **Notes**: No code change needed — delete operations are intentionally unfiltered so they can delete card posts. Added new test function `testPostStoreDeleteCardPosts` with two subtests: PermanentDeleteByChannel and PermanentDeleteByUser. Both create a card post, delete via the respective method, and verify the card post no longer exists.

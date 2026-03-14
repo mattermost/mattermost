@@ -127,7 +127,7 @@
   {
     "description": "Delete operations (PermanentDeleteByUser, PermanentDeleteByChannel, PermanentDeleteBatch) are LEFT UNFILTERED — can delete card posts",
     "how_to_test": "Insert a card post. Call PermanentDeleteByChannel for that channel — card post should be deleted. Verify post no longer exists.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetOldest (line 2608) is LEFT UNFILTERED — may return card posts",

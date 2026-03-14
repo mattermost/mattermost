@@ -31,6 +31,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
+	t.Run("DeleteCardPosts", func(t *testing.T) { testPostStoreDeleteCardPosts(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
 	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
@@ -1797,6 +1798,67 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 
 	_, err = ss.Post().Get(rctx, o6.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
+}
+
+func testPostStoreDeleteCardPosts(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DeleteCardTest",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	// Create a card post
+	cardPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userID,
+		Message:   "card post for delete test",
+		Type:      model.PostTypeCard,
+	}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	// Verify card post exists via Get (unfiltered single lookup)
+	_, err = ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err, "Card post should exist before deletion")
+
+	t.Run("PermanentDeleteByChannel deletes card posts", func(t *testing.T) {
+		err = ss.Post().PermanentDeleteByChannel(rctx, channel.Id)
+		require.NoError(t, err)
+
+		// Verify card post no longer exists
+		_, err = ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Card post should be deleted by PermanentDeleteByChannel")
+	})
+
+	t.Run("PermanentDeleteByUser deletes card posts", func(t *testing.T) {
+		channel2, err2 := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DeleteCardTest2",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err2)
+
+		cardPost2 := &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "card post for user delete test",
+			Type:      model.PostTypeCard,
+		}
+		cardPost2, err2 = ss.Post().Save(rctx, cardPost2)
+		require.NoError(t, err2)
+
+		err2 = ss.Post().PermanentDeleteByUser(rctx, userID)
+		require.NoError(t, err2)
+
+		_, err2 = ss.Post().Get(rctx, cardPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err2, "Card post should be deleted by PermanentDeleteByUser")
+	})
 }
 
 func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Store) {
