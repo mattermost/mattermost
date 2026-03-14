@@ -5038,7 +5038,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	cardPost.Message = "oldest card post"
 	cardPost.Type = model.PostTypeCard
 	cardPost.CreateAt = 1
-	cardPost, err = ss.Post().Save(rctx, cardPost)
+	_, err = ss.Post().Save(rctx, cardPost)
 	require.NoError(t, err)
 
 	r2, err := ss.Post().GetOldest()
