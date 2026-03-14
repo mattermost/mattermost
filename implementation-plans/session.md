@@ -90,3 +90,17 @@
 - **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/DeleteCardPosts" -v -count=1` — PASS (both subtests)
 - **Notes**: No code change needed — delete operations are intentionally unfiltered so they can delete card posts. Added new test function `testPostStoreDeleteCardPosts` with two subtests: PermanentDeleteByChannel and PermanentDeleteByUser. Both create a card post, delete via the respective method, and verify the card post no longer exists.
+
+## Session — GetOldest unfiltered verification
+- **Task**: GetOldest (line 2608) is LEFT UNFILTERED — may return card posts
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetOldest" -v -count=1` — PASS
+- **Notes**: No code change needed — GetOldest uses raw SQL (`SELECT ... FROM Posts ORDER BY CreateAt LIMIT 1`) without any type filter, which is intentional (system-level query). Added card post with CreateAt=1 to existing test and verified GetOldest still returns a post with the earliest CreateAt without excluding card type.
+
+## Session — GetNthRecentPostTime unfiltered verification
+- **Task**: GetNthRecentPostTime (line 1933) is LEFT UNFILTERED — already filters Type=''
+- **Status**: PASS
+- **Changes**: `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `cd server && go build ./...` — PASS (no store-level test exists for this function)
+- **Notes**: No code change needed — GetNthRecentPostTime already uses `sq.Eq{"p.Type": ""}` which only matches empty-string type posts (standard user posts for cloud limits). Card posts (Type="card") are naturally excluded. No dedicated store test exists; the only reference is in app_test.go via a mock. Build verification confirms no regressions.

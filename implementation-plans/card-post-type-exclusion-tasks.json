@@ -137,7 +137,7 @@
   {
     "description": "GetNthRecentPostTime (line 1933) is LEFT UNFILTERED — already filters Type=''",
     "how_to_test": "Run: go test ./channels/store/sqlstore/ -run TestGetNthRecentPostTime -v — should pass unchanged.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "SetPostReminder existence check (line 3177) is LEFT UNFILTERED — can set reminders on card posts",
