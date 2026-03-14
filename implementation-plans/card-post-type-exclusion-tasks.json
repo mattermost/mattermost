@@ -72,7 +72,7 @@
   {
     "description": "GetPostAfterTime (line 1836) excludes card posts via postsQuery",
     "how_to_test": "Insert a card post at a specific time with no other posts after it. Call GetPostAfterTime with a time before the card — should return nil or next non-card post.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getRootPosts (line 1860) excludes card posts — all 4 raw SQL variants (lines 1866-1873)",

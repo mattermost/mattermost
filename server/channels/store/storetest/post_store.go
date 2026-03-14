@@ -2944,6 +2944,20 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	rPost3, err := ss.Post().GetPostAfterTime(channelID, o2a.CreateAt, false)
 	require.Empty(t, rPost3.Id, "should return no post")
 	require.NoError(t, err)
+
+	// Card post should be excluded from GetPostAfterTime
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channelID
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post"
+	cardPost.Type = model.PostTypeCard
+	_, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	// GetPostAfterTime after o2a should skip the card post and return empty
+	rPost4, err := ss.Post().GetPostAfterTime(channelID, o2a.CreateAt, false)
+	require.NoError(t, err)
+	require.Empty(t, rPost4.Id, "card post should be excluded from GetPostAfterTime")
 }
 
 func testUserCountsWithPostsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
