@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -123,6 +124,7 @@ func init() {
 
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
+	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -310,14 +312,25 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	extractContent, _ := command.Flags().GetBool("extract-content")
+	workers, _ := command.Flags().GetInt("workers")
+
+	maxWorkers := runtime.NumCPU() * 4
+	if workers > maxWorkers {
+		return fmt.Errorf("workers value %d exceeds maximum allowed (%d = 4 * CPU count)", workers, maxWorkers)
+	}
+
+	jobData := map[string]string{
+		"import_file":     importFile,
+		"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
+		"extract_content": strconv.FormatBool(extractContent),
+	}
+	if workers > 0 {
+		jobData["workers"] = strconv.Itoa(workers)
+	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
-		Data: map[string]string{
-			"import_file":     importFile,
-			"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
-			"extract_content": strconv.FormatBool(extractContent),
-		},
+		Data: jobData,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create import process job: %w", err)
