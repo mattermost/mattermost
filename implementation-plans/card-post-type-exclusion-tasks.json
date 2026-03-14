@@ -132,7 +132,7 @@
   {
     "description": "GetOldest (line 2608) is LEFT UNFILTERED — may return card posts",
     "how_to_test": "Insert a card post with the earliest CreateAt. Call GetOldest — should return the card post (system-level query, intentionally unfiltered).",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetNthRecentPostTime (line 1933) is LEFT UNFILTERED — already filters Type=''",

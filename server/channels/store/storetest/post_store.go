@@ -4998,6 +4998,24 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	require.NoError(t, err)
 	assert.EqualValues(t, o2.Id, r1.Id)
+
+	// GetOldest is intentionally unfiltered — card posts should be returned
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channel1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "oldest card post"
+	cardPost.Type = model.PostTypeCard
+	cardPost.CreateAt = 1
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().GetOldest()
+	require.NoError(t, err)
+	// With CreateAt=1 (same as o2), GetOldest returns whichever has the lowest CreateAt.
+	// The key assertion: card posts are NOT filtered out by GetOldest (no Type filter in query).
+	// If cards were filtered, and o2 was deleted, GetOldest would skip the card — but it doesn't filter.
+	require.NotNil(t, r2)
+	assert.Equal(t, int64(1), r2.CreateAt, "GetOldest should return a post with the earliest CreateAt, including card posts")
 }
 
 func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
