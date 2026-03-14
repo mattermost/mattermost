@@ -7,7 +7,6 @@ import type {DialogElement} from '@mattermost/types/integrations';
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {stringToMoment} from 'utils/date_utils';
-import {escapeHtml} from 'utils/text_formatting';
 
 // Dialog element types (from legacy Interactive Dialog spec)
 export const DialogElementTypes = {
@@ -80,13 +79,6 @@ export type ConversionResult = {
     form: AppForm;
     errors: ValidationError[];
 };
-
-/**
- * Sanitize string input to prevent XSS attacks (only for HTML content)
- */
-export function sanitizeString(input: unknown): string {
-    return escapeHtml(String(input));
-}
 
 /**
  * Validate individual dialog element (logs warnings but doesn't block)
@@ -549,7 +541,7 @@ export function convertDialogToAppForm(
     const form: AppForm = {
         title: String(title || ''),
         icon: iconUrl,
-        header: introductionText ? sanitizeString(introductionText) : undefined,
+        header: introductionText ? String(introductionText) : undefined,
         submit_label: submitLabel ? String(submitLabel) : undefined,
         submit: {
             path: '/submit',
