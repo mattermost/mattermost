@@ -102,7 +102,7 @@
   {
     "description": "GetPostsBatchForIndexing (line 2530) excludes card posts — add AND Posts.Type != 'card' (line 2550)",
     "how_to_test": "Insert a card post. Call GetPostsBatchForIndexing covering that time range — card should not appear in indexing batch.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetRepliesForExport (line 2719) excludes card posts via postsQuery",

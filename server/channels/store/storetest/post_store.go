@@ -4403,6 +4403,21 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
 	require.NoError(t, err)
 	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
+
+	// Card posts should be excluded from indexing
+	cardPost := &model.Post{}
+	cardPost.ChannelId = c1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post for indexing"
+	cardPost.Type = model.PostTypeCard
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r, err = ss.Post().GetPostsBatchForIndexing(cardPost.CreateAt-1, "", 100)
+	require.NoError(t, err)
+	for _, p := range r {
+		require.NotEqual(t, cardPost.Id, p.Id, "Card post should not appear in indexing batch")
+	}
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {

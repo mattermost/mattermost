@@ -2560,7 +2560,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 			ON
 				Posts.ChannelId = Channels.Id
 			WHERE
-				(Posts.CreateAt, Posts.Id) > (?, ?)
+				Posts.Type != 'card'
+				AND (Posts.CreateAt, Posts.Id) > (?, ?)
 			ORDER BY
 				Posts.CreateAt ASC, Posts.Id ASC
 			LIMIT
