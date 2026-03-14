@@ -59,6 +59,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, rctx, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, rctx, ss, s) })
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, rctx, ss) })
+	t.Run("GetPostsByThread", func(t *testing.T) { testPostStoreGetPostsByThread(t, rctx, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
@@ -1021,6 +1022,35 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
 		require.True(t, *r1.HasNext)
 	})
+}
+
+func testPostStoreGetPostsByThread(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "GetPostsByThread",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	// Create root post
+	root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+	require.NoError(t, err)
+
+	// Create normal reply
+	normalReply, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "normal reply", RootId: root.Id})
+	require.NoError(t, err)
+
+	// Create card reply
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "card reply", RootId: root.Id, Type: model.PostTypeCard})
+	require.NoError(t, err)
+
+	// GetPostsByThread should exclude card posts
+	posts, err := ss.Post().GetPostsByThread(root.Id, 0)
+	require.NoError(t, err)
+	require.Len(t, posts, 1, "card reply should be excluded")
+	require.Equal(t, normalReply.Id, posts[0].Id)
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {

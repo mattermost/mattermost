@@ -62,7 +62,7 @@
   {
     "description": "GetPostsByThread (line 1672) excludes card posts via postsQuery",
     "how_to_test": "Create a thread with a normal root post. Insert a card post as a reply (same RootId). Call GetPostsByThread — card reply should not appear.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getPostsAround (line 1687) excludes card posts — add sq.NotEq to conditions (line 1724)",
