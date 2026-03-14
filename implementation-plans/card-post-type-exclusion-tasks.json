@@ -152,6 +152,6 @@
   {
     "description": "Full integration: card posts are invisible in channel feed end-to-end",
     "how_to_test": "Start server. Insert a card post via SQL INSERT into a channel. Hit GET /api/v4/channels/{id}/posts — card should not appear. Hit GET /api/v4/posts/{card_id} — card should be returned (single get is unfiltered).",
-    "passes": false
+    "passes": true
   }
 ]

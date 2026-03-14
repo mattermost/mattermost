@@ -118,3 +118,14 @@
 - **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/ThreadMetadataCountsCardReplies" -v -count=1` — PASS
 - **Notes**: No code change needed — thread metadata subqueries (participant calculation at line 3111, reply count at line 3122) use raw SQL without type filters, which is intentional (internal bookkeeping should count all post types). Added new test `testThreadMetadataCountsCardReplies` that creates a thread with both a normal reply and a card reply, then verifies `Thread.ReplyCount == 2` and `len(Thread.Participants) == 2`, confirming card replies are counted.
+
+## Session — Full integration: card posts invisible in channel feed end-to-end
+- **Task**: Full integration: card posts are invisible in channel feed end-to-end
+- **Status**: PASS
+- **Changes**: `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: Manual API test against running server:
+  1. Created card post via `POST /api/v4/posts` with `type: "card"` — succeeded (ID: knomom1dzpbr3rncrpixkcjnxh)
+  2. Created normal post — succeeded (ID: 6pyzt5hnopdo9fjzu3focdbfoo)
+  3. `GET /api/v4/channels/{id}/posts` — card post NOT in `posts` map, NOT in `order` array; normal post present ✓
+  4. `GET /api/v4/posts/{card_id}` — card post returned with `type: "card"` ✓
+- **Notes**: Server had to be restarted (`make restart-server`) to pick up the `PostTypeCard` constant added in earlier sessions. No code changes needed for this task — it's a verification-only task confirming the end-to-end behavior of all prior exclusions working together through the API layer.
