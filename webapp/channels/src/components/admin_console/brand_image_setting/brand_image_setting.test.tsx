@@ -1,20 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import nock from 'nock';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {screen, renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
-
-jest.mock('actions/admin_actions.jsx', () => ({
-    ...jest.requireActual('actions/admin_actions.jsx'),
-    uploadBrandImage: jest.fn(),
-    deleteBrandImage: jest.fn(),
-}));
 
 Client4.setUrl('http://localhost:8065');
 
@@ -26,21 +20,59 @@ describe('components/admin_console/brand_image_setting', () => {
         unRegisterSaveAction: jest.fn(),
     };
 
-    test('should have called deleteBrandImage or uploadBrandImage on save depending on component state', () => {
-        const wrapper = shallow<BrandImageSetting>(
-            <BrandImageSetting {...baseProps}/>,
-        );
+    const deleteButtonTestId = 'remove-image__btn';
 
-        const instance = wrapper.instance();
+    let scope: nock.Scope;
 
-        wrapper.setState({deleteBrandImage: false, brandImage: new Blob(['brand_image_file'])});
-        instance.handleSave();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(0);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+    beforeAll(() => {
+        scope = nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
+    });
 
-        wrapper.setState({deleteBrandImage: true, brandImage: undefined});
-        instance.handleSave();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(1);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+    afterAll(() => {
+        nock.cleanAll();
+    });
+
+    test('should register and unregister save handler when mounted and unmounted respectively', () => {
+        const {unmount} = renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        expect(baseProps.registerSaveAction).toHaveBeenCalledTimes(1);
+
+        unmount();
+
+        expect(baseProps.unRegisterSaveAction).toHaveBeenCalledTimes(1);
+    });
+
+    test('should show delete button if brand image exists', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        await waitFor(() => expect(scope.isDone()).toBe(true));
+
+        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+    });
+
+    test('should hide delete button if the setting is disabled', async () => {
+        const props = {...baseProps, disabled: true};
+
+        renderWithContext(<BrandImageSetting {...props}/>);
+
+        await waitFor(() => expect(screen.queryByTestId(deleteButtonTestId)).toBe(null));
+    });
+
+    test('should call setSaveNeeded when a brand image is uploaded', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
+
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
+    });
+
+    test('should call setSaveNeeded when the delete button is pressed', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        const deleteButton = await screen.findByTestId(deleteButtonTestId);
+
+        await userEvent.click(deleteButton);
+
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
 });
