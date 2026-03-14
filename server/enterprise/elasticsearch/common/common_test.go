@@ -428,10 +428,11 @@ func TestESPostFromPost_CreatePostJSONRoundTrip(t *testing.T) {
 	}
 	original.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{
 		{
-			Title:   "Account: Acme Corp / Widget Industries, LLC",
-			Text:    "Renewal ARR: $49,140.00",
-			Pretext: "#closedwon #renewal",
-			Footer:  "Opportunity #OPP-000035341 • United States",
+			Title:      "Account: Acme Corp / Widget Industries, LLC",
+			Text:       "Renewal ARR: $49,140.00",
+			Pretext:    "#closedwon #renewal",
+			Footer:     "Opportunity #OPP-000035341 • United States",
+			AuthorName: "CRM Bot",
 			Fields: []*model.MessageAttachmentField{
 				{Title: "Sales Rep", Value: "Jane Smith"},
 				{Title: "Account Manager", Value: "John Doe"},
@@ -472,8 +473,9 @@ func TestESPostFromPost_CreatePostJSONRoundTrip(t *testing.T) {
 	assert.Contains(t, esPost.Attachments, "Acme Corp / Widget Industries, LLC - Enterprise - 350 Seats - '26 Renewal", "field value should be indexed")
 	assert.Contains(t, esPost.Attachments, "350", "numeric field value should be indexed")
 
-	// Footer
+	// Footer and AuthorName
 	assert.Contains(t, esPost.Attachments, "Opportunity #OPP-000035341 • United States", "footer should be indexed")
+	assert.Contains(t, esPost.Attachments, "CRM Bot", "author_name should be indexed")
 
 	t.Logf("Attachments field content: %s", esPost.Attachments)
 }
