@@ -12,7 +12,7 @@
   {
     "description": "Add postsQueryUnfiltered field to SqlPostStore struct and initialize both builders in newSqlPostStore",
     "how_to_test": "Run: cd server && go build ./... — should compile without errors",
-    "passes": false
+    "passes": true
   },
   {
     "description": "postsQuery base builder excludes card posts by default",

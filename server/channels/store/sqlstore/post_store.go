@@ -36,7 +36,11 @@ type SqlPostStore struct {
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 
+	// postsQueryUnfiltered is a starting point for queries that must see all post types (including cards).
+	postsQueryUnfiltered sq.SelectBuilder
+
 	// postsQuery is a starting point for queries that return one or more Posts.
+	// It excludes card posts by default.
 	postsQuery sq.SelectBuilder
 }
 
@@ -149,9 +153,12 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		maxPostSizeCached: model.PostMessageMaxRunesV1,
 	}
 
-	s.postsQuery = s.getQueryBuilder().
+	s.postsQueryUnfiltered = s.getQueryBuilder().
 		Select(postSliceColumnsWithName("Posts")...).
 		From("Posts")
+
+	s.postsQuery = s.postsQueryUnfiltered.
+		Where(sq.NotEq{"Posts.Type": model.PostTypeCard})
 
 	return s
 }
