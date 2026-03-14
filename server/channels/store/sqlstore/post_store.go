@@ -1925,13 +1925,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+`
+                    Posts.ChannelId = ? AND Posts.Type != 'card' `+deleteAtSubQueryCondition+`
                 ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            q2.ChannelId = ? `+deleteAtQueryCondition+`
+            q2.ChannelId = ? AND q2.Type != 'card' `+deleteAtQueryCondition+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)

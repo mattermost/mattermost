@@ -82,7 +82,7 @@
   {
     "description": "getParentsPosts (line 1884) excludes card posts — inner subquery (line 1918) and outer WHERE (line 1924)",
     "how_to_test": "Insert a card post in a channel with threaded posts. Call GetPosts (non-collapsed) — card should not appear in parent posts.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getFlaggedPosts (line 525) excludes card posts — add AND Posts.Type != 'card' (line 553)",

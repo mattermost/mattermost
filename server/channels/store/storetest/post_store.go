@@ -2875,6 +2875,59 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=true, includeDeleted=true)")
 	})
+
+	t.Run("should exclude card posts from getParentsPosts", func(t *testing.T) {
+		// getParentsPosts is invoked by GetPosts (non-collapsed) to fetch thread parent posts.
+		// We need a threaded conversation so that getParentsPosts returns results.
+		channel3, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "CardParentsTestChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post and a reply so getParentsPosts has something to fetch
+		rootPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "root post",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		replyPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "reply post",
+			RootId:    rootPost.Id,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Create a card post — should NOT appear in results
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "card post in thread channel",
+			Type:      model.PostTypeCard,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// GetPosts with CollapsedThreads=false triggers getRootPosts + getParentsPosts
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel3.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// The card post should not be in Order or Posts
+		for _, id := range postList.Order {
+			post := postList.Posts[id]
+			require.NotEqual(t, model.PostTypeCard, post.Type, "card post should be excluded from getParentsPosts results")
+		}
+		// Should contain rootPost and replyPost
+		assert.Contains(t, postList.Order, rootPost.Id, "root post should be in results")
+		assert.Contains(t, postList.Order, replyPost.Id, "reply post should be in results")
+	})
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
