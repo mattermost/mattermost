@@ -7,7 +7,7 @@
   {
     "description": "Add PostTypeCard to IsValid() switch case in model/post.go",
     "how_to_test": "Run: go test ./public/model/ -run TestPostIsValid -v — creating a Post with Type='card' should not return a validation error",
-    "passes": false
+    "passes": true
   },
   {
     "description": "Add postsQueryUnfiltered field to SqlPostStore struct and initialize both builders in newSqlPostStore",
