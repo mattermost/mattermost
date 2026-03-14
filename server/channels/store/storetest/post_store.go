@@ -664,6 +664,16 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.Post().Get(rctx, "", model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "should fail for blank post ids")
+
+	// Get() is intentionally unfiltered — card posts should be returned by known ID
+	cardPost := &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "card post for Get test", Type: model.PostTypeCard}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	require.Contains(t, r2.Posts, cardPost.Id, "Get() should return card posts by known ID")
+	require.Equal(t, model.PostTypeCard, r2.Posts[cardPost.Id].Type)
 }
 
 func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {

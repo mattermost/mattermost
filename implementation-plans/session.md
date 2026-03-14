@@ -62,3 +62,17 @@
 - **Changes**: `implementation-plans/card-post-type-exclusion-tasks.json`, `implementation-plans/session.md`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/GetRepliesForExport" -v -count=1` — PASS
 - **Notes**: No code change needed — GetRepliesForExport already uses `s.postsQuery` (line 2737) which excludes card posts via the base builder's `Where(sq.NotEq{"Posts.Type": model.PostTypeCard})`. Existing test passes.
+
+## Session — AnalyticsUserCountsWithPostsByDay card exclusion
+- **Task**: AnalyticsUserCountsWithPostsByDay (~line 2298) excludes card posts — add AND Posts.Type != 'card'
+- **Status**: PASS
+- **Changes**: `server/channels/store/sqlstore/post_store.go`, `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/UserCountsWithPostsByDay" -v -count=1` — PASS
+- **Notes**: Added `AND Posts.Type != 'card'` to the raw SQL WHERE clause in `AnalyticsUserCountsWithPostsByDay`. Added a card post with a unique UserId to the existing test to verify it doesn't inflate the distinct user count.
+
+## Session — Get() unfiltered verification
+- **Task**: Get() single post by ID (line 747, raw SQL) is LEFT UNFILTERED — returns card posts
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/Get$" -v -count=1` — PASS
+- **Notes**: Added card post assertions to `testPostStoreGet` — saves a card post, calls Get() by ID, verifies it's returned with correct type. Confirms Get() is intentionally unfiltered for targeted lookups.

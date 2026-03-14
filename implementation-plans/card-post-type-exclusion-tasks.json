@@ -117,7 +117,7 @@
   {
     "description": "Get() single post by ID (line 747, raw SQL) is LEFT UNFILTERED — returns card posts",
     "how_to_test": "Insert a card post. Call Get() with that post ID — should successfully return the card post (this is intentional, targeted lookup by known ID).",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsCreatedAt (line 2483, raw SQL) is LEFT UNFILTERED — returns card posts",
