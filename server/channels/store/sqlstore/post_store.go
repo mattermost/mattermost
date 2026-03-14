@@ -913,7 +913,7 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 }
 
 func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
-	query := s.postsQuery.Where(sq.Eq{"Posts.Id": id})
+	query := s.postsQueryUnfiltered.Where(sq.Eq{"Posts.Id": id})
 
 	replyCountSubQuery := s.getQueryBuilder().
 		Select("COUNT(*)").

@@ -22,7 +22,7 @@
   {
     "description": "GetSingle (line 909) uses postsQueryUnfiltered — returns card posts when fetched by ID",
     "how_to_test": "Insert a card post via SQL, call GetSingle with its ID — should return the card post. Then call GetSingle with a normal post ID — should also return it.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetEditHistoryForPost (line 2514) uses postsQueryUnfiltered — returns edit history for card posts",
