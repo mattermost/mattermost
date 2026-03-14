@@ -558,6 +558,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					)
 					CHANNEL_FILTER
 					AND Posts.DeleteAt = 0
+					AND Posts.Type != 'card'
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId

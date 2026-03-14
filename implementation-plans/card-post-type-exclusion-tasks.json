@@ -87,7 +87,7 @@
   {
     "description": "getFlaggedPosts (line 525) excludes card posts — add AND Posts.Type != 'card' (line 553)",
     "how_to_test": "Flag a card post via Preferences. Call GetFlaggedPostsForUser — card should not appear in flagged results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "search() function (line 2146) excludes card posts — add filter after system post filter (line 2161)",

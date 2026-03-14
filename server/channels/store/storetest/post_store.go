@@ -3766,6 +3766,33 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
+
+	// Card posts should be excluded from flagged posts
+	oCard := &model.Post{}
+	oCard.ChannelId = c1.Id
+	oCard.UserId = o1.UserId
+	oCard.Message = "card post"
+	oCard.Type = model.PostTypeCard
+	oCard, err = ss.Post().Save(rctx, oCard)
+	require.NoError(t, err)
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     oCard.Id,
+			Value:    "true",
+		},
+	}
+	nErr = ss.Preference().Save(preferences)
+	require.NoError(t, nErr)
+
+	r5, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, r5.Order, 2, "card post should not appear in flagged posts")
+	for _, postId := range r5.Order {
+		require.NotEqual(t, oCard.Id, postId, "card post should be excluded from flagged posts")
+	}
 }
 
 func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
