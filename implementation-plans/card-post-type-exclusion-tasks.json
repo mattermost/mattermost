@@ -57,7 +57,7 @@
   {
     "description": "GetPostsForReporting (line 1590) excludes card posts via postsQuery",
     "how_to_test": "Insert a card post. Call GetPostsForReporting — card should not appear in reporting results.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "GetPostsByThread (line 1672) excludes card posts via postsQuery",
