@@ -77,7 +77,7 @@
   {
     "description": "getRootPosts (line 1860) excludes card posts — all 4 raw SQL variants (lines 1866-1873)",
     "how_to_test": "Insert a card post in a channel. Call GetPosts (non-collapsed, skipFetchThreads=true and false, includeDeleted=true and false) — card should not appear in any variant.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "getParentsPosts (line 1884) excludes card posts — inner subquery (line 1918) and outer WHERE (line 1924)",

@@ -2827,6 +2827,54 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NotNil(t, postList.Posts[post3.Id])
 		assert.NotNil(t, postList.Posts[post4.Id])
 	})
+
+	t.Run("should exclude card posts from all getRootPosts variants", func(t *testing.T) {
+		// Create a fresh channel to avoid interference from deleted posts above
+		channel2, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "CardTestChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		normalPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "normal post",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Variant 1: skipFetchThreads=false, includeDeleted=false
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=false, includeDeleted=false)")
+
+		// Variant 2: skipFetchThreads=true, includeDeleted=false
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=true, includeDeleted=false)")
+
+		// Variant 3: skipFetchThreads=false, includeDeleted=true
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=false, includeDeleted=true)")
+
+		// Variant 4: skipFetchThreads=true, includeDeleted=true
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=true, includeDeleted=true)")
+	})
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
