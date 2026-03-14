@@ -16,6 +16,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
         post_preview: {
             id: 'post_preview_field_id',
@@ -28,6 +31,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
         channel: {
             id: 'channel_field_id',
@@ -40,6 +46,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
         team: {
             id: 'team_field_id',
@@ -52,6 +61,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
         post_author: {
             id: 'post_author_field_id',
@@ -64,6 +76,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
         post_creation_time: {
             id: 'post_creation_time_field_id',
@@ -76,6 +91,9 @@ export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyF
             delete_at: 0,
             created_by: '',
             updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
         },
     };
 }

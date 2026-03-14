@@ -23,6 +23,9 @@ describe('components/ProfilePopoverTextAttribute', () => {
         delete_at: 0,
         created_by: '',
         updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             value_type: 'phone',
             visibility: 'when_set',
