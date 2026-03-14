@@ -185,7 +185,10 @@ test('MM-65630-4 Search popout should not show popout button in the popout windo
 
     await expect(page.locator('#searchContainer')).toBeVisible();
 
-    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), page.locator('#searchContainer .PopoutButton').click()]);
+    const [popoutPage] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.locator('#searchContainer .PopoutButton').click(),
+    ]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
