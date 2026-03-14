@@ -147,7 +147,7 @@
   {
     "description": "Thread metadata subqueries (reply counts at lines 3097-3114) are LEFT UNFILTERED",
     "how_to_test": "Create a thread with normal replies. Verify reply count is correct. Thread metadata queries are internal bookkeeping and should count all post types.",
-    "passes": false
+    "passes": true
   },
   {
     "description": "Full integration: card posts are invisible in channel feed end-to-end",

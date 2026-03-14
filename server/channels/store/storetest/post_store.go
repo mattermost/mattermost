@@ -61,6 +61,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, rctx, ss, s) })
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, rctx, ss) })
 	t.Run("GetPostsByThread", func(t *testing.T) { testPostStoreGetPostsByThread(t, rctx, ss) })
+	t.Run("ThreadMetadataCountsCardReplies", func(t *testing.T) { testThreadMetadataCountsCardReplies(t, rctx, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
@@ -1062,6 +1063,37 @@ func testPostStoreGetPostsByThread(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 	require.Len(t, posts, 1, "card reply should be excluded")
 	require.Equal(t, normalReply.Id, posts[0].Id)
+}
+
+func testThreadMetadataCountsCardReplies(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ThreadMetadataCardTest",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	// Create root post
+	root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+	require.NoError(t, err)
+
+	// Create normal reply
+	normalUserId := model.NewId()
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: normalUserId, Message: "normal reply", RootId: root.Id})
+	require.NoError(t, err)
+
+	// Create card reply from a different user
+	cardUserId := model.NewId()
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: cardUserId, Message: "card reply", RootId: root.Id, Type: model.PostTypeCard})
+	require.NoError(t, err)
+
+	// Thread metadata should count ALL replies including card posts (intentionally unfiltered)
+	thread, err := ss.Thread().Get(root.Id)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, thread.ReplyCount, "thread reply count should include card replies")
+	require.Len(t, thread.Participants, 2, "thread participants should include card reply author")
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {

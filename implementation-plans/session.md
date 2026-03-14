@@ -111,3 +111,10 @@
 - **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
 - **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/.*/SetPostReminder" -v -count=1` — PASS
 - **Notes**: No code change needed — SetPostReminder uses raw SQL `SELECT EXISTS (SELECT 1 FROM Posts WHERE Id=?)` without any type filter, which is intentional (should be able to set reminders on card posts). Added card post test case to existing `testSetPostReminder` that creates a card post and verifies SetPostReminder succeeds on it.
+
+## Session — Thread metadata subqueries unfiltered verification
+- **Task**: Thread metadata subqueries (reply counts at lines 3097-3114) are LEFT UNFILTERED
+- **Status**: PASS
+- **Changes**: `server/channels/store/storetest/post_store.go`, `implementation-plans/card-post-type-exclusion-tasks.json`
+- **Tests run**: `go test ./channels/store/sqlstore/ -run "TestPostStore/PostgreSQL/ThreadMetadataCountsCardReplies" -v -count=1` — PASS
+- **Notes**: No code change needed — thread metadata subqueries (participant calculation at line 3111, reply count at line 3122) use raw SQL without type filters, which is intentional (internal bookkeeping should count all post types). Added new test `testThreadMetadataCountsCardReplies` that creates a thread with both a normal reply and a card reply, then verifies `Thread.ReplyCount == 2` and `len(Thread.Participants) == 2`, confirming card replies are counted.
