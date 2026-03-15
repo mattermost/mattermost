@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    FileTypes,
     PostTypes,
     SearchTypes,
     UserTypes,
@@ -181,6 +182,67 @@ describe('reducers.entities.search', () => {
 
             const actualState = reducer({fileResults: inputState} as SearchState, action);
             expect(actualState.fileResults).toEqual(expectedState);
+        });
+
+        describe('PostTypes.POST_REMOVED', () => {
+            it('removes files in deleted post from file results', () => {
+                const inputState = ['abcd', 'efgh'];
+                const action = {
+                    type: PostTypes.POST_REMOVED,
+                    data: {
+                        id: '1234',
+                        file_ids: ['abcd'],
+                    },
+                };
+                const expectedState = ['efgh'];
+
+                const actualState = reducer({fileResults: inputState} as SearchState, action);
+                expect(actualState.fileResults).toEqual(expectedState);
+            });
+
+            it('does not remove files in deleted post from file results', () => {
+                const inputState = ['abcd', 'efgh'];
+                const action = {
+                    type: PostTypes.POST_REMOVED,
+                    data: {
+                        id: '1234',
+                        file_ids: ['bedc'],
+                    },
+                };
+                const expectedState = ['abcd', 'efgh'];
+
+                const actualState = reducer({fileResults: inputState} as SearchState, action);
+                expect(actualState.fileResults).toEqual(expectedState);
+            });
+        });
+
+        describe('FileTypes.REMOVED_FILE', () => {
+            it('removes file from search results when deleted file in post is in the file results', () => {
+                const inputState = ['abcd', 'efgh'];
+                const action = {
+                    type: FileTypes.REMOVED_FILE,
+                    data: {
+                        fileIds: ['abcd'],
+                    },
+                };
+                const expectedState = ['efgh'];
+
+                const actualState = reducer({fileResults: inputState} as SearchState, action);
+                expect(actualState.fileResults).toEqual(expectedState);
+            })
+            it('does not remove file from search results if file deleted in post is not in the file results', () => {
+                const inputState = ['abcd', 'efgh'];
+                const action = {
+                    type: FileTypes.REMOVED_FILE,
+                    data: {
+                        fileIds: ['bedc'],
+                    },
+                };
+                const expectedState = ['abcd', 'efgh'];
+
+                const actualState = reducer({fileResults: inputState} as SearchState, action);
+                expect(actualState.fileResults).toEqual(expectedState);
+            })
         });
     });
 
