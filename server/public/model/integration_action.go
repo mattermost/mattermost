@@ -677,8 +677,8 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MaxDate))
 		// Validate time_interval for datetime fields
 		timeInterval := e.TimeInterval
 		if timeInterval == 0 {
@@ -734,14 +734,15 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S
+// Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
-	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	lastChar := value[len(value)-1]
+	if !strings.ContainsRune("dwmHMS", rune(lastChar)) {
 		return false
 	}
 
@@ -792,6 +793,13 @@ func validateDateTimeFormat(dateTimeStr string) error {
 	}
 
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
+}
+
+func validateDateOrDateTimeFormat(value string) error {
+	if validateDateFormat(value) == nil {
+		return nil
+	}
+	return validateDateTimeFormat(value)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {
