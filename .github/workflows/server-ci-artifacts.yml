@@ -100,8 +100,15 @@ jobs:
 
       - name: cd/set-docker-tag
         id: set_tag
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          echo "TAG=$(echo '${{ github.event.workflow_run.head_sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
+          if [[ ! "$HEAD_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+            echo "::error::Invalid head_sha: not a valid commit SHA"
+            exit 1
+          fi
+          TAG="${HEAD_SHA:0:7}"
+          printf 'TAG=%s\n' "$TAG" >> "$GITHUB_OUTPUT"
 
       - name: cd/docker-build-and-push
         id: docker
@@ -134,20 +141,23 @@ jobs:
     steps:
       - name: cd/setup-wizcli
         run: |
-          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          curl -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
           chmod +x wizcli
-          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
-        env:
-          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
-          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
 
       - name: cd/download-container-image
+        env:
+          TAG: ${{ needs.build-docker.outputs.TAG }}
         run: |
-          docker pull mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }}
+          docker pull "mattermostdevelopment/mattermost-team-edition:${TAG}"
 
       - name: cd/scan-image
+        env:
+          TAG: ${{ needs.build-docker.outputs.TAG }}
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
         run: |
-          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
+          ./wizcli scan container-image "mattermostdevelopment/mattermost-team-edition:${TAG}" --policies "$POLICY"
+          ./wizcli tag "mattermostdevelopment/mattermost-team-edition:${TAG}"
 
   update-failure-final-status:
     if: (failure() || cancelled()) && github.event.workflow_run.event == 'pull_request'
