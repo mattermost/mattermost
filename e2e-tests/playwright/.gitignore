@@ -14,3 +14,8 @@ test/.eslintcache
 # build
 dist
 *.tsbuildinfo
+
+# e2e-agents: ignore ephemeral artifacts (plan.json, metrics, reports)
+# but keep route-families.json — the static knowledge graph checked into git
+.e2e-ai-agents/*
+!.e2e-ai-agents/route-families.json

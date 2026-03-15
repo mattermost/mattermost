@@ -1,0 +1,73 @@
+{
+    "profile": "mattermost",
+    "path": "../../webapp",
+    "testsRoot": ".",
+    "framework": "playwright",
+    "mode": "impact",
+    "llm": {
+        "provider": "auto",
+        "fallback": "ollama"
+    },
+    "git": {
+        "since": "origin/master",
+        "includeUncommitted": false
+    },
+    "testDiscovery": {
+        "patterns": ["specs/**/*.spec.ts", "../cypress/tests/integration/**/*.js"]
+    },
+    "impact": {
+        "aiFlow": {
+            "enabled": true,
+            "provider": "auto"
+        },
+        "aiMapping": {
+            "enabled": true,
+            "provider": "auto"
+        },
+        "traceability": {
+            "enabled": true,
+            "manifestPath": ".e2e-ai-agents/traceability.json",
+            "minSignalsPerTest": 2
+        },
+        "dependencyGraph": {
+            "enabled": true,
+            "maxDepth": 3,
+            "maxExpandedFiles": 1200,
+            "filePatterns": ["**/*.{ts,tsx,js,jsx}"],
+            "excludePatterns": [
+                "**/node_modules/**",
+                "**/.git/**",
+                "**/dist/**",
+                "**/build/**",
+                "**/coverage/**",
+                "**/__tests__/**",
+                "**/tests/**",
+                "**/*.spec.*",
+                "**/*.test.*"
+            ]
+        }
+    },
+    "routeFamilies": {
+        "strict": true
+    },
+    "apiSurface": {
+        "enabled": true,
+        "pageObjectsDir": "lib/src/ui/pages",
+        "componentsDir": "lib/src/ui/components"
+    },
+    "pipeline": {
+        "enabled": false,
+        "outputDir": "specs/functional/ai-assisted",
+        "heal": true,
+        "mcp": true,
+        "mcpAllowFallback": false,
+        "mcpRetries": 1
+    },
+    "policy": {
+        "minConfidenceForTargeted": 75,
+        "safeMergeMinConfidence": 90,
+        "forceFullOnWarningsAtOrAbove": 3,
+        "enforcementMode": "block",
+        "blockOnActions": ["must-add-tests"]
+    }
+}

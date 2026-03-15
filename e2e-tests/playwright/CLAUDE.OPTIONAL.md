@@ -6,6 +6,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the Playwright E2E testing suite for Mattermost. It contains end-to-end tests for validating the Mattermost web application functionality using the Playwright testing framework.
 
+## Agent Context: Canonical Role Setup
+
+Use these exact setup patterns in generated tests.
+
+### Member/User flow
+
+```ts
+const {user} = await pw.initSetup();
+const {channelsPage, page} = await pw.testBrowser.login(user);
+
+await channelsPage.goto();
+await channelsPage.toBeVisible();
+```
+
+### Admin/System Console flow
+
+```ts
+const {adminUser, adminClient} = await pw.initSetup();
+const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+await systemConsolePage.goto();
+await systemConsolePage.toBeVisible();
+```
+
+### Guardrails for generated tests
+
+- Do not invent new APIs like `pw.mainClient`, `pw.browser`, or custom `pw.*` clients that do not exist in this repo.
+- Prefer existing page objects (`channelsPage`, `systemConsolePage`) over raw brittle CSS selectors.
+- Keep tests as standalone `test()` blocks (avoid `test.describe` in generated `@ai-assisted` specs).
+- Tag generated specs with `{tag: '@ai-assisted'}` and include the full JSDoc/test metadata block (see "Test Documentation Format" section below) so they pass `lint:test-docs`.
+
 ## Key Commands
 
 ### Installation

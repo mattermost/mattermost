@@ -41,6 +41,14 @@ on:
         type: string
         required: false
         description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+      llm_provider:
+        type: string
+        required: false
+        default: auto
+      impact_auto_apply_heal:
+        type: boolean
+        required: false
+        default: false
     secrets:
       MM_LICENSE:
         required: false
@@ -50,6 +58,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      ANTHROPIC_API_KEY:
+        required: false
 
 jobs:
   generate-build-variables:
@@ -151,8 +161,11 @@ jobs:
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
       context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+      llm_provider: ${{ inputs.llm_provider }}
+      impact_auto_apply_heal: ${{ inputs.impact_auto_apply_heal }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
