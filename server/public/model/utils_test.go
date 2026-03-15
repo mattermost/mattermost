@@ -1431,3 +1431,45 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestIsValidLinkURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		// Valid HTTP/HTTPS URLs
+		{"valid http", "http://example.com", true},
+		{"valid https", "https://example.com", true},
+		{"valid https with path", "https://example.com/path/to/page", true},
+		{"valid https with query", "https://example.com?param=value", true},
+
+		// Valid mattermost:// URLs
+		{"valid mattermost scheme", "mattermost://team/channels/channel", true},
+		{"valid mattermost with path", "mattermost://team/pl/postid", true},
+
+		// Invalid - dangerous schemes
+		{"javascript scheme", "javascript:alert('xss')", false},
+		{"data scheme", "data:text/html,<script>alert('xss')</script>", false},
+		{"file scheme", "file:///etc/passwd", false},
+		{"vbscript scheme", "vbscript:msgbox('xss')", false},
+		{"about scheme", "about:blank", false},
+
+		// Invalid - unsupported schemes
+		{"custom scheme", "customapp://path", false},
+		{"slack scheme", "slack://channel", false},
+
+		// Invalid - malformed URLs
+		{"no scheme", "example.com", false},
+		{"empty string", "", false},
+		{"http without host", "http://", false},
+		{"https without host", "https://", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsValidLinkURL(tt.url)
+			assert.Equal(t, tt.expected, result, "IsValidLinkURL(%q) = %v, want %v", tt.url, result, tt.expected)
+		})
+	}
+}
