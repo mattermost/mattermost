@@ -339,6 +339,75 @@ func TestMemoryStoreListKeys(t *testing.T) {
 		assert.Equal(t, []string{"k_6"}, keys)
 	})
 
+	t.Run("with prefix basic match", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for _, key := range []string{"alpha_1", "alpha_2", "beta_1", "beta_2"} {
+			ok, err := store.Set(key, "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		keys, err := store.ListKeys(0, 200, pluginapi.WithPrefix("alpha_"))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"alpha_1", "alpha_2"}, keys)
+	})
+
+	t.Run("with prefix no match", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for _, key := range []string{"alpha_1", "alpha_2"} {
+			ok, err := store.Set(key, "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		keys, err := store.ListKeys(0, 200, pluginapi.WithPrefix("beta_"))
+		assert.NoError(t, err)
+		assert.Empty(t, keys)
+	})
+
+	t.Run("with prefix and checker", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for _, key := range []string{"p_1", "p_2", "p_3", "other_1"} {
+			ok, err := store.Set(key, "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		check := func(key string) (bool, error) {
+			return key != "p_2", nil
+		}
+
+		keys, err := store.ListKeys(0, 200, pluginapi.WithPrefix("p_"), pluginapi.WithChecker(check))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"p_1", "p_3"}, keys)
+	})
+
+	t.Run("with prefix pagination", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for i := range 10 {
+			ok, err := store.Set(fmt.Sprintf("p_%02d", i), "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+		for i := range 5 {
+			ok, err := store.Set(fmt.Sprintf("other_%02d", i), "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		keys, err := store.ListKeys(0, 4, pluginapi.WithPrefix("p_"))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"p_00", "p_01", "p_02", "p_03"}, keys)
+
+		keys, err = store.ListKeys(1, 4, pluginapi.WithPrefix("p_"))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"p_04", "p_05", "p_06", "p_07"}, keys)
+
+		keys, err = store.ListKeys(2, 4, pluginapi.WithPrefix("p_"))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"p_08", "p_09"}, keys)
+	})
+
 	t.Run("with expired entries", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		for i := range 7 {
