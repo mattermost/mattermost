@@ -2755,6 +2755,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("License").Return(th.App.Srv().Store().License())
 	mockStore.On("Role").Return(th.App.Srv().Store().Role())
 	mockStore.On("Close").Return(nil)
+	mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 
 	// Playbooks DB job requires a plugin mock
 	pluginStore := mocks.PluginStore{}

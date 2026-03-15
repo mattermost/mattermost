@@ -48,6 +48,7 @@ type TimerLayer struct {
 	PostAcknowledgementStore        store.PostAcknowledgementStore
 	PostPersistentNotificationStore store.PostPersistentNotificationStore
 	PostPriorityStore               store.PostPriorityStore
+	PostReadStatusStore             store.PostReadStatusStore
 	PreferenceStore                 store.PreferenceStore
 	ProductNoticesStore             store.ProductNoticesStore
 	PropertyFieldStore              store.PropertyFieldStore
@@ -191,6 +192,10 @@ func (s *TimerLayer) PostPersistentNotification() store.PostPersistentNotificati
 
 func (s *TimerLayer) PostPriority() store.PostPriorityStore {
 	return s.PostPriorityStore
+}
+
+func (s *TimerLayer) PostReadStatus() store.PostReadStatusStore {
+	return s.PostReadStatusStore
 }
 
 func (s *TimerLayer) Preference() store.PreferenceStore {
@@ -443,6 +448,11 @@ type TimerLayerPostPersistentNotificationStore struct {
 
 type TimerLayerPostPriorityStore struct {
 	store.PostPriorityStore
+	Root *TimerLayer
+}
+
+type TimerLayerPostReadStatusStore struct {
+	store.PostReadStatusStore
 	Root *TimerLayer
 }
 
@@ -7602,6 +7612,22 @@ func (s *TimerLayerPostPriorityStore) Save(priority *model.PostPriority) (*model
 	return result, err
 }
 
+func (s *TimerLayerPostReadStatusStore) SaveMultiple(statuses []*model.PostReadStatus) error {
+	start := time.Now()
+
+	err := s.PostReadStatusStore.SaveMultiple(statuses)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostReadStatusStore.SaveMultiple", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	start := time.Now()
 
@@ -14298,6 +14324,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPersistentNotificationStore = &TimerLayerPostPersistentNotificationStore{PostPersistentNotificationStore: childStore.PostPersistentNotification(), Root: &newStore}
 	newStore.PostPriorityStore = &TimerLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
+	newStore.PostReadStatusStore = &TimerLayerPostReadStatusStore{PostReadStatusStore: childStore.PostReadStatus(), Root: &newStore}
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.PropertyFieldStore = &TimerLayerPropertyFieldStore{PropertyFieldStore: childStore.PropertyField(), Root: &newStore}

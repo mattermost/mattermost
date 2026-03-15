@@ -18,7 +18,7 @@ type OAuthProvider struct {
 	mock.Mock
 }
 
-// GetSSOSettings provides a mock function with given fields: rctx, config, service
+// GetSSOSettings provides a mock function with given fields: c, config, service
 func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	ret := _m.Called(rctx, config, service)
 
@@ -48,7 +48,7 @@ func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, 
 	return r0, r1
 }
 
-// GetUserFromIdToken provides a mock function with given fields: rctx, idToken
+// GetUserFromIdToken provides a mock function with given fields: c, idToken
 func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*model.User, error) {
 	ret := _m.Called(rctx, idToken)
 
@@ -108,7 +108,7 @@ func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, token
 	return r0, r1
 }
 
-// IsSameUser provides a mock function with given fields: rctx, dbUser, oAuthUser
+// IsSameUser provides a mock function with given fields: c, dbUser, oAuthUser
 func (_m *OAuthProvider) IsSameUser(rctx request.CTX, dbUser *model.User, oAuthUser *model.User) bool {
 	ret := _m.Called(rctx, dbUser, oAuthUser)
 
