@@ -212,6 +212,37 @@ describe('components/SingleImageView', () => {
         expect(container.querySelector('.image-header')?.textContent).toEqual(baseProps.fileInfo.name);
     });
 
+    test('should add small-image class for small, non-gallery images', async () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 100, height: 100});
+        const props = {...baseProps, fileInfo, isGallery: false};
+        const {container} = renderWithContext(<SingleImageView {...props}/>);
+
+        await waitFor(() => {
+            expect(container.querySelector('.image-container--small')).toBeInTheDocument();
+        });
+    });
+
+    test('should NOT add small-image class for small gallery images', async () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 100, height: 100});
+        const props = {...baseProps, fileInfo, isGallery: true};
+        const {container} = renderWithContext(<SingleImageView {...props}/>);
+
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
+        expect(container.querySelector('.image-container--small')).not.toBeInTheDocument();
+    });
+
+    test('should add hide-controls class for very narrow images', async () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 40});
+        const props = {...baseProps, fileInfo};
+        const {container} = renderWithContext(<SingleImageView {...props}/>);
+
+        await waitFor(() => {
+            expect(container.querySelector('.hide-controls')).toBeInTheDocument();
+        });
+    });
+
     describe('permalink preview', () => {
         test('should render with permalink styling if in permalink', async () => {
             const props = {

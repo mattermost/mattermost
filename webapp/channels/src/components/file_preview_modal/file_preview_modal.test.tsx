@@ -197,6 +197,7 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should handle on modal close', () => {
+        jest.useFakeTimers();
         const {ref} = renderModal();
         act(() => {
             ref.current?.setState({loaded: [true] as any});
@@ -205,7 +206,14 @@ describe('components/FilePreviewModal', () => {
         act(() => {
             ref.current?.handleModalClose();
         });
-        expect(ref.current?.state.show).toBe(false);
+        expect(ref.current?.state.show).toBe(true); // Still true before timeout
+
+        act(() => {
+            jest.advanceTimersByTime(150); // Advance past the animation delay
+        });
+        expect(ref.current?.state.show).toBe(false); // False after timeout
+
+        jest.useRealTimers();
     });
 
     test('should match snapshot for external file', () => {

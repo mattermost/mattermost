@@ -1,0 +1,145 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// ***************************************************************
+// - [#] indicates a test step (e.g. # Go to a page)
+// - [*] indicates an assertion (e.g. * Check the title)
+// - Use element ID when selecting an element. Create one if none.
+// ***************************************************************
+
+// Stage: @prod
+// Group: @channels @messaging @smoke
+
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {interceptFileUpload, waitUntilUploadComplete} from '../files_and_attachments/helpers';
+
+describe('Image Gallery', () => {
+    let team;
+    let channel;
+
+    before(() => {
+        cy.apiInitSetup({loginAfter: true}).then((initData) => {
+            team = initData.team;
+            Cypress.env('team', team);
+        });
+    });
+
+    beforeEach(() => {
+        // Create a unique channel for each test
+        cy.apiCreateChannel(Cypress.env('team').id, `test-channel-${Date.now()}`, 'Test Channel').then(({channel: newChannel}) => {
+            channel = newChannel;
+            cy.visit(`/${Cypress.env('team').name}/channels/${channel.name}`);
+            cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
+            cy.get('#post_textbox', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
+            interceptFileUpload();
+        });
+    });
+
+    it('should display gallery grid when post has 2+ images', () => {
+        const images = [
+            {filename: 'image-small-height.png', width: 340, height: 24},
+            {filename: 'image-small-width.png', width: 21, height: 350},
+            {filename: 'MM-logo-horizontal.png', width: 906, height: 144},
+            {filename: 'huge-image.jpg', width: 1920, height: 1280},
+        ];
+
+        // # Upload multiple images
+        images.forEach((image) => {
+            cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(image.filename);
+            waitUntilUploadComplete();
+        });
+
+        // # Post the images
+        const uniqueMessage = `Gallery test ${Date.now()}`;
+        cy.postMessage(uniqueMessage);
+
+        // * Verify gallery layout is displayed (grid, toggle, item count)
+        cy.getLastPostId().then((postId) => {
+            cy.get(`#post_${postId}`).within(() => {
+                cy.findByTestId('fileAttachmentList').within(() => {
+                    cy.findByTestId('image-gallery__toggle').should('contain.text', '4 images');
+                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed').within(() => {
+                        cy.findAllByTestId('image-gallery__item').should('have.length', 4);
+                        // Gallery marks images as "small" when width or height < 216px; 3 of our 4 fixtures qualify
+                        cy.get('.image-gallery__item--small').should('have.length', 3);
+
+                        // * Each thumbnail is visible and has non-zero size (catches layout collapse bugs)
+                        cy.findAllByTestId('image-gallery__item').each(($item) => {
+                            cy.wrap($item).find('img').should('be.visible').and(($img) => {
+                                expect($img.width(), 'image width').to.be.greaterThan(0);
+                                expect($img.height(), 'image height').to.be.greaterThan(0);
+                            });
+                        });
+                    });
+
+                    // * Collapse: body gets .collapsed, toggle text becomes "Show N images"
+                    cy.findByTestId('image-gallery__toggle').click();
+                    cy.findByTestId('image-gallery__body').should('have.class', 'collapsed');
+                    cy.findByTestId('image-gallery__toggle').should('contain.text', 'Show 4 images');
+
+                    // * Expand again: body loses .collapsed, toggle shows "N images", items visible
+                    cy.findByTestId('image-gallery__toggle').click();
+                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed');
+                    cy.findByTestId('image-gallery__toggle').should('contain.text', '4 images');
+                    cy.findAllByTestId('image-gallery__item').should('exist').and('be.visible');
+                });
+            });
+
+            // * Clicking a gallery thumbnail opens the file preview modal
+            cy.get(`#post_${postId}`).within(() => {
+                cy.findAllByTestId('image-gallery__item').first().click();
+            });
+
+            // * Verify modal opens and close it
+            cy.uiGetFilePreviewModal();
+            cy.uiCloseFilePreviewModal();
+        });
+    });
+
+    it('should use traditional layout when post has mixed content types', () => {
+        const files = [
+            {filename: 'image-small-height.png', type: 'image'},
+            {filePath: 'mm_file_testing/Documents/PDF.pdf', fileName: 'PDF.pdf', type: 'document'},
+            {filename: 'huge-image.jpg', type: 'image'},
+        ];
+
+        // # Upload mixed content files
+        files.forEach((file) => {
+            if (file.filePath) {
+                // Handle PDF upload with binary content
+                cy.fixture(file.filePath, 'binary').
+                    then(Cypress.Blob.binaryStringToBlob).
+                    then((fileContent) => {
+                        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile({
+                            fileContent,
+                            fileName: file.fileName,
+                            mimeType: 'application/pdf',
+                            encoding: 'utf8',
+                        });
+                    });
+            } else {
+                cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(file.filename);
+            }
+            waitUntilUploadComplete();
+        });
+
+        const uniqueMessage = `Traditional layout test ${Date.now()}`;
+        cy.postMessage(uniqueMessage);
+
+        // * With mixed content (images + PDF), FileAttachmentList uses traditional layout: no gallery, one column per file
+        cy.getLastPostId().then((postId) => {
+            cy.get(`#post_${postId}`).within(() => {
+                cy.findByTestId('fileAttachmentList').should('exist').and('be.visible').within(() => {
+                    cy.findByTestId('image-gallery__toggle').should('not.exist');
+                    cy.findByTestId('image-gallery__body').should('not.exist');
+                    cy.findAllByTestId('post-image__column').should('have.length', 3);
+                    cy.findAllByTestId('post-image__column').each(($column) => {
+                        cy.wrap($column).should('be.visible');
+                        cy.wrap($column).find('.post-image__thumbnail').should('be.visible');
+                    });
+                    cy.findAllByTestId('post-image__column').contains('PDF.pdf').should('exist');
+                });
+            });
+        });
+    });
+});

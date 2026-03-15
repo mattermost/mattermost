@@ -9,6 +9,7 @@ import type {Dispatch} from 'redux';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
+import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     makeGetFilesForEditHistory,
@@ -43,6 +44,7 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
+        const config = getConfig(state);
 
         let fileInfos: FileInfo[];
 
@@ -71,7 +73,8 @@ function makeMapStateToProps() {
         const firstFileRejected = fileInfos.length > 0 ? isFileRejected(state, fileInfos[0].id) : false;
 
         return {
-            enableSVGs: getConfig(state).EnableSVGs === 'true',
+            enableSVGs: config.EnableSVGs === 'true',
+            enablePublicLink: config.EnablePublicLink === 'true',
             fileInfos,
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
@@ -85,6 +88,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
+            getFilePublicLink,
         }, dispatch),
     };
 }

@@ -236,7 +236,9 @@ describe('Upload Files', () => {
         }
         cy.get(':nth-child(5) > .post-image__thumbnail > .post-image').should('be.visible');
         cy.postMessage('test');
-        cy.findByTestId('fileAttachmentList').find('.post-image').should('have.length', 5);
+        cy.findByTestId('fileAttachmentList').within(() => {
+            cy.findAllByTestId('image-gallery__item').should('have.length', 5);
+        });
     });
 
     it('MM-T338 Image Attachment Upload in Mobile View', () => {
@@ -275,7 +277,19 @@ describe('Upload Files', () => {
         cy.uiGetPostTextBox().clear().type('{enter}');
 
         // * Check that the image in the post is with valid source link
-        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').then((src) => {
+        // Thumbnail may be figure or img; use the img with HTTP src (file URL), not data URL (fallback preview)
+        cy.findAllByLabelText(`file thumbnail ${imageFilename.toLowerCase()}`).then(($thumbs) => {
+            let src;
+            $thumbs.each(function () {
+                const $thumb = Cypress.$(this);
+                const $img = $thumb.is('img') ? $thumb : $thumb.find('img').first();
+                const s = $img.attr('src');
+                if (s && s.startsWith('http')) {
+                    src = s;
+                    return false;
+                }
+            });
+            expect(src).to.be.a('string');
             downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
         });
     });

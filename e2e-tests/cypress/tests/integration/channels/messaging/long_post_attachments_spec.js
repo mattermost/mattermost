@@ -30,12 +30,23 @@ describe('Messaging', () => {
 
         // * Verify the total 4 attached items are present
         cy.getLastPostId().then((postID) => {
-            cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().should('have.length', '4');
+            cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').within(() => {
+                // Check if gallery is collapsed and expand it
+                cy.findByTestId('image-gallery__body').then(($body) => {
+                    if ($body.hasClass('collapsed')) {
+                        // Click toggle to expand the gallery
+                        cy.findByTestId('image-gallery__toggle').click();
+                    }
+                });
 
-            // * Verify the preview attachment are present
-            [...Array(4)].forEach((value, index) => {
-                cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().eq(index).
-                    find('.post-image__name').contains('small-image.png').should('exist');
+                // Ensure gallery is expanded (retry up to 5s so expand animation can finish)
+                cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
+
+                // Then verify we have 4 image gallery items
+                cy.findAllByTestId('image-gallery__item').should('have.length', 4);
+
+                // * Verify the preview attachments are visible (separate assertion like working tests)
+                cy.findAllByTestId('image-gallery__item').should('exist').and('be.visible');
             });
         });
 
@@ -44,28 +55,39 @@ describe('Messaging', () => {
         postAttachments();
 
         // * Verify the attached items can be cycled through
+        // Click on the first ImageGallery item in the last post to open the modal (scope to avoid hitting wrong post).
+        // Expand gallery if collapsed, then click first item—all in same within scope to avoid flakiness.
         cy.getLastPostId().then((postId) => {
-            cy.get(`#${postId}_message`).within(() => {
-                cy.uiOpenFilePreviewModal();
+            cy.get(`#post_${postId}`).within(() => {
+                cy.findByTestId('fileAttachmentList').within(() => {
+                    cy.findByTestId('image-gallery__body').then(($body) => {
+                        if ($body.hasClass('collapsed')) {
+                            cy.findByTestId('image-gallery__toggle').click();
+                        }
+                    });
+                    // Wait for expand animation before clicking first item
+                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
+                    cy.findAllByTestId('image-gallery__item').first().should('be.visible').click();
+                });
             });
+        });
 
-            // * Verify image preview is visible
-            cy.uiGetFilePreviewModal();
+        // * Verify image preview is visible
+        cy.uiGetFilePreviewModal();
 
-            // * Verify the header with the count of the file exists
-            cy.uiGetHeaderFilePreviewModal().contains('1 of 4');
+        // * Verify the header with the count of the file exists
+        cy.uiGetHeaderFilePreviewModal().contains('1 of 4');
 
             for (let index = 2; index <= 4; index++) {
                 // # click on right arrow to preview next attached image
                 cy.get('#previewArrowRight').should('be.visible').click();
 
-                // * Verify the header counter
-                cy.uiGetHeaderFilePreviewModal().contains(`${index} of 4`);
-            }
+            // * Verify the header counter
+            cy.uiGetHeaderFilePreviewModal().contains(`${index} of 4`);
+        }
 
-            // # Close the modal
-            cy.uiCloseFilePreviewModal();
-        });
+        // # Close the modal
+        cy.uiCloseFilePreviewModal();
     });
 });
 
@@ -75,9 +97,12 @@ function verifyImageInPostFooter(verifyExistence = true) {
 }
 
 function postAttachments() {
+    // # Use the robust post textbox method like the working tests
+    cy.uiGetPostTextBox().should('be.visible');
+
     // Add 4 attachments to a post
     [...Array(4)].forEach(() => {
-        cy.get('#fileUploadInput').attachFile('small-image.png');
+        cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile('small-image.png');
     });
 
     // # verify the attachment at the footer

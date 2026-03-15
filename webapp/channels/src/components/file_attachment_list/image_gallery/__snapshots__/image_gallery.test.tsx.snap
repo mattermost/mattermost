@@ -1,0 +1,115 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ImageGallery matches snapshot 1`] = `
+<div>
+  <div
+    class="image-gallery"
+    data-testid="fileAttachmentList"
+  >
+    <div
+      class="image-gallery__header"
+    >
+      <button
+        aria-controls="image-gallery-body-post1"
+        aria-describedby="image-gallery-count-post1 image-gallery-description-post1"
+        aria-expanded="true"
+        class="image-gallery__toggle"
+        data-testid="image-gallery__toggle"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M7,10L12,15L17,10H7Z"
+          />
+        </svg>
+        <span
+          id="image-gallery-count-post1"
+        >
+          2 images
+        </span>
+      </button>
+      <div
+        class="sr-only"
+        id="image-gallery-description-post1"
+      >
+        Use arrow keys to navigate between images, Enter or Space to open image viewer
+      </div>
+    </div>
+    <div
+      aria-label="Image gallery with 2 images"
+      class="image-gallery__body"
+      data-testid="image-gallery__body"
+      id="image-gallery-body-post1"
+      role="region"
+      tabindex="-1"
+    >
+      <div
+        class="image-gallery__content"
+        role="list"
+      >
+        <div
+          aria-label="Image 1 of 2: image1.png (PNG). Press Enter or Space to open in image viewer."
+          class="image-gallery__item image-gallery__item--small"
+          data-testid="image-gallery__item"
+          role="listitem"
+          tabindex="0"
+        >
+          <div
+            class="file-view--single"
+          >
+            <div
+              class="file__image"
+            >
+              <div
+                class="image-header"
+              >
+                <div
+                  class="image-name"
+                >
+                  image1.png
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          aria-label="Image 2 of 2: image2.jpg (JPG). Press Enter or Space to open in image viewer."
+          class="image-gallery__item image-gallery__item--small"
+          data-testid="image-gallery__item"
+          role="listitem"
+          tabindex="0"
+        >
+          <div
+            class="file-view--single"
+          >
+            <div
+              class="file__image"
+            >
+              <div
+                class="image-header"
+              >
+                <div
+                  class="image-name"
+                >
+                  image2.jpg
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    />
+  </div>
+</div>
+`;
