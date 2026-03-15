@@ -37,7 +37,7 @@
         required: true
       responses:
         "201":
-          description: Upload creation successful.
+          description: Upload created successfully.
           content:
             application/json:
               schema:
@@ -110,7 +110,7 @@
               type: object
       responses:
         "201":
-          description: Upload successful
+          description: File uploaded successfully
           content:
             application/json:
               schema:

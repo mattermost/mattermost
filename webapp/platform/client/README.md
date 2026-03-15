@@ -50,7 +50,7 @@ If needed, methods exist to set other headers such as the User-Agent (`Client4.s
 
 Methods of `Client4` which make requests to the server return a `Promise` which does the following:
 
-- On success, the promise resolves to a `ClientResponse<T>` object which contains the the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) (`response`), a [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) of headers (`headers`), and the data sent from the server (`data`).
+- On success, the promise resolves to a `ClientResponse<T>` object which contains the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) (`response`), a [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) of headers (`headers`), and the data sent from the server (`data`).
 - On an error, the promise rejects with a `ClientError` which contains the error message and the URL being requested. If the error happened on the server, the status code and an error ID (`server_error_id`) are included.
 
 ```js

@@ -12,7 +12,7 @@
       operationId: GetAllRoles
       responses:
         "200":
-          description: Roles retrieval successful
+          description: Roles retrieved successfully
           content:
             application/json:
               schema:
@@ -47,7 +47,7 @@
             type: string
       responses:
         "200":
-          description: Role retrieval successful
+          description: Role retrieved successfully
           content:
             application/json:
               schema:
@@ -78,7 +78,7 @@
             type: string
       responses:
         "200":
-          description: Role retrieval successful
+          description: Role retrieved successfully
           content:
             application/json:
               schema:
@@ -128,7 +128,7 @@
         required: true
       responses:
         "200":
-          description: Role patch successful
+          description: Role patched successfully
           content:
             application/json:
               schema:
@@ -165,7 +165,7 @@
         required: true
       responses:
         "200":
-          description: Role list retrieval successful
+          description: Role list retrieved successfully
           content:
             application/json:
               schema:

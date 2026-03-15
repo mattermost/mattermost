@@ -12,7 +12,7 @@
       operationId: GetSupportedTimezone
       responses:
         "200":
-          description: List of timezones retrieval successful
+          description: List of timezones retrieved successfully
           content:
             application/json:
               schema:
@@ -143,7 +143,7 @@
             type: string
       responses:
         "200":
-          description: List notices retrieve successful
+          description: List notices retrieved successfully
           content:
             application/json:
               schema:
@@ -178,7 +178,7 @@
         required: true
       responses:
         "200":
-          description: Update successfull
+          description: Notices marked as viewed successfully
           content:
             application/json:
               schema:
@@ -200,7 +200,7 @@
       operationId: DatabaseRecycle
       responses:
         "200":
-          description: Database recycle successful
+          description: Database recycled successfully
           content:
             application/json:
               schema:
@@ -231,7 +231,7 @@
               $ref: "#/components/schemas/Config"
       responses:
         "200":
-          description: Email successful sent
+          description: Email successfully sent
           content:
             application/json:
               schema:
@@ -332,7 +332,7 @@
               $ref: "#/components/schemas/Config"
       responses:
         "200":
-          description: S3 Test successful
+          description: S3 tested successfully
           content:
             application/json:
               schema:
@@ -374,7 +374,7 @@
             default: false
       responses:
         "200":
-          description: Configuration retrieval successful
+          description: Configuration retrieved successfully
           content:
             application/json:
               schema:
@@ -411,7 +411,7 @@
               $ref: "#/components/schemas/Config"
       responses:
         "200":
-          description: Configuration update successful
+          description: Configuration updated successfully
           content:
             application/json:
               schema:
@@ -432,7 +432,7 @@
       operationId: ReloadConfig
       responses:
         "200":
-          description: Configuration reload successful
+          description: Configuration reloaded successfully
           content:
             application/json:
               schema:
@@ -453,7 +453,7 @@
       operationId: GetClientConfig
       responses:
         "200":
-          description: Configuration retrieval successful
+          description: Configuration retrieved successfully
   /api/v4/config/environment:
     get:
       tags:
@@ -477,7 +477,7 @@
       operationId: GetEnvironmentConfig
       responses:
         "200":
-          description: Configuration retrieval successful
+          description: Configuration retrieved successfully
           content:
             application/json:
               schema:
@@ -520,7 +520,7 @@
               $ref: "#/components/schemas/Config"
       responses:
         "200":
-          description: Configuration update successful
+          description: Configuration updated successfully
           content:
             application/json:
               schema:
@@ -556,7 +556,7 @@
                 - license
       responses:
         "201":
-          description: License file upload successful
+          description: License file uploaded successfully
           content:
             application/json:
               schema:
@@ -587,7 +587,7 @@
       operationId: RemoveLicenseFile
       responses:
         "200":
-          description: License removal successful
+          description: License removed successfully
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -613,7 +613,7 @@
             type: string
       responses:
         "200":
-          description: License retrieval successful
+          description: License retrieved successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "501":
@@ -636,7 +636,7 @@
       operationId: GetLicenseLoadMetric
       responses:
         "200":
-          description: License load metric retrieval successful
+          description: License load metric retrieved successfully
           content:
             application/json:
               schema:
@@ -765,7 +765,7 @@
             default: 60
       responses:
         "200":
-          description: Audits retrieval successful
+          description: Audits retrieved successfully
           content:
             application/json:
               schema:
@@ -790,7 +790,7 @@
       operationId: InvalidateCaches
       responses:
         "200":
-          description: Caches invalidate successful
+          description: Caches invalidated successfully
           content:
             application/json:
               schema:
@@ -826,7 +826,7 @@
             default: "10000"
       responses:
         "200":
-          description: Logs retrieval successful
+          description: Logs retrieved successfully
           content:
             application/json:
               schema:
@@ -868,7 +868,7 @@
         required: true
       responses:
         "200":
-          description: Logs sent successful
+          description: Logs sent successfully
           content:
             application/json:
               schema:
@@ -915,7 +915,7 @@
             type: string
       responses:
         "200":
-          description: Analytics retrieval successful
+          description: Analytics retrieved successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1202,7 +1202,7 @@
       operationId: CheckIntegrity
       responses:
         "200":
-          description: Integrity check successful
+          description: Integrity checked successfully
           content:
             application/json:
               schema:

@@ -34,7 +34,7 @@
         required: true
       responses:
         "201":
-          description: User login successful
+          description: User logged in successfully
           content:
             application/json:
               schema:
@@ -70,7 +70,7 @@
         required: true
       responses:
         "302":
-          description: Login successful, it'll redirect to login page to perform the autologin
+          description: User logged in successfully. Redirects to login page to perform autologin.
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -116,7 +116,7 @@
         required: true
       responses:
         "200":
-          description: Code exchange successful
+          description: Code exchanged successfully
           content:
             application/json:
               schema:
@@ -210,7 +210,7 @@
         required: true
       responses:
         "200":
-          description: User authentication successful
+          description: User authenticated successfully
           content:
             application/json:
               schema:
@@ -285,7 +285,7 @@
       operationId: Logout
       responses:
         "201":
-          description: User logout successful
+          description: User logged out successfully
           content:
             application/json:
               schema:
@@ -365,7 +365,7 @@
         required: true
       responses:
         "201":
-          description: User creation successful
+          description: User created successfully
           content:
             application/json:
               schema:
@@ -533,7 +533,7 @@
             type: string
       responses:
         "200":
-          description: User page retrieval successful
+          description: User page retrieved successfully
           content:
             application/json:
               schema:
@@ -561,7 +561,7 @@
       operationId: PermanentDeleteAllUsers
       responses:
         "200":
-          description: Delete request was successful
+          description: User deleted successfully
   /api/v4/users/ids:
     post:
       tags:
@@ -594,7 +594,7 @@
         required: true
       responses:
         "200":
-          description: User list retrieval successful
+          description: User list retrieved successfully
           content:
             application/json:
               schema:
@@ -633,7 +633,7 @@
         required: true
       responses:
         "200":
-          description: User list retrieval successful
+          description: User list retrieved successfully
           content:
             application/json:
               schema:
@@ -668,7 +668,7 @@
         required: true
       responses:
         "200":
-          description: User list retrieval successful
+          description: User list retrieved successfully
           content:
             application/json:
               schema:
@@ -747,7 +747,7 @@
         required: true
       responses:
         "200":
-          description: User list retrieval successful
+          description: User list retrieved successfully
           content:
             application/json:
               schema:
@@ -803,7 +803,7 @@
             default: 100
       responses:
         "200":
-          description: User autocomplete successful
+          description: User autocomplete completed successfully
           content:
             application/json:
               schema:
@@ -830,7 +830,7 @@
       operationId: GetKnownUsers
       responses:
         "200":
-          description: Known users' IDs retrieval successful
+          description: Known users' IDs retrieved successfully
           content:
             application/json:
               schema:
@@ -850,7 +850,7 @@
       operationId: GetTotalUsersStats
       responses:
         "200":
-          description: User stats retrieval successful
+          description: User stats retrieved successfully
           content:
             application/json:
               schema:
@@ -926,7 +926,7 @@
             type: string
       responses:
         "200":
-          description: Filtered User stats retrieval successful
+          description: Filtered User stats retrieved successfully
           content:
             application/json:
               schema:
@@ -958,7 +958,7 @@
             type: string
       responses:
         "200":
-          description: User retrieval successful
+          description: User retrieved successfully
           content:
             application/json:
               schema:
@@ -1026,7 +1026,7 @@
         required: true
       responses:
         "200":
-          description: User update successful
+          description: User updated successfully
           content:
             application/json:
               schema:
@@ -1061,7 +1061,7 @@
             type: string
       responses:
         "200":
-          description: User deactivation successful
+          description: User deactivated successfully
           content:
             application/json:
               schema:
@@ -1125,7 +1125,7 @@
         required: true
       responses:
         "200":
-          description: User patch successful
+          description: User patched successfully
           content:
             application/json:
               schema:
@@ -1171,7 +1171,7 @@
         required: true
       responses:
         "200":
-          description: User roles update successful
+          description: User roles updated successfully
           content:
             application/json:
               schema:
@@ -1220,7 +1220,7 @@
         required: true
       responses:
         "200":
-          description: User activation/deactivation update successful
+          description: User activation/deactivation updated successfully
           content:
             application/json:
               schema:
@@ -1299,7 +1299,7 @@
                 - image
       responses:
         "200":
-          description: Profile image set successful
+          description: Profile image set successfully
           content:
             application/json:
               schema:
@@ -1337,7 +1337,7 @@
             type: string
       responses:
         "200":
-          description: Profile image reset successful
+          description: Profile image reset successfully
           content:
             application/json:
               schema:
@@ -1409,7 +1409,7 @@
             type: string
       responses:
         "200":
-          description: User retrieval successful
+          description: User retrieved successfully
           content:
             application/json:
               schema:
@@ -1451,7 +1451,7 @@
         required: true
       responses:
         "200":
-          description: User password update successful
+          description: User password updated successfully
           content:
             application/json:
               schema:
@@ -1501,7 +1501,7 @@
         required: true
       responses:
         "200":
-          description: User MFA update successful
+          description: User MFA updated successfully
           content:
             application/json:
               schema:
@@ -1520,7 +1520,7 @@
         - users
       summary: Generate MFA secret
       description: >
-        Generates an multi-factor authentication secret for a user and returns
+        Generates a multi-factor authentication secret for a user and returns
         it as a string and as base64 encoded QR code image.
 
         ##### Permissions
@@ -1536,7 +1536,7 @@
             type: string
       responses:
         "200":
-          description: MFA secret generation successful
+          description: MFA secret generated successfully
           content:
             application/json:
               schema:
@@ -1700,7 +1700,7 @@
         required: true
       responses:
         "200":
-          description: MFA check successful
+          description: MFA checked successfully
           content:
             application/json:
               schema:
@@ -1749,7 +1749,7 @@
         required: true
       responses:
         "200":
-          description: User password update successful
+          description: User password updated successfully
           content:
             application/json:
               schema:
@@ -1821,7 +1821,7 @@
             type: string
       responses:
         "200":
-          description: User retrieval successful
+          description: User retrieved successfully
           content:
             application/json:
               schema:
@@ -1856,7 +1856,7 @@
             type: string
       responses:
         "200":
-          description: User session retrieval successful
+          description: User session retrieved successfully
           content:
             application/json:
               schema:
@@ -1902,7 +1902,7 @@
         required: true
       responses:
         "200":
-          description: User session revoked successful
+          description: User session revoked successfully
           content:
             application/json:
               schema:
@@ -1986,7 +1986,7 @@
         required: true
       responses:
         "200":
-          description: Device id attach successful
+          description: Device id attached successfully
           content:
             application/json:
               schema:
@@ -2014,7 +2014,7 @@
             type: string
       responses:
         "200":
-          description: User audits retrieval successful
+          description: User audits retrieved successfully
           content:
             application/json:
               schema:
@@ -2050,7 +2050,7 @@
             type: string
       responses:
         "200":
-          description: User email verification successful
+          description: User email verified successfully
           content:
             application/json:
               schema:
@@ -2085,7 +2085,7 @@
         required: true
       responses:
         "200":
-          description: User email verification successful
+          description: User email verified successfully
           content:
             application/json:
               schema:
@@ -2120,7 +2120,7 @@
         required: true
       responses:
         "200":
-          description: Email send successful if email exists
+          description: Email sent successfully if email exists
           content:
             application/json:
               schema:
@@ -2188,7 +2188,7 @@
         required: true
       responses:
         "200":
-          description: Login method switch or request successful
+          description: Login method switch or request completed successfully
           content:
             application/json:
               schema:
@@ -2295,7 +2295,7 @@
         required: true
       responses:
         "201":
-          description: User access token creation successful
+          description: User access token created successfully
           content:
             application/json:
               schema:
@@ -2343,7 +2343,7 @@
             default: 60
       responses:
         "200":
-          description: User access tokens retrieval successful
+          description: User access tokens retrieved successfully
           content:
             application/json:
               schema:
@@ -2389,7 +2389,7 @@
             default: 60
       responses:
         "200":
-          description: User access tokens retrieval successful
+          description: User access tokens retrieved successfully
           content:
             application/json:
               schema:
@@ -2432,7 +2432,7 @@
         required: true
       responses:
         "200":
-          description: User access token revoke successful
+          description: User access token revoked successfully
           content:
             application/json:
               schema:
@@ -2469,7 +2469,7 @@
             type: string
       responses:
         "200":
-          description: User access token retrieval successful
+          description: User access token retrieved successfully
           content:
             application/json:
               schema:
@@ -2513,7 +2513,7 @@
         required: true
       responses:
         "200":
-          description: Personal access token disable successful
+          description: Personal access token disabled successfully
           content:
             application/json:
               schema:
@@ -2554,7 +2554,7 @@
         required: true
       responses:
         "200":
-          description: Personal access token enable successful
+          description: Personal access token enabled successfully
           content:
             application/json:
               schema:
@@ -2598,7 +2598,7 @@
         required: true
       responses:
         "200":
-          description: Personal access token search successful
+          description: Personal access token search completed successfully
           content:
             application/json:
               schema:
@@ -2636,7 +2636,7 @@
         required: true
       responses:
         "200":
-          description: User auth update successful
+          description: User auth updated successfully
           content:
             application/json:
               schema:
@@ -2841,7 +2841,7 @@
             type: string
       responses:
         "200":
-          description: User's uploads retrieval successful
+          description: User's uploads retrieved successfully
           content:
             application/json:
               schema:
@@ -2888,7 +2888,7 @@
             default: 60
       responses:
         "200":
-          description: User's uploads retrieval successful
+          description: User's uploads retrieved successfully
           content:
             application/json:
               schema:
@@ -3072,7 +3072,7 @@
           default: false
     responses:
       "200":
-        description: User's thread retrieval successful
+        description: User's thread retrieved successfully
         content:
           application/json:
             schema:
@@ -3111,7 +3111,7 @@
             type: string
       responses:
         "200":
-          description: Get was successful
+          description: Retrieved successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3146,7 +3146,7 @@
             type: string
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3193,7 +3193,7 @@
             type: string
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3242,7 +3242,7 @@
             type: string
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3283,7 +3283,7 @@
             type: string
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3323,7 +3323,7 @@
             type: string
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3364,7 +3364,7 @@
             type: string
       responses:
         "200":
-          description: Get was successful
+          description: Retrieved successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3501,7 +3501,7 @@
             default: 60
       responses:
         "200":
-          description: User page retrieval successful
+          description: User page retrieved successfully
           content:
             application/json:
               schema:
@@ -3529,7 +3529,7 @@
       operationId: resetPasswordFailedAttempts
       responses:
         "200":
-          description: User's thread update successful
+          description: User's thread updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
