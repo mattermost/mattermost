@@ -217,7 +217,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className='wrapper--admin'>
+            <div className='wrapper--fixed'>
                 <AdminHeader>
                     <FormattedMessage {...messages.title}/>
                 </AdminHeader>
