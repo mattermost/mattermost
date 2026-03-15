@@ -111,7 +111,8 @@ components:
         timezone:
           $ref: "#/components/schemas/Timezone"
         terms_of_service_id:
-          description: ID of accepted terms of service, if any. This field is not present
+          description:
+            ID of accepted terms of service, if any. This field is not present
             if empty.
           type: string
         terms_of_service_create_at:
@@ -522,7 +523,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/Post"
         matches:
-          description: A mapping of post IDs to a list of matched terms within the post.
+          description:
+            A mapping of post IDs to a list of matched terms within the post.
             This field will only be populated on servers running version 5.1 or
             greater with Elasticsearch enabled.
           type: object
@@ -633,7 +635,8 @@ components:
           description: The ID of the user this member relates to.
           type: string
         roles:
-          description: The complete list of roles assigned to this team member, as a
+          description:
+            The complete list of roles assigned to this team member, as a
             space-separated list of role names, including any roles granted
             implicitly through permissions schemes.
           type: string
@@ -641,15 +644,18 @@ components:
           description: The time in milliseconds that this team member was deleted.
           type: integer
         scheme_user:
-          description: Whether this team member holds the default user role defined by the
+          description:
+            Whether this team member holds the default user role defined by the
             team's permissions scheme.
           type: boolean
         scheme_admin:
-          description: Whether this team member holds the default admin role defined by the
+          description:
+            Whether this team member holds the default admin role defined by the
             team's permissions scheme.
           type: boolean
         explicit_roles:
-          description: The list of roles explicitly assigned to this team member, as a
+          description:
+            The list of roles explicitly assigned to this team member, as a
             space separated list of role names. This list does *not* include any
             roles granted implicitly through permissions schemes.
           type: string
@@ -767,7 +773,8 @@ components:
           description: If this file is an image, the height of the file
           type: integer
         has_preview_image:
-          description: If this file is an image, whether or not it has a preview-sized
+          description:
+            If this file is an image, whether or not it has a preview-sized
             version
           type: boolean
     Preference:
@@ -803,7 +810,8 @@ components:
           items:
             $ref: "#/components/schemas/User"
         out_of_channel:
-          description: A special case list of users returned when autocompleting in a
+          description:
+            A special case list of users returned when autocompleting in a
             specific channel. Omitted when empty or not relevant
           type: array
           items:
@@ -848,7 +856,8 @@ components:
           type: integer
           format: int64
         channel_id:
-          description: The ID of a public channel or private group that receives the
+          description:
+            The ID of a public channel or private group that receives the
             webhook payloads
           type: string
         description:
@@ -896,7 +905,8 @@ components:
           items:
             type: string
         trigger_when:
-          description: When to trigger the webhook, `0` when a trigger word is present at
+          description:
+            When to trigger the webhook, `0` when a trigger word is present at
             all and `1` if the message starts with a trigger word
           type: integer
         callback_urls:
@@ -905,7 +915,8 @@ components:
           items:
             type: string
         content_type:
-          description: The format to POST the data in, either `application/json` or
+          description:
+            The format to POST the data in, either `application/json` or
             `application/x-www-form-urlencoded`
           default: application/x-www-form-urlencoded
           type: string
@@ -1197,7 +1208,8 @@ components:
                 type: string
         article:
           type: object
-          description: Article object used in OpenGraph metadata of a webpage, if type is
+          description:
+            Article object used in OpenGraph metadata of a webpage, if type is
             article
           properties:
             published_time:
@@ -2670,11 +2682,13 @@ components:
       properties:
         message_deletion_enabled:
           type: boolean
-          description: Indicates whether data retention policy deletion of messages is
+          description:
+            Indicates whether data retention policy deletion of messages is
             enabled globally.
         file_deletion_enabled:
           type: boolean
-          description: Indicates whether data retention policy deletion of file attachments
+          description:
+            Indicates whether data retention policy deletion of file attachments
             is enabled globally.
         message_retention_cutoff:
           type: integer
@@ -2779,90 +2793,108 @@ components:
       properties:
         email:
           type: string
-          description: Set to "true" to enable email notifications, "false" to disable.
+          description:
+            Set to "true" to enable email notifications, "false" to disable.
             Defaults to "true".
         push:
           type: string
-          description: Set to "all" to receive push notifications for all activity,
+          description:
+            Set to "all" to receive push notifications for all activity,
             "mention" for mentions and direct messages only, and "none" to
             disable. Defaults to "mention".
         desktop:
           type: string
-          description: Set to "all" to receive desktop notifications for all activity,
+          description:
+            Set to "all" to receive desktop notifications for all activity,
             "mention" for mentions and direct messages only, and "none" to
             disable. Defaults to "all".
         desktop_sound:
           type: string
-          description: Set to "true" to enable sound on desktop notifications, "false" to
+          description:
+            Set to "true" to enable sound on desktop notifications, "false" to
             disable. Defaults to "true".
         mention_keys:
           type: string
-          description: A comma-separated list of words to count as mentions. Defaults to
+          description:
+            A comma-separated list of words to count as mentions. Defaults to
             username and @username.
         channel:
           type: string
-          description: Set to "true" to enable channel-wide notifications (@channel, @all,
+          description:
+            Set to "true" to enable channel-wide notifications (@channel, @all,
             etc.), "false" to disable. Defaults to "true".
         first_name:
           type: string
-          description: Set to "true" to enable mentions for first name. Defaults to "true"
+          description:
+            Set to "true" to enable mentions for first name. Defaults to "true"
             if a first name is set, "false" otherwise.
         auto_responder_message:
           type: string
-          description: The message sent to users when they are auto-responded to.
+          description:
+            The message sent to users when they are auto-responded to.
             Defaults to "".
         push_threads:
           type: string
-          description: Set to "all" to enable mobile push notifications for followed threads and "none" to disable.
+          description:
+            Set to "all" to enable mobile push notifications for followed threads and "none" to disable.
             Defaults to "all".
         comments:
           type: string
-          description: Set to "any" to enable notifications for comments to any post you have
+          description:
+            Set to "any" to enable notifications for comments to any post you have
             replied to, "root" for comments on your posts, and "never" to disable. Only
             affects users with collapsed reply threads disabled.
             Defaults to "never".
         desktop_threads:
           type: string
-          description: Set to "all" to enable desktop notifications for followed threads and "none" to disable.
+          description:
+            Set to "all" to enable desktop notifications for followed threads and "none" to disable.
             Defaults to "all".
         email_threads:
           type: string
-          description: Set to "all" to enable email notifications for followed threads and "none" to disable.
+          description:
+            Set to "all" to enable email notifications for followed threads and "none" to disable.
             Defaults to "all".
     Timezone:
       type: object
       properties:
         useAutomaticTimezone:
           type: string
-          description: Set to "true" to use the browser/system timezone, "false" to set
+          description:
+            Set to "true" to use the browser/system timezone, "false" to set
             manually. Defaults to "true".
         manualTimezone:
           type: string
           description: Value when setting manually the timezone, i.e. "Europe/Berlin".
         automaticTimezone:
           type: string
-          description: This value is set automatically when the "useAutomaticTimezone" is
+          description:
+            This value is set automatically when the "useAutomaticTimezone" is
             set to "true".
     ChannelNotifyProps:
       type: object
       properties:
         email:
           type: string
-          description: Set to "true" to enable email notifications, "false" to disable, or
+          description:
+            Set to "true" to enable email notifications, "false" to disable, or
             "default" to use the global user notification setting.
         push:
           type: string
-          description: Set to "all" to receive push notifications for all activity,
+          description:
+            Set to "all" to receive push notifications for all activity,
             "mention" for mentions and direct messages only, "none" to disable,
             or "default" to use the global user notification setting.
         desktop:
           type: string
-          description: Set to "all" to receive desktop notifications for all activity,
+          description:
+            Set to "all" to receive desktop notifications for all activity,
             "mention" for mentions and direct messages only, "none" to disable,
             or "default" to use the global user notification setting.
         mark_unread:
           type: string
-          description: Set to "all" to mark the channel unread for any new message,
+          description:
+            Set to "all" to mark the channel unread for any new message,
             "mention" to mark unread for new mentions only. Defaults to "all".
     PluginManifest:
       type: object
@@ -2897,7 +2929,8 @@ components:
           properties:
             executables:
               type: object
-              description: Paths to executable binaries, specifying multiple entry points
+              description:
+                Paths to executable binaries, specifying multiple entry points
                 for different platforms when bundled together in a single
                 plugin.
               properties:
@@ -3026,7 +3059,6 @@ components:
             - FailedToStayRunning
             - Stopping
 
-
     PluginManifestWebapp:
       type: object
       properties:
@@ -3065,7 +3097,8 @@ components:
           description: A list of the unique names of the permissions this role grants.
         scheme_managed:
           type: boolean
-          description: indicates if this role is managed by a scheme (true), or is a custom
+          description:
+            indicates if this role is managed by a scheme (true), or is a custom
             stand-alone role (false).
     Scheme:
       type: object
@@ -3093,7 +3126,8 @@ components:
           description: The time at which the scheme was deleted.
         scope:
           type: string
-          description: The scope to which this scheme can be applied, either "team" or
+          description:
+            The scope to which this scheme can be applied, either "team" or
             "channel".
         default_team_admin_role:
           type: string
@@ -3128,11 +3162,13 @@ components:
       properties:
         user_id:
           type: string
-          description: The unique identifier of the user who performed this terms of
+          description:
+            The unique identifier of the user who performed this terms of
             service action.
         terms_of_service_id:
           type: string
-          description: The unique identifier of the terms of service the action was
+          description:
+            The unique identifier of the terms of service the action was
             performed on.
         create_at:
           description: The time in milliseconds that this action was performed.
@@ -4191,7 +4227,7 @@ components:
           description: The number of active users in the server
           type: integer
           format: int64
-  # Outgoing OAuth Connections
+    # Outgoing OAuth Connections
     OutgoingOAuthConnectionGetItem:
       type: object
       properties:
@@ -4721,6 +4757,6 @@ components:
           description: The time in milliseconds the recap channel was created
 externalDocs:
   description: Find out more about Mattermost
-  url: 'https://about.mattermost.com'
+  url: "https://about.mattermost.com"
 security:
   - bearerAuth: []
