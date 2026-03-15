@@ -27,6 +27,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	_ "golang.org/x/image/webp" // image decoder
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -262,10 +263,11 @@ func (v *Validator) Validate() error {
 			if zfile.FileInfo().IsDir() {
 				continue
 			}
-			if strings.HasPrefix(zfile.Name, "data/") {
-				v.attachments[zfile.Name] = zfile
+			normalizedName := utils.NormalizeFilename(zfile.Name)
+			if strings.HasPrefix(normalizedName, "data/") {
+				v.attachments[normalizedName] = zfile
 			}
-			v.allFileNames = append(v.allFileNames, zfile.Name)
+			v.allFileNames = append(v.allFileNames, normalizedName)
 		}
 	}
 
@@ -813,9 +815,9 @@ func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportDat
 				continue
 			}
 
-			attachmentPath := *attachment.Path
+			attachmentPath := utils.NormalizeFilename(*attachment.Path)
 			if _, ok := v.attachments[attachmentPath]; !ok {
-				attachmentPath = path.Join("data", *attachment.Path)
+				attachmentPath = utils.NormalizeFilename(path.Join("data", *attachment.Path))
 			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
@@ -950,9 +952,9 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImp
 				continue
 			}
 
-			attachmentPath := *attachment.Path
+			attachmentPath := utils.NormalizeFilename(*attachment.Path)
 			if _, ok := v.attachments[attachmentPath]; !ok {
-				attachmentPath = path.Join("data", *attachment.Path)
+				attachmentPath = utils.NormalizeFilename(path.Join("data", *attachment.Path))
 			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
@@ -1003,7 +1005,7 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line imports.LineImportDa
 		}
 
 		if !v.ignoreAttachments && data.Image != nil {
-			attachmentPath := path.Join("data", *data.Image)
+			attachmentPath := utils.NormalizeFilename(path.Join("data", *data.Image))
 
 			zfile, ok := v.attachments[attachmentPath]
 			if !ok {
