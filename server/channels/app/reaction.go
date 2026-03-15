@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -16,6 +17,7 @@ import (
 )
 
 func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return nil, err
