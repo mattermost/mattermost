@@ -341,4 +341,17 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 		assert.True(t, slices.Contains(NewSystemRoleIDs, SecureConnectionManagerRoleId),
 			"secure_connection_manager should be in NewSystemRoleIDs")
 	})
+
+	t.Run("system_admin includes manage_oauth by default", func(t *testing.T) {
+		role, ok := roles[SystemAdminRoleId]
+		require.True(t, ok, "system_admin role should exist in MakeDefaultRoles")
+		assert.True(t, slices.Contains(role.Permissions, PermissionManageOAuth.Id),
+			"system_admin should include manage_oauth")
+		assert.True(t, slices.ContainsFunc(AllPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should be part of AllPermissions")
+		assert.False(t, slices.ContainsFunc(DeprecatedPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should not remain deprecated")
+	})
 }
