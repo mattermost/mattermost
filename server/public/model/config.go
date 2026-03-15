@@ -3093,6 +3093,19 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 type ElasticsearchSettings struct {
 	ConnectionURL                               *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Backend                                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -4161,6 +4174,10 @@ func (o *Config) IsValid() *AppError {
 
 	// Validate IntuneSettings
 	if appErr := o.IntuneSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
 		return appErr
 	}
 

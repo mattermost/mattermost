@@ -10461,6 +10461,10 @@
     "translation": "Invalid domain for move thread settings"
   },
   {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "One or more app download links are not valid URLs."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.invalid_event",
     "translation": "Invalid flagging event specified."
   },
