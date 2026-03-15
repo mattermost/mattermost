@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -139,6 +141,62 @@ func (c *Context) SessionRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
+}
+
+func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
+	// Check if custom ToS is enabled
+	if c.App.Config().SupportSettings.CustomTermsOfServiceEnabled == nil ||
+		!*c.App.Config().SupportSettings.CustomTermsOfServiceEnabled {
+		return nil
+	}
+
+	// Check license feature - bypass ToS enforcement if no license or feature not enabled
+	if license := c.App.Channels().License(); license == nil ||
+		license.Features.CustomTermsOfService == nil ||
+		!*license.Features.CustomTermsOfService {
+		return nil
+	}
+
+	// Exempt bot accounts - bots are automated systems and do not need to accept ToS
+	session := c.AppContext.Session()
+	if session == nil {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.session_expired.app_error", nil, "Session is nil", http.StatusUnauthorized)
+	}
+	if session.IsBotUser() {
+		return nil
+	}
+
+	// Get latest ToS document - fail closed on database errors, fail open if no ToS exists
+	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
+	if err != nil {
+		// Check if this is specifically "no ToS exists" vs database error
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			c.Logger.Error("No Terms of Service document found - ToS enforcement disabled system-wide", mlog.String("context", "TermsOfServiceRequired"))
+			return nil // No ToS exists, allow access
+		}
+		// Database error - fail closed for security
+		c.Logger.Error("Database error retrieving terms of service", mlog.Err(err))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Check database for user's ToS acceptance (cached at the store layer)
+	userToS, appErr := c.App.GetUserTermsOfService(session.UserId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			// User hasn't accepted ToS yet
+			return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+		}
+		c.Logger.Error("Error retrieving user terms of service", mlog.String("user_id", session.UserId), mlog.Err(appErr))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Check if user accepted latest ToS
+	if userToS.TermsOfServiceId != latestToS.Id {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	return nil
 }
 
 func (c *Context) CloudKeyRequired() {

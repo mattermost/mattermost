@@ -176,12 +176,13 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	web := New(th.Server)
 
 	handler := Handler{
-		Srv:            web.srv,
-		HandleFunc:     handlerForCSRFToken,
-		RequireSession: true,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		Srv:                web.srv,
+		HandleFunc:         handlerForCSRFToken,
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
 	}
 
 	cookie := &http.Cookie{
@@ -256,12 +257,13 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Handler with RequireSession set to false
 
 	handlerNoSession := Handler{
-		Srv:            th.Server,
-		HandleFunc:     handlerForCSRFToken,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		Srv:                th.Server,
+		HandleFunc:         handlerForCSRFToken,
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
 	}
 
 	// CSRF Token Used - Success Expected
@@ -302,12 +304,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       false,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           false,
 		}
 
 		request := httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -323,12 +326,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -364,12 +368,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -408,12 +413,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -560,12 +566,13 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 			web := New(th.Server)
 
 			handler := Handler{
-				Srv:            web.srv,
-				HandleFunc:     handlerForCSRFToken,
-				RequireSession: true,
-				TrustRequester: false,
-				RequireMfa:     false,
-				IsStatic:       false,
+				Srv:                web.srv,
+				HandleFunc:         handlerForCSRFToken,
+				RequireSession:     true,
+				TrustRequester:     false,
+				RequireMfa:         false,
+				SkipTermsOfService: false,
+				IsStatic:           false,
 			}
 
 			cookie := &http.Cookie{
@@ -656,8 +663,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -686,8 +694,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -767,8 +776,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -796,8 +806,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -825,8 +836,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -854,8 +866,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: false,
-			TrustRequester: false,
+			RequireSession:     false,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -879,8 +892,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: false,
-			TrustRequester: false,
+			RequireSession:     false,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -1119,6 +1133,160 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
+	})
+}
+
+func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Enable custom terms of service with enterprise license
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+	license := model.NewTestLicense()
+	license.Features.CustomTermsOfService = model.NewPointer(true)
+	th.App.Srv().SetLicense(license)
+
+	// Create a terms of service that the user hasn't accepted initially
+	tos := &model.TermsOfService{
+		Text:     "Test Terms of Service",
+		UserId:   th.SystemAdminUser.Id,
+		CreateAt: model.GetMillis(),
+	}
+	tos, appErr := th.App.CreateTermsOfService(tos.Text, tos.UserId)
+	require.Nil(t, appErr)
+
+	// Create a session for BasicUser
+	session := &model.Session{
+		UserId:   th.BasicUser.Id,
+		CreateAt: model.GetMillis(),
+		Roles:    model.SystemUserRoleId,
+		IsOAuth:  false,
+	}
+	session.GenerateCSRF()
+	th.App.SetSessionExpireInHours(session, 24)
+	session, appErr = th.App.CreateSession(th.Context, session)
+	require.Nil(t, appErr)
+
+	web := New(th.Server)
+
+	handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	cookie := &http.Cookie{
+		Name:  model.SessionCookieToken,
+		Value: session.Token,
+	}
+
+	t.Run("Neither MFA nor ToS required - should always succeed", func(t *testing.T) {
+		handler := Handler{
+			Srv:                web.srv,
+			HandleFunc:         handlerFunc,
+			RequireSession:     true,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: true,
+			IsStatic:           false,
+		}
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(cookie)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+	})
+
+	t.Run("Only ToS required - user missing ToS should get ToS error", func(t *testing.T) {
+		// Ensure user hasn't accepted ToS
+		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
+		_ = err // It's okay if it doesn't exist
+
+		handler := Handler{
+			Srv:                web.srv,
+			HandleFunc:         handlerFunc,
+			RequireSession:     true,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           false,
+		}
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(cookie)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusForbidden, response.Code)
+
+		var errorResp model.AppError
+		err = json.NewDecoder(response.Body).Decode(&errorResp)
+		require.NoError(t, err)
+		assert.Contains(t, errorResp.Id, "terms_of_service_required")
+	})
+
+	t.Run("Both required - MFA check should happen before ToS check", func(t *testing.T) {
+		// Ensure user hasn't accepted ToS (so both MFA and ToS are missing)
+		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
+		_ = err // It's okay if it doesn't exist
+
+		handler := Handler{
+			Srv:                web.srv,
+			HandleFunc:         handlerFunc,
+			RequireSession:     true,
+			TrustRequester:     false,
+			RequireMfa:         true,
+			SkipTermsOfService: false,
+			IsStatic:           false,
+		}
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(cookie)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		// Should fail with MFA required error, not Terms of Service error
+		// This proves MFA is checked first because the user hasn't accepted ToS either,
+		// but we get the MFA error instead of the ToS error
+		assert.Equal(t, http.StatusForbidden, response.Code, "Should fail with MFA required error, not Terms of Service error")
+
+		// Verify it's actually an MFA error by checking the error message
+		var errorResp model.AppError
+		err = json.NewDecoder(response.Body).Decode(&errorResp)
+		require.NoError(t, err)
+		assert.Contains(t, errorResp.Id, "mfa", "Error should be MFA-related, proving MFA is checked before ToS")
+	})
+
+	t.Run("Both required - user with ToS but missing MFA should get MFA error", func(t *testing.T) {
+		// User accepts ToS but still needs MFA
+		err := th.App.SaveUserTermsOfService(session.UserId, tos.Id, true)
+		require.Nil(t, err)
+
+		handler := Handler{
+			Srv:                web.srv,
+			HandleFunc:         handlerFunc,
+			RequireSession:     true,
+			TrustRequester:     false,
+			RequireMfa:         true,
+			SkipTermsOfService: false,
+			IsStatic:           false,
+		}
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(cookie)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		// Should still fail with MFA error since user hasn't completed MFA
+		assert.Equal(t, http.StatusForbidden, response.Code)
+
+		var errorResp model.AppError
+		decodeErr := json.NewDecoder(response.Body).Decode(&errorResp)
+		require.NoError(t, decodeErr)
+		assert.Contains(t, errorResp.Id, "mfa")
 	})
 }
 
