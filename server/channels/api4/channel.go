@@ -1576,10 +1576,12 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sanitize members for current user
-	currentUserId := c.AppContext.Session().UserId
-	for i := range members {
-		members[i].SanitizeForCurrentUser(currentUserId)
+	if *c.App.Config().ExperimentalSettings.ExperimentalLastViewSanitize {
+		// Sanitize members for current user
+		currentUserId := c.AppContext.Session().UserId
+		for i := range members {
+			members[i].SanitizeForCurrentUser(currentUserId)
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
@@ -1635,10 +1637,12 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Sanitize members for current user
-	currentUserId := c.AppContext.Session().UserId
-	for i := range members {
-		members[i].SanitizeForCurrentUser(currentUserId)
+	if *c.App.Config().ExperimentalSettings.ExperimentalLastViewSanitize {
+		// Sanitize members for current user
+		currentUserId := c.AppContext.Session().UserId
+		for i := range members {
+			members[i].SanitizeForCurrentUser(currentUserId)
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
@@ -1664,8 +1668,10 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sanitize member for current user
-	member.SanitizeForCurrentUser(c.AppContext.Session().UserId)
+	if *c.App.Config().ExperimentalSettings.ExperimentalLastViewSanitize {
+		// Sanitize member for current user
+		member.SanitizeForCurrentUser(c.AppContext.Session().UserId)
+	}
 
 	if err := json.NewEncoder(w).Encode(member); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1694,10 +1700,12 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	// Sanitize members for current user
-	currentUserId := c.AppContext.Session().UserId
-	for i := range members {
-		members[i].SanitizeForCurrentUser(currentUserId)
+	if *c.App.Config().ExperimentalSettings.ExperimentalLastViewSanitize {
+		// Sanitize members for current user
+		currentUserId := c.AppContext.Session().UserId
+		for i := range members {
+			members[i].SanitizeForCurrentUser(currentUserId)
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
@@ -2152,10 +2160,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sanitize the returned members
-	currentUserId := c.AppContext.Session().UserId
-	for i := range newChannelMembers {
-		newChannelMembers[i].SanitizeForCurrentUser(currentUserId)
+	if *c.App.Config().ExperimentalSettings.ExperimentalLastViewSanitize {
+		// Sanitize the returned members
+		currentUserId := c.AppContext.Session().UserId
+		for i := range newChannelMembers {
+			newChannelMembers[i].SanitizeForCurrentUser(currentUserId)
+		}
 	}
 
 	w.WriteHeader(http.StatusCreated)
