@@ -26,3 +26,10 @@ LDAP_DATA ?= test
 
 # Mock the CWS.
 MM_ENABLE_CWS_MOCK ?= false
+
+# Skip running setup-go-work automatically.
+# IGNORE_GO_WORK_IF_EXISTS is supported for backwards compatibility.
+ifdef IGNORE_GO_WORK_IF_EXISTS
+SKIP_SETUP_GO_WORK ?= $(IGNORE_GO_WORK_IF_EXISTS)
+endif
+SKIP_SETUP_GO_WORK ?= false
