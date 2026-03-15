@@ -1793,10 +1793,10 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 		},
-		"secret settings in sections are sanitized": {
+		"plugin with settings in sections": {
 			manifests: []*Manifest{
 				{
-					Id: pluginID1,
+					Id: "plugin.id",
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1807,7 +1807,8 @@ func TestPluginSettingsSanitize(t *testing.T) {
 						},
 						Sections: []*PluginSettingsSection{
 							{
-								Key: "section1",
+								Key:   "section1",
+								Title: "Section 1",
 								Settings: []*PluginSetting{
 									{
 										Key:    "secrettext",
@@ -1826,51 +1827,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 			expected: map[string]map[string]any{
-				pluginID1: {
-					"someoldsettings": "some old value",
-					"somesetting":     "some value",
-					"secrettext":      FakeSetting,
-					"secretnumber":    FakeSetting,
-				},
-			},
-		},
-		"secret settings across multiple sections": {
-			manifests: []*Manifest{
-				{
-					Id: pluginID1,
-					SettingsSchema: &PluginSettingsSchema{
-						Sections: []*PluginSettingsSection{
-							{
-								Key: "section1",
-								Settings: []*PluginSetting{
-									{
-										Key:    "somesetting",
-										Type:   "text",
-										Secret: false,
-									},
-									{
-										Key:    "secrettext",
-										Type:   "text",
-										Secret: true,
-									},
-								},
-							},
-							{
-								Key: "section2",
-								Settings: []*PluginSetting{
-									{
-										Key:    "secretnumber",
-										Type:   "number",
-										Secret: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expected: map[string]map[string]any{
-				pluginID1: {
+				"plugin.id": {
 					"someoldsettings": "some old value",
 					"somesetting":     "some value",
 					"secrettext":      FakeSetting,

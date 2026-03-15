@@ -3533,6 +3533,7 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 				break
 			}
 
+			// Check top-level settings
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
 				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
 					settings[key] = FakeSetting
@@ -3540,6 +3541,7 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 				}
 			}
 
+			// Check settings inside sections
 			for _, section := range manifest.SettingsSchema.Sections {
 				for _, definedSetting := range section.Settings {
 					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
