@@ -191,6 +191,123 @@ func TestUploadLicenseFile(t *testing.T) {
 	})
 }
 
+func TestPreviewLicenseFile(t *testing.T) {
+	th := Setup(t)
+	client := th.Client
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp, err := client.PreviewLicenseFile(context.Background(), []byte{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system admin with empty file", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
+	})
+
+	t.Run("preview valid license", func(t *testing.T) {
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		userCount := 100
+		mills := model.GetMillis()
+
+		license := model.License{
+			Id: model.NewId(),
+			Features: &model.Features{
+				Users: &userCount,
+			},
+			Customer: &model.Customer{
+				Name:    "Test Customer",
+				Company: "Test Company",
+			},
+			SkuName:      "Enterprise",
+			SkuShortName: "enterprise",
+			StartsAt:     mills,
+			ExpiresAt:    mills + (365 * 24 * time.Hour).Milliseconds(),
+		}
+
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		utils.LicenseValidator = &mockLicenseValidator
+
+		previewedLicense, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte("test-license-data"))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, previewedLicense)
+		require.Equal(t, license.Id, previewedLicense.Id)
+		require.Equal(t, "Test Customer", previewedLicense.Customer.Name)
+		require.Equal(t, "Test Company", previewedLicense.Customer.Company)
+		require.Equal(t, "Enterprise", previewedLicense.SkuName)
+		require.Equal(t, "enterprise", previewedLicense.SkuShortName)
+		require.Equal(t, userCount, *previewedLicense.Features.Users)
+	})
+
+	t.Run("preview invalid license", func(t *testing.T) {
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(nil, model.NewAppError("LicenseFromBytes", "model.license.is_valid.app_error", nil, "", http.StatusBadRequest)).Once()
+		utils.LicenseValidator = &mockLicenseValidator
+
+		_, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte("invalid-license-data"))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("preview does not save license", func(t *testing.T) {
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		userCount := 50
+		mills := model.GetMillis()
+
+		license := model.License{
+			Id: model.NewId(),
+			Features: &model.Features{
+				Users: &userCount,
+			},
+			Customer: &model.Customer{
+				Name: "Preview Only",
+			},
+			SkuName:      "Professional",
+			SkuShortName: "professional",
+			StartsAt:     mills,
+			ExpiresAt:    mills + (365 * 24 * time.Hour).Milliseconds(),
+		}
+
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		utils.LicenseValidator = &mockLicenseValidator
+
+		// Get current license before preview
+		currentLicense := th.App.Srv().License()
+
+		// Preview the license
+		_, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte("test-license-data"))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Verify the license was not saved
+		licenseAfterPreview := th.App.Srv().License()
+		if currentLicense == nil {
+			require.Nil(t, licenseAfterPreview)
+		} else {
+			require.Equal(t, currentLicense.Id, licenseAfterPreview.Id)
+		}
+	})
+}
+
 func TestRemoveLicenseFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
