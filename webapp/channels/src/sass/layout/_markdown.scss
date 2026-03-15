@@ -170,7 +170,8 @@ h6.markdown__heading {
         background-color: inherit;
         font-size: 13px;
         text-align: left;
-        white-space: pre;
+        white-space: pre-wrap;
+        word-break: break-all;
     }
 
     &:hover .post-code__clipboard {
@@ -355,8 +356,10 @@ h6.markdown__heading {
 
 ol.markdown__list {
     display: table;
+    width: '100%';
     padding: 0;
     counter-reset: list;
+    table-layout: fixed;
 
     >li {
         display: table-row;
@@ -365,11 +368,19 @@ ol.markdown__list {
 
         &::before {
             display: table-cell;
+            width: 2.5em;
             padding-right: 8px;
             content: counter(list) ".";
             text-align: right;
+            vertical-align: top;
             word-break: keep-all;
         }
+
+        >span {
+            display: table-cell;
+            max-width: 0;
+        }
+
         // Special rules for task items within ordered lists
         &.list-item--task-list {
             &::before {
