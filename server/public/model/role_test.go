@@ -4,9 +4,11 @@
 package model
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
@@ -304,4 +306,21 @@ func TestAddAncillaryPermissions(t *testing.T) {
 			assert.Equal(t, permissions, tc.Expected)
 		})
 	}
+}
+
+func TestSystemAdminIncludesManageOAuth(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	t.Run("system_admin includes manage_oauth by default", func(t *testing.T) {
+		role, ok := roles[SystemAdminRoleId]
+		require.True(t, ok, "system_admin role should exist in MakeDefaultRoles")
+		assert.True(t, slices.Contains(role.Permissions, PermissionManageOAuth.Id),
+			"system_admin should include manage_oauth")
+		assert.True(t, slices.ContainsFunc(AllPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should be part of AllPermissions")
+		assert.False(t, slices.ContainsFunc(DeprecatedPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should not remain deprecated")
+	})
 }
