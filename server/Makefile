@@ -106,7 +106,8 @@ ifeq ($(HOME),/)
 endif
 
 # Go Flags
-GOFLAGS ?= $(GOFLAGS:)
+# Use -buildvcs=false to avoid embedding VCS info which can cause false positives in container scanning tools
+GOFLAGS ?= -buildvcs=false
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
@@ -852,7 +853,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
+	$(GO) build $(GOFLAGS) -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
