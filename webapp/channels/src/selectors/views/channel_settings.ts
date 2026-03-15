@@ -4,7 +4,7 @@
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import Constants from 'utils/constants';
 
@@ -22,7 +22,8 @@ export const canAccessChannelSettings = createSelector(
     (state: GlobalState, channelId: string) => channelId,
     (state: GlobalState) => getConfig(state)?.RestrictDMAndGMAutotranslation === 'true',
     (state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true',
-    (state, channels, channelId, isDMAndGMAutotranslationRestricted, isAutoTranslationEnabled) => {
+    (state: GlobalState) => getConfig(state)?.ExperimentalSharedChannels === 'true',
+    (state, channels, channelId, isDMAndGMAutotranslationRestricted, isAutoTranslationEnabled, isSharedChannelsEnabled) => {
         const channel = channels[channelId];
         if (!channel) {
             return false;
@@ -71,6 +72,10 @@ export const canAccessChannelSettings = createSelector(
             translationPermission,
         );
 
+        // Configuration tab (shared channels) permissions
+        const hasSharedChannelsPermission = isSharedChannelsEnabled &&
+            haveISystemPermission(state, {permission: Permissions.MANAGE_SHARED_CHANNELS});
+
         // Archive tab permissions
         const archivePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
 
@@ -82,6 +87,6 @@ export const canAccessChannelSettings = createSelector(
         );
 
         // User can access channel settings if they have permission for at least one tab
-        return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasArchivePermission;
+        return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasSharedChannelsPermission || hasArchivePermission;
     },
 );

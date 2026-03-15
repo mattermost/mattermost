@@ -2128,9 +2128,23 @@ export default class Client4 {
 
     // Remote Clusters Routes
 
-    getRemoteClusters = (options: {excludePlugins: boolean}) => {
+    getRemoteClusters = (options: {
+        excludePlugins?: boolean;
+        notInChannel?: string;
+        onlyConfirmed?: boolean;
+    } = {}) => {
+        const params: Record<string, string | boolean> = {};
+        if (options.excludePlugins !== undefined) {
+            params.exclude_plugins = options.excludePlugins;
+        }
+        if (options.notInChannel) {
+            params.not_in_channel = options.notInChannel;
+        }
+        if (options.onlyConfirmed !== undefined) {
+            params.only_confirmed = options.onlyConfirmed;
+        }
         return this.doFetch<RemoteCluster[]>(
-            `${this.getRemoteClustersRoute()}${buildQueryString({exclude_plugins: options.excludePlugins})}`,
+            `${this.getRemoteClustersRoute()}${buildQueryString(params)}`,
             {method: 'GET'},
         );
     };

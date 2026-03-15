@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -554,6 +555,267 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 		}
 	}
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
+}
+
+// TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote verifies that when a channel has multiple
+// remotes (including unconfirmed), uninviting one remote only removes that remote and does not
+// trigger unshare. This guards the IncludeUnconfirmed fix in unshareChannelIfNoActiveRemotes.
+func TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+	ss := th.App.Srv().Store()
+
+	t.Run("uninvite one of two remotes (one confirmed, one unconfirmed) leaves channel shared and other remote present", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-1",
+			DisplayName:  "Remote 1",
+			SiteURL:      "https://r1.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-2",
+			DisplayName:  "Remote 2",
+			SiteURL:      "https://r2.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		// Remote 1: confirmed
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		// Remote 2: unconfirmed (would be ignored by GetRemotes when IncludeUnconfirmed is false)
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  false,
+			IsInviteConfirmed: false,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		// Uninvite the confirmed remote (remote 1)
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+
+		// Channel must still be shared (unshareChannelIfNoActiveRemotes must not have run)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared when an unconfirmed remote remains")
+
+		// Remote 1 must be gone (soft-deleted)
+		has1, err := ss.SharedChannel().HasRemote(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+		require.False(t, has1, "Uninvited remote should no longer be present")
+
+		// Remote 2 (unconfirmed) must still be present
+		has2, err := ss.SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+		require.True(t, has2, "Other remote (unconfirmed) should still be present")
+	})
+
+	t.Run("uninvite one of two confirmed remotes leaves channel shared and other remote present", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-a",
+			DisplayName:  "Remote A",
+			SiteURL:      "https://ra.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-b",
+			DisplayName:  "Remote B",
+			SiteURL:      "https://rb.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared with the other remote")
+
+		has1, err := ss.SharedChannel().HasRemote(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+		require.False(t, has1, "Uninvited remote should no longer be present")
+
+		has2, err := ss.SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+		require.True(t, has2, "Other remote should still be present")
+	})
+
+	t.Run("uninvite the only non-deleted remote (other is already deleted) unshares the channel", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-deleted",
+			DisplayName:  "Remote Deleted",
+			SiteURL:      "https://rd.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-active",
+			DisplayName:  "Remote Active",
+			SiteURL:      "https://ra.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		// Soft-delete the first remote so only one active remote remains
+		_, err = ss.SharedChannel().DeleteRemote(scr1.Id)
+		require.NoError(t, err)
+
+		// Channel is still shared (one active remote)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared with the active remote")
+
+		// Uninvite the only remaining active remote
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+
+		// Channel must now be unshared (no remaining non-deleted remotes)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.Error(t, err, "Channel should be unshared after removing the last active remote")
+		require.True(t, errors.Is(err, model.ErrChannelNotShared), "Error should be ErrChannelNotShared")
+	})
 }
 
 // TestTransformMentionsOnReceive provides comprehensive unit testing for the mention transformation logic

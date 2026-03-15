@@ -503,7 +503,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		require.NoError(t, err)
 	}
 
-	// Create some shared channel remotes
+	// Create some shared channel remotes (keep saved ref for rcData[1] on channel1 for soft-delete test)
 	scrData := []*model.SharedChannelRemote{
 		{ChannelId: channel1.Id, RemoteId: rcData[0].RemoteId, CreatorId: model.NewId()},
 		{ChannelId: channel1.Id, RemoteId: rcData[1].RemoteId, CreatorId: model.NewId()},
@@ -511,9 +511,13 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		{ChannelId: channel2.Id, RemoteId: rcData[3].RemoteId, CreatorId: model.NewId()},
 		{ChannelId: channel2.Id, RemoteId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
+	var scrChannel1Remote *model.SharedChannelRemote
 	for _, item := range scrData {
-		_, err := ss.SharedChannel().SaveRemote(item)
+		saved, err := ss.SharedChannel().SaveRemote(item)
 		require.NoError(t, err)
+		if item.ChannelId == channel1.Id && item.RemoteId == rcData[1].RemoteId {
+			scrChannel1Remote = saved
+		}
 	}
 
 	t.Run("Channel 1", func(t *testing.T) {
@@ -572,6 +576,26 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		require.NoError(t, err)
 		require.Empty(t, list, "channel 3 should have 0 remote clusters")
 	})
+
+	t.Run("InChannel excludes soft-deleted SharedChannelRemotes", func(t *testing.T) {
+		require.NotNil(t, scrChannel1Remote, "scr for channel1/rcData[1] should be saved")
+		// Verify that we are returning two remotes before delete
+		filter := model.RemoteClusterQueryFilter{InChannel: channel1.Id}
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		require.Len(t, list, 2, "channel 1 should have 2 remote clusters before delete")
+
+		// Delete the remote
+		deleted, err := ss.SharedChannel().DeleteRemote(scrChannel1Remote.Id)
+		require.NoError(t, err)
+		require.True(t, deleted, "DeleteRemote should succeed")
+
+		// Verify that the deleted remote is not returned
+		list, err = ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		require.Len(t, list, 1, "channel 1 should have 1 remote cluster after soft-deleting the other")
+		require.Equal(t, rcData[0].RemoteId, list[0].RemoteId, "only the non-deleted remote should be returned")
+	})
 }
 
 func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -612,7 +636,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		require.NoError(t, err)
 	}
 
-	// Create some shared channel remotes
+	// Create some shared channel remotes (keep saved ref for rcData[1] on channel1 for soft-delete test)
 	scrData := []*model.SharedChannelRemote{
 		{ChannelId: channel1.Id, RemoteId: rcData[0].RemoteId, CreatorId: model.NewId()},
 		{ChannelId: channel1.Id, RemoteId: rcData[1].RemoteId, CreatorId: model.NewId()},
@@ -620,9 +644,13 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		{ChannelId: channel2.Id, RemoteId: rcData[3].RemoteId, CreatorId: model.NewId()},
 		{ChannelId: channel3.Id, RemoteId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
+	var scrChannel1Remote *model.SharedChannelRemote
 	for _, item := range scrData {
-		_, err := ss.SharedChannel().SaveRemote(item)
+		saved, err := ss.SharedChannel().SaveRemote(item)
 		require.NoError(t, err)
+		if item.ChannelId == channel1.Id && item.RemoteId == rcData[1].RemoteId {
+			scrChannel1Remote = saved
+		}
 	}
 
 	t.Run("Channel 1", func(t *testing.T) {
@@ -668,6 +696,28 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		ids := getIds(list)
 		require.ElementsMatch(t, []string{rcData[0].RemoteId, rcData[1].RemoteId, rcData[2].RemoteId, rcData[3].RemoteId,
 			rcData[4].RemoteId}, ids)
+	})
+
+	t.Run("NotInChannel includes remotes whose only link to channel is soft-deleted", func(t *testing.T) {
+		require.NotNil(t, scrChannel1Remote, "scr for channel1/rcData[1] should be saved")
+		// Verify that we are returning four remotes before delete
+		filter := model.RemoteClusterQueryFilter{NotInChannel: channel1.Id}
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		require.Len(t, list, 3, "channel 1 should have 3 remotes not in channel before delete")
+
+		// Delete the remote
+		deleted, err := ss.SharedChannel().DeleteRemote(scrChannel1Remote.Id)
+		require.NoError(t, err)
+		require.True(t, deleted, "DeleteRemote should succeed")
+
+		// Verify that the deleted remote is not returned
+		list, err = ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		require.Len(t, list, 4, "channel 1 should have 4 remotes not in channel (including the soft-deleted one)")
+		ids := getIds(list)
+		require.Contains(t, ids, rcData[1].RemoteId, "soft-deleted remote should appear as not in channel")
+		require.ElementsMatch(t, []string{rcData[1].RemoteId, rcData[2].RemoteId, rcData[3].RemoteId, rcData[4].RemoteId}, ids)
 	})
 }
 

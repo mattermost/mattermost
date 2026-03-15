@@ -22,6 +22,7 @@ var (
 	ErrChannelAlreadyShared = errors.New("channel is already shared")
 	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
 	ErrChannelAlreadyExists = errors.New("channel already exists")
+	ErrChannelNotShared     = errors.New("channel is not shared")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -160,6 +161,7 @@ func (sc *SharedChannelRemote) PreUpdate() {
 
 type SharedChannelRemoteStatus struct {
 	ChannelId        string `json:"channel_id"`
+	RemoteId         string `json:"remote_id"`
 	DisplayName      string `json:"display_name"`
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`
