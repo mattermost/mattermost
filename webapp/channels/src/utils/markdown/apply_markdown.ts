@@ -517,3 +517,14 @@ function findWordStart(text: string, start: number) {
 function isSelectionMultiline(message: string, selectionStart: number, selectionEnd: number) {
     return message.slice(selectionStart, selectionEnd).includes('\n');
 }
+export type ApplyRawMarkdownOptions = {
+    markdown: string;
+}
+
+export function insertRawMarkdown({markdown}: ApplyRawMarkdownOptions): ApplyMarkdownReturnValue {
+    return {
+        message: markdown,
+        selectionStart: markdown.length,
+        selectionEnd: markdown.length,
+    };
+}
