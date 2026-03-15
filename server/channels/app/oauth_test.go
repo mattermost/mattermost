@@ -1400,6 +1400,64 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			require.Contains(t, appErr.Id, "resource_mismatch")
 		})
 	})
+
+	t.Run("DifferentClient_CannotRedeemCode", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appB.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("DifferentClient_CannotUseRefreshToken", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		// Get a valid refresh token for appA
+		tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appA.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appA.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, tokenResp.RefreshToken)
+
+		// Try to use appA's refresh token with appB's credentials
+		_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.RefreshTokenGrantType,
+			appB.CallbackUrls[0],
+			"",
+			appB.ClientSecret,
+			tokenResp.RefreshToken,
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
