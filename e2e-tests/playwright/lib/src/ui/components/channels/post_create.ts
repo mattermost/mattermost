@@ -110,6 +110,29 @@ export default class ChannelsPostCreate {
         await this.sendMessage();
     }
 
+     /**
+   * Selects a slash command from the autocomplete suggestion list
+   * @param keystrokes - The partial text to type that triggers autocomplete (e.g., "/cr")
+   * @param expectedCommand - The command we expect to see and select (e.g., "/crash")
+   */
+  async selectSlashCommandFromAutocomplete(keystrokes: string, expectedCommand: string) {
+      await this.input.waitFor();
+      await expect(this.input).toBeVisible();
+
+      // Type the keystrokes to trigger autocomplete
+      await this.input.fill(keystrokes);
+
+      // Wait for the suggestion list to appear
+      await expect(this.suggestionList).toBeVisible();
+
+      // Verify the expected command appears in the suggestions
+      const suggestion = this.suggestionList.getByText(expectedCommand);
+      await expect(suggestion).toBeVisible();
+
+      // Click to select the command
+      await suggestion.click();
+  }
+
     async openEmojiPicker() {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
