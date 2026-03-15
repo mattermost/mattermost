@@ -1,0 +1,29 @@
+{
+    "ServiceSettings": {
+        "SiteURL": "http://localhost:8065",
+        "ListenAddress": ":8065",
+        "EnableDeveloper": false,
+        "EnableOAuthServiceProvider": true,
+        "EnableGifPicker": true
+    },
+    "SqlSettings": {
+        "DriverName": "postgres",
+        "DataSource": "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+        "AtRestEncryptKey": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "/mm/mattermost-data",
+        "PublicLinkSalt": ""
+    },
+    "EmailSettings": {
+        "SMTPServer": "",
+        "SMTPPort": "",
+        "PushNotificationContents": "generic"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": true,
+        "PluginStates": {}
+    }
+}

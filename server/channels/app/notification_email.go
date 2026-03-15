@@ -369,8 +369,8 @@ func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, re
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)
-	data.Props["SiteURL"] = a.GetSiteURL()
-	data.Props["ButtonURL"] = emailNotification.ButtonURL
+	data.Props["SiteURL"] =  template.URL(a.GetSiteURL())
+	data.Props["ButtonURL"] = template.URL(emailNotification.ButtonURL)
 	data.Props["SenderName"] = emailNotification.SenderDisplayName
 	data.Props["Button"] = emailNotification.ButtonText
 	data.Props["NotificationFooterTitle"] = emailNotification.FooterText
