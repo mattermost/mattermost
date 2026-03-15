@@ -57,7 +57,7 @@ const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
 };
 
 export function splitFormattingBarControls(wideMode: WideMode) {
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'code', 'quote', 'ul', 'ol'];
 
     const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
 
