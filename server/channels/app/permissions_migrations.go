@@ -1248,6 +1248,14 @@ func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SystemAdminRoleId),
+			Add: []string{model.PermissionManageOAuth.Id},
+		},
+	}, nil
+}
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1304,6 +1312,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
+		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
