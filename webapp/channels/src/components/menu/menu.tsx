@@ -9,6 +9,7 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from 'react';
 import type {
     ReactNode,
@@ -74,6 +75,26 @@ type MenuProps = {
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
     isMenuOpen?: boolean;
+
+    /**
+     * When true, hides the MUI Popover backdrop so elements behind the
+     * menu remain interactive (e.g. during drag-and-drop).
+     */
+    hideBackdrop?: boolean;
+
+    /**
+     * When true, MUI will not restore focus to the previously focused
+     * element when the menu closes. Useful when the caller manages
+     * focus itself (e.g. keyboard reordering).
+     */
+    disableRestoreFocus?: boolean;
+
+    /**
+     * When false, the menu will not auto-focus the first item on open.
+     * Focus stays on the trigger button; ArrowDown moves focus into the list.
+     * Defaults to true (standard MUI behavior).
+     */
+    autoFocusItem?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -117,6 +138,13 @@ export function Menu(props: Props) {
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
+        // When hideBackdrop is active (during DnD), block all MUI-initiated close.
+        // The menu is controlled exclusively via isMenuOpen in this mode.
+        if (props.menu.hideBackdrop) {
+            event.preventDefault();
+            return;
+        }
+
         event.preventDefault();
         setAnchorElement(null);
     }
@@ -135,6 +163,22 @@ export function Menu(props: Props) {
     // @see https://github.com/mui/material-ui/issues/32064
     function handleMenuClick(e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) {
         e.stopPropagation();
+    }
+
+    // MUI MenuList handles arrow keys internally. This handler runs AFTER
+    // MenuList's own onKeyDown (MUI calls our onKeyDown prop at the end).
+    // Stop propagation so the arrow event doesn't also reach the Popover's
+    // onKeyDown, which could cause double-movement.
+    function handleMenuListKeyDown(event: KeyboardEvent<HTMLUListElement>) {
+        if (isKeyPressed(event, Constants.KeyCodes.UP) || isKeyPressed(event, Constants.KeyCodes.DOWN)) {
+            event.stopPropagation();
+        }
+
+        // If a menu item already handled Space/Enter (e.g. keyboard reorder),
+        // stop it from reaching the Popover which would close the menu.
+        if (event.defaultPrevented && (isKeyPressed(event, Constants.KeyCodes.SPACE) || isKeyPressed(event, Constants.KeyCodes.ENTER))) {
+            event.stopPropagation();
+        }
     }
 
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -235,10 +279,23 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    const prevIsMenuOpenRef = useRef(props.menu.isMenuOpen);
     useEffect(() => {
-        if (props.menu.isMenuOpen === false) {
+        const prev = prevIsMenuOpenRef.current;
+        prevIsMenuOpenRef.current = props.menu.isMenuOpen;
+
+        if (props.menu.isMenuOpen === true && !anchorElement) {
+            const button = document.getElementById(props.menuButton.id);
+            if (button) {
+                setAnchorElement(button);
+            }
+        } else if (props.menu.isMenuOpen === false && anchorElement) {
+            setAnchorElement(null);
+        } else if (props.menu.isMenuOpen == null && prev === true && anchorElement) {
+            // Transition from controlled-open to uncontrolled — close the menu
             setAnchorElement(null);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude anchorElement/id to avoid loops
     }, [props.menu.isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
@@ -262,6 +319,15 @@ export function Menu(props: Props) {
                     marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
+                    hideBackdrop={props.menu.hideBackdrop}
+                    disableRestoreFocus={props.menu.disableRestoreFocus}
+
+                    // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
+                    // Modal root still covers the viewport with position:fixed;inset:0.
+                    // Making it pointer-events:none lets drag events pass through to
+                    // elements behind it, while the paper content stays interactive.
+                    style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
+                    PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
@@ -288,7 +354,8 @@ export function Menu(props: Props) {
                         style={{
                             width: props.menu.width,
                         }}
-                        autoFocusItem={isMenuOpen}
+                        autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
+                        onKeyDown={handleMenuListKeyDown}
                     >
                         {props.children}
                     </MuiMenuList>

@@ -7,6 +7,7 @@ import {styled} from '@mui/material/styles';
 import cloneDeep from 'lodash/cloneDeep';
 import React, {
     Children,
+    forwardRef,
     useContext,
 } from 'react';
 import type {
@@ -128,7 +129,7 @@ Props,
  * });
  *
  */
-export function MenuItem(props: Props) {
+export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
     const {
         leadingElement,
         labels,
@@ -192,6 +193,7 @@ export function MenuItem(props: Props) {
 
     return (
         <MenuItemStyled
+            ref={ref}
             disableRipple={true}
             disableTouchRipple={true}
             isDestructive={isDestructive}
@@ -208,7 +210,8 @@ export function MenuItem(props: Props) {
             {children}
         </MenuItemStyled>
     );
-}
+});
+MenuItem.displayName = 'MenuItem';
 
 interface MenuItemStyledProps extends MuiMenuItemProps {
     isDestructive?: boolean;
