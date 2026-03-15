@@ -1417,8 +1417,19 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 			Email: email,
 			Error: nil,
 		}
+
+		userToInvite, err := a.GetUserByEmail(email)
+		if err.StatusCode == http.StatusNotFound {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if err != nil {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "app.user.get.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if userToInvite != nil && userToInvite.DeleteAt != 0 {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.deactivated_email.app_error", nil, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
