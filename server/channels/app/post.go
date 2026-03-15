@@ -1656,55 +1656,44 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
-		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("GetPostIdAfter", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
-	postID, err := a.Srv().Store().Post().GetPostIdBeforeTime(channelID, time, collapsedThreads)
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList, userID string, collapsedThreads bool) string {
+	if len(postList.Order) == 0 {
+		return ""
+	}
+	first := postList.Posts[postList.Order[0]]
+	return a.getCursorPostId(first.ChannelId, first.CreateAt, userID, collapsedThreads, false)
+}
+
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, userID string, collapsedThreads bool) string {
+	if len(postList.Order) == 0 {
+		return ""
+	}
+	last := postList.Posts[postList.Order[len(postList.Order)-1]]
+	return a.getCursorPostId(last.ChannelId, last.CreateAt, userID, collapsedThreads, true)
+}
+
+// getCursorPostId finds the next or previous visible post for pagination cursors.
+// The SQL query filters out expired burn-on-read posts for the user so this is
+// always a single round trip regardless of how many expired posts exist.
+func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, collapsedThreads bool, before bool) string {
+	postId, err := a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
 	if err != nil {
-		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		mlog.Warn("getCursorPostId: failed to get post id", mlog.Err(err))
+		return ""
 	}
-
-	return postID, nil
-}
-
-func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
-	if len(postList.Order) > 0 {
-		firstPostId := postList.Order[0]
-		firstPost := postList.Posts[firstPostId]
-		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
-		if err != nil {
-			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
-		}
-
-		return nextPostId
-	}
-
-	return ""
-}
-
-func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
-	if len(postList.Order) > 0 {
-		lastPostId := postList.Order[len(postList.Order)-1]
-		lastPost := postList.Posts[lastPostId]
-		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
-		if err != nil {
-			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
-		}
-
-		return previousPostId
-	}
-
-	return ""
+	return postId
 }
 
 // AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 // The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 // and only query to database whenever necessary.
-func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, userID string, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
 	prevPostIdSet := false
 	prevPostId := ""
 	nextPostIdSet := false
@@ -1734,11 +1723,11 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	}
 
 	if !nextPostIdSet {
-		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads)
+		nextPostId = a.GetNextPostIdFromPostList(originalList, userID, collapsedThreads)
 	}
 
 	if !prevPostIdSet {
-		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads)
+		prevPostId = a.GetPrevPostIdFromPostList(originalList, userID, collapsedThreads)
 	}
 
 	originalList.NextPostId = nextPostId
