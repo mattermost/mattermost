@@ -21,7 +21,7 @@ import './post_history_limit_banner.scss';
 const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
 const PostHistoryLimitBanner = () => {
-    const {openPricingModal} = useOpenPricingModal();
+    const {openPricingModal} = useOpenPricingModal('history_limit');
     const dispatch = useDispatch();
 
     const currentUser = useSelector(getCurrentUser);
