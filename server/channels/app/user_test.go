@@ -2224,6 +2224,20 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
 	})
+
+	t.Run("Can demote bot from admin to member", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		// Promote bot to admin
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to demote bot from admin to member - should succeed
+		user, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		require.False(t, user.IsSystemAdmin())
+	})
 }
 
 func TestDeactivateMfa(t *testing.T) {
