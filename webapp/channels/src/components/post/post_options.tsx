@@ -40,7 +40,6 @@ type Props = {
     shouldShowActionsMenu?: boolean;
     oneClickReactionsEnabled?: boolean;
     recentEmojis: Emoji[];
-    isExpanded?: boolean;
     hover?: boolean;
     isMobileView: boolean;
     hasReplies?: boolean;
@@ -66,6 +65,7 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const postOptionsRef = useRef<HTMLUListElement>(null);
 
     const toggleEmojiPicker = useCallback((show: boolean) => {
         setShowEmojiPicker(show);
@@ -147,9 +147,11 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
-        const showMoreReactions = props.isExpanded ||
-            props.location === 'CENTER' ||
-            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+        // Find the nearest .post parent to determine available width
+        const postContainer = postOptionsRef.current?.closest('.post');
+        const containerWidth = postContainer?.getBoundingClientRect().width ?? 0;
+
+        const showMoreReactions = containerWidth > Constants.SIDEBAR_MINIMUM_WIDTH;
 
         showRecentReactions = (
             <PostRecentReactions
@@ -294,6 +296,7 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (!props.isPostBeingEdited) {
         options = (
             <ul
+                ref={postOptionsRef}
                 data-testid={`post-menu-${props.post.id}`}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
