@@ -113,6 +113,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             onCancel={onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            minDateTime={now}
         />
     );
 }

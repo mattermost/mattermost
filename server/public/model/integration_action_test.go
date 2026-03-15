@@ -1280,6 +1280,45 @@ func TestSubmitDialogResponse_IsValid(t *testing.T) {
 	}
 }
 
+func TestValidateRelativePattern(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"valid days", "+1d", true},
+		{"valid weeks", "+2w", true},
+		{"valid months", "+3m", true},
+		{"valid hours", "+2H", true},
+		{"valid minutes", "+30M", true},
+		{"valid seconds", "+90S", true},
+		{"negative days", "-1d", true},
+		{"negative hours", "-2H", true},
+		{"multi-digit number", "+99d", true},
+		{"max digits", "+999d", true},
+		{"lowercase h rejected", "+1h", false},
+		{"lowercase s rejected", "+1s", false},
+		{"uppercase D rejected", "+1D", false},
+		{"uppercase W rejected", "+1W", false},
+		{"no number", "+d", false},
+		{"empty", "", false},
+		{"too long days", "+9999d", false},
+		{"too long hours", "+9999H", false},
+		{"too long minutes", "+9999M", false},
+		{"too long seconds", "+9999S", false},
+		{"no number hours", "+H", false},
+		{"no number minutes", "+M", false},
+		{"no number seconds", "+S", false},
+		{"no sign", "1d", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, validateRelativePattern(tt.input))
+		})
+	}
+}
+
 func TestValidateDateFormat(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -1327,7 +1366,8 @@ func TestValidateDateTimeFormat(t *testing.T) {
 		{"invalid date part", "2025-13-01T10:30:00Z", true},
 		{"invalid time part", "2025-01-15T25:30:00Z", true},
 		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
-		{"date only format", "2025-01-15", true},
+		// backward compat: date-only strings are accepted, treated as start-of-day
+		{"date only format", "2025-01-15", false},
 		{"empty string", "", false}, // Empty string is valid (no error)
 		{"invalid format with space", "2025-01-15 10:30:00", true},
 	}
@@ -1363,6 +1403,34 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
+			MinDate:      "2025-01-01T00:00:00Z",
+			MaxDate:      "2025-12-31T23:59:59Z",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "+2H",
+			MaxDate:      "+7d",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
 			MinDate:      "2025-01-01",
 			MaxDate:      "2025-12-31",
 			TimeInterval: 30,
@@ -1370,6 +1438,68 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DateTimeConfig fields", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 30,
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "+7d",
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject invalid DateTimeConfig.TimeInterval", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 7, // not a divisor of 1440
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval must be a divisor of 1440")
+	})
+
+	t.Run("should reject invalid DateTimeConfig.MinDate", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "not-a-date",
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid datetime format")
+	})
+
+	t.Run("should prefer DateTimeConfig.TimeInterval over top-level", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 30, // valid top-level
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 7, // invalid nested — should be used for validation
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval must be a divisor of 1440")
 	})
 
 	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {
@@ -1456,16 +1586,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		err := element.IsValid()
 		assert.NoError(t, err)
 
-		// Invalid with default 60-minute interval
+		// 0 is silently accepted and defaults to the server-side default interval
 		element = DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			TimeInterval: 0, // Should use default of 60
+			TimeInterval: 0,
 			Optional:     false,
 		}
 		err = element.IsValid()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
+		assert.NoError(t, err)
 	})
 }

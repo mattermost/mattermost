@@ -193,11 +193,11 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
 
-        test('should allow past dates and all times when allowPastDates is true', () => {
+        test('should show all times when no minDateTime restriction', () => {
             // Test the core time generation logic directly
             const selectedDate = moment('2025-06-08T15:00:00Z'); // 3 PM
 
-            // When allowPastDates=true, time intervals should start from beginning of day
+            // When no minDateTime, time intervals should start from beginning of day
             const timeOptions = getTimeInIntervals(selectedDate.clone().startOf('day'), 30);
 
             // Should include times from start of day (midnight)
@@ -209,12 +209,12 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(timeOptions.length).toBe(48); // 24 hours * 2 (30-min intervals)
         });
 
-        test('should restrict past dates and times when allowPastDates is false (default)', () => {
+        test('should restrict times when minDateTime is set to current time', () => {
             // Test the core time generation logic for restricted past times
             const currentTime = moment('2025-06-08T15:30:00Z'); // 3:30 PM
             const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
 
-            // When allowPastDates=false and selecting today, time options should start from current time
+            // When minDateTime is today, time options should start from minDateTime's time
             const timeOptions = getTimeInIntervals(roundedTime, 30);
 
             // Should NOT include times before current time (no midnight options)

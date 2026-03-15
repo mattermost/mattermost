@@ -408,6 +408,111 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
     });
 
+    it('MM-T2530I - datetime_config.min_date disables past calendar days on datetime field', () => {
+        // # Open minmax dialog (datetime field with datetime_config: { min_date: 'today', max_date: '+7d' })
+        openDateTimeDialog('minmax');
+        verifyModalTitle('DateTime Min/Max Test');
+
+        // # Open date picker for the datetime field
+        openDatePicker('Constrained DateTime');
+
+        // * Verify a past date is disabled (2 days ago to avoid midnight boundary)
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 2);
+        const needsPrevMonth = pastDate.getMonth() !== new Date().getMonth();
+        if (needsPrevMonth) {
+            cy.get('.rdp .rdp-nav_button_previous').click();
+        }
+        const pastDay = pastDate.getDate().toString();
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === pastDay)
+            .should('have.length.greaterThan', 0) // guard: day must be found
+            .should('have.class', 'rdp-day_disabled').and('be.disabled');
+
+        // Navigate back to current month if needed
+        if (needsPrevMonth) {
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+
+        // * Verify a future date within the window is enabled and select it
+        const {day: futureDay, needsNextMonth} = getSelectableDay(2);
+        if (needsNextMonth) {
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === futureDay)
+            .should('not.have.class', 'rdp-day_disabled').and('not.be.disabled')
+            .first().click();
+
+        // * Verify date selection
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Constrained DateTime').within(() => {
+                cy.get('.dateTime__date .date-time-input__value').should('be.visible').and('not.be.empty');
+            });
+        });
+    });
+
+    it('MM-T2530J - datetime_config.max_date disables calendar days beyond the window', () => {
+        // # Open minmax dialog (max_date: '+7d')
+        openDateTimeDialog('minmax');
+
+        // # Open date picker
+        openDatePicker('Constrained DateTime');
+
+        // * Verify a date beyond max_date (+7d) is disabled
+        // Use +10 days to be safely past the 7-day window
+        // Single `now` reference avoids month-boundary race between two Date() calls
+        const now = new Date();
+        const beyondDate = new Date(now);
+        beyondDate.setDate(now.getDate() + 10);
+        const needsNextMonth = beyondDate.getMonth() !== now.getMonth();
+        if (needsNextMonth) {
+            cy.get('.rdp .rdp-nav_button_next').click();
+        }
+        const beyondDay = beyondDate.getDate().toString();
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
+            .filter((i, el) => el.textContent.trim() === beyondDay)
+            .should('have.length.greaterThan', 0) // guard: day must be found
+            .should('have.class', 'rdp-day_disabled').and('be.disabled');
+    });
+
+    it('MM-T2530K - time dropdown filters past times when min_date uses sub-day offset', () => {
+        // Guard: '+2H' wraps to tomorrow after 10 PM — skip to avoid false failures
+        const currentHour = new Date().getHours();
+        if (currentHour >= 22) {
+            return;
+        }
+
+        // # Open minmax dialog — "Time-Filtered DateTime" has min_date: '+2H'
+        //   which resolves to 2 hours from now, filtering out early time slots
+        openDateTimeDialog('minmax');
+
+        // # Select today's date on the time-filtered field
+        openDatePicker('Time-Filtered DateTime');
+
+        // # Click today
+        cy.get('.rdp').find('.rdp-day_today').click();
+
+        // # Open time dropdown
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Time-Filtered DateTime').within(() => {
+                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            });
+        });
+
+        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+
+        // * Verify the dropdown has options and fewer than 24 (early hours are filtered out)
+        cy.get('[id^="time_option_"]').should('have.length.greaterThan', 0);
+        cy.get('[id^="time_option_"]').should('have.length.lessThan', 24);
+
+        // * Verify midnight (00:00 / 12:00 AM) is NOT the first time option —
+        //   min_date: '+2H' resolves to 2 hours from now, so early slots are filtered.
+        cy.get('[id^="time_option_"]').first().invoke('text').then((firstOptionText) => {
+            expect(firstOptionText).to.not.match(/^(12:00 AM|00:00)$/);
+        });
+    });
+
     it('MM-T2530O - Manual time entry (basic functionality)', () => {
         // # Open timezone-manual dialog via webhook
         openDateTimeDialog('timezone-manual');
