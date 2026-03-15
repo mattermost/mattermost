@@ -13,6 +13,7 @@ export {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,

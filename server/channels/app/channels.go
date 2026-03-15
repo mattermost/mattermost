@@ -51,6 +51,8 @@ type Channels struct {
 
 	imageProxy *imageproxy.ImageProxy
 
+	agentsBridge AgentsBridge
+
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
 	cachedUserCount   int64
@@ -99,6 +101,12 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:   s.ExportFileBackend(),
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
+	}
+
+	if s.agentsBridgeOverride != nil {
+		ch.agentsBridge = s.agentsBridgeOverride
+	} else {
+		ch.agentsBridge = newLiveAgentsBridge(ch)
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -219,6 +227,10 @@ func NewChannels(s *Server) (*Channels, error) {
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
 	return ch, nil
+}
+
+func (ch *Channels) SetAgentsBridge(bridge AgentsBridge) {
+	ch.agentsBridge = bridge
 }
 
 func (ch *Channels) Start() error {

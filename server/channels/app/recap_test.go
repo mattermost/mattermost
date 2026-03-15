@@ -249,9 +249,9 @@ func TestProcessRecapChannel(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
 
-	th := Setup(t).InitBasic(t)
-
 	t.Run("process empty channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
 		// Ensure channel has no posts (it shouldn't in init)
 		channel := th.CreateChannel(t, th.BasicTeam)
 		// No posts added
@@ -259,28 +259,110 @@ func TestProcessRecapChannel(t *testing.T) {
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 		recapID := model.NewId()
 		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Empty recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
 
 		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		assert.True(t, result.Success)
 		assert.Equal(t, 0, result.MessageCount)
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, channel.Id, recapChannels[0].ChannelId)
+		assert.Empty(t, recapChannels[0].Highlights)
+		assert.Empty(t, recapChannels[0].ActionItems)
 	})
 
-	t.Run("process channel with posts", func(t *testing.T) {
-		// This test expects failure at SummarizePosts because we can't mock AI easily in integration test
+	t.Run("process channel with posts persists recap channel", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["A deterministic highlight"],"action_items":["A deterministic action item"]}`, nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		post := th.CreatePost(t, channel)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Test recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		assert.True(t, result.Success)
+		assert.Equal(t, 1, result.MessageCount)
+		require.Len(t, bridge.completeCalls, 1)
+		assert.Equal(t, BridgeOperationRecapSummary, bridge.completeCalls[0].request.Operation)
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, channel.Id, recapChannels[0].ChannelId)
+		assert.Equal(t, []string{"A deterministic highlight"}, recapChannels[0].Highlights)
+		assert.Equal(t, []string{"A deterministic action item"}, recapChannels[0].ActionItems)
+		assert.Equal(t, []string{post.Id}, recapChannels[0].SourcePostIds)
+	})
+
+	t.Run("malformed completion surfaces parse failure", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return "{invalid json", nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.CreatePost(t, channel)
 
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 		recapID := model.NewId()
 		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Malformed recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
 
 		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
-		// It will fail at SummarizePosts agent call
 		require.NotNil(t, err)
-		assert.Equal(t, "app.ai.summarize.agent_call_failed", err.Id)
+		assert.Equal(t, "app.ai.summarize.parse_failed", err.Id)
 		assert.False(t, result.Success)
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, channel.Id, recapChannels[0].ChannelId)
+		assert.Empty(t, recapChannels[0].Highlights)
+		assert.Empty(t, recapChannels[0].ActionItems)
+		assert.Len(t, recapChannels[0].SourcePostIds, 1)
 	})
 }
 
