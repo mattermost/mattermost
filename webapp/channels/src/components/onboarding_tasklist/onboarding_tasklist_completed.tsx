@@ -9,7 +9,6 @@ import styled from 'styled-components';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
@@ -17,6 +16,7 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import completedImg from 'images/completed.svg';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 const CompletedWrapper = styled.div`
     display: flex;
@@ -131,7 +131,7 @@ const Completed = (props: Props): JSX.Element => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        dispatch(tryGetPrevTrialLicense());
     }, []);
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);

@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {checkHadPriorTrial, getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -20,6 +19,7 @@ import {isCloudLicense} from 'utils/license_utils';
 import type {GlobalState} from 'types/store';
 
 import FeatureDiscovery from './feature_discovery';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 function mapStateToProps(state: GlobalState) {
     const subscription = state.entities.cloud.subscription;
@@ -47,7 +47,7 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            getPrevTrialLicense,
+            tryGetPrevTrialLicense,
             getCloudSubscription,
             openModal,
         }, dispatch),
