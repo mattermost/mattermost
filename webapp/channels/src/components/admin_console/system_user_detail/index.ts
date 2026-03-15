@@ -10,18 +10,22 @@ import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general'
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {openModal} from 'actions/views/modals';
 import {getShowLockedManageUserSettings, getShowManageUserSettings} from 'selectors/admin_console';
 
+import {isEnterpriseLicense} from 'utils/license_utils';
+
 import SystemUserDetail from './system_user_detail';
 
 function mapStateToProps(state: GlobalState) {
+    const license = getLicense(state);
     const config = getConfig(state);
-    const customProfileAttributeFields = Object.values(getCustomProfileAttributes(state));
+    const customProfileAttributeEnabled = isEnterpriseLicense(license) && isCustomProfileAttributesEnabled(state);
+    const customProfileAttributeFields = customProfileAttributeEnabled ? getCustomProfileAttributes(state) : [];
 
     const showManageUserSettings = getShowManageUserSettings(state);
     const showLockedManageUserSettings = getShowLockedManageUserSettings(state);
@@ -29,6 +33,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         currentUserId: getCurrentUserId(state),
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
+        customProfileAttributeEnabled,
         customProfileAttributeFields,
         showManageUserSettings,
         showLockedManageUserSettings,

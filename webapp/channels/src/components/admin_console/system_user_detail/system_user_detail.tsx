@@ -180,13 +180,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         try {
             // Fetch user data and CPA values in parallel
-            const [userResult, cpaResult] = await Promise.all([
+            const [userResult, cpaValues] = await Promise.all([
                 this.props.getUser(userId) as ActionResult<UserProfile, ServerError>,
-                this.props.getCustomProfileAttributeValues(userId),
+                this.props.customProfileAttributeEnabled ? this.getCustomProfileAttributeValues(userId) : {},
             ]);
 
             if (userResult.data) {
-                const cpaValues = (cpaResult as {data?: Record<string, string | string[]>}).data || {};
                 this.setState({
                     user: userResult.data,
                     emailField: userResult.data.email, // Set emailField to the email of the user for editing purposes
@@ -211,6 +210,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
     };
 
+    getCustomProfileAttributeValues = async (userId: UserProfile['id']) => {
+        return this.props.getCustomProfileAttributeValues(userId).
+            then((result: { data?: Record<string, string | string[]> }) => result.data || {});
+    };
+
     componentDidMount() {
         const userId = this.props.match.params.user_id ?? '';
         if (userId) {
@@ -219,7 +223,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         // Fetch CPA field definitions if not already available
-        if (this.props.customProfileAttributeFields.length === 0) {
+        if (this.props.customProfileAttributeEnabled && this.props.customProfileAttributeFields.length === 0) {
             this.props.getCustomProfileAttributeFields();
         }
     }
@@ -231,6 +235,24 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         if (hasChanges !== hadChanges) {
             this.props.setNavigationBlocked(hasChanges);
+        }
+
+        // Fetch CPA field definitions if CPA has been enabled
+        const hasCpaBeenEnabled = !prevProps.customProfileAttributeEnabled && this.props.customProfileAttributeEnabled;
+        if (hasCpaBeenEnabled) {
+            if (this.state.user) {
+                this.getCustomProfileAttributeValues(this.state.user.id).
+                    then((cpaValues) => {
+                        this.setState({
+                            customProfileAttributeValues: cpaValues,
+                            originalCpaValues: {...cpaValues}, // Deep copy for change tracking
+                        });
+                    });
+            }
+
+            if (this.props.customProfileAttributeFields.length === 0) {
+                this.props.getCustomProfileAttributeFields();
+            }
         }
     }
 
@@ -248,7 +270,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     private hasCpaChanges = (state: State = this.state): boolean => {
-        const {customProfileAttributeFields} = this.props;
+        const {customProfileAttributeEnabled, customProfileAttributeFields} = this.props;
+
+        if (!customProfileAttributeEnabled) {
+            return false;
+        }
+
         for (const field of customProfileAttributeFields) {
             const currentValue = state.customProfileAttributeValues[field.id];
             const originalValue = state.originalCpaValues[field.id];
