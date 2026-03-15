@@ -87,6 +87,11 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
         return src;
     }
 
+    // Don't proxy base64-encoded images
+    if (src.startsWith('data:image/')) {
+        return src;
+    }
+
     const imageAPI = Client4.getBaseRoute() + '/image?url=';
 
     if (hasImageProxy && !src.startsWith(imageAPI)) {
