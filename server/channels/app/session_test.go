@@ -442,7 +442,7 @@ func TestSessionsLimit(t *testing.T) {
 	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
 	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
 
-	// Ensure the the oldest sessions were removed first.
+	// Ensure the oldest sessions were removed first.
 	slices.Reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
