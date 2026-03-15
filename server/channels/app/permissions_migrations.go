@@ -1256,6 +1256,7 @@ func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error)
 		},
 	}, nil
 }
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
