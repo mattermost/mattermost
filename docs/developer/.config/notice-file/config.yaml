@@ -1,0 +1,11 @@
+---
+
+title: "Mattermost Developer Documentation"
+copyright: "©2022 Mattermost, Inc.  All Rights Reserved.  See LICENSE.txt for license information."
+description: "This document includes a list of open source components used in Mattermost Developer Documentation, including those that have been modified."
+search:
+  - "go.mod"
+dependencies: []
+devDependencies: []
+
+...

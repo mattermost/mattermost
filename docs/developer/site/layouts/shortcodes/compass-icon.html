@@ -1,0 +1,3 @@
+{{- $icon := .Get 0 -}}
+{{- $description := (.Get 1 | default $icon) -}}
+<span class="{{ $icon }}" role="img" title="{{ $description }}" aria-label="{{ $description }}"></span>{{- "" -}}

@@ -1,0 +1,58 @@
+name: Developer Docs Preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'docs/developer/**'
+      - 'server/public/plugin/**'
+      - 'server/public/model/**'
+      - 'webapp/channels/src/plugins/registry.ts'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs/developer
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version-file: docs/developer/go.mod
+
+      - name: Build Previews
+        run: |
+          make hugo plugin-data
+          rm -rf ./dist
+          bin/hugo -F -s site --baseURL "http://mattermost-dev-docs-preview-pulls.s3-website-us-east-1.amazonaws.com/${{ github.event.number }}/" --destination ../dist/html
+
+      - name: Run tests
+        run: make test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Upload Preview Env
+        run: aws s3 sync dist/html s3://mattermost-dev-docs-preview-pulls/${{ github.event.number }} --delete --acl public-read --no-progress
+
+      - name: Add comment to PR
+        uses: peter-evans/create-or-update-comment@7dfe4b0aa0c4bbd06d172692ff8a9e18381d6979 # v3.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.number }}
+          body: |
+            Newest code from ${{ github.event.pull_request.head.user.login }} has been published to [preview environment](http://mattermost-dev-docs-preview-pulls.s3-website-us-east-1.amazonaws.com/${{ github.event.number }}) for Git SHA ${{ github.event.pull_request.head.sha }}

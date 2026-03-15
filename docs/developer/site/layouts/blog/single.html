@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+
+<html>
+
+<head>
+    {{ partial "head.html" .}}
+</head>
+
+<body class="blog-single">
+    {{ partial "gtm-body-noscript.html" }}
+    {{ partial "nav2.html" .}}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-9 mx-2 mx-lg-0 mt-4 mt-lg-5 doc-content">
+                <div class="well well-sm">
+                    <div class="blog-item__header">
+                        <div class="blog-item__title">
+                            <h1>
+                            {{ if .Params.heading }}
+                                {{ .Params.heading }}
+                            {{ else }}
+                                {{ .Title }}
+                            {{ end }}
+                            </h1>
+                            <small>{{ .Description }}</small>
+                            
+                        </div>
+                        <div class="blog-item__info">
+                            {{ .Date.Format "January 2, 2006" }}
+                            <small class="blog-item__count">{{ .WordCount }} words</small>
+                        </div>
+                    </div>
+                    <hr>
+                    {{ partial "hanchor.html" .Content }}
+                    <hr>
+                    {{ if and (and .Params.author .Params.github) .Params.community }}
+                    Written by
+                    {{ if and (and .Params.author_2 .Params.github_2) .Params.community_2 }}
+                    :
+                    <ul>
+                        <li>
+                            {{ partial "blogauthor" (dict "name" .Params.author "community" .Params.community "github" .Params.github) }}
+                        </li>
+                        <li>
+                            {{ partial "blogauthor" (dict "name" .Params.author_2 "community" .Params.community_2 "github" .Params.github_2) }}
+                        </li>
+                    </ul>
+                    {{ else }}
+                    {{ partial "blogauthor" (dict "name" .Params.author "community" .Params.community "github" .Params.github) }}
+                    {{ end }}
+                    {{ end }}
+                    <br />
+                    <br />
+                    Join us on <a href="https://community.mattermost.com/signup_user_complete"
+                        target="_blank">community.mattermost.com</a>!
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-3 mx-2 mx-lg-0 mt-4 mt-lg-5 doc-content tags-sidebar">
+                <div class="well well-sm">
+{{ if .Params.toc }}
+                <h6>Table Of Contents</h6>
+                    {{ .TableOfContents }}
+{{ end }}
+                    {{ partial "series_link.html" . }}
+
+                    <h6>Other Posts</h6>
+                    <ul class="list-unstyled">
+                        {{ range first 15 (where .Site.Pages ".Section" "blog" )}}
+                        {{ if and (.IsPage) (ne .Title $.Title)}}
+                        <li class="blog-item__sidebar">- <a href="{{ .Permalink }}">{{ .Title }}</a></li>
+                        {{ end }}
+                        {{ end }}
+                    </ul>
+                    <h6>Categories</h6>
+                    <ul class="list-unstyled">
+                        {{ range .Params.categories }}
+                    <li>- <a href="{{ $.Site.BaseURL }}categories/{{ . | urlize }}">{{ . }}</a></li>
+                        {{ end }}   
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ partial "footer.html" .}}
+</body>
+
+</html>

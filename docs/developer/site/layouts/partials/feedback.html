@@ -1,0 +1,60 @@
+<script src="{{ "js/feedback.js" | absURL }}"></script>
+<div class="thermometer-container">
+    <div class='c-thermometer'>
+        <div class='c-thermometer__trigger'>
+            <p class='c-thermometer__paragraph'>Did you find what you were looking for?</p>
+            <div class='c-thermometer__emojis'>
+                <a href='javascript:void(0);' class='rate-this-page-action' data-rating='Yes'>
+                    <span class='c-thermometer__emoji'>😀</span>
+                    <p>Yes</p>
+                </a>
+                <a href='javascript:void(0);' class='rate-this-page-action' data-rating='Somewhat'>
+                    <span class='c-thermometer__emoji'>😐</span>
+                    <p>Mostly</p>
+                </a>
+                <a href='javascript:void(0);' class='rate-this-page-action' data-rating='No'>
+                    <span class='c-thermometer__emoji'>🙁</span>
+                    <p>No!</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class='c-thermometer-popup hide'>
+        <svg viewBox="0 0 33 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.0204 29L11.0051 28.9843L10.9898 29L0 17.4016L5.5217 11.6298L11.0013 17.4173L27.5051 0L33 5.79921L11.0204 29Z" fill="#339970"/>
+        </svg>
+        <div class="c-thermometer-popup__text">
+            <span class="c-thermometer-popup__title ff--trade-gothic">Thank you!</span>
+            <span class="c-thermometer-popup__message ff--trade-gothic">We appreciate your feedback.</span>
+        </div>
+    </div>
+</div>
+<div class='c-thermometer-modal__container hide'>
+    <div>
+        <div class='c-thermometer-modal__content'>
+            <div class="c-thermometer-modal__header">
+                <div class='c-thermometer-modal__close'>
+                    <span id="c-thermometer-modal__close-x">×</span>
+                </div>
+            </div>
+            <h2>Tell us more</h2>
+            <p class="ff--trade-gothic">Your feedback helps us improve the Mattermost developer documentation.<br/>
+            <textarea id="c-thermometer-modal__textarea" maxlength='186' rows='4' placeholder='How can we make this page more helpful?'></textarea>
+            <div class='c-thermometer-modal__textarea-footer'>
+                <div></div>
+                <div class='c-thermometer-modal__counter'>
+                    <span id="c-thermometer-modal__counter-span" class="ff--trade-gothic">0</span><span class="ff--trade-gothic">/186</span>
+                </div>
+            </div>
+            <p class="ff--trade-gothic">
+                Have a feature request? <a href='https://mattermost.uservoice.com/forums/306457-general' target='blank'> Share it here.</a>
+            </p>
+            <p class="ff--trade-gothic">
+                Having issues? <a href='https://community.mattermost.com' target='blank'> Join our Community server.</a>
+            </p>
+            <div class='c-thermometer-modal__footer'>
+                <a id="c-thermometer-modal__footer-submit" class='btn btn-shadow btn-xs ff--fira-mono'>Submit</a>
+            </div>
+        </div>
+    </div>
+</div>

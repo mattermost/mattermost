@@ -1,0 +1,31 @@
+{{- $pages := .pages -}}
+{{- $root := .root -}}
+{{- $section := .section -}}
+{{- range $pages -}}
+    {{- $active := (eq $root .) -}}
+    {{- $expanded := or ($root.IsDescendant .) (eq $root .) -}}
+    {{- if (and (eq .Section "contribute") (eq .Title "Where to find more information?")) -}}
+        {{- $expanded = true -}}
+    {{- end -}}
+    {{- $icon := "fa-plus-square-o" -}}
+    {{- if $expanded -}}
+        {{- $icon = "fa-minus-square-o" -}}
+    {{- end -}}
+    {{- $iconstyle := "" -}}
+    {{- if not .Pages -}}
+        {{- $iconstyle = "display: none" -}}
+    {{- end -}}
+<span class="item {{ if $active }}active{{ end }}">
+    <i class="sub-menu__toggle fa {{ $icon }}" aria-hidden="true" style="{{ $iconstyle }}"></i>
+    {{- if $active -}}
+    <a class="active" href="#"> {{ .Title }}</a>
+    {{- else -}}
+    <a href="{{ .Permalink }}"> {{ .Title }}</a>
+    {{- end -}}
+</span>
+<ul class="sub-menu" {{ if $expanded }}style="display: block"{{ end }}>
+    {{- if .Pages -}}
+        {{ partial "sidebar-v2-recurse.html" (dict "pages" .Pages.ByWeight "root" $root "section" $section) }}
+    {{- end -}}
+</ul>
+{{- end -}}

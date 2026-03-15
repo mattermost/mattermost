@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+
+<html>
+    <head>
+        {{ partial "head.html" .}}
+    </head>
+<body class="blog-list">
+    {{ partial "gtm-body-noscript.html" }}
+    {{ partial "nav2.html" .}}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-9 mx-2 mx-lg-0 mt-4 mt-lg-5 doc-content">
+                <h1>The Mattermost Developer Blog</h1>
+                {{ range (.Paginate .Data.Pages).Pages.ByDate.Reverse }}
+                    {{ .Render "summary" }}
+                {{ end }}
+                <div class="blog-pagination">
+                    {{ if .Paginator.HasNext }}
+                        <a class="btn btn-primary btn-sm" href="{{ .Paginator.Next.URL }}"> &laquo; Previous Posts</a>
+                    {{ end }}
+                    {{ if .Paginator.HasPrev }}
+                        <a class="btn btn-primary btn-sm" href="{{ .Paginator.Prev.URL }}"> Next Posts &raquo;</a>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ partial "footer.html" .}}
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="672px" height="362px" viewBox="0 0 672 362" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 4</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="738" height="482"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Home" transform="translate(-928.000000, -534.000000)">
+            <g id="Buttons-/-Button-60px-Copy-4" transform="translate(0.000000, -2.000000)">
+                <g id="Path-8">
+                    <g id="Group-4" transform="translate(862.000000, 503.000000)">
+                        <mask id="mask-2" fill="white">
+                            <use xlink:href="#path-1"></use>
+                        </mask>
+                        <g id="Mask"></g>
+                        <g mask="url(#mask-2)" fill="#FFFFFF">
+                            <g transform="translate(-41.000000, 33.000000)">
+                                <path d="M0,552.531566 C76.9635632,570.01681 165.099688,482.884625 264.408373,291.135012 C413.371401,3.51059081 755.674966,266.353396 857.577837,200.028074 C925.513085,155.811193 1081.95531,217.72398 1326.9045,385.766437 L1367.01895,512.993458 L100.243655,921.525171 L0,552.531566 Z" id="Path-8-Copy-5" opacity="0.05"></path>
+                                <path d="M0,462.224299 C76.9635632,479.709543 165.099688,392.577358 264.408373,200.827744 C413.371401,-86.7966769 755.674966,176.046128 857.577837,109.720806 C925.513085,65.503925 1081.95531,127.416713 1326.9045,295.459169 L1367.01895,422.68619 L100.243655,831.217903 L0,462.224299 Z" id="Path-8-Copy-4" opacity="0.1"></path>
+                                <path d="M0,399.401852 C76.9635632,416.887095 165.099688,329.754911 264.408373,138.005297 C413.371401,-149.619124 755.674966,113.223681 857.577837,46.898359 C925.513085,2.68147789 1081.95531,64.5942656 1326.9045,232.636722 L1367.01895,359.863743 L100.243655,768.395456 L0,399.401852 Z" id="Path-8-Copy-3" opacity="0.1"></path>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

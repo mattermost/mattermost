@@ -1,0 +1,68 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title> {{ .Title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"> {{ with .Site.Params.author }}
+<meta name="author" content="{{ . }}">{{ end }} {{ with .Site.LanguageCode }}
+<meta http-equiv="content-language" content="{{ . }}" />{{ end }}
+
+<meta name="og:site_name" value="Mattermost.com">
+<meta name="og:title" value="{{ .Title }}">
+
+<!-- Meta Descriptions --> {{ if .Description }}
+  {{ partial "head-meta.html" .Description }}
+{{ else }}
+  {{ if .IsSection }}
+    {{ range where .Site.Params.indexes.item "relPermaLink" "==" $.RelPermalink }}
+      {{ partial "head-meta.html" .description }}
+    {{ else }}
+      {{ partial "head-meta.html" .Site.Params.Description }}
+    {{ end }}
+  {{ else }}
+    {{ if eq .Type "categories" }}
+      {{ range where .Site.Params.categories.item "term" "==" $.Data.Term }}
+        {{ partial "head-meta.html" .description }}
+      {{ else }}
+        {{ partial "head-meta.html" .Site.Params.categories.description }}
+      {{ end }}
+    {{ else }}
+      {{ partial "head-meta.html" .Site.Params.Description }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+<!-- canonical link tag --> {{ if .Params.canonicalUrl }}
+<link rel="canonical" href="{{ .Params.canonicalUrl }}">
+{{ else }}
+<link rel="canonical" href="{{ .Permalink }}">
+{{ end }}
+
+<link rel="shortcut icon" type="image/png" href="{{ "img/favicon-32x32.png" | absURL }}" />
+
+<!-- Fonts -->
+<link rel="preload" href="https://p.typekit.net" crossorigin>
+<link rel="preload" href="https://use.typekit.net" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preload" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- CSS  -->
+<link rel="stylesheet" href="{{ "css/bootstrap.min.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/tabs.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/bar.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/styles.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/code.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/note.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/feedback.css" | absURL }}">
+<link rel="stylesheet" href="{{ "css/second-nav.css" | absURL }}">
+
+<!-- Compass Icons -->
+<link rel="stylesheet" href="{{ "css/compass-icons.css" | absURL }}">
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-53S4TVZ');</script>
+<!-- End Google Tag Manager -->

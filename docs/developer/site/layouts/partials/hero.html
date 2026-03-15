@@ -1,0 +1,29 @@
+<div class="homepage__marquee">
+    <div class="container-fluid">
+        <h1 class="mm-h1">Mattermost for Developers</h1>
+        <p class="mm-subhead ff--trade-gothic">
+            All your Mattermost development needs.
+        </p>
+        <div class="homepage-search">
+            <div class="homepage-search__row">
+                {{ if .Site.Params.search.enable }}
+                <form
+                    role="search"
+                    class="homepage-search__form"
+                    id="search-form"
+                >
+                    <div class="homepage-search__input">
+                        <input
+                            id="search-query"
+                            class="search__query-input ff--trade-gothic"
+                            type="search"
+                            placeholder="What are you looking for?"
+                            aria-label="search"
+                        />
+                    </div>
+                </form>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</div>

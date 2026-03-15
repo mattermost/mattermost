@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+
+<html>
+    <head>
+        {{ partial "head.html" .}}
+    </head>
+<body>
+    {{ partial "gtm-body-noscript.html" }}
+    {{ partial "nav2.html" .}}
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                {{ partial "sidebar-v2.html" .}}
+                <div class="col-lg-9 mx-2 mx-lg-0 mt-4 mt-lg-5 doc-content">
+                    {{ partial "page-edit.html" . }}
+                    <h1 class="mt-0 doc-title">
+                        {{ if .Params.heading }}
+                            {{ .Params.heading }}
+                        {{ else }}
+                            {{ .Title }}
+                        {{ end }}
+                    </h1>
+                    {{ partial "hanchor.html" .Content }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ partial "footer.html" .}}
+    {{ partial "feedback.html" . }}
+</body>
+</html>

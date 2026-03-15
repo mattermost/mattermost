@@ -1,0 +1,19 @@
+{{ if .Site.Params.notification.enable }}
+<div data-swiftype-index=false class="notification-bar">
+    <div class="notification-bar__content">
+        <a class="notification-bar__close" data-ol-has-click-handler="">
+            <span aria-hidden="true">×</span>
+        </a>
+	    <div class="notification-bar__wrapper">
+            <img src="{{ "img/notification-bar/megaphone_icon.svg" | absURL }}" width="26" height="26" alt="megaphone icon">
+    {{ if eq .Site.Params.notification.url "" }}
+            {{ .Site.Params.notification.text }}
+    {{ else }}
+			<a href="{{ .Site.Params.notification.url | absURL }}" target="_blank">
+				{{ .Site.Params.notification.text }}
+			</a>
+    {{ end }}
+		</div>
+    </div>
+</div>
+{{ end }}

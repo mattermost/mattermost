@@ -1,0 +1,3 @@
+{{- $href := .Get "href" -}}
+{{- $title := (.Get "title" | default "[link]") -}}
+<a href="{{ $href }}" rel="noopener" target="_blank">{{ $title }}</a><span class="icon-open-in-new" role="img" title="Link opens in a new tab" aria-label="Link opens in a new tab"></span>{{- "" -}}

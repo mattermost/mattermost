@@ -1,0 +1,16 @@
+{{- $collapseId := .Get "id" -}}
+{{- $collapseHeaderId := print $collapseId "_header" -}}
+{{- $collapseBodyId := print $collapseId "_body" -}}
+{{- $collapseToggleId := print $collapseId "_toggle" -}}
+{{- $title := .Get "title" -}}
+<div class="card collapseCard">
+    <div class="card-header" style="" id="{{ $collapseHeaderId }}">
+        <span id="{{ $collapseToggleId }}" class="{{ .Site.Params.collapse.toggleClass }} {{ .Site.Params.collapse.collapsedIcon }}" role="img" title="Expand / collapse" aria-label="Expand / collapse" onclick="doToggle('{{ $collapseBodyId }}','{{ $collapseToggleId }}')"></span>
+        <span>{{ $title }}</span>
+    </div>
+    <div class="collapse" aria-labelledby="{{ $collapseHeaderId }}" id="{{ $collapseBodyId }}">
+        <div class="card-body">
+            {{ .Inner | markdownify }}
+        </div>
+    </div>
+</div>

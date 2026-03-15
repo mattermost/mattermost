@@ -1,0 +1,38 @@
+name: Developer Docs Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - Developer Docs Build
+    types:
+      - completed
+    branches:
+      - master
+
+permissions:
+  actions: read
+
+jobs:
+  s3-release-prod:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: release/configure-aws
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.DEV_DOCS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_DOCS_AWS_SECRET_ACCESS_KEY }}
+
+      - name: release/download-artifacts
+        uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67 # v3.1.2
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          workflow_conclusion: success
+          name: dev-docs
+          path: dist/html
+
+      - name: release/upload-artifacts
+        run: |
+          aws s3 sync dist/html s3://mattermost-developer-documentation/branches/master --delete --cache-control no-cache --acl public-read --no-progress

@@ -1,0 +1,21 @@
+<div class="well well-sm">
+    <h5>
+        <a href="{{ .Permalink }}">{{ .Title }}</a>
+        <small class="blog-item__date pull-right">
+            Posted
+            on {{ .Date.Format "Jan 2, 2006" }}
+            {{ if .Params.author }}
+                {{ if .Params.author_2 }}
+                    <br>
+                    by {{ .Params.author }} and {{ .Params.author_2 }}
+                {{ else }}
+                    by {{ .Params.author }}
+                {{ end }}
+            {{ end }}
+        </small>
+    </h5>
+    <small>{{ .Description }}</small>
+    <hr>
+    <p>{{ .Summary }}</p>
+    <a class="btn btn-primary btn-sm" href="{{ .Permalink }}">Read More <span class="fa fa-angle-right"></span></a>
+</div>

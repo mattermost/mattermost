@@ -1,0 +1,18 @@
+<div class="homepage-cards-grid mm-container mm-grid mm-grid-col-3 mm-grid-col-gap-40">
+    {{ range .Site.Params.intro.item }}
+    <div class="homepage-card">
+        <div class="homepage-card__top">
+            <div class="homepage-card__icon">
+                <img src="{{ .icon }}" alt="">
+            </div>
+            <h3>{{ .title }}</h3>
+            <p class="ff--trade-gothic">
+                {{ .description }}
+            </p>
+        </div>
+        <div class="homepage-card__bottom">
+            <a class="ff--fira-mono" href="{{ .url }}" class="btn btn-primary btn-shadow btn-xs">{{ .button }}</a>
+        </div>
+    </div>
+    {{ end }}
+</div>

@@ -1,0 +1,13 @@
+{
+  "name": "mattermost-developer-documentation",
+  "version": "0.0.1",
+  "description": "Test generated HTML files",
+  "scripts": {
+    "test-html": "html-validate \"dist/html/**/*.html\""
+  },
+  "author": "Varun Tiwari",
+  "license": "MIT",
+  "dependencies": {
+    "html-validate": "^7.7.1"
+  }
+}

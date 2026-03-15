@@ -1,0 +1,99 @@
+.notification-bar {
+	color: #1B1D22;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    height: 45px;
+	background-color: #FFBC1F;
+    z-index: 99;
+}
+
+@media (min-width: 992px) {
+    .notification-bar {
+        text-align: center;
+    }
+}
+
+.notification-bar.closed {
+    display: none;
+}
+
+.notification-bar__content {
+    padding: 0.5rem 1rem;
+	font-family: "trade-gothic-next","Lato","Helvetica Neue","Arial",sans-serif;
+	font-weight: 700;
+    font-size: 15px;
+	line-height: 1.2;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .notification-bar {
+        display: flex;
+        align-items: center;
+        height: 60px;
+    }
+    .notification-bar__content {
+        padding: 5px 20px 5px 55px;
+    }
+}
+
+.notification-bar__content > div {
+	align-items: center;
+}
+
+@media (min-width: 768px) {
+    .notification-bar__content > div {
+        justify-content: center;
+    }
+}
+
+.notification-bar__content > div img {
+	display: none;
+}
+
+.notification-bar a {
+    color: #1B1D22;
+}
+
+.notification-bar__close {
+    font-size: 36px;
+    font-weight: 300;
+    position: absolute;
+    cursor: pointer;
+    opacity: .3;
+    top: 0;
+    width: 64px;
+    line-height: 35px;
+}
+
+.notification-bar__wrapper {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .notification-bar__close {
+        line-height: 50px;
+        left: 15px;
+    }
+}
+
+@media (min-width: 769px) {
+    .notification-bar__close {
+        right: 0px;
+    }
+}
+
+@media (min-width: 991.98px) {
+    .notification-bar__content > div img {
+		display: inline-block;
+		margin-right: 10px;
+        height: 25px;
+        width: auto;
+	}
+}
+
+html {
+    scroll-padding-top: 80px;
+}

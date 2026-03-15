@@ -1,0 +1,9 @@
+{{- $title := (.Get 0 | default "Note:") -}}
+{{- $icon := (.Get 1 | default "") -}}
+{{- $icon_description := (.Get 2 | default $icon) -}}
+<aside class="note">
+    <div class="note-content">
+        <strong>{{ $title }}</strong>{{ if not (eq $icon "") }}<span class="{{ $icon }}" role="img" title="{{ $icon_description }}" aria-label="{{ $icon_description }}"></span>{{ end }}<br/>
+        {{ .Inner | markdownify }}
+    </div>
+</aside>

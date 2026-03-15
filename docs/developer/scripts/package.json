@@ -1,0 +1,15 @@
+{
+  "name": "mattermost-plugin-docs",
+  "version": "0.0.1",
+  "description": "Generate webapp plugin docs from Mattermost source code comments",
+  "main": "plugin-jsdocs.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joram Wilander",
+  "license": "MIT",
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "5.41.0"
+  }
+}

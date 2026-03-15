@@ -1,0 +1,38 @@
+{{ if .Params.series }}
+    {{ $cur_page_num := 1 }}
+    {{ $total_page_num := 0 }}
+    {{ $prev_link := "" }}
+    {{ $prev_title := "" }}
+    {{ $next_link := "" }}
+    {{ $next_title := "" }}
+
+    {{ range where .Site.RegularPages.ByDate "Params.series" .Params.series }}
+        {{ $total_page_num = add $total_page_num 1 }}
+        {{ if gt $.Date.Unix .Date.Unix }}
+            {{ $cur_page_num = add $cur_page_num 1 }}
+            {{ $prev_link = .Permalink }}
+            {{ $prev_title = .Title }}
+        {{ end }}
+    {{ end }}
+    {{ range where .Site.RegularPages.ByDate.Reverse "Params.series" .Params.series }}
+        {{ if lt $.Date.Unix .Date.Unix }}
+            {{ $next_link = .Permalink }}
+            {{ $next_title = .Title }}
+        {{ end }}
+    {{ end }}
+    {{ if or $next_link $prev_link }}
+        <p>
+            Part {{ $cur_page_num }} of {{ $total_page_num }} in the <b>{{ .Params.series }}</b> series.
+        </p>
+        <p>
+        {{ if $prev_link }}
+            <a href="{{ $prev_link }}"><i class="fa fa-angle-double-left"></i>&nbsp;Part {{ sub $cur_page_num 1 }}</a>
+        {{ end }}
+        {{ if and $next_link $prev_link }}
+                |
+        {{ end }}
+        {{ if $next_link }}
+            <a href="{{ $next_link }}">Part {{ add $cur_page_num 1 }}&nbsp;<i class="fa fa-angle-double-right"></i></a></p>
+        {{ end }}
+    {{ end }}
+{{ end }}
