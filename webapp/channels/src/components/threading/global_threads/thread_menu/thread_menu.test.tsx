@@ -31,6 +31,7 @@ jest.mock('hooks/useReadout', () => ({
 }));
 jest.mock('utils/popouts/popout_windows', () => ({
     canPopout: jest.fn(() => true),
+    isThreadPopoutWindow: jest.fn(() => false),
     popoutThread: jest.fn(),
 }));
 
@@ -95,6 +96,11 @@ describe('components/threading/common/thread_menu', () => {
                     channels: {
                         [channelId]: channel,
                     },
+                },
+            },
+            views: {
+                browser: {
+                    windowSize: '',
                 },
             },
         } as unknown as GlobalState;
