@@ -1905,6 +1905,10 @@
         "View threaded messages in RHS",
         "Scroll through long threads",
         "Navigate message history"
+      ],
+      "pageObjects": [
+        "ChannelsPage",
+        "RhsThread"
       ]
     },
     {
@@ -5005,6 +5009,11 @@
         "Store custom property values",
         "Retrieve property values",
         "Update property metadata"
+      ],
+      "components": [
+        "PropertyValueEditor",
+        "PropertyValueList",
+        "PropertyValueSelector"
       ]
     },
     {
