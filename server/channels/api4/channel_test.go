@@ -3325,6 +3325,18 @@ func TestDeleteChannel(t *testing.T) {
 		_, err = client.DeleteChannel(context.Background(), publicChannel3.Id)
 		require.NoError(t, err)
 
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
+		require.NoError(t, err)
+		resp, err = client.DeleteChannel(context.Background(), dmChannel.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user.Id, user2.Id})
+		require.NoError(t, err)
+		resp, err = client.DeleteChannel(context.Background(), groupChannel.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
 		// default channel cannot be deleted.
 		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 		require.Nil(t, appErr)
@@ -3504,6 +3516,22 @@ func TestPermanentDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		_, appErr := th.App.GetChannel(th.Context, publicChannel.Id)
+		assert.NotNil(t, appErr)
+
+		// Test permanent delete for DM channel
+		dmChannel, _, err := c.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		_, err = c.PermanentDeleteChannel(context.Background(), dmChannel.Id)
+		require.NoError(t, err)
+		_, appErr = th.App.GetChannel(th.Context, dmChannel.Id)
+		assert.NotNil(t, appErr)
+
+		// Test permanent delete for Group channel
+		groupChannel, _, err := c.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id})
+		require.NoError(t, err)
+		_, err = c.PermanentDeleteChannel(context.Background(), groupChannel.Id)
+		require.NoError(t, err)
+		_, appErr = th.App.GetChannel(th.Context, groupChannel.Id)
 		assert.NotNil(t, appErr)
 
 		resp, err := c.PermanentDeleteChannel(context.Background(), "junk")
