@@ -6,13 +6,15 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
+import {getVisibleChannelSettingsTabs} from 'selectors/plugins';
+
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 /**
  * Selector to determine if a user has access to any tab in the channel settings modal
- * Returns true if the user has permission to access at least one tab (Info, Configuration, Archive)
+ * Returns true if the user has permission to access at least one built-in tab or visible plugin tab
  * Note: This does not check license requirements - those should be handled by the calling component
  */
 export const canAccessChannelSettings = createSelector(
@@ -22,18 +24,21 @@ export const canAccessChannelSettings = createSelector(
     (state: GlobalState, channelId: string) => channelId,
     (state: GlobalState) => getConfig(state)?.RestrictDMAndGMAutotranslation === 'true',
     (state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true',
-    (state, channels, channelId, isDMAndGMAutotranslationRestricted, isAutoTranslationEnabled) => {
+    getVisibleChannelSettingsTabs,
+    (state, channels, channelId, isDMAndGMAutotranslationRestricted, isAutoTranslationEnabled, visiblePluginTabs) => {
         const channel = channels[channelId];
         if (!channel) {
             return false;
         }
 
+        const hasVisiblePluginTabs = visiblePluginTabs.length > 0;
         const isDM = channel.type === Constants.DM_CHANNEL;
         const isGM = channel.type === Constants.GM_CHANNEL;
 
         // For DM and GM: allow Channel Settings when "Restrict auto-translation on DM and GM" is not enabled
         if (isDM || isGM) {
-            return isAutoTranslationEnabled && !isDMAndGMAutotranslationRestricted;
+            const builtInDmGmAccess = isAutoTranslationEnabled && !isDMAndGMAutotranslationRestricted;
+            return builtInDmGmAccess || hasVisiblePluginTabs;
         }
 
         const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
@@ -81,7 +86,6 @@ export const canAccessChannelSettings = createSelector(
             archivePermission,
         );
 
-        // User can access channel settings if they have permission for at least one tab
-        return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasArchivePermission;
+        return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasArchivePermission || hasVisiblePluginTabs;
     },
 );

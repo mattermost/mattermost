@@ -34,6 +34,7 @@ import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
 
+import type {ChannelSettingsTab} from 'types/plugins/channel_settings';
 import type {
     PluginsState,
     ProductComponent,
@@ -514,6 +515,37 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a tab for the channel settings modal.
+     * The component renders in the modal content pane when its tab is selected.
+     * Visible tabs are intended to participate in channel-settings availability in later phases.
+     * The component will receive `channel`, `setAreThereUnsavedChanges`, and `showTabSwitchError`.
+     */
+    registerChannelSettingsTab = reArg([
+        'uiName',
+        'component',
+        'icon',
+        'shouldRender',
+    ], ({
+        uiName,
+        component,
+        icon,
+        shouldRender,
+    }: ChannelSettingsTab) => {
+        const id = generateId();
+
+        dispatchPluginComponentWithData('ChannelSettingsTab', {
+            id,
+            pluginId: this.id,
+            uiName,
+            component: component as PluginsState['components']['ChannelSettingsTab'][number]['component'],
+            icon,
+            shouldRender: shouldRender ?? defaultShouldRender,
         });
 
         return id;

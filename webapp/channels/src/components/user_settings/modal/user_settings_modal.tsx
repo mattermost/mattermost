@@ -320,6 +320,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     render() {
         const {formatMessage} = this.props.intl;
+        const pluginSectionLabel = formatMessage({
+            id: 'userSettingsModal.pluginPreferences.header',
+            defaultMessage: 'PLUGIN PREFERENCES',
+        });
 
         let modalTitle: string;
         if (this.props.adminMode && this.props.user) {
@@ -392,6 +396,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                     <SettingsSidebar
                                         tabs={this.props.isContentProductSettings ? this.getUserSettingsTabs() : this.getProfileSettingsTab()}
                                         pluginTabs={this.props.isContentProductSettings ? this.getPluginsSettingsTab() : []}
+                                        pluginSectionLabel={this.props.isContentProductSettings ? pluginSectionLabel : undefined}
+                                        pluginSectionHeadingId={this.props.isContentProductSettings ? 'userSettingsModal_pluginPreferences_header' : undefined}
                                         activeTab={this.state.active_tab}
                                         updateTab={this.updateTab}
                                     />

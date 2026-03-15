@@ -14,6 +14,9 @@ import ChannelSettingsModal from './channel_settings_modal';
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
+const mockGetVisibleChannelSettingsTabs = jest.fn();
+const mockPluggable = jest.fn();
+const mockSettingsSidebar = jest.fn();
 
 // Mock the channel banner selector
 jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
@@ -45,6 +48,57 @@ jest.mock('selectors/general', () => ({
     isChannelAccessControlEnabled: jest.fn().mockReturnValue(true),
     getBasePath: jest.fn().mockReturnValue(''),
 }));
+
+jest.mock('selectors/plugins', () => ({
+    getVisibleChannelSettingsTabs: (...args: unknown[]) => mockGetVisibleChannelSettingsTabs(...args),
+}));
+
+jest.mock('utils/url', () => ({
+    isValidUrl: jest.fn((url = '') => (/^https?:\/\//i).test(url)),
+}));
+
+jest.mock('plugins/pluggable', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const React = require('react');
+
+    return function MockPluggable({
+        pluggableId,
+        pluggableName,
+        channel,
+        setAreThereUnsavedChanges,
+        showTabSwitchError,
+    }: {
+        pluggableId: string;
+        pluggableName: string;
+        channel: {id: string};
+        setAreThereUnsavedChanges?: (value: boolean) => void;
+        showTabSwitchError?: boolean;
+    }) {
+        mockPluggable({
+            pluggableId,
+            pluggableName,
+            channel,
+            setAreThereUnsavedChanges,
+            showTabSwitchError,
+        });
+
+        return React.createElement('div', {
+            'data-testid': 'channel-settings-pluggable',
+            'data-pluggable-id': pluggableId,
+            'data-pluggable-name': pluggableName,
+            'data-channel-id': channel.id,
+            'data-has-set-unsaved-changes': String(Boolean(setAreThereUnsavedChanges)),
+            'data-show-tab-switch-error': String(Boolean(showTabSwitchError)),
+        }, [
+            'Plugin Tab Content',
+            setAreThereUnsavedChanges && React.createElement('button', {
+                key: 'set-unsaved',
+                'data-testid': 'pluggable-set-unsaved-changes',
+                onClick: () => setAreThereUnsavedChanges(true),
+            }, 'Set Plugin Unsaved Changes'),
+        ]);
+    };
+});
 
 // Mock child components to provide controlled testing interfaces
 jest.mock('./channel_settings_info_tab', () => {
@@ -106,20 +160,49 @@ type TabType = {
     name: string;
     uiName: string;
     display?: boolean;
+    newGroup?: boolean;
 };
 
 // Mock the settings sidebar
 jest.mock('components/settings_sidebar', () => {
-    return function MockSettingsSidebar({tabs, activeTab, updateTab}: {tabs: TabType[]; activeTab: string; updateTab: (tab: string) => void}): JSX.Element {
+    return function MockSettingsSidebar({
+        tabs,
+        pluginTabs = [],
+        pluginSectionLabel,
+        pluginSectionHeadingId,
+        activeTab,
+        updateTab,
+    }: {
+        tabs: TabType[];
+        pluginTabs?: TabType[];
+        pluginSectionLabel?: string;
+        pluginSectionHeadingId?: string;
+        activeTab: string;
+        updateTab: (tab: string) => void;
+    }): JSX.Element {
+        mockSettingsSidebar({
+            tabs,
+            pluginTabs,
+            pluginSectionLabel,
+            pluginSectionHeadingId,
+            activeTab,
+            updateTab,
+        });
+
+        const visibleTabs = [
+            ...tabs.filter((tab) => tab.display !== false),
+            ...pluginTabs.filter((tab) => tab.display !== false),
+        ];
+
         return (
             <div data-testid='settings-sidebar'>
-                {tabs.filter((tab) => tab.display !== false).map((tab) => (
+                {visibleTabs.map((tab) => (
                     <button
                         data-testid={`${tab.name}-tab-button`}
                         key={tab.name}
                         role='tab'
                         aria-selected={activeTab === tab.name}
-                        aria-label={tab.name}
+                        aria-label={tab.uiName.toLowerCase()}
                         onClick={() => updateTab(tab.name)}
                     >
                         {tab.uiName}
@@ -132,6 +215,7 @@ jest.mock('components/settings_sidebar', () => {
 
 describe('ChannelSettingsModal', () => {
     const channelId = 'channel1';
+    const DummyChannelSettingsTab = () => null;
 
     const baseProps = {
         channelId,
@@ -160,13 +244,39 @@ describe('ChannelSettingsModal', () => {
                     },
                 },
             },
+            plugins: {
+                components: {
+                    ChannelSettingsTab: [],
+                },
+            },
         };
+    }
+
+    function makePluginTabRegistration(overrides: Record<string, unknown> = {}) {
+        return {
+            id: 'plugin-tab-1',
+            pluginId: 'plugin-id',
+            uiName: 'Plugin Tab',
+            icon: 'icon-plugin-tab',
+            shouldRender: jest.fn(() => true),
+            component: DummyChannelSettingsTab,
+            ...overrides,
+        };
+    }
+
+    function getLatestSettingsSidebarProps() {
+        return mockSettingsSidebar.mock.calls[mockSettingsSidebar.mock.calls.length - 1]?.[0];
     }
 
     beforeEach(() => {
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
+        mockGetVisibleChannelSettingsTabs.mockReturnValue([]);
+        mockGetVisibleChannelSettingsTabs.mockClear();
+        mockPluggable.mockClear();
+        mockSettingsSidebar.mockClear();
+        baseProps.onExited.mockClear();
     });
 
     it('should render the modal with correct header text', async () => {
@@ -202,7 +312,7 @@ describe('ChannelSettingsModal', () => {
         expect(screen.getByTestId('info-tab')).toBeInTheDocument();
 
         // Find and click the archive tab
-        const archiveTab = screen.getByRole('tab', {name: 'archive'});
+        const archiveTab = screen.getByRole('tab', {name: /archive channel/i});
         await userEvent.click(archiveTab);
 
         // Now the archive tab should be visible
@@ -225,7 +335,7 @@ describe('ChannelSettingsModal', () => {
         expect(screen.getByTestId('info-tab')).toBeInTheDocument();
 
         // The archive tab should not be in the document
-        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('tab', {name: /archive channel/i})).not.toBeInTheDocument();
     });
 
     it('should show archive tab for public channel when user has permission', async () => {
@@ -241,7 +351,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // The archive tab should be visible
-        expect(screen.getByRole('tab', {name: 'archive'})).toBeInTheDocument();
+        expect(screen.getByRole('tab', {name: /archive channel/i})).toBeInTheDocument();
     });
 
     it('should not show archive tab for public channel when user does not have permission', async () => {
@@ -257,7 +367,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // The archive tab should not be in the document
-        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('tab', {name: /archive channel/i})).not.toBeInTheDocument();
     });
 
     it('should show archive tab for private channel when user has permission', async () => {
@@ -274,7 +384,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // The archive tab should be visible
-        expect(screen.getByRole('tab', {name: 'archive'})).toBeInTheDocument();
+        expect(screen.getByRole('tab', {name: /archive channel/i})).toBeInTheDocument();
     });
 
     it('should not show archive tab for private channel when user does not have permission', async () => {
@@ -291,7 +401,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // The archive tab should not be in the document
-        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('tab', {name: /archive channel/i})).not.toBeInTheDocument();
     });
 
     it('should not show configuration tab with no license', async () => {
@@ -340,7 +450,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should be visible
-            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+            expect(screen.getByRole('tab', {name: /access control/i})).toBeInTheDocument();
             expect(screen.getByText('Access Control')).toBeInTheDocument();
         });
 
@@ -358,7 +468,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
@@ -375,7 +485,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible for public channels
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
@@ -392,7 +502,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
@@ -413,7 +523,7 @@ describe('ChannelSettingsModal', () => {
             expect(screen.getByTestId('info-tab')).toBeInTheDocument();
 
             // Find and click the Access Control tab
-            const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
+            const accessControlTab = screen.getByRole('tab', {name: /access control/i});
             await userEvent.click(accessControlTab);
 
             // Now the Access Control tab content should be visible
@@ -435,7 +545,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // Verify the tab shows the correct label
-            const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
+            const accessControlTab = screen.getByRole('tab', {name: /access control/i});
             expect(accessControlTab).toHaveTextContent('Access Control');
         });
 
@@ -454,7 +564,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // Access Control tab visibility is not restricted for default channel - only depends on channel type and permission
-            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+            expect(screen.getByRole('tab', {name: /access control/i})).toBeInTheDocument();
         });
 
         it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
@@ -472,7 +582,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible for group-constrained channels
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
@@ -491,7 +601,7 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible (for multiple reasons)
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
@@ -509,8 +619,125 @@ describe('ChannelSettingsModal', () => {
             });
 
             // The Access Control tab should not be visible (for multiple reasons: public + group-constrained)
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: /access control/i})).not.toBeInTheDocument();
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('plugin tab wiring', () => {
+        it('renders plugin tabs returned by the selector', async () => {
+            mockGetVisibleChannelSettingsTabs.mockReturnValue([
+                makePluginTabRegistration(),
+            ]);
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            expect(screen.getByRole('tab', {name: /plugin tab/i})).toBeInTheDocument();
+        });
+
+        it('passes the channel-settings plugin section label and heading id to SettingsSidebar when plugin tabs are visible', async () => {
+            mockGetVisibleChannelSettingsTabs.mockReturnValue([
+                makePluginTabRegistration(),
+            ]);
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByRole('tab', {name: /plugin tab/i})).toBeInTheDocument();
+            });
+
+            const sidebarProps = getLatestSettingsSidebarProps();
+            expect(sidebarProps.pluginSectionLabel).toBe('PLUGIN SETTINGS');
+            expect(sidebarProps.pluginSectionHeadingId).toBe('channelSettingsModal_pluginSettings_header');
+        });
+
+        it('does not mark Archive Channel as a new group break', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            const sidebarProps = getLatestSettingsSidebarProps();
+            const archiveTab = sidebarProps.tabs.find((tab: TabType) => tab.name === 'archive');
+
+            expect(archiveTab).toBeDefined();
+            expect(archiveTab?.newGroup).toBeUndefined();
+        });
+
+        it('renders plugin content through Pluggable when a plugin tab is clicked', async () => {
+            const registration = makePluginTabRegistration();
+            mockGetVisibleChannelSettingsTabs.mockReturnValue([registration]);
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByRole('tab', {name: /plugin tab/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('tab', {name: /plugin tab/i}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('channel-settings-pluggable')).toBeInTheDocument();
+            });
+
+            expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-pluggable-name', 'ChannelSettingsTab');
+            expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-pluggable-id', registration.id);
+            expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-channel-id', channelId);
+        });
+
+        it('passes unsaved-change props through to the selected plugin tab', async () => {
+            mockGetVisibleChannelSettingsTabs.mockReturnValue([
+                makePluginTabRegistration(),
+            ]);
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByRole('tab', {name: /plugin tab/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('tab', {name: /plugin tab/i}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('channel-settings-pluggable')).toBeInTheDocument();
+            });
+
+            expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-has-set-unsaved-changes', 'true');
+            expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-show-tab-switch-error', 'false');
+
+            await userEvent.click(screen.getByTestId('pluggable-set-unsaved-changes'));
+            await userEvent.click(screen.getByRole('tab', {name: /info/i}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('channel-settings-pluggable')).toHaveAttribute('data-show-tab-switch-error', 'true');
+            });
+        });
+
+        it('does not switch to a plugin tab while unsaved changes are present', async () => {
+            mockGetVisibleChannelSettingsTabs.mockReturnValue([
+                makePluginTabRegistration(),
+            ]);
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+
+            await waitFor(() => {
+                expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByTestId('set-unsaved-changes'));
+            await userEvent.click(screen.getByRole('tab', {name: /plugin tab/i}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('warning-panel')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByTestId('channel-settings-pluggable')).not.toBeInTheDocument();
+            expect(screen.getByTestId('info-tab')).toBeInTheDocument();
         });
     });
 

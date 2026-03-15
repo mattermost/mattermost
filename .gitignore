@@ -165,3 +165,4 @@ docker-compose.override.yaml
 AGENTS.md
 .cursorrules
 .cursor/
+.planning/

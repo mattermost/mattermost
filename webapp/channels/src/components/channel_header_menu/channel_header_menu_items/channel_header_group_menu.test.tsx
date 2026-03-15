@@ -11,11 +11,130 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelSettingsTabComponent} from 'types/store/plugins';
 
 import ChannelHeaderGroupMenu from './channel_header_group_menu';
 
+jest.mock('components/menu', () => {
+    const React = require('react');
+
+    return {
+        Separator: () => null,
+        SubMenu: ({labels, children}: {labels: React.ReactNode; children: React.ReactNode}) => React.createElement(React.Fragment, null, labels, children),
+    };
+});
+
+jest.mock('components/menu/menu_context_test', () => ({
+    WithTestMenuContext: ({children}: {children: React.ReactNode}) => children,
+}));
+
+jest.mock('utils/url', () => ({
+    isValidUrl: jest.fn((url = '') => (/^https?:\/\//i).test(url)),
+}));
+
+jest.mock('components/channel_move_to_sub_menu', () => {
+    return function MockChannelMoveToSubMenu() {
+        return null;
+    };
+});
+
+jest.mock('components/permissions_gates/channel_permission_gate', () => {
+    return function MockChannelPermissionGate({children}: {children: React.ReactNode}) {
+        return <>{children}</>;
+    };
+});
+
+jest.mock('../menu_items/autotranslation', () => {
+    return function MockMenuItemAutotranslation() {
+        return <div>{'Auto-translation'}</div>;
+    };
+});
+
+jest.mock('../menu_items/channel_bookmarks_submenu', () => {
+    return function MockMenuItemChannelBookmarks() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/channel_settings_menu', () => {
+    return function MockMenuItemChannelSettings() {
+        return <div>{'Channel Settings'}</div>;
+    };
+});
+
+jest.mock('../menu_items/close_message', () => {
+    return function MockCloseMessage() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/convert_gm_to_private', () => {
+    return function MockMenuItemConvertToPrivate() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/edit_conversation_header', () => {
+    return function MockEditConversationHeader() {
+        return <div>{'Edit Header'}</div>;
+    };
+});
+
+jest.mock('../menu_items/notification', () => {
+    return function MockMenuItemNotification() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/open_members_rhs', () => {
+    return function MockMenuItemOpenMembersRHS() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/plugins_submenu', () => {
+    return function MockMenuItemPluginItems() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/toggle_favorite_channel', () => {
+    return function MockMenuItemToggleFavoriteChannel() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/toggle_info', () => {
+    return function MockMenuItemToggleInfo() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/toggle_mute_channel', () => {
+    return function MockMenuItemToggleMuteChannel() {
+        return null;
+    };
+});
+
+jest.mock('../menu_items/view_pinned_posts', () => {
+    return function MockMenuItemViewPinnedPosts() {
+        return null;
+    };
+});
+
 const GM_CHANNEL_ID = 'gm_channel_id';
 const CURRENT_USER_ID = 'user_id';
+const DummyChannelSettingsTab = () => null;
+
+function createVisiblePluginTab(): ChannelSettingsTabComponent {
+    return {
+        id: 'plugin-tab',
+        pluginId: 'plugin-id',
+        uiName: 'Plugin Tab',
+        shouldRender: jest.fn(() => true),
+        component: DummyChannelSettingsTab,
+    };
+}
 
 function getBaseState(): DeepPartial<GlobalState> {
     const channel = TestHelper.getChannelMock({
@@ -44,20 +163,18 @@ function getBaseState(): DeepPartial<GlobalState> {
                 },
             },
         },
+        plugins: {
+            components: {
+                ChannelSettingsTab: [],
+            },
+        },
     };
 }
 
 function getStateWithRestrictedDMAndGM(): DeepPartial<GlobalState> {
     const state = getBaseState();
-    return {
-        ...state,
-        entities: {
-            ...state.entities,
-            general: {
-                config: {RestrictDMAndGMAutotranslation: 'true'},
-            },
-        },
-    };
+    state.entities!.general!.config!.RestrictDMAndGMAutotranslation = 'true';
+    return state;
 }
 
 describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
@@ -100,6 +217,21 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
+
+    it('shows Channel Settings for a GM when built-in auto-translation access is blocked but a visible plugin tab exists', () => {
+        const state = getStateWithRestrictedDMAndGM();
+        state.plugins!.components!.ChannelSettingsTab = [createVisiblePluginTab()];
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            state,
+        );
+
+        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
