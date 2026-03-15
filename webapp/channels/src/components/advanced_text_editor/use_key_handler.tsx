@@ -21,7 +21,7 @@ import Constants, {A11yClassNames, Locations, Preferences} from 'utils/constants
 import * as Keyboard from 'utils/keyboard';
 import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
-import {isWithinCodeBlock, postMessageOnKeyPress} from 'utils/post_utils';
+import {isWithinCodeBlock, isWithinLatex, postMessageOnKeyPress} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -194,7 +194,8 @@ const useKeyHandler = (
         const allowHistoryNavigation = draft.message.length === 0 || draft.message === messageHistory[messageHistoryIndex.current];
 
         const caretPosition = (e.target as HTMLTextAreaElement).selectionStart;
-        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(draft.message, caretPosition); // REVIEW
+        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(draft.message, caretPosition);
+        const caretIsWithinLatex = caretPosition && isWithinLatex(draft.message, caretPosition);
 
         if (upKeyOnly && messageIsEmpty) {
             e.preventDefault();
@@ -211,7 +212,7 @@ const useKeyHandler = (
             value,
         } = e.target as TextboxElement;
 
-        if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
+        if (ctrlKeyCombo && !caretIsWithinCodeBlock && !caretIsWithinLatex) {
             if (allowHistoryNavigation && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -248,7 +249,7 @@ const useKeyHandler = (
                     message: value,
                 });
             }
-        } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
+        } else if (ctrlAltCombo && !caretIsWithinCodeBlock && !caretIsWithinLatex) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -280,7 +281,7 @@ const useKeyHandler = (
                 e.preventDefault();
                 toggleShowPreview();
             }
-        } else if (shiftAltCombo && !caretIsWithinCodeBlock) {
+        } else if (shiftAltCombo && !caretIsWithinCodeBlock && !caretIsWithinLatex) {
             if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -315,8 +316,8 @@ const useKeyHandler = (
                     message: value,
                 });
             }
-        } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && UserAgent.isMac()) { // REVIEW
+        } else if (ctrlShiftCombo && !caretIsWithinCodeBlock && !caretIsWithinLatex) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && UserAgent.isMac()) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleShowPreview();
