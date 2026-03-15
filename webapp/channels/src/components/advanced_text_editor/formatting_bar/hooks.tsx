@@ -10,59 +10,102 @@ import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
 
-const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
+type Threshold = [minWidth: number, mode: WideMode];
+
+// Ordered descending — first match (width >= threshold) wins, fallback is 'min'.
+const THRESHOLDS_CENTER: Threshold[] = [
+    [641, 'wide'],
+    [424, 'normal'],
+    [310, 'narrow'],
+];
+
+const THRESHOLDS_RHS: Threshold[] = [
+    [521, 'wide'],
+    [380, 'normal'],
+    [280, 'narrow'],
+];
+
+const DEBOUNCE_DELAY = 10;
+
+function resolveWideMode(width: number, thresholds: Threshold[]): WideMode {
+    for (const [minWidth, mode] of thresholds) {
+        if (width >= minWidth) {
+            return mode;
+        }
+    }
+    return 'min';
+}
+
+function isRHSLocation(location: string): boolean {
+    return location.toLowerCase().includes('rhs');
+}
+
+const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>, isRHS: boolean): WideMode => {
     const [wideMode, setWideMode] = useState<WideMode>('wide');
+
+    const thresholds = isRHS ? THRESHOLDS_RHS : THRESHOLDS_CENTER;
+
     const handleResize = useMemo(() => debounce(() => {
-        if (ref.current?.clientWidth == null) {
+        if (!ref.current) {
             return;
         }
-        if (ref.current.clientWidth > 640) {
-            setWideMode('wide');
-        }
-        if (ref.current.clientWidth >= 424 && ref.current.clientWidth <= 640) {
-            setWideMode('normal');
-        }
-        if (ref.current.clientWidth < 424) {
-            setWideMode('narrow');
-        }
-
-        if (ref.current.clientWidth < 310) {
-            setWideMode('min');
-        }
-    }, 10), [ref]);
+        setWideMode(resolveWideMode(ref.current.clientWidth, thresholds));
+    }, DEBOUNCE_DELAY), [ref, thresholds]);
 
     useLayoutEffect(() => {
         if (!ref.current) {
             return () => {};
         }
 
-        let sizeObserver: ResizeObserver | null = new ResizeObserver(handleResize);
-
+        const sizeObserver = new ResizeObserver(handleResize);
         sizeObserver.observe(ref.current);
 
         return () => {
-            sizeObserver!.disconnect();
-            sizeObserver = null;
+            handleResize.cancel();
+            sizeObserver.disconnect();
         };
     }, [handleResize, ref]);
 
     return wideMode;
 };
 
-const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
+// Base icon counts for each mode (no additional controls)
+const CONTROLS_COUNT_BASE: Record<WideMode, number> = {
     wide: 9,
     normal: 5,
     narrow: 3,
     min: 1,
 };
 
-export function splitFormattingBarControls(wideMode: WideMode) {
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+// Reduced icon counts when additional controls are present (to prevent overlap)
+const CONTROLS_COUNT_WITH_ADDITIONAL: Record<WideMode, number> = {
+    wide: 7,
+    normal: 3,
+    narrow: 1,
+    min: 0,
+};
 
-    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
+// Minimum number of additional controls needed to trigger reduction in narrow mode for center channel
+const NARROW_MODE_MIN_ADDITIONAL_CONTROLS = 2;
 
-    const controls = allControls.slice(0, controlsLength);
-    const hiddenControls = allControls.slice(controlsLength);
+// All available formatting controls in priority order
+const ALL_CONTROLS: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+
+export function splitFormattingBarControls(wideMode: WideMode, additionalControlsCount: number = 0, isRHS: boolean = false) {
+    let visibleControlsCount = CONTROLS_COUNT_BASE[wideMode];
+
+    if (additionalControlsCount > 0) {
+        if (isRHS) {
+            visibleControlsCount = CONTROLS_COUNT_WITH_ADDITIONAL[wideMode];
+        } else if (wideMode === 'narrow' && additionalControlsCount < NARROW_MODE_MIN_ADDITIONAL_CONTROLS) {
+            visibleControlsCount = CONTROLS_COUNT_BASE.narrow;
+        } else {
+            visibleControlsCount = CONTROLS_COUNT_WITH_ADDITIONAL[wideMode];
+        }
+    }
+
+    const controls = ALL_CONTROLS.slice(0, visibleControlsCount);
+    const hiddenControls = ALL_CONTROLS.slice(visibleControlsCount);
 
     return {
         controls,
@@ -72,14 +115,19 @@ export function splitFormattingBarControls(wideMode: WideMode) {
 
 export const useFormattingBarControls = (
     formattingBarRef: React.RefObject<HTMLDivElement>,
+    additionalControlsCount: number = 0,
+    location: string = '',
 ): {
     controls: MarkdownMode[];
     hiddenControls: MarkdownMode[];
     wideMode: WideMode;
 } => {
-    const wideMode = useResponsiveFormattingBar(formattingBarRef);
+    const isRHS = useMemo(() => isRHSLocation(location), [location]);
+    const wideMode = useResponsiveFormattingBar(formattingBarRef, isRHS);
 
-    const {controls, hiddenControls} = splitFormattingBarControls(wideMode);
+    const {controls, hiddenControls} = useMemo(() => {
+        return splitFormattingBarControls(wideMode, additionalControlsCount, isRHS);
+    }, [wideMode, additionalControlsCount, isRHS]);
 
     return {
         controls,
@@ -89,17 +137,10 @@ export const useFormattingBarControls = (
 };
 
 export const useUpdateOnVisibilityChange = (update: Instance['update'] | null, isVisible: boolean) => {
-    const updateComponent = async () => {
-        if (!update) {
-            return;
-        }
-        await update();
-    };
-
     useEffect(() => {
-        if (!isVisible) {
+        if (!isVisible || !update) {
             return;
         }
-        updateComponent();
-    }, [isVisible]);
+        update();
+    }, [isVisible, update]);
 };

@@ -3,7 +3,7 @@
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -145,7 +145,12 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const formattingBarRef = useRef<HTMLDivElement>(null);
-    const {controls, hiddenControls, wideMode} = useFormattingBarControls(formattingBarRef);
+
+    const additionalControlsCount = useMemo(() => {
+        return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
+    }, [additionalControls]);
+
+    const {controls, hiddenControls, wideMode} = useFormattingBarControls(formattingBarRef, additionalControlsCount, location);
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
