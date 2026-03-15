@@ -31,6 +31,8 @@ describe('RecapConfiguration', () => {
         recapType: null as 'selected' | 'all_unreads' | null,
         setRecapType: jest.fn(),
         unreadChannels: mockUnreadChannels,
+        runOnce: false,
+        setRunOnce: jest.fn(),
     };
 
     describe('Recap Name Input', () => {
@@ -165,7 +167,7 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Unread Channels Handling', () => {
-        it('should disable all unreads option when no unread channels', () => {
+        it('should allow selecting all unreads even when no unread channels exist', () => {
             renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
@@ -174,8 +176,7 @@ describe('RecapConfiguration', () => {
             );
 
             const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
-            expect(allUnreadsButton).toBeDisabled();
-            expect(allUnreadsButton).toHaveClass('disabled');
+            expect(allUnreadsButton).not.toBeDisabled();
         });
 
         it('should enable all unreads option when unread channels exist', () => {
@@ -183,10 +184,9 @@ describe('RecapConfiguration', () => {
 
             const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
             expect(allUnreadsButton).not.toBeDisabled();
-            expect(allUnreadsButton).not.toHaveClass('disabled');
         });
 
-        it('should not call setRecapType when all unreads is clicked with no unread channels', async () => {
+        it('should call setRecapType when all unreads is clicked with no unread channels', async () => {
             const setRecapType = jest.fn();
             renderWithContext(
                 <RecapConfiguration
@@ -199,19 +199,81 @@ describe('RecapConfiguration', () => {
             const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
             await userEvent.click(allUnreadsButton!);
 
-            expect(setRecapType).not.toHaveBeenCalled();
+            expect(setRecapType).toHaveBeenCalledWith('all_unreads');
         });
 
-        it('should show tooltip when all unreads option is disabled', () => {
+        it('should force runOnce off when selecting all unreads with no unread channels', async () => {
+            const setRecapType = jest.fn();
+            const setRunOnce = jest.fn();
             renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
+                    setRecapType={setRecapType}
+                    setRunOnce={setRunOnce}
+                    unreadChannels={[]}
+                    runOnce={true}
+                />,
+            );
+
+            const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
+            await userEvent.click(allUnreadsButton!);
+
+            expect(setRecapType).toHaveBeenCalledWith('all_unreads');
+            expect(setRunOnce).toHaveBeenCalledWith(false);
+        });
+
+        it('should not force runOnce off when selecting all unreads with unread channels', async () => {
+            const setRunOnce = jest.fn();
+            renderWithContext(
+                <RecapConfiguration
+                    {...defaultProps}
+                    setRunOnce={setRunOnce}
+                    runOnce={true}
+                />,
+            );
+
+            const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
+            await userEvent.click(allUnreadsButton!);
+
+            expect(setRunOnce).not.toHaveBeenCalled();
+        });
+
+        it('should disable run once toggle when all unreads is selected with no unread channels', () => {
+            renderWithContext(
+                <RecapConfiguration
+                    {...defaultProps}
+                    recapType='all_unreads'
                     unreadChannels={[]}
                 />,
             );
 
-            // The WithTooltip component wraps the button when there are no unreads
-            expect(screen.getByText('Recap all my unreads')).toBeInTheDocument();
+            const toggle = screen.getByRole('button', {name: /run once/i});
+            expect(toggle).toBeDisabled();
+        });
+
+        it('should not disable run once toggle when all unreads is selected with unread channels', () => {
+            renderWithContext(
+                <RecapConfiguration
+                    {...defaultProps}
+                    recapType='all_unreads'
+                />,
+            );
+
+            const toggle = screen.getByRole('button', {name: /run once/i});
+            expect(toggle).not.toBeDisabled();
+        });
+
+        it('should not disable run once toggle when selected channels type is chosen with no unreads', () => {
+            renderWithContext(
+                <RecapConfiguration
+                    {...defaultProps}
+                    recapType='selected'
+                    unreadChannels={[]}
+                />,
+            );
+
+            const toggle = screen.getByRole('button', {name: /run once/i});
+            expect(toggle).not.toBeDisabled();
         });
     });
 

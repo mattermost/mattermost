@@ -14,6 +14,8 @@ type Recap struct {
 	TotalMessageCount int             `json:"total_message_count"`
 	Status            string          `json:"status"`
 	BotID             string          `json:"bot_id"`
+	ScheduledRecapId  string          `json:"scheduled_recap_id,omitempty"` // Set if created from scheduled recap
+	SkipReason        string          `json:"skip_reason,omitempty"`        // Why recap was skipped (daily_limit, cooldown)
 	Channels          []*RecapChannel `json:"channels,omitempty"`
 }
 
@@ -51,6 +53,13 @@ const (
 	RecapStatusProcessing = "processing"
 	RecapStatusCompleted  = "completed"
 	RecapStatusFailed     = "failed"
+	RecapStatusSkipped    = "skipped" // Recap skipped due to limit violation
+)
+
+// Skip reason constants for when a recap is skipped due to limits
+const (
+	SkipReasonDailyLimit = "daily_limit_reached"
+	SkipReasonCooldown   = "cooldown_active"
 )
 
 // Auditable returns safe-to-log fields for audit logging
@@ -68,6 +77,8 @@ func (r *Recap) Auditable() map[string]any {
 		"channel_ids":         channelIDs,
 		"total_message_count": r.TotalMessageCount,
 		"bot_id":              r.BotID,
+		"scheduled_recap_id":  r.ScheduledRecapId,
+		"skip_reason":         r.SkipReason,
 		"create_at":           r.CreateAt,
 		"update_at":           r.UpdateAt,
 		"read_at":             r.ReadAt,

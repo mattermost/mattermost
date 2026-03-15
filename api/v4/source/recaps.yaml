@@ -93,6 +93,33 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  "/api/v4/recaps/limit_status":
+    get:
+      tags:
+        - recaps
+        - ai
+      summary: Get recap limit status for the current user
+      description: >
+        Get the current user's recap usage limits and status, including daily
+        usage, effective limits, and cooldown information.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetRecapLimitStatus
+      responses:
+        "200":
+          description: Recap limit status retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecapLimitStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          description: Recaps feature is not enabled
   "/api/v4/recaps/{recap_id}":
     get:
       tags:

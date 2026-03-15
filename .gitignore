@@ -164,4 +164,7 @@ docker-compose.override.yaml
 **/CLAUDE.md
 AGENTS.md
 .cursorrules
+
+# Planning files (local only)
+.planning
 .cursor/

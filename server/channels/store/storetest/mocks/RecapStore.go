@@ -14,6 +14,34 @@ type RecapStore struct {
 	mock.Mock
 }
 
+// CountForUserSince provides a mock function with given fields: userId, since
+func (_m *RecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+	ret := _m.Called(userId, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountForUserSince")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) (int64, error)); ok {
+		return rf(userId, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) int64); ok {
+		r0 = rf(userId, since)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userId, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteRecap provides a mock function with given fields: id
 func (_m *RecapStore) DeleteRecap(id string) error {
 	ret := _m.Called(id)
@@ -48,6 +76,36 @@ func (_m *RecapStore) DeleteRecapChannels(recapId string) error {
 	}
 
 	return r0
+}
+
+// GetLastCompletedManualRecap provides a mock function with given fields: userId
+func (_m *RecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap, error) {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLastCompletedManualRecap")
+	}
+
+	var r0 *model.Recap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Recap, error)); ok {
+		return rf(userId)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Recap); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Recap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetRecap provides a mock function with given fields: id

@@ -3103,6 +3103,10 @@
     "translation": "This feature is not enabled."
   },
   {
+    "id": "api.recap.get_limit_status.app_error",
+    "translation": "Unable to get recap limit status."
+  },
+  {
     "id": "api.recap.permission_denied",
     "translation": "You do not have permission to access this recap."
   },
@@ -3205,6 +3209,10 @@
   {
     "id": "api.scheduled_posts.license_error",
     "translation": "Scheduled posts feature requires a license"
+  },
+  {
+    "id": "api.scheduled_recap.permission_denied",
+    "translation": "You do not have permission to access this scheduled recap."
   },
   {
     "id": "api.scheme.create_scheme.license.error",
@@ -7495,12 +7503,24 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
+    "id": "app.recap.cooldown_active.app_error",
+    "translation": "Your organization's policy requires {{.CooldownMinutes}} minutes between recaps. You can create another recap in {{.RetryAfterMinutes}} minutes."
+  },
+  {
+    "id": "app.recap.cooldown_check_failed.app_error",
+    "translation": "Failed to check cooldown status."
+  },
+  {
     "id": "app.recap.delete.app_error",
     "translation": "Failed to delete recap."
   },
   {
     "id": "app.recap.delete_channels.app_error",
     "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.fetch_posts.app_error",
+    "translation": "Failed to fetch posts for any channel in the recap."
   },
   {
     "id": "app.recap.get.app_error",
@@ -7767,6 +7787,62 @@
   {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_recap.all_unreads_not_supported.app_error",
+    "translation": "Scheduled recaps do not support all unread channels."
+  },
+  {
+    "id": "app.scheduled_recap.compute_next_run.app_error",
+    "translation": "Unable to compute the next scheduled recap run."
+  },
+  {
+    "id": "app.scheduled_recap.count_failed.app_error",
+    "translation": "Failed to check scheduled recap count."
+  },
+  {
+    "id": "app.scheduled_recap.create.app_error",
+    "translation": "Unable to create scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.delete.app_error",
+    "translation": "Unable to delete scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.get.app_error",
+    "translation": "Unable to get scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.list.app_error",
+    "translation": "Unable to get scheduled recaps."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Your organization's policy limits recaps to {{.Limit}} channels. You requested {{.Requested}} channels."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Your organization's policy limits you to {{.Limit}} scheduled recaps. Please delete an existing scheduled recap before creating a new one."
+  },
+  {
+    "id": "app.scheduled_recap.no_channels.app_error",
+    "translation": "Scheduled recap must include at least one channel."
+  },
+  {
+    "id": "app.scheduled_recap.pause.app_error",
+    "translation": "Unable to pause scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.resume.app_error",
+    "translation": "Unable to resume scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.save_recap.app_error",
+    "translation": "Unable to save recap for scheduled recap."
+  },
+  {
+    "id": "app.scheduled_recap.update.app_error",
+    "translation": "Unable to update scheduled recap."
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -10017,6 +10093,34 @@
     "translation": "To must be greater than From."
   },
   {
+    "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
+    "translation": "Invalid AI recap cooldown minutes. Must be greater than or equal to 0."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
+    "translation": "Invalid AI recap max channels per recap. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
+    "translation": "Invalid AI recap max posts per day. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
+    "translation": "Invalid AI recap max posts per recap. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
+    "translation": "Invalid AI recap max recaps per day. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
+    "translation": "Invalid AI recap max scheduled recaps. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
+    "translation": "Invalid AI recap max tokens per recap. Must be greater than or equal to 1, or -1 for unlimited."
+  },
+  {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
   },
@@ -11319,6 +11423,70 @@
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
     "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
+    "translation": "Invalid scheduled recap days of week."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
+    "translation": "No valid day found for the scheduled recap."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
+    "translation": "Invalid scheduled recap time format."
+  },
+  {
+    "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
+    "translation": "Invalid scheduled recap timezone."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.agent_id.app_error",
+    "translation": "Scheduled recap must have an agent ID."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_id.app_error",
+    "translation": "Invalid scheduled recap channel ID."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
+    "translation": "Scheduled recap must include at least one channel when using specific channels."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
+    "translation": "Invalid scheduled recap channel mode."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
+    "translation": "Invalid scheduled recap days of week."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.id.app_error",
+    "translation": "Scheduled recap must have an ID."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
+    "translation": "Invalid scheduled recap time of day."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.time_period.app_error",
+    "translation": "Invalid scheduled recap time period."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.timezone.app_error",
+    "translation": "Invalid scheduled recap timezone."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_empty.app_error",
+    "translation": "Scheduled recap title cannot be empty."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.title_length.app_error",
+    "translation": "Scheduled recap title exceeds the maximum length."
+  },
+  {
+    "id": "model.scheduled_recap.is_valid.user_id.app_error",
+    "translation": "Scheduled recap must have a user ID."
   },
   {
     "id": "model.scheme.is_valid.app_error",

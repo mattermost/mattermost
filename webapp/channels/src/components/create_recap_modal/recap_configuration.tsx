@@ -7,6 +7,7 @@ import {useIntl, FormattedMessage} from 'react-intl';
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
+import Toggle from 'components/toggle';
 import WithTooltip from 'components/with_tooltip';
 
 const RECAP_NAME_MAX_LENGTH = 100;
@@ -17,12 +18,33 @@ type Props = {
     recapType: 'selected' | 'all_unreads' | null;
     setRecapType: (type: 'selected' | 'all_unreads') => void;
     unreadChannels: Channel[];
+    runOnce: boolean;
+    setRunOnce: (value: boolean) => void;
+    isEditMode?: boolean;
 };
 
-const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
+const RecapConfiguration = ({
+    recapName,
+    setRecapName,
+    recapType,
+    setRecapType,
+    unreadChannels,
+    runOnce,
+    setRunOnce,
+    isEditMode,
+}: Props) => {
     const {formatMessage} = useIntl();
     const [touched, setTouched] = useState(false);
     const hasUnreadChannels = unreadChannels.length > 0;
+
+    const runOnceDisabled = recapType === 'all_unreads' && !hasUnreadChannels;
+
+    const handleAllUnreadsClick = () => {
+        setRecapType('all_unreads');
+        if (!hasUnreadChannels && runOnce) {
+            setRunOnce(false);
+        }
+    };
 
     const showError = touched && recapName.trim().length === 0;
 
@@ -30,32 +52,26 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
         setTouched(true);
     }, []);
 
-    const allUnreadsButton = (
-        <button
-            type='button'
-            className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''} ${hasUnreadChannels ? '' : 'disabled'}`}
-            onClick={() => hasUnreadChannels && setRecapType('all_unreads')}
-            disabled={!hasUnreadChannels}
-        >
-            <div className='recap-type-card-icon'>
-                <LightningBoltOutlineIcon size={24}/>
-            </div>
-            <div className='recap-type-card-content'>
-                <div className='recap-type-card-title'>
-                    <FormattedMessage
-                        id='recaps.modal.allUnreads'
-                        defaultMessage='Recap all my unreads'
-                    />
-                </div>
-                <div className='recap-type-card-description'>
-                    <FormattedMessage
-                        id='recaps.modal.allUnreadsDesc'
-                        defaultMessage='Create a recap of all unread messages across your channels.'
-                    />
-                </div>
-            </div>
-            {recapType === 'all_unreads' && <CheckCircleIcon className='selected-icon'/>}
-        </button>
+    const runOnceToggle = (
+        <div className='run-once-toggle'>
+            <Toggle
+                id='run-once-toggle'
+                toggled={runOnce}
+                onToggle={() => setRunOnce(!runOnce)}
+                size='btn-sm'
+                toggleClassName='btn-toggle-primary'
+                disabled={runOnceDisabled}
+            />
+            <label
+                htmlFor='run-once-toggle'
+                className='run-once-label'
+            >
+                <FormattedMessage
+                    id='recaps.modal.runOnce'
+                    defaultMessage='Run once'
+                />
+            </label>
+        </div>
     );
 
     return (
@@ -131,16 +147,52 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                         {recapType === 'selected' && <CheckCircleIcon className='selected-icon'/>}
                     </button>
 
-                    {hasUnreadChannels ? allUnreadsButton : (
-                        <WithTooltip
-                            title={formatMessage({id: 'recaps.modal.noUnreadsAvailable', defaultMessage: 'No unread channels available'})}
-                            hint={formatMessage({id: 'recaps.modal.noUnreadsAvailableHint', defaultMessage: 'You currently have no unread messages in any channels'})}
-                        >
-                            {allUnreadsButton}
-                        </WithTooltip>
-                    )}
+                    <button
+                        type='button'
+                        className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''}`}
+                        onClick={handleAllUnreadsClick}
+                    >
+                        <div className='recap-type-card-icon'>
+                            <LightningBoltOutlineIcon size={24}/>
+                        </div>
+                        <div className='recap-type-card-content'>
+                            <div className='recap-type-card-title'>
+                                <FormattedMessage
+                                    id='recaps.modal.allUnreads'
+                                    defaultMessage='Recap all my unreads'
+                                />
+                            </div>
+                            <div className='recap-type-card-description'>
+                                <FormattedMessage
+                                    id='recaps.modal.allUnreadsDesc'
+                                    defaultMessage='Create a recap of all unread messages across your channels.'
+                                />
+                            </div>
+                        </div>
+                        {recapType === 'all_unreads' && <CheckCircleIcon className='selected-icon'/>}
+                    </button>
                 </div>
             </div>
+
+            {/* Run once toggle - hidden in edit mode */}
+            {!isEditMode && (
+                <div className='form-group run-once-group'>
+                    {runOnceDisabled ? (
+                        <WithTooltip
+                            title={formatMessage({id: 'recaps.modal.runOnceDisabledTitle', defaultMessage: 'No unread messages'})}
+                            hint={formatMessage({id: 'recaps.modal.runOnceDisabledHint', defaultMessage: 'You have no unread messages to recap right now. Schedule this recap to run in the future instead.'})}
+                        >
+                            {runOnceToggle}
+                        </WithTooltip>
+                    ) : runOnceToggle}
+                    <div className='run-once-description'>
+                        <FormattedMessage
+                            id='recaps.modal.runOnceDescription'
+                            defaultMessage='Create an immediate recap without scheduling'
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

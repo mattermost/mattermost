@@ -26,6 +26,8 @@ var (
 		"TotalMessageCount",
 		"Status",
 		"BotID",
+		"ScheduledRecapId",
+		"SkipReason",
 	}
 
 	recapChannelColumns = []string{
@@ -75,6 +77,8 @@ func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]any {
 		"TotalMessageCount": recap.TotalMessageCount,
 		"Status":            recap.Status,
 		"BotID":             recap.BotID,
+		"ScheduledRecapId":  recap.ScheduledRecapId,
+		"SkipReason":        recap.SkipReason,
 	}
 }
 
@@ -296,4 +300,46 @@ func (s *SqlRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.Reca
 	}
 
 	return recapChannels, nil
+}
+
+// CountForUserSince returns count of recaps created by user since given timestamp.
+// Excludes skipped recaps from the count, but still counts soft-deleted recaps
+// because they already consumed AI usage.
+func (s *SqlRecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Recaps").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.GtOrEq{"CreateAt": since}).
+		Where(sq.NotEq{"Status": model.RecapStatusSkipped}) // Don't count skipped recaps
+
+	var count int64
+	err := s.GetReplica().GetBuilder(&count, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count recaps for user since timestamp")
+	}
+	return count, nil
+}
+
+// GetLastCompletedManualRecap returns the most recent completed manual recap for user.
+// Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including
+// soft-deleted recaps because deleting a recap should not bypass cooldown.
+// Returns nil, nil if no manual recap exists.
+func (s *SqlRecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap, error) {
+	var recap model.Recap
+	query := s.recapSelectQuery.
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"Status": model.RecapStatusCompleted}).
+		Where(sq.Or{sq.Eq{"ScheduledRecapId": ""}, sq.Expr("ScheduledRecapId IS NULL")}). // Manual = no scheduled recap ID (NULL for pre-migration rows)
+		OrderBy("CreateAt DESC").
+		Limit(1)
+
+	err := s.GetReplica().GetBuilder(&recap, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No manual recap found - not an error
+		}
+		return nil, errors.Wrap(err, "failed to get last completed manual recap")
+	}
+	return &recap, nil
 }

@@ -119,7 +119,7 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
+import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
@@ -455,6 +455,10 @@ export default class Client4 {
 
     getRecapsRoute() {
         return `${this.getBaseRoute()}/recaps`;
+    }
+
+    getScheduledRecapsRoute() {
+        return `${this.getBaseRoute()}/scheduled_recaps`;
     }
 
     getPluginsRoute() {
@@ -3355,6 +3359,63 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getRecapsRoute()}/${recapId}`,
             {method: 'delete'},
+        );
+    };
+
+    getRecapLimitStatus = () => {
+        return this.doFetch<RecapLimitStatus>(
+            `${this.getRecapsRoute()}/limit_status`,
+            {method: 'get'},
+        );
+    };
+
+    // Scheduled Recaps Routes
+    createScheduledRecap = (input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}`,
+            {method: 'post', body: JSON.stringify(input)},
+        );
+    };
+
+    getScheduledRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<ScheduledRecap[]>(
+            `${this.getScheduledRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledRecap = (id: string, input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'put', body: JSON.stringify(input)},
+        );
+    };
+
+    deleteScheduledRecap = (id: string) => {
+        return this.doFetch<void>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'delete'},
+        );
+    };
+
+    pauseScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/pause`,
+            {method: 'post'},
+        );
+    };
+
+    resumeScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/resume`,
+            {method: 'post'},
         );
     };
 

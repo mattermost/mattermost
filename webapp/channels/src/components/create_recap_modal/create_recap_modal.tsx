@@ -1,45 +1,54 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory, useRouteMatch} from 'react-router-dom';
+import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {createRecap} from 'mattermost-redux/actions/recaps';
+import {createRecap, createScheduledRecap, updateScheduledRecap, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
 import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {AgentDropdown} from 'components/common/agents';
 import PaginationDots from 'components/common/pagination_dots';
+import RecapUsageBadge from 'components/recaps/recap_usage_badge';
 
 import ChannelSelector from './channel_selector';
 import ChannelSummary from './channel_summary';
 import RecapConfiguration from './recap_configuration';
+import ScheduleConfiguration from './schedule_configuration';
 
 import './create_recap_modal.scss';
 
 type Props = {
     onExited: () => void;
+    editScheduledRecap?: ScheduledRecap; // When present, modal is in edit mode
 };
 
 type RecapType = 'selected' | 'all_unreads';
 
-const CreateRecapModal = ({onExited}: Props) => {
+const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const history = useHistory();
-    const {url} = useRouteMatch();
+    const teamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const normalizedTeamUrl = teamUrl === '/' ? '' : teamUrl;
     const currentUserId = useSelector(getCurrentUserId);
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
     const agents = useSelector(getAgentsSelector);
+    const limitStatus = useSelector(getRecapLimitStatus);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [recapName, setRecapName] = useState('');
@@ -49,6 +58,46 @@ const CreateRecapModal = ({onExited}: Props) => {
     const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Schedule state
+    const [runOnce, setRunOnce] = useState(false);
+    const [daysOfWeek, setDaysOfWeek] = useState<number>(0);
+    const [timeOfDay, setTimeOfDay] = useState<string>('09:00');
+    const [timePeriod, setTimePeriod] = useState<string>('last_24h');
+    const [customInstructions, setCustomInstructions] = useState<string>('');
+
+    // Validation state
+    const [daysError, setDaysError] = useState(false);
+    const [timeError, setTimeError] = useState(false);
+
+    // Get user timezone
+    const userTimezone = useSelector(getCurrentTimezone);
+
+    // Edit mode detection
+    const isEditMode = Boolean(editScheduledRecap);
+
+    // Determine if action should be blocked
+    const isBlocked = useMemo(() => {
+        if (!limitStatus) {
+            return false;
+        }
+
+        // For "run once" (manual recap): check cooldown and daily limit
+        if (runOnce) {
+            if (limitStatus.cooldown.is_active) {
+                return true;
+            }
+            const {daily} = limitStatus;
+            if (daily.limit !== -1 && daily.used >= daily.limit) {
+                return true;
+            }
+        }
+
+        // For scheduled: check max scheduled recaps (not implemented in status yet - future enhancement)
+        // Current behavior: don't block scheduled creation from UI, let API reject if over limit
+
+        return false;
+    }, [limitStatus, runOnce]);
 
     // Fetch AI agents on mount
     useEffect(() => {
@@ -62,30 +111,55 @@ const CreateRecapModal = ({onExited}: Props) => {
         }
     }, [agents, selectedBotId]);
 
+    // Pre-fill form for edit mode
+    useEffect(() => {
+        if (editScheduledRecap) {
+            setRecapName(editScheduledRecap.title);
+            setRecapType(editScheduledRecap.channel_mode === 'all_unreads' ? 'all_unreads' : 'selected');
+            setSelectedChannelIds(editScheduledRecap.channel_ids || []);
+            setDaysOfWeek(editScheduledRecap.days_of_week);
+            setTimeOfDay(editScheduledRecap.time_of_day);
+            setTimePeriod(editScheduledRecap.time_period);
+            setCustomInstructions(editScheduledRecap.custom_instructions || '');
+            setSelectedBotId(editScheduledRecap.agent_id);
+
+            // Don't set runOnce in edit mode - it's always a scheduled recap
+        }
+    }, [editScheduledRecap]);
+
     // Get unread channels
     const unreadChannels = myChannels.filter((channel: Channel) =>
         unreadChannelIds.includes(channel.id),
     );
 
     const handleNext = useCallback(() => {
+        // Clear validation errors
+        setDaysError(false);
+        setTimeError(false);
+
         if (currentStep === 1) {
             if (recapType === 'all_unreads') {
-                // For all unreads, skip channel selector and go to summary
+                // For all unreads, set channels and go to step 3
+                // Run once: summary; Scheduled: schedule configuration
                 setSelectedChannelIds(unreadChannels.map((c: Channel) => c.id));
-                setCurrentStep(3); // Go to summary
+                setCurrentStep(3);
             } else {
                 // For selected channels, go to channel selector
                 setCurrentStep(2);
             }
         } else if (currentStep === 2) {
-            // From channel selector to summary
+            // From channel selector to step 3 (summary for run once, schedule for scheduled)
             setCurrentStep(3);
         }
     }, [currentStep, recapType, unreadChannels]);
 
     const handlePrevious = useCallback(() => {
+        // Clear validation errors
+        setDaysError(false);
+        setTimeError(false);
+
         if (currentStep === 3 && recapType === 'all_unreads') {
-            // From summary back to step 1 if all unreads
+            // From step 3 back to step 1 if all unreads (skipped channel selector)
             setCurrentStep(1);
         } else if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
@@ -93,7 +167,8 @@ const CreateRecapModal = ({onExited}: Props) => {
     }, [currentStep, recapType]);
 
     const handleSubmit = useCallback(async () => {
-        if (selectedChannelIds.length === 0) {
+        // Validate channel selection for selected type
+        if (selectedChannelIds.length === 0 && recapType === 'selected') {
             setError(formatMessage({id: 'recaps.modal.error.noChannels', defaultMessage: 'Please select at least one channel.'}));
             return;
         }
@@ -107,18 +182,85 @@ const CreateRecapModal = ({onExited}: Props) => {
             return;
         }
 
+        // For scheduled recaps (not run once), validate schedule fields
+        if (!runOnce) {
+            if (daysOfWeek === 0) {
+                setDaysError(true);
+                setError(formatMessage({id: 'recaps.modal.error.noDays', defaultMessage: 'Please select at least one day.'}));
+                return;
+            }
+            if (!timeOfDay) {
+                setTimeError(true);
+                setError(formatMessage({id: 'recaps.modal.error.noTime', defaultMessage: 'Please select a time.'}));
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         setError(null);
 
-        try {
-            await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
+        if (runOnce) {
+            // Run once: create immediate recap (existing behavior)
+            const result = await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
+            if (result.error) {
+                setError(result.error.message || formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Fetch the new limit status to update the usage badge immediately
+            dispatch(fetchRecapLimitStatus());
+
             onExited();
-            history.push(`${url}/recaps`);
-        } catch (err) {
-            setError(formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
-            setIsSubmitting(false);
+            history.push(`${normalizedTeamUrl}/recaps`);
+        } else {
+            // Create or update scheduled recap
+            const input: ScheduledRecapInput = {
+                title: recapName,
+                days_of_week: daysOfWeek,
+                time_of_day: timeOfDay,
+                timezone: userTimezone || 'UTC',
+                time_period: timePeriod,
+                channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+                channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+                custom_instructions: customInstructions || undefined,
+                agent_id: selectedBotId,
+                is_recurring: true,
+            };
+
+            const result = isEditMode && editScheduledRecap ?
+                await dispatch(updateScheduledRecap(editScheduledRecap.id, input)) :
+                await dispatch(createScheduledRecap(input));
+
+            if (result.error) {
+                setError(result.error.message || formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
+                setIsSubmitting(false);
+                return;
+            }
+
+            onExited();
+            history.push(`${normalizedTeamUrl}/recaps?tab=scheduled`);
         }
-    }, [selectedChannelIds, currentUserId, selectedBotId, dispatch, onExited, history, url, formatMessage, recapName]);
+    }, [
+        selectedChannelIds,
+        currentUserId,
+        selectedBotId,
+        runOnce,
+        isEditMode,
+        editScheduledRecap,
+        daysOfWeek,
+        timeOfDay,
+        timePeriod,
+        customInstructions,
+        userTimezone,
+        recapName,
+        recapType,
+        dispatch,
+        onExited,
+        history,
+        normalizedTeamUrl,
+        formatMessage,
+    ]);
 
     const canProceed = () => {
         if (currentStep === 1) {
@@ -126,7 +268,18 @@ const CreateRecapModal = ({onExited}: Props) => {
         } else if (currentStep === 2) {
             return selectedChannelIds.length > 0;
         } else if (currentStep === 3) {
-            return selectedChannelIds.length > 0 && selectedBotId.length > 0;
+            if (runOnce) {
+                // On final step, also check limits for run-once
+                if (isBlocked) {
+                    return false;
+                }
+
+                // Run once summary step
+                return selectedChannelIds.length > 0 && selectedBotId.length > 0;
+            }
+
+            // Schedule configuration step
+            return daysOfWeek > 0 && timeOfDay.length > 0 && timePeriod.length > 0;
         }
         return false;
     };
@@ -139,6 +292,7 @@ const CreateRecapModal = ({onExited}: Props) => {
         if (recapType === 'all_unreads') {
             return currentStep === 1 ? 1 : 2;
         }
+
         return currentStep;
     };
 
@@ -152,6 +306,9 @@ const CreateRecapModal = ({onExited}: Props) => {
                     recapType={recapType}
                     setRecapType={setRecapType}
                     unreadChannels={unreadChannels}
+                    runOnce={runOnce}
+                    setRunOnce={setRunOnce}
+                    isEditMode={isEditMode}
                 />
             );
         case 2:
@@ -163,19 +320,61 @@ const CreateRecapModal = ({onExited}: Props) => {
                     unreadChannels={unreadChannels}
                 />
             );
-        case 3:
+        case 3: {
+            if (runOnce) {
+                // Run once: show summary
+                return (
+                    <ChannelSummary
+                        selectedChannelIds={selectedChannelIds}
+                        myChannels={myChannels}
+                    />
+                );
+            }
+
+            // Scheduled: show schedule configuration
+            // Get the selected agent's display name
+            const selectedAgent = agents.find((agent) => agent.id === selectedBotId);
+            const agentName = selectedAgent?.displayName || selectedAgent?.username || 'Copilot';
             return (
-                <ChannelSummary
-                    selectedChannelIds={selectedChannelIds}
-                    myChannels={myChannels}
+                <ScheduleConfiguration
+                    daysOfWeek={daysOfWeek}
+                    setDaysOfWeek={setDaysOfWeek}
+                    timeOfDay={timeOfDay}
+                    setTimeOfDay={setTimeOfDay}
+                    timePeriod={timePeriod}
+                    setTimePeriod={setTimePeriod}
+                    customInstructions={customInstructions}
+                    setCustomInstructions={setCustomInstructions}
+                    daysError={daysError}
+                    timeError={timeError}
+                    agentName={agentName}
                 />
             );
+        }
         default:
             return null;
         }
     };
 
-    const confirmButtonText = currentStep === 3 ? formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'}) : formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+    const getConfirmButtonText = () => {
+        const isFinalStep = currentStep === 3;
+
+        if (!isFinalStep) {
+            return formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+        }
+
+        if (runOnce) {
+            return formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'});
+        }
+
+        if (isEditMode) {
+            return formatMessage({id: 'recaps.modal.saveChanges', defaultMessage: 'Save changes'});
+        }
+
+        return formatMessage({id: 'recaps.modal.createSchedule', defaultMessage: 'Create schedule'});
+    };
+
+    const confirmButtonText = getConfirmButtonText();
 
     const handleBotSelect = useCallback((botId: string) => {
         setSelectedBotId(botId);
@@ -187,8 +386,14 @@ const CreateRecapModal = ({onExited}: Props) => {
 
     const headerText = (
         <div className='create-recap-modal-header'>
-            <span>{formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})}</span>
+            <span>
+                {isEditMode ?
+                    formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'}) :
+                    formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
+                }
+            </span>
             <div className='create-recap-modal-header-actions'>
+                <RecapUsageBadge/>
                 <AgentDropdown
                     showLabel={true}
                     selectedBotId={selectedBotId}
@@ -268,4 +473,3 @@ const CreateRecapModal = ({onExited}: Props) => {
 };
 
 export default CreateRecapModal;
-
