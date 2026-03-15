@@ -82,6 +82,12 @@ interface Props<TriggerComponentType> {
     onToggle?: (isMounted: boolean) => void;
 }
 
+/**
+ * This is a wrapper component for ProfilePopover that manages the state and
+ * positioning of the user profile popover using the Floating UI library.
+ * It handles the trigger element (e.g., a username mention) and renders
+ * the ProfilePopover within a portal when active.
+ */
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
     const intl = useIntl();
 
@@ -128,6 +134,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                 ref={refs.setReference}
                 className={props.triggerComponentClass}
                 style={props.triggerComponentStyle}
+                type={TriggerComponent === 'button' ? 'button' : undefined}
                 {...getReferenceProps()}
             >
                 {props.children}
