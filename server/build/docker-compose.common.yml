@@ -145,6 +145,8 @@ services:
     image: "otel/opentelemetry-collector-contrib:0.145.0"
     logging: *default-logging
     user: "0:0"
+    environment:
+      - DOCKER_API_VERSION=1.43
     volumes:
       - "./docker/otel-collector/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:Z"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"

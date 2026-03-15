@@ -334,5 +334,13 @@ export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }
 
+export function getWysiwygEditorPreference(state: GlobalState): boolean {
+    const featureEnabled = getFeatureFlagValue(state, 'WysiwygEditor') === 'true';
+    if (!featureEnabled) {
+        return false;
+    }
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.WYSIWYG_EDITOR, true);
+}
+
 export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);
 export const getPostHistoryLimitBannerPreferences = makeGetCategory('getPostHistoryLimitBannerPreferences', Preferences.CATEGORY_POST_HISTORY_LIMIT_BANNER);

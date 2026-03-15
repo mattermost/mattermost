@@ -13,7 +13,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -29,6 +29,8 @@ import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
+import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
+import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -211,6 +213,7 @@ const AdvancedTextEditor = ({
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
     const textboxRef = useRef<TextboxClass>(null);
+    const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
     const draftRef = useRef(draftFromStore);
@@ -230,6 +233,7 @@ const AdvancedTextEditor = ({
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
     const handleShowPreview = useCallback(() => {
@@ -486,6 +490,17 @@ const AdvancedTextEditor = ({
             message,
         });
     }, [draft, handleDraftChange, serverError]);
+
+    const handleWysiwygChange = useCallback((markdown: string) => {
+        emitTypingEvent();
+        if (!isErrorInvalidSlashCommand(serverError)) {
+            setServerError(null);
+        }
+        handleDraftChange({
+            ...draft,
+            message: markdown,
+        });
+    }, [draft, handleDraftChange, serverError, emitTypingEvent]);
 
     /**
      * by getting the value directly from the textbox we eliminate all unnecessary
@@ -795,31 +810,46 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
-                            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
-                            onChange={handleChange}
-                            onKeyPress={postMsgKeyPress}
-                            onKeyDown={handleKeyDown}
-                            onComposition={emitTypingEvent}
-                            onHeightChange={handleHeightChange}
-                            handlePostError={handlePostError}
-                            value={messageValue}
-                            onBlur={handleBlur}
-                            onFocus={handleFocus}
-                            emojiEnabled={enableEmojiPicker}
-                            createMessage={createMessage}
-                            channelId={channelId}
-                            id={textboxId}
-                            ref={textboxRef!}
-                            disabled={isDisabled && !rewriteIsProcessing}
-                            characterLimit={maxPostSize}
-                            preview={showPreview}
-                            badConnection={badConnection}
-                            useChannelMentions={useChannelMentions}
-                            rootId={rootId}
-                            onWidthChange={handleWidthChange}
-                        />
+                        {wysiwygEnabled ? (
+                            <WysiwygEditor
+                                ref={wysiwygRef}
+                                value={messageValue}
+                                onChange={handleWysiwygChange}
+                                onSubmit={handleSubmitWrapper}
+                                onFocus={handleFocus}
+                                onBlur={handleBlur}
+                                placeholder={createMessage}
+                                channelId={channelId}
+                                id={textboxId}
+                                disabled={isDisabled && !rewriteIsProcessing}
+                            />
+                        ) : (
+                            <Textbox
+                                hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+                                suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
+                                onChange={handleChange}
+                                onKeyPress={postMsgKeyPress}
+                                onKeyDown={handleKeyDown}
+                                onComposition={emitTypingEvent}
+                                onHeightChange={handleHeightChange}
+                                handlePostError={handlePostError}
+                                value={messageValue}
+                                onBlur={handleBlur}
+                                onFocus={handleFocus}
+                                emojiEnabled={enableEmojiPicker}
+                                createMessage={createMessage}
+                                channelId={channelId}
+                                id={textboxId}
+                                ref={textboxRef!}
+                                disabled={isDisabled && !rewriteIsProcessing}
+                                characterLimit={maxPostSize}
+                                preview={showPreview}
+                                badConnection={badConnection}
+                                useChannelMentions={useChannelMentions}
+                                rootId={rootId}
+                                onWidthChange={handleWidthChange}
+                            />
+                        )}
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
                             <TexteditorActions

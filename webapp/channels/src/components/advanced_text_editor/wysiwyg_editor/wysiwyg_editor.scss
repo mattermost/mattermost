@@ -1,0 +1,206 @@
+.WysiwygEditor {
+    position: relative;
+    width: 100%;
+
+    .ProseMirror {
+        min-height: 36px;
+        max-height: 50vh;
+        overflow-y: auto;
+        padding: 13px 16px 12px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        outline: none;
+        resize: none;
+        white-space: break-spaces;
+        word-wrap: break-word;
+
+        &:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        &.ProseMirror-focused {
+            outline: none;
+        }
+
+        p.is-editor-empty:first-child::before {
+            float: left;
+            height: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            content: attr(data-placeholder);
+            pointer-events: none;
+            text-overflow: ellipsis;
+            white-space: pre;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin: 8px 0 4px;
+            color: var(--center-channel-color);
+            font-weight: 600;
+            line-height: 1.4;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+
+        h1 {
+            font-size: 1.65em;
+        }
+
+        h2 {
+            font-size: 1.47em;
+        }
+
+        h3 {
+            font-size: 1.3em;
+        }
+
+        h4 {
+            font-size: 1.15em;
+        }
+
+        h5 {
+            font-size: 1em;
+        }
+
+        h6 {
+            font-size: 0.85em;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        s {
+            text-decoration: line-through;
+        }
+
+        ul,
+        ol {
+            margin: 4px 0;
+            padding-left: 24px;
+        }
+
+        ul {
+            list-style-type: disc;
+        }
+
+        ol {
+            list-style-type: decimal;
+        }
+
+        li {
+            margin: 2px 0;
+
+            p {
+                margin: 0;
+            }
+        }
+
+        code {
+            padding: 2px 5px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 3px;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: var(--center-channel-color);
+            font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+        }
+
+        pre {
+            margin: 6px 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+
+            code {
+                padding: 0;
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                font-size: 13px;
+                line-height: 1.5;
+                white-space: pre-wrap;
+            }
+        }
+
+        blockquote {
+            margin: 6px 0;
+            padding: 0 0 0 16px;
+            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.16);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        hr {
+            margin: 12px 0;
+            border: none;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        a {
+            color: var(--button-bg);
+            cursor: pointer;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        table {
+            width: 100%;
+            margin: 8px 0;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            min-width: 80px;
+            padding: 6px 10px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            font-weight: 600;
+        }
+
+        td {
+            background: var(--center-channel-bg);
+        }
+
+        .tableWrapper {
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+    }
+
+    &--disabled {
+        .ProseMirror {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+}
