@@ -11,6 +11,10 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: e2e-coverage-gate-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   # ── Job 1: decide whether to skip ──────────────────────────────────────────
   check-override:
@@ -139,10 +143,11 @@ jobs:
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           npx e2e-ai-agents plan \
             --config ./e2e-ai-agents.config.json \
-            --since origin/${{ github.base_ref }} \
+            --since "origin/${BASE_REF}" \
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
@@ -155,6 +160,7 @@ jobs:
         run: |
           npx e2e-ai-agents generate \
             --config ./e2e-ai-agents.config.json \
+            --budget-usd 1.00 \
             --dry-run
 
       - name: Post PR comment

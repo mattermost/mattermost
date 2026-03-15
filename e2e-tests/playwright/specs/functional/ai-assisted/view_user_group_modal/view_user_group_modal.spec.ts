@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('user can view group members and search within the view user group modal @ai-assisted', async ({pw}) => {
+/**
+ * @objective Verify that a user can view group members and search within the user group modal
+ */
+test('user can view group members and search within the view user group modal', {tag: ['@view_user_group_modal', '@ai-assisted']}, async ({pw}) => {
     // # Set up admin and member user
     const {adminClient, user} = await pw.initSetup();
 
@@ -37,7 +40,7 @@ test('user can view group members and search within the view user group modal @a
     await userGroupsDialog.getByText(group.display_name).click();
 
     // * Verify the view user group modal is visible
-    const viewGroupModal = page.locator('.view-user-groups-modal');
+    const viewGroupModal = page.getByRole('dialog').last();
     await expect(viewGroupModal).toBeVisible();
 
     // * Verify the @mention group name is displayed
@@ -47,7 +50,7 @@ test('user can view group members and search within the view user group modal @a
     await expect(viewGroupModal.getByText(/2\s*Members/i)).toBeVisible();
 
     // * Verify the member search input is present
-    const searchInput = viewGroupModal.getByTestId('searchInput');
+    const searchInput = viewGroupModal.getByPlaceholder('Search');
     await expect(searchInput).toBeVisible();
 
     // # Search for the second user by username

@@ -1,0 +1,2 @@
+# Collapse generated manifests in PR diffs
+.e2e-ai-agents/route-families.json linguist-generated

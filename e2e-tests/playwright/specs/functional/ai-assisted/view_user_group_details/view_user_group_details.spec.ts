@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('user can view group details in the view user group modal @ai-assisted', async ({pw}) => {
+/**
+ * @objective Verify that a user can view group details including mention name and member count in the user group modal
+ */
+test('user can view group details in the view user group modal', {tag: ['@view_user_group_details', '@ai-assisted']}, async ({pw}) => {
     // # Set up admin and member user
     const {adminClient, user} = await pw.initSetup();
 
@@ -35,8 +38,8 @@ test('user can view group details in the view user group modal @ai-assisted', as
     // # Click on the newly created group to open its detail view
     await userGroupsDialog.getByText(group.display_name).click();
 
-    // * Verify the View User Group detail modal is visible
-    const viewGroupDialog = page.locator('.view-user-groups-modal');
+    // * Verify the View User Group detail view is visible
+    const viewGroupDialog = page.getByRole('dialog').last();
     await expect(viewGroupDialog).toBeVisible();
 
     // * Verify the @mention group name is shown
@@ -46,5 +49,5 @@ test('user can view group details in the view user group modal @ai-assisted', as
     await expect(viewGroupDialog.getByText(/1\s*Member/i)).toBeVisible();
 
     // * Verify the member search input is present
-    await expect(viewGroupDialog.getByTestId('searchInput')).toBeVisible();
+    await expect(viewGroupDialog.getByPlaceholder('Search')).toBeVisible();
 });

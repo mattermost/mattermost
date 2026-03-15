@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('external link in a posted message opens in a new tab @ai-assisted', async ({pw}) => {
+/**
+ * @objective Verify that an external link in a posted message opens in a new browser tab
+ */
+test('external link in a posted message opens in a new tab', {tag: ['@external_links', '@ai-assisted']}, async ({pw}) => {
     // # Set up user and login
     const {user} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);

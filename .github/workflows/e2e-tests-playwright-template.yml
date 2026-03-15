@@ -186,7 +186,7 @@ jobs:
       - name: ci/install-playwright-host-deps
         if: inputs.impact_enabled
         working-directory: e2e-tests/playwright
-        run: npm install --cache /tmp/npm-cache
+        run: npm install --ignore-scripts --cache /tmp/npm-cache
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
