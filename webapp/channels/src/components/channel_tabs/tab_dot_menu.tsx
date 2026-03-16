@@ -33,8 +33,8 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import TabDeleteModal from './tab_delete_modal';
 import ChannelTabsCreateModal from './channel_tabs_create_modal';
+import TabDeleteModal from './tab_delete_modal';
 import {useCanGetPublicLink, useChannelTabPermission} from './utils';
 
 type Props = {bookmark: ChannelTab; open: () => void};

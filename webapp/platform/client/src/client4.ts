@@ -10,8 +10,8 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ChannelTab, ChannelTabCreate, ChannelTabPatch, UpdateChannelTabResponse} from '@mattermost/types/channel_tabs';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
+import type {ChannelTab, ChannelTabCreate, ChannelTabPatch, UpdateChannelTabResponse} from '@mattermost/types/channel_tabs';
 import type {
     Channel,
     ChannelMemberCountsByGroup,

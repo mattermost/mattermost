@@ -9,8 +9,8 @@ import styled from 'styled-components';
 import type {ChannelTab} from '@mattermost/types/channel_tabs';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import TabItem from './tab_item';
 import TabsMenu from './channel_tabs_menu';
+import TabItem from './tab_item';
 import {useChannelTabs, MAX_TABS_PER_CHANNEL, useCanUploadFiles, useChannelTabPermission} from './utils';
 
 import './channel_tabs.scss';

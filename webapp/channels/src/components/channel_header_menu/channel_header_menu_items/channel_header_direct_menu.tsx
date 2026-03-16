@@ -19,8 +19,8 @@ import * as Menu from 'components/menu';
 import type {GlobalState} from 'types/store';
 
 import MenuItemAutotranslation from '../menu_items/autotranslation';
-import MenuItemChannelTabs from '../menu_items/channel_tabs_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
+import MenuItemChannelTabs from '../menu_items/channel_tabs_submenu';
 import CloseMessage from '../menu_items/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
