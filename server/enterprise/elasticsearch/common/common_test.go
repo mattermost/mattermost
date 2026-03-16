@@ -414,7 +414,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 
 // TestESPostFromPost_CreatePostJSONRoundTrip simulates the exact flow that happens
 // in production: App.CreatePost converts []*MessageAttachment to []any via JSON
-// marshal/unmarshal (lines 305-315 of post.go), then the search layer calls
+// marshal/unmarshal (Post.Attachments in post.go), then the search layer calls
 // ESPostFromPost which does ShallowCopy → ESPostFromPostForIndexing.
 func TestESPostFromPost_CreatePostJSONRoundTrip(t *testing.T) {
 	// Step 1: Start with typed MessageAttachment (as a plugin/webhook would create)
