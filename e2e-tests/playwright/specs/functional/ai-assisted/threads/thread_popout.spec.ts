@@ -6,67 +6,71 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that opening a thread popout creates a new window with the correct URL and thread content
  */
-test('thread popout opens in a new window with correct URL and content', {tag: ['@threads', '@ai-assisted']}, async ({pw}) => {
-    const {adminClient, user, team} = await pw.initSetup();
+test(
+    'thread popout opens in a new window with correct URL and content',
+    {tag: ['@threads', '@ai-assisted']},
+    async ({pw}) => {
+        const {adminClient, user, team} = await pw.initSetup();
 
-    // # Create a channel with a threaded conversation
-    const channel = await adminClient.createChannel(
-        pw.random.channel({
-            teamId: team.id,
-            displayName: 'Thread Popout Channel',
-            name: 'thread-popout-channel',
-        }),
-    );
-    await adminClient.addToChannel(user.id, channel.id);
+        // # Create a channel with a threaded conversation
+        const channel = await adminClient.createChannel(
+            pw.random.channel({
+                teamId: team.id,
+                displayName: 'Thread Popout Channel',
+                name: 'thread-popout-channel',
+            }),
+        );
+        await adminClient.addToChannel(user.id, channel.id);
 
-    const rootMessage = `thread-popout-root-${await pw.random.id()}`;
-    const rootPost = await adminClient.createPost({
-        channel_id: channel.id,
-        message: rootMessage,
-    });
+        const rootMessage = `thread-popout-root-${await pw.random.id()}`;
+        const rootPost = await adminClient.createPost({
+            channel_id: channel.id,
+            message: rootMessage,
+        });
 
-    const replyMessage = `thread-popout-reply-${await pw.random.id()}`;
-    await adminClient.createPost({
-        channel_id: channel.id,
-        message: replyMessage,
-        root_id: rootPost.id,
-    });
+        const replyMessage = `thread-popout-reply-${await pw.random.id()}`;
+        await adminClient.createPost({
+            channel_id: channel.id,
+            message: replyMessage,
+            root_id: rootPost.id,
+        });
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    const page = channelsPage.page;
+        const page = channelsPage.page;
 
-    // # Open thread in RHS by clicking the reply count
-    const centerPost = await channelsPage.centerView.getPostById(rootPost.id);
-    await centerPost.container.getByRole('button', {name: /reply/i}).click();
+        // # Open thread in RHS by clicking the reply count
+        const centerPost = await channelsPage.centerView.getPostById(rootPost.id);
+        await centerPost.container.getByRole('button', {name: /reply/i}).click();
 
-    await channelsPage.sidebarRight.toBeVisible();
+        await channelsPage.sidebarRight.toBeVisible();
 
-    // # Click "Open in new window" button in RHS header
-    const popoutButton = channelsPage.sidebarRight.container.getByRole('button', {name: 'Open in new window'});
-    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
+        // # Click "Open in new window" button in RHS header
+        const popoutButton = channelsPage.sidebarRight.container.getByRole('button', {name: 'Open in new window'});
+        const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
 
-    await popoutPage.waitForLoadState('domcontentloaded');
+        await popoutPage.waitForLoadState('domcontentloaded');
 
-    // * Verify popout URL contains the thread path and root post ID
-    const popoutUrl = popoutPage.url();
-    expect(popoutUrl).toContain('/_popout/thread/');
-    expect(popoutUrl).toContain(rootPost.id);
+        // * Verify popout URL contains the thread path and root post ID
+        const popoutUrl = popoutPage.url();
+        expect(popoutUrl).toContain('/_popout/thread/');
+        expect(popoutUrl).toContain(rootPost.id);
 
-    // * Verify popout title
-    await expect(popoutPage).toHaveTitle(/Thread.*Mattermost/);
+        // * Verify popout title
+        await expect(popoutPage).toHaveTitle(/Thread.*Mattermost/);
 
-    // * Verify thread content is visible in popout
-    await expect(popoutPage.getByText(rootMessage)).toBeVisible();
-    await expect(popoutPage.getByText(replyMessage)).toBeVisible();
+        // * Verify thread content is visible in popout
+        await expect(popoutPage.getByText(rootMessage)).toBeVisible();
+        await expect(popoutPage.getByText(replyMessage)).toBeVisible();
 
-    // * Verify reply input is available
-    await expect(popoutPage.getByRole('textbox', {name: 'Reply to this thread...'})).toBeVisible();
+        // * Verify reply input is available
+        await expect(popoutPage.getByRole('textbox', {name: 'Reply to this thread...'})).toBeVisible();
 
-    await popoutPage.close();
-});
+        await popoutPage.close();
+    },
+);
 
 /**
  * @objective Verify that a thread popout loads all replies correctly when there are multiple

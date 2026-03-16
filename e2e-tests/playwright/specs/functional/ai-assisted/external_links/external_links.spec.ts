@@ -6,25 +6,29 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that an external link in a posted message opens in a new browser tab
  */
-test('external link in a posted message opens in a new tab', {tag: ['@external_links', '@ai-assisted']}, async ({pw}) => {
-    // # Set up user and login
-    const {user} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
+test(
+    'external link in a posted message opens in a new tab',
+    {tag: ['@external_links', '@ai-assisted']},
+    async ({pw}) => {
+        // # Set up user and login
+        const {user} = await pw.initSetup();
+        const {channelsPage, page} = await pw.testBrowser.login(user);
 
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
 
-    // # Post a message containing an external URL
-    const externalUrl = 'https://example.com';
-    await channelsPage.postMessage(`Check out ${externalUrl} for details`);
+        // # Post a message containing an external URL
+        const externalUrl = 'https://example.com';
+        await channelsPage.postMessage(`Check out ${externalUrl} for details`);
 
-    // * Verify the URL renders as a clickable link in the channel
-    const linkLocator = page.getByRole('link', {name: externalUrl});
-    await expect(linkLocator).toBeVisible();
+        // * Verify the URL renders as a clickable link in the channel
+        const linkLocator = page.getByRole('link', {name: externalUrl});
+        await expect(linkLocator).toBeVisible();
 
-    // # Click the link while waiting for the new tab to open
-    const [newPage] = await Promise.all([page.context().waitForEvent('page'), linkLocator.click()]);
+        // # Click the link while waiting for the new tab to open
+        const [newPage] = await Promise.all([page.context().waitForEvent('page'), linkLocator.click()]);
 
-    // * Verify the new tab navigates to the external URL
-    await expect(newPage).toHaveURL(/example\.com/);
-});
+        // * Verify the new tab navigates to the external URL
+        await expect(newPage).toHaveURL(/example\.com/);
+    },
+);
