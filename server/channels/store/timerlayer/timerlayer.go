@@ -25,7 +25,7 @@ type TimerLayer struct {
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
-	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelTabStore            store.ChannelTabStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -101,8 +101,8 @@ func (s *TimerLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
 }
 
-func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
-	return s.ChannelBookmarkStore
+func (s *TimerLayer) ChannelTab() store.ChannelTabStore {
+	return s.ChannelTabStore
 }
 
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -331,8 +331,8 @@ type TimerLayerChannelStore struct {
 	Root *TimerLayer
 }
 
-type TimerLayerChannelBookmarkStore struct {
-	store.ChannelBookmarkStore
+type TimerLayerChannelTabStore struct {
+	store.ChannelTabStore
 	Root *TimerLayer
 }
 
@@ -3064,10 +3064,10 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkID string, deleteFile bool) error {
+func (s *TimerLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.Delete(bookmarkID, deleteFile)
+	err := s.ChannelTabStore.Delete(tabID, deleteFile)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3075,15 +3075,15 @@ func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkID string, deleteFile bo
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Delete", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Delete", success, elapsed)
 	}
 	return err
 }
 
-func (s *TimerLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
+func (s *TimerLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID, channelID)
+	err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3091,15 +3091,15 @@ func (s *TimerLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached", success, elapsed)
 	}
 	return err
 }
 
-func (s *TimerLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
+func (s *TimerLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
 	start := time.Now()
 
-	result, err := s.ChannelBookmarkStore.Get(Id, includeDeleted)
+	result, err := s.ChannelTabStore.Get(Id, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3107,15 +3107,15 @@ func (s *TimerLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*m
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Get", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Get", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+func (s *TimerLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
 	start := time.Now()
 
-	result, err := s.ChannelBookmarkStore.GetBookmarksForChannelSince(channelID, since)
+	result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3123,15 +3123,15 @@ func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelID s
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.GetBookmarksForChannelSince", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.GetTabsForChannelSince", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
+func (s *TimerLayerChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
 	start := time.Now()
 
-	result, err := s.ChannelBookmarkStore.Save(bookmark, increaseSortOrder)
+	result, err := s.ChannelTabStore.Save(bookmark, increaseSortOrder)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3139,15 +3139,15 @@ func (s *TimerLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, i
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Save", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Save", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
+func (s *TimerLayerChannelTabStore) Update(bookmark *model.ChannelTab) error {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.Update(bookmark)
+	err := s.ChannelTabStore.Update(bookmark)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3155,15 +3155,15 @@ func (s *TimerLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark)
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Update", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Update", success, elapsed)
 	}
 	return err
 }
 
-func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+func (s *TimerLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
 	start := time.Now()
 
-	result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkID, channelID, newIndex)
+	result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3171,7 +3171,7 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.UpdateSortOrder", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.UpdateSortOrder", success, elapsed)
 	}
 	return result, err
 }
@@ -14275,7 +14275,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
-	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelTabStore = &TimerLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

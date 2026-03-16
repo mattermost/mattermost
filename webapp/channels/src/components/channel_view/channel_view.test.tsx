@@ -24,7 +24,7 @@ describe('components/channel_view', () => {
         goToLastViewedChannel: jest.fn(),
         isFirstAdmin: false,
         enableWebSocketEventScope: false,
-        isChannelBookmarksEnabled: false,
+        isChannelTabsEnabled: false,
         missingChannelRole: false,
         fetchIsRestrictedDM: jest.fn(),
         canRestrictDirectMessage: false,

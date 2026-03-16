@@ -3,12 +3,12 @@
 
 import {combineReducers} from 'redux';
 
-import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {ChannelTab} from '@mattermost/types/channel_tabs';
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {FileTypes, PostTypes, UserTypes, ChannelBookmarkTypes} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes, UserTypes, ChannelTabTypes} from 'mattermost-redux/action_types';
 
 export function files(state: Record<string, FileInfo> = {}, action: MMReduxAction) {
     switch (action.type) {
@@ -66,8 +66,8 @@ export function files(state: Record<string, FileInfo> = {}, action: MMReduxActio
         return nextState;
     }
 
-    case ChannelBookmarkTypes.RECEIVED_BOOKMARKS: {
-        const bookmarks: ChannelBookmark[] = action.data.bookmarks;
+    case ChannelTabTypes.RECEIVED_TABS: {
+        const bookmarks: ChannelTab[] = action.data.bookmarks;
 
         const nextState = {...state};
 
@@ -80,8 +80,8 @@ export function files(state: Record<string, FileInfo> = {}, action: MMReduxActio
         return nextState;
     }
 
-    case ChannelBookmarkTypes.RECEIVED_BOOKMARK: {
-        const {file}: ChannelBookmark = action.data;
+    case ChannelTabTypes.RECEIVED_TAB: {
+        const {file}: ChannelTab = action.data;
 
         if (file) {
             return {...state, [file.id]: file};
@@ -90,8 +90,8 @@ export function files(state: Record<string, FileInfo> = {}, action: MMReduxActio
         return state;
     }
 
-    case ChannelBookmarkTypes.BOOKMARK_DELETED: {
-        const {file}: ChannelBookmark = action.data;
+    case ChannelTabTypes.TAB_DELETED: {
+        const {file}: ChannelTab = action.data;
 
         if (!file) {
             return state;

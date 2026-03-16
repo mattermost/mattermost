@@ -56,7 +56,7 @@ func TestFileInfoIsValid(t *testing.T) {
 
 	t.Run("Creator ID for bookmarks is valid", func(t *testing.T) {
 		creatorId := info.CreatorId
-		info.CreatorId = BookmarkFileOwner
+		info.CreatorId = TabFileOwner
 		assert.Nil(t, info.IsValid(), "creatorId isn't valid")
 		info.CreatorId = creatorId
 	})

@@ -88,7 +88,7 @@ type Store interface {
 	PostAcknowledgement() PostAcknowledgementStore
 	PostPersistentNotification() PostPersistentNotificationStore
 	DesktopTokens() DesktopTokensStore
-	ChannelBookmark() ChannelBookmarkStore
+	ChannelTab() ChannelTabStore
 	ScheduledPost() ScheduledPostStore
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
@@ -1092,14 +1092,14 @@ type PostPersistentNotificationStore interface {
 	DeleteByChannel(channelIds []string) error
 	DeleteByTeam(teamIds []string) error
 }
-type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error
-	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
-	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
-	Update(bookmark *model.ChannelBookmark) error
-	UpdateSortOrder(bookmarkID, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
-	Delete(bookmarkID string, deleteFile bool) error
-	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+type ChannelTabStore interface {
+	ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error
+	Get(Id string, includeDeleted bool) (b *model.ChannelTabWithFileInfo, err error)
+	Save(bookmark *model.ChannelTab, increaseSortOrder bool) (b *model.ChannelTabWithFileInfo, err error)
+	Update(bookmark *model.ChannelTab) error
+	UpdateSortOrder(tabID, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error)
+	Delete(tabID string, deleteFile bool) error
+	GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error)
 }
 
 type ScheduledPostStore interface {

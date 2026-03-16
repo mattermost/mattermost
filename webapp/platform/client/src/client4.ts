@@ -10,7 +10,7 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
+import type {ChannelTab, ChannelTabCreate, ChannelTabPatch, UpdateChannelTabResponse} from '@mattermost/types/channel_tabs';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -330,11 +330,11 @@ export default class Client4 {
     getChannelSchemeRoute(channelId: string) {
         return `${this.getChannelRoute(channelId)}/scheme`;
     }
-    getChannelBookmarksRoute(channelId: string) {
+    getChannelTabsRoute(channelId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks`;
     }
-    getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
-        return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
+    getChannelTabRoute(channelId: string, tabId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks/${tabId}`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -2031,39 +2031,39 @@ export default class Client4 {
         );
     };
 
-    // Channel Bookmark Routes
+    // Channel Tab Routes
 
-    getChannelBookmarks = (channelId: string, bookmarksSince?: number) => {
-        return this.doFetch<ChannelBookmark[]>(
-            `${this.getChannelBookmarksRoute(channelId)}${buildQueryString({bookmarks_since: bookmarksSince})}`,
+    getChannelTabs = (channelId: string, tabsSince?: number) => {
+        return this.doFetch<ChannelTab[]>(
+            `${this.getChannelTabsRoute(channelId)}${buildQueryString({bookmarks_since: tabsSince})}`,
             {method: 'get'},
         );
     };
 
-    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate, connectionId: string) => {
-        return this.doFetch<ChannelBookmark>(
-            `${this.getChannelBookmarksRoute(channelId)}`,
-            {method: 'post', body: JSON.stringify(channelBookmark), headers: {'Connection-Id': connectionId}},
+    createChannelTab = (channelId: string, channelTab: ChannelTabCreate, connectionId: string) => {
+        return this.doFetch<ChannelTab>(
+            `${this.getChannelTabsRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(channelTab), headers: {'Connection-Id': connectionId}},
         );
     };
 
-    deleteChannelBookmark = (channelId: string, channelBookmarkId: string, connectionId: string) => {
-        return this.doFetch<ChannelBookmark>(
-            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+    deleteChannelTab = (channelId: string, channelTabId: string, connectionId: string) => {
+        return this.doFetch<ChannelTab>(
+            `${this.getChannelTabRoute(channelId, channelTabId)}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
     };
 
-    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
-        return this.doFetch<UpdateChannelBookmarkResponse>(
-            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+    updateChannelTab = (channelId: string, channelTabId: string, patch: ChannelTabPatch, connectionId: string) => {
+        return this.doFetch<UpdateChannelTabResponse>(
+            `${this.getChannelTabRoute(channelId, channelTabId)}`,
             {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
     };
 
-    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number, connectionId: string) => {
-        return this.doFetch<ChannelBookmark[]>(
-            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
+    updateChannelTabSortOrder = (channelId: string, channelTabId: string, newOrder: number, connectionId: string) => {
+        return this.doFetch<ChannelTab[]>(
+            `${this.getChannelTabsRoute(channelId)}/${channelTabId}/sort_order`,
             {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
         );
     };
@@ -2630,14 +2630,14 @@ export default class Client4 {
         return url;
     }
 
-    uploadFile = (fileFormData: any, isBookmark?: boolean) => {
+    uploadFile = (fileFormData: any, isTab?: boolean) => {
         const request: any = {
             method: 'post',
             body: fileFormData,
         };
 
         return this.doFetch<FileUploadResponse>(
-            `${this.getFilesRoute()}${buildQueryString({bookmark: isBookmark})}`,
+            `${this.getFilesRoute()}${buildQueryString({bookmark: isTab})}`,
             request,
         );
     };

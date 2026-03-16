@@ -139,20 +139,20 @@ func (_m *Store) Channel() store.ChannelStore {
 	return r0
 }
 
-// ChannelBookmark provides a mock function with no fields
-func (_m *Store) ChannelBookmark() store.ChannelBookmarkStore {
+// ChannelTab provides a mock function with no fields
+func (_m *Store) ChannelTab() store.ChannelTabStore {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for ChannelBookmark")
+		panic("no return value specified for ChannelTab")
 	}
 
-	var r0 store.ChannelBookmarkStore
-	if rf, ok := ret.Get(0).(func() store.ChannelBookmarkStore); ok {
+	var r0 store.ChannelTabStore
+	if rf, ok := ret.Get(0).(func() store.ChannelTabStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.ChannelBookmarkStore)
+			r0 = ret.Get(0).(store.ChannelTabStore)
 		}
 	}
 

@@ -1006,8 +1006,8 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 }
 
 func (t UploadFileTask) pathPrefix() string {
-	if t.UserId == model.BookmarkFileOwner {
-		return model.BookmarkFileOwner +
+	if t.UserId == model.TabFileOwner {
+		return model.TabFileOwner +
 			"/teams/" + t.TeamId +
 			"/channels/" + t.ChannelId +
 			"/" + t.fileinfo.Id + "/"
@@ -1067,8 +1067,8 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
-	if userID == model.BookmarkFileOwner {
-		pathPrefix = model.BookmarkFileOwner + "/teams/" + teamID + "/channels/" + channelID + "/" + info.Id + "/"
+	if userID == model.TabFileOwner {
+		pathPrefix = model.TabFileOwner + "/teams/" + teamID + "/channels/" + channelID + "/" + info.Id + "/"
 	}
 	info.Path = pathPrefix + filename
 

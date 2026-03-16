@@ -105,7 +105,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
 	assert.Equal(t, value, info4.Path, "stored file at incorrect path")
 
-	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
+	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.TabFileOwner, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
@@ -114,7 +114,7 @@ func TestDoUploadFile(t *testing.T) {
 		require.Nil(t, appErr)
 	}()
 
-	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.BookmarkFileOwner, teamID, channelID, info5.Id, filename)
+	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.TabFileOwner, teamID, channelID, info5.Id, filename)
 	assert.Equal(t, value, info5.Path, "stored file at incorrect path")
 }
 

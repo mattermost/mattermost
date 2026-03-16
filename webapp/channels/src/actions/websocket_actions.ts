@@ -9,7 +9,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
+import type {ChannelTabWithFileInfo, UpdateChannelTabResponse} from '@mattermost/types/channel_tabs';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
@@ -40,7 +40,7 @@ import {
     PreferenceTypes,
     AppsTypes,
     CloudTypes,
-    ChannelBookmarkTypes,
+    ChannelTabTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
@@ -486,20 +486,20 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelMemberUpdatedEvent(msg));
         break;
 
-    case WebSocketEvents.ChannelBookmarkCreated:
-        dispatch(handleChannelBookmarkCreated(msg));
+    case WebSocketEvents.ChannelTabCreated:
+        dispatch(handleChannelTabCreated(msg));
         break;
 
-    case WebSocketEvents.ChannelBookmarkUpdated:
-        dispatch(handleChannelBookmarkUpdated(msg));
+    case WebSocketEvents.ChannelTabUpdated:
+        dispatch(handleChannelTabUpdated(msg));
         break;
 
-    case WebSocketEvents.ChannelBookmarkDeleted:
-        dispatch(handleChannelBookmarkDeleted(msg));
+    case WebSocketEvents.ChannelTabDeleted:
+        dispatch(handleChannelTabDeleted(msg));
         break;
 
-    case WebSocketEvents.ChannelBookmarkSorted:
-        dispatch(handleChannelBookmarkSorted(msg));
+    case WebSocketEvents.ChannelTabSorted:
+        dispatch(handleChannelTabSorted(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -1948,49 +1948,49 @@ function handlePersistentNotification(msg: WebSocketMessages.PersistentNotificat
     };
 }
 
-function handleChannelBookmarkCreated(msg: WebSocketMessages.ChannelBookmarkCreated) {
-    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
+function handleChannelTabCreated(msg: WebSocketMessages.ChannelTabCreated) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelTabWithFileInfo;
 
     return {
-        type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+        type: ChannelTabTypes.RECEIVED_TAB,
         data: bookmark,
     };
 }
 
-function handleChannelBookmarkUpdated(msg: WebSocketMessages.ChannelBookmarkUpdated): ThunkActionFunc<void> {
+function handleChannelTabUpdated(msg: WebSocketMessages.ChannelTabUpdated): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelBookmarkResponse;
+        const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelTabResponse;
 
         if (updated) {
             doDispatch({
-                type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+                type: ChannelTabTypes.RECEIVED_TAB,
                 data: updated,
             });
         }
 
         if (deleted) {
             doDispatch({
-                type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+                type: ChannelTabTypes.TAB_DELETED,
                 data: deleted,
             });
         }
     };
 }
 
-function handleChannelBookmarkDeleted(msg: WebSocketMessages.ChannelBookmarkDeleted) {
-    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
+function handleChannelTabDeleted(msg: WebSocketMessages.ChannelTabDeleted) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelTabWithFileInfo;
 
     return {
-        type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+        type: ChannelTabTypes.TAB_DELETED,
         data: bookmark,
     };
 }
 
-function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorted) {
-    const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelBookmarkWithFileInfo[];
+function handleChannelTabSorted(msg: WebSocketMessages.ChannelTabSorted) {
+    const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelTabWithFileInfo[];
 
     return {
-        type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+        type: ChannelTabTypes.RECEIVED_TABS,
         data: {channelId: msg.broadcast.channel_id, bookmarks},
     };
 }

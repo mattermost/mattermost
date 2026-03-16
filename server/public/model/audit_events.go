@@ -38,13 +38,13 @@ const (
 	AuditEventUploadBrandImage = "uploadBrandImage" // upload brand image
 )
 
-// Channel Bookmarks
+// Channel Tabs
 const (
-	AuditEventCreateChannelBookmark          = "createChannelBookmark"          // create bookmark in channels
-	AuditEventDeleteChannelBookmark          = "deleteChannelBookmark"          // delete bookmark
-	AuditEventUpdateChannelBookmark          = "updateChannelBookmark"          // update bookmark
-	AuditEventUpdateChannelBookmarkSortOrder = "updateChannelBookmarkSortOrder" // update display order of bookmarks
-	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
+	AuditEventCreateChannelTab          = "createChannelTab"          // create bookmark in channels
+	AuditEventDeleteChannelTab          = "deleteChannelTab"          // delete bookmark
+	AuditEventUpdateChannelTab          = "updateChannelTab"          // update bookmark
+	AuditEventUpdateChannelTabSortOrder = "updateChannelTabSortOrder" // update display order of bookmarks
+	AuditEventListChannelTabsForChannel = "listChannelTabsForChannel" // list bookmarks for channel
 )
 
 // Channel Categories

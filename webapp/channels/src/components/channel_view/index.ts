@@ -20,7 +20,7 @@ import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
 
-import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+import {getIsChannelTabsEnabled} from 'components/channel_tabs/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -52,7 +52,7 @@ function mapStateToProps(state: GlobalState) {
         enableWebSocketEventScope,
         canRestrictDirectMessage: config.RestrictDirectMessage === 'team' && (channel?.type === 'D' || channel?.type === 'G'),
         restrictDirectMessage: channel ? state.entities.channels.restrictedDMs[channel.id] : false,
-        isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
+        isChannelTabsEnabled: getIsChannelTabsEnabled(state),
         missingChannelRole,
     };
 }

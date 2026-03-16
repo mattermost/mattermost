@@ -170,9 +170,9 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
 	creatorId := c.AppContext.Session().UserId
-	if isBookmark, err := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); err == nil && isBookmark {
-		creatorId = model.BookmarkFileOwner
-		model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+	if isTab, err := strconv.ParseBool(r.URL.Query().Get(model.TabFileOwner)); err == nil && isTab {
+		creatorId = model.TabFileOwner
+		model.AddEventParameterToAuditRec(auditRec, model.TabFileOwner, true)
 	}
 
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
@@ -292,9 +292,9 @@ NextPart:
 			continue NextPart
 		}
 
-		isBookmark := false
-		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); queryErr == nil {
-			isBookmark = val
+		isTab := false
+		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.TabFileOwner)); queryErr == nil {
+			isTab = val
 		}
 
 		// A file part.
@@ -309,7 +309,7 @@ NextPart:
 				return nil
 			}
 
-			return uploadFileMultipartLegacy(c, mr, timestamp, isBookmark)
+			return uploadFileMultipartLegacy(c, mr, timestamp, isTab)
 		}
 
 		c.RequireChannelId()
@@ -362,9 +362,9 @@ NextPart:
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
 		creatorId := c.AppContext.Session().UserId
-		if isBookmark {
-			creatorId = model.BookmarkFileOwner
-			model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+		if isTab {
+			creatorId = model.TabFileOwner
+			model.AddEventParameterToAuditRec(auditRec, model.TabFileOwner, true)
 		}
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
@@ -408,7 +408,7 @@ NextPart:
 // borrowing from http.ParseMultipartForm.  If successful it returns a
 // *model.FileUploadResponse filled in with the individual model.FileInfo's.
 func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
-	timestamp time.Time, isBookmark bool) *model.FileUploadResponse {
+	timestamp time.Time, isTab bool) *model.FileUploadResponse {
 	// Parse the entire form.
 	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
@@ -470,9 +470,9 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
 		creatorId := c.AppContext.Session().UserId
-		if isBookmark {
-			creatorId = model.BookmarkFileOwner
-			model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+		if isTab {
+			creatorId = model.TabFileOwner
+			model.AddEventParameterToAuditRec(auditRec, model.TabFileOwner, true)
 		}
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
@@ -572,7 +572,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !isContentReviewer {
-		if fileInfo.CreatorId == model.BookmarkFileOwner {
+		if fileInfo.CreatorId == model.TabFileOwner {
 			if !perm {
 				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
@@ -631,7 +631,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
+	if info.CreatorId == model.TabFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -702,7 +702,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
+	if info.CreatorId == model.TabFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -712,7 +712,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
+	if info.PostId == "" && info.CreatorId != model.TabFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -752,7 +752,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
+	if info.CreatorId == model.TabFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -815,7 +815,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
+	if info.CreatorId == model.TabFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
+import type {ChannelTabWithFileInfo, UpdateChannelTabResponse} from '@mattermost/types/channel_tabs';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
@@ -241,20 +241,20 @@ export type MultipleChannelsViewed = BaseWebSocketMessage<WebSocketEvents.Multip
 
 // Channel bookmark messages
 
-export type ChannelBookmarkCreated = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkCreated, {
-    bookmark: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+export type ChannelTabCreated = BaseWebSocketMessage<WebSocketEvents.ChannelTabCreated, {
+    bookmark: JsonEncodedValue<ChannelTabWithFileInfo>;
 }>;
 
-export type ChannelBookmarkUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkUpdated, {
-    bookmarks: JsonEncodedValue<UpdateChannelBookmarkResponse>;
+export type ChannelTabUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelTabUpdated, {
+    bookmarks: JsonEncodedValue<UpdateChannelTabResponse>;
 }>;
 
-export type ChannelBookmarkDeleted = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkDeleted, {
-    bookmark: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+export type ChannelTabDeleted = BaseWebSocketMessage<WebSocketEvents.ChannelTabDeleted, {
+    bookmark: JsonEncodedValue<ChannelTabWithFileInfo>;
 }>;
 
-export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
-    bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
+export type ChannelTabSorted = BaseWebSocketMessage<WebSocketEvents.ChannelTabSorted, {
+    bookmarks: JsonEncodedValue<ChannelTabWithFileInfo[]>;
 }>;
 
 // Team and team member messages

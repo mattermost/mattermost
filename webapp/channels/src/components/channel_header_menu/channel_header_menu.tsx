@@ -24,7 +24,7 @@ import {
 
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
-import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+import {getIsChannelTabsEnabled} from 'components/channel_tabs/utils';
 import * as Menu from 'components/menu';
 
 import {Constants} from 'utils/constants';
@@ -58,7 +58,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isMuted = useSelector(isCurrentChannelMuted);
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
-    const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
+    const isChannelTabsEnabled = useSelector(getIsChannelTabsEnabled);
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
 
@@ -156,7 +156,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                    isChannelTabsEnabled={isChannelTabsEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}
                 />
             )}
@@ -168,7 +168,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                    isChannelTabsEnabled={isChannelTabsEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}
                 />
             )}
@@ -183,7 +183,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isDefault={isDefault}
                     isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                    isChannelTabsEnabled={isChannelTabsEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}
                 />
             )}

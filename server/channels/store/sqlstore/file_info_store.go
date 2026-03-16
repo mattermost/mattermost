@@ -495,7 +495,7 @@ func (fs SqlFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) erro
 func (fs SqlFileInfoStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
 	query := "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?))"
 
-	sqlResult, err := fs.GetMaster().Exec(query, endTime, model.BookmarkFileOwner, limit)
+	sqlResult, err := fs.GetMaster().Exec(query, endTime, model.TabFileOwner, limit)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete FileInfos in batch")
 	}
@@ -539,7 +539,7 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		Where(sq.Or{
-			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
+			sq.Eq{"FileInfo.CreatorId": model.TabFileOwner},
 			sq.NotEq{"FileInfo.PostId": ""},
 		}).
 		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM TemporaryPosts WHERE TemporaryPosts.PostId = FileInfo.PostId)")).

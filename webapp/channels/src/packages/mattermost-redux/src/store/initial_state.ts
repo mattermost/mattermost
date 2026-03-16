@@ -73,7 +73,7 @@ const state: GlobalState = {
             channelsMemberCount: {},
             restrictedDMs: {},
         },
-        channelBookmarks: {
+        channelTabs: {
             byChannelId: {},
         },
         posts: {

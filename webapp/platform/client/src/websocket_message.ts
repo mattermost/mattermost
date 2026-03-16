@@ -41,10 +41,10 @@ export type WebSocketMessage = (
     Messages.ChannelMemberUpdated |
     Messages.MultipleChannelsViewed |
 
-    Messages.ChannelBookmarkCreated |
-    Messages.ChannelBookmarkUpdated |
-    Messages.ChannelBookmarkDeleted |
-    Messages.ChannelBookmarkSorted |
+    Messages.ChannelTabCreated |
+    Messages.ChannelTabUpdated |
+    Messages.ChannelTabDeleted |
+    Messages.ChannelTabSorted |
 
     Messages.Team |
     Messages.UpdateTeamScheme |

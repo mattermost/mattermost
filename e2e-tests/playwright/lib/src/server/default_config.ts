@@ -765,6 +765,7 @@ const defaultServerConfig: AdminConfig = {
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
+        ChannelTabs: true,
         ChannelBookmarks: true,
         WebSocketEventScope: true,
         NotificationMonitoring: true,

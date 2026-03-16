@@ -112,9 +112,9 @@ type Params struct {
 	ExcludeAccessControlPolicyEnforced bool
 	ContentReviewerId                  string
 
-	//Bookmarks
-	ChannelBookmarkId string
-	BookmarksSince    int64
+	//Tabs
+	ChannelTabId string
+	TabsSince    int64
 
 	// Cloud
 	InvoiceId string
@@ -191,7 +191,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludePlugins, _ = strconv.ParseBool(query.Get("exclude_plugins"))
 	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
-	params.ChannelBookmarkId = props["bookmark_id"]
+	params.ChannelTabId = props["bookmark_id"]
 	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 
@@ -302,9 +302,9 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.FilterHasMember = query.Get("filter_has_member")
 
 	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
-		params.BookmarksSince = 0
+		params.TabsSince = 0
 	} else {
-		params.BookmarksSince = val
+		params.TabsSince = val
 	}
 
 	return params

@@ -116,14 +116,14 @@ var PermissionPromoteGuest *Permission
 var PermissionDemoteToGuest *Permission
 var PermissionUseChannelMentions *Permission
 var PermissionUseGroupMentions *Permission
-var PermissionAddBookmarkPublicChannel *Permission
-var PermissionEditBookmarkPublicChannel *Permission
-var PermissionDeleteBookmarkPublicChannel *Permission
-var PermissionOrderBookmarkPublicChannel *Permission
-var PermissionAddBookmarkPrivateChannel *Permission
-var PermissionEditBookmarkPrivateChannel *Permission
-var PermissionDeleteBookmarkPrivateChannel *Permission
-var PermissionOrderBookmarkPrivateChannel *Permission
+var PermissionAddTabPublicChannel *Permission
+var PermissionEditTabPublicChannel *Permission
+var PermissionDeleteTabPublicChannel *Permission
+var PermissionOrderTabPublicChannel *Permission
+var PermissionAddTabPrivateChannel *Permission
+var PermissionEditTabPrivateChannel *Permission
+var PermissionDeleteTabPrivateChannel *Permission
+var PermissionOrderTabPrivateChannel *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
@@ -416,7 +416,7 @@ var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
-var ModeratedBookmarkPermissions []*Permission
+var ModeratedTabPermissions []*Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -1286,49 +1286,49 @@ func initializePermissions() {
 	}
 
 	// Channel bookmarks
-	PermissionAddBookmarkPublicChannel = &Permission{
+	PermissionAddTabPublicChannel = &Permission{
 		"add_bookmark_public_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionEditBookmarkPublicChannel = &Permission{
+	PermissionEditTabPublicChannel = &Permission{
 		"edit_bookmark_public_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionDeleteBookmarkPublicChannel = &Permission{
+	PermissionDeleteTabPublicChannel = &Permission{
 		"delete_bookmark_public_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionOrderBookmarkPublicChannel = &Permission{
+	PermissionOrderTabPublicChannel = &Permission{
 		"order_bookmark_public_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionAddBookmarkPrivateChannel = &Permission{
+	PermissionAddTabPrivateChannel = &Permission{
 		"add_bookmark_private_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionEditBookmarkPrivateChannel = &Permission{
+	PermissionEditTabPrivateChannel = &Permission{
 		"edit_bookmark_private_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionDeleteBookmarkPrivateChannel = &Permission{
+	PermissionDeleteTabPrivateChannel = &Permission{
 		"delete_bookmark_private_channel",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionOrderBookmarkPrivateChannel = &Permission{
+	PermissionOrderTabPrivateChannel = &Permission{
 		"order_bookmark_private_channel",
 		"",
 		"",
@@ -2586,14 +2586,14 @@ func initializePermissions() {
 		PermissionDeleteOthersPosts,
 		PermissionUseChannelMentions,
 		PermissionUseGroupMentions,
-		PermissionAddBookmarkPublicChannel,
-		PermissionEditBookmarkPublicChannel,
-		PermissionDeleteBookmarkPublicChannel,
-		PermissionOrderBookmarkPublicChannel,
-		PermissionAddBookmarkPrivateChannel,
-		PermissionEditBookmarkPrivateChannel,
-		PermissionDeleteBookmarkPrivateChannel,
-		PermissionOrderBookmarkPrivateChannel,
+		PermissionAddTabPublicChannel,
+		PermissionEditTabPublicChannel,
+		PermissionDeleteTabPublicChannel,
+		PermissionOrderTabPublicChannel,
+		PermissionAddTabPrivateChannel,
+		PermissionEditTabPrivateChannel,
+		PermissionDeleteTabPrivateChannel,
+		PermissionOrderTabPrivateChannel,
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
@@ -2685,18 +2685,18 @@ func initializePermissions() {
 		PermissionUseChannelMentions.Id:          ChannelModeratedPermissions[3],
 	}
 
-	ModeratedBookmarkPermissions = []*Permission{
-		PermissionAddBookmarkPublicChannel,
-		PermissionEditBookmarkPublicChannel,
-		PermissionDeleteBookmarkPublicChannel,
-		PermissionOrderBookmarkPublicChannel,
-		PermissionAddBookmarkPrivateChannel,
-		PermissionEditBookmarkPrivateChannel,
-		PermissionDeleteBookmarkPrivateChannel,
-		PermissionOrderBookmarkPrivateChannel,
+	ModeratedTabPermissions = []*Permission{
+		PermissionAddTabPublicChannel,
+		PermissionEditTabPublicChannel,
+		PermissionDeleteTabPublicChannel,
+		PermissionOrderTabPublicChannel,
+		PermissionAddTabPrivateChannel,
+		PermissionEditTabPrivateChannel,
+		PermissionDeleteTabPrivateChannel,
+		PermissionOrderTabPrivateChannel,
 	}
 
-	for _, mbp := range ModeratedBookmarkPermissions {
+	for _, mbp := range ModeratedTabPermissions {
 		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
 	}
 }

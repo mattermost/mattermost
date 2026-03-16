@@ -27,8 +27,8 @@ const MEMBERS_CAN_MANAGE_CHANNEL_MEMBERS_PERMISSION = 'manage_{public_or_private
 const GUESTS_CAN_MANAGE_CHANNEL_MEMBERS_PERMISSION = 'guest_manage_{public_or_private}_channel_members';
 const MEMBERS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'use_channel_mentions';
 const GUESTS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'guest_use_channel_mentions';
-const MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'manage_{public_or_private}_channel_bookmarks';
-const GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'guest_manage_{public_or_private}_channel_bookmarks';
+const MEMBERS_CAN_MANAGE_CHANNEL_TABS_PERMISSION = 'manage_{public_or_private}_channel_bookmarks';
+const GUESTS_CAN_MANAGE_CHANNEL_TABS_PERMISSION = 'guest_manage_{public_or_private}_channel_bookmarks';
 
 function getChannelModerationPermissionNames(permission: string) {
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
@@ -63,11 +63,11 @@ function getChannelModerationPermissionNames(permission: string) {
         };
     }
 
-    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_BOOKMARKS) {
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_TABS) {
         return {
-            disabledGuests: GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
-            disabledMembers: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
-            disabledBoth: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
+            disabledGuests: GUESTS_CAN_MANAGE_CHANNEL_TABS_PERMISSION,
+            disabledMembers: MEMBERS_CAN_MANAGE_CHANNEL_TABS_PERMISSION,
+            disabledBoth: MEMBERS_CAN_MANAGE_CHANNEL_TABS_PERMISSION,
         };
     }
 
@@ -191,26 +191,26 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
     });
 
-    const manageBookmarksRowMessages = defineMessages({
+    const manageTabsRowMessages = defineMessages({
         title: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks',
-            defaultMessage: 'Manage Bookmarks',
+            defaultMessage: 'Manage Tabs',
         },
         description: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarksDesc',
-            defaultMessage: 'The ability for members and guests to add, delete and sort bookmarks.',
+            defaultMessage: 'The ability for members and guests to add, delete and sort tabs.',
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest',
-            defaultMessage: 'Manage bookmarks for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage tabs for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledMember',
-            defaultMessage: 'Manage bookmarks for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage tabs for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledBoth',
-            defaultMessage: 'Manage bookmarks for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage tabs for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
         },
     });
 
@@ -230,8 +230,8 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         return channelMentionsRowMessages;
     }
 
-    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_BOOKMARKS) {
-        return manageBookmarksRowMessages;
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_TABS) {
+        return manageTabsRowMessages;
     }
 
     return null;

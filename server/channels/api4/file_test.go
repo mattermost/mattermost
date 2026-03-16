@@ -97,7 +97,7 @@ func testUploadFilesPost(
 	blobs [][]byte,
 	clientIds []string,
 	useChunked bool,
-	isBookmark bool,
+	isTab bool,
 ) (*model.FileUploadResponse, *model.Response, error) {
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
@@ -122,7 +122,7 @@ func testUploadFilesPost(
 			postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
 		}
 
-		if isBookmark {
+		if isTab {
 			postURL += "&bookmark=true"
 		}
 
@@ -151,7 +151,7 @@ func testUploadFilesMultipart(
 	names []string,
 	blobs [][]byte,
 	clientIds []string,
-	isBookmark bool,
+	isTab bool,
 ) (
 	*model.FileUploadResponse,
 	*model.Response,
@@ -193,7 +193,7 @@ func testUploadFilesMultipart(
 
 	require.NoError(tb, mw.Close())
 	url := ""
-	if isBookmark {
+	if isTab {
 		url += "?bookmark=true"
 	}
 	fur, resp, err := testDoUploadFileRequest(tb, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
@@ -241,7 +241,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
 		checkResponse               func(tb testing.TB, resp *model.Response)
-		uploadAsBookmark            bool
+		uploadAsTab            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
@@ -604,18 +604,18 @@ func TestUploadFiles(t *testing.T) {
 			},
 		},
 		{
-			title:                       "Bookmark images",
+			title:                       "Tab images",
 			names:                       []string{"orientation_test_5.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
 			channelId:                   channel.Id,
 			expectImage:                 true,
-			expectedCreatorId:           model.BookmarkFileOwner,
+			expectedCreatorId:           model.TabFileOwner,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
-			uploadAsBookmark:            true,
+			uploadAsTab:            true,
 		},
 	}
 
@@ -666,9 +666,9 @@ func TestUploadFiles(t *testing.T) {
 				var resp *model.Response
 				var err error
 				if useMultipart {
-					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds, tc.uploadAsBookmark)
+					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds, tc.uploadAsTab)
 				} else {
-					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost, tc.uploadAsBookmark)
+					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost, tc.uploadAsTab)
 				}
 
 				if tc.checkResponse != nil {
@@ -711,8 +711,8 @@ func TestUploadFiles(t *testing.T) {
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
 					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
-					if tc.uploadAsBookmark {
-						expectedDir = fmt.Sprintf("%v/teams/%v/channels/%v/%s", model.BookmarkFileOwner, FileTeamId, channel.Id, ri.Id)
+					if tc.uploadAsTab {
+						expectedDir = fmt.Sprintf("%v/teams/%v/channels/%v/%s", model.TabFileOwner, FileTeamId, channel.Id, ri.Id)
 					}
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,

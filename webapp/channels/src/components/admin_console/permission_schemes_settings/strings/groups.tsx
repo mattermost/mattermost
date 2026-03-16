@@ -318,21 +318,21 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
     manage_public_channel_bookmarks: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_public_channel_bookmarks.name',
-            defaultMessage: 'Manage Bookmarks',
+            defaultMessage: 'Manage Tabs',
         },
         description: {
             id: 'admin.permissions.group.manage_public_channel_bookmarks.description',
-            defaultMessage: 'Add, edit, delete and sort bookmarks',
+            defaultMessage: 'Add, edit, delete and sort tabs',
         },
     }),
     manage_private_channel_bookmarks: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_private_channel_bookmarks.name',
-            defaultMessage: 'Manage Bookmarks',
+            defaultMessage: 'Manage Tabs',
         },
         description: {
             id: 'admin.permissions.group.manage_private_channel_bookmarks.description',
-            defaultMessage: 'Add, edit, delete and sort bookmarks',
+            defaultMessage: 'Add, edit, delete and sort tabs',
         },
     }),
 };

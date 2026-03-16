@@ -614,7 +614,7 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	bookmarkFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{ // should not be deleted
 		PostId:    postID,
 		ChannelId: channelID,
-		CreatorId: model.BookmarkFileOwner,
+		CreatorId: model.TabFileOwner,
 		Path:      "file.txt",
 		CreateAt:  1000,
 	})

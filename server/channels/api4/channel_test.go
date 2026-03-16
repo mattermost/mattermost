@@ -6100,10 +6100,10 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Nil(t, appErr)
 
 		bookmarkPublicPermissions := []string{
-			model.PermissionAddBookmarkPublicChannel.Id,
-			model.PermissionEditBookmarkPublicChannel.Id,
-			model.PermissionDeleteBookmarkPublicChannel.Id,
-			model.PermissionOrderBookmarkPublicChannel.Id,
+			model.PermissionAddTabPublicChannel.Id,
+			model.PermissionEditTabPublicChannel.Id,
+			model.PermissionDeleteTabPublicChannel.Id,
+			model.PermissionOrderTabPublicChannel.Id,
 		}
 
 		for _, p := range bookmarkPublicPermissions {

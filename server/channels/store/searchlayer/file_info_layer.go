@@ -22,7 +22,7 @@ func (s SearchFileInfoStore) indexFile(rctx request.CTX, file *model.FileInfo) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if file.PostId == "" && file.CreatorId != model.BookmarkFileOwner {
+				if file.PostId == "" && file.CreatorId != model.TabFileOwner {
 					return
 				}
 				channelId := file.ChannelId

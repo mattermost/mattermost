@@ -103,7 +103,7 @@ type SqlStoreStores struct {
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
-	channelBookmarks           store.ChannelBookmarkStore
+	channelTabs           store.ChannelTabStore
 	scheduledPost              store.ScheduledPostStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
@@ -277,7 +277,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
-	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.channelTabs = newSqlChannelTabStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
@@ -857,8 +857,8 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 	return ss.stores.desktopTokens
 }
 
-func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
-	return ss.stores.channelBookmarks
+func (ss *SqlStore) ChannelTab() store.ChannelTabStore {
+	return ss.stores.channelTabs
 }
 
 func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {

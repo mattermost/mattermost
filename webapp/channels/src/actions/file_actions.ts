@@ -29,12 +29,12 @@ export interface UploadFile {
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
-export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile, isBookmark?: boolean): ThunkActionFunc<XMLHttpRequest> {
+export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile, isTab?: boolean): ThunkActionFunc<XMLHttpRequest> {
     return (dispatch, getState) => {
         dispatch({type: FileTypes.UPLOAD_FILES_REQUEST});
 
         let url = Client4.getFilesRoute();
-        if (isBookmark) {
+        if (isTab) {
             url += '?bookmark=true';
         }
 

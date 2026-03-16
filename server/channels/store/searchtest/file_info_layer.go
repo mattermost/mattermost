@@ -195,7 +195,7 @@ var searchFileInfoStoreTests = []searchTest{
 	},
 	{
 		Name: "Should search files part of channel bookmarks",
-		Fn:   testFileInfoSearchShowChannelBookmarkFiles,
+		Fn:   testFileInfoSearchShowChannelTabFiles,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
@@ -1717,7 +1717,7 @@ func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTest
 	require.Len(t, results.FileInfos, 0)
 }
 
-func testFileInfoSearchShowChannelBookmarkFiles(t *testing.T, th *SearchTestHelper) {
+func testFileInfoSearchShowChannelTabFiles(t *testing.T, th *SearchTestHelper) {
 	file, err := th.createFileInfo("bookmark", "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 

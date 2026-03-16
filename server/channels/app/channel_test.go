@@ -2148,7 +2148,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	createReactions := model.ChannelModeratedPermissions[1]
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
-	manageBookmarks := model.ChannelModeratedPermissions[4]
+	manageTabs := model.ChannelModeratedPermissions[4]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -2246,18 +2246,18 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			Name: "Removing manage bookmarks from members role",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
-					Name:  &manageBookmarks,
+					Name:  &manageTabs,
 					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
-				manageBookmarks: {
+				manageTabs: {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
-					Name:  &manageBookmarks,
+					Name:  &manageTabs,
 					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
@@ -2338,7 +2338,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			Name: "Removing manage bookmarks from guests role should not error",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
-					Name:  &manageBookmarks,
+					Name:  &manageTabs,
 					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
@@ -2447,7 +2447,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					},
 				},
 				{
-					Name: &manageBookmarks,
+					Name: &manageTabs,
 					Roles: &model.ChannelModeratedRolesPatch{
 						Members: model.NewPointer(true),
 					},

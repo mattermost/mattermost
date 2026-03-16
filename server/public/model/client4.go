@@ -633,12 +633,12 @@ func (c *Client4) customProfileAttributesRoute() clientRoute {
 	return newClientRoute("custom_profile_attributes")
 }
 
-func (c *Client4) bookmarksRoute(channelId string) clientRoute {
+func (c *Client4) tabsRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("bookmarks")
 }
 
-func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
-	return c.bookmarksRoute(channelId).Join(bookmarkId)
+func (c *Client4) tabRoute(channelId, tabId string) clientRoute {
+	return c.tabsRoute(channelId).Join(tabId)
 }
 
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
@@ -7636,55 +7636,55 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	return BuildResponse(r), nil
 }
 
-// CreateChannelBookmark creates a channel bookmark based on the provided struct.
-func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmark)
+// CreateChannelTab creates a channel bookmark based on the provided struct.
+func (c *Client4) CreateChannelTab(ctx context.Context, channelTab *ChannelTab) (*ChannelTabWithFileInfo, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.tabsRoute(channelTab.ChannelId), channelTab)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*ChannelBookmarkWithFileInfo](r)
+	return DecodeJSONFromResponse[*ChannelTabWithFileInfo](r)
 }
 
-// UpdateChannelBookmark updates a channel bookmark based on the provided struct.
-func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmarkId string, patch *ChannelBookmarkPatch) (*UpdateChannelBookmarkResponse, *Response, error) {
-	r, err := c.doAPIPatchJSON(ctx, c.bookmarkRoute(channelId, bookmarkId), patch)
+// UpdateChannelTab updates a channel bookmark based on the provided struct.
+func (c *Client4) UpdateChannelTab(ctx context.Context, channelId, tabId string, patch *ChannelTabPatch) (*UpdateChannelTabResponse, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.tabRoute(channelId, tabId), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*UpdateChannelBookmarkResponse](r)
+	return DecodeJSONFromResponse[*UpdateChannelTabResponse](r)
 }
 
-// UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
-func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.bookmarkRoute(channelId, bookmarkId).Join("sort_order"), sortOrder)
+// UpdateChannelTabSortOrder updates a channel bookmark's sort order based on the provided new index.
+func (c *Client4) UpdateChannelTabSortOrder(ctx context.Context, channelId, tabId string, sortOrder int64) ([]*ChannelTabWithFileInfo, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.tabRoute(channelId, tabId).Join("sort_order"), sortOrder)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
+	return DecodeJSONFromResponse[[]*ChannelTabWithFileInfo](r)
 }
 
-// DeleteChannelBookmark deletes a channel bookmark.
-func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmarkId string) (*ChannelBookmarkWithFileInfo, *Response, error) {
-	r, err := c.doAPIDelete(ctx, c.bookmarkRoute(channelId, bookmarkId))
+// DeleteChannelTab deletes a channel bookmark.
+func (c *Client4) DeleteChannelTab(ctx context.Context, channelId, tabId string) (*ChannelTabWithFileInfo, *Response, error) {
+	r, err := c.doAPIDelete(ctx, c.tabRoute(channelId, tabId))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*ChannelBookmarkWithFileInfo](r)
+	return DecodeJSONFromResponse[*ChannelTabWithFileInfo](r)
 }
 
-func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+func (c *Client4) ListChannelTabsForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelTabWithFileInfo, *Response, error) {
 	values := url.Values{}
 	values.Set("bookmarks_since", strconv.FormatInt(since, 10))
-	r, err := c.doAPIGetWithQuery(ctx, c.bookmarksRoute(channelId), values, "")
+	r, err := c.doAPIGetWithQuery(ctx, c.tabsRoute(channelId), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
+	return DecodeJSONFromResponse[[]*ChannelTabWithFileInfo](r)
 }
 
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {

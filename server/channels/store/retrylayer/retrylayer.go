@@ -26,7 +26,7 @@ type RetryLayer struct {
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
-	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelTabStore            store.ChannelTabStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -102,8 +102,8 @@ func (s *RetryLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
 }
 
-func (s *RetryLayer) ChannelBookmark() store.ChannelBookmarkStore {
-	return s.ChannelBookmarkStore
+func (s *RetryLayer) ChannelTab() store.ChannelTabStore {
+	return s.ChannelTabStore
 }
 
 func (s *RetryLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -332,8 +332,8 @@ type RetryLayerChannelStore struct {
 	Root *RetryLayer
 }
 
-type RetryLayerChannelBookmarkStore struct {
-	store.ChannelBookmarkStore
+type RetryLayerChannelTabStore struct {
+	store.ChannelTabStore
 	Root *RetryLayer
 }
 
@@ -3659,11 +3659,11 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) Delete(bookmarkID string, deleteFile bool) error {
+func (s *RetryLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.Delete(bookmarkID, deleteFile)
+		err := s.ChannelTabStore.Delete(tabID, deleteFile)
 		if err == nil {
 			return nil
 		}
@@ -3680,11 +3680,11 @@ func (s *RetryLayerChannelBookmarkStore) Delete(bookmarkID string, deleteFile bo
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
+func (s *RetryLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID, channelID)
+		err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
 		if err == nil {
 			return nil
 		}
@@ -3701,11 +3701,11 @@ func (s *RetryLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
+func (s *RetryLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelBookmarkStore.Get(Id, includeDeleted)
+		result, err := s.ChannelTabStore.Get(Id, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -3722,11 +3722,11 @@ func (s *RetryLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*m
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+func (s *RetryLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelBookmarkStore.GetBookmarksForChannelSince(channelID, since)
+		result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
 		if err == nil {
 			return result, nil
 		}
@@ -3743,11 +3743,11 @@ func (s *RetryLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelID s
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
+func (s *RetryLayerChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelBookmarkStore.Save(bookmark, increaseSortOrder)
+		result, err := s.ChannelTabStore.Save(bookmark, increaseSortOrder)
 		if err == nil {
 			return result, nil
 		}
@@ -3764,11 +3764,11 @@ func (s *RetryLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, i
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
+func (s *RetryLayerChannelTabStore) Update(bookmark *model.ChannelTab) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.Update(bookmark)
+		err := s.ChannelTabStore.Update(bookmark)
 		if err == nil {
 			return nil
 		}
@@ -3785,11 +3785,11 @@ func (s *RetryLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark)
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+func (s *RetryLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkID, channelID, newIndex)
+		result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
 		if err == nil {
 			return result, nil
 		}
@@ -18036,7 +18036,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
-	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelTabStore = &RetryLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &RetryLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &RetryLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

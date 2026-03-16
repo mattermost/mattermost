@@ -57,6 +57,9 @@ type FeatureFlags struct {
 	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
 
+	ChannelTabs bool
+
+	// DEPRECATED: Use ChannelTabs instead. Kept for backward compatibility.
 	ChannelBookmarks bool
 
 	WebSocketEventScope bool
@@ -118,7 +121,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
+	f.ChannelTabs = true
+	f.ChannelBookmarks = true // DEPRECATED: kept for backward compatibility with ChannelTabs
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true

@@ -681,8 +681,8 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	return result
 }
 
-func isModeratedBookmarkPermission(permission string) bool {
-	for _, mbp := range ModeratedBookmarkPermissions {
+func isModeratedTabPermission(permission string) bool {
+	for _, mbp := range ModeratedTabPermissions {
 		if mbp.Id == permission {
 			return true
 		}
@@ -715,11 +715,11 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 					// Special case where the channel moderated permission for `manage_bookmarks` is different
 					// depending on whether the channel is private or public.
 					//
-					// Only AddBookmark is checked even if the permission includes four (add, delete, edit and
+					// Only AddTab is checked even if the permission includes four (add, delete, edit and
 					// order) as all of them are enabled or disabled in together
-				} else if isModeratedBookmarkPermission(moderated) {
-					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddBookmarkPublicChannel.Id
-					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddBookmarkPrivateChannel.Id
+				} else if isModeratedTabPermission(moderated) {
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddTabPublicChannel.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddTabPrivateChannel.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true
@@ -902,14 +902,14 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePrivateChannelMembers.Id,
 			PermissionDeletePost.Id,
 			PermissionEditPost.Id,
-			PermissionAddBookmarkPublicChannel.Id,
-			PermissionEditBookmarkPublicChannel.Id,
-			PermissionDeleteBookmarkPublicChannel.Id,
-			PermissionOrderBookmarkPublicChannel.Id,
-			PermissionAddBookmarkPrivateChannel.Id,
-			PermissionEditBookmarkPrivateChannel.Id,
-			PermissionDeleteBookmarkPrivateChannel.Id,
-			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionAddTabPublicChannel.Id,
+			PermissionEditTabPublicChannel.Id,
+			PermissionDeleteTabPublicChannel.Id,
+			PermissionOrderTabPublicChannel.Id,
+			PermissionAddTabPrivateChannel.Id,
+			PermissionEditTabPrivateChannel.Id,
+			PermissionDeleteTabPrivateChannel.Id,
+			PermissionOrderTabPrivateChannel.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -922,14 +922,14 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionManageChannelRoles.Id,
 			PermissionUseGroupMentions.Id,
-			PermissionAddBookmarkPublicChannel.Id,
-			PermissionEditBookmarkPublicChannel.Id,
-			PermissionDeleteBookmarkPublicChannel.Id,
-			PermissionOrderBookmarkPublicChannel.Id,
-			PermissionAddBookmarkPrivateChannel.Id,
-			PermissionEditBookmarkPrivateChannel.Id,
-			PermissionDeleteBookmarkPrivateChannel.Id,
-			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionAddTabPublicChannel.Id,
+			PermissionEditTabPublicChannel.Id,
+			PermissionDeleteTabPublicChannel.Id,
+			PermissionOrderTabPublicChannel.Id,
+			PermissionAddTabPrivateChannel.Id,
+			PermissionEditTabPrivateChannel.Id,
+			PermissionDeleteTabPrivateChannel.Id,
+			PermissionOrderTabPrivateChannel.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,
@@ -1014,14 +1014,14 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionConvertPrivateChannelToPublic.Id,
 			PermissionDeletePost.Id,
 			PermissionDeleteOthersPosts.Id,
-			PermissionAddBookmarkPublicChannel.Id,
-			PermissionEditBookmarkPublicChannel.Id,
-			PermissionDeleteBookmarkPublicChannel.Id,
-			PermissionOrderBookmarkPublicChannel.Id,
-			PermissionAddBookmarkPrivateChannel.Id,
-			PermissionEditBookmarkPrivateChannel.Id,
-			PermissionDeleteBookmarkPrivateChannel.Id,
-			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionAddTabPublicChannel.Id,
+			PermissionEditTabPublicChannel.Id,
+			PermissionDeleteTabPublicChannel.Id,
+			PermissionOrderTabPublicChannel.Id,
+			PermissionAddTabPrivateChannel.Id,
+			PermissionEditTabPrivateChannel.Id,
+			PermissionDeleteTabPrivateChannel.Id,
+			PermissionOrderTabPrivateChannel.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,

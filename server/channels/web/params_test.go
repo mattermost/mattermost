@@ -438,7 +438,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("/?include_bookmarks=true"),
 			nil,
 			&Params{
-				BookmarksSince: 0,
+				TabsSince: 0,
 
 				LimitAfter: LimitDefault,
 
@@ -452,7 +452,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("/?include_bookmarks=true&bookmarks_since=-1"),
 			nil,
 			&Params{
-				BookmarksSince: 0,
+				TabsSince: 0,
 
 				LimitAfter: LimitDefault,
 
@@ -466,7 +466,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("/?include_bookmarks=true&bookmarks_since=123456789"),
 			nil,
 			&Params{
-				BookmarksSince: 123456789,
+				TabsSince: 123456789,
 
 				LimitAfter: LimitDefault,
 
