@@ -33,6 +33,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -280,6 +281,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -527,6 +529,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -774,6 +777,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -1027,6 +1031,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "
@@ -1274,6 +1279,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
               style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
             >
               <span
                 class="profile-icon "

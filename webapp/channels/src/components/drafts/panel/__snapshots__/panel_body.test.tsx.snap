@@ -68,6 +68,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   "width": "32px",
                 }
               }
+              type="button"
             >
               <span
                 className="profile-icon "
@@ -290,6 +291,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   "width": "32px",
                 }
               }
+              type="button"
             >
               <span
                 className="profile-icon "
@@ -518,6 +520,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   "width": "32px",
                 }
               }
+              type="button"
             >
               <span
                 className="profile-icon "
@@ -806,6 +809,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   "width": "32px",
                 }
               }
+              type="button"
             >
               <span
                 className="profile-icon "

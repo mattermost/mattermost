@@ -79,6 +79,7 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
     aria-haspopup="dialog"
     class="status-wrapper style--none"
     style="border-radius: 50%; width: 32px; height: 32px;"
+    type="button"
   >
     <span
       class="profile-icon "
