@@ -1484,10 +1484,6 @@
     "translation": "Ошибка запуска сервера, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Не удалось импортировать пользователя Integration / Slack Bot {{.Username}}.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nПользователи созданы:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -10034,5 +10026,145 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Слишком много файлов в разделе 'certificate' в запросе."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Не удалось удалить сертификат."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "У пользователя нет необходимых атрибутов, чтобы присоединиться к каналу."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Ограничение на количество каналов недействительно."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Ограничение на получение полей недействительно."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Не удалось добавить сертификат."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Идентификатор канала не совпадает с идентификатором сообщения, отмеченного флагом."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Невозможно добавить разрешение, которое ограничено схемой разрешений команды или системы."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Автоматический перевод для этого канала запрещен."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Функция автоматического перевода недоступна."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Изменений в патче нет."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Невозможно обновить ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Не удалось отправить сообщение об обновлении автоперевода."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s отключил автоперевод для этого канала. Все новые сообщения будут появляться на языке оригинала."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s включил автоперевод для этого канала. Все новые сообщения будут появляться на выбранном тобой языке."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Не удалось получить пользователя при обновлении статуса автоперевода"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Каналы, задействованные в политике, не могут быть обновлены."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Автоперевод не включен для этого канала."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Автоперевод недоступен."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Неверное обновление участника канала: у участника канала всегда есть схема пользователя."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченные ЛС"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Нет разрешения на перемещение команды"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Служба \"Общие каналы\" включена, но не активна."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Аутентификация на основе кукисов не разрешена для этой конечной точки. Используй аутентификацию на основе заголовков."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Пожалуйста, добавь комментарий, объясняющий, почему ты помечаешь это сообщение."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Причина карантина сообщения не может быть длиннее {{.MaxLength}} символов."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Функция обработки утечки данных отключена."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Помещение в карантин сообщения типа '{{.PostType}}' не допускается."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Твоя лицензия не поддерживает функцию обработки утечки данных."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Функция обработки утечки данных не включена в этой команде."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Сообщение, помещенное в карантин, должно находиться в статусе \"Ожидание\" или \"Назначено\", чтобы его можно было сохранить или удалить."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Неизвестная причина, указанная для помещения сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Пожалуйста, выберите причину помещения этого сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Пользователь не является рецензентом контента."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Невозможно сохранить черновик в ограниченном канале личных сообщений"
   }
 ]
