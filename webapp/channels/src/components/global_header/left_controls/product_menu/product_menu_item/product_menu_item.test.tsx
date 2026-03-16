@@ -6,7 +6,8 @@ import React from 'react';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ProductMenuItem from './product_menu_item';
-import type {ProductMenuItemProps} from './product_menu_item';
+
+type ProductMenuItemProps = React.ComponentProps<typeof ProductMenuItem>;
 
 describe('components/ProductMenuItem', () => {
     const defaultProps: ProductMenuItemProps = {
@@ -75,14 +76,21 @@ describe('components/ProductMenuItem', () => {
         expect(svgElements.length).toBe(2);
     });
 
-    test('should not show check icon when active is false', () => {
+    test('should show open in new tab button when active is false', () => {
         renderWithContext(<ProductMenuItem {...defaultProps}/>);
 
-        const menuItem = screen.getByRole('menuitem');
+        expect(screen.getByLabelText('Open in new tab')).toBeInTheDocument();
+    });
 
-        // When not active, there should only be one SVG element: the product icon
-        const svgElements = menuItem.querySelectorAll('svg');
-        expect(svgElements.length).toBe(1);
+    test('should not show open in new tab button when active is true', () => {
+        const props: ProductMenuItemProps = {
+            ...defaultProps,
+            active: true,
+        };
+
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        expect(screen.queryByLabelText('Open in new tab')).not.toBeInTheDocument();
     });
 
     test('should call onClick when clicked', async () => {
@@ -97,6 +105,24 @@ describe('components/ProductMenuItem', () => {
         await userEvent.click(screen.getByRole('menuitem'));
 
         expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    test('should open destination in new tab when open in new tab button is clicked', async () => {
+        const onClick = jest.fn();
+        const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+        const props: ProductMenuItemProps = {
+            ...defaultProps,
+            onClick,
+        };
+
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        await userEvent.click(screen.getByLabelText('Open in new tab'), {pointerEventsCheck: 0});
+
+        expect(windowOpenSpy).toHaveBeenCalledWith('/test-destination', '_blank', 'noopener,noreferrer');
+        expect(onClick).toHaveBeenCalledTimes(1);
+
+        windowOpenSpy.mockRestore();
     });
 
     test('should render tour tip when provided', () => {

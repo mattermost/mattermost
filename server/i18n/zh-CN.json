@@ -1474,10 +1474,6 @@
     "translation": "启动服务出错, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "已导入整合/Slack 机器人用户 {{.Email}} 以及密码 {{.Password}}。\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "无法导入整合/Slack 机器人用户 {{.Username}}。\r\n"
   },
@@ -1500,10 +1496,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\n已创建用户：\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "已导入拥有电子邮箱 {{.Email}} 以及密码 {{.Password}} 的 Slack 用户。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
