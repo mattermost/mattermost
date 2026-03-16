@@ -50,10 +50,8 @@ type Routes struct {
 	ChannelMembersForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
-	ChannelTabs               *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs'
-	ChannelTab                *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs/{tab_id:[A-Za-z0-9]+}'
-	ChannelTabsDeprecated     *mux.Router // DEPRECATED: 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks' — remove Sept 2026
-	ChannelTabDeprecated      *mux.Router // DEPRECATED: 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks/{tab_id:[A-Za-z0-9]+}' — remove Sept 2026
+	ChannelTabs         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs'
+	ChannelTab          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs/{tab_id:[A-Za-z0-9]+}'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -218,8 +216,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()
 	api.BaseRoutes.ChannelTabs = api.BaseRoutes.Channel.PathPrefix("/tabs").Subrouter()
 	api.BaseRoutes.ChannelTab = api.BaseRoutes.ChannelTabs.PathPrefix("/{tab_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.ChannelTabsDeprecated = api.BaseRoutes.Channel.PathPrefix("/bookmarks").Subrouter()
-	api.BaseRoutes.ChannelTabDeprecated = api.BaseRoutes.ChannelTabsDeprecated.PathPrefix("/{tab_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()

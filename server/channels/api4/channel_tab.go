@@ -6,37 +6,28 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// deprecated wraps a handler to add Deprecation and Sunset headers for old /bookmarks routes.
-func deprecated(handler func(*Context, http.ResponseWriter, *http.Request)) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Deprecation", "true")
-		w.Header().Set("Sunset", "Mon, 01 Sep 2026 00:00:00 GMT")
-		w.Header().Set("Link", `</api/v4/channels/{channel_id}/tabs>; rel="successor-version"`)
-		handler(c, w, r)
-	}
-}
-
 func (api *API) InitChannelTabs() {
 	if api.srv.Config().FeatureFlags.ChannelTabs {
-		// Primary /tabs routes
 		api.BaseRoutes.ChannelTabs.Handle("", api.APISessionRequired(createChannelTab)).Methods(http.MethodPost)
 		api.BaseRoutes.ChannelTab.Handle("", api.APISessionRequired(updateChannelTab)).Methods(http.MethodPatch)
 		api.BaseRoutes.ChannelTab.Handle("/sort_order", api.APISessionRequired(updateChannelTabSortOrder)).Methods(http.MethodPost)
 		api.BaseRoutes.ChannelTab.Handle("", api.APISessionRequired(deleteChannelTab)).Methods(http.MethodDelete)
 		api.BaseRoutes.ChannelTabs.Handle("", api.APISessionRequired(listChannelTabsForChannel)).Methods(http.MethodGet)
-
-		// Deprecated /bookmarks routes — remove Sept 2026
-		api.BaseRoutes.ChannelTabsDeprecated.Handle("", api.APISessionRequired(deprecated(createChannelTab))).Methods(http.MethodPost)
-		api.BaseRoutes.ChannelTabDeprecated.Handle("", api.APISessionRequired(deprecated(updateChannelTab))).Methods(http.MethodPatch)
-		api.BaseRoutes.ChannelTabDeprecated.Handle("/sort_order", api.APISessionRequired(deprecated(updateChannelTabSortOrder))).Methods(http.MethodPost)
-		api.BaseRoutes.ChannelTabDeprecated.Handle("", api.APISessionRequired(deprecated(deleteChannelTab))).Methods(http.MethodDelete)
-		api.BaseRoutes.ChannelTabsDeprecated.Handle("", api.APISessionRequired(deprecated(listChannelTabsForChannel))).Methods(http.MethodGet)
 	}
+
+	// 301 permanent redirect: /bookmarks{path} -> /tabs{path}
+	api.BaseRoutes.Channel.PathPrefix("/bookmarks").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		newPath := strings.Replace(r.URL.Path, "/bookmarks", "/tabs", 1)
+		newURL := *r.URL
+		newURL.Path = newPath
+		http.Redirect(w, r, newURL.String(), http.StatusMovedPermanently)
+	})
 }
 
 func createChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
