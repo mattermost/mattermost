@@ -69,8 +69,10 @@ jobs:
             ### Code Paths and Documentation Relevance
             - `server/channels/api4/` — REST API handlers → API docs
             - `server/public/model/config.go` — Configuration settings struct → admin guide updates
-            - `server/public/model/feature_flags.go` — Feature flags → may need documentation
+            - `server/public/model/feature_flags.go` — Feature flags → these control gradual rollouts and are **distinct from configuration settings**
             - `server/public/model/websocket_message.go` — WebSocket events → API/integration docs
+            - `server/public/model/audit_events.go` — Audit event definitions → new or changed audit event types should be documented for compliance officers
+            - `server/public/model/support_packet.go` — Support packet contents → admin guide; changes to what data is collected or exported affect troubleshooting and support workflows
             - `server/channels/db/migrations/` — Database schema changes → admin upgrade guide
             - `server/channels/app/` — Business logic → end-user or admin docs if behavior changes
             - `server/cmd/` — CLI commands (mmctl) → admin CLI docs
@@ -78,11 +80,12 @@ jobs:
             - `webapp/channels/src/components/` — UI components → end-user guide if user-facing
             - `webapp/channels/src/i18n/` — Internationalization strings → new user-facing strings suggest new features
             - `webapp/platform/` — Platform-level webapp code
+            - `server/Makefile` - changes to plugin version pins starting at line ~155 (major or minor version bumps) indicate plugin releases that may require documentation updates in the integrations or deployment guide
             </monorepo_paths>
 
             <docs_directories>
             ### Documentation Directories (`./docs/source/`)
-            - `administration-guide/` — Server config, admin console, upgrade notes, CLI, server management
+            - `administration-guide/` — Server config, admin console, upgrade notes, CLI, server management, support packet, audit events
             - `deployment-guide/` — Installation, deployment, scaling, high availability
             - `end-user-guide/` — User-facing features, messaging, channels, search, notifications
             - `integrations-guide/` — Webhooks, slash commands, plugins, bots, API usage
@@ -91,6 +94,7 @@ jobs:
             - `get-help/` — Troubleshooting guides
             - `product-overview/` — Product overview and feature descriptions
             - `use-case-guide/` — Use case specific guides
+
             </docs_directories>
 
             ## Documentation Personas
@@ -102,7 +106,7 @@ jobs:
             Deploys, configures, and maintains Mattermost servers.
             - **Reads:** `administration-guide/`, `deployment-guide/`, `security-guide/`
             - **Cares about:** config settings, CLI commands (mmctl), database migrations, upgrade procedures, scaling, HA, environment variables, performance tuning
-            - **Impact signals:** changes to `model/config.go`, `db/migrations/`, `server/cmd/`, `einterfaces/`
+            - **Impact signals:** changes to `model/config.go`, `db/migrations/`, `server/cmd/`, `einterfaces/`, `model/audit_events.go`, `model/support_packet.go`
 
             ### End User
             Uses Mattermost daily for messaging, collaboration, and workflows.
@@ -114,7 +118,7 @@ jobs:
             Builds integrations, plugins, bots, and custom tools on top of Mattermost.
             - **Reads:** `integrations-guide/`, API reference (`api/v4/source/`)
             - **Cares about:** REST API endpoints, request/response schemas, webhook payloads, WebSocket events, plugin APIs, bot account behavior, OAuth/authentication flows
-            - **Impact signals:** changes to `api4/` handlers, `api/v4/source/` specs, `model/websocket_message.go`, plugin interfaces
+            - **Impact signals:** changes to `api4/` handlers, `api/v4/source/` specs, `model/websocket_message.go`, plugin interfaces, major/minor plugin version bumps in `server/Makefile`
 
             ### Security / Compliance Officer
             Evaluates and enforces security and regulatory requirements.
@@ -130,7 +134,11 @@ jobs:
             1. **Read the PR diff** using `gh pr diff ${{ github.event.issue.number }}` to understand what changed.
             2. **Categorize each changed file** by documentation relevance using one or more of these labels:
               - API changes (new endpoints, changed parameters, changed responses)
-              - Configuration changes (new or modified settings in `config.go` or `feature_flags.go`)
+              - Configuration changes (new or modified settings in `config.go`)
+              - Feature flag changes (new or modified flags in `feature_flags.go` — treat separately from configuration settings; feature flags are not the same as config settings)
+              - Audit event changes (new or modified audit event types in `audit_events.go`)
+              - Support packet changes (new or modified fields in `support_packet.go`)
+              - Plugin version changes (major or minor version bumps in `server/Makefile` starting around line 155)
               - Database schema changes (new migrations)
               - WebSocket event changes
               - CLI command changes
@@ -144,6 +152,10 @@ jobs:
             6. **Determine the documentation action** for each flagged change: does an existing page need updating (cite the exact RST file), or is an entirely new page needed (suggest the appropriate directory and a proposed filename)?
 
             Only flag changes that meet at least one of the two criteria above. Internal refactors, test changes, and implementation details that do not alter documented behavior or create a persona-relevant gap should not be flagged.
+
+            **Important distinctions to apply during analysis:**
+            - Feature flags (`feature_flags.go`) are **not** configuration settings. Do not conflate them. Config settings belong in the admin configuration reference.
+            - Plugin version bumps in `server/Makefile`: only major or minor version changes (e.g. `1.2.x` → `1.3.0` or `2.0.0`) warrant documentation review; patch-only bumps (e.g. `1.2.3` → `1.2.4`) generally do not.
 
             ## Output Format
 
