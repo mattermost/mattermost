@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {Extension} from '@tiptap/core';
 
 // Mattermost's server-side markdown parser doesn't support lazy continuation
@@ -32,7 +34,8 @@ function expandTabs(line: string, indent = 0): string {
 // Forked list tokenizer from marked v17.0.3 — the only change from upstream
 // is removing the lazy paragraph continuation in the else branch, replacing
 // it with a break statement.
-function mattermostListTokenizer(this: any, src: string) {
+function mattermostListTokenizer(this: any, srcParam: string) {
+    let src = srcParam;
     let cap = this.rules.block.list.exec(src);
     if (!cap) {
         return undefined;
@@ -45,7 +48,7 @@ function mattermostListTokenizer(this: any, src: string) {
         type: 'list',
         raw: '',
         ordered: isordered,
-        start: isordered ? +bull.slice(0, -1) : '',
+        start: isordered ? Number(bull.slice(0, -1)) : '',
         loose: false,
         items: [],
     };
