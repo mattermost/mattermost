@@ -40,5 +40,5 @@ go run . --license /path/to/license.mattermost-license --server-dir ../../server
 
 # External mode (connect to already-running instances)
 go run . --license /path/to/license.mattermost-license --manage=false \
-  --server-a http://localhost:8065 --server-b http://localhost:8066
+  --server-a http://localhost:9065 --server-b http://localhost:9066
 ```

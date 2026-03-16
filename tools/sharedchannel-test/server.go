@@ -115,7 +115,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 	sm.procA.Env = append(os.Environ(), commonEnv...)
 	sm.procA.Env = append(sm.procA.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerAURL,
-		"MM_SERVICESETTINGS_LISTENADDRESS=:8065",
+		"MM_SERVICESETTINGS_LISTENADDRESS=:9065",
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
 	)
@@ -133,7 +133,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 	sm.procB.Env = append(os.Environ(), commonEnv...)
 	sm.procB.Env = append(sm.procB.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
-		"MM_SERVICESETTINGS_LISTENADDRESS=:8066",
+		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)

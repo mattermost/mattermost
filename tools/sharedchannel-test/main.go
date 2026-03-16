@@ -35,8 +35,8 @@ type Config struct {
 func main() {
 	cfg := Config{}
 
-	flag.StringVar(&cfg.ServerAURL, "server-a", "http://localhost:8065", "Server A URL")
-	flag.StringVar(&cfg.ServerBURL, "server-b", "http://localhost:8066", "Server B URL")
+	flag.StringVar(&cfg.ServerAURL, "server-a", "http://localhost:9065", "Server A URL")
+	flag.StringVar(&cfg.ServerBURL, "server-b", "http://localhost:9066", "Server B URL")
 	flag.StringVar(&cfg.LicensePath, "license", "", "Path to enterprise license file (required)")
 	flag.StringVar(&cfg.ServerDir, "server-dir", "", "Path to server directory (for managed mode)")
 	flag.BoolVar(&cfg.Manage, "manage", true, "Manage server lifecycle (build/start/stop)")
