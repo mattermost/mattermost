@@ -437,9 +437,11 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 
 export type AppFieldType = string;
 
-// DateTime field configuration
+// DateTime field configuration (preferred over top-level AppField date/time fields)
 export type DateTimeConfig = {
     time_interval?: number; // Minutes between time options (default: 60)
+    min_date?: string; // Minimum selectable date (ISO format or relative: "today", "+5d")
+    max_date?: string; // Maximum selectable date (ISO format or relative: "+30d", "+1m")
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     allow_manual_time_entry?: boolean; // Allow text entry for time
 };
@@ -475,12 +477,16 @@ export type AppField = {
     min_length?: number;
     max_length?: number;
 
-    // Date/datetime configuration
+    // Date/datetime configuration (preferred)
     datetime_config?: DateTimeConfig;
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    /** @deprecated Use datetime_config.min_date instead */
     min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead */
     max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead */
     time_interval?: number;
 };
 
@@ -493,7 +499,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/i,
+        /^[+-]\d{1,3}[dwmHMS]$/,
     ];
 
     for (const pattern of relativePatterns) {

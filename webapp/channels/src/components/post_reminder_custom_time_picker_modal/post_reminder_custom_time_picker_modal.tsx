@@ -44,6 +44,7 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
             onConfirm={handleConfirm}
             confirmButtonText={confirmButtonText}
             relativeDate={true}
+            minDateTime={currentTime}
         />
     );
 }

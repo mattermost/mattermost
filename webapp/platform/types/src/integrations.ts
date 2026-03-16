@@ -197,16 +197,22 @@ export type DialogElement = {
     }>;
     refresh?: boolean;
 
-    // Date/datetime configuration
+    // Date/datetime configuration (preferred)
     datetime_config?: {
         time_interval?: number;
+        min_date?: string;
+        max_date?: string;
         location_timezone?: string;
         allow_manual_time_entry?: boolean;
     };
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    /** @deprecated Use datetime_config.min_date instead */
     min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead */
     max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead */
     time_interval?: number;
 };
 
