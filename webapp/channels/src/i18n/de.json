@@ -5747,7 +5747,6 @@
   "recaps.actionItems": "Aktionspunkte:",
   "recaps.addRecap": "Hinzufügen eines Rückblicks",
   "recaps.addRecap.disabled": "Agenten Brücke ist nicht aktiviert",
-  "recaps.allCaughtUp": "Du bist auf dem neusten Stand",
   "recaps.channelMenu.ariaLabel": "Optionen für {channelName}",
   "recaps.defaultAgent": "Copilot",
   "recaps.delete.confirm.button": "Entfernen",
