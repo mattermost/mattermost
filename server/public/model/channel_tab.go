@@ -12,30 +12,30 @@ import (
 type ChannelTabType string
 
 const (
-	ChannelTabLink    ChannelTabType = "link"
-	ChannelTabFile    ChannelTabType = "file"
-	TabFileOwner                          = "bookmark"
-	MaxTabsPerChannel                     = 50
-	DisplayNameMaxRunes                        = 64
-	LinkMaxRunes                               = 1024
+	ChannelTabLink      ChannelTabType = "link"
+	ChannelTabFile      ChannelTabType = "file"
+	TabFileOwner                       = "bookmark"
+	MaxTabsPerChannel                  = 50
+	DisplayNameMaxRunes                = 64
+	LinkMaxRunes                       = 1024
 )
 
 type ChannelTab struct {
-	Id          string              `json:"id"`
-	CreateAt    int64               `json:"create_at"`
-	UpdateAt    int64               `json:"update_at"`
-	DeleteAt    int64               `json:"delete_at"`
-	ChannelId   string              `json:"channel_id"`
-	OwnerId     string              `json:"owner_id"`
-	FileId      string              `json:"file_id"`
-	DisplayName string              `json:"display_name"`
-	SortOrder   int64               `json:"sort_order"`
-	LinkUrl     string              `json:"link_url,omitempty"`
-	ImageUrl    string              `json:"image_url,omitempty"`
-	Emoji       string              `json:"emoji,omitempty"`
+	Id          string         `json:"id"`
+	CreateAt    int64          `json:"create_at"`
+	UpdateAt    int64          `json:"update_at"`
+	DeleteAt    int64          `json:"delete_at"`
+	ChannelId   string         `json:"channel_id"`
+	OwnerId     string         `json:"owner_id"`
+	FileId      string         `json:"file_id"`
+	DisplayName string         `json:"display_name"`
+	SortOrder   int64          `json:"sort_order"`
+	LinkUrl     string         `json:"link_url,omitempty"`
+	ImageUrl    string         `json:"image_url,omitempty"`
+	Emoji       string         `json:"emoji,omitempty"`
 	Type        ChannelTabType `json:"type"`
-	OriginalId  string              `json:"original_id,omitempty"`
-	ParentId    string              `json:"parent_id,omitempty"`
+	OriginalId  string         `json:"original_id,omitempty"`
+	ParentId    string         `json:"parent_id,omitempty"`
 }
 
 func (o *ChannelTab) Auditable() map[string]any {

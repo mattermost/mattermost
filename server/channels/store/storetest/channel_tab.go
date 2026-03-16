@@ -164,22 +164,22 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file.Id) }()
 
 	_, err = ss.FileInfo().Save(rctx, file2)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, file2.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file2.Id) }()
 
 	err = ss.FileInfo().AttachToPost(rctx, file2.Id, model.NewId(), channelID, userID)
 	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Save(rctx, deletedFile)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, deletedFile.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, deletedFile.Id) }()
 
 	_, err = ss.FileInfo().Save(rctx, anotherChannelFile)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, anotherChannelFile.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, anotherChannelFile.Id) }()
 
 	t.Run("save bookmarks", func(t *testing.T) {
 		bookmarkResp, err := ss.ChannelTab().Save(bookmark1.Clone(), true)
@@ -303,7 +303,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 
 	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file.Id) }()
 
 	bookmark2 := &model.ChannelTab{
 		ChannelId:   channelID,
@@ -491,7 +491,7 @@ func testDeleteChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
+	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file.Id) }()
 
 	t.Run("delete bookmark", func(t *testing.T) {
 		now := model.GetMillis()

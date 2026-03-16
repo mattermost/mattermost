@@ -14,7 +14,7 @@ import (
 func TestChannelTabIsValid(t *testing.T) {
 	testCases := []struct {
 		Description     string
-		Tab        *ChannelTab
+		Tab             *ChannelTab
 		ExpectedIsValid bool
 	}{
 		{
