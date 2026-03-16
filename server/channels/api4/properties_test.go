@@ -22,7 +22,7 @@ func TestCreatePropertyField(t *testing.T) {
 
 	// Register a property group for testing
 	group, err := th.App.RegisterPropertyGroup("test_properties")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
@@ -341,11 +341,11 @@ func TestGetPropertyFields(t *testing.T) {
 
 	// Register property groups for testing
 	group, err := th.App.RegisterPropertyGroup("test_properties_get")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_get_other")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
 	memberLevel := model.PermissionLevelMember
@@ -362,7 +362,7 @@ func TestGetPropertyFields(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdField, appErr := th.App.CreatePropertyField(field, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
 	// Create a field in a different group
@@ -377,7 +377,7 @@ func TestGetPropertyFields(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdOtherField, appErr := th.App.CreatePropertyField(otherField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 	require.NotNil(t, createdOtherField)
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
@@ -430,7 +430,7 @@ func TestGetPropertyFields(t *testing.T) {
 				PermissionOptions: &memberLevel,
 			}
 			_, appErr := th.App.CreatePropertyField(f, false)
-			require.NoError(t, appErr)
+			require.Nil(t, appErr)
 		}
 
 		// First request without cursor
@@ -498,7 +498,7 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_properties_scope")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	baseURL := "/properties/groups/" + group.Name + "/post/fields"
@@ -608,7 +608,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_properties_filter")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	memberLevel := model.PermissionLevelMember
@@ -625,7 +625,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdSystemField, appErr := th.App.CreatePropertyField(systemField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	channelField := &model.PropertyField{
 		Name:              model.NewId(),
@@ -639,7 +639,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdChannelField, appErr := th.App.CreatePropertyField(channelField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	otherChannelField := &model.PropertyField{
 		Name:              model.NewId(),
@@ -653,7 +653,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdOtherChannelField, appErr := th.App.CreatePropertyField(otherChannelField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	baseURL := "/properties/groups/" + group.Name + "/post/fields"
 
@@ -742,11 +742,11 @@ func TestPatchPropertyField(t *testing.T) {
 
 	// Register property groups for testing
 	group, err := th.App.RegisterPropertyGroup("test_properties_patch")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_patch_other")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
 	noneLevel := model.PermissionLevelNone
@@ -777,7 +777,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdProtectedField, appErr := th.App.CreatePropertyField(protectedField, true)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		require.NotNil(t, createdProtectedField)
 
 		newName := model.NewId()
@@ -800,7 +800,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
@@ -823,7 +823,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
@@ -852,7 +852,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &sysadminLevel, // Only admin can manage options
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
 		// Try to update options as a non-admin
@@ -888,7 +888,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
 		// Non-admin patches only options on a text field — should require field permission, not options
@@ -928,7 +928,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		patch := &model.PropertyFieldPatch{
@@ -962,7 +962,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		patch := &model.PropertyFieldPatch{
@@ -996,7 +996,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &noneLevel, // Nobody can manage options via permission
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
@@ -1035,7 +1035,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{
@@ -1072,7 +1072,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
 		// Try to update name as a non-admin
@@ -1102,7 +1102,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		newName := model.NewId()
@@ -1128,7 +1128,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginSystemAdmin(t)
 		newName := model.NewId()
@@ -1158,7 +1158,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginSystemAdmin(t)
 		newName := model.NewId()
@@ -1194,7 +1194,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		newOptionID := model.NewId()
@@ -1227,7 +1227,7 @@ func TestPatchPropertyField(t *testing.T) {
 			TargetID:   model.NewId(),
 		}
 		createdV1Field, appErr := th.App.CreatePropertyField(v1Field, true)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		newName := model.NewId()
@@ -1247,11 +1247,11 @@ func TestDeletePropertyField(t *testing.T) {
 
 	// Register property groups for testing
 	group, err := th.App.RegisterPropertyGroup("test_properties_delete")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, group)
 
 	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_delete_other")
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
 	noneLevel := model.PermissionLevelNone
@@ -1279,7 +1279,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdProtectedField, appErr := th.App.CreatePropertyField(protectedField, true)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "post", createdProtectedField.ID)
 		require.Error(t, err)
@@ -1298,7 +1298,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		// Try to delete with wrong object_type in URL
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "channel", createdField.ID)
@@ -1318,7 +1318,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`
 		th.LoginBasic(t)
@@ -1340,7 +1340,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", createdField.ID)
@@ -1360,7 +1360,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", createdField.ID)
@@ -1429,7 +1429,7 @@ func TestGetPropertyValues(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_values_get")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
 
@@ -1445,7 +1445,7 @@ func TestGetPropertyValues(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdField, appErr := th.App.CreatePropertyField(field, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	// Use a real post as the target so target access checks pass
 	targetID := th.BasicPost.Id
@@ -1461,7 +1461,7 @@ func TestGetPropertyValues(t *testing.T) {
 		UpdatedBy:  th.BasicUser.Id,
 	}
 	_, appErr2 := th.App.UpsertPropertyValues([]*model.PropertyValue{value})
-	require.NoError(t, appErr2)
+	require.Nil(t, appErr2)
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
 		client := model.NewAPIv4Client(th.Client.URL)
@@ -1535,7 +1535,7 @@ func TestGetPropertyValues(t *testing.T) {
 				PermissionOptions: &memberLevel,
 			}
 			cf, appErr := th.App.CreatePropertyField(f, false)
-			require.NoError(t, appErr)
+			require.Nil(t, appErr)
 
 			_, appErr2 := th.App.UpsertPropertyValues([]*model.PropertyValue{{
 				TargetID:   paginationTarget,
@@ -1546,7 +1546,7 @@ func TestGetPropertyValues(t *testing.T) {
 				CreatedBy:  th.BasicUser.Id,
 				UpdatedBy:  th.BasicUser.Id,
 			}})
-			require.NoError(t, appErr2)
+			require.Nil(t, appErr2)
 		}
 
 		// First page
@@ -1584,7 +1584,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_values_patch")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
 	sysadminLevel := model.PermissionLevelSysadmin
@@ -1602,7 +1602,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdMemberField, appErr := th.App.CreatePropertyField(memberField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	adminField := &model.PropertyField{
 		Name:              model.NewId(),
@@ -1615,7 +1615,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionOptions: &sysadminLevel,
 	}
 	createdAdminField, appErr := th.App.CreatePropertyField(adminField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	noneField := &model.PropertyField{
 		Name:              model.NewId(),
@@ -1628,7 +1628,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdNoneField, appErr := th.App.CreatePropertyField(noneField, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	// Use a real post as the target so target access checks pass
 	targetID := th.BasicPost.Id
@@ -1729,7 +1729,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		th.LoginBasic(t)
 
 		otherGroup, err := th.App.RegisterPropertyGroup("test_values_patch_other")
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		otherField := &model.PropertyField{
 			Name:              model.NewId(),
@@ -1742,13 +1742,13 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdOtherField, appErr := th.App.CreatePropertyField(otherField, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		items := []model.PropertyValuePatchItem{
 			{FieldID: createdOtherField.ID, Value: json.RawMessage(`"test"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
-		require.Error(t, err)
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.Error(t, patchErr)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -1779,7 +1779,7 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdChannelField, appErr := th.App.CreatePropertyField(channelField, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		items := []model.PropertyValuePatchItem{
 			{FieldID: createdChannelField.ID, Value: json.RawMessage(`"channel-value"`)},
@@ -1814,7 +1814,7 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdChannelField, fieldErr := th.App.CreatePropertyField(channelField, false)
-		require.NoError(t, fieldErr)
+		require.Nil(t, fieldErr)
 
 		th.LoginBasic(t)
 
@@ -1947,7 +1947,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_user_get_access")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
 
@@ -1963,7 +1963,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdField, appErr := th.App.CreatePropertyField(field, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	// Create a value for BasicUser
 	_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
@@ -1975,7 +1975,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		CreatedBy:  th.BasicUser.Id,
 		UpdatedBy:  th.BasicUser.Id,
 	}})
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	t.Run("user can get their own property values", func(t *testing.T) {
 		th.LoginBasic(t)
@@ -2012,7 +2012,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 	}).InitBasic(t)
 
 	group, err := th.App.RegisterPropertyGroup("test_user_patch_access")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
 
@@ -2028,7 +2028,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 		PermissionOptions: &memberLevel,
 	}
 	createdField, appErr := th.App.CreatePropertyField(field, false)
-	require.NoError(t, appErr)
+	require.Nil(t, appErr)
 
 	t.Run("user can set their own property values", func(t *testing.T) {
 		th.LoginBasic(t)
@@ -2074,8 +2074,8 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_chan_get_access")
-	require.NoError(t, err)
+	group, appErr := th.App.RegisterPropertyGroup("test_chan_get_access")
+	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
 
@@ -2092,7 +2092,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
 			TargetID:   channelID,
@@ -2103,13 +2103,13 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 			CreatedBy:  th.BasicUser.Id,
 			UpdatedBy:  th.BasicUser.Id,
 		}})
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 	}
 
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err = nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
 	require.NoError(t, err)
 
 	t.Run("public channel - member can read", func(t *testing.T) {
@@ -2193,8 +2193,8 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_chan_patch_access")
-	require.NoError(t, err)
+	group, appErr := th.App.RegisterPropertyGroup("test_chan_patch_access")
+	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
 
@@ -2211,14 +2211,14 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 			PermissionOptions: &memberLevel,
 		}
 		createdField, appErr := th.App.CreatePropertyField(field, false)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		return createdField
 	}
 
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err = nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
 	require.NoError(t, err)
 
 	t.Run("public channel - member with manage permission can write", func(t *testing.T) {

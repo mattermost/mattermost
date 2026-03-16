@@ -3035,10 +3035,6 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
-    "id": "api.property_field.app_error",
-    "translation": "An error occurred while processing the property field request."
-  },
-  {
     "id": "api.property_field.create.invalid_target_type.app_error",
     "translation": "The provided target type is not valid."
   },
@@ -3091,10 +3087,6 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
-    "id": "api.property_value.app_error",
-    "translation": "An error occurred while processing property values."
-  },
-  {
     "id": "api.property_value.invalid_group_name.app_error",
     "translation": "The provided group name is not valid or does not exist."
   },
@@ -3109,10 +3101,6 @@
   {
     "id": "api.property_value.patch.empty_body.app_error",
     "translation": "Request body must contain at least one property value update."
-  },
-  {
-    "id": "api.property_value.patch.field_group_mismatch.app_error",
-    "translation": "All field IDs must belong to the specified property group."
   },
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
@@ -7563,6 +7551,26 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property_field.count_active_for_group.app_error",
+    "translation": "Unable to count active property fields for group."
+  },
+  {
+    "id": "app.property_field.count_active_for_target.app_error",
+    "translation": "Unable to count active property fields for target."
+  },
+  {
+    "id": "app.property_field.count_all_for_group.app_error",
+    "translation": "Unable to count property fields for group."
+  },
+  {
+    "id": "app.property_field.count_all_for_target.app_error",
+    "translation": "Unable to count property fields for target."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Unable to create property field."
+  },
+  {
     "id": "app.property_field.create.name_conflict.app_error",
     "translation": "Cannot create property \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },
@@ -7571,8 +7579,44 @@
     "translation": "Cannot create a protected property field."
   },
   {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Unable to delete property field."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Unable to get property field for deletion."
+  },
+  {
     "id": "app.property_field.delete.protected.app_error",
     "translation": "Cannot delete a protected property field."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Unable to get property field."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Unable to get property field by name."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Unable to get property fields."
+  },
+  {
+    "id": "app.property_field.get_many.results_mismatch.app_error",
+    "translation": "Some requested property fields were not found in the specified group."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Unable to search property fields."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Unable to update property fields."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Unable to get property fields for update."
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",
@@ -7581,6 +7625,22 @@
   {
     "id": "app.property_field.update.protected.app_error",
     "translation": "Cannot update a protected property field."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Unable to get property group."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Unable to search property values."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Unable to upsert property values."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",

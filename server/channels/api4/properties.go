@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (api *API) InitProperties() {
@@ -25,16 +24,6 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
 	}
-}
-
-// propertyFieldError converts an error from the app/property layer to an *model.AppError
-// suitable for setting on the context.
-func propertyFieldError(where string, err error) *model.AppError {
-	var appErr *model.AppError
-	if errors.As(err, &appErr) {
-		return appErr
-	}
-	return model.NewAppError(where, "api.property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }
 
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -135,7 +124,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	createdField, err := c.App.CreatePropertyField(field, false)
 	if err != nil {
-		c.Err = propertyFieldError("createPropertyField", err)
+		c.Err = err
 		return
 	}
 
@@ -223,7 +212,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fields, err := c.App.SearchPropertyFields(group.ID, opts)
 	if err != nil {
-		c.Err = propertyFieldError("getPropertyFields", err)
+		c.Err = err
 		return
 	}
 
@@ -276,7 +265,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Get existing field
 	existingField, err := c.App.GetPropertyField(groupID, c.Params.FieldId)
 	if err != nil {
-		c.Err = propertyFieldError("patchPropertyField", err)
+		c.Err = err
 		return
 	}
 
@@ -331,7 +320,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	updatedField, err := c.App.UpdatePropertyField(groupID, existingField, false)
 	if err != nil {
-		c.Err = propertyFieldError("patchPropertyField", err)
+		c.Err = err
 		return
 	}
 
@@ -361,7 +350,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Get existing field
 	existingField, err := c.App.GetPropertyField(groupID, c.Params.FieldId)
 	if err != nil {
-		c.Err = propertyFieldError("deletePropertyField", err)
+		c.Err = err
 		return
 	}
 
@@ -389,7 +378,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.DeletePropertyField(groupID, c.Params.FieldId, false); err != nil {
-		c.Err = propertyFieldError("deletePropertyField", err)
+		c.Err = err
 		return
 	}
 
@@ -447,7 +436,7 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	values, err := c.App.SearchPropertyValues(group.ID, opts)
 	if err != nil {
-		c.Err = propertyValueError("getPropertyValues", err)
+		c.Err = err
 		return
 	}
 
@@ -509,14 +498,7 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	// a different group won't be found, causing a mismatch error.
 	fields, err := c.App.GetPropertyFields(groupID, fieldIDs)
 	if err != nil {
-		// The store returns a mismatch error when some IDs are not found
-		// within the group — treat this as a bad request (wrong group).
-		var mismatchErr *store.ErrResultsMismatch
-		if errors.As(err, &mismatchErr) {
-			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.field_group_mismatch.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		c.Err = propertyValueError("patchPropertyValues", err)
+		c.Err = err
 		return
 	}
 
@@ -560,7 +542,7 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	upserted, err := c.App.UpsertPropertyValues(values)
 	if err != nil {
-		c.Err = propertyValueError("patchPropertyValues", err)
+		c.Err = err
 		return
 	}
 
@@ -570,16 +552,6 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(upserted); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-// propertyValueError converts an error from the app/property layer to an *model.AppError
-// suitable for setting on the context.
-func propertyValueError(where string, err error) *model.AppError {
-	var appErr *model.AppError
-	if errors.As(err, &appErr) {
-		return appErr
-	}
-	return model.NewAppError(where, "api.property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }
 
 // hasTargetAccess checks that the caller has access to the target entity
