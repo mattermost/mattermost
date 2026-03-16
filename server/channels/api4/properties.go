@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+const maxPropertyValuePatchItems = 50
+
 func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(createPropertyField)).Methods(http.MethodPost)
@@ -474,6 +476,13 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(items) == 0 {
 		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.empty_body.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(items) > maxPropertyValuePatchItems {
+		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.too_many_items.request_error", map[string]any{
+			"Max": maxPropertyValuePatchItems,
+		}, "", http.StatusBadRequest)
 		return
 	}
 
