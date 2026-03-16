@@ -1055,6 +1055,21 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.FileIds = originalPost.FileIds
 	}
 
+	// passing nil props should not have any effect on a post's props
+	// so, we restore the original props in this case
+	if post.Props == nil {
+		post.Props = originalPost.Props
+	}
+
+	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) &&
+		(post.Message != originalPost.Message ||
+			!slices.Equal(post.FileIds, originalPost.FileIds) ||
+			model.StringInterfaceToJSON(post.GetProps()) != model.StringInterfaceToJSON(originalPost.GetProps()) ||
+			post.IsPinned != originalPost.IsPinned) {
+		c.Err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+		return
+	}
+
 	// Check upload_file permission only if update is adding NEW files (not just keeping existing ones)
 	checkUploadFilePermissionForNewFiles(c, post.FileIds, originalPost)
 	if c.Err != nil {
@@ -1070,11 +1085,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post.Id = c.Params.PostId
-
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != originalPost.Message {
-		c.Err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-		return
-	}
 
 	rpost, isMemberForPreviews, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), &model.UpdatePostOptions{SafeUpdate: false})
 	if err != nil {
@@ -1124,7 +1134,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	isMember := postPatchChecks(c, auditRec, post.Message)
+	isMember := postPatchChecks(c, auditRec, &post)
 	if c.Err != nil {
 		return
 	}
@@ -1160,7 +1170,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) bool {
+func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostPatch) bool {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1183,7 +1193,8 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 		return false
 	}
 
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
+	fileIdsChanged := patch.FileIds != nil && !slices.Equal(*patch.FileIds, originalPost.FileIds)
+	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && (patch.Message != nil || fileIdsChanged || patch.Props != nil || patch.IsPinned != nil) {
 		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return isMember
 	}
@@ -1275,6 +1286,11 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	ok, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > post.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) {
+		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -1648,7 +1664,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isMember := postPatchChecks(c, auditRec, &toRestorePost.Message)
+	isMember := postPatchChecks(c, auditRec, &model.PostPatch{Message: &toRestorePost.Message, FileIds: &toRestorePost.FileIds})
 	if c.Err != nil {
 		return
 	}
