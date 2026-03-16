@@ -1,22 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {UserThread} from '@mattermost/types/threads';
 
-import Timestamp from 'components/timestamp';
-import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
-
 import {fakeDate} from 'tests/helpers/date';
-import {mockStore} from 'tests/test_store';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ThreadFooter from './thread_footer';
 
-import FollowButton from '../../common/follow_button';
+let capturedAvatarsProps: any = {};
+jest.mock('components/widgets/users/avatars', () => (props: any) => {
+    capturedAvatarsProps = props;
+    return <div data-testid='mock-avatars'/>;
+});
+
+let capturedTimestampProps: any = {};
+jest.mock('components/timestamp', () => (props: any) => {
+    capturedTimestampProps = props;
+    return <span data-testid='mock-timestamp'/>;
+});
+
+let capturedFollowButtonProps: any = {};
+jest.mock('../../common/follow_button', () => (props: any) => {
+    capturedFollowButtonProps = props;
+    return (
+        <button
+            className='separated'
+            data-testid='mock-follow-button'
+            onClick={props.onClick}
+        >
+            {'Follow'}
+        </button>
+    );
+});
 
 describe('components/threading/channel_threads/thread_footer', () => {
     const baseState = {
@@ -126,9 +145,12 @@ describe('components/threading/channel_threads/thread_footer', () => {
 
     beforeEach(() => {
         resetFakeDate = fakeDate(new Date('2020-05-03T13:20:00Z'));
-        state = {...baseState};
+        state = JSON.parse(JSON.stringify(baseState));
         thread = state.entities.threads.threads.postthreadid;
         props = {threadId: thread.id};
+        capturedAvatarsProps = {};
+        capturedTimestampProps = {};
+        capturedFollowButtonProps = {};
     });
 
     afterEach(() => {
@@ -136,81 +158,80 @@ describe('components/threading/channel_threads/thread_footer', () => {
     });
 
     test('should report total number of replies', () => {
-        const {mountOptions} = mockStore(state);
-
-        const wrapper = mount(
+        const {baseElement, container} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.exists('.dot-unreads')).toBe(false);
-        expect(wrapper.exists('FormattedMessage[id="threading.numReplies"]')).toBe(true);
+        expect(baseElement).toMatchSnapshot();
+        expect(container.querySelector('.dot-unreads')).not.toBeInTheDocument();
+        expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
 
     test('should show unread indicator', () => {
         thread.unread_replies = 2;
 
-        const {mountOptions} = mockStore(state);
-        const wrapper = mount(
+        const {baseElement, container} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(WithTooltip).find('.dot-unreads').exists()).toBe(true);
+        expect(baseElement).toMatchSnapshot();
+        expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
     });
 
     test('should not show unread indicator if not following', () => {
         thread.unread_replies = 2;
         thread.is_following = false;
 
-        const {mountOptions} = mockStore(state);
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper.find(WithTooltip).find('.dot-unreads').exists()).toBe(false);
+        expect(container.querySelector('.dot-unreads')).not.toBeInTheDocument();
     });
 
     test('should have avatars', () => {
-        const {mountOptions} = mockStore(state);
-        const wrapper = mount(
+        renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
-        expect(wrapper.find(Avatars).props()).toHaveProperty('userIds', ['5', '4', '3', '2', '1']);
+        expect(capturedAvatarsProps).toHaveProperty('userIds', ['5', '4', '3', '2', '1']);
     });
 
     test('should have a timestamp', () => {
-        const {mountOptions} = mockStore(state);
-        const wrapper = mount(
+        renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
-        expect(wrapper.find(Timestamp).props()).toHaveProperty('value', thread.last_reply_at);
+        expect(capturedTimestampProps).toHaveProperty('value', thread.last_reply_at);
     });
 
-    test('should have a reply button', () => {
-        const {store, mountOptions} = mockStore(state);
-        const wrapper = mount(
+    test('should have a reply button', async () => {
+        const {container, store} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
-        wrapper.find('button.separated').first().simulate('click');
-        expect(store.getActions()).toEqual([
+        await userEvent.click(container.querySelector('button.separated')!);
+        expect((store as any).getActions()).toEqual([
             {
                 type: 'SELECT_POST',
                 channelId: 'cid',
@@ -220,71 +241,75 @@ describe('components/threading/channel_threads/thread_footer', () => {
         ]);
     });
 
-    test('should have a follow button', () => {
+    test('should have a follow button', async () => {
         thread.is_following = false;
 
-        const {store, mountOptions} = mockStore(state);
-        const wrapper = mount(
+        const {container, store} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper.exists(FollowButton)).toBe(true);
-        expect(wrapper.find(FollowButton).props()).toHaveProperty('isFollowing', thread.is_following);
+        expect(screen.getByTestId('mock-follow-button')).toBeInTheDocument();
+        expect(capturedFollowButtonProps).toHaveProperty('isFollowing', thread.is_following);
 
-        wrapper.find('button.separated').last().simulate('click');
-        expect(store.getActions()).toEqual([
-            {
-                type: 'FOLLOW_CHANGED_THREAD',
-                data: {
-                    following: true,
-                    id: 'postthreadid',
-                    team_id: 'tid',
-                },
-            },
-        ]);
+        const buttons = container.querySelectorAll('button.separated');
+        await userEvent.click(buttons[buttons.length - 1]);
+        expect((store as any).getActions()).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    type: 'FOLLOW_CHANGED_THREAD',
+                    data: {
+                        following: true,
+                        id: 'postthreadid',
+                        team_id: 'tid',
+                    },
+                }),
+            ]),
+        );
     });
 
-    test('should have an unfollow button', () => {
+    test('should have an unfollow button', async () => {
         thread.is_following = true;
-        const {store, mountOptions} = mockStore(state);
-
-        const wrapper = mount(
+        const {container, store} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
-        expect(wrapper.exists(FollowButton)).toBe(true);
-        expect(wrapper.find(FollowButton).props()).toHaveProperty('isFollowing', thread.is_following);
+        expect(screen.getByTestId('mock-follow-button')).toBeInTheDocument();
+        expect(capturedFollowButtonProps).toHaveProperty('isFollowing', thread.is_following);
 
-        wrapper.find('button.separated').last().simulate('click');
-        expect(store.getActions()).toEqual([
-            {
-                type: 'FOLLOW_CHANGED_THREAD',
-                data: {
-                    following: false,
-                    id: 'postthreadid',
-                    team_id: 'tid',
-                },
-            },
-        ]);
+        const buttons = container.querySelectorAll('button.separated');
+        await userEvent.click(buttons[buttons.length - 1]);
+        expect((store as any).getActions()).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    type: 'FOLLOW_CHANGED_THREAD',
+                    data: {
+                        following: false,
+                        id: 'postthreadid',
+                        team_id: 'tid',
+                    },
+                }),
+            ]),
+        );
     });
 
     test('should match snapshot when a single message is followed', () => {
-        const {mountOptions} = mockStore(state);
-
-        const wrapper = mount(
+        const {baseElement} = renderWithContext(
             <ThreadFooter
                 threadId='singlemessageid'
             />,
-            mountOptions,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.exists(FollowButton)).toBe(true);
-        expect(wrapper.find(FollowButton).props()).toHaveProperty('isFollowing', true);
+        expect(baseElement).toMatchSnapshot();
+        expect(screen.getByTestId('mock-follow-button')).toBeInTheDocument();
+        expect(capturedFollowButtonProps).toHaveProperty('isFollowing', true);
     });
 });

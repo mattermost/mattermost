@@ -83,8 +83,12 @@ export function SystemUsersFilterPopover(props: Props) {
             filterRole = RoleFilters.Admin;
         } else if (roleFilter === RoleFilters.Member) {
             filterRole = RoleFilters.Member;
-        } else if (roleFilter === RoleFilters.Guest) {
-            filterRole = RoleFilters.Guest;
+        } else if (roleFilter === RoleFilters.GuestAll) {
+            filterRole = RoleFilters.GuestAll;
+        } else if (roleFilter === RoleFilters.GuestSingleChannel) {
+            filterRole = RoleFilters.GuestSingleChannel;
+        } else if (roleFilter === RoleFilters.GuestMultiChannel) {
+            filterRole = RoleFilters.GuestMultiChannel;
         }
 
         setFilterState({...filterState, filterRole});
