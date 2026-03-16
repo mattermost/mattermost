@@ -2472,10 +2472,6 @@
     "translation": "L'usuari de Slack s'ha fusionat amb un usuari de Mattermost existent amb el correu {{.Email}} i el nom d'usuari {{.Username}} corresponents.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "S'ha importat l'usuari de Slack amb el correu {{.Email}} i la contrasenya {{.Password}}.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUsuaris creats:\r\n"
   },
@@ -2498,10 +2494,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "No s'ha pogut importar l'usuari d'integració/Slack Bot {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "S'ha importat l'usuari d'integració/Slack Bot amb el correu {{.Email}} i la contrasenya {{.Password}}.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",

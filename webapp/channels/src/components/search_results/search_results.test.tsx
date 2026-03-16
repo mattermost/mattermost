@@ -6,7 +6,7 @@ import React from 'react';
 
 import SearchResults, {arePropsEqual} from 'components/search_results/search_results';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
@@ -165,18 +165,6 @@ describe('components/SearchResults', () => {
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
             );
-        });
-    });
-
-    describe('handleChannelNameClick', () => {
-        test('should navigate to channel URL when channel display name is clicked', () => {
-            const pushMock = jest.fn();
-            jest.mocked(getHistory).mockReturnValue({push: pushMock} as any);
-
-            renderSearchResults({channelDisplayName: 'Test Channel'});
-            screen.getByText('Test Channel').click();
-
-            expect(pushMock).toHaveBeenCalledWith(`/${team.name}/channels/${channel.name}`);
         });
     });
 

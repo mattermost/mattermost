@@ -1479,10 +1479,6 @@
     "translation": "Fout bij het starten van de server, fout:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "De integratie/Slack Bot gebruiker met email {{.Email}} en wachtwoord {{.Password}} werd geïmporteerd.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Fout bij het importeren van Integratie /Slack Bot gebruiker {{.Username}}.\n"
   },
@@ -1505,10 +1501,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\n Gebruikers aangemaakt\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slackgebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} is geïmporteerd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -11681,7 +11673,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Workers moet tussen 1 en 32 zijn."
+    "translation": "Workers moet tussen 1 en 64 zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
@@ -11726,5 +11718,293 @@
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
     "translation": "DCR redirect URI allowlist bevat een ongeldig patroon. Patronen moeten beginnen met http:// of https:// en mogen niet leeg zijn of spaties bevatten."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "De reden voor quarantaine van berichten kan niet langer zijn dan {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Data Spillage Handling functie is uitgeschakeld."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Het in quarantaine plaatsen van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Je licentie biedt geen ondersteuning voor Data Spillage Handling."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Data Spillage Handling is niet ingeschakeld in dit team."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "De post in quarantaine moet de status 'in behandeling' of 'toegewezen' hebben om behouden of verwijderd te worden."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Onbekende reden opgegeven voor bericht in quarantaine."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Selecteer een reden om dit bericht in quarantaine te plaatsen."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "De gebruiker is geen inhoudsreviewer."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "Er is een fout opgetreden tijdens het controleren van de plugin directory configuratie."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Kan plugin niet installeren: PluginSettings.Directory conflicteert met ImportSettings.Directory."
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "De Integratie/Slack Bot gebruiker met e-mail {{.Email}} is geïmporteerd.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack gebruiker met e-mail {{.Email}} is geïmporteerd.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Kan wachtwoord reset e-mail niet verzenden naar {{.Username}} op {{.Email}}.\n"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "Er is een fout opgetreden tijdens het controleren van de configuratie van de importmap."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Kan import upload niet maken: ImportSettings.Directory conflicteert met PluginSettings.Directory."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Het opgegeven triggertrefwoord bestaat al."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Geen eigenschapveld ReviewerID gevonden."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij de reviewer-instelling ."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Fout bij het instellen van gemarkeerde post-recensent."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Kan dit bericht niet in quarantaine plaatsen omdat het al in quarantaine is geplaatst voor beoordeling."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Kan dit bericht niet in quarantaine plaatsen omdat het is verwijderd in een eerdere beoordeling."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Kan dit bericht niet in quarantaine plaatsen omdat het is bewaard in een eerdere beoordeling."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Kan dit bericht niet in quarantaine plaatsen omdat het een onbekende status heeft."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Fout om commentaar van markerende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Fout om de reden van de vlaggende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Het bericht van @{{.username}} is in quarantaine geplaatst voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een reviewer."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Fout bij het ophalen van de Content Flagging bot."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Fout bij het ophalen van instellingen voor inhoudsbeoordelaar uit de database"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Fout bij het ophalen van het Statusveld."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Het is niet gelukt om reacties op de gemarkeerde post op te halen."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Fout bij het zoeken van beoordeelaars in het team."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht en de bijhorende data te verwijderen."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Fout bij de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Kan het eigenschapveld Flagged Post ID niet vinden."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Manage By-eigenschapsveld is niet gevonden."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Kan het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Kan de waarde voor het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Status-eigenschapsveld niet gevonden."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Het is niet gelukt om de instellingen van de inhoudsbeoordelaar op te slaan in de database."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Kan de term niet vinden in Common Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Kan reviewer berichten niet vinden het gemarkeerde bericht."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in System Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Reviewers."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Fout bij het ophalen van gast accounts behorend tot maar 1 kanaal."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Kon geen beleidsregels krijgen voor de opgegeven veld-ID's."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Data Spillage Bot"
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Aantal gasten voor één kanaal voor analyse mislukt."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} faalde bij het opvullen van kanalentypes op berichten"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} faalde bij het bijwerken van kanalentypes op berichten"
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Ongeldig versienummer. Moet een geldige semantische versie zijn (bijv. 5.0.0)."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Het filter voor gasten is niet geldig."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Neem contact op met je systeembeheerder als je meer hulp nodig hebt."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Bijgewerkte app downloaden"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "Over"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Privacybeleid"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Gebruiksvoorwaarden"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "De versie van je {{.SiteName}} Desktop App ({{.CurrentVersion}}) is lager dan de minimaal vereiste versie ({{.MinimumVersion}}). Werk je app bij of open {{.SiteName}} in een webbrowser om verder te gaan."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Update Vereist"
   }
 ]
