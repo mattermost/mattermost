@@ -375,16 +375,6 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
-	// Check if this is a membership change task
-	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
-		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
-			return nil
-		}
-		scs.processMembershipChange(task.existingMsg)
-		return nil
-	}
-
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
