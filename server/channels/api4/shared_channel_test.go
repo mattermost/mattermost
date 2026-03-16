@@ -669,3 +669,66 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 		t.Skip("Requires server2server communication: ToBeImplemented")
 	})
 }
+
+func TestSharedChannelEndpointsWithSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
+	rc, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("getSharedChannelRemotesByRemoteCluster should allow shared_channel_manager", func(t *testing.T) {
+		_, resp, err := scmClient.GetSharedChannelRemotesByRemoteCluster(context.Background(), rc.RemoteId, model.SharedChannelRemoteFilterOpts{}, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+
+	t.Run("inviteRemoteClusterToChannel should allow shared_channel_manager", func(t *testing.T) {
+		// This will fail with a bad request (nonexistent channel) rather than forbidden,
+		// which proves the permission check passed.
+		resp, err := scmClient.InviteRemoteClusterToChannel(context.Background(), rc.RemoteId, model.NewId())
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("uninviteRemoteClusterToChannel should allow shared_channel_manager", func(t *testing.T) {
+		// Same as invite — a bad request proves the permission check passed.
+		resp, err := scmClient.UninviteRemoteClusterToChannel(context.Background(), rc.RemoteId, model.NewId())
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
+func TestGetSharedChannelRemotesByRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
+	rc, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the secure_connection_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("secure_connection_manager should have access", func(t *testing.T) {
+		_, resp, err := scmClient.GetSharedChannelRemotesByRemoteCluster(context.Background(), rc.RemoteId, model.SharedChannelRemoteFilterOpts{}, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+}

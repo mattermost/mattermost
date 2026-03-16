@@ -6132,10 +6132,6 @@
     "translation": "Slack потребител е обединен с Mattermost поради съвпадащи ел.поща {{.Email}} и потребителско име {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack потребител с ел.поща {{.Email}} и парола {{.Password}} беше внесен.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nСъздадени потребители:\n"
   },
@@ -6158,10 +6154,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Не можа да се внесе интеграцията/Slack Bot потребителя {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Интеграцията/Slack Bot потребителя с ел.поща {{.Email}} и парола {{.Password}} е внесен.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
