@@ -359,6 +359,7 @@ describe('dialog_conversion', () => {
             } as DialogElement;
 
             const result = getDefaultValue(element);
+
             // Radio defaults are plain strings (not {label, value} objects)
             // because RadioSetting.onChange returns e.target.value (a string)
             expect(result).toBe('option1');
