@@ -74,6 +74,53 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	return filtered[startIdx:endIdx], total, nil
 }
 
+// StampLastTeamOnChannellessPolicy checks if a parent policy has no remaining
+// children and, if so, stores the team ID in the policy's Props. This allows
+// the delete handler to verify that a team admin belongs to the team that last
+// owned the policy. System admins are not affected by this check.
+func (a *App) StampLastTeamOnChannellessPolicy(rctx request.CTX, policyID, teamID string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		ParentID: policyID,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Limit:    1,
+	})
+	if err != nil {
+		return model.NewAppError("StampLastTeamOnChannellessPolicy",
+			"app.team.access_policies.stamp_team.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Still has children — no stamp needed
+	if len(children) > 0 {
+		return nil
+	}
+
+	policy, appErr := acs.GetPolicy(rctx, policyID)
+	if appErr != nil {
+		return model.NewAppError("StampLastTeamOnChannellessPolicy",
+			"app.team.access_policies.stamp_team.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	if policy.Props == nil {
+		policy.Props = make(map[string]any)
+	}
+	policy.Props["last_team_id"] = teamID
+
+	if _, appErr = acs.SavePolicy(rctx, policy); appErr != nil {
+		return model.NewAppError("StampLastTeamOnChannellessPolicy",
+			"app.team.access_policies.stamp_team.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
 // ValidateTeamAdminPolicyOwnership verifies that a policy is team-scoped to the
 // given team. Returns an error if the policy doesn't exist, spans multiple teams,
 // or belongs to a different team.

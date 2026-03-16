@@ -187,18 +187,14 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			if teamID != "" && model.IsValidId(teamID) &&
 				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
 				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
-					// Allow delete if the policy is a channelless parent (channels were just unassigned)
+					// Allow delete only if the policy is channelless AND was last owned by this team
 					policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 					if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
 						c.Err = appErr
 						return
 					}
-					childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-						ParentID: policyID,
-						Type:     model.AccessControlPolicyTypeChannel,
-						Limit:    1,
-					})
-					if searchErr != nil || len(childCount) > 0 {
+					lastTeamID, _ := policy.Props["last_team_id"].(string)
+					if lastTeamID != teamID {
 						c.Err = appErr
 						return
 					}
@@ -323,6 +319,10 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	for _, user := range users {
+		c.App.SanitizeProfile(user, hasSystemPermission)
 	}
 
 	resp := model.AccessControlPolicyTestResponse{
@@ -601,17 +601,15 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		// channels belong to the requesting team regardless.
 		ownershipErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
 		if ownershipErr != nil {
+			// Allow assign if the policy is a channelless parent that is either
+			// newly created (no last_team_id) or was last owned by this team.
 			policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 			if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
 				c.Err = ownershipErr
 				return
 			}
-			childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-				ParentID: policyID,
-				Type:     model.AccessControlPolicyTypeChannel,
-				Limit:    1,
-			})
-			if searchErr != nil || len(childCount) > 0 {
+			lastTeamID, _ := policy.Props["last_team_id"].(string)
+			if lastTeamID != "" && lastTeamID != assignments.TeamID {
 				c.Err = ownershipErr
 				return
 			}
@@ -682,6 +680,14 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr != nil {
 			c.Err = appErr
 			return
+		}
+	}
+
+	// If a team admin unassigned all channels, stamp the team ID on the policy
+	// so only admins from this team can delete the now-channelless policy.
+	if !hasSystemPermission && assignments.TeamID != "" {
+		if appErr := c.App.StampLastTeamOnChannellessPolicy(c.AppContext, policyID, assignments.TeamID); appErr != nil {
+			c.Logger.Warn("Failed to stamp last_team_id on policy", mlog.String("policy_id", policyID), mlog.Err(appErr))
 		}
 	}
 

@@ -373,3 +373,49 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
 	})
 }
+
+func TestStampLastTeamOnChannellessPolicy(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("stamps team ID when policy has no children", func(t *testing.T) {
+		parentPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Stamp Test Policy",
+			Rules:    []model.AccessControlPolicyRule{{Expression: "true", Actions: []string{"*"}}},
+		}
+		var err error
+		parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+		require.NoError(t, err)
+
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).
+			Return(parentPolicy, nil)
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(parentPolicy, nil)
+
+		appErr := th.App.StampLastTeamOnChannellessPolicy(th.Context, parentPolicy.ID, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		mockACS.AssertCalled(t, "SavePolicy", mock.Anything, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Props["last_team_id"] == th.BasicTeam.Id
+		}))
+	})
+
+	t.Run("does not stamp when policy still has children", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+
+		appErr := th.App.StampLastTeamOnChannellessPolicy(th.Context, policy.ID, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+	})
+}
