@@ -113,6 +113,17 @@ export async function popoutRhsSearch(
         },
     );
 }
+export async function popoutChannel(
+    titleTemplate: string,
+    teamName: string,
+    path: string,
+    channelIdentifier: string,
+) {
+    return popout(
+        `${getBasePath()}/_popout/channel/${teamName}/${path}/${channelIdentifier}`,
+        {titleTemplate},
+    );
+}
 
 export async function popoutHelp() {
     return popout(
@@ -169,6 +180,10 @@ export function onMessageFromParent(listener: (channel: string, ...args: unknown
 
 export function isPopoutWindow() {
     return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
+}
+
+export function isChannelPopoutWindow() {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/channel/`);
 }
 
 export function isThreadPopoutWindow(teamName: string, threadId: string) {

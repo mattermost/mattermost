@@ -32,31 +32,32 @@ exports[`components/threading/common/thread_menu should match snapshot after ope
           role="menu"
         >
           <li
-            class="MenuItem MenuItem--with-icon"
+            class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+            id="openInNewWindow"
             role="menuitem"
+            tabindex="-1"
           >
-            <button
-              class="style--none PopoutMenuItem"
-              data-testid="undefined-button"
-              id="undefined-button"
+            <div
+              class="leading-element"
             >
-              <span
-                class="MenuItem__primary-text"
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <span
-                  class="icon"
-                >
-                  <i
-                    class="icon icon-dock-window"
-                  />
-                </span>
-                <div
-                  class="text"
-                >
-                  Open in new window
-                </div>
-              </span>
-            </button>
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+            <div
+              class="label-elements"
+            >
+              Open in new window
+            </div>
           </li>
           <li
             class="MenuItem"
