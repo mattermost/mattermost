@@ -48,10 +48,10 @@ func (tr *TestRunner) Run(ctx context.Context) error {
 	// Lifecycle management
 	if tr.cfg.Manage {
 		tr.mgr = NewServerManager(tr.cfg, tr.logger)
+		defer tr.mgr.Teardown()
 		if err := tr.mgr.Setup(ctx); err != nil {
 			return fmt.Errorf("server setup: %w", err)
 		}
-		defer tr.mgr.Teardown()
 	}
 
 	// Provision

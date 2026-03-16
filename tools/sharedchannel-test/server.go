@@ -42,13 +42,30 @@ func (sm *ServerManager) Setup(ctx context.Context) error {
 // Teardown stops both server processes.
 func (sm *ServerManager) Teardown() {
 	sm.logger.Info("Stopping servers...")
-	if sm.procA != nil && sm.procA.Process != nil {
-		_ = sm.procA.Process.Signal(os.Interrupt)
-		_ = sm.procA.Wait()
+	stopProc(sm.procA)
+	stopProc(sm.procB)
+}
+
+// stopProc sends SIGINT and waits up to 10 seconds for graceful shutdown,
+// then sends SIGKILL if the process is still running.
+func stopProc(cmd *exec.Cmd) {
+	if cmd == nil || cmd.Process == nil {
+		return
 	}
-	if sm.procB != nil && sm.procB.Process != nil {
-		_ = sm.procB.Process.Signal(os.Interrupt)
-		_ = sm.procB.Wait()
+
+	_ = cmd.Process.Signal(os.Interrupt)
+
+	done := make(chan struct{})
+	go func() {
+		_ = cmd.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		_ = cmd.Process.Kill()
+		<-done
 	}
 }
 
@@ -119,7 +136,10 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
 	)
-	outA, _ := os.Create(filepath.Join(logsDir, "server_a_stdout.log"))
+	outA, err := os.Create(filepath.Join(logsDir, "server_a_stdout.log"))
+	if err != nil {
+		return fmt.Errorf("create server A log file: %w", err)
+	}
 	sm.procA.Stdout = outA
 	sm.procA.Stderr = outA
 	if err := sm.procA.Start(); err != nil {
