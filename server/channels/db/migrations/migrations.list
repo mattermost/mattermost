@@ -559,3 +559,9 @@ channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelrem
 channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelremotes.up.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.down.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
+channels/db/migrations/postgres/000142_add_schemeid_to_roles.down.sql
+channels/db/migrations/postgres/000142_add_schemeid_to_roles.up.sql
+channels/db/migrations/postgres/000143_backfill_roles_schemeid.down.sql
+channels/db/migrations/postgres/000143_backfill_roles_schemeid.up.sql
+channels/db/migrations/postgres/000144_add_roles_schemeid_index.down.sql
+channels/db/migrations/postgres/000144_add_roles_schemeid_index.up.sql
