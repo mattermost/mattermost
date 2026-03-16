@@ -37,10 +37,13 @@ func (tr *TestRunner) runReactionTests(ctx context.Context) error {
 
 	// Wait for post to sync
 	var postBID string
-	tr.waitFor(ctx, 30*time.Second, func() bool {
+	if err := tr.waitFor(ctx, 30*time.Second, func() bool {
 		postBID = tr.findPostOnB(ctx, channelB, postMsg)
 		return postBID != ""
-	})
+	}); err != nil {
+		tr.fail("reaction/post-sync", "post did not sync to Server B before adding reactions")
+		return err
+	}
 
 	// ── Test: Add reaction and verify sync ──────────────────
 	tr.logger.Info("Adding reaction on Server A...")

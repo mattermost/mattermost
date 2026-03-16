@@ -187,6 +187,13 @@ func ProvisionAdmin(ctx context.Context, serverURL, dbName, username, email, pas
 		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 
+	// Validate username to prevent SQL injection
+	for _, r := range username {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-' || r == '.') {
+			return nil, fmt.Errorf("invalid character %q in username", r)
+		}
+	}
+
 	// Promote to system_admin via DB
 	cmd := exec.CommandContext(ctx, "docker", "exec",
 		"-e", "PGPASSWORD=mostest",

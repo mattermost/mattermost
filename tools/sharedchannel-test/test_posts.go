@@ -29,9 +29,12 @@ func (tr *TestRunner) runPostTests(ctx context.Context) error {
 	}
 
 	// Wait for user to sync before posting
-	tr.waitFor(ctx, 15*time.Second, func() bool {
+	if err := tr.waitFor(ctx, 15*time.Second, func() bool {
 		return tr.verifyMemberOnB(ctx, channelB, "postuser1")
-	})
+	}); err != nil {
+		tr.fail("post/user-sync", "postuser1 did not sync to Server B before posting")
+		return err
+	}
 
 	// ── Test: Create post and verify sync ───────────────────
 	tr.logger.Info("Creating post on Server A...")

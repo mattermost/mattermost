@@ -7,7 +7,7 @@
 // Usage:
 //
 //	go run . --license /path/to/license.mattermost-license
-//	go run . --server-a http://already:8065 --server-b http://running:8066 --no-manage
+//	go run . --server-a http://already:9065 --server-b http://running:9066 --manage=false
 package main
 
 import (
