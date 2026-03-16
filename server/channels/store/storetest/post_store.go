@@ -31,6 +31,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
+	t.Run("DeleteCardPosts", func(t *testing.T) { testPostStoreDeleteCardPosts(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
 	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
@@ -59,6 +60,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, rctx, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, rctx, ss, s) })
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, rctx, ss) })
+	t.Run("GetPostsByThread", func(t *testing.T) { testPostStoreGetPostsByThread(t, rctx, ss) })
+	t.Run("ThreadMetadataCountsCardReplies", func(t *testing.T) { testThreadMetadataCountsCardReplies(t, rctx, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
@@ -663,6 +666,16 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.Post().Get(rctx, "", model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "should fail for blank post ids")
+
+	// Get() is intentionally unfiltered — card posts should be returned by known ID
+	cardPost := &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "card post for Get test", Type: model.PostTypeCard}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	require.Contains(t, r2.Posts, cardPost.Id, "Get() should return card posts by known ID")
+	require.Equal(t, model.PostTypeCard, r2.Posts[cardPost.Id].Type)
 }
 
 func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1021,6 +1034,66 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
 		require.True(t, *r1.HasNext)
 	})
+}
+
+func testPostStoreGetPostsByThread(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "GetPostsByThread",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	// Create root post
+	root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+	require.NoError(t, err)
+
+	// Create normal reply
+	normalReply, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "normal reply", RootId: root.Id})
+	require.NoError(t, err)
+
+	// Create card reply
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "card reply", RootId: root.Id, Type: model.PostTypeCard})
+	require.NoError(t, err)
+
+	// GetPostsByThread should exclude card posts
+	posts, err := ss.Post().GetPostsByThread(root.Id, 0)
+	require.NoError(t, err)
+	require.Len(t, posts, 1, "card reply should be excluded")
+	require.Equal(t, normalReply.Id, posts[0].Id)
+}
+
+func testThreadMetadataCountsCardReplies(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ThreadMetadataCardTest",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	// Create root post
+	root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+	require.NoError(t, err)
+
+	// Create normal reply
+	normalUserId := model.NewId()
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: normalUserId, Message: "normal reply", RootId: root.Id})
+	require.NoError(t, err)
+
+	// Create card reply from a different user
+	cardUserId := model.NewId()
+	_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: cardUserId, Message: "card reply", RootId: root.Id, Type: model.PostTypeCard})
+	require.NoError(t, err)
+
+	// Thread metadata should count ALL replies including card posts (intentionally unfiltered)
+	thread, err := ss.Thread().Get(root.Id)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, thread.ReplyCount, "thread reply count should include card replies")
+	require.Len(t, thread.Participants, 2, "thread participants should include card reply author")
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1759,6 +1832,67 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	require.Error(t, err, "Deleted id should have failed")
 }
 
+func testPostStoreDeleteCardPosts(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DeleteCardTest",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	// Create a card post
+	cardPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userID,
+		Message:   "card post for delete test",
+		Type:      model.PostTypeCard,
+	}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	// Verify card post exists via Get (unfiltered single lookup)
+	_, err = ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err, "Card post should exist before deletion")
+
+	t.Run("PermanentDeleteByChannel deletes card posts", func(t *testing.T) {
+		err = ss.Post().PermanentDeleteByChannel(rctx, channel.Id)
+		require.NoError(t, err)
+
+		// Verify card post no longer exists
+		_, err = ss.Post().Get(rctx, cardPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err, "Card post should be deleted by PermanentDeleteByChannel")
+	})
+
+	t.Run("PermanentDeleteByUser deletes card posts", func(t *testing.T) {
+		channel2, err2 := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DeleteCardTest2",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err2)
+
+		cardPost2 := &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "card post for user delete test",
+			Type:      model.PostTypeCard,
+		}
+		cardPost2, err2 = ss.Post().Save(rctx, cardPost2)
+		require.NoError(t, err2)
+
+		err2 = ss.Post().PermanentDeleteByUser(rctx, userID)
+		require.NoError(t, err2)
+
+		_, err2 = ss.Post().Get(rctx, cardPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.Error(t, err2, "Card post should be deleted by PermanentDeleteByUser")
+	})
+}
+
 func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(rctx, &model.Channel{
@@ -2425,6 +2559,40 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 			assert.Equal(t, []string{post5.Id}, postList.Order)
 		})
 	})
+	t.Run("should exclude card posts", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "GetPostsAroundCards",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+
+		post1, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "post1"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Card post between two normal posts
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "card post", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "post3"})
+		require.NoError(t, err)
+
+		// GetPostsBefore post3 should skip the card post
+		postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channel.Id, PostId: post3.Id, PerPage: 10}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{post1.Id}, postList.Order, "card post should be excluded from GetPostsBefore")
+
+		// GetPostsAfter post1 should skip the card post
+		postList, err = ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channel.Id, PostId: post1.Id, PerPage: 10}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{post3.Id}, postList.Order, "card post should be excluded from GetPostsAfter")
+	})
 }
 
 func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2763,6 +2931,107 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NotNil(t, postList.Posts[post3.Id])
 		assert.NotNil(t, postList.Posts[post4.Id])
 	})
+
+	t.Run("should exclude card posts from all getRootPosts variants", func(t *testing.T) {
+		// Create a fresh channel to avoid interference from deleted posts above
+		channel2, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "CardTestChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		normalPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "normal post",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel2.Id,
+			UserId:    userID,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Variant 1: skipFetchThreads=false, includeDeleted=false
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=false, includeDeleted=false)")
+
+		// Variant 2: skipFetchThreads=true, includeDeleted=false
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=true, includeDeleted=false)")
+
+		// Variant 3: skipFetchThreads=false, includeDeleted=true
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=false, includeDeleted=true)")
+
+		// Variant 4: skipFetchThreads=true, includeDeleted=true
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel2.Id, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "card post should be excluded (skipFetchThreads=true, includeDeleted=true)")
+	})
+
+	t.Run("should exclude card posts from getParentsPosts", func(t *testing.T) {
+		// getParentsPosts is invoked by GetPosts (non-collapsed) to fetch thread parent posts.
+		// We need a threaded conversation so that getParentsPosts returns results.
+		channel3, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "CardParentsTestChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post and a reply so getParentsPosts has something to fetch
+		rootPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "root post",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		replyPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "reply post",
+			RootId:    rootPost.Id,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// Create a card post — should NOT appear in results
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel3.Id,
+			UserId:    userID,
+			Message:   "card post in thread channel",
+			Type:      model.PostTypeCard,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// GetPosts with CollapsedThreads=false triggers getRootPosts + getParentsPosts
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channel3.Id, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// The card post should not be in Order or Posts
+		for _, id := range postList.Order {
+			post := postList.Posts[id]
+			require.NotEqual(t, model.PostTypeCard, post.Type, "card post should be excluded from getParentsPosts results")
+		}
+		// Should contain rootPost and replyPost
+		assert.Contains(t, postList.Order, rootPost.Id, "root post should be in results")
+		assert.Contains(t, postList.Order, replyPost.Id, "reply post should be in results")
+	})
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2880,6 +3149,20 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	rPost3, err := ss.Post().GetPostAfterTime(channelID, o2a.CreateAt, false)
 	require.Empty(t, rPost3.Id, "should return no post")
 	require.NoError(t, err)
+
+	// Card post should be excluded from GetPostAfterTime
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channelID
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post"
+	cardPost.Type = model.PostTypeCard
+	_, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	// GetPostAfterTime after o2a should skip the card post and return empty
+	rPost4, err := ss.Post().GetPostAfterTime(channelID, o2a.CreateAt, false)
+	require.NoError(t, err)
+	require.Empty(t, rPost4.Id, "card post should be excluded from GetPostAfterTime")
 }
 
 func testUserCountsWithPostsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2931,11 +3214,21 @@ func testUserCountsWithPostsByDay(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Post().Save(rctx, o2a)
 	require.NoError(t, nErr)
 
+	// Card post should not inflate user counts
+	oCard := &model.Post{}
+	oCard.ChannelId = c1.Id
+	oCard.UserId = model.NewId()
+	oCard.CreateAt = o1.CreateAt
+	oCard.Message = NewTestID()
+	oCard.Type = model.PostTypeCard
+	_, nErr = ss.Post().Save(rctx, oCard)
+	require.NoError(t, nErr)
+
 	r1, err := ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id)
 	require.NoError(t, err)
 
 	row1 := r1[0]
-	require.Equal(t, float64(2), row1.Value, "wrong value")
+	require.Equal(t, float64(2), row1.Value, "wrong value — card post should not inflate count")
 
 	row2 := r1[1]
 	require.Equal(t, float64(1), row2.Value, "wrong value")
@@ -3587,6 +3880,33 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
+
+	// Card posts should be excluded from flagged posts
+	oCard := &model.Post{}
+	oCard.ChannelId = c1.Id
+	oCard.UserId = o1.UserId
+	oCard.Message = "card post"
+	oCard.Type = model.PostTypeCard
+	oCard, err = ss.Post().Save(rctx, oCard)
+	require.NoError(t, err)
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     oCard.Id,
+			Value:    "true",
+		},
+	}
+	nErr = ss.Preference().Save(preferences)
+	require.NoError(t, nErr)
+
+	r5, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, r5.Order, 2, "card post should not appear in flagged posts")
+	for _, postId := range r5.Order {
+		require.NotEqual(t, oCard.Id, postId, "card post should be excluded from flagged posts")
+	}
 }
 
 func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3794,6 +4114,30 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Sto
 
 	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
+
+	// Card posts should be returned by GetPostsCreatedAt (intentionally unfiltered)
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channel1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post"
+	cardPost.Type = model.PostTypeCard
+	cardPost.CreateAt = createTime
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().GetPostsCreatedAt(channel1.Id, createTime)
+	require.NoError(t, err)
+	assert.Equal(t, 3, len(r2), "GetPostsCreatedAt should return card posts (unfiltered)")
+
+	// Verify the card post is actually in the results
+	foundCard := false
+	for _, p := range r2 {
+		if p.Id == cardPost.Id {
+			foundCard = true
+			break
+		}
+	}
+	assert.True(t, foundCard, "card post should be present in GetPostsCreatedAt results")
 }
 
 func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4122,6 +4466,21 @@ func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	posts, err = ss.Post().GetPostsByIds(postIds)
 	require.NoError(t, err)
 	require.Len(t, posts, 3, "Expected 3 posts in results. Got %v", len(posts))
+
+	t.Run("excludes card posts", func(t *testing.T) {
+		cardPost := &model.Post{}
+		cardPost.ChannelId = channel1.Id
+		cardPost.UserId = model.NewId()
+		cardPost.Message = "card post"
+		cardPost.Type = model.PostTypeCard
+		cardPost, err := ss.Post().Save(rctx, cardPost)
+		require.NoError(t, err)
+
+		posts, err := ss.Post().GetPostsByIds([]string{o2.Id, cardPost.Id})
+		require.NoError(t, err)
+		require.Len(t, posts, 1, "Card post should be excluded from GetPostsByIds results")
+		assert.Equal(t, o2.Id, posts[0].Id)
+	})
 }
 
 func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4182,6 +4541,21 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
 	require.NoError(t, err)
 	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
+
+	// Card posts should be excluded from indexing
+	cardPost := &model.Post{}
+	cardPost.ChannelId = c1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "card post for indexing"
+	cardPost.Type = model.PostTypeCard
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r, err = ss.Post().GetPostsBatchForIndexing(cardPost.CreateAt-1, "", 100)
+	require.NoError(t, err)
+	for _, p := range r {
+		require.NotEqual(t, cardPost.Id, p.Id, "Card post should not appear in indexing batch")
+	}
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4656,6 +5030,24 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	require.NoError(t, err)
 	assert.EqualValues(t, o2.Id, r1.Id)
+
+	// GetOldest is intentionally unfiltered — card posts should be returned
+	cardPost := &model.Post{}
+	cardPost.ChannelId = channel1.Id
+	cardPost.UserId = model.NewId()
+	cardPost.Message = "oldest card post"
+	cardPost.Type = model.PostTypeCard
+	cardPost.CreateAt = 1
+	_, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	r2, err := ss.Post().GetOldest()
+	require.NoError(t, err)
+	// With CreateAt=1 (same as o2), GetOldest returns whichever has the lowest CreateAt.
+	// The key assertion: card posts are NOT filtered out by GetOldest (no Type filter in query).
+	// If cards were filtered, and o2 was deleted, GetOldest would skip the card — but it doesn't filter.
+	require.NotNil(t, r2)
+	assert.Equal(t, int64(1), r2.CreateAt, "GetOldest should return a post with the earliest CreateAt, including card posts")
 }
 
 func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
@@ -5339,6 +5731,27 @@ func testSetPostReminder(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	require.NoError(t, ss.Post().SetPostReminder(reminder))
 	require.NoError(t, s.GetMaster().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
 	assert.Equal(t, reminder, &out)
+
+	// card post exclusion: verify SetPostReminder works on card posts (intentionally unfiltered)
+	cardPost := &model.Post{
+		UserId:    userID,
+		ChannelId: NewTestID(),
+		Message:   "card post for reminder test",
+		Type:      model.PostTypeCard,
+	}
+	cardPost, err = ss.Post().Save(rctx, cardPost)
+	require.NoError(t, err)
+
+	cardReminder := &model.PostReminder{
+		TargetTime: 9999,
+		PostId:     cardPost.Id,
+		UserId:     userID,
+	}
+	require.NoError(t, ss.Post().SetPostReminder(cardReminder), "SetPostReminder should succeed for card posts")
+
+	var cardOut model.PostReminder
+	require.NoError(t, s.GetMaster().Get(&cardOut, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, cardReminder.PostId, cardReminder.UserId))
+	assert.Equal(t, cardReminder, &cardOut)
 }
 
 func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
