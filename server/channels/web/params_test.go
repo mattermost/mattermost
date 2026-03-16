@@ -434,7 +434,7 @@ func TestParamsFromRequest(t *testing.T) {
 			},
 		},
 		{
-			"include channel bookmarks",
+			"include channel tabs",
 			mustURL("/?include_bookmarks=true"),
 			nil,
 			&Params{
@@ -448,8 +448,8 @@ func TestParamsFromRequest(t *testing.T) {
 			},
 		},
 		{
-			"include channel bookmarks with negative bookmark since",
-			mustURL("/?include_bookmarks=true&bookmarks_since=-1"),
+			"include channel tabs with negative tabs_since",
+			mustURL("/?include_bookmarks=true&tabs_since=-1"),
 			nil,
 			&Params{
 				TabsSince: 0,
@@ -462,8 +462,8 @@ func TestParamsFromRequest(t *testing.T) {
 			},
 		},
 		{
-			"include channel bookmarks with bookmark since",
-			mustURL("/?include_bookmarks=true&bookmarks_since=123456789"),
+			"include channel tabs with tabs_since",
+			mustURL("/?include_bookmarks=true&tabs_since=123456789"),
 			nil,
 			&Params{
 				TabsSince: 123456789,

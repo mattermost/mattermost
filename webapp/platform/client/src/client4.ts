@@ -331,10 +331,10 @@ export default class Client4 {
         return `${this.getChannelRoute(channelId)}/scheme`;
     }
     getChannelTabsRoute(channelId: string) {
-        return `${this.getChannelRoute(channelId)}/bookmarks`;
+        return `${this.getChannelRoute(channelId)}/tabs`;
     }
     getChannelTabRoute(channelId: string, tabId: string) {
-        return `${this.getChannelRoute(channelId)}/bookmarks/${tabId}`;
+        return `${this.getChannelRoute(channelId)}/tabs/${tabId}`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -2035,7 +2035,7 @@ export default class Client4 {
 
     getChannelTabs = (channelId: string, tabsSince?: number) => {
         return this.doFetch<ChannelTab[]>(
-            `${this.getChannelTabsRoute(channelId)}${buildQueryString({bookmarks_since: tabsSince})}`,
+            `${this.getChannelTabsRoute(channelId)}${buildQueryString({tabs_since: tabsSince})}`,
             {method: 'get'},
         );
     };

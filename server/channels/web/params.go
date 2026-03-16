@@ -191,7 +191,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludePlugins, _ = strconv.ParseBool(query.Get("exclude_plugins"))
 	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
-	params.ChannelTabId = props["bookmark_id"]
+	params.ChannelTabId = props["tab_id"]
 	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 
@@ -301,7 +301,11 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	params.FilterHasMember = query.Get("filter_has_member")
 
-	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
+	tabsSinceStr := query.Get("tabs_since")
+	if tabsSinceStr == "" {
+		tabsSinceStr = query.Get("bookmarks_since") // DEPRECATED: remove Sept 2026
+	}
+	if val, err := strconv.ParseInt(tabsSinceStr, 10, 64); err != nil || val < 0 {
 		params.TabsSince = 0
 	} else {
 		params.TabsSince = val

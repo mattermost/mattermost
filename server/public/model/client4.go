@@ -634,7 +634,7 @@ func (c *Client4) customProfileAttributesRoute() clientRoute {
 }
 
 func (c *Client4) tabsRoute(channelId string) clientRoute {
-	return c.channelRoute(channelId).Join("bookmarks")
+	return c.channelRoute(channelId).Join("tabs")
 }
 
 func (c *Client4) tabRoute(channelId, tabId string) clientRoute {
@@ -7678,7 +7678,7 @@ func (c *Client4) DeleteChannelTab(ctx context.Context, channelId, tabId string)
 
 func (c *Client4) ListChannelTabsForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelTabWithFileInfo, *Response, error) {
 	values := url.Values{}
-	values.Set("bookmarks_since", strconv.FormatInt(since, 10))
+	values.Set("tabs_since", strconv.FormatInt(since, 10))
 	r, err := c.doAPIGetWithQuery(ctx, c.tabsRoute(channelId), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
