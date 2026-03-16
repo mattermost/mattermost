@@ -33,6 +33,7 @@ type Role struct {
 	Permissions   string
 	SchemeManaged bool
 	BuiltIn       bool
+	SchemeId      *string
 }
 
 type channelRolesPermissions struct {
@@ -66,6 +67,7 @@ func NewRoleFromModel(role *model.Role) *Role {
 		Permissions:   permissions.String(),
 		SchemeManaged: role.SchemeManaged,
 		BuiltIn:       role.BuiltIn,
+		SchemeId:      role.SchemeId,
 	}
 }
 
@@ -81,6 +83,7 @@ func (role Role) ToModel() *model.Role {
 		Permissions:   strings.Fields(role.Permissions),
 		SchemeManaged: role.SchemeManaged,
 		BuiltIn:       role.BuiltIn,
+		SchemeId:      role.SchemeId,
 	}
 }
 
@@ -90,7 +93,7 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 	}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("Id", "Name", "DisplayName", "Description", "CreateAt", "UpdateAt", "DeleteAt", "Permissions", "SchemeManaged", "BuiltIn").
+		Select("Id", "Name", "DisplayName", "Description", "CreateAt", "UpdateAt", "DeleteAt", "Permissions", "SchemeManaged", "BuiltIn", "SchemeId").
 		From("Roles")
 
 	return &s
@@ -122,9 +125,10 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	dbRole.UpdateAt = model.GetMillis()
 
 	res, err := s.GetMaster().NamedExec(`UPDATE Roles
-		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt,  Name=:Name, DisplayName=:DisplayName,
-		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn
-		 WHERE Id=:Id`, &dbRole)
+		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt, Name=:Name, DisplayName=:DisplayName,
+		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn,
+		SchemeId=:SchemeId
+		WHERE Id=:Id`, &dbRole)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Role")
@@ -155,9 +159,9 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 	dbRole.UpdateAt = dbRole.CreateAt
 
 	if _, err := transaction.NamedExec(`INSERT INTO Roles
-		(Id, Name, DisplayName, Description, Permissions, CreateAt, UpdateAt, DeleteAt, SchemeManaged, BuiltIn)
+		(Id, Name, DisplayName, Description, Permissions, CreateAt, UpdateAt, DeleteAt, SchemeManaged, BuiltIn, SchemeId)
 		VALUES
-		(:Id, :Name, :DisplayName, :Description, :Permissions, :CreateAt, :UpdateAt, :DeleteAt, :SchemeManaged, :BuiltIn)`, dbRole); err != nil {
+		(:Id, :Name, :DisplayName, :Description, :Permissions, :CreateAt, :UpdateAt, :DeleteAt, :SchemeManaged, :BuiltIn, :SchemeId)`, dbRole); err != nil {
 		return nil, errors.Wrap(err, "failed to save Role")
 	}
 
@@ -230,7 +234,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		err = rows.Scan(
 			&role.Id, &role.Name, &role.DisplayName, &role.Description,
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
-			&role.SchemeManaged, &role.BuiltIn)
+			&role.SchemeManaged, &role.BuiltIn, &role.SchemeId)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan values")
 		}
@@ -394,9 +398,10 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 			"Roles.Permissions",
 			"Roles.SchemeManaged",
 			"Roles.BuiltIn",
+			"Roles.SchemeId",
 		).
-		From("Schemes").
-		Join("Roles ON Schemes.DefaultChannelGuestRole = Roles.Name OR Schemes.DefaultChannelUserRole = Roles.Name OR Schemes.DefaultChannelAdminRole = Roles.Name").
+		From("Roles").
+		Join("Schemes ON Roles.SchemeId = Schemes.Id").
 		Where(sq.Eq{"Schemes.Scope": model.SchemeScopeChannel}).
 		Where(sq.Eq{"Roles.DeleteAt": 0}).
 		Where(sq.Eq{"Schemes.DeleteAt": 0})
@@ -433,13 +438,14 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 			"ChannelSchemeRoles.Permissions",
 			"ChannelSchemeRoles.SchemeManaged",
 			"ChannelSchemeRoles.BuiltIn",
+			"ChannelSchemeRoles.SchemeId",
 		).
 		From("Roles AS HigherScopedRoles").
 		Join("Schemes AS HigherScopedSchemes ON (HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelGuestRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelUserRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelAdminRole)").
 		Join("Teams ON Teams.SchemeId = HigherScopedSchemes.Id").
 		Join("Channels ON Channels.TeamId = Teams.Id").
 		Join("Schemes AS ChannelSchemes ON Channels.SchemeId = ChannelSchemes.Id").
-		Join("Roles AS ChannelSchemeRoles ON (ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelGuestRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelUserRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelAdminRole)").
+		Join("Roles AS ChannelSchemeRoles ON ChannelSchemeRoles.SchemeId = ChannelSchemes.Id").
 		Where(sq.Eq{"HigherScopedSchemes.Scope": model.SchemeScopeTeam}).
 		Where(sq.Eq{"HigherScopedRoles.Name": roleName}).
 		Where(sq.Eq{"HigherScopedRoles.DeleteAt": 0}).
