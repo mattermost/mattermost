@@ -7624,10 +7624,6 @@
     "translation": "Карыстальнік Slack аб'яднаны з існуючым карыстальнікам Mattermost з адпаведнымі электроннай поштай {{.Email}} і імем карыстальніка {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Карыстальнік Slack з электроннай поштай {{.Email}} і паролем {{.Password}} быў імпартаваны.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Канал Slack {{.DisplayName}} ужо існуе як актыўны канал Mattermost. Абодва каналы былі аб'яднаны.\n"
   },
@@ -7642,10 +7638,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Немагчыма імпартаваць карыстальніка Integration/Slack Bot {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Карыстальнік Integration/Slack Bot з электроннай поштай {{.Email}} і паролем {{.Password}} быў імпартаваны.\n"
   },
   {
     "id": "api.admin.test_email.reenter_password",
