@@ -261,10 +261,21 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return boolString === 'true' || boolString === '1' || boolString === 'yes';
     }
 
-    case DialogElementTypes.SELECT:
     case DialogElementTypes.RADIO: {
+        // Radio values are always plain strings (RadioSetting.onChange returns e.target.value).
+        // Normalize to string from the start so the value shape never changes after user interaction.
+        if (element.options && element.default) {
+            const match = element.options.find((opt) => opt.value === element.default);
+            if (match) {
+                return match.value;
+            }
+        }
+        return element.default ? String(element.default) : null;
+    }
+
+    case DialogElementTypes.SELECT: {
         // Handle dynamic selects that use data_source instead of static options
-        if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+        if (element.data_source === 'dynamic' && element.default) {
             if (element.multiselect) {
                 const values = Array.isArray(element.default) ?
                     element.default :
@@ -282,7 +293,7 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
 
         if (element.options && element.default) {
             // Handle multiselect defaults (comma-separated values)
-            if (element.type === 'select' && element.multiselect) {
+            if (element.multiselect) {
                 const defaultValues = Array.isArray(element.default) ? element.default : String(element.default).split(',').map((val) => val.trim());
 
                 const defaultOptions = defaultValues.map((value) => {
@@ -701,7 +712,13 @@ export function convertAppFormValuesToDialogSubmission(
             break;
 
         case DialogElementTypes.RADIO:
-            submission[element.name] = String(value);
+            // Radio values are normally plain strings, but accept {label, value}
+            // objects for backwards compatibility with older code paths.
+            if (value && typeof value === 'object' && 'value' in value) {
+                submission[element.name] = String((value as {value: unknown}).value ?? '');
+            } else {
+                submission[element.name] = String(value);
+            }
             break;
 
         case DialogElementTypes.SELECT:

@@ -176,6 +176,16 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             ...this.accumulatedValues, // Previous steps' values (including other pages)
             ...normalizedCurrentValues, // Current form normalized values
         };
+
+        // Explicitly clear accumulated values for fields that were cleared (null/undefined)
+        // Without this, cleared select fields retain their previous value in accumulatedValues
+        // because extractPrimitiveValues skips null values and the spread merge above
+        // never overwrites the old key.
+        Object.entries(currentValues).forEach(([key, value]) => {
+            if (value === null || value === undefined) {
+                this.accumulatedValues[key] = '';
+            }
+        });
     };
 
     /**
@@ -532,8 +542,15 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             const currentValues = call.values || {};
             this.processFormValues(currentValues);
 
-            // For refresh, send all accumulated normalized values
-            const refreshPayload = this.accumulatedValues;
+            // For refresh, use a shallow copy so that adding selected_field
+            // does not permanently contaminate this.accumulatedValues
+            const refreshPayload = {...this.accumulatedValues};
+
+            // Include the changed field name in the submission so the plugin
+            // knows which field triggered the refresh
+            if (call.selected_field) {
+                refreshPayload.selected_field = call.selected_field;
+            }
 
             const refreshSubmission: DialogSubmission = {
                 url: this.props.sourceUrl,

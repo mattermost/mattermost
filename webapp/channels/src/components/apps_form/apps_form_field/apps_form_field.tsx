@@ -176,7 +176,9 @@ export default class AppsFormField extends React.PureComponent<Props> {
             );
         }
         case AppFieldTypes.RADIO: {
-            const radioValue = value as string;
+            // Radio values may be stored as AppSelectOption objects (from initial default)
+            // or plain strings (after user interaction via RadioSetting.onChange)
+            const radioValue = (value && typeof value === 'object' && 'value' in value) ? (value as AppSelectOption).value : (value as string) ?? '';
             return (
                 <RadioSetting
                     id={name}

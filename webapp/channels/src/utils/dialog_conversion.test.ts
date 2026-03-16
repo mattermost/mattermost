@@ -359,10 +359,9 @@ describe('dialog_conversion', () => {
             } as DialogElement;
 
             const result = getDefaultValue(element);
-            expect(result).toEqual({
-                label: 'Option 1',
-                value: 'option1',
-            });
+            // Radio defaults are plain strings (not {label, value} objects)
+            // because RadioSetting.onChange returns e.target.value (a string)
+            expect(result).toBe('option1');
         });
 
         it('should handle dynamic select defaults', () => {
@@ -1233,6 +1232,48 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(submission).toEqual({
                 radio_field: 'optA',
+            });
+        });
+
+        it('should extract value from radio field stored as AppSelectOption object', () => {
+            const values = {
+                radio_object: {label: 'Option A', value: 'optA'},
+                radio_string: 'optB',
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'radio_object',
+                    type: 'radio',
+                    display_name: 'Radio Object Field',
+                    optional: false,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+                {
+                    name: 'radio_string',
+                    type: 'radio',
+                    display_name: 'Radio String Field',
+                    optional: false,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                radio_object: 'optA',
+                radio_string: 'optB',
             });
         });
 
