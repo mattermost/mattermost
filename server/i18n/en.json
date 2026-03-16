@@ -7675,6 +7675,14 @@
     "translation": "The role was not valid."
   },
   {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "An error occurred while broadcasting the role update."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "An error occurred while broadcasting the role update: unknown scheme scope."
+  },
+  {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
   },
