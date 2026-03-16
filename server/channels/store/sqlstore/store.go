@@ -103,7 +103,7 @@ type SqlStoreStores struct {
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
-	channelTabs           store.ChannelTabStore
+	channelTabs                store.ChannelTabStore
 	scheduledPost              store.ScheduledPostStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore

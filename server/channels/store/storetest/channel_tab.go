@@ -386,7 +386,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
 
 		// now reset order
-		ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 0)
+		_, _ = ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 0)
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {

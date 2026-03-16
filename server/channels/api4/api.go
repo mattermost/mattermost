@@ -50,8 +50,8 @@ type Routes struct {
 	ChannelMembersForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
-	ChannelTabs         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs'
-	ChannelTab          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs/{tab_id:[A-Za-z0-9]+}'
+	ChannelTabs              *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs'
+	ChannelTab               *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/tabs/{tab_id:[A-Za-z0-9]+}'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'

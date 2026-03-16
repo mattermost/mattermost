@@ -241,7 +241,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
 		checkResponse               func(tb testing.TB, resp *model.Response)
-		uploadAsTab            bool
+		uploadAsTab                 bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
@@ -615,7 +615,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
-			uploadAsTab:            true,
+			uploadAsTab:                 true,
 		},
 	}
 

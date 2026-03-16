@@ -728,7 +728,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		testCases := []struct {
 			name             string
 			channelId        string
-			tabId       string
+			tabId            string
 			sortOrder        int64
 			userClient       *model.Client4
 			removePermission string
@@ -738,7 +738,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "public channel with permissions, should succeed",
 				channelId:      th.BasicChannel.Id,
-				tabId:     publicTab2.Id,
+				tabId:          publicTab2.Id,
 				sortOrder:      3,
 				userClient:     th.Client,
 				expectedStatus: http.StatusOK,
@@ -746,7 +746,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "private channel with permissions, should succeed",
 				channelId:      th.BasicPrivateChannel.Id,
-				tabId:     privateTab1.Id,
+				tabId:          privateTab1.Id,
 				sortOrder:      3,
 				userClient:     th.Client,
 				expectedStatus: http.StatusOK,
@@ -754,7 +754,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:             "public channel without permissions, should fail",
 				channelId:        th.BasicChannel.Id,
-				tabId:       publicTab1.Id,
+				tabId:            publicTab1.Id,
 				sortOrder:        3,
 				userClient:       th.Client,
 				removePermission: model.PermissionOrderTabPublicChannel.Id,
@@ -764,7 +764,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:             "private channel without permissions, should fail",
 				channelId:        th.BasicPrivateChannel.Id,
-				tabId:       privateTab2.Id,
+				tabId:            privateTab2.Id,
 				sortOrder:        1,
 				userClient:       th.Client,
 				removePermission: model.PermissionOrderTabPrivateChannel.Id,
@@ -774,7 +774,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "guest user in a public channel, should fail",
 				channelId:      th.BasicChannel.Id,
-				tabId:     publicTab3.Id,
+				tabId:          publicTab3.Id,
 				sortOrder:      2,
 				userClient:     guestClient,
 				expectedError:  true,
@@ -783,7 +783,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "guest user in a private channel, should fail",
 				channelId:      th.BasicPrivateChannel.Id,
-				tabId:     privateTab4.Id,
+				tabId:          privateTab4.Id,
 				sortOrder:      2,
 				userClient:     guestClient,
 				expectedError:  true,
@@ -792,7 +792,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "public channel with permissions, setting order to a negative number, should fail",
 				channelId:      th.BasicChannel.Id,
-				tabId:     publicTab2.Id,
+				tabId:          publicTab2.Id,
 				sortOrder:      -1,
 				userClient:     th.Client,
 				expectedError:  true,
@@ -801,7 +801,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			{
 				name:           "public channel with permissions, setting order to a number greater than the amount of bookmarks of the channel, should fail",
 				channelId:      th.BasicChannel.Id,
-				tabId:     publicTab2.Id,
+				tabId:          publicTab2.Id,
 				sortOrder:      300,
 				userClient:     th.Client,
 				expectedError:  true,
@@ -1512,116 +1512,116 @@ func TestListChannelTabsForChannel(t *testing.T) {
 
 	t.Run("a user listing bookmarks in public and private channels", func(t *testing.T) {
 		testCases := []struct {
-			name              string
-			channelId         string
-			since             int64
-			userClient        *model.Client4
-			expectedTabs []string
-			expectedError     bool
-			expectedStatus    int
+			name           string
+			channelId      string
+			since          int64
+			userClient     *model.Client4
+			expectedTabs   []string
+			expectedError  bool
+			expectedStatus int
 		}{
 			{
-				name:              "public channel without since, should retrieve all non deleted bookmarks",
-				channelId:         th.BasicChannel.Id,
-				userClient:        th.Client,
-				expectedTabs: []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "public channel without since, should retrieve all non deleted bookmarks",
+				channelId:      th.BasicChannel.Id,
+				userClient:     th.Client,
+				expectedTabs:   []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "private channel without since, should retrieve all non deleted bookmarks",
-				channelId:         th.BasicPrivateChannel.Id,
-				userClient:        th.Client,
-				expectedTabs: []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "private channel without since, should retrieve all non deleted bookmarks",
+				channelId:      th.BasicPrivateChannel.Id,
+				userClient:     th.Client,
+				expectedTabs:   []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "public channel with since set early, should retrieve all bookmarks include the deleted one",
-				channelId:         th.BasicChannel.Id,
-				since:             publicTab1.CreateAt,
-				userClient:        th.Client,
-				expectedTabs: []string{publicTab1.Id, publicTab2.Id, publicTab3.Id, publicTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "public channel with since set early, should retrieve all bookmarks include the deleted one",
+				channelId:      th.BasicChannel.Id,
+				since:          publicTab1.CreateAt,
+				userClient:     th.Client,
+				expectedTabs:   []string{publicTab1.Id, publicTab2.Id, publicTab3.Id, publicTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "Private channel with since set early, should retrieve all bookmarks include the deleted one",
-				channelId:         th.BasicPrivateChannel.Id,
-				since:             privateTab1.CreateAt,
-				userClient:        th.Client,
-				expectedTabs: []string{privateTab1.Id, privateTab2.Id, privateTab3.Id, privateTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "Private channel with since set early, should retrieve all bookmarks include the deleted one",
+				channelId:      th.BasicPrivateChannel.Id,
+				since:          privateTab1.CreateAt,
+				userClient:     th.Client,
+				expectedTabs:   []string{privateTab1.Id, privateTab2.Id, privateTab3.Id, privateTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "public channel with since, should retrieve some of the bookmarks",
-				channelId:         th.BasicChannel.Id,
-				since:             publicTab3.CreateAt,
-				userClient:        th.Client,
-				expectedTabs: []string{publicTab1.Id, publicTab3.Id, publicTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "public channel with since, should retrieve some of the bookmarks",
+				channelId:      th.BasicChannel.Id,
+				since:          publicTab3.CreateAt,
+				userClient:     th.Client,
+				expectedTabs:   []string{publicTab1.Id, publicTab3.Id, publicTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "private channel with since, should retrieve some of the bookmarks",
-				channelId:         th.BasicPrivateChannel.Id,
-				since:             privateTab4.CreateAt,
-				userClient:        th.Client,
-				expectedTabs: []string{privateTab1.Id, privateTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "private channel with since, should retrieve some of the bookmarks",
+				channelId:      th.BasicPrivateChannel.Id,
+				since:          privateTab4.CreateAt,
+				userClient:     th.Client,
+				expectedTabs:   []string{privateTab1.Id, privateTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "guest user, public channel without since, should retrieve all non deleted bookmarks",
-				channelId:         th.BasicChannel.Id,
-				userClient:        guestClient,
-				expectedTabs: []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "guest user, public channel without since, should retrieve all non deleted bookmarks",
+				channelId:      th.BasicChannel.Id,
+				userClient:     guestClient,
+				expectedTabs:   []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "guest user, private channel without since, should retrieve all non deleted bookmarks",
-				channelId:         th.BasicPrivateChannel.Id,
-				userClient:        guestClient,
-				expectedTabs: []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "guest user, private channel without since, should retrieve all non deleted bookmarks",
+				channelId:      th.BasicPrivateChannel.Id,
+				userClient:     guestClient,
+				expectedTabs:   []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "guest user, guest channel without since, should retrieve all non deleted bookmarks",
-				channelId:         onlyGuestChannel.Id,
-				userClient:        guestClient,
-				expectedTabs: []string{guestTab.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "guest user, guest channel without since, should retrieve all non deleted bookmarks",
+				channelId:      onlyGuestChannel.Id,
+				userClient:     guestClient,
+				expectedTabs:   []string{guestTab.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "normal user, guest channel without since, should fail as user is not a member",
-				channelId:         onlyGuestChannel.Id,
-				userClient:        th.Client,
-				expectedTabs: []string{},
-				expectedError:     true,
-				expectedStatus:    http.StatusForbidden,
+				name:           "normal user, guest channel without since, should fail as user is not a member",
+				channelId:      onlyGuestChannel.Id,
+				userClient:     th.Client,
+				expectedTabs:   []string{},
+				expectedError:  true,
+				expectedStatus: http.StatusForbidden,
 			},
 			{
-				name:              "guest user, dm without since, should retrieve all non deleted bookmarks",
-				channelId:         dm.Id,
-				userClient:        guestClient,
-				expectedTabs: []string{dmTab.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "guest user, dm without since, should retrieve all non deleted bookmarks",
+				channelId:      dm.Id,
+				userClient:     guestClient,
+				expectedTabs:   []string{dmTab.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "normal user, dm without since, should retrieve all non deleted bookmarks",
-				channelId:         dm.Id,
-				userClient:        th.Client,
-				expectedTabs: []string{dmTab.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "normal user, dm without since, should retrieve all non deleted bookmarks",
+				channelId:      dm.Id,
+				userClient:     th.Client,
+				expectedTabs:   []string{dmTab.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "guest user, gm without since, should retrieve all non deleted bookmarks",
-				channelId:         gm.Id,
-				userClient:        guestClient,
-				expectedTabs: []string{gmTab.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "guest user, gm without since, should retrieve all non deleted bookmarks",
+				channelId:      gm.Id,
+				userClient:     guestClient,
+				expectedTabs:   []string{gmTab.Id},
+				expectedStatus: http.StatusOK,
 			},
 			{
-				name:              "normal user, gm without since, should retrieve all non deleted bookmarks",
-				channelId:         gm.Id,
-				userClient:        th.Client,
-				expectedTabs: []string{gmTab.Id},
-				expectedStatus:    http.StatusOK,
+				name:           "normal user, gm without since, should retrieve all non deleted bookmarks",
+				channelId:      gm.Id,
+				userClient:     th.Client,
+				expectedTabs:   []string{gmTab.Id},
+				expectedStatus: http.StatusOK,
 			},
 		}
 
