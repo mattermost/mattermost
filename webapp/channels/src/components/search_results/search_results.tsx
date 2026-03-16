@@ -28,7 +28,6 @@ import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {getHistory} from 'utils/browser_history';
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
@@ -268,12 +267,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         );
     }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId]);
 
-    const handleChannelNameClick = useCallback(() => {
-        if (currentTeam?.name && currentChannel?.name) {
-            getHistory().push(`/${currentTeam.name}/channels/${currentChannel.name}`);
-        }
-    }, [currentTeam?.name, currentChannel?.name]);
-
     switch (true) {
     case isLoading:
         contentItems = (
@@ -390,14 +383,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
-                {props.channelDisplayName &&
-                    <button
-                        className='style--none sidebar--right__title__channel'
-                        onClick={handleChannelNameClick}
-                    >
-                        {props.channelDisplayName}
-                    </button>
-                }
+                {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
             {isMessagesSearch &&
                 <MessageOrFileSelector
