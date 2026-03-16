@@ -378,9 +378,9 @@ function ChannelSettingsConfigurationTab({
         await performSave();
     }, [canManageSharedChannels, hasWorkspaceChanges, initialRemotes, performSave, workspaceRemotes]);
 
-    const handleConfirmRemoveSharing = useCallback(() => {
+    const handleConfirmRemoveSharing = useCallback(async () => {
         setShowRemoveSharingConfirmModal(false);
-        performSave();
+        await performSave();
     }, [performSave]);
 
     const handleCancel = useCallback(() => {
