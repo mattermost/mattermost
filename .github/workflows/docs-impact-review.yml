@@ -17,6 +17,8 @@ permissions:
 jobs:
   docs-impact-review:
     runs-on: ubuntu-24.04
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - name: Checkout PR code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -43,7 +45,7 @@ jobs:
 
       - name: Analyze documentation impact
         id: docs-analysis
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        if: ${{ env.HAS_ANTHROPIC_KEY == 'true' }}
         uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
