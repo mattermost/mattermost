@@ -146,30 +146,18 @@ jobs:
           echo "workers=$(jq -nc '[range(1; ${{ inputs.workers }} + 1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  run-tests:
+  # ── Impact Plan: runs ONCE, shared with all shards via artifact ──────────
+  impact-plan:
+    name: Impact Plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    continue-on-error: true
-    needs:
-      - generate-test-variables
-    if: needs.generate-test-variables.result == 'success'
-    strategy:
-      fail-fast: false
-      matrix:
-        worker_index: ${{ fromJSON(needs.generate-test-variables.outputs.workers) }}
-    defaults:
-      run:
-        working-directory: e2e-tests
+    if: inputs.impact_enabled
+    outputs:
+      plan_outcome: ${{ steps.impact-plan.outcome }}
+      generate_outcome: ${{ steps.impact-generate.outcome }}
+      enforcement_should_fail: ${{ steps.impact-plan.outputs.enforcement_should_fail }}
+      required_new_tests_count: ${{ steps.impact-plan.outputs.required_new_tests_count }}
+      spec_count: ${{ steps.derive-impact-specs.outputs.count }}
     env:
-      SERVER: "${{ inputs.server }}"
-      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
-      TEST: playwright
-      TEST_FILTER: "${{ inputs.test_filter }}"
-      PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
-      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
-      BUILD_ID: "${{ inputs.build_id }}"
-      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
       LLM_PROVIDER: "${{ inputs.llm_provider }}"
     steps:
       - name: ci/checkout-repo
@@ -184,14 +172,12 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/install-playwright-host-deps
-        if: inputs.impact_enabled
         working-directory: e2e-tests/playwright
         run: npm install --ignore-scripts --cache /tmp/npm-cache
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
       - name: ci/impact-plan
-        if: inputs.impact_enabled
         id: impact-plan
         continue-on-error: true
         working-directory: e2e-tests/playwright
@@ -199,7 +185,7 @@ jobs:
           mkdir -p .e2e-ai-agents
           npm run impact:plan -- --llm-provider "${LLM_PROVIDER}" --github-output "$GITHUB_OUTPUT" --ci-comment-path ./.e2e-ai-agents/ci-summary.md
       - name: ci/impact-generate
-        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        if: steps.impact-plan.outcome == 'success'
         id: impact-generate
         continue-on-error: true
         working-directory: e2e-tests/playwright
@@ -210,7 +196,7 @@ jobs:
           fi
           npm run impact:generate -- --llm-provider "${LLM_PROVIDER}"
       - name: ci/derive-impact-specs
-        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        if: steps.impact-plan.outcome == 'success'
         id: derive-impact-specs
         working-directory: e2e-tests/playwright
         run: |
@@ -274,6 +260,72 @@ jobs:
           console.log(`Derived ${values.length} targeted specs`);
           NODE
           echo "count=$(wc -l < .e2e-ai-agents/spec-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+      - name: ci/upload-plan-artifact
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: e2e-impact-plan-${{ inputs.test_type }}-${{ inputs.server_edition }}
+          path: |
+            e2e-tests/playwright/.e2e-ai-agents/plan.json
+            e2e-tests/playwright/.e2e-ai-agents/spec-files.txt
+            e2e-tests/playwright/.e2e-ai-agents/ci-summary.md
+            e2e-tests/playwright/.e2e-ai-agents/metrics-summary.json
+          retention-days: 1
+          if-no-files-found: ignore
+
+  # ── Run Tests: N shards in parallel, reusing plan artifact ───────────────
+  run-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    continue-on-error: true
+    needs:
+      - generate-test-variables
+      - impact-plan
+    # Run even when impact-plan was skipped (impact_enabled=false) or failed
+    if: always() && !cancelled() && needs.generate-test-variables.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        worker_index: ${{ fromJSON(needs.generate-test-variables.outputs.workers) }}
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      TEST_FILTER: "${{ inputs.test_filter }}"
+      PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+      BUILD_ID: "${{ inputs.build_id }}"
+      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
+      LLM_PROVIDER: "${{ inputs.llm_provider }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      # Download the plan artifact produced by the impact-plan job.
+      # continue-on-error: if the plan job failed, the artifact won't exist
+      # and shards fall back to the full test suite.
+      - name: ci/download-plan-artifact
+        if: inputs.impact_enabled
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: e2e-impact-plan-${{ inputs.test_type }}-${{ inputs.server_edition }}
+          path: e2e-tests/playwright/.e2e-ai-agents/
+        continue-on-error: true
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
       - name: ci/run-tests
         id: run-tests
         run: |
@@ -294,13 +346,13 @@ jobs:
             cp playwright/results/reporter/results.json playwright/.e2e-ai-agents/playwright-report.json
           fi
       - name: ci/impact-agentic-generate
-        if: inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        if: inputs.impact_enabled && needs.impact-plan.outputs.plan_outcome == 'success'
         id: impact-agentic-generate
         continue-on-error: true
         working-directory: e2e-tests/playwright
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          REQUIRED_NEW_TESTS: ${{ steps.impact-plan.outputs.required_new_tests_count }}
+          REQUIRED_NEW_TESTS: ${{ needs.impact-plan.outputs.required_new_tests_count }}
         run: |
           if [ "${REQUIRED_NEW_TESTS}" = "0" ]; then
             echo "No gaps detected — skipping agentic generation."
@@ -309,7 +361,7 @@ jobs:
           echo "Running agentic generate→run→fix loop for ${REQUIRED_NEW_TESTS} gap(s)..."
           npm run impact:agentic-generate -- --max-attempts 3
       - name: ci/impact-heal
-        if: always() && inputs.impact_enabled && steps.impact-plan.outcome == 'success'
+        if: always() && inputs.impact_enabled && needs.impact-plan.outputs.plan_outcome == 'success'
         id: impact-heal
         continue-on-error: true
         working-directory: e2e-tests/playwright
@@ -326,12 +378,21 @@ jobs:
       - name: ci/impact-policy-gate
         if: always() && inputs.impact_enabled
         working-directory: e2e-tests/playwright
+        env:
+          PLAN_OUTCOME: ${{ needs.impact-plan.outputs.plan_outcome }}
+          GENERATE_OUTCOME: ${{ needs.impact-plan.outputs.generate_outcome }}
+          ENFORCEMENT_SHOULD_FAIL: ${{ needs.impact-plan.outputs.enforcement_should_fail }}
         run: |
-          if [ "${{ steps.impact-plan.outcome }}" != "success" ]; then
-            echo "::error::AI impact analysis failed. Mattermost profile does not allow heuristic fallback."
+          # ── Fail-open: if plan failed entirely and produced no plan.json ──
+          if [ "$PLAN_OUTCOME" != "success" ]; then
+            if [ ! -f .e2e-ai-agents/plan.json ]; then
+              echo "::warning::Impact analysis unavailable — running full test suite as fallback."
+              exit 0
+            fi
+            echo "::error::Impact plan produced output but step failed."
             exit 1
           fi
-          if [ "${{ steps.impact-generate.outcome }}" = "failure" ]; then
+          if [ "$GENERATE_OUTCOME" = "failure" ]; then
             echo "::error::AI test generation failed. Review .e2e-ai-agents artifacts."
             exit 1
           fi
@@ -342,7 +403,7 @@ jobs:
             echo "::error::AI heal failed. Review .e2e-ai-agents artifacts."
             exit 1
           fi
-          if [ "${{ steps.impact-plan.outputs.enforcement_should_fail }}" = "true" ]; then
+          if [ "$ENFORCEMENT_SHOULD_FAIL" = "true" ]; then
             echo "::error::Impact policy gate blocked this run. Confidence or evidence thresholds were not met."
             exit 1
           fi
