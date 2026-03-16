@@ -26,11 +26,16 @@ type TestRunner struct {
 	teamA    *model.Team
 	teamB    *model.Team
 	remoteID string // single remote cluster connection, reused for all tests
+	suffix   string // random suffix for unique names across repeated runs
 	results  []TestResult
 }
 
 func NewTestRunner(cfg Config, logger *mlog.Logger) *TestRunner {
-	return &TestRunner{cfg: cfg, logger: logger}
+	return &TestRunner{
+		cfg:    cfg,
+		logger: logger,
+		suffix: model.NewId()[:6],
+	}
 }
 
 func (tr *TestRunner) pass(name string) {
@@ -106,7 +111,7 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 	// Create teams
 	tr.logger.Info("Creating teams...")
 	tr.teamA, _, err = tr.clientA.CreateTeam(ctx, &model.Team{
-		Name:        "team-a",
+		Name:        "team-a-" + tr.suffix,
 		DisplayName: "Team A",
 		Type:        model.TeamOpen,
 	})
@@ -115,7 +120,7 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 	}
 
 	tr.teamB, _, err = tr.clientB.CreateTeam(ctx, &model.Team{
-		Name:        "team-b",
+		Name:        "team-b-" + tr.suffix,
 		DisplayName: "Team B",
 		Type:        model.TeamOpen,
 	})
@@ -128,7 +133,7 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 	invitePassword := "TestInvite123!"
 	invite, _, err := tr.clientA.CreateRemoteCluster(ctx, &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
-			Name:          "server-b",
+			Name:          "server-b-" + tr.suffix,
 			DisplayName:   "Server B",
 			DefaultTeamId: tr.teamA.Id,
 		},
@@ -140,7 +145,7 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 	tr.remoteID = invite.RemoteCluster.RemoteId
 
 	_, _, err = tr.clientB.RemoteClusterAcceptInvite(ctx, &model.RemoteClusterAcceptInvite{
-		Name:          "server-a",
+		Name:          "server-a-" + tr.suffix,
 		DisplayName:   "Server A",
 		DefaultTeamId: tr.teamB.Id,
 		Invite:        invite.Invite,
@@ -161,9 +166,10 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 // setupSharedChannel creates a channel on Server A, shares it with Server B via
 // the pre-established remote cluster, and returns both channel IDs.
 func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string) (channelA, channelB string, err error) {
+	uniqueName := channelName + "-" + tr.suffix
 	ch, _, err := tr.clientA.CreateChannel(ctx, &model.Channel{
 		TeamId:      tr.teamA.Id,
-		Name:        channelName,
+		Name:        uniqueName,
 		DisplayName: "Shared: " + channelName,
 		Type:        model.ChannelTypeOpen,
 	})
@@ -186,7 +192,7 @@ func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string
 			return false
 		}
 		for _, sc := range channels {
-			if sc.ShareName == channelName {
+			if sc.ShareName == uniqueName {
 				channelB = sc.ChannelId
 				return true
 			}
@@ -230,9 +236,10 @@ func (tr *TestRunner) waitFor(ctx context.Context, timeout time.Duration, condit
 
 // createTestUser creates a user on Server A, adds them to the team, and returns their ID.
 func (tr *TestRunner) createTestUser(ctx context.Context, username string) (string, error) {
+	uniqueName := username + "-" + tr.suffix
 	user, _, err := tr.clientA.CreateUser(ctx, &model.User{
-		Username: username,
-		Email:    username + "@test.local",
+		Username: uniqueName,
+		Email:    uniqueName + "@test.local",
 		Password: "TestPass123!",
 	})
 	if err != nil {
