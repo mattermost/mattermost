@@ -157,18 +157,28 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)
-	outB, _ := os.Create(filepath.Join(logsDir, "server_b_stdout.log"))
+	outB, err := os.Create(filepath.Join(logsDir, "server_b_stdout.log"))
+	if err != nil {
+		stopProc(sm.procA)
+		return fmt.Errorf("create server B log file: %w", err)
+	}
 	sm.procB.Stdout = outB
 	sm.procB.Stderr = outB
 	if err := sm.procB.Start(); err != nil {
+		stopProc(sm.procA)
 		return fmt.Errorf("start server B: %w", err)
 	}
 
-	// Wait for both
+	// Wait for both — stop started servers on failure
 	if err := sm.waitForServer(ctx, sm.cfg.ServerAURL, "Server A"); err != nil {
+		sm.Teardown()
 		return err
 	}
-	return sm.waitForServer(ctx, sm.cfg.ServerBURL, "Server B")
+	if err := sm.waitForServer(ctx, sm.cfg.ServerBURL, "Server B"); err != nil {
+		sm.Teardown()
+		return err
+	}
+	return nil
 }
 
 func (sm *ServerManager) waitForServer(ctx context.Context, url, name string) error {
