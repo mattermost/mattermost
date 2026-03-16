@@ -7929,6 +7929,10 @@
     "translation": "You cannot create a policy that would exclude yourself."
   },
   {
+    "id": "app.team.access_policies.stamp_team.app_error",
+    "translation": "Failed to stamp team ownership on policy."
+  },
+  {
     "id": "app.team.access_policies.validation_error.app_error",
     "translation": "Failed to validate policy rules."
   },

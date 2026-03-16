@@ -145,12 +145,8 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('#input_policyName').clear();
         await teamSettings.container.locator('#input_policyName').fill(newName);
 
-        // # Save via SaveChangesPanel
+        // # Save via SaveChangesPanel (name-only change skips confirmation modal)
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-
-        // # Confirm in PolicyConfirmationModal (policy has channels, so modal appears)
-        await page.locator('.TeamPolicyConfirmationModal').waitFor();
-        await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
         // * Auto-navigated back to list, updated name visible
@@ -428,16 +424,17 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    test('MM-67594_12 Success message shown after creating policy', async ({pw}) => {
+    test('MM-67594_12 Success message shown after saving policy', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
         const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `Toast Test ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
-        await adminClient.addToChannel(teamAdmin.id, channel.id);
-        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -447,42 +444,19 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
-        // # Create policy
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await teamSettings.container.locator('#input_policyName').fill(`Toast Test ${Date.now()}`);
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
-        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
-        if (await backdrop.isVisible({timeout: 2000})) {
-            await backdrop.click();
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        // # Edit policy name (name-only change — no confirmation modal)
+        await teamSettings.container.getByText(policy.name).click();
+        await page.waitForLoadState('networkidle');
+        await teamSettings.container.locator('#input_policyName').clear();
+        await teamSettings.container.locator('#input_policyName').fill(`Updated ${Date.now()}`);
 
         // # Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        await page.locator('.TeamPolicyConfirmationModal').waitFor();
-        await page.getByRole('button', {name: /Apply policy/}).click();
         await page.waitForLoadState('networkidle');
 
         // * Success message visible on list view
         await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
-        await expect(teamSettings.container.getByText('Policy saved')).toBeVisible();
+        await expect(teamSettings.container.getByText('Policy updated')).toBeVisible();
 
         await teamSettings.close();
     });
