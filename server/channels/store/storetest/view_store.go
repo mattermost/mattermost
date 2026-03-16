@@ -4,7 +4,9 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +22,7 @@ func TestViewStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetViewsForChannel", func(t *testing.T) { testGetViewsForChannel(t, ss) })
 	t.Run("UpdateView", func(t *testing.T) { testUpdateView(t, ss) })
 	t.Run("DeleteView", func(t *testing.T) { testDeleteView(t, ss) })
+	t.Run("UpdateSortOrder", func(t *testing.T) { testUpdateViewSortOrder(t, ss) })
 }
 
 func makeView(channelID, creatorID string) *model.View {
@@ -193,23 +196,6 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, page2, 1)
 		assert.Equal(t, saved[2].Id, page2[0].Id)
-	})
-
-	t.Run("includes deleted when IncludeDeleted=true", func(t *testing.T) {
-		ch := model.NewId()
-		creator := model.NewId()
-		v := makeView(ch, creator)
-		v.Title = "IncDel Board"
-		saved, err := ss.View().Save(v)
-		require.NoError(t, err)
-
-		err = ss.View().Delete(saved.Id, model.GetMillis())
-		require.NoError(t, err)
-
-		views, err := ss.View().GetForChannel(ch, model.ViewQueryOpts{IncludeDeleted: true})
-		require.NoError(t, err)
-		assert.Len(t, views, 1)
-		assert.Equal(t, saved.Id, views[0].Id)
 	})
 
 	t.Run("respects SortOrder ordering across pages", func(t *testing.T) {
@@ -394,5 +380,131 @@ func testDeleteView(t *testing.T, ss store.Store) {
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, err, &nfErr)
+	})
+}
+
+func testUpdateViewSortOrder(t *testing.T, ss store.Store) {
+	channelID := model.NewId()
+	creatorID := model.NewId()
+
+	// Create 3 views with different sort orders
+	var views []*model.View
+	for i := range 3 {
+		v := makeView(channelID, creatorID)
+		v.Title = fmt.Sprintf("View %d", i)
+		v.SortOrder = i
+		saved, err := ss.View().Save(v)
+		require.NoError(t, err)
+		views = append(views, saved)
+	}
+
+	// Extract IDs for clarity across stateful subtests
+	idA, idB, idC := views[0].Id, views[1].Id, views[2].Id
+
+	t.Run("moves last to first", func(t *testing.T) {
+		// BEFORE: A, B, C — AFTER: C, A, B
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 0)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, idC, result[0].Id)
+		assert.Equal(t, idA, result[1].Id)
+		assert.Equal(t, idB, result[2].Id)
+		assert.Equal(t, 0, result[0].SortOrder)
+		assert.Equal(t, 1, result[1].SortOrder)
+		assert.Equal(t, 2, result[2].SortOrder)
+	})
+
+	t.Run("moves first to last", func(t *testing.T) {
+		// BEFORE: C, A, B — AFTER: A, B, C
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 2)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, idA, result[0].Id)
+		assert.Equal(t, idB, result[1].Id)
+		assert.Equal(t, idC, result[2].Id)
+	})
+
+	t.Run("moves to middle", func(t *testing.T) {
+		// BEFORE: A, B, C — AFTER: A, C, B
+		result, err := ss.View().UpdateSortOrder(idC, channelID, 1)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, idA, result[0].Id)
+		assert.Equal(t, idC, result[1].Id)
+		assert.Equal(t, idB, result[2].Id)
+	})
+
+	t.Run("negative index returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(idA, channelID, -1)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("out of bounds index returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(idA, channelID, 99)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("non-existent view returns not found", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(model.NewId(), channelID, 0)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("empty channel returns error", func(t *testing.T) {
+		_, err := ss.View().UpdateSortOrder(idA, model.NewId(), 0)
+		require.Error(t, err)
+		var iiErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &iiErr)
+	})
+
+	t.Run("does not include deleted views", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		var created []*model.View
+		for i := range 3 {
+			v := makeView(ch, creator)
+			v.Title = fmt.Sprintf("Del View %d", i)
+			v.SortOrder = i
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			created = append(created, s)
+		}
+
+		// Delete the middle one
+		err := ss.View().Delete(created[1].Id, model.GetMillis())
+		require.NoError(t, err)
+
+		result, err := ss.View().UpdateSortOrder(created[2].Id, ch, 0)
+		require.NoError(t, err)
+		require.Len(t, result, 2)
+		assert.Equal(t, created[2].Id, result[0].Id)
+		assert.Equal(t, created[0].Id, result[1].Id)
+	})
+
+	t.Run("updates timestamps on all views", func(t *testing.T) {
+		ch := model.NewId()
+		creator := model.NewId()
+		var created []*model.View
+		for i := range 2 {
+			v := makeView(ch, creator)
+			v.Title = fmt.Sprintf("TS View %d", i)
+			v.SortOrder = i
+			s, err := ss.View().Save(v)
+			require.NoError(t, err)
+			created = append(created, s)
+		}
+
+		time.Sleep(2 * time.Millisecond)
+
+		result, err := ss.View().UpdateSortOrder(created[1].Id, ch, 0)
+		require.NoError(t, err)
+		for _, v := range result {
+			assert.Greater(t, v.UpdateAt, created[0].UpdateAt)
+		}
 	})
 }

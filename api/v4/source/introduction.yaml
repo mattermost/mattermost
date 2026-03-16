@@ -401,6 +401,8 @@ tags:
     description: Endpoints for creating and performing file uploads.
   - name: bookmarks
     description: Endpoints for creating, getting and interacting with channel bookmarks.
+  - name: views
+    description: Endpoints for creating, getting and interacting with channel views.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status

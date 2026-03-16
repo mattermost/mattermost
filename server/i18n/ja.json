@@ -1474,10 +1474,6 @@
     "translation": "サーバー開始時にエラーになりました err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "電子メールアドレス {{.Email}} と パスワード {{.Password}} を持つ 統合機能/SlackBot のユーザーがインポートされました。\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "統合機能/SlackBot のユーザー {{.Username}} がインポートできませんでした。\r\n"
   },
@@ -1500,10 +1496,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\n ユーザーが作成されました:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "電子メールアドレス {{.Email}} とパスワード {{.Password}} を持つSlackがインポートされました。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",

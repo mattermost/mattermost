@@ -14,6 +14,34 @@ type ViewStore struct {
 	mock.Mock
 }
 
+// CountForChannel provides a mock function with given fields: channelID, opts
+func (_m *ViewStore) CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error) {
+	ret := _m.Called(channelID, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountForChannel")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) (int64, error)); ok {
+		return rf(channelID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.ViewQueryOpts) int64); ok {
+		r0 = rf(channelID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.ViewQueryOpts) error); ok {
+		r1 = rf(channelID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: viewID, deleteAt
 func (_m *ViewStore) Delete(viewID string, deleteAt int64) error {
 	ret := _m.Called(viewID, deleteAt)
@@ -145,6 +173,36 @@ func (_m *ViewStore) Update(view *model.View) (*model.View, error) {
 
 	if rf, ok := ret.Get(1).(func(*model.View) error); ok {
 		r1 = rf(view)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateSortOrder provides a mock function with given fields: viewID, channelID, newIndex
+func (_m *ViewStore) UpdateSortOrder(viewID string, channelID string, newIndex int64) ([]*model.View, error) {
+	ret := _m.Called(viewID, channelID, newIndex)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSortOrder")
+	}
+
+	var r0 []*model.View
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) ([]*model.View, error)); ok {
+		return rf(viewID, channelID, newIndex)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) []*model.View); ok {
+		r0 = rf(viewID, channelID, newIndex)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.View)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(viewID, channelID, newIndex)
 	} else {
 		r1 = ret.Error(1)
 	}

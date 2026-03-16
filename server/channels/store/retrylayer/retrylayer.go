@@ -17487,6 +17487,27 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 
 }
 
+func (s *RetryLayerViewStore) CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ViewStore.CountForChannel(channelID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerViewStore) Delete(viewID string, deleteAt int64) error {
 
 	tries := 0
@@ -17576,6 +17597,27 @@ func (s *RetryLayerViewStore) Update(view *model.View) (*model.View, error) {
 	tries := 0
 	for {
 		result, err := s.ViewStore.Update(view)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerViewStore) UpdateSortOrder(viewID string, channelID string, newIndex int64) ([]*model.View, error) {
+
+	tries := 0
+	for {
+		result, err := s.ViewStore.UpdateSortOrder(viewID, channelID, newIndex)
 		if err == nil {
 			return result, nil
 		}

@@ -13827,6 +13827,22 @@ func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 	return result, err
 }
 
+func (s *TimerLayerViewStore) CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ViewStore.CountForChannel(channelID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ViewStore.CountForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerViewStore) Delete(viewID string, deleteAt int64) error {
 	start := time.Now()
 
@@ -13903,6 +13919,22 @@ func (s *TimerLayerViewStore) Update(view *model.View) (*model.View, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ViewStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerViewStore) UpdateSortOrder(viewID string, channelID string, newIndex int64) ([]*model.View, error) {
+	start := time.Now()
+
+	result, err := s.ViewStore.UpdateSortOrder(viewID, channelID, newIndex)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ViewStore.UpdateSortOrder", success, elapsed)
 	}
 	return result, err
 }

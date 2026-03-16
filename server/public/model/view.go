@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -19,8 +20,10 @@ const (
 	ViewTitleMaxRunes       = 256
 	ViewDescriptionMaxRunes = 1024
 	ViewIconMaxRunes        = 256
+	SubviewTitleMaxRunes    = 256
 	ViewMaxSubviews         = 50
 	ViewMaxLinkedProperties = 500
+	MaxViewsPerChannel      = 50
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"
@@ -63,8 +66,12 @@ func (s *Subview) IsValid() *AppError {
 		return NewAppError("Subview.IsValid", "model.subview.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if s.Title == "" {
+	if strings.TrimSpace(s.Title) == "" {
 		return NewAppError("Subview.IsValid", "model.subview.is_valid.title.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(s.Title) > SubviewTitleMaxRunes {
+		return NewAppError("Subview.IsValid", "model.subview.is_valid.title_length.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
 	if s.Type != SubviewTypeKanban {
@@ -82,11 +89,15 @@ type ViewPatch struct {
 	Props       *ViewBoardProps `json:"props"`
 }
 
+type ViewsWithCount struct {
+	Views      []*View `json:"views"`
+	TotalCount int64   `json:"total_count"`
+}
+
 const ViewQueryDefaultPerPage = 20
 const ViewQueryMaxPerPage = 200
 
 type ViewQueryOpts struct {
-	IncludeDeleted bool
 	// Page is the 0-based page number for limit/offset pagination.
 	Page int
 	// PerPage specifies the page size. Zero defaults to ViewQueryDefaultPerPage (20).
@@ -123,6 +134,9 @@ func (p *ViewBoardProps) Clone() *ViewBoardProps {
 }
 
 func (o *View) Clone() *View {
+	if o == nil {
+		return nil
+	}
 	v := *o
 	v.Props = o.Props.Clone()
 	return &v
@@ -145,7 +159,7 @@ func (o *View) IsValid() *AppError {
 		return NewAppError("View.IsValid", "model.view.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Title == "" || utf8.RuneCountInString(o.Title) > ViewTitleMaxRunes {
+	if strings.TrimSpace(o.Title) == "" || utf8.RuneCountInString(o.Title) > ViewTitleMaxRunes {
 		return NewAppError("View.IsValid", "model.view.is_valid.title.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -216,6 +230,9 @@ func (o *View) PreUpdate() {
 }
 
 func (o *View) Patch(patch *ViewPatch) {
+	if patch == nil {
+		return
+	}
 	if patch.Title != nil {
 		o.Title = *patch.Title
 	}
