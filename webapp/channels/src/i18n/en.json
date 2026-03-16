@@ -6315,6 +6315,7 @@
   "team_settings.access_policies.title": "Channel membership policies",
   "team_settings.openInviteDescription.error": "There was an error generating the invite code, please try again",
   "team_settings.openInviteDescription.groupConstrained": "Members of this team are added and removed by linked groups. <link>Learn More</link>",
+  "team_settings.policy_editor.channel_selector.subtitle": "Add channels that this membership policy will apply to.",
   "team_settings.policy_editor.confirmation.apply": "Apply policy",
   "team_settings.policy_editor.confirmation.body": "This policy will grant users with matching attribute values access to <b>{count} assigned {count, plural, one {channel} other {channels}}</b> and remove users without these attribute values.",
   "team_settings.policy_editor.confirmation.cancel": "Cancel",

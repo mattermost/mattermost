@@ -69,10 +69,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 		}
 	}
 
-	endIdx := startIdx + requestedLimit
-	if endIdx > len(filtered) {
-		endIdx = len(filtered)
-	}
+	endIdx := min(startIdx+requestedLimit, len(filtered))
 
 	return filtered[startIdx:endIdx], total, nil
 }
