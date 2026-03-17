@@ -218,21 +218,9 @@ jobs:
               }
           }
 
-          const generatedRoot = path.join('specs', 'functional', 'ai-assisted');
-          if (fs.existsSync(generatedRoot)) {
-              const stack = [generatedRoot];
-              while (stack.length > 0) {
-                  const current = stack.pop();
-                  for (const entry of fs.readdirSync(current, {withFileTypes: true})) {
-                      const fullPath = path.join(current, entry.name);
-                      if (entry.isDirectory()) {
-                          stack.push(fullPath);
-                      } else if (entry.isFile() && /\.(spec|test)\.[tj]sx?$/.test(entry.name)) {
-                          tests.add(fullPath.replace(/\\/g, '/'));
-                      }
-                  }
-              }
-          }
+          // Only shard checked-in specs here. Agentic generation runs later in the
+          // shard job, so we should not derive paths to files that do not exist in
+          // every worker checkout yet.
 
           // Sanitize: reject paths with shell metacharacters, traversal, or outside spec tree
           const safePathPattern = /^[a-zA-Z0-9_.\/\-]+$/;
