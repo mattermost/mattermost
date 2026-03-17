@@ -19,7 +19,7 @@ import {useUserTheme} from 'components/theme_provider';
 import ThreadPopout from 'components/thread_popout';
 
 import Pluggable from 'plugins/pluggable';
-import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN, IDENTIFIER_PATH_PATTERN} from 'utils/path';
+import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN} from 'utils/path';
 import {useBrowserPopout} from 'utils/popouts/use_browser_popout';
 
 import './popout_controller.scss';
@@ -52,7 +52,7 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
                     component={ThreadPopout}
                 />
                 <Route
-                    path={`/_popout/rhs/:team(${TEAM_NAME_PATH_PATTERN})/:identifier(${IDENTIFIER_PATH_PATTERN})`}
+                    path={`/_popout/rhs/:team(${TEAM_NAME_PATH_PATTERN})`}
                     component={RhsPopout}
                 />
                 <Route

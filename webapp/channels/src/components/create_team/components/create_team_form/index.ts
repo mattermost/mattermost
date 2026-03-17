@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {checkIfTeamExists, createTeam} from 'mattermost-redux/actions/teams';
 
-import TeamUrl from './team_url';
+import CreateTeamForm from './create_team_form';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -18,4 +18,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(TeamUrl);
+export default connect(null, mapDispatchToProps)(CreateTeamForm);

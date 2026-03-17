@@ -9,6 +9,7 @@ import UserAccountMenu from './user_account_menu';
 // Channels Components
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
+import CreateTeamForm from './channels/create_team_form';
 import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
 import ChannelsPostCreate from './channels/post_create';
@@ -22,6 +23,7 @@ import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
+import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
@@ -51,6 +53,7 @@ import UserDetail from './system_console/sections/user_management/user_detail';
 import EditionAndLicense from './system_console/sections/about/edition_and_license';
 import MobileSecurity from './system_console/sections/environment/mobile_security';
 import Notifications from './system_console/sections/site_configuration/notifications';
+import UsersAndTeams from './system_console/sections/site_configuration/users_and_teams';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleHeader from './system_console/header';
 import SystemConsoleNavbar from './system_console/navbar';
@@ -69,6 +72,7 @@ const components = {
     // Channels
     ChannelsAppBar,
     ChannelsCenterView,
+    CreateTeamForm,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -83,6 +87,7 @@ const components = {
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
+    NewChannelModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
@@ -113,6 +118,7 @@ const components = {
     MobileSecurity,
     Notifications,
     RadioSetting,
+    UsersAndTeams,
     SystemConsoleFeatureDiscovery,
     SystemConsoleHeader,
     SystemConsoleNavbar,
@@ -136,6 +142,7 @@ export {
     // Channels Page
     ChannelsAppBar,
     ChannelsCenterView,
+    CreateTeamForm,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -150,6 +157,7 @@ export {
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
+    NewChannelModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
@@ -180,6 +188,7 @@ export {
     MobileSecurity,
     Notifications,
     RadioSetting,
+    UsersAndTeams,
     SystemConsoleFeatureDiscovery,
     SystemConsoleHeader,
     SystemConsoleNavbar,
