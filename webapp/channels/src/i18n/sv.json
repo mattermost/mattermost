@@ -4664,7 +4664,7 @@
   "intro_messages.GM.muted": "Detta gruppmeddelande är för närvarande <b>mjutad</b>, så du kommer inte att notifierad.",
   "intro_messages.GM.none": "Du har valt att <b>aldrig</b> bli notifierad i detta gruppmeddelande.",
   "intro_messages.addGroupsToTeam": "Lägg till andra grupper till detta team",
-  "intro_messages.anyMember": "Detta är början av {display_name}. Vilken medlem som helt kan ansluta till och läsa i kanalen.",
+  "intro_messages.anyMember": "Detta är början av {display_name}. Vilken medlem som helst kan ansluta till och läsa i kanalen.",
   "intro_messages.creator": "Publik kanal skapad den {date} av {creator}.",
   "intro_messages.creatorPrivate": "Privat kanal skapad den {date} av {creator}.",
   "intro_messages.default": "Välkommen till {display_name}. Publicera meddelanden som du vill alla ska se. Alla blir automatiskt medlemmar av denna kanal när de går med i teamet.",
