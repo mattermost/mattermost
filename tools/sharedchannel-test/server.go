@@ -217,19 +217,13 @@ func ProvisionAdmin(ctx context.Context, serverURL, dbName, username, email, pas
 		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 
-	// Validate username to prevent SQL injection
-	for _, r := range username {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-' || r == '.') {
-			return nil, fmt.Errorf("invalid character %q in username", r)
-		}
-	}
-
-	// Promote to system_admin via DB
+	// Promote to system_admin via DB using parameterized query
 	cmd := exec.CommandContext(ctx, "docker", "exec",
 		"-e", "PGPASSWORD=mostest",
 		"mattermost-postgres",
-		"psql", "-U", "mmuser", "-d", dbName, "-c",
-		fmt.Sprintf("UPDATE users SET roles='system_admin system_user' WHERE username='%s'", username),
+		"psql", "-U", "mmuser", "-d", dbName,
+		"-v", "uname="+username,
+		"-c", "UPDATE users SET roles='system_admin system_user' WHERE username=:'uname'",
 	)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("promote admin: %w\n%s", err, out)
