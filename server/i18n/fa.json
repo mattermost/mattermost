@@ -5532,10 +5532,6 @@
     "translation": "کاربر Slack با یک کاربر موجود Mattermost با ایمیل منطبق {{.Email}} و نام کاربری {{.Username}} ادغام شد.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "کاربر Slack با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nکاربران ایجاد کردند:\n"
   },
@@ -5558,10 +5554,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "وارد کردن کاربر یکپارچه سازی / Slack Bot {{.Username}} امکان پذیر نیست.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "کاربر ادغام / Slack Bot با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
