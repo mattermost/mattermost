@@ -705,7 +705,8 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	// so only admins from this team can delete the now-channelless policy.
 	if !hasSystemPermission && assignments.TeamID != "" {
 		if appErr := c.App.StampLastTeamOnChannellessPolicy(c.AppContext, policyID, assignments.TeamID); appErr != nil {
-			c.Logger.Warn("Failed to stamp last_team_id on policy", mlog.String("policy_id", policyID), mlog.Err(appErr))
+			c.Err = appErr
+			return
 		}
 	}
 
