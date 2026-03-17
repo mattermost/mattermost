@@ -65,11 +65,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4996,10 +4996,6 @@
     "translation": "Slack-användare sammanslagen med en befintlig Mattermost-användare med {{.Email}} och användarid {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack-användare med e-post {{.Email}} och lösenord {{.Password}} har importerats.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nAnvändare skapade:\n"
   },
@@ -5022,10 +5018,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Kunde inte imortera Integrations-/Slack Bot-användaren {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integrations-/Slack Bot-Användaren med epost {{.Email}} och lösenord {{.Password}} har importerats.\n"
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
