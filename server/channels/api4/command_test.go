@@ -164,11 +164,11 @@ func TestUpdateCommand(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// Permission tests
-	th.LoginBasic(t)
+	th.LoginBasic()
 
 	// Give BasicUser permission to manage their own commands
-	th.AddPermissionToRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
-	defer th.RemovePermissionFromRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionManageSlashCommands.Id, model.TeamUserRoleId)
 
 	t.Run("UserCanUpdateTheirOwnCommand", func(t *testing.T) {
 		// Create a command owned by BasicUser
@@ -208,8 +208,8 @@ func TestUpdateCommand(t *testing.T) {
 
 	t.Run("UserWithManageOthersCanUpdateOthersCommand", func(t *testing.T) {
 		// Give BasicUser permission to manage others' commands
-		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
 
 		// Create a command owned by BasicUser2
 		cmd := &model.Command{
@@ -354,13 +354,13 @@ func TestMoveCommand(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// Set up for permission tests
-	th.LoginBasic(t)
-	th.LinkUserToTeam(t, th.BasicUser, newTeam)
-	th.LinkUserToTeam(t, th.BasicUser2, newTeam)
+	th.LoginBasic()
+	th.LinkUserToTeam(th.BasicUser, newTeam)
+	th.LinkUserToTeam(th.BasicUser2, newTeam)
 
 	// Give BasicUser permission to manage their own commands on both teams
-	th.AddPermissionToRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
-	defer th.RemovePermissionFromRole(t, model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionManageSlashCommands.Id, model.TeamUserRoleId)
 
 	t.Run("UserWithoutManageOthersPermissionCannotMoveOthersCommand", func(t *testing.T) {
 		// Create a command owned by BasicUser2
@@ -395,8 +395,8 @@ func TestMoveCommand(t *testing.T) {
 		rcmd, _ := th.App.CreateCommand(cmd)
 
 		// Give BasicUser the permission to manage others' commands
-		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
 
 		// Now BasicUser should be able to move BasicUser2's command
 		_, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
@@ -451,12 +451,12 @@ func TestMoveCommand(t *testing.T) {
 
 	t.Run("CannotMoveCommandWhenCreatorHasNoPermissionToNewTeam", func(t *testing.T) {
 		// Create a third team that the command creator (BasicUser2) is NOT a member of
-		thirdTeam := th.CreateTeam(t)
-		th.LinkUserToTeam(t, th.BasicUser, thirdTeam)
+		thirdTeam := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, thirdTeam)
 
 		// Give BasicUser permission to manage others' commands
-		th.AddPermissionToRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
 
 		// Create a command owned by BasicUser2
 		// Note: BasicUser2 is NOT a member of thirdTeam (only member of team and newTeam)
