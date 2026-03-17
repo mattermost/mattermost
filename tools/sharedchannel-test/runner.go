@@ -105,8 +105,13 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 		return fmt.Errorf("license server B: %w", err)
 	}
 
-	// Allow license to activate remote cluster service
-	time.Sleep(3 * time.Second)
+	// Wait for remote cluster service to become available after license upload
+	if err := tr.waitFor(ctx, 30*time.Second, func() bool {
+		_, _, err := tr.clientA.GetRemoteClusters(ctx, 0, 1, model.RemoteClusterQueryFilter{})
+		return err == nil
+	}); err != nil {
+		return fmt.Errorf("remote cluster service not ready on server A: %w", err)
+	}
 
 	// Create teams
 	tr.logger.Info("Creating teams...")
