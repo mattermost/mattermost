@@ -5647,7 +5647,6 @@
   "recaps.actionItems": "Action items:",
   "recaps.addRecap": "Add a recap",
   "recaps.addRecap.disabled": "Agents Bridge is not enabled",
-  "recaps.allCaughtUp": "You're all caught up",
   "recaps.channelMenu.ariaLabel": "Options for {channelName}",
   "recaps.defaultAgent": "Copilot",
   "recaps.delete.confirm.button": "Delete",
