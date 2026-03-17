@@ -72,7 +72,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             });
         } else {
             this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
-                this.setState({channels: response.data!.sort(compareChannels)});
+                this.setState({channels: (response.data || []).sort(compareChannels)});
                 this.setChannelsLoadingState(false);
             });
         }
