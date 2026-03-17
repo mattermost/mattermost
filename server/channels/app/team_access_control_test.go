@@ -419,3 +419,30 @@ func TestStampLastTeamOnChannellessPolicy(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 }
+
+// TestStaleLastTeamIdDoesNotBypassOwnership verifies that a policy re-assigned
+// to another team is still protected by ValidateTeamAdminPolicyOwnership, even
+// if last_team_id is stale from the previous team.
+func TestStaleLastTeamIdDoesNotBypassOwnership(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Create policy scoped to Team B (the "new" team)
+	otherTeam := th.CreateTeam(t)
+	ch := th.CreatePrivateChannel(t, otherTeam)
+	policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+
+	// Simulate stale last_team_id from BasicTeam (the "old" team)
+	storedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, policy.ID)
+	require.NoError(t, err)
+	if storedPolicy.Props == nil {
+		storedPolicy.Props = make(map[string]any)
+	}
+	storedPolicy.Props["last_team_id"] = th.BasicTeam.Id
+	_, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, storedPolicy)
+	require.NoError(t, err)
+
+	// Ownership check from BasicTeam should FAIL — policy is scoped to otherTeam
+	appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, policy.ID)
+	require.NotNil(t, appErr, "stale last_team_id should not bypass ownership when policy has channels in another team")
+	assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+}
