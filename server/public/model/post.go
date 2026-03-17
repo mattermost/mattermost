@@ -398,6 +398,7 @@ type GetPostsSinceOptions struct {
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
 	SortAscending            bool
+	PostType                 string // When set, only return posts of this type; when empty, exclude card posts (default).
 }
 
 type GetPostsSinceForSyncCursor struct {
@@ -435,6 +436,7 @@ type GetPostsOptions struct {
 	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
+	PostType                 string // When set, only return posts of this type; when empty, exclude card posts (default).
 }
 
 type PostCountOptions struct {

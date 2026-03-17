@@ -2593,6 +2593,52 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		require.NoError(t, err)
 		assert.Equal(t, []string{post3.Id}, postList.Order, "card post should be excluded from GetPostsAfter")
 	})
+
+	t.Run("PostType filter should return only card posts for GetPostsBefore and GetPostsAfter", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "GetPostsAroundPostType",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+
+		normal1, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "normal1"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		card1, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "card1", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "normal2"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		card2, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "card2", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		normal3, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "normal3"})
+		require.NoError(t, err)
+
+		// GetPostsBefore normal3 with PostType=card: should return card2 and card1, skipping normals
+		postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{
+			ChannelId: channel.Id, PostId: normal3.Id, PerPage: 10, PostType: model.PostTypeCard,
+		}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{card2.Id, card1.Id}, postList.Order, "GetPostsBefore with PostType should return only cards")
+
+		// GetPostsAfter normal1 with PostType=card: should return card1 and card2, skipping normals
+		postList, err = ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{
+			ChannelId: channel.Id, PostId: normal1.Id, PerPage: 10, PostType: model.PostTypeCard,
+		}, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{card1.Id, card2.Id}, postList.Order, "GetPostsAfter with PostType should return only cards")
+	})
 }
 
 func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2742,6 +2788,41 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 
 		assert.Len(t, postList.Posts, 1)
 		assert.NotNil(t, postList.Posts[post1.Id])
+	})
+
+	t.Run("PostType filter should return only card posts for GetPostsSince", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "GetPostsSincePostType",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "normal before"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		since := model.GetMillis()
+		time.Sleep(time.Millisecond)
+
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "normal after"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		cardPost, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: userID, Message: "card after", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// With PostType=card, only the card post created after "since" should appear
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{
+			ChannelId: channel.Id, Time: since, PostType: model.PostTypeCard,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{cardPost.Id}, postList.Order, "GetPostsSince with PostType should return only card posts")
 	})
 }
 
@@ -3031,6 +3112,79 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Should contain rootPost and replyPost
 		assert.Contains(t, postList.Order, rootPost.Id, "root post should be in results")
 		assert.Contains(t, postList.Order, replyPost.Id, "reply post should be in results")
+	})
+
+	t.Run("PostType filter should return only card posts when set", func(t *testing.T) {
+		channel4, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "PostTypeFilterChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		normalPost, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel4.Id, UserId: userID, Message: "normal"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		cardPost1, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel4.Id, UserId: userID, Message: "card 1", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		cardPost2, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel4.Id, UserId: userID, Message: "card 2", Type: model.PostTypeCard})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		// With PostType="card", only card posts should be returned
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel4.Id, Page: 0, PerPage: 30, PostType: model.PostTypeCard,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Len(t, postList.Order, 2, "should return only card posts")
+		assert.Contains(t, postList.Order, cardPost1.Id)
+		assert.Contains(t, postList.Order, cardPost2.Id)
+		for _, id := range postList.Order {
+			assert.Equal(t, model.PostTypeCard, postList.Posts[id].Type)
+		}
+
+		// Default (empty PostType) should still exclude cards — regression check
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel4.Id, Page: 0, PerPage: 30,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{normalPost.Id}, postList.Order, "default should still exclude card posts")
+
+		// PostType="card" with SkipFetchThreads=true (getRootPosts variant)
+		postList, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel4.Id, Page: 0, PerPage: 30, SkipFetchThreads: true, PostType: model.PostTypeCard,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Len(t, postList.Order, 2, "skipFetchThreads variant should also return card posts")
+		assert.Contains(t, postList.Order, cardPost1.Id)
+		assert.Contains(t, postList.Order, cardPost2.Id)
+	})
+
+	t.Run("PostType filter should work with collapsed threads", func(t *testing.T) {
+		channel5, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "PostTypeCollapsedChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(rctx, &model.Post{ChannelId: channel5.Id, UserId: userID, Message: "normal"})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		cardPost, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel5.Id, UserId: userID, Message: "card", Type: model.PostTypeCard})
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel5.Id, Page: 0, PerPage: 30, CollapsedThreads: true, UserId: userID, PostType: model.PostTypeCard,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		assert.Equal(t, []string{cardPost.Id}, postList.Order, "collapsed threads with PostType should return only card posts")
 	})
 }
 
