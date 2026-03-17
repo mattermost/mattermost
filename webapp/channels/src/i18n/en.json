@@ -6342,6 +6342,7 @@
   "team_settings.policy_editor.delete_confirmation.title": "Delete policy {name}",
   "team_settings.policy_editor.error.channels_required": "Please assign at least one channel to the policy",
   "team_settings.policy_editor.error.incomplete_rule": "Please complete all attribute rules with a value",
+  "team_settings.policy_editor.error.no_channels_delete_hint": "Remove all channels to delete, or undo to keep the policy.",
   "team_settings.policy_editor.error.self_exclusion": "You cannot save these rules because they would remove your access to this policy. Adjust the rules to include your user attributes.",
   "team_settings.policy_editor.error.validation_failed": "Failed to validate access rules. Please try again.",
   "team_settings.policy_editor.name_hint": "Give your policy a name that will be used to identify it in the policies list.",

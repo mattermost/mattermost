@@ -5,11 +5,21 @@ package app
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
+
+// policyLastTeamCache bridges the unassign → delete calls that happen
+// milliseconds apart. Entries auto-expire after 30 seconds.
+var policyLastTeamCache = cache.NewLRU(&cache.CacheOptions{
+	Size:          256,
+	DefaultExpiry: 30 * time.Second,
+	Name:          "PolicyLastTeam",
+})
 
 const (
 	teamPoliciesDefaultPerPage = 10
@@ -74,16 +84,10 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	return filtered[startIdx:endIdx], total, nil
 }
 
-// StampLastTeamOnChannellessPolicy checks if a parent policy has no remaining
-// children and, if so, stores the team ID in the policy's Props. This allows
-// the delete handler to verify that a team admin belongs to the team that last
-// owned the policy. System admins are not affected by this check.
+// StampLastTeamOnChannellessPolicy checks if a policy has no remaining children
+// and, if so, records the team in an in-memory cache. The subsequent delete call
+// (milliseconds later) reads this to verify team ownership.
 func (a *App) StampLastTeamOnChannellessPolicy(rctx request.CTX, policyID, teamID string) *model.AppError {
-	acs := a.Srv().ch.AccessControl
-	if acs == nil {
-		return nil
-	}
-
 	children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		ParentID: policyID,
 		Type:     model.AccessControlPolicyTypeChannel,
@@ -95,30 +99,26 @@ func (a *App) StampLastTeamOnChannellessPolicy(rctx request.CTX, policyID, teamI
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Still has children — no stamp needed
 	if len(children) > 0 {
 		return nil
 	}
 
-	policy, appErr := acs.GetPolicy(rctx, policyID)
-	if appErr != nil {
+	if err := policyLastTeamCache.SetWithDefaultExpiry(policyID, teamID); err != nil {
 		return model.NewAppError("StampLastTeamOnChannellessPolicy",
 			"app.team.access_policies.stamp_team.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(appErr)
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	if policy.Props == nil {
-		policy.Props = make(map[string]any)
-	}
-	policy.Props["last_team_id"] = teamID
-
-	if _, appErr = acs.SavePolicy(rctx, policy); appErr != nil {
-		return model.NewAppError("StampLastTeamOnChannellessPolicy",
-			"app.team.access_policies.stamp_team.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
 	return nil
+}
+
+// GetAndClearPolicyLastTeam reads and removes the cached team for a policy.
+func GetAndClearPolicyLastTeam(policyID string) (string, bool) {
+	var teamID string
+	if err := policyLastTeamCache.Get(policyID, &teamID); err != nil {
+		return "", false
+	}
+	_ = policyLastTeamCache.Remove(policyID)
+	return teamID, true
 }
 
 // ValidateTeamAdminPolicyOwnership verifies that a policy is team-scoped to the

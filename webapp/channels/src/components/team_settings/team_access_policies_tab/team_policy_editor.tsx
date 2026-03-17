@@ -603,9 +603,9 @@ export default function TeamPolicyEditor({
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
-                    tabChangeError={hasErrors || showTabSwitchError}
-                    state={hasErrors || showTabSwitchError ? SAVE_RESULT_ERROR : saveChangesPanelState}
-                    customErrorMessage={formError || undefined}
+                    tabChangeError={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId))}
+                    state={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId)) ? SAVE_RESULT_ERROR : saveChangesPanelState}
+                    customErrorMessage={!hasChannels() && policyId ? formatMessage({id: 'team_settings.policy_editor.error.no_channels_delete_hint', defaultMessage: 'Remove all channels to delete, or undo to keep the policy.'}) : (formError || undefined)}
                     cancelButtonText={formatMessage({
                         id: 'team_settings.policy_editor.undo',
                         defaultMessage: 'Undo',

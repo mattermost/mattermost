@@ -377,72 +377,30 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 func TestStampLastTeamOnChannellessPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Run("stamps team ID when policy has no children", func(t *testing.T) {
-		parentPolicy := &model.AccessControlPolicy{
-			ID:       model.NewId(),
-			Type:     model.AccessControlPolicyTypeParent,
-			Version:  model.AccessControlPolicyVersionV0_2,
-			Revision: 1,
-			Name:     "Stamp Test Policy",
-			Rules:    []model.AccessControlPolicyRule{{Expression: "true", Actions: []string{"*"}}},
-		}
-		var err error
-		parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
-		require.NoError(t, err)
+	t.Run("caches team ID when policy has no children", func(t *testing.T) {
+		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
 
-		originalACS := th.App.Srv().ch.AccessControl
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
-		t.Cleanup(func() {
-			th.App.Srv().ch.AccessControl = originalACS
-			mockACS.AssertExpectations(t)
-		})
-
-		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentPolicy.ID).
-			Return(parentPolicy, nil)
-		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
-			Return(parentPolicy, nil)
-
-		appErr := th.App.StampLastTeamOnChannellessPolicy(th.Context, parentPolicy.ID, th.BasicTeam.Id)
+		appErr := th.App.StampLastTeamOnChannellessPolicy(th.Context, policy.ID, th.BasicTeam.Id)
 		require.Nil(t, appErr)
 
-		mockACS.AssertCalled(t, "SavePolicy", mock.Anything, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
-			return p.Props["last_team_id"] == th.BasicTeam.Id
-		}))
+		// Verify cache was set
+		cachedTeam, ok := GetAndClearPolicyLastTeam(policy.ID)
+		assert.True(t, ok, "cache entry should exist")
+		assert.Equal(t, th.BasicTeam.Id, cachedTeam)
+
+		// Verify it was cleared after read
+		_, ok = GetAndClearPolicyLastTeam(policy.ID)
+		assert.False(t, ok, "cache entry should be cleared after read")
 	})
 
-	t.Run("does not stamp when policy still has children", func(t *testing.T) {
+	t.Run("does not cache when policy still has children", func(t *testing.T) {
 		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
 
 		appErr := th.App.StampLastTeamOnChannellessPolicy(th.Context, policy.ID, th.BasicTeam.Id)
 		require.Nil(t, appErr)
+
+		_, ok := GetAndClearPolicyLastTeam(policy.ID)
+		assert.False(t, ok, "cache should not be set when children exist")
 	})
-}
-
-// TestStaleLastTeamIdDoesNotBypassOwnership verifies that a policy re-assigned
-// to another team is still protected by ValidateTeamAdminPolicyOwnership, even
-// if last_team_id is stale from the previous team.
-func TestStaleLastTeamIdDoesNotBypassOwnership(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Create policy scoped to Team B (the "new" team)
-	otherTeam := th.CreateTeam(t)
-	ch := th.CreatePrivateChannel(t, otherTeam)
-	policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
-
-	// Simulate stale last_team_id from BasicTeam (the "old" team)
-	storedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, policy.ID)
-	require.NoError(t, err)
-	if storedPolicy.Props == nil {
-		storedPolicy.Props = make(map[string]any)
-	}
-	storedPolicy.Props["last_team_id"] = th.BasicTeam.Id
-	_, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, storedPolicy)
-	require.NoError(t, err)
-
-	// Ownership check from BasicTeam should FAIL — policy is scoped to otherTeam
-	appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, policy.ID)
-	require.NotNil(t, appErr, "stale last_team_id should not bypass ownership when policy has channels in another team")
-	assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
 }
