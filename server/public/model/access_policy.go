@@ -111,9 +111,13 @@ func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
 			"active": entry.Active,
 		})
 	}
-	return map[string]any{
+	result := map[string]any{
 		"entries": entries,
 	}
+	if r.TeamID != "" {
+		result["team_id"] = r.TeamID
+	}
+	return result
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
