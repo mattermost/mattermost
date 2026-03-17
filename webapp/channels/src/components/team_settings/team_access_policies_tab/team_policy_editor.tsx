@@ -239,9 +239,8 @@ export default function TeamPolicyEditor({
         }
 
         setSaving(true);
+        let currentPolicyId = policyId;
         try {
-            let currentPolicyId = policyId;
-
             const result = await actions.createPolicy({
                 id: currentPolicyId || '',
                 name: policyName,
@@ -298,6 +297,14 @@ export default function TeamPolicyEditor({
             setShowConfirmationModal(false);
             onNavigateBack(policyId ? formatMessage({id: 'team_settings.policy_editor.policy_updated', defaultMessage: 'Policy updated'}) : formatMessage({id: 'team_settings.policy_editor.policy_saved', defaultMessage: 'Policy saved'}));
         } catch (error: any) {
+            // Roll back newly created policy if channel assignment failed
+            if (!policyId && currentPolicyId) {
+                try {
+                    await actions.deletePolicy(currentPolicyId);
+                } catch {
+                    // Best effort — if rollback fails, orphan is invisible (no team scope)
+                }
+            }
             setFormError(error.message || 'An error occurred');
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             setShowConfirmationModal(false);
