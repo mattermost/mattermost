@@ -21,7 +21,6 @@ type Props = {
     simpleMode?: boolean;
     hideHeader?: boolean;
     hideDeleteAction?: boolean;
-    showRefreshButton?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -395,7 +394,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 extraComponent={props.showRefreshButton ? (
                     <button
                         className='style--none policy-refresh-btn'
-                        onClick={() => fetchPolicies(search)}
+                        onClick={() => fetchPolicies(search, '', true)}
                         aria-label={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
                         title={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
                     >
