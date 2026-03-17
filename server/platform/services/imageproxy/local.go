@@ -24,7 +24,7 @@ import (
 
 var imageContentTypes = []string{
 	"image/bmp", "image/cgm", "image/g3fax", "image/gif", "image/ief", "image/jp2",
-	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif", "image/svg+xml",
+	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif",
 	"image/tiff", "image/vnd.adobe.photoshop", "image/vnd.djvu", "image/vnd.dwg",
 	"image/vnd.dxf", "image/vnd.fastbidsheet", "image/vnd.fpx", "image/vnd.fst",
 	"image/vnd.fujixerox.edmics-mmr", "image/vnd.fujixerox.edmics-rlc",
@@ -167,11 +167,18 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 		return
 	}
 
+	// Wrap the body in a bufio.Reader so we can peek at bytes for
+	// content-type detection without consuming the stream.
+	b := bufio.NewReader(resp.Body)
+	resp.Body = io.NopCloser(b)
+
+	if isSVGContent(b) {
+		http.Error(w, msgNotAllowed, http.StatusForbidden)
+		return
+	}
+
 	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	if contentType == "" || contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
-		// try to detect content type
-		b := bufio.NewReader(resp.Body)
-		resp.Body = io.NopCloser(b)
 		contentType = peekContentType(b)
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(imageContentTypes, contentType) {
@@ -246,6 +253,18 @@ func peekContentType(p *bufio.Reader) string {
 		return ""
 	}
 	return http.DetectContentType(byt)
+}
+
+// isSVGContent peeks at the first 512 bytes of p and reports whether they
+// contain SVG markers.
+func isSVGContent(p *bufio.Reader) bool {
+	byt, err := p.Peek(512)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return false
+	}
+	lower := strings.ToLower(string(byt))
+	return strings.Contains(lower, "<svg") ||
+		(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg"))
 }
 
 // contentTypeMatches returns whether contentType matches one of the allowed patterns.
