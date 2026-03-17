@@ -1479,10 +1479,6 @@
     "translation": "Fehler beim Starten des Servers, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Die Integrations-/Slack-Bot-Benutzer mit der E-Mail {{.Email}} und Passwort {{.Password}} wurde importiert.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Konnte den Integrations-/Slack-Bot-Benutzer {{.Username}} nicht importieren.\r\n"
   },
@@ -1505,10 +1501,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nBenutzer erstellt:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack-Benutzer mit der E-Mail-Adresse {{.Email}} und dem Passwort {{.Password}} wurde importiert.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -11629,7 +11621,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Die Zahl der Worker muss zwischen 1 und 32 liegen."
+    "translation": "Die Zahl der Worker muss zwischen 1 und 64 liegen."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
@@ -11714,5 +11706,257 @@
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
     "translation": "DCR Weiterleitung URI Allowliste enthält ein ungültiges Muster. Muster müssen mit http:// oder https:// beginnen und dürfen nicht leer sein oder aus Leerzeichen bestehen."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Bitte füge einen Kommentar hinzu, der erklärt, warum du diese Nachricht kennzeichnest."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Der Quarantänegrund der Nachricht darf nicht länger als {{.MaxLength}} Zeichen sein."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Die Funktion zur Behandlung von Datenlecks ist deaktiviert."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Einen Beitrag des Typs '{{.PostType}}' in Quarantäne zu stellen, ist nicht erlaubt."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Deine Lizenz unterstützt keine Datenleck-Unterstützung."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Die Funktion zur Handhabung von Datenlecks ist in diesem Team nicht aktiviert."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Der unter Quarantäne gestellte Beitrag muss sich im Status \"ausstehend\" oder \"zugewiesen\" befinden, damit er behalten oder entfernt werden kann."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Unbekannter Grund für die Quarantäne der Nachricht angegeben."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Bitte wähle einen Grund für die Quarantäne dieser Nachricht aus."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Benutzer ist kein Inhaltsprüfer."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "Bei der Überprüfung der Konfiguration des Plugin-Verzeichnisses ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Das Plugin kann nicht installiert werden: PluginSettings.Directory steht im Konflikt mit ImportSettings.Directory."
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "Bei der Überprüfung der Konfiguration des Importverzeichnisses ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Hochladen von Importen kann nicht erstellt werden: ImportSettings.Directory steht im Konflikt mit PluginSettings.Directory."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Das angegebene Trigger-Schlüsselwort existiert bereits."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Kein Reviewer-ID-Eigenschaftsfeld gefunden."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Der Wert der Eigenschaft Status konnte beim Setzen des Überprüfers nicht aktualisiert werden."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Überprüfer der Nachricht konnte nicht gesetzt werden."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Dieser Beitrag kann nicht unter Quarantäne gestellt werden, da er bereits zur Überprüfung unter Quarantäne gestellt wurde."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Dieser Beitrag kann nicht unter Quarantäne gestellt werden, da er in einer vorherigen Bewertung entfernt wurde."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Dieser Beitrag kann nicht unter Quarantäne gestellt werden, da er in einer früheren Bewertung enthalten war."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Dieser Beitrag kann nicht unter Quarantäne gestellt werden, da er sich in einem unbekannten Status befindet."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Die Eigenschaftswerte für den markierten Beitrag können nicht gespeichert werden."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Der Kommentar des markierenden Benutzers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Der Grund für die Markierung des Benutzers konnte nicht erfasst werden"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Die Nachricht von @{{.username}} wurde zur Überprüfung unter Quarantäne gestellt. Du wirst benachrichtigt, sobald sie von einem Prüfer geprüft wurde."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Der Bot für die Inhaltskennzeichnung konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Die Einstellungen für die Inhaltsüberprüfung konnten nicht aus der Datenbank geholt werden"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht abgerufen werden."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Die Antworten auf den markierten Beitrag konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Die Suche nach Prüfern im Team ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Kommentar des Überprüfers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Der Status des markierten Beitrags konnte nicht aktualisiert werden, wenn der markierte Beitrag wieder hergestellt wurde. "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Beim Versuch, die Löschung des markierten Beitrag und die zugehörigen Daten rückgängig zu machen, konnte der Beitrag nicht in der Datenbank aktualisiert werden."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Die Eigenschaftswerte für die Inhaltskennzeichnung konnten nicht in das WebSocket-Ereignis übertragen werden."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Das Eigenschaftsfeld Flagged Post ID kann nicht gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Das Eigenschaftsfeld \"Verwaltet durch\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Das Feld \"Reporting User\" kann nicht gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Es konnte kein Wert für das \"Reporting User\" Feld gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Gekennzeichneter Beitrag können nicht abgerufen werden, da der Beitrag nicht gekennzeichnet ist."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Kommentar des Überprüfers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Beim dauerhaften Löschen von markierten Beiträgen wurde der Status der markierten Beiträge nicht aktualisiert."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Die Einstellungen des Inhaltsprüfers konnten nicht in der Datenbank gespeichert werden."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Die Suche nach dem Begriff in Allgemeine Prüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Die Suche nach den Eigenschaftsfeldern für die Inhaltskennzeichnung ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Die Werte für die Inhaltskennzeichnung des Beitrags konnten nicht aus der Datenbank geholt werden."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Die Suche nach dem markierten Beitrag in den Beiträgen der Überprüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Die Suche nach den Eigenschaftswerten für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in System Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Datenleck Bot"
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Ungültige Versionsnummer. Muss eine gültige semantische Version sein (z.B. 5.0.0)."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Wende dich an deinen Systemadministrator, wenn du weitere Hilfe benötigst."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Download der aktualisierten App"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "Über"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Hilfe"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Datenschutzbedingungen"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Bedingungen"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Die Version deiner {{.SiteName}} Desktop App ({{.CurrentVersion}}) liegt unter der erforderlichen Mindestversion ({{.MinimumVersion}}). Bitte aktualisiere deine App oder öffne {{.SiteName}} in einem Webbrowser, um fortzufahren."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Update erforderlich"
   }
 ]

@@ -1479,10 +1479,6 @@
     "translation": "Sunucu başlatılırken sorun çıktı. Hata: %v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "E-posta adresi {{.Email}} parolası {{.Password}} olan Bütünleştirme/Slack Bot kullanıcısı içe aktarıldı.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "{{.Username}} Bütünleştirme/Slack Bot kullanıcısı içe aktarılamadı.\n"
   },
@@ -1505,10 +1501,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nEklenen kullanıcılar:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "E-posta adresi {{.Email}} parolası {{.Password}} olan Slack kullanıcısı içe aktarıldı.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",

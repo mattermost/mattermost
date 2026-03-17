@@ -5,6 +5,7 @@ package properties
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -13,6 +14,7 @@ type PropertyService struct {
 	groupStore store.PropertyGroupStore
 	fieldStore store.PropertyFieldStore
 	valueStore store.PropertyValueStore
+	groupCache sync.Map // name -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {
