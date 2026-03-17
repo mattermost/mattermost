@@ -21,6 +21,7 @@ type Props = {
     simpleMode?: boolean;
     hideHeader?: boolean;
     hideDeleteAction?: boolean;
+    showRefreshButton?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;

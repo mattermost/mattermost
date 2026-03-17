@@ -4715,9 +4715,9 @@ export default class Client4 {
     };
 
     searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts, teamId?: string) => {
-        const teamParam = teamId ? `&team_id=${encodeURIComponent(teamId)}` : '';
+        const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<ChannelsWithTotalCount>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}${teamParam}`,
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search${teamParam}`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
         );
     };
