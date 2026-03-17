@@ -38,8 +38,8 @@ func setBaseConfig(th *TestHelper) *model.AppError {
 
 func searchPropertyValue(t *testing.T, th *TestHelper, postId, fieldName string) []*model.PropertyValue {
 	t.Helper()
-	groupId, appErr := th.App.ContentFlaggingGroupId()
-	require.Nil(t, appErr)
+	groupId, err := th.App.ContentFlaggingGroupId()
+	require.NoError(t, err)
 
 	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 	require.Nil(t, appErr)
@@ -197,8 +197,8 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
 		// Verify reviewer property was created
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -232,8 +232,8 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
 		// Verify reviewer property was updated
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -276,8 +276,8 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
 		// Verify reviewer property still exists with correct value
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -306,8 +306,8 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
 		// Verify reviewer property was created with empty value
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -334,15 +334,15 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		// Set the status to Assigned
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -992,18 +992,18 @@ func TestCanFlagPost(t *testing.T) {
 	t.Run("should be able to flag post which has not already been flagged", func(t *testing.T) {
 		post := th.CreatePost(t, th.BasicChannel)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id, "en")
+		appErr := th.App.canFlagPost(groupId, post.Id, "en")
 		require.Nil(t, appErr)
 	})
 
 	t.Run("should not be able to flag post which has already been flagged", func(t *testing.T) {
 		post := th.CreatePost(t, th.BasicChannel)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusField, err := th.Server.propertyAccessService.GetPropertyFieldByName(anonymousCallerId, groupId, "", ContentFlaggingPropertyNameStatus)
 		require.NoError(t, err)
@@ -1018,7 +1018,7 @@ func TestCanFlagPost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Can't fleg when post already flagged in pending status
-		appErr = th.App.canFlagPost(groupId, post.Id, "en")
+		appErr := th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 
@@ -1079,8 +1079,8 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1264,8 +1264,8 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created with empty comment
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1298,8 +1298,8 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reporting time property was set
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1630,8 +1630,8 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1655,8 +1655,8 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(t, th.BasicChannel)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1689,8 +1689,8 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		// Wait for async reviewer post creation to complete
 		time.Sleep(2 * time.Second)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1714,8 +1714,8 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 	t.Run("should handle invalid flagged post ID", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -1740,11 +1740,11 @@ func TestPostReviewerMessage(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		testMessage := "Test reviewer message"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1797,8 +1797,8 @@ func TestPostReviewerMessage(t *testing.T) {
 		// Wait for async reviewer post creation to complete
 		time.Sleep(2 * time.Second)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		testMessage := "Test message for multiple reviewers"
 		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
@@ -1854,11 +1854,11 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(t, th.BasicChannel)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		testMessage := "Test message for non-flagged post"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 	})
 
@@ -1867,11 +1867,11 @@ func TestPostReviewerMessage(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved
@@ -1935,8 +1935,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		actorComment := "This post violates community guidelines"
 		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, actorComment, groupId)
@@ -2000,8 +2000,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, "Test comment", groupId)
 
@@ -2023,8 +2023,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
 
@@ -2042,8 +2042,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		specialComment := "Comment with @mentions #channels ~teams & <script>alert('xss')</script>"
 		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, specialComment, groupId)
@@ -2070,8 +2070,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		actorComment := "This post is acceptable after review"
 		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, actorComment, groupId)
@@ -2129,8 +2129,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		comment := "Test comment"
 		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, comment, groupId)
@@ -2153,8 +2153,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
 
@@ -2172,8 +2172,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		specialComment := "Comment with @mentions #channels ~teams & <script>alert('xss')</script>"
 		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, specialComment, groupId)
@@ -2192,8 +2192,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		// Use BasicUser as actor instead of SystemAdminUser
 		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.BasicUser.Id, "Reviewed by different user", groupId)
@@ -2233,8 +2233,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 
 		// Verify actor properties were created
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -2319,14 +2319,14 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to removed
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2343,14 +2343,14 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to retained
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
+		_, err = th.App.PropertyAccessService().UpdatePropertyValue(anonymousCallerId, groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2386,8 +2386,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify empty comment was stored
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -2414,8 +2414,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify special characters were properly escaped and stored
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
@@ -2704,14 +2704,14 @@ func TestKeepFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to removed
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2728,14 +2728,14 @@ func TestKeepFlaggedPost(t *testing.T) {
 		post := setupFlaggedPost(t, th)
 
 		// Set status to retained
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.NoError(t, err)
 
 		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		_, err := th.App.Srv().propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
+		_, err = th.Server.propertyAccessService.UpdatePropertyValue("", groupId, statusValue)
 		require.NoError(t, err)
 
 		actionRequest := &model.FlagContentActionRequest{

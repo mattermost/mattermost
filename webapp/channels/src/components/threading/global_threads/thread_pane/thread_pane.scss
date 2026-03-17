@@ -24,6 +24,10 @@
         .back {
             display: none;
             flex-shrink: 0;
+
+            &.hasBackAction {
+                display: unset;
+            }
         }
 
         .FollowButton,
