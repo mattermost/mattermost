@@ -1294,6 +1294,54 @@
     "translation": "You don't have the appropriate permissions to direct message this user."
   },
   {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Manage mobile app log attachment for yourself or another user."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Mobile app log attachment is now disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Mobile app log attachment is now enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.no_permission",
+    "translation": "You do not have permission to modify another user's settings."
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Mobile app log attachment is currently disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Mobile app log attachment is currently enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Usage: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.update_error",
+    "translation": "Failed to update mobile app log attachment setting. Please try again."
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found",
+    "translation": "Could not find user \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "you"
+  },
+  {
     "id": "api.command_mute.desc",
     "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
   },
