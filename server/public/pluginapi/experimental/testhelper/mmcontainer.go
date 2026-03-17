@@ -58,6 +58,14 @@ func ensureContainers(t *testing.T) (*mmContainers, error) {
 	t.Helper()
 
 	containersOnce.Do(func() {
+		// testcontainers-go panics (via MustExtractDockerHost) when Docker is not
+		// available instead of returning an error. Recover so callers get an error.
+		defer func() {
+			if r := recover(); r != nil {
+				containersErr = fmt.Errorf("docker not available: %v", r)
+			}
+		}()
+
 		ctx := context.Background()
 
 		// Create a Docker network so Mattermost can reach Postgres by hostname.
