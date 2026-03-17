@@ -610,10 +610,19 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		// channels belong to the requesting team regardless.
 		ownershipErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
 		if ownershipErr != nil {
-			// Allow assign if the policy is a channelless parent that is either
+			// Allow assign only if the policy is a channelless parent that is either
 			// newly created (no last_team_id) or was last owned by this team.
 			policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 			if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
+				c.Err = ownershipErr
+				return
+			}
+			childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+				ParentID: policyID,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Limit:    1,
+			})
+			if searchErr != nil || len(childCount) > 0 {
 				c.Err = ownershipErr
 				return
 			}
