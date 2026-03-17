@@ -215,8 +215,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('XSS Prevention and Sanitization', () => {
-        test('should sanitize introduction text with iframe tags', async () => {
+    describe('Introduction Text Handling', () => {
+        test('should pass introduction text without pre-escaping (delegated to Markdown.format)', async () => {
             const maliciousIntro = 'Introduction <iframe src="evil.com"></iframe> text';
             const props = {
                 ...baseProps,
@@ -228,8 +228,33 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
-                // Should escape HTML tags
-                expect(getByTestId('form-header')).toHaveTextContent('Introduction &lt;iframe src=&quot;evil.com&quot;&gt;&lt;/iframe&gt; text');
+                // Introduction text should NOT be escaped at conversion time
+                // It will be sanitized by Markdown.format when actually rendered
+                expect(getByTestId('form-header')).toHaveTextContent(maliciousIntro);
+            });
+        });
+
+        test('should preserve angle brackets in markdown code blocks (no double-escaping)', async () => {
+            const introWithCode = '* test `< or >`\n* test < or >\n`< or >`';
+            const props = {
+                ...baseProps,
+                introductionText: introWithCode,
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                const header = getByTestId('form-header');
+
+                // Should pass through raw markdown without escaping angle brackets
+                expect(header.textContent).toBe(introWithCode);
+
+                // Should NOT contain double-escaped entities like &amp;lt;
+                expect(header.textContent).not.toContain('&lt;');
+                expect(header.textContent).not.toContain('&gt;');
+                expect(header.textContent).not.toContain('&amp;');
             });
         });
 
