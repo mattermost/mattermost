@@ -412,6 +412,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
+    // Use date-only string as dep so the memo only recomputes when the calendar date changes,
+    // not on every render (currentTime is a new Moment each render).
+    const todayDateString = currentTime.format('YYYY-MM-DD');
+
     const disabledDays = useMemo(() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
         if (minDateTime) {
@@ -423,7 +427,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
             matchers.push({after: momentToLocalDate(maxDateTime)});
         }
         return matchers.length > 0 ? matchers : undefined;
-    }, [minDateTime, maxDateTime, allowPastDates, currentTime]);
+    }, [minDateTime, maxDateTime, allowPastDates, todayDateString]); // eslint-disable-line react-hooks/exhaustive-deps -- currentTime used inside but todayDateString tracks the relevant change (date only)
 
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,

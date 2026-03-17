@@ -796,10 +796,15 @@ func validateDateTimeFormat(dateTimeStr string) error {
 }
 
 func validateDateOrDateTimeFormat(value string) error {
-	if validateDateFormat(value) == nil {
+	dateErr := validateDateFormat(value)
+	if dateErr == nil {
 		return nil
 	}
-	return validateDateTimeFormat(value)
+	dateTimeErr := validateDateTimeFormat(value)
+	if dateTimeErr == nil {
+		return nil
+	}
+	return fmt.Errorf("invalid date or datetime format: %q, expected ISO date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SSZ), or relative format", value)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {
