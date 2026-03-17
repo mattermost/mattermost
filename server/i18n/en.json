@@ -1314,7 +1314,7 @@
     "translation": "mobile-logs"
   },
   {
-    "id": "api.command_mobile_logs.no_permission",
+    "id": "api.command_mobile_logs.no_permission.app_error",
     "translation": "You do not have permission to modify another user's settings."
   },
   {
@@ -1330,11 +1330,11 @@
     "translation": "Usage: /mobile-logs [on|off|status] [@username]"
   },
   {
-    "id": "api.command_mobile_logs.update_error",
+    "id": "api.command_mobile_logs.update_error.app_error",
     "translation": "Failed to update mobile app log attachment setting. Please try again."
   },
   {
-    "id": "api.command_mobile_logs.user_not_found",
+    "id": "api.command_mobile_logs.user_not_found.app_error",
     "translation": "Could not find user \"{{.Username}}\"."
   },
   {

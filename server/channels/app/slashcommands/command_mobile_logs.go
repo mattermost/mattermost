@@ -65,7 +65,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 
 		if !model.IsValidUsername(username) {
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.user_not_found", map[string]any{"Username": username}),
+				Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
@@ -74,20 +74,20 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 		if appErr != nil {
 			if appErr.StatusCode == http.StatusNotFound {
 				return &model.CommandResponse{
-					Text:         args.T("api.command_mobile_logs.user_not_found", map[string]any{"Username": username}),
+					Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 					ResponseType: model.CommandResponseTypeEphemeral,
 				}
 			}
 			rctx.Logger().Error("Failed to get user by username", mlog.String("username", username), mlog.Err(appErr))
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.user_not_found", map[string]any{"Username": username}),
+				Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 
 		if targetUser.DeleteAt != 0 {
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.user_not_found", map[string]any{"Username": username}),
+				Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
@@ -99,13 +99,13 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 			if !a.HasPermissionTo(args.UserId, model.PermissionManageSystem) {
 				if !a.HasPermissionTo(args.UserId, model.PermissionEditOtherUsers) {
 					return &model.CommandResponse{
-						Text:         args.T("api.command_mobile_logs.no_permission"),
+						Text:         args.T("api.command_mobile_logs.no_permission.app_error"),
 						ResponseType: model.CommandResponseTypeEphemeral,
 					}
 				}
 				if targetUser.IsSystemAdmin() {
 					return &model.CommandResponse{
-						Text:         args.T("api.command_mobile_logs.no_permission"),
+						Text:         args.T("api.command_mobile_logs.no_permission.app_error"),
 						ResponseType: model.CommandResponseTypeEphemeral,
 					}
 				}
@@ -126,7 +126,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 		if err := a.UpdatePreferences(rctx, targetUserID, prefs); err != nil {
 			rctx.Logger().Error("Failed to update attach_app_logs preference", mlog.String("user_id", targetUserID), mlog.Err(err))
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.update_error"),
+				Text:         args.T("api.command_mobile_logs.update_error.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
@@ -147,7 +147,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 		if err := a.UpdatePreferences(rctx, targetUserID, prefs); err != nil {
 			rctx.Logger().Error("Failed to update attach_app_logs preference", mlog.String("user_id", targetUserID), mlog.Err(err))
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.update_error"),
+				Text:         args.T("api.command_mobile_logs.update_error.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}

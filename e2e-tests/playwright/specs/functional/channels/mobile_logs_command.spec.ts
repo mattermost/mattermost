@@ -6,11 +6,12 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * Helper to find the attach_app_logs preference from a user's preferences list.
  */
-async function getAttachLogsPreference(userClient: {getMyPreferences: () => Promise<Array<{category: string; name: string; value: string}>>;}) {
+async function getAttachLogsPreference(userClient: {
+    getMyPreferences: () => Promise<Array<{category: string; name: string; value: string}>>;
+}) {
     const prefs = await userClient.getMyPreferences();
     return prefs.find(
-        (p: {category: string; name: string}) =>
-            p.category === 'advanced_settings' && p.name === 'attach_app_logs',
+        (p: {category: string; name: string}) => p.category === 'advanced_settings' && p.name === 'attach_app_logs',
     );
 }
 
@@ -52,36 +53,32 @@ test.describe('/mobile-logs slash command', () => {
      * @objective Verify that /mobile-logs off sets the attach_app_logs preference to false
      *            and returns an ephemeral confirmation.
      */
-    test(
-        'MM-T67880 disables mobile logs for self after enabling via API',
-        {tag: '@slash_commands'},
-        async ({pw}) => {
-            // # Initialize setup
-            const {team, user, userClient} = await pw.initSetup();
+    test('MM-T67880 disables mobile logs for self after enabling via API', {tag: '@slash_commands'}, async ({pw}) => {
+        // # Initialize setup
+        const {team, user, userClient} = await pw.initSetup();
 
-            // # Pre-enable the preference via API to avoid back-to-back commands
-            await userClient.savePreferences(user.id, [
-                {user_id: user.id, category: 'advanced_settings', name: 'attach_app_logs', value: 'true'},
-            ]);
+        // # Pre-enable the preference via API to avoid back-to-back commands
+        await userClient.savePreferences(user.id, [
+            {user_id: user.id, category: 'advanced_settings', name: 'attach_app_logs', value: 'true'},
+        ]);
 
-            // # Log in as the user and navigate to town-square
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+        // # Log in as the user and navigate to town-square
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
 
-            // # Execute /mobile-logs off
-            await channelsPage.postMessage('/mobile-logs off');
+        // # Execute /mobile-logs off
+        await channelsPage.postMessage('/mobile-logs off');
 
-            // * Verify ephemeral response confirms logs disabled
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toContainText('Mobile app log attachment is now disabled for you');
+        // * Verify ephemeral response confirms logs disabled
+        const lastPost = await channelsPage.getLastPost();
+        await lastPost.toContainText('Mobile app log attachment is now disabled for you');
 
-            // * Verify the preference was set to false via API
-            const logPref = await getAttachLogsPreference(userClient);
-            expect(logPref).toBeDefined();
-            expect(logPref!.value).toBe('false');
-        },
-    );
+        // * Verify the preference was set to false via API
+        const logPref = await getAttachLogsPreference(userClient);
+        expect(logPref).toBeDefined();
+        expect(logPref!.value).toBe('false');
+    });
 
     /**
      * @objective Verify that /mobile-logs status reports disabled by default for a fresh user.
@@ -141,26 +138,22 @@ test.describe('/mobile-logs slash command', () => {
      * @objective Verify that /mobile-logs displays a usage hint when invoked
      *            without arguments or with an invalid action.
      */
-    test(
-        'MM-T67880 displays usage hint for invalid or missing arguments',
-        {tag: '@slash_commands'},
-        async ({pw}) => {
-            // # Initialize setup
-            const {team, user} = await pw.initSetup();
+    test('MM-T67880 displays usage hint for invalid or missing arguments', {tag: '@slash_commands'}, async ({pw}) => {
+        // # Initialize setup
+        const {team, user} = await pw.initSetup();
 
-            // # Log in as the user and navigate to town-square
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+        // # Log in as the user and navigate to town-square
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
 
-            // # Execute /mobile-logs with an invalid action
-            await channelsPage.postMessage('/mobile-logs invalid');
+        // # Execute /mobile-logs with an invalid action
+        await channelsPage.postMessage('/mobile-logs invalid');
 
-            // * Verify usage message is shown
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toContainText('Usage: /mobile-logs [on|off|status] [@username]');
-        },
-    );
+        // * Verify usage message is shown
+        const lastPost = await channelsPage.getLastPost();
+        await lastPost.toContainText('Usage: /mobile-logs [on|off|status] [@username]');
+    });
 
     /**
      * @objective Verify that a system admin can enable mobile logs for another user
@@ -253,7 +246,7 @@ test.describe('/mobile-logs slash command', () => {
 
             // * Verify permission denied message
             const lastPost = await channelsPage.getLastPost();
-            await lastPost.toContainText('You do not have permission to modify another user\'s settings');
+            await lastPost.toContainText("You do not have permission to modify another user's settings");
         },
     );
 
@@ -261,49 +254,41 @@ test.describe('/mobile-logs slash command', () => {
      * @objective Verify that a system admin can check the mobile logs status for another
      *            user and it correctly reflects the current preference state.
      */
-    test(
-        'MM-T67880 admin checks mobile logs status for another user',
-        {tag: '@slash_commands'},
-        async ({pw}) => {
-            // # Initialize setup
-            const {team, adminUser, user} = await pw.initSetup();
+    test('MM-T67880 admin checks mobile logs status for another user', {tag: '@slash_commands'}, async ({pw}) => {
+        // # Initialize setup
+        const {team, adminUser, user} = await pw.initSetup();
 
-            // # Log in as admin and navigate to town-square
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+        // # Log in as admin and navigate to town-square
+        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
 
-            // # Check status (default off)
-            await channelsPage.postMessage(`/mobile-logs status @${user.username}`);
+        // # Check status (default off)
+        await channelsPage.postMessage(`/mobile-logs status @${user.username}`);
 
-            // * Verify status shows disabled
-            const statusOffPost = await channelsPage.getLastPost();
-            await statusOffPost.toContainText(`Mobile app log attachment is currently disabled for @${user.username}`);
-        },
-    );
+        // * Verify status shows disabled
+        const statusOffPost = await channelsPage.getLastPost();
+        await statusOffPost.toContainText(`Mobile app log attachment is currently disabled for @${user.username}`);
+    });
 
     /**
      * @objective Verify that /mobile-logs returns a user-not-found error when targeting
      *            a nonexistent username.
      */
-    test(
-        'MM-T67880 returns error for nonexistent target user',
-        {tag: '@slash_commands'},
-        async ({pw}) => {
-            // # Initialize setup
-            const {team, adminUser} = await pw.initSetup();
+    test('MM-T67880 returns error for nonexistent target user', {tag: '@slash_commands'}, async ({pw}) => {
+        // # Initialize setup
+        const {team, adminUser} = await pw.initSetup();
 
-            // # Log in as admin
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+        // # Log in as admin
+        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
 
-            // # Try to enable for a nonexistent user
-            await channelsPage.postMessage('/mobile-logs on @nonexistentuser12345');
+        // # Try to enable for a nonexistent user
+        await channelsPage.postMessage('/mobile-logs on @nonexistentuser12345');
 
-            // * Verify user not found message
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toContainText('Could not find user "nonexistentuser12345"');
-        },
-    );
+        // * Verify user not found message
+        const lastPost = await channelsPage.getLastPost();
+        await lastPost.toContainText('Could not find user "nonexistentuser12345"');
+    });
 });

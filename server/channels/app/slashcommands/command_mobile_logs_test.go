@@ -164,7 +164,7 @@ func TestMobileLogsOnOtherUserWithoutPermission(t *testing.T) {
 		UserId: th.BasicUser.Id,
 	}, "on @"+th.BasicUser2.Username)
 	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
-	assert.Equal(t, "api.command_mobile_logs.no_permission", resp.Text)
+	assert.Equal(t, "api.command_mobile_logs.no_permission.app_error", resp.Text)
 }
 
 func TestMobileLogsOnOtherUserWithoutAtPrefix(t *testing.T) {
@@ -216,7 +216,7 @@ func TestMobileLogsUserNotFound(t *testing.T) {
 		UserId: th.SystemAdminUser.Id,
 	}, "on @nonexistentuser12345")
 	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
-	assert.Equal(t, "api.command_mobile_logs.user_not_found", resp.Text)
+	assert.Equal(t, "api.command_mobile_logs.user_not_found.app_error", resp.Text)
 }
 
 func TestMobileLogsDeactivatedUser(t *testing.T) {
@@ -231,5 +231,5 @@ func TestMobileLogsDeactivatedUser(t *testing.T) {
 		UserId: th.SystemAdminUser.Id,
 	}, "on @"+th.BasicUser2.Username)
 	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
-	assert.Equal(t, "api.command_mobile_logs.user_not_found", resp.Text)
+	assert.Equal(t, "api.command_mobile_logs.user_not_found.app_error", resp.Text)
 }
