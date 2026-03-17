@@ -1573,9 +1573,6 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ServiceSettings.PostEditTimeLimit = -1
 		})
 
-		data, err := testutils.ReadTestFile("test.png")
-		require.NoError(t, err)
-
 		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
 		newFileId := fileResp.FileInfos[0].Id
@@ -2194,9 +2191,6 @@ func TestPatchPost(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostEditTimeLimit = -1
 		})
-
-		data, err := testutils.ReadTestFile("test.png")
-		require.NoError(t, err)
 
 		fileResp, _, err := th.SystemAdminClient.UploadFile(context.Background(), data, channel.Id, "test.png")
 		require.NoError(t, err)
