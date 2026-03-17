@@ -159,6 +159,52 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find(ExternalImage).find({src: props.attachment.thumb_url}).exists()).toBe(true);
     });
 
+    test('should decode HTML entities in title when title_link is present', () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                title: 'Meeting &#40;Q1 Review&#41; &amp; Planning',
+                title_link: 'https://example.com/meeting',
+            } as MessageAttachmentType,
+        };
+
+        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const titleLink = wrapper.find('.attachment__title-link');
+        expect(titleLink.children().text()).toBe('Meeting (Q1 Review) & Planning');
+    });
+
+    test('should decode HTML entities in author_name', () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                author_name: 'Bot &#40;v2&#41;',
+                author_icon: undefined,
+                author_link: undefined,
+            } as unknown as MessageAttachmentType,
+        };
+
+        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const authorName = wrapper.find('.attachment__author-name');
+        expect(authorName.text()).toBe('Bot (v2)');
+    });
+
+    test('should decode HTML entities in footer', () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                footer: 'Google Calendar &#40;via plugin&#41;',
+                footer_icon: undefined,
+            } as unknown as MessageAttachmentType,
+        };
+
+        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const footer = wrapper.find('.attachment__footer-container span');
+        expect(footer.text()).toBe('Google Calendar (via plugin)');
+    });
+
     test('should match snapshot when the attachment has an emoji in the title', () => {
         const props = {
             ...baseProps,
