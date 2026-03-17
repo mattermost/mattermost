@@ -19,6 +19,7 @@ func (api *API) InitView() {
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(updateView)).Methods(http.MethodPatch)
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(deleteView)).Methods(http.MethodDelete)
 		api.BaseRoutes.ChannelView.Handle("/sort_order", api.APISessionRequired(updateViewSortOrder)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelViewPosts.Handle("", api.APISessionRequired(getPostsForView)).Methods(http.MethodGet)
 	}
 }
 
@@ -368,4 +369,63 @@ func checkViewWritePermission(c *Context, channel *model.Channel) bool {
 		return false
 	}
 	return true
+}
+
+func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireViewId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("getPostsForView", "api.view.get.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
+		return
+	}
+
+	hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	view, appErr := c.App.GetView(c.AppContext, c.Params.ViewId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if view.ChannelId != c.Params.ChannelId {
+		c.Err = model.NewAppError("getPostsForView", "api.view.get.channel_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	options := model.GetPostsOptions{
+		ChannelId: c.Params.ChannelId,
+		Page:      c.Params.Page,
+		PerPage:   c.Params.PerPage,
+		UserId:    c.AppContext.Session().UserId,
+	}
+
+	list, appErr := c.App.GetPostsForView(c.AppContext, options)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+	clientPostList, _, appErr = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := clientPostList.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -598,6 +599,139 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+}
+
+func TestGetPostsForView(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupViewTest(t)
+
+	t.Run("returns only card posts for the view's channel", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		// Create a normal post (should not appear)
+		_, _, err = th.Client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "normal post"})
+		require.NoError(t, err)
+
+		// Create card posts via the app layer (client API won't allow setting type directly)
+		cardPost1, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "card post 1",
+			Type:      model.PostTypeCard,
+		}, channel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		cardPost2, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "card post 2",
+			Type:      model.PostTypeCard,
+		}, channel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		postList, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, postList.Order, 2)
+		require.Contains(t, postList.Order, cardPost1.Id)
+		require.Contains(t, postList.Order, cardPost2.Id)
+		for _, id := range postList.Order {
+			require.Equal(t, model.PostTypeCard, postList.Posts[id].Type)
+		}
+	})
+
+	t.Run("returns empty list when no card posts exist", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		// Only normal posts
+		_, _, err = th.Client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "normal"})
+		require.NoError(t, err)
+
+		postList, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, postList.Order)
+	})
+
+	t.Run("wrong channel for view returns 404", func(t *testing.T) {
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		_, resp, err := th.Client.GetPostsForView(context.Background(), otherChannel.Id, created.Id, 0, 60, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("non-existent view returns 404", func(t *testing.T) {
+		_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("no channel read permission returns 403", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		user2Client := th.CreateClient()
+		th.LoginBasic2WithClient(t, user2Client)
+
+		_, resp, err := user2Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("pagination works", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		for i := range 3 {
+			_, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+				ChannelId: channel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   fmt.Sprintf("card %d", i),
+				Type:      model.PostTypeCard,
+			}, channel, model.CreatePostFlags{})
+			require.Nil(t, appErr)
+		}
+
+		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 2, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page1.Order, 2)
+
+		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 2, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page2.Order, 1)
+
+		// No overlap between pages
+		for _, id := range page2.Order {
+			require.NotContains(t, page1.Order, id)
+		}
+	})
+}
+
+func TestGetPostsForViewFeatureFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+	}).InitBasic(t)
+
+	_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestViewFeatureFlagOff(t *testing.T) {
