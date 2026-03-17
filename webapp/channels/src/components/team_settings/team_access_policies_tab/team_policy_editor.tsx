@@ -387,7 +387,7 @@ export default function TeamPolicyEditor({
                 </button>
             </div>
 
-            <hr className='TeamPolicyEditor__divider TeamPolicyEditor__divider--full-width'/>
+            <hr className='TeamPolicyEditor__divider TeamPolicyEditor__divider--full-width header-divider'/>
 
             <div className='TeamPolicyEditor__name-input'>
                 <Input

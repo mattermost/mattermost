@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 .TeamSettingsModal {
-    width: 1024px !important;
+    width: min(1024px, calc(100vw - 32px)) !important;
 
     // Override GenericModal wrapper styles
     .GenericModal__wrapper {

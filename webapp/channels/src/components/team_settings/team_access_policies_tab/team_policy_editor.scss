@@ -1,5 +1,7 @@
 .TeamPolicyEditor {
     padding-bottom: 80px;
+    margin-top: -8px;
+
     &__header {
         margin-bottom: 0;
     }
@@ -26,6 +28,10 @@
         &--full-width {
             margin-right: -32px;
             margin-left: -32px;
+        }
+
+        &.header-divider {
+            margin-top: 12px;
         }
     }
 
