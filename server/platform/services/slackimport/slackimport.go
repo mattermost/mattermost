@@ -95,6 +95,7 @@ type Actions struct {
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
 	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
+	SendPasswordReset      func(string) (bool, *model.AppError)
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
 
@@ -268,8 +269,6 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			rctx.Logger().Warn("Slack Import: User does not have an email address in the Slack export. Used username as a placeholder. The user should update their email address once logged in to the system.", mlog.String("user_email", email), mlog.String("user_name", sUser.Username))
 		}
 
-		password := model.NewId()
-
 		// Check for email conflict and use existing user if found
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
@@ -287,7 +286,7 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			FirstName: firstName,
 			LastName:  lastName,
 			Email:     email,
-			Password:  password,
+			Password:  "",
 		}
 
 		mUser := si.oldImportUser(rctx, team, &newUser)
@@ -295,8 +294,18 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.unable_import", map[string]any{"Username": sUser.Username}))
 			continue
 		}
+
+		sent, err := si.actions.SendPasswordReset(email)
+		if err != nil {
+			rctx.Logger().Warn("Slack Import: Cannot send password reset email to user. An admin should update their email address once logged in to the system.", mlog.String("user_email", email), mlog.String("user_name", sUser.Username))
+		}
+
+		if !sent {
+			importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.send_reset_email_failed", map[string]any{"Username": sUser.Username, "Email": newUser.Email}))
+		}
+
 		addedUsers[sUser.Id] = mUser
-		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email_pwd", map[string]any{"Email": newUser.Email, "Password": password}))
+		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email", map[string]any{"Email": newUser.Email}))
 	}
 
 	return addedUsers
@@ -327,7 +336,7 @@ func (si *SlackImporter) slackAddBotUser(rctx request.CTX, teamId string, log *b
 		return nil
 	}
 
-	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]any{"Email": botUser.Email, "Password": password}))
+	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email", map[string]any{"Email": botUser.Email}))
 	return mUser
 }
 
