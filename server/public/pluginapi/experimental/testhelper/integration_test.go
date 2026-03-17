@@ -4,7 +4,6 @@
 package testhelper
 
 import (
-	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -41,7 +40,7 @@ func TestAdminHasSystemAdminRole(t *testing.T) {
 func TestDatabaseResetIsolation(t *testing.T) {
 	th1 := Setup(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create a post in the first setup's channel.
 	post, _, err := th1.AdminClient.CreatePost(ctx, &model.Post{
@@ -63,7 +62,7 @@ func TestDatabaseResetIsolation(t *testing.T) {
 func TestPluginDeployed(t *testing.T) {
 	th := Setup(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	statuses, _, err := th.AdminClient.GetPluginStatuses(ctx)
 	require.NoError(t, err)
 
@@ -82,7 +81,7 @@ func TestPluginDeployed(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	th := Setup(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	user := th.CreateUser()
 
 	// Verify the user exists on the server.
@@ -100,7 +99,7 @@ func TestCreateUser(t *testing.T) {
 func TestCreateChannel(t *testing.T) {
 	th := Setup(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	open := th.CreateChannel(model.ChannelTypeOpen)
 	assert.Equal(t, model.ChannelTypeOpen, open.Type)
@@ -121,7 +120,7 @@ func TestCreateChannel(t *testing.T) {
 func TestPostAs(t *testing.T) {
 	th := Setup(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	post := th.PostAs(th.User, th.Channel.Id, "hello from integration test")
 
 	assert.Equal(t, th.User.Id, post.UserId)

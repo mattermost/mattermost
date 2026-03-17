@@ -97,7 +97,7 @@ func Setup(t *testing.T) *TestHelper {
 
 	require.NoError(t, ensurePluginMeta(), "failed to resolve plugin metadata")
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Reset database for full test isolation. This truncates all data tables
 	// (preserving migrations), restarts the container so the server re-creates
@@ -234,7 +234,7 @@ func (th *TestHelper) createUserAndClient(ctx context.Context) (*model.User, *mo
 func (th *TestHelper) CreateUser() *model.User {
 	th.t.Helper()
 
-	ctx := context.Background()
+	ctx := th.t.Context()
 	username := "user-" + model.NewId()[:8]
 	user, _, err := th.AdminClient.CreateUser(ctx, &model.User{
 		Email:    username + "@example.com",
@@ -254,7 +254,7 @@ func (th *TestHelper) CreateUser() *model.User {
 func (th *TestHelper) CreateChannel(channelType model.ChannelType) *model.Channel {
 	th.t.Helper()
 
-	ctx := context.Background()
+	ctx := th.t.Context()
 	channel, _, err := th.AdminClient.CreateChannel(ctx, &model.Channel{
 		TeamId:      th.Team.Id,
 		Name:        model.NewId(),
@@ -270,7 +270,7 @@ func (th *TestHelper) CreateChannel(channelType model.ChannelType) *model.Channe
 func (th *TestHelper) PostAs(user *model.User, channelID, message string) *model.Post {
 	th.t.Helper()
 
-	ctx := context.Background()
+	ctx := th.t.Context()
 
 	// Ensure the user is a member of the channel (idempotent if already a member).
 	_, _, _ = th.AdminClient.AddChannelMember(ctx, channelID, user.Id)
