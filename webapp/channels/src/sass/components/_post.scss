@@ -948,13 +948,13 @@
                 @include mixins.clearfix;
 
                 display: flex;
-                align-items: center;
-                justify-content: flex-start;
                 width: 100%;
                 padding: 0 5px;
                 margin: 0;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                align-items: center;
+                justify-content: flex-start;
 
                 i {
                     margin-right: 5px;
