@@ -2687,14 +2687,17 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
-			appErr := th.App.DeleteToken(token)
-			require.Nil(t, appErr)
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
 		}()
 
 		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail on wrong token type")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.guest_magic_link.invalid_token_type.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
+
+		// Verify token was NOT consumed (wrong type should not delete it)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.NoError(t, nErr, "Token with wrong type should still exist")
 	})
 
 	t.Run("user already exists returns generic error", func(t *testing.T) {
