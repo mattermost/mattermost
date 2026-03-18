@@ -667,7 +667,7 @@ func TestGetPostsForView(t *testing.T) {
 		require.NoError(t, err)
 
 		for i := range 3 {
-			_, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			_, _, err = th.Client.CreatePost(context.Background(), &model.Post{
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf("post %d", i),
 			})
