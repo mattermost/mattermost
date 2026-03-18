@@ -11,6 +11,9 @@ import ListItem from './list_item';
 
 const atBottomMargin = 10;
 
+/** Pixels from DOM bottom; new posts grow scrollHeight so strict at-bottom is false until we scroll. */
+const NEAR_BOTTOM_SLACK_PX = 520;
+
 function isViewportAtBottom(element, fallbackClientHeight) {
     if (!element || element.scrollHeight <= 0) {
         return false;
@@ -26,6 +29,30 @@ function isLegacyMetaAtBottom(element, viewportHeight, totalMeasuredSize) {
     }
     const h = viewportHeight || element.clientHeight || 0;
     return h + element.scrollTop >= totalMeasuredSize - atBottomMargin;
+}
+
+/**
+ * Latest row (index 0) just grew the list; user was at old bottom → small gap until scrollToItem runs.
+ * Only for head row to avoid sticking when reading far up-thread.
+ */
+function isHeadRowNearDomBottom(element, viewportHeight, itemIndex) {
+    if (!element || itemIndex !== 0) {
+        return false;
+    }
+    const clientH = element.clientHeight || viewportHeight || 0;
+    if (element.scrollHeight <= clientH + atBottomMargin) {
+        return false;
+    }
+    const gapPx = element.scrollHeight - element.scrollTop - clientH;
+    return gapPx >= -atBottomMargin && gapPx <= NEAR_BOTTOM_SLACK_PX;
+}
+
+/** Set `window.__MM_DEBUG_TAB__ = 'sender' | 'receiver'` in DevTools to label logs per tab. */
+function getMmDebugTabLabel() {
+    if (typeof window === 'undefined' || window.__MM_DEBUG_TAB__ == null || window.__MM_DEBUG_TAB__ === '') {
+        return 'unset';
+    }
+    return String(window.__MM_DEBUG_TAB__);
 }
 
 export class DynamicVirtualizedList extends PureComponent {
@@ -197,6 +224,12 @@ export class DynamicVirtualizedList extends PureComponent {
 
         this._commitHook();
         if (prevProps.itemData !== this.props.itemData) {
+            // #region agent log
+            if (prevProps.itemData[0] !== this.props.itemData[0]) {
+                const el = this._outerRef;
+                fetch('http://127.0.0.1:7330/ingest/30431c5e-f523-4824-85cb-714c7d812984', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '4b9831'}, body: JSON.stringify({sessionId: '4b9831', runId: 'repro2', debugTab: getMmDebugTabLabel(), hypothesisId: 'E', location: 'dynamic_virtualized_list:componentDidUpdate', message: 'itemData_head_changed', data: {prevHead: String(prevProps.itemData[0]).slice(0, 12), newHead: String(this.props.itemData[0]).slice(0, 12), correctScrollToBottom: Boolean(this.props.correctScrollToBottom), scrolledToInit: this.state.scrolledToInitIndex, scrollTop: el?.scrollTop, totalMeasured: this._listMetaData.totalMeasuredSize}, timestamp: Date.now()})}).catch(() => {});
+            }
+            // #endregion
             this._dataChange();
         }
 
@@ -487,6 +520,9 @@ export class DynamicVirtualizedList extends PureComponent {
         // Slow scrolling back over these skipped rows will adjust their sizes.
         const oldSize = itemSizeMap[key] || 0;
         if (oldSize === newSize) {
+            // #region agent log
+            fetch('http://127.0.0.1:7330/ingest/30431c5e-f523-4824-85cb-714c7d812984', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '4b9831'}, body: JSON.stringify({sessionId: '4b9831', runId: 'repro2', debugTab: getMmDebugTabLabel(), hypothesisId: 'D', location: 'dynamic_virtualized_list:_handleNewMeasurements', message: 'earlyReturn_sameSize', data: {key, index: itemData.indexOf(key), headId: itemData[0] === key, correctScrollToBottom: Boolean(this.props.correctScrollToBottom)}, timestamp: Date.now()})}).catch(() => {});
+            // #endregion
             return;
         }
 
@@ -506,12 +542,27 @@ export class DynamicVirtualizedList extends PureComponent {
             this.props.height,
             this._listMetaData.totalMeasuredSize,
         );
-        const wasAtBottom = domAtBottom || legacyAtBottom;
+        const headNearBottom =
+            this.props.correctScrollToBottom &&
+            itemData[0] === key &&
+            isHeadRowNearDomBottom(element, this.props.height, index);
+        const wasAtBottom = domAtBottom || legacyAtBottom || headNearBottom;
+
+        // #region agent log
+        const sh = element ? element.scrollHeight : 0;
+        const ch = element ? (element.clientHeight || this.props.height || 0) : 0;
+        const domGapPx = element && sh > ch ? sh - (element.scrollTop + ch) : null;
+        const gap = this._listMetaData.totalMeasuredSize - (element ? element.scrollTop + this.props.height : 0);
+        fetch('http://127.0.0.1:7330/ingest/30431c5e-f523-4824-85cb-714c7d812984', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '4b9831'}, body: JSON.stringify({sessionId: '4b9831', runId: 'repro3', debugTab: getMmDebugTabLabel(), hypothesisId: 'C', location: 'dynamic_virtualized_list:_handleNewMeasurements', message: 'measure', data: {index, keyIsHead: itemData[0] === key, wasAtBottom, domAtBottom, legacyAtBottom, headNearBottom, domGapPx, keepBottom: this._keepScrollToBottom, correctScrollToBottom: Boolean(this.props.correctScrollToBottom), scrollTop: element?.scrollTop, totalMeasured: this._listMetaData.totalMeasuredSize, scrollHeight: sh, gapToBottom: gap, scrollUpdateWasRequested: this.state.scrollUpdateWasRequested}, timestamp: Date.now()})}).catch(() => {});
+        // #endregion
 
         if (
             (wasAtBottom || this._keepScrollToBottom) &&
             this.props.correctScrollToBottom
         ) {
+            // #region agent log
+            fetch('http://127.0.0.1:7330/ingest/30431c5e-f523-4824-85cb-714c7d812984', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '4b9831'}, body: JSON.stringify({sessionId: '4b9831', runId: 'repro3', debugTab: getMmDebugTabLabel(), hypothesisId: 'C', location: 'dynamic_virtualized_list:_handleNewMeasurements', message: 'branch_stickBottom', data: {index, viaHeadNear: Boolean(headNearBottom && !domAtBottom && !legacyAtBottom)}, timestamp: Date.now()})}).catch(() => {});
+            // #endregion
             this._generateOffsetMeasurements();
             this.scrollToItem(0, 'end');
             this.forceUpdate();
@@ -555,6 +606,9 @@ export class DynamicVirtualizedList extends PureComponent {
             return;
         }
 
+        // #region agent log
+        fetch('http://127.0.0.1:7330/ingest/30431c5e-f523-4824-85cb-714c7d812984', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '4b9831'}, body: JSON.stringify({sessionId: '4b9831', runId: 'repro3', debugTab: getMmDebugTabLabel(), hypothesisId: 'C', location: 'dynamic_virtualized_list:_handleNewMeasurements', message: 'branch_regenOnly_noStick', data: {index, keyIsHead: itemData[0] === key, wasAtBottom, domAtBottom, legacyAtBottom, headNearBottom: Boolean(this.props.correctScrollToBottom && itemData[0] === key && isHeadRowNearDomBottom(element, this.props.height, index)), correctScrollToBottom: Boolean(this.props.correctScrollToBottom)}, timestamp: Date.now()})}).catch(() => {});
+        // #endregion
         this._generateOffsetMeasurements();
     };
 
