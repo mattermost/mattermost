@@ -3,7 +3,6 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-
 /**
  * @objective Verify that the "Other Channels" group in the ~channel autocomplete in the message input prioritizes
  * channels whose DisplayName matches the search term.
