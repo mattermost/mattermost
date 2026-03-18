@@ -3036,9 +3036,7 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
-		}).
-		OrderBy("c.DisplayName").
-		Limit(model.ChannelSearchDefaultLimit)
+		})
 
 	// Always filter out soft-deleted team memberships - users removed from
 	// a team should not see channels from that team regardless of includeDeleted
@@ -3068,6 +3066,18 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 	if searchClause != nil {
 		query = query.Where(searchClause)
 	}
+
+	// Prioritize channels whose DisplayName matches the search term,
+	// then fall back to alphabetical ordering.
+	sanitizedTerm := sanitizeSearchTerm(term, "*")
+	if sanitizedTerm != "" {
+		likeTerm := wildcardSearchTerm(sanitizedTerm)
+		query = query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
+	} else {
+		query = query.OrderBy("c.DisplayName")
+	}
+
+	query = query.Limit(model.ChannelSearchDefaultLimit)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
