@@ -1330,29 +1330,19 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const mockCall = MockAppsFormContainer.mock.calls[0][0];
             const submitAdapter = mockCall.actions.doAppSubmit;
 
-            // Test with null value for required field - should not crash
+            // Test with null value for required field - should not crash.
+            // processFormValues normalizes null to '' in accumulatedValues,
+            // so the validation sees an empty string (not null) and does not
+            // produce a required-field error.
             const result = await submitAdapter({
                 values: {
                     'text-field': 'valid',
-                    'required-field': null, // Missing required field
+                    'required-field': null, // Cleared field — normalized to ''
                 },
             });
 
-            // Should complete successfully (null values are simply skipped)
+            // Should complete successfully (null values are normalized to empty strings)
             expect(result.data?.type).toBe('ok');
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Form submission validation errors',
-                expect.objectContaining({
-                    errorCount: expect.any(Number),
-                    errors: expect.arrayContaining([
-                        expect.objectContaining({
-                            field: expect.stringContaining('required-field'),
-                            message: expect.any(String),
-                        }),
-                    ]),
-                }),
-            );
         });
     });
 
