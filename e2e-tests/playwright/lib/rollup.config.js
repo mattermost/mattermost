@@ -9,7 +9,7 @@ export default {
     output: [
         {
             dir: 'dist',
-            format: 'cjs', // CommonJS for Playwright
+            format: 'esm',
             sourcemap: true,
             preserveModules: true, // Keep file structure
             preserveModulesRoot: 'src',
@@ -28,6 +28,7 @@ export default {
         '@axe-core/playwright',
         '@percy/playwright',
         'dotenv',
+        'luxon',
         'node:fs/promises',
         'node:path',
         'node:fs',

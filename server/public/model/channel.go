@@ -17,6 +17,11 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	// Validates both 3-digit (#RGB) and 6-digit (#RRGGBB) hex colors
+	channelHexColorRegex = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
 type ChannelType string
 
 const (
@@ -72,28 +77,32 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 }
 
 type Channel struct {
-	Id                string             `json:"id"`
-	CreateAt          int64              `json:"create_at"`
-	UpdateAt          int64              `json:"update_at"`
-	DeleteAt          int64              `json:"delete_at"`
-	TeamId            string             `json:"team_id"`
-	Type              ChannelType        `json:"type"`
-	DisplayName       string             `json:"display_name"`
-	Name              string             `json:"name"`
-	Header            string             `json:"header"`
-	Purpose           string             `json:"purpose"`
-	LastPostAt        int64              `json:"last_post_at"`
-	TotalMsgCount     int64              `json:"total_msg_count"`
-	ExtraUpdateAt     int64              `json:"extra_update_at"`
-	CreatorId         string             `json:"creator_id"`
-	SchemeId          *string            `json:"scheme_id"`
-	Props             map[string]any     `json:"props"`
-	GroupConstrained  *bool              `json:"group_constrained"`
-	Shared            *bool              `json:"shared"`
-	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
-	PolicyID          *string            `json:"policy_id"`
-	LastRootPostAt    int64              `json:"last_root_post_at"`
-	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	Id                  string             `json:"id"`
+	CreateAt            int64              `json:"create_at"`
+	UpdateAt            int64              `json:"update_at"`
+	DeleteAt            int64              `json:"delete_at"`
+	TeamId              string             `json:"team_id"`
+	Type                ChannelType        `json:"type"`
+	DisplayName         string             `json:"display_name"`
+	Name                string             `json:"name"`
+	Header              string             `json:"header"`
+	Purpose             string             `json:"purpose"`
+	LastPostAt          int64              `json:"last_post_at"`
+	TotalMsgCount       int64              `json:"total_msg_count"`
+	ExtraUpdateAt       int64              `json:"extra_update_at"`
+	CreatorId           string             `json:"creator_id"`
+	SchemeId            *string            `json:"scheme_id"`
+	Props               map[string]any     `json:"props"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	AutoTranslation     bool               `json:"autotranslation"`
+	Shared              *bool              `json:"shared"`
+	TotalMsgCountRoot   int64              `json:"total_msg_count_root"`
+	PolicyID            *string            `json:"policy_id"`
+	LastRootPostAt      int64              `json:"last_root_post_at"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced      bool               `json:"policy_enforced"`
+	PolicyIsActive      bool               `json:"policy_is_active"`
+	DefaultCategoryName string             `json:"default_category_name"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -114,6 +123,9 @@ func (o *Channel) Auditable() map[string]any {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
+		"policy_enforced":      o.PolicyEnforced,
+		"autotranslation":      o.AutoTranslation,
+		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
 	}
 }
 
@@ -140,6 +152,7 @@ type ChannelPatch struct {
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation  *bool              `json:"autotranslation"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -203,26 +216,30 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
+// ExcludeAccessPolicyEnforced will exclude channels that are enforced by an access policy.
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup     string
-	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool // If true, deleted channels will be included in the results.
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeSearchById        bool
-	ExcludeRemote            bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
-	LastUpdateAt             int
+	NotAssociatedToGroup               string
+	ExcludeDefaultChannels             bool
+	IncludeDeleted                     bool // If true, deleted channels will be included in the results.
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeSearchById                  bool
+	ExcludeRemote                      bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
+	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 type ChannelMemberCountByGroup struct {
@@ -247,10 +264,6 @@ func (o *Channel) DeepCopy() *Channel {
 		cCopy.SchemeId = NewPointer(*o.SchemeId)
 	}
 	return &cCopy
-}
-
-func (o *Channel) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
@@ -311,6 +324,10 @@ func (o *Channel) IsValid() *AppError {
 		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		if !channelHexColorRegex.MatchString(*o.BannerInfo.BackgroundColor) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.invalid.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -346,7 +363,7 @@ func (o *Channel) IsOpen() bool {
 
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
-		o.DisplayName = *patch.DisplayName
+		o.DisplayName = strings.TrimSpace(*patch.DisplayName)
 	}
 
 	if patch.Name != nil {
@@ -382,6 +399,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		if patch.BannerInfo.BackgroundColor != nil {
 			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
 		}
+	}
+
+	if patch.AutoTranslation != nil {
+		o.AutoTranslation = *patch.AutoTranslation
 	}
 }
 
@@ -489,4 +510,16 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// ChannelMembersGetOptions provides parameters for getting channel members
+type ChannelMembersGetOptions struct {
+	// ChannelID specifies which channel to get members for
+	ChannelID string
+	// Offset for pagination
+	Offset int
+	// Limit for pagination (maximum number of results to return)
+	Limit int
+	// UpdatedAfter filters members updated after the given timestamp (cursor-based pagination)
+	UpdatedAfter int64
 }

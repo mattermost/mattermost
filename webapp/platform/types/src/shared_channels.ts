@@ -16,3 +16,17 @@ export type SharedChannelRemote = {
     last_post_create_at: number;
     last_post_create_id: string;
 }
+
+// RemoteClusterInfo matches the server-side struct with subset of RemoteCluster fields
+export type RemoteClusterInfo = {
+    name: string;
+    display_name: string;
+    create_at: number;
+    delete_at: number;
+    last_ping_at: number;
+};
+
+export type SharedChannelsState = {
+    remotes: Record<string, RemoteClusterInfo[]>;
+    remotesByRemoteId: Record<string, RemoteClusterInfo>;
+}

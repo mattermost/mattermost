@@ -1024,50 +1024,6 @@
     "translation": "Podatkov o sliki ni mogoče dekodirati."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Neveljaven ali manjkajoč žeton"
   },
@@ -1622,14 +1578,6 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "vaša licenca ne podpira skupin ldap"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2652,10 +2600,6 @@
     "translation": "Slack uporabnik je združen z obstoječim Mattermost uporabnikom z ujemajočo e-pošto {{.Email}} in uporabniškim imenom {{.Username}}.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUstvarjeni uporabniki:\r\n"
   },
@@ -2678,10 +2622,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Ne morem uvoziti uporabnika Integration/Slack Bot {{.User username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -2960,10 +2900,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Slab grant_type"
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Manjkajoči client_secret"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -3519,10 +3455,6 @@
     "translation": "Strani ni mogoče najti."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "skomig"
   },
@@ -3649,10 +3581,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanala {{.Channel}} ni mogoče utišati ker niste član kanala."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -4304,10 +4232,6 @@
     "translation": "%v je zapustil kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zadnji si, poskusi odstraniti kanal Privatni kanal namesto zapuščanja."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Ni mogoče zapustiti neposrednega kanala"
   },
@@ -4337,7 +4261,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}"
+    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.archived",

@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 
@@ -46,11 +45,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		Insert("PluginKeyValueStore").
 		Columns("PluginId", "PKey", "PValue", "ExpireAt").
 		Values(kv.PluginId, kv.Key, kv.Value, kv.ExpireAt)
-	if ps.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (pluginid, pkey) DO UPDATE SET PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
-	} else if ps.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (pluginid, pkey) DO UPDATE SET PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -140,42 +135,6 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			// Failed to update
 			return false, errors.Wrap(err, "unable to get rows affected")
 		} else if rowsAffected == 0 {
-			if ps.DriverName() == model.DatabaseDriverMysql && bytes.Equal(oldValue, kv.Value) {
-				// ROW_COUNT on MySQL is zero even if the row existed but no changes to the row were required.
-				// Check if the row exists with the required value to distinguish this case. Strictly speaking,
-				// this isn't a good use of CompareAndSet anyway, since there's no corresponding guarantee of
-				// atomicity. Nevertheless, let's return results consistent with Postgres and with what might
-				// be expected in this case.
-				query := ps.getQueryBuilder().
-					Select("COUNT(*)").
-					From("PluginKeyValueStore").
-					Where(sq.Eq{"PluginId": kv.PluginId}).
-					Where(sq.Eq{"PKey": kv.Key}).
-					Where(sq.Eq{"PValue": kv.Value}).
-					Where(sq.Or{
-						sq.Eq{"ExpireAt": int(0)},
-						sq.Gt{"ExpireAt": currentTime},
-					})
-
-				queryString, args, err := query.ToSql()
-				if err != nil {
-					return false, errors.Wrap(err, "plugin_tosql")
-				}
-
-				var count int64
-				err = ps.GetReplica().Get(&count, queryString, args...)
-				if err != nil {
-					return false, errors.Wrapf(err, "failed to count PluginKeyValue with pluginId=%s and key=%s", kv.PluginId, kv.Key)
-				}
-
-				if count == 0 {
-					return false, nil
-				} else if count == 1 {
-					return true, nil
-				}
-				return false, errors.Wrapf(err, "got too many rows when counting PluginKeyValue with pluginId=%s, key=%s, rows=%d", kv.PluginId, kv.Key, count)
-			}
-
 			// No rows were affected by the update, where condition was not satisfied,
 			// return false, but no error.
 			return false, nil

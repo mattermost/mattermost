@@ -19,9 +19,12 @@
     }
 
     &__vertical-divider {
+        display: inline-block;
         width: 1px;
         height: 24px;
+        margin: 0 8px;
         background: rgba(var(--center-channel-color-rgb), 0.16);
+        vertical-align: middle;
     }
 
     &__subtitle {
@@ -35,6 +38,7 @@
         font-weight: 400;
         line-height: 20px;
         text-overflow: ellipsis;
+        vertical-align: middle;
         white-space: nowrap;
     }
 

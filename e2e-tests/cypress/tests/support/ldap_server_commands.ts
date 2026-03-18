@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
+
 import {getRandomId} from '../utils';
 
 const ldapTmpFolder = 'ldap_tmp';
@@ -64,8 +65,8 @@ function ldapAdd(filePath: string) {
     return cy.exec(
         `ldapadd -x -D "${bindDn}" -w ${password} -H ${host} -f ${filePath} -c`,
         {failOnNonZeroExit: false},
-    ).then(({code, stdout, stderr}) => {
-        cy.log(`ldapadd code: ${code}, stdout: ${stdout}, stderr: ${stderr}`);
+    ).then(({exitCode, stdout, stderr}) => {
+        cy.log(`ldapadd code: ${exitCode}, stdout: ${stdout}, stderr: ${stderr}`);
     });
 }
 
@@ -77,8 +78,8 @@ function ldapModify(filePath: string) {
     return cy.exec(
         `ldapmodify -x -D "${bindDn}" -w ${password} -H ${host} -f ${filePath} -c`,
         {failOnNonZeroExit: false},
-    ).then(({code, stdout, stderr}) => {
-        cy.log(`ldapmodify code: ${code}, stdout: ${stdout}, stderr: ${stderr}`);
+    ).then(({exitCode, stdout, stderr}) => {
+        cy.log(`ldapmodify code: ${exitCode}, stdout: ${stdout}, stderr: ${stderr}`);
     });
 }
 

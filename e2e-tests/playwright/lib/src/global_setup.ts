@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@playwright/test';
 import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
 import {PluginManifest} from '@mattermost/types/plugins';
 import {PreferenceType} from '@mattermost/types/preferences';
+import {UserProfile} from '@mattermost/types/users';
 
-import {defaultTeam} from './util';
-import {createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
+import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
 import {testConfig} from './test_config';
+import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
     let adminClient: Client4;
@@ -24,6 +23,9 @@ export async function baseGlobalSetup() {
 
         ({client: adminClient, user: adminUser} = await makeClient(defaultAdmin));
     }
+
+    // Print playwright configs
+    printPlaywrightTestConfig();
 
     await sysadminSetup(adminClient, adminUser);
 }
@@ -43,7 +45,7 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     const myTeams = await client.getMyTeams();
     const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === defaultTeam.name);
     if (!myDefaultTeam) {
-        await client.createTeam(createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
+        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
             myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),
@@ -66,14 +68,16 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     // Set default preferences
     await savePreferences(client, user?.id ?? '');
 
-    // Ensure all products as plugin are installed and active.
-    await ensurePluginsLoaded(client);
-
     // Log plugin details
     await printPluginDetails(client);
+}
 
-    // Ensure server deployment type is as expected
-    await ensureServerDeployment(client);
+function printPlaywrightTestConfig() {
+    // eslint-disable-next-line no-console
+    console.log(`Playwright Test Config:
+  - Headless  = ${testConfig.headless}
+  - SlowMo    = ${testConfig.slowMo}
+  - Workers   = ${testConfig.workers}`);
 }
 
 async function printLicenseInfo(client: Client4) {
@@ -89,7 +93,7 @@ async function printLicenseInfo(client: Client4) {
 }
 
 async function printClientInfo(client: Client4) {
-    const config = await client.getClientConfigOld();
+    const config = await client.getClientConfig();
     // eslint-disable-next-line no-console
     console.log(`Build Info:
   - BuildNumber                 = ${config.BuildNumber}
@@ -101,36 +105,26 @@ async function printClientInfo(client: Client4) {
   - TelemetryId                 = ${config.TelemetryId}
   - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 
-    const {LogSettings, ServiceSettings} = await client.getConfig();
+    const {LogSettings, ServiceSettings, PluginSettings, FeatureFlags} = await client.getConfig();
     // eslint-disable-next-line no-console
     console.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${ServiceSettings?.EnableSecurityFixAlert}
   - LogSettings.EnableDiagnostics           = ${LogSettings?.EnableDiagnostics}`);
-}
 
-export async function ensurePluginsLoaded(client: Client4) {
-    const pluginStatus = await client.getPluginStatuses();
-    const plugins = await client.getPlugins();
+    // eslint-disable-next-line no-console
+    console.log('Feature Flags:');
+    // eslint-disable-next-line no-console
+    console.log(
+        Object.entries(FeatureFlags)
+            .map(([key, value]) => `  - ${key} = ${value}`)
+            .join('\n'),
+    );
 
-    testConfig.ensurePluginsInstalled.forEach(async (pluginId) => {
-        const isInstalled = pluginStatus.some((plugin) => plugin.plugin_id === pluginId);
-        if (!isInstalled) {
-            // eslint-disable-next-line no-console
-            console.log(`${pluginId} is not installed. Related visual test will fail.`);
-            return;
-        }
-
-        const isActive = plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);
-        if (!isActive) {
-            await client.enablePlugin(pluginId);
-
-            // eslint-disable-next-line no-console
-            console.log(`${pluginId} is installed and has been activated.`);
-        } else {
-            // eslint-disable-next-line no-console
-            console.log(`${pluginId} is installed and active.`);
-        }
-    });
+    // eslint-disable-next-line no-console
+    console.log(`Plugin Settings:
+  - Enable  = ${PluginSettings?.Enable}
+  - EnableUploads  = ${PluginSettings?.EnableUploads}
+  - AutomaticPrepackagedPlugins  = ${PluginSettings?.AutomaticPrepackagedPlugins}`);
 }
 
 async function printPluginDetails(client: Client4) {
@@ -160,37 +154,6 @@ async function printPluginDetails(client: Client4) {
     console.log('');
 }
 
-async function ensureServerDeployment(client: Client4) {
-    if (testConfig.haClusterEnabled) {
-        const {haClusterNodeCount, haClusterName} = testConfig;
-
-        const {Enable, ClusterName} = (await client.getConfig()).ClusterSettings;
-        expect(Enable, Enable ? '' : 'Should have cluster enabled').toBe(true);
-
-        const sameClusterName = ClusterName === haClusterName;
-        expect(
-            sameClusterName,
-            sameClusterName
-                ? ''
-                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`,
-        ).toBe(true);
-
-        const clusterInfo = await client.getClusterStatus();
-        const sameCount = clusterInfo?.length === haClusterNodeCount;
-        expect(
-            sameCount,
-            sameCount
-                ? ''
-                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`,
-        ).toBe(true);
-
-        clusterInfo.forEach((info) =>
-            // eslint-disable-next-line no-console
-            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`),
-        );
-    }
-}
-
 async function savePreferences(client: Client4, userId: UserProfile['id']) {
     try {
         if (!userId) {
@@ -200,6 +163,8 @@ async function savePreferences(client: Client4, userId: UserProfile['id']) {
         const preferences: PreferenceType[] = [
             {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
             {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+            {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+            {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
         ];
 
         await client.savePreferences(userId, preferences);

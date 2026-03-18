@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 
@@ -15,10 +16,38 @@ import (
 )
 
 const (
-	connectionIDParam   = "connection_id"
-	sequenceNumberParam = "sequence_number"
-	postedAckParam      = "posted_ack"
+	connectionIDParam      = "connection_id"
+	sequenceNumberParam    = "sequence_number"
+	postedAckParam         = "posted_ack"
+	disconnectErrCodeParam = "disconnect_err_code"
+
+	clientPingTimeoutErrCode      = 4000
+	clientSequenceMismatchErrCode = 4001
 )
+
+// validateDisconnectErrCode ensures the specified disconnect error code
+// is a valid websocket close code
+func validateDisconnectErrCode(errCode string) bool {
+	if errCode == "" {
+		return false
+	}
+
+	// Ensure the disconnect code is a standard close code
+	code, err := strconv.Atoi(errCode)
+	if err != nil {
+		return false
+	}
+
+	// We only support the standard close codes between
+	// 1000 and 1016, and a few custom application codes
+	if (code < 1000 || code > 1016) &&
+		code != clientPingTimeoutErrCode &&
+		code != clientSequenceMismatchErrCode {
+		return false
+	}
+
+	return true
+}
 
 func (api *API) InitWebSocket() {
 	// Optionally supports a trailing slash
@@ -53,6 +82,12 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		RemoteAddress: c.AppContext.IPAddress(),
 		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
+
+	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)
+	if codeValid := validateDisconnectErrCode(disconnectErrCode); codeValid {
+		cfg.DisconnectErrCode = disconnectErrCode
+	}
+
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.
 	if c.AppContext.Session().IsMobileApp() {

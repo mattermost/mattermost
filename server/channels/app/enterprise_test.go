@@ -17,6 +17,7 @@ import (
 )
 
 func TestSAMLSettings(t *testing.T) {
+	mainHelper.Parallel(t)
 	tt := []struct {
 		name         string
 		setInterface bool
@@ -61,8 +62,6 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
-
-			defer th.TearDown()
 
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockUserStore := storemocks.UserStore{}

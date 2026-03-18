@@ -220,6 +220,10 @@ func (api *API) APILocal(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 }
 
 func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
+	if !*api.srv.Config().RateLimitSettings.Enable {
+		return apiHandler
+	}
+
 	settings.SetDefaults()
 
 	rateLimiter, err := app.NewRateLimiter(&settings, []string{})
@@ -236,10 +240,6 @@ func requireLicense(c *Context) *model.AppError {
 		return err
 	}
 	return nil
-}
-
-func minimumProfessionalLicense(c *Context) *model.AppError {
-	return model.MinimumProfessionalProvidedLicense(c.App.Srv().License())
 }
 
 func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {

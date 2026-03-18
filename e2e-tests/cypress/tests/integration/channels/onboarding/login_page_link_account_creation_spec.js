@@ -44,7 +44,7 @@ describe('Onboarding', () => {
 
     it('MM-T400 Create account from login page link using email-password', () => {
         // # Open team menu and click on "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -53,7 +53,7 @@ describe('Onboarding', () => {
             // # Enable any user with an account on the server to join the team
             cy.get('input.mm-modal-generic-section-item__input-checkbox').last().should('be.visible').click();
 
-            cy.findAllByTestId('mm-save-changes-panel__save-btn').should('be.visible').click();
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').should('be.visible').click();
 
             // # Close the modal
             cy.findByLabelText('Close').should('be.visible').click();
@@ -71,7 +71,8 @@ describe('Onboarding', () => {
         cy.get('#input_email').should('be.focused').and('be.visible').type(email);
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+        cy.findByText('Create account').click();
 
         cy.findByText('You’re almost done!').should('be.visible');
 
@@ -100,7 +101,7 @@ describe('Onboarding', () => {
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
 
-    // eslint-disable-next-line no-shadow
+
     function getEmail(username, email) {
         cy.getRecentEmail({username, email}).then((data) => {
             // * Verify that the email subject is correct

@@ -95,6 +95,7 @@ export function adminDefinitionsToUrlsAndTexts(adminDefinition: typeof AdminDefi
         adminDefinition.about,
         adminDefinition.reporting,
         adminDefinition.user_management,
+        adminDefinition.system_attributes,
         adminDefinition.environment,
         adminDefinition.site,
         adminDefinition.authentication,

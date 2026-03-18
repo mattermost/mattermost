@@ -17,8 +17,8 @@ import (
 )
 
 func TestCustomStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -44,6 +44,7 @@ func TestCustomStatus(t *testing.T) {
 }
 
 func TestCustomStatusErrors(t *testing.T) {
+	mainHelper.Parallel(t)
 	fakeUserID := "foobar"
 	mockErr := store.NewErrNotFound("User", fakeUserID)
 	mockUser := &model.User{Id: fakeUserID}
@@ -63,7 +64,6 @@ func TestCustomStatusErrors(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			mockUserStore := mocks.UserStore{}
 
@@ -111,14 +111,14 @@ func TestCustomStatusErrors(t *testing.T) {
 }
 
 func TestSetCustomStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableCustomEmoji = true
 	})
 
-	emoji := th.CreateEmoji()
+	emoji := th.CreateEmoji(t)
 
 	for _, testCase := range []struct {
 		Name         string

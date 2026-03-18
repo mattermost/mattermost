@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/EditOutgoingOAuthConnection should match snapshot 1`] = `
 <BrowserRouter>
@@ -15,7 +15,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -116,8 +116,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
             }
           }
           renderExtra={
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Update"
@@ -523,8 +522,7 @@ https://myothersite.com/api/v2"
                       </Memo(LoadingWrapper)>
                     </button>
                   </Memo(SpinnerButton)>
-                  <ConfirmModal
-                    confirmButtonClass="btn btn-primary"
+                  <Memo(ConfirmModal)
                     confirmButtonText={
                       <Memo(MemoizedFormattedMessage)
                         defaultMessage="Update"
@@ -549,29 +547,23 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
+                      ariaLabelledby="confirmModalLabel"
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -593,11 +585,13 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -629,7 +623,7 @@ https://myothersite.com/api/v2"
                         />
                       </Modal>
                     </GenericModal>
-                  </ConfirmModal>
+                  </Memo(ConfirmModal)>
                 </div>
               </form>
             </div>
@@ -649,7 +643,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>
@@ -657,11 +651,9 @@ https://myothersite.com/api/v2"
                 </span>
               </FormattedMessage>
             </div>
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText="Save anyway"
               message="This connection has not been validated, Do you want to save anyway?"
-              modalClass=""
               onCancel={[Function]}
               onConfirm={[Function]}
               onExited={[Function]}
@@ -669,25 +661,18 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
+                ariaLabelledby="confirmModalLabel"
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -715,6 +700,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
@@ -746,7 +732,7 @@ https://myothersite.com/api/v2"
                   />
                 </Modal>
               </GenericModal>
-            </ConfirmModal>
+            </Memo(ConfirmModal)>
           </div>
         </AbstractOutgoingOAuthConnection>
       </EditOutgoingOAuthConnection>
@@ -770,7 +756,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -872,8 +858,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
             }
           }
           renderExtra={
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Update"
@@ -1279,8 +1264,7 @@ https://myothersite.com/api/v2"
                       </Memo(LoadingWrapper)>
                     </button>
                   </Memo(SpinnerButton)>
-                  <ConfirmModal
-                    confirmButtonClass="btn btn-primary"
+                  <Memo(ConfirmModal)
                     confirmButtonText={
                       <Memo(MemoizedFormattedMessage)
                         defaultMessage="Update"
@@ -1305,29 +1289,23 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
+                      ariaLabelledby="confirmModalLabel"
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -1349,11 +1327,13 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -1385,7 +1365,7 @@ https://myothersite.com/api/v2"
                         />
                       </Modal>
                     </GenericModal>
-                  </ConfirmModal>
+                  </Memo(ConfirmModal)>
                 </div>
               </form>
             </div>
@@ -1405,7 +1385,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>
@@ -1413,11 +1393,9 @@ https://myothersite.com/api/v2"
                 </span>
               </FormattedMessage>
             </div>
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText="Save anyway"
               message="This connection has not been validated, Do you want to save anyway?"
-              modalClass=""
               onCancel={[Function]}
               onConfirm={[Function]}
               onExited={[Function]}
@@ -1425,25 +1403,18 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
+                ariaLabelledby="confirmModalLabel"
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -1471,6 +1442,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
@@ -1502,7 +1474,7 @@ https://myothersite.com/api/v2"
                   />
                 </Modal>
               </GenericModal>
-            </ConfirmModal>
+            </Memo(ConfirmModal)>
           </div>
         </AbstractOutgoingOAuthConnection>
       </EditOutgoingOAuthConnection>
@@ -1526,7 +1498,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -1627,8 +1599,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
             }
           }
           renderExtra={
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Update"
@@ -2034,8 +2005,7 @@ https://myothersite.com/api/v2"
                       </Memo(LoadingWrapper)>
                     </button>
                   </Memo(SpinnerButton)>
-                  <ConfirmModal
-                    confirmButtonClass="btn btn-primary"
+                  <Memo(ConfirmModal)
                     confirmButtonText={
                       <Memo(MemoizedFormattedMessage)
                         defaultMessage="Update"
@@ -2060,29 +2030,23 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
+                      ariaLabelledby="confirmModalLabel"
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -2104,11 +2068,13 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
                         role="none"
                         show={false}
+                        style={Object {}}
                       >
                         <Modal
                           autoFocus={true}
@@ -2140,7 +2106,7 @@ https://myothersite.com/api/v2"
                         />
                       </Modal>
                     </GenericModal>
-                  </ConfirmModal>
+                  </Memo(ConfirmModal)>
                 </div>
               </form>
             </div>
@@ -2160,7 +2126,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>
@@ -2168,11 +2134,9 @@ https://myothersite.com/api/v2"
                 </span>
               </FormattedMessage>
             </div>
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText="Save anyway"
               message="This connection has not been validated, Do you want to save anyway?"
-              modalClass=""
               onCancel={[Function]}
               onConfirm={[Function]}
               onExited={[Function]}
@@ -2180,25 +2144,18 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
+                ariaLabelledby="confirmModalLabel"
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -2226,6 +2183,7 @@ https://myothersite.com/api/v2"
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}
@@ -2257,7 +2215,7 @@ https://myothersite.com/api/v2"
                   />
                 </Modal>
               </GenericModal>
-            </ConfirmModal>
+            </Memo(ConfirmModal)>
           </div>
         </AbstractOutgoingOAuthConnection>
       </EditOutgoingOAuthConnection>

@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @dm_category
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -64,7 +63,7 @@ describe('MM-T3156 DM category', () => {
     it('MM-T3156_3 should order DMs alphabetically ', () => {
         // # Hover over DIRECT MESSAGES and click channel options
         cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) .SidebarMenu').invoke('show').
-            get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) .SidebarMenu_menuButton').should('be.visible').click();
+            get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) .SidebarMenu_menuButton').should('be.visible').click({force: true});
 
         // # Change sorting to be alphabetical
         cy.findByText('Sort').trigger('mouseover');

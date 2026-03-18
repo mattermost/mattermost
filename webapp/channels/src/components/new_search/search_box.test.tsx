@@ -3,10 +3,12 @@
 
 import React from 'react';
 
+import type {Team} from '@mattermost/types/teams';
+
 import {
     renderWithContext,
     screen,
-    fireEvent,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import SearchBox from './search_box';
@@ -19,6 +21,7 @@ describe('components/new_search/SearchBox', () => {
         initialSearchType: 'messages',
         initialSearchTeam: 'teamId',
         crossTeamSearchEnabled: true,
+        myTeams: [{id: 'team1', name: 'team1', display_name: 'Team 1', description: ''}] as Team[],
     };
 
     test('should have the focus on the input field', () => {
@@ -33,43 +36,87 @@ describe('components/new_search/SearchBox', () => {
         expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test');
     });
 
-    test('should have the focus on the input field after switching search type', () => {
+    test('should have the focus on the input field after switching search type', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        screen.getByText('Files').click();
+        await userEvent.click(screen.getByText('Files'));
         expect(screen.getByPlaceholderText('Search files')).toHaveFocus();
     });
 
-    test('should see files hints when i click on files', () => {
+    test('should see files hints when i click on files', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
         expect(screen.getByText('From:')).toBeInTheDocument();
         expect(screen.queryByText('Ext:')).not.toBeInTheDocument();
-        screen.getByText('Files').click();
+        await userEvent.click(screen.getByText('Files'));
         expect(screen.getByText('Ext:')).toBeInTheDocument();
     });
 
-    test('should call close on esc keydown', () => {
+    test('should call close on esc keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Escape', code: 'Escape'});
-        expect(baseProps.onClose).toBeCalledTimes(1);
+        const input = screen.getByPlaceholderText('Search messages');
+        input.focus();
+        await userEvent.keyboard('{Escape}');
+        expect(baseProps.onClose).toHaveBeenCalledTimes(1);
     });
 
-    test('should call search on enter keydown', () => {
+    test('should call search on enter keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
-        expect(baseProps.onSearch).toBeCalledTimes(1);
+        const input = screen.getByPlaceholderText('Search messages');
+        input.focus();
+        await userEvent.keyboard('{Enter}');
+        expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
     });
 
-    test('should be able to select with the up and down arrows', () => {
+    test('should be able to select with the up and down arrows', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        screen.getByText('Files').click();
-        fireEvent.change(screen.getByPlaceholderText('Search files'), {target: {value: 'ext:'}});
+        await userEvent.click(screen.getByText('Files'));
+        await userEvent.type(screen.getByPlaceholderText('Search files'), 'ext:');
         expect(screen.getByText('Text file')).toHaveClass('selected');
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
-        fireEvent.keyDown(screen.getByPlaceholderText('Search files'), {key: 'ArrowDown', code: 'ArrowDown'});
+        await userEvent.keyboard('{ArrowDown}');
         expect(screen.getByText('Text file')).not.toHaveClass('selected');
         expect(screen.getByText('Word Document')).toHaveClass('selected');
-        fireEvent.keyDown(screen.getByPlaceholderText('Search files'), {key: 'ArrowUp', code: 'ArrowUp'});
+        await userEvent.keyboard('{ArrowUp}');
         expect(screen.getByText('Text file')).toHaveClass('selected');
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
+    });
+
+    test('should show team selector when there is more than one team', () => {
+        const props = {
+            ...baseProps,
+            myTeams: [
+                {id: 'team1', name: 'team1', display_name: 'Team 1', description: ''} as Team,
+                {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
+            ],
+        };
+        renderWithContext(<SearchBox {...props}/>);
+
+        // The select team dropdown should be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).toBeInTheDocument();
+    });
+
+    test('should not show team selector when there is only one team', () => {
+        // Base props already has one team
+        renderWithContext(<SearchBox {...baseProps}/>);
+
+        // The select team dropdown should not be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).not.toBeInTheDocument();
+    });
+
+    test('should not show team selector when cross-team search is disabled', () => {
+        const props = {
+            ...baseProps,
+            crossTeamSearchEnabled: false,
+            myTeams: [
+                {id: 'team1', name: 'team1', display_name: 'Team 1', description: ''} as Team,
+                {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
+            ],
+        };
+        renderWithContext(<SearchBox {...props}/>);
+
+        // The select team dropdown should not be visible
+        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        expect(teamSelector).not.toBeInTheDocument();
     });
 });

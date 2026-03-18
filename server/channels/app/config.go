@@ -226,11 +226,11 @@ func (a *App) SanitizedConfig(cfg *model.Config) {
 	if err != nil {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, nil)
 		return
 	}
 
-	cfg.Sanitize(manifests)
+	cfg.Sanitize(manifests, nil)
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.

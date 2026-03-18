@@ -17,31 +17,73 @@ export type ExternalLinkQueryParams = {
     userId?: string;
 }
 
+/**
+ * useExternalLink is used when linking outside of the MM server to add extra tracking parameters when linking to any
+ * page on mattermost.com (such as our docs or marketing websites). When passed any URL that isn't on mattermost.com,
+ * it returns the original URL unmodified.
+ *
+ * @param href The external URL being linked to
+ * @param location The location of the link within the app
+ * @param overwriteQueryParams
+ * @return {[string, Record<string, string>]} A tuple containing the URL (whether or not it was modified) and all query
+ * parameters on that link (either pre-existing or added by this hook)
+ */
 export function useExternalLink(href: string, location: string = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
     const userId = useSelector(getCurrentUserId);
-    const telemetryId = useSelector((state: GlobalState) => getConfig(state).TelemetryId || '');
-    const isCloud = useSelector((state: GlobalState) => getLicense(state).Cloud === 'true');
+    const config = useSelector(getConfig);
+    const license = useSelector(getLicense);
+    const isCloudPreview = useSelector((state: GlobalState) => {
+        return state.entities?.cloud?.subscription?.is_cloud_preview === true;
+    });
+    const telemetryId = useSelector((state: GlobalState) => getConfig(state)?.TelemetryId || '');
+    const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
 
     return useMemo(() => {
-        if (!href?.includes('mattermost.com')) {
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(href);
+        } catch {
             return [href, {}];
         }
 
-        const parsedUrl = new URL(href);
+        if (parsedUrl.hostname !== 'mattermost.com' && !parsedUrl.hostname.endsWith('.mattermost.com')) {
+            return [href, {}];
+        }
+
+        if (parsedUrl.protocol === 'mailto:') {
+            return [href, {}];
+        }
+
+        // Determine edition type (enterprise vs team)
+        const isEnterpriseReady = config?.BuildEnterpriseReady === 'true';
+        const edition = isEnterpriseReady ? 'enterprise' : 'team';
+
+        // Determine server version
+        const serverVersion = config?.BuildNumber === 'dev' ? config.BuildNumber : (config?.Version || '');
+
+        // Determine utm_medium based on cloud preview, cloud, or regular
+        let utmMedium = 'in-product';
+        if (isCloudPreview) {
+            utmMedium = 'in-product-preview';
+        } else if (isCloud) {
+            utmMedium = 'in-product-cloud';
+        }
 
         const existingURLSearchParams = parsedUrl.searchParams;
         const existingQueryParamsObj = Object.fromEntries(existingURLSearchParams.entries());
         const queryParams = {
             utm_source: 'mattermost',
-            utm_medium: isCloud ? 'in-product-cloud' : 'in-product',
+            utm_medium: utmMedium,
             utm_content: location,
             uid: userId,
             sid: telemetryId,
+            edition,
+            server_version: serverVersion,
             ...overwriteQueryParams,
             ...existingQueryParamsObj,
         };
-        parsedUrl.search = new URLSearchParams(queryParams).toString();
+        parsedUrl.search = Object.entries(queryParams).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
 
         return [parsedUrl.toString(), queryParams];
-    }, [href, isCloud, location, overwriteQueryParams, telemetryId, userId]);
+    }, [href, isCloud, isCloudPreview, location, overwriteQueryParams, telemetryId, userId, config, license]);
 }

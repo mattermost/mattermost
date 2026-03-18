@@ -14,9 +14,9 @@ import (
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("base case - happy path", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -55,8 +55,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code for archived channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -106,8 +105,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code for archived user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -159,8 +157,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code when user is not a channel member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -212,8 +209,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code when user is not a team member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -266,8 +262,8 @@ func TestProcessScheduledPosts(t *testing.T) {
 }
 
 func TestHandleFailedScheduledPosts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should handle failed scheduled posts correctly and notify users about failure via system-bot", func(t *testing.T) {
 		rctx := th.Context
@@ -283,7 +279,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		user2 := th.BasicUser2
 
 		channel1 := th.BasicChannel
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		// Create failed scheduled posts: 1 for user1 and 2 for user2
 		failedScheduledPosts := []*model.ScheduledPost{
@@ -335,7 +331,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
 
 		// Validate that the WebSocket events for both users are sent and received correctly
-		for i := 0; i < len(failedScheduledPosts); i++ {
+		for i := range failedScheduledPosts {
 			var received *model.WebSocketEvent
 			select {
 			case received = <-messagesUser1:
@@ -354,7 +350,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		// Helper function to check notifications for a specific user
 		checkUserNotification := func(user *model.User) {
 			// Wait time for notifications to be sent (adding 5 secs because it is run in a separate goroutine)
-			var timeout = 5 * time.Second
+			timeout := 5 * time.Second
 			begin := time.Now()
 			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
 			assert.True(t, appErr == nil)
@@ -366,7 +362,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				if time.Since(begin) > timeout {
 					break
 				}
-				posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+				posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 				assert.True(t, appErr == nil)
 				if len(posts.Posts) > 0 {
 					break

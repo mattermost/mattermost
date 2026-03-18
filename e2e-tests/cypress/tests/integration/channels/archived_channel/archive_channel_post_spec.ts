@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -18,12 +17,6 @@ describe('Archived channels', () => {
     let otherUser;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit created channel
         cy.apiInitSetup().then(({team, user}) => {
             testUser = user;

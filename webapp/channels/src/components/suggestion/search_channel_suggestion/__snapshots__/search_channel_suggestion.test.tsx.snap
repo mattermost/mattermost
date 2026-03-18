@@ -1,341 +1,224 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={false}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <i
-      className="icon icon--standard icon--no-spacing icon-globe"
-    />
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      name
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
     </span>
-    ~DN
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type DM_CHANNEL 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={true}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "D",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <Memo(Avatar)
-    size="sm"
-    url="/api/v4/users/DN/image?_=0"
-  />
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
-    <span
-      className="suggestion-list__main"
+    <img
+      alt=""
+      class="Avatar Avatar-sm"
+      loading="lazy"
+      src="/api/v4/users/DN/image?_=0"
+    />
+    <div
+      class="suggestion-list__ellipsis"
     >
-      @name
-    </span>
-  </div>
-</SuggestionContainer>
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        @name
+      </span>
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type GM_CHANNEL 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={true}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "G",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <div
-      className="status status--group"
-    >
-      G
-    </div>
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      @name
+      <div
+        class="status status--group"
+      >
+        G
+      </div>
     </span>
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        @name
+      </span>
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type OPEN_CHANNEL 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={true}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <i
-      className="icon icon--standard icon--no-spacing icon-globe"
-    />
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      name
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
     </span>
-    ~DN
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={true}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "P",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <i
-      className="icon icon--standard icon--no-spacing icon-lock-outline"
-    />
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      name
+      <i
+        class="icon icon--standard icon--no-spacing icon-lock-outline"
+      />
     </span>
-    ~DN
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is false 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={false}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <i
-      className="icon icon--standard icon--no-spacing icon-globe"
-    />
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      name
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
     </span>
-    ~DN
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is true 1`] = `
-<SuggestionContainer
-  currentUserId="userid1"
-  isSelection={true}
-  item={
-    Object {
-      "create_at": 0,
-      "creator_id": "id",
-      "delete_at": 0,
-      "display_name": "name",
-      "group_constrained": false,
-      "header": "header",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "DN",
-      "purpose": "purpose",
-      "scheme_id": "id",
-      "team_id": "team_id",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  teammateIsBot={false}
-  term=""
->
-  <span
-    className="suggestion-list__icon suggestion-list__icon--large"
-  >
-    <i
-      className="icon icon--standard icon--no-spacing icon-globe"
-    />
-  </span>
-  <div
-    className="suggestion-list__ellipsis"
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <span
-      className="suggestion-list__main"
+      class="suggestion-list__icon suggestion-list__icon--large"
     >
-      name
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
     </span>
-    ~DN
-  </div>
-</SuggestionContainer>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
 `;

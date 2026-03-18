@@ -10,6 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -44,7 +45,9 @@ const OverageUsersBannerNotice = () => {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector(getOverageBannerPreferences);
-    const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
+    const serverLimits = useSelector(getServerLimits);
+    const statsTotalUsers = ((stats ?? {})[StatTypes.TOTAL_USERS]) as number | undefined;
+    const activeUsers = serverLimits?.activeUserCount ?? statsTotalUsers ?? 0;
 
     const {
         isBetween5PercerntAnd10PercentPurchasedSeats,
@@ -58,15 +61,11 @@ const OverageUsersBannerNotice = () => {
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
     const overageByUsers = activeUsers - seatsPurchased;
-    const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
+    const isOverageState = overageByUsers > 0 && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
-        trackEventFn,
-    } = useExpandOverageUsersCheck({
-        isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
-        banner: 'invite modal',
-    });
+    } = useExpandOverageUsersCheck();
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
         return null;
@@ -90,16 +89,11 @@ const OverageUsersBannerNotice = () => {
                 defaultMessage='Notify your Customer Success Manager on your next true-up check. <a></a>'
                 values={{
                     a: () => {
-                        const handleClick = () => {
-                            trackEventFn('Contact Sales');
-                        };
-
                         return (
                             <ExternalLink
                                 location='overage_users_banner'
                                 className='overage_users_banner__button'
                                 href={LicenseLinks.CONTACT_SALES}
-                                onClick={handleClick}
                             >
                                 <FormattedMessage {...cta}/>
                             </ExternalLink>
@@ -120,7 +114,7 @@ const OverageUsersBannerNotice = () => {
             title={
                 <FormattedMessage
                     id='licensingPage.overageUsersBanner.noticeTitle'
-                    defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
+                    defaultMessage='Your workspace user count has exceeded your licensed seat count by {seats, number} {seats, plural, one {seat} other {seats}}'
                     values={{
                         seats: overageByUsers,
                     }}

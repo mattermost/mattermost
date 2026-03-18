@@ -6,147 +6,289 @@ objectclass: organizationalunit
 dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Test1
 title: Test1 Title
 mail: success+testone@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Test User 1
+dateCustomAttribute: 20240217120000Z
+selectCustomAttribute: option1
+multiSelectCustomAttribute: choice1
+multiSelectCustomAttribute: choice2
+userReferenceCustomAttribute: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Test2
 title: Test2 Title
 mail: success+testtwo@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Test User 2
+dateCustomAttribute: 20240217130000Z
+selectCustomAttribute: option2
+multiSelectCustomAttribute: choice2
+multiSelectCustomAttribute: choice3
+userReferenceCustomAttribute: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Test3
 title: Test3 Title
 mail: success+testthree@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Test User 3
+dateCustomAttribute: 20240217140000Z
+selectCustomAttribute: option3
+multiSelectCustomAttribute: choice3
+multiSelectCustomAttribute: choice4
+userReferenceCustomAttribute: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Test4
 title: Test4 Title
 mail: success+testfour@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Test User 4
+dateCustomAttribute: 20240217150000Z
+selectCustomAttribute: option1
+multiSelectCustomAttribute: choice4
+multiSelectCustomAttribute: choice2
+userReferenceCustomAttribute: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Test5
 # No title to allow testing that path
 mail: success+testfive@simulator.amazonses.com
 userPassword: Password1
-
+textCustomAttribute: Custom Value for Test User 5
+dateCustomAttribute: 20240217160000Z
+selectCustomAttribute: option2
+multiSelectCustomAttribute: choice1
+multiSelectCustomAttribute: choice2
+userReferenceCustomAttribute: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 
 # developers
 dn: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Dev3
 title: DevOps Engineer
 mail: success+devopsone@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for DevOps 1
+dateCustomAttribute: 20240217170000Z
+selectCustomAttribute: option3
+multiSelectCustomAttribute: choice2
+multiSelectCustomAttribute: choice3
+userReferenceCustomAttribute: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Dev1
 title: Senior Software Design Engineer
 mail: success+devone@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Dev 1
+dateCustomAttribute: 20240217180000Z
+selectCustomAttribute: option1
+multiSelectCustomAttribute: choice3
+multiSelectCustomAttribute: choice4
+userReferenceCustomAttribute: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Dev2
 title: Software Design Engineer ||
 mail: success+devtwo@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Dev 2
+dateCustomAttribute: 20240217190000Z
+selectCustomAttribute: option2
+multiSelectCustomAttribute: choice4
+multiSelectCustomAttribute: choice1
+userReferenceCustomAttribute: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Dev3
 title: Software Design Engineer
 mail: success+devthree@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Dev 3
+dateCustomAttribute: 20240217200000Z
+selectCustomAttribute: option3
+multiSelectCustomAttribute: choice1
+multiSelectCustomAttribute: choice2
+userReferenceCustomAttribute: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Dev4
 title: Staff Software Design Engineer
 mail: success+devfour@simulator.amazonses.com
 userPassword: Password1
-
+textCustomAttribute: Custom Value for Dev 4
+dateCustomAttribute: 20240217210000Z
+selectCustomAttribute: option1
+multiSelectCustomAttribute: choice2
+multiSelectCustomAttribute: choice3
+userReferenceCustomAttribute: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 
 # executive
 dn: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Exec1
 title: CEO
 mail: success+execone@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Exec 1
+dateCustomAttribute: 20240217220000Z
+selectCustomAttribute: option2
+multiSelectCustomAttribute: choice3
+multiSelectCustomAttribute: choice4
+userReferenceCustomAttribute: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Exec2
 title: CTO
 mail: success+exectwo@simulator.amazonses.com
 userPassword: Password1
-
+textCustomAttribute: Custom Value for Exec 2
+dateCustomAttribute: 20240217230000Z
+selectCustomAttribute: option3
+multiSelectCustomAttribute: choice4
+multiSelectCustomAttribute: choice1
+userReferenceCustomAttribute: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 
 # board of directors
 dn: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Board1
 title: Director
 mail: success+boardone@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Board 1
+dateCustomAttribute: 20240218000000Z
+selectCustomAttribute: option1
+multiSelectCustomAttribute: choice1
+multiSelectCustomAttribute: choice2
+userReferenceCustomAttribute: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Board2
 title: Inside Director
 mail: success+boardtwo@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Board 2
+dateCustomAttribute: 20240218010000Z
+selectCustomAttribute: option2
+multiSelectCustomAttribute: choice2
+multiSelectCustomAttribute: choice3
+userReferenceCustomAttribute: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
+multiUserReferenceCustomAttribute: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
+objectclass: customInetOrgPerson
 sn: User
 cn: Board3
 title: Outside Director
 mail: success+boardthree@simulator.amazonses.com
 userPassword: Password1
+textCustomAttribute: Custom Value for Board 3
+dateCustomAttribute: 20240218020000Z
 
 dn: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: FirstLogin1
 mail: success+firstloginuser.one@simulator.amazonses.com
@@ -155,6 +297,7 @@ userPassword: Password1
 dn: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: FirstLogin2
 mail: success+firstloginuser.two@simulator.amazonses.com
@@ -165,21 +308,31 @@ changetype: add
 objectclass: organizationalunit
 
 # groupOfNames
+
+# groupOfNames with Base64 Encoded ObjectGUID
 dn: cn=outsiders,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: UcVUS/HonkGbqAAAAAAAAA==
 member: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 
+# groupOfNames with Hex Separated ObjectGUID
 dn: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID: \56\6d\95\5b\a8\9a\9c\42\a4\61\00\00\00\00\00\00
 member: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 member: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 member: cn=outsiders,ou=testgroups,dc=mm,dc=test,dc=com
 
+# groupOfNames with Binary Encoded ObjectGUID
 dn: cn=executive,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: EBYPDQ4NDAsKCQgHBgUEAwIBAA==
 member: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
 member: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 member: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
@@ -187,45 +340,61 @@ member: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=tgroup-84,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: YB4aM/vJn0CfhQAAAAAAAA==
 member: cn=tgroup-9,ou=testgroups,dc=mm,dc=test,dc=com
 member: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=tgroup-9,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: ZA9bHYy+n0KVlgAAAAAAAA==
 member: cn=tgroup-97,ou=testgroups,dc=mm,dc=test,dc=com
 
 dn: cn=tgroup-97,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: aS77A+eDnke+7AAAAAAAAA==
 member: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
 
 # groupOfUniqueNames
 dn: cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: bThfVKmRn0S5mQAAAAAAAA==
 uniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=ugroup,cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: cEdgf5/JnkCZtQAAAAAAAA==
 uniqueMember: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=vgroup,cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: dUvgN8VXnkC9EQAAAAAAAAA==
 uniqueMember: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
 
 # Adds a group with a cycle
 dn: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: eXyMRG3BnUCJsQAAAAAAAA==
 uniqueMember: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=developers,ou=testgroups,dc=mm,dc=test,dc=com
 
 dn: cn=team-one,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: fM8fdh6MnUGsYQAAAAAAAA==
 uniqueMember: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
@@ -233,11 +402,15 @@ uniqueMember: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: gI9GHKjnn0G7LQAAAAAAAAA==
 uniqueMember: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=developers,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: hKDpuRd+nECFKwAAAAAAAA==
 uniqueMember: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one,ou=testgroups,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
@@ -245,5 +418,7 @@ uniqueMember: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=firstlogingroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: iS3dxTuwnkC2MQAAAAAAAAA==
 uniqueMember: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com

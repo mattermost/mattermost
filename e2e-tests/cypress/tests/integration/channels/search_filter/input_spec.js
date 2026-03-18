@@ -54,7 +54,7 @@ describe('Search Date Filter', () => {
 
         // # Type before: in search field
         cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchBox().first().clear().type('before:');
+        cy.uiGetSearchBox().clear().type('before:');
 
         // * Day picker should be visible
         cy.get('.rdp').
@@ -74,7 +74,7 @@ describe('Search Date Filter', () => {
         cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.uiGetSearchBox().first().should('have.value', '');
+        cy.uiGetSearchBox().should('have.value', '');
 
         cy.uiGetSearchContainer().should('be.visible').click();
     });
@@ -84,7 +84,7 @@ describe('Search Date Filter', () => {
 
         // # Type before: in search field
         cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchBox().first().clear().type('before:');
+        cy.uiGetSearchBox().clear().type('before:');
 
         // * Date picker should be visible
         cy.get('.rdp').
@@ -135,7 +135,7 @@ describe('Search Date Filter', () => {
             should('have.value', '');
 
         // # Enter query to search box and then click "x" to the right of the search term
-        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
+        cy.uiGetSearchBox().clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
         cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared

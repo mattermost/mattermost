@@ -12,6 +12,7 @@ export type GeneralState = {
     license: ClientLicense;
     serverVersion: string;
     customProfileAttributes: IDMappedObjects<UserPropertyField>;
+    cwsAvailability: 'pending' | 'available' | 'unavailable' | 'not_applicable';
 };
 
 export type SystemSetting = {

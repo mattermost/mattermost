@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch} from 'react-redux';
+import * as ReactRedux from 'react-redux';
 import {MemoryRouter, Route, useHistory} from 'react-router-dom';
 
 import {openModal} from 'actions/views/modals';
@@ -37,7 +37,7 @@ describe('QueryParamActionController', () => {
 
     beforeEach(() => {
         mockDispatch = jest.fn();
-        (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+        jest.spyOn(ReactRedux, 'useDispatch').mockReturnValue(mockDispatch);
         mockHistory = {
             replace: jest.fn(),
         } as MockHistory;

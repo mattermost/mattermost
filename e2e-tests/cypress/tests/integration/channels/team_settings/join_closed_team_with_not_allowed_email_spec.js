@@ -11,6 +11,7 @@
 // Group: @channels @team_settings
 
 import {getRandomId, stubClipboard} from '../../../utils';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -42,7 +43,7 @@ describe('Team Settings', () => {
         stubClipboard().as('clipboard');
 
         // # Open team menu and click 'Team Settings'
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -60,10 +61,12 @@ describe('Team Settings', () => {
             cy.findByText('Save').should('be.visible').click();
         });
 
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+
         cy.uiClose();
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Get the invite URL
         cy.findByTestId('InviteView__copyInviteLink').should('be.visible').click();
@@ -84,8 +87,11 @@ describe('Team Settings', () => {
             cy.get('#input_name').type(username);
             cy.get('#input_password-input').type(password);
 
+            // # Check the terms and privacy checkbox
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
             // # Attempt to create an account by clicking on the 'Create Account' button
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert that the expected error message from creating an account with an email not from the allowed email domain exists and is visible
             cy.findByText(errorMessage).should('be.visible');
@@ -94,7 +100,7 @@ describe('Team Settings', () => {
 
     it('MM-T2341 Cannot add a user to a team if the user\'s email is not from the correct domain', () => {
         // # Open team menu and click 'Team Settings'
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -136,7 +142,7 @@ describe('Team Settings', () => {
                     cy.visit(`/${otherTeam.name}/channels/town-square`);
 
                     // # Open team menu and click 'Join Another Team'
-                    cy.uiOpenTeamMenu('Join Another Team');
+                    cy.uiOpenTeamMenu('Join another team');
 
                     // # Try to join the existing team
                     cy.get('.signup-team-dir').find(`#${testTeam.display_name.replace(' ', '_')}`).scrollIntoView().click();

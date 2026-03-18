@@ -1,7 +1,7 @@
 {
   "name": "mattermost-api-reference",
   "version": "1.0.0",
-  "description": "This repository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
+  "description": "This repository holds the API reference documentation for Mattermost available at https://developers.mattermost.com/api-reference",
   "main": "index.js",
   "dependencies": {
     "@redocly/cli": "^1.13.0",
@@ -28,6 +28,5 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mattermost/mattermost/issues"
-  },
-  "homepage": "https://api.mattermost.com/"
+  }
 }

@@ -28,16 +28,16 @@ func BenchmarkDecoderDecode(b *testing.B) {
 			imgDir, ok := fileutils.FindDir("tests")
 			require.True(b, ok)
 
-			b.ResetTimer()
-
 			var wg sync.WaitGroup
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
+				// Setup
 				b.StopTimer()
 				wg.Add(1)
 				imgFile, err := os.Open(imgDir + "/fill_test_opaque.png")
 				require.NoError(b, err)
 				defer imgFile.Close()
 				b.StartTimer()
+
 				go func() {
 					defer wg.Done()
 					img, _, err := d.Decode(imgFile)
@@ -64,10 +64,8 @@ func BenchmarkDecoderDecodeMemBounded(b *testing.B) {
 			imgDir, ok := fileutils.FindDir("tests")
 			require.True(b, ok)
 
-			b.ResetTimer()
-
 			var wg sync.WaitGroup
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				wg.Add(1)
 				imgFile, err := os.Open(imgDir + "/fill_test_opaque.png")

@@ -17,8 +17,8 @@ import (
 
 //nolint:govet // The setup code leads to a lot of variable shadowing.
 func TestCreateDefaultMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	singersTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "Singers",
@@ -302,9 +302,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	timeAfterLeaving := model.GetMillis() + 1
 
+	retentionPolicyBatchConfigs := model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeBeforeLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr := th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -320,9 +326,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("Expected channel member to remain deleted")
 	}
 
+	retentionPolicyBatchConfigs = model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeAfterLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr = th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -340,7 +352,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
-		restrictedUser := th.CreateUser()
+		restrictedUser := th.CreateUser(t)
 		restrictedUser.Email = "restricted@mattermost.org"
 		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
@@ -489,11 +501,11 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	})
 
 	t.Run("error should contain a information about all users that failed", func(t *testing.T) {
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user1.Id)
 		require.Nil(t, err)
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -530,10 +542,10 @@ func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) 
 }
 
 func TestDeleteGroupMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
 
@@ -597,19 +609,19 @@ func TestDeleteGroupMemberships(t *testing.T) {
 }
 
 func TestSyncSyncableRoles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
-	channel := th.CreateChannel(th.Context, team)
+	channel := th.CreateChannel(t, team)
 	channel.GroupConstrained = model.NewPointer(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
-	group := th.CreateGroup()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	group := th.CreateGroup(t)
 
 	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		SyncableId: team.Id,
@@ -634,7 +646,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, tm.SchemeAdmin)
 
-		cm := th.AddUserToChannel(user, channel)
+		cm := th.AddUserToChannel(t, user, channel)
 		require.False(t, cm.SchemeAdmin)
 	}
 

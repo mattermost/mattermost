@@ -1,6 +1,8 @@
 package pluginapi
 
 import (
+	"slices"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -312,11 +314,11 @@ func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		}
 	}
 
-	if len(messageProcessOptions.FilterChannelIDs) != 0 && !stringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
+	if len(messageProcessOptions.FilterChannelIDs) != 0 && !slices.Contains(messageProcessOptions.FilterChannelIDs, post.ChannelId) {
 		return false, nil
 	}
 
-	if len(messageProcessOptions.FilterUserIDs) != 0 && !stringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
+	if len(messageProcessOptions.FilterUserIDs) != 0 && !slices.Contains(messageProcessOptions.FilterUserIDs, post.UserId) {
 		return false, nil
 	}
 

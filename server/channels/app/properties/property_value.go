@@ -11,6 +11,10 @@ func (ps *PropertyService) CreatePropertyValue(value *model.PropertyValue) (*mod
 	return ps.valueStore.Create(value)
 }
 
+func (ps *PropertyService) CreatePropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return ps.valueStore.CreateMany(values)
+}
+
 func (ps *PropertyService) GetPropertyValue(groupID, id string) (*model.PropertyValue, error) {
 	return ps.valueStore.Get(groupID, id)
 }
@@ -19,11 +23,10 @@ func (ps *PropertyService) GetPropertyValues(groupID string, ids []string) ([]*m
 	return ps.valueStore.GetMany(groupID, ids)
 }
 
-func (ps *PropertyService) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	// groupID and targetID are part of the search method signature to
+func (ps *PropertyService) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
-	opts.TargetID = targetID
 	return ps.valueStore.SearchPropertyValues(opts)
 }
 
@@ -55,4 +58,12 @@ func (ps *PropertyService) UpsertPropertyValues(values []*model.PropertyValue) (
 
 func (ps *PropertyService) DeletePropertyValue(groupID, id string) error {
 	return ps.valueStore.Delete(groupID, id)
+}
+
+func (ps *PropertyService) DeletePropertyValuesForTarget(groupID string, targetType string, targetID string) error {
+	return ps.valueStore.DeleteForTarget(groupID, targetType, targetID)
+}
+
+func (ps *PropertyService) DeletePropertyValuesForField(groupID, fieldID string) error {
+	return ps.valueStore.DeleteForField(groupID, fieldID)
 }

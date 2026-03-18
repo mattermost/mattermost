@@ -37,7 +37,7 @@ const MenuItemCloudLimit = ({id}: Props) => {
     const [limits] = useGetLimits();
     const usage = useGetUsage();
     const highestLimit = useGetHighestThresholdCloudLimit(usage, limits);
-    const words = useWords(highestLimit, isAdminUser, 'menu_item_cloud_limit');
+    const words = useWords(highestLimit, isAdminUser);
 
     const show = isCloud && !isFreeTrial;
 

@@ -143,6 +143,11 @@ export const useUserPropertyFields = () => {
             const currentByName = byNamesLower(current.data);
 
             const warnings = Object.values(pending.data).reduce<NonNullable<UserPropertyFields['warnings']>>((acc, field) => {
+                // Skip validation for protected fields - they can't be edited
+                if (field.attrs?.protected) {
+                    return acc;
+                }
+
                 if (!field.name) {
                     // name not provided
                     acc[field.id] = {name: ValidationWarningNameRequired};
@@ -191,11 +196,22 @@ export const useUserPropertyFields = () => {
                 return collectionReplaceItem(pending, field);
             });
         },
-        create: () => {
+        create: (patch?) => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
-                const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder, visibility: 'when_set', value_type: ''}});
+
+                const field = newPendingField({
+                    type: 'text',
+                    ...patch,
+                    name: getIncrementedName(patch?.name ?? 'Text', pending),
+                    attrs: {
+                        visibility: 'when_set',
+                        value_type: '',
+                        ...patch?.attrs,
+                        sort_order: nextOrder,
+                    },
+                });
+
                 return collectionAddItem(pending, field);
             });
         },
@@ -268,9 +284,20 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
 export const newPendingId = () => `${PENDING}${generateId()}`;
 
 export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>): UserPropertyField => {
+    const attrs = {...patch.attrs};
+
+    if (attrs.options) {
+        // clear option ids
+        attrs.options = patch.attrs?.options?.map((option) => ({...option, id: ''}));
+    }
+
+    // clear ldap/saml links
+    Reflect.deleteProperty(attrs, 'ldap');
+    Reflect.deleteProperty(attrs, 'saml');
+
     return {
-        ...patch,
         type: 'text',
+        ...patch,
         group_id: 'custom_profile_attributes' satisfies UserPropertyFieldGroupID,
         id: newPendingId(),
         create_at: 0,
@@ -280,8 +307,7 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
             visibility: 'when_set' satisfies FieldVisibility,
             sort_order: 0,
             value_type: '' satisfies FieldValueType,
-            ...patch.attrs,
+            ...attrs,
         },
-
     };
 };

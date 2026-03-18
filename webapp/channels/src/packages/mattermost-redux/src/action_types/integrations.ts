@@ -27,5 +27,6 @@ export default keyMirror({
     DELETED_OUTGOING_OAUTH_CONNECTION: null,
 
     RECEIVED_DIALOG_TRIGGER_ID: null,
+    RECEIVED_DIALOG_ARGUMENTS: null,
     RECEIVED_DIALOG: null,
 });

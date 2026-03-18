@@ -13,6 +13,7 @@ import (
 )
 
 func TestFilterInaccessibleFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -21,9 +22,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
-	var getFileWithCreateAt = func(at int64) *model.FileInfo {
+	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}
 	}
 
@@ -116,6 +115,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 }
 
 func TestGetFilteredAccessibleFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -124,9 +124,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
-	var getFileWithCreateAt = func(at int64) *model.FileInfo {
+	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}
 	}
 
@@ -158,6 +156,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 }
 
 func TestIsInaccessibleFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -165,8 +164,6 @@ func TestIsInaccessibleFile(t *testing.T) {
 		Value: "2",
 	})
 	require.NoError(t, err)
-
-	defer th.TearDown()
 
 	file := &model.FileInfo{CreateAt: 3}
 	firstInaccessibleFileTime, appErr := th.App.isInaccessibleFile(file)
@@ -180,6 +177,7 @@ func TestIsInaccessibleFile(t *testing.T) {
 }
 
 func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -188,9 +186,7 @@ func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	defer th.TearDown()
-
-	var getFileWithCreateAt = func(at int64) *model.FileInfo {
+	getFileWithCreateAt := func(at int64) *model.FileInfo {
 		return &model.FileInfo{CreateAt: at}
 	}
 

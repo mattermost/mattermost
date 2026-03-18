@@ -1063,11 +1063,8 @@ describe('Actions.Channels', () => {
         const mockQuery = {
             page: 0,
             per_page: 50,
-            not_associated_to_group: '',
-            exclude_default_channels: false,
             include_total_count: true,
             include_deleted: false,
-            exclude_policy_constrained: false,
         };
         nock(Client4.getBaseRoute()).
             get('/channels').
@@ -1162,49 +1159,6 @@ describe('Actions.Channels', () => {
         response = await store.dispatch(Actions.searchAllChannels('test', {exclude_default_channels: false, page: 0, per_page: 100, include_deleted: true}));
 
         expect(response.data.channels.length === 2).toBeTruthy();
-    });
-
-    it('searchArchivedChannels', async () => {
-        const userClient = TestHelper.createClient4();
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            query(true).
-            reply(201, TestHelper.fakeUserWithId());
-
-        const user = await TestHelper.basicClient4!.createUser(
-            TestHelper.fakeUser(),
-            '',
-            '',
-            TestHelper.basicTeam!.invite_id,
-        );
-
-        nock(Client4.getBaseRoute()).
-            post('/users/login').
-            reply(200, user);
-
-        await userClient.login(user.email, 'password1');
-
-        nock(Client4.getBaseRoute()).
-            post('/channels').
-            reply(201, TestHelper.fakeChannelWithId(TestHelper.basicTeam!.id));
-
-        const userChannel = await userClient.createChannel(
-            TestHelper.fakeChannel(TestHelper.basicTeam!.id),
-        );
-
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/channels/search_archived`).
-            reply(200, [TestHelper.basicChannel, userChannel]);
-
-        const {data} = await store.dispatch(Actions.searchChannels(TestHelper.basicTeam!.id, 'test', true));
-
-        const moreRequest = store.getState().requests.channels.getChannels;
-        if (moreRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(moreRequest.error));
-        }
-
-        expect(data.length === 2).toBeTruthy();
     });
 
     it('getChannelMembers', async () => {
@@ -2099,14 +2053,13 @@ describe('Actions.Channels', () => {
         });
 
         nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=0&per_page=200').
-            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index}`, user_id: 'some-user-id'})));
-        nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=1&per_page=200').
-            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index + 200}`, user_id: 'some-user-id'})));
-        nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=2&per_page=200').
-            reply(200, [...Array(100).keys()].map((index) => ({channel_id: `channel-${index + 400}`, user_id: 'some-user-id'})));
+            '/users/some-user-id/channel_members?page=-1&per_page=60').
+            reply(200, [...Array(500).keys()].map((index) => (
+                {
+                    channel_id: `channel-${index}`,
+                    user_id: 'some-user-id',
+                    roles: 'channel_user',
+                })));
 
         await store.dispatch(Actions.fetchAllMyChannelMembers());
         expect(Object.keys(store.getState().entities.channels.myMembers).length).toBe(500);

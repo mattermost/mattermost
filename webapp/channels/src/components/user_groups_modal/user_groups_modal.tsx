@@ -2,25 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Modal} from 'react-bootstrap';
-import {defineMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import CreateUserGroupsModal from 'components/create_user_groups_modal';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import Input from 'components/widgets/inputs/input/input';
 
-import Constants from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 import {usePagingMeta} from './hooks';
 import UserGroupsFilter from './user_groups_filter/user_groups_filter';
 import UserGroupsList from './user_groups_list';
-import UserGroupsModalHeader from './user_groups_modal_header';
 
 const GROUPS_PER_PAGE = 60;
 
@@ -32,6 +34,7 @@ export type Props = {
     searchTerm: string;
     currentUserId: string;
     backButtonAction: () => void;
+    canCreateCustomGroups: boolean;
     actions: {
         getGroups: (
             opts: GetGroupsParams,
@@ -43,6 +46,7 @@ export type Props = {
         searchGroups: (
             params: GroupSearchParams,
         ) => Promise<ActionResult>;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
 }
 
@@ -53,6 +57,7 @@ const UserGroupsModal = (props: Props) => {
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [groupsFull, setGroupsFull] = useState(false);
     const [groups, setGroups] = useState(props.groups);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const [page, setPage] = usePagingMeta(selectedFilter);
 
@@ -180,55 +185,105 @@ const UserGroupsModal = (props: Props) => {
         return NoResultsVariant.UserGroups;
     }, [selectedFilter]);
 
+    const goToCreateModal = useCallback(() => {
+        props.actions.openModal({
+            modalId: ModalIdentifiers.USER_GROUPS_CREATE,
+            dialogType: CreateUserGroupsModal,
+            dialogProps: {
+                backButtonCallback: props.backButtonAction,
+            },
+        });
+        props.onExited();
+    }, [props.actions.openModal, props.backButtonAction, props.onExited]);
+
     return (
-        <Modal
-            dialogClassName='a11y__modal user-groups-modal'
+        <GenericModal
+            id='userGroupsModal'
+            ariaLabel='userGroupsModalLabel'
+            className='a11y__modal user-groups-modal'
             show={show}
             onHide={doHide}
             onExited={props.onExited}
-            role='none'
-            aria-labelledby='userGroupsModalLabel'
-            id='userGroupsModal'
-        >
-            <UserGroupsModalHeader
-                onExited={props.onExited}
-                backButtonAction={props.backButtonAction}
-            />
-            <Modal.Body>
-                <div className='user-groups-search'>
-                    <Input
-                        type='text'
-                        placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
-                        onChange={handleSearch}
-                        value={props.searchTerm}
-                        data-testid='searchInput'
-                        className={'user-group-search-input'}
-                        inputPrefix={inputPrefix}
-                    />
-                </div>
-                <UserGroupsFilter
-                    selectedFilter={selectedFilter}
-                    getGroups={getGroups}
+            compassDesign={true}
+            modalHeaderText={
+                <FormattedMessage
+                    id='user_groups_modal.title'
+                    defaultMessage='User Groups'
                 />
-                {(groups.length === 0 && !props.searchTerm) ? <>
-                    <NoResultsIndicator
-                        variant={noResultsType}
+            }
+            headerButton={
+                props.canCreateCustomGroups &&
+                <button
+                    className='user-groups-create btn btn-secondary btn-sm'
+                    onClick={goToCreateModal}
+                >
+                    <FormattedMessage
+                        id='user_groups_modal.createNew'
+                        defaultMessage='Create Group'
                     />
-                    <ADLDAPUpsellBanner/>
-                </> : <>
-                    <UserGroupsList
-                        groups={groups}
-                        searchTerm={props.searchTerm}
-                        loading={loading}
-                        hasNextPage={!groupsFull}
-                        loadMoreGroups={loadMoreGroups}
-                        onExited={props.onExited}
-                        backButtonAction={props.backButtonAction}
-                    />
-                </>
-                }
-            </Modal.Body>
-        </Modal>
+                </button>
+            }
+            bodyPadding={false}
+            enforceFocus={!isMenuOpen}
+        >
+            <div className='user-groups-search'>
+                <div
+                    className='sr-only'
+                    role='status'
+                    aria-live='polite'
+                    aria-atomic='true'
+                >
+                    {props.searchTerm && (
+                        groups.length > 0 ? (
+                            <FormattedMessage
+                                id='user_groups_modal.searchResults'
+                                defaultMessage='{count} groups found'
+                                values={{
+                                    count: groups.length,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user_groups_modal.noSearchResults'
+                                defaultMessage='No groups found'
+                            />
+                        )
+                    )}
+                </div>
+                <Input
+                    type='text'
+                    placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
+                    onChange={handleSearch}
+                    value={props.searchTerm}
+                    data-testid='searchInput'
+                    className={'user-group-search-input'}
+                    inputPrefix={inputPrefix}
+                />
+            </div>
+            <UserGroupsFilter
+                selectedFilter={selectedFilter}
+                getGroups={getGroups}
+                onToggle={setIsMenuOpen}
+            />
+            {(groups.length === 0 && !props.searchTerm) ? <>
+                <NoResultsIndicator
+                    variant={noResultsType}
+                />
+                <ADLDAPUpsellBanner/>
+            </> : <>
+                <UserGroupsList
+                    groups={groups}
+                    searchTerm={props.searchTerm}
+                    loading={loading}
+                    hasNextPage={!groupsFull}
+                    loadMoreGroups={loadMoreGroups}
+                    onExited={props.onExited}
+                    backButtonAction={props.backButtonAction}
+                    onToggle={setIsMenuOpen}
+                />
+            </>
+            }
+        </GenericModal>
     );
 };
 

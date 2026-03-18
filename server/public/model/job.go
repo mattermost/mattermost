@@ -15,7 +15,6 @@ const (
 	JobTypeCLIMessageExport              = "cli_message_export"
 	JobTypeElasticsearchPostIndexing     = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation  = "elasticsearch_post_aggregation"
-	JobTypeBlevePostIndexing             = "bleve_post_indexing"
 	JobTypeLdapSync                      = "ldap_sync"
 	JobTypeMigrations                    = "migrations"
 	JobTypePlugins                       = "plugins"
@@ -44,6 +43,11 @@ const (
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
+	JobTypeAccessControlSync             = "access_control_sync"
+	JobTypePushProxyAuth                 = "push_proxy_auth"
+	JobTypeRecap                         = "recap"
+	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
+	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -59,7 +63,6 @@ var AllJobTypes = [...]string{
 	JobTypeMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
-	JobTypeBlevePostIndexing,
 	JobTypeLdapSync,
 	JobTypeMigrations,
 	JobTypePlugins,

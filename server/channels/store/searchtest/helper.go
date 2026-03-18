@@ -31,12 +31,6 @@ type SearchTestHelper struct {
 }
 
 func (th *SearchTestHelper) SetupBasicFixtures() error {
-	// Remove users from previous tests
-	err := th.cleanAllUsers()
-	if err != nil {
-		return err
-	}
-
 	// Create teams
 	team, err := th.createTeam("searchtest-team", "Searchtest team", model.TeamOpen)
 	if err != nil {
@@ -140,7 +134,7 @@ func (th *SearchTestHelper) CleanFixtures() error {
 		return err
 	}
 
-	err = th.cleanAllUsers()
+	err = th.cleanAllUsers([]*model.User{th.User, th.User2, th.UserAnotherTeam})
 	if err != nil {
 		return err
 	}
@@ -202,12 +196,7 @@ func (th *SearchTestHelper) deleteBotUser(botID string) error {
 	return th.Store.User().PermanentDelete(th.Context, botID)
 }
 
-func (th *SearchTestHelper) cleanAllUsers() error {
-	users, err := th.Store.User().GetAll()
-	if err != nil {
-		return err
-	}
-
+func (th *SearchTestHelper) cleanAllUsers(users []*model.User) error {
 	for _, u := range users {
 		err := th.deleteUser(u)
 		if err != nil {

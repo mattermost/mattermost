@@ -70,3 +70,35 @@
 .custom-emoji-tab__icon {
     margin-right: 7px;
 }
+
+#emoji-picker-tabs {
+    display: flex;
+
+    // These prevent a flex element from overflowing its parent
+    min-width: 0;
+    min-height: 0;
+
+    flex: 1;
+    flex-direction: column;
+
+    .tab-content {
+        display: flex;
+
+        // These prevent a flex element from overflowing its parent
+        min-width: 0;
+        min-height: 0;
+
+        flex: 1;
+
+        .tab-pane {
+            display: flex;
+
+            // These prevent a flex element from overflowing its parent
+            min-width: 0;
+            min-height: 0;
+
+            flex: 1;
+            flex-direction: column;
+        }
+    }
+}

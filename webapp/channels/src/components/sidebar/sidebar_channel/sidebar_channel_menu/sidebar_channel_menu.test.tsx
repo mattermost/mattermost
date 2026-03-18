@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -55,83 +55,96 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         onMenuToggle: jest.fn(),
     };
 
-    test('should match snapshot and contain correct buttons', () => {
-        const wrapper = shallow(
+    const openMenu = async () => {
+        const user = userEvent.setup();
+        const menuButton = screen.getByRole('button', {name: /channel options/i});
+        await user.click(menuButton);
+        await screen.findByRole('menu', {name: 'Edit channel menu'});
+    };
+
+    test('should match snapshot and contain correct buttons', async () => {
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...baseProps}/>,
         );
 
-        expect(wrapper.find('#favorite-channel_id')).toHaveLength(1);
-        expect(wrapper.find('#mute-channel_id')).toHaveLength(1);
-        expect(wrapper.find('#copyLink-channel_id')).toHaveLength(1);
-        expect(wrapper.find('#addMembers-channel_id')).toHaveLength(1);
-        expect(wrapper.find('#leave-channel_id')).toHaveLength(1);
+        await openMenu();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('menuitem', {name: 'Favorite'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Mute Channel'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Copy Link'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Add Members'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Leave Channel'})).toBeInTheDocument();
+
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is unread', () => {
+    test('should show correct menu items when channel is unread', async () => {
         const props = {
             ...baseProps,
             isUnread: true,
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#markAsRead-channel_id')).toHaveLength(1);
+        await openMenu();
+        expect(screen.getByRole('menuitem', {name: 'Mark as Read'})).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is read', () => {
+    test('should show correct menu items when channel is read', async () => {
         const props = {
             ...baseProps,
             isUnread: false,
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#markAsUnread-channel_id')).toHaveLength(1);
+        await openMenu();
+        expect(screen.getByRole('menuitem', {name: 'Mark as Unread'})).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is favorite', () => {
+    test('should show correct menu items when channel is favorite', async () => {
         const props = {
             ...baseProps,
             isFavorite: true,
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#favorite-channel_id')).toHaveLength(0);
-        expect(wrapper.find('#unfavorite-channel_id')).toHaveLength(1);
+        await openMenu();
+        expect(screen.queryByRole('menuitem', {name: 'Favorite'})).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Unfavorite'})).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is muted', () => {
+    test('should show correct menu items when channel is muted', async () => {
         const props = {
             ...baseProps,
             isMuted: true,
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#mute-channel_id')).toHaveLength(0);
-        expect(wrapper.find('#unmute-channel_id')).toHaveLength(1);
+        await openMenu();
+        expect(screen.queryByRole('menuitem', {name: 'Mute Channel'})).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Unmute Channel'})).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is private', () => {
+    test('should show correct menu items when channel is private', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -140,15 +153,16 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#copyLink-channel_id')).toHaveLength(1);
-        expect(wrapper).toMatchSnapshot();
+        await openMenu();
+        expect(screen.getByRole('menuitem', {name: 'Copy Link'})).toBeInTheDocument();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is DM', () => {
+    test('should show correct menu items when channel is DM', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -157,17 +171,18 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#copyLink-channel_id')).toHaveLength(0);
-        expect(wrapper.find('#addMembers-channel_id')).toHaveLength(0);
+        await openMenu();
+        expect(screen.queryByRole('menuitem', {name: 'Copy Link'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Add Members'})).not.toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is Town Square', () => {
+    test('should show correct menu items when channel is Town Square', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -176,16 +191,17 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper.find('#leave-channel_id')).toHaveLength(0);
+        await openMenu();
+        expect(screen.queryByRole('menuitem', {name: 'Leave Channel'})).not.toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot of rendered items when multiselecting channels - public channels and DM category', () => {
+    test('should match snapshot of rendered items when multiselecting channels - public channels and DM category', async () => {
         const props = {
             ...baseProps,
             categories: [
@@ -205,14 +221,15 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             ],
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        await openMenu();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot of rendered items when multiselecting channels - DM channels and public channels category', () => {
+    test('should match snapshot of rendered items when multiselecting channels - DM channels and public channels category', async () => {
         const props = {
             ...baseProps,
             categories: [
@@ -236,10 +253,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             ],
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        await openMenu();
+        expect(document.body).toMatchSnapshot();
     });
 });

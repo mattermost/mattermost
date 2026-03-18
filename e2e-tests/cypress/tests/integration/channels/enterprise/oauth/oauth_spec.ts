@@ -11,7 +11,6 @@
 
 import {getRandomId} from '../../../../utils';
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
-
 import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system_console/channel_moderation/helpers';
 
 describe('Integrations page', () => {
@@ -246,7 +245,7 @@ describe('Integrations page', () => {
 
         // # Update description
         cy.get('#description').invoke('val').then(($text) => {
-            if (!$text.match('Edited$')) {
+            if (!(String($text)).match('Edited$')) {
                 cy.get('#description').type('Edited');
             }
         });

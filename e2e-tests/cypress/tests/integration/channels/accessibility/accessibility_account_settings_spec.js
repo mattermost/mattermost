@@ -50,6 +50,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'click_to_reply', label: 'Click to open threads', type: 'radio'},
             {key: 'channel_display_mode', label: 'Channel Display', type: 'radio'},
             {key: 'one_click_reactions_enabled', label: 'Quick reactions on messages', type: 'radio'},
+            {key: 'renderEmoticonsAsEmoji', label: 'Render emoticons as emojis', type: 'radio'},
             {key: 'languages', label: 'Language', type: 'dropdown'},
         ],
         sidebar: [

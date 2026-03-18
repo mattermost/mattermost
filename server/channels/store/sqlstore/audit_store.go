@@ -13,10 +13,28 @@ import (
 
 type SqlAuditStore struct {
 	*SqlStore
+
+	auditQuery sq.SelectBuilder
 }
 
 func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
-	return &SqlAuditStore{sqlStore}
+	s := &SqlAuditStore{
+		SqlStore: sqlStore,
+	}
+
+	s.auditQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UserId",
+			"Action",
+			"ExtraInfo",
+			"IpAddress",
+			"SessionId",
+		).
+		From("Audits")
+
+	return s
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) error {
@@ -37,9 +55,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 		return nil, store.NewErrOutOfBounds(limit)
 	}
 
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Audits").
+	query := s.auditQuery.
 		OrderBy("CreateAt DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))

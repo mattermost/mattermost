@@ -48,7 +48,7 @@ describe('Search', () => {
         // # Click on "x" displayed on searchbox
         cy.uiGetSearchBox().parent().siblings('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
         cy.uiGetSearchBox().parents('[class*="SearchInputContainer"]').siblings('#searchHints').should('be.visible');
-        cy.uiGetSearchBox().first().focus().type('{esc}');
+        cy.uiGetSearchBox().focus().type('{esc}');
 
         // # RHS should be visible with search results
         cy.get('#search-items-container').should('be.visible');
@@ -134,7 +134,7 @@ describe('Search', () => {
         assertSearchHint();
 
         // # Clear search box
-        cy.uiGetSearchBox().get('.input-clear-x').first().click({force: true}).wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().get('.input-clear-x').click({force: true}).wait(TIMEOUTS.HALF_SEC);
 
         // # Search for search term in:town-square{enter}
         cy.uiGetSearchBox().type('in:town-square').wait(TIMEOUTS.HALF_SEC);

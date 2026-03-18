@@ -45,7 +45,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 
 	configStore := config.NewTestMemoryStore()
 	_, _, err = configStore.Set(&cfg)
@@ -59,13 +59,14 @@ func TestSetLicenseOnStart(t *testing.T) {
 }
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	cfg := model.Config{}
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
@@ -131,16 +132,17 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 }
 
 func TestMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("ensure the metrics server is not started by default", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t)
-		defer th.TearDown()
 
 		require.Nil(t, th.Service.metrics)
 	})
 
 	t.Run("ensure the metrics server is started", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		// there is no config listener for the metrics
 		// we handle it on config save step
@@ -166,8 +168,8 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
@@ -180,6 +182,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure advanced metrics have database metrics", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
 		mockMetricsImpl.On("ObserveStoreMethodDuration", mock.Anything, mock.Anything, mock.Anything).Return()
@@ -189,29 +192,28 @@ func TestMetrics(t *testing.T) {
 			ps.metricsIFace = mockMetricsImpl
 			return nil
 		})
-		defer th.TearDown()
 
-		_ = th.CreateUserOrGuest(false)
+		_ = th.CreateUserOrGuest(t, false)
 
 		mockMetricsImpl.AssertExpectations(t)
 	})
 }
 
 func TestShutdown(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should shutdown gracefully", func(t *testing.T) {
 		th := Setup(t)
 		rand.Seed(time.Now().UnixNano())
 
 		// we create plenty of go routines to make sure we wait for all of them
 		// to finish before shutting down
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			th.Service.Go(func() {
 				time.Sleep(time.Millisecond * time.Duration(rand.Intn(20)))
 			})
 		}
 
-		err := th.Service.Shutdown()
-		require.NoError(t, err)
+		th.Shutdown(t)
 
 		// assert that there are no more go routines running
 		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
@@ -219,9 +221,9 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestSetTelemetryId(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("ensure client config is regenerated after setting the telemetry id", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		clientConfig := th.Service.LimitedClientConfig()
 		require.Empty(t, clientConfig["DiagnosticId"])
@@ -235,18 +237,14 @@ func TestSetTelemetryId(t *testing.T) {
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	databaseType, schemaVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
 	require.NoError(t, err)
-	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
-		assert.Equal(t, "postgres", databaseType)
-	} else {
-		assert.Equal(t, "mysql", databaseType)
-	}
+	assert.Equal(t, "postgres", databaseType)
 
-	// It's hard to check wheather the schema version is correct or not.
+	// It's hard to check whether the schema version is correct or not.
 	// So, we just check if it's greater than 1.
 	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
 }

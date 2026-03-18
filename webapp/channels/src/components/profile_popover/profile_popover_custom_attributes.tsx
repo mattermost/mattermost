@@ -37,6 +37,11 @@ const ProfilePopoverCustomAttributes = ({
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {
+            // Hide source_only fields from profile popover
+            if (attribute.attrs?.access_mode === 'source_only') {
+                return null;
+            }
+
             const visibility = attribute.attrs?.visibility || 'when_set';
             if (visibility === 'hidden') {
                 return null;
@@ -47,6 +52,25 @@ const ProfilePopoverCustomAttributes = ({
 
             if (!hasValue && visibility === 'when_set') {
                 return null;
+            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select')) {
+                const attributeValue = userProfile.custom_profile_attributes[attribute.id];
+
+                // make sure attribute contains legitimate values
+                if (Array.isArray(attributeValue)) {
+                    // Handle multiselect
+                    const options = attributeValue.map((value) => {
+                        return attribute.attrs.options?.find((o) => o.id === value);
+                    }).filter((o) => o != null);
+                    if (options.length === 0) {
+                        return null;
+                    }
+                } else {
+                    // Handle single select
+                    const option = attribute.attrs.options?.find((o) => o.id === attributeValue);
+                    if (option === undefined) {
+                        return null;
+                    }
+                }
             }
 
             const valueType = (attribute.attrs?.value_type as UserPropertyValueType) || '';

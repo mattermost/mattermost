@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -13,8 +13,7 @@ import type {Team} from '@mattermost/types/teams';
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
-import DisplayName from 'components/create_team/components/display_name';
-import TeamUrl from 'components/create_team/components/team_url';
+import CreateTeamForm from 'components/create_team/components/create_team_form';
 
 export type Props = {
 
@@ -48,6 +47,8 @@ export type Props = {
     isCloud: boolean;
     isFreeTrial: boolean;
     usageDeltas: CloudUsage;
+    intl: IntlShape;
+    useAnonymousURLs?: boolean;
 };
 
 type State = {
@@ -55,7 +56,7 @@ type State = {
     wizard: string;
 };
 
-export default class CreateTeam extends React.PureComponent<Props & RouteComponentProps, State> {
+export class CreateTeam extends React.PureComponent<Props & RouteComponentProps, State> {
     public constructor(props: Props & RouteComponentProps) {
         super(props);
 
@@ -63,6 +64,16 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
             team: {},
             wizard: 'display_name',
         };
+    }
+
+    componentDidMount() {
+        const {formatMessage} = this.props.intl;
+        document.title = formatMessage({
+            id: 'create_team.pageTitle',
+            defaultMessage: 'Create a team - {siteName}',
+        }, {
+            siteName: this.props.siteName || 'Mattermost',
+        });
     }
 
     public updateParent = (state: State) => {
@@ -129,23 +140,29 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                                     <Route
                                         path={`${this.props.match.url}/display_name`}
                                         render={(props) => (
-                                            <DisplayName
+                                            <CreateTeamForm
+                                                step='display_name'
                                                 state={this.state}
                                                 updateParent={this.updateParent}
                                                 {...props}
                                             />
                                         )}
                                     />
-                                    <Route
-                                        path={`${this.props.match.url}/team_url`}
-                                        render={(props) => (
-                                            <TeamUrl
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
+
+                                    {
+                                        !this.props.useAnonymousURLs &&
+                                        <Route
+                                            path={`${this.props.match.url}/team_url`}
+                                            render={(props) => (
+                                                <CreateTeamForm
+                                                    step='team_url'
+                                                    state={this.state}
+                                                    updateParent={this.updateParent}
+                                                    {...props}
+                                                />
+                                            )}
+                                        />
+                                    }
                                     <Redirect to={`${match.url}/display_name`}/>
                                 </Switch>
                             )}
@@ -156,3 +173,5 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
         );
     }
 }
+
+export default injectIntl(CreateTeam);

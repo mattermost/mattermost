@@ -27,8 +27,8 @@ func TestUpdateConfigRace(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	settings := storetest.MakeSqlSettings(driverName, false)
-	store, err := sqlstore.New(*settings, logger, nil)
+	settings := storetest.MakeSqlSettings(driverName)
+	store, err := sqlstore.New(*settings, logger, nil, sqlstore.DisableMorphLogging())
 	require.NoError(t, err)
 
 	cfg := &model.Config{}
@@ -39,7 +39,7 @@ func TestUpdateConfigRace(t *testing.T) {
 	var wg sync.WaitGroup
 
 	wg.Add(5)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			defer wg.Done()
 			layer.UpdateConfig(cfg.Clone())

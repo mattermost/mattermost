@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/ConfirmIntegration should match snapshot, bad integration type case 1`] = `""`;
 
@@ -52,7 +52,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         values={
           Object {
             "b": [Function],
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
@@ -135,7 +137,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         values={
           Object {
             "b": [Function],
-            "url": "\`http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic\`",
+            "url": <code>
+              http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
@@ -202,7 +206,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       key="add_oauth_app.doneHelp"
     >
       <MemoizedFormattedMessage
-        defaultMessage="Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>)."
+        defaultMessage="Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2.0 Applications</link>)."
         id="add_oauth_app.doneHelp"
         values={
           Object {
@@ -220,7 +224,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         values={
           Object {
             "b": [Function],
-            "id": "r5tpgt4iepf45jt768jz84djic",
+            "id": <code>
+              r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
@@ -240,7 +246,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         values={
           Object {
             "b": [Function],
-            "secret": "<==secret==>",
+            "secret": <code>
+              &lt;==secret==&gt;
+            </code>,
           }
         }
       />
@@ -347,7 +355,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
@@ -389,7 +399,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       to="/team_test/integrations/outgoing-oauth2-connections"
     >
       <MemoizedFormattedMessage
-        defaultMessage="Outgoing OAuth 2.0 Connections"
+        defaultMessage="Outgoing OAuth Connections"
         id="installed_outgoing_oauth_connections.header"
       />
     </Link>
@@ -432,18 +442,19 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "id": "someid",
+            "id": <code>
+              someid
+            </code>,
           }
         }
       />
       <br />
       <MemoizedFormattedMessage
-        defaultMessage="<b>Client Secret</b>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+        defaultMessage="<b>Client Secret</b>: ********"
         id="add_outgoing_oauth_connection.clientSecret"
         values={
           Object {
             "b": [Function],
-            "secret": "",
           }
         }
       />
@@ -452,12 +463,14 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<b>Token URL</b>: \`{url}\`"
+        defaultMessage="<b>Token URL</b>: {url}"
         id="add_outgoing_oauth_connection.token_url"
         values={
           Object {
             "b": [Function],
-            "url": "https://tokenurl.com",
+            "url": <code>
+              https://tokenurl.com
+            </code>,
           }
         }
       />
@@ -466,12 +479,14 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<b>Audience URL(s)</b>: \`{url}\`"
+        defaultMessage="<b>Audience URL(s)</b>: {url}"
         id="add_outgoing_oauth_connection.audience_urls"
         values={
           Object {
             "b": [Function],
-            "url": "https://myaudience.com",
+            "url": <code>
+              https://myaudience.com
+            </code>,
           }
         }
       />

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {lazy} from 'react';
-import {hot} from 'react-hot-loader/root';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
 
@@ -25,4 +24,4 @@ const App = () => {
     );
 };
 
-export default hot(React.memo(App));
+export default React.memo(App);

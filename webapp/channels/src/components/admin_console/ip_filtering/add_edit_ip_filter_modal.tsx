@@ -126,7 +126,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
             <Modal.Footer>
                 <button
                     type='button'
-                    className='btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
@@ -134,7 +134,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                 <button
                     data-testid='save-add-edit-button'
                     type='button'
-                    className='btn-save'
+                    className='btn btn-primary'
                     onClick={handleSave}
                     disabled={Boolean(CIDRError) || !CIDR.length || !name.length}
                 >

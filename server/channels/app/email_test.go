@@ -15,8 +15,8 @@ import (
 )
 
 func TestSendInviteEmailRateLimits(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.BasicTeam.AllowedDomains = "common.com"
 	_, err := th.App.UpdateTeam(th.BasicTeam)
@@ -28,7 +28,7 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 
 	memberInvite := &model.MemberInvite{}
 	memberInvite.Emails = make([]string, 22)
-	for i := 0; i < 22; i++ {
+	for i := range 22 {
 		memberInvite.Emails[i] = "test-" + strconv.Itoa(i) + "@common.com"
 	}
 	err = th.App.InviteNewUsersToTeam(th.Context, memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)

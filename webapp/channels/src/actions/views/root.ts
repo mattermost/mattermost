@@ -66,3 +66,10 @@ export function loadTranslations(locale: string, url: string): ActionFuncAsync {
         return {data: true};
     };
 }
+
+export function setReadout(message: string) {
+    return {
+        type: ActionTypes.SET_READOUT,
+        data: message,
+    };
+}

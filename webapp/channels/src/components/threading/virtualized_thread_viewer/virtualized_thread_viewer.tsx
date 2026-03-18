@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -13,6 +11,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Posts} from 'mattermost-redux/constants';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
+import type {OnScrollArgs, OnItemsRenderedArgs} from 'components/dynamic_virtualized_list';
+import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
@@ -45,6 +45,7 @@ type Props = {
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
+    isChannelAutotranslated: boolean;
 }
 
 type State = {
@@ -97,7 +98,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     private mounted = false;
     private scrollStopAction: DelayedAction;
     private scrollShortCircuit = 0;
-    listRef: RefObject<DynamicSizeList>;
+    listRef: RefObject<DynamicVirtualizedList>;
     innerRef: RefObject<HTMLDivElement>;
     initRangeToRender: number[];
 
@@ -364,7 +365,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             >
                 <Row
                     a11yIndex={a11yIndex}
-                    currentUserId={this.props.currentUserId}
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     isDeletedPost={isDeletedPost}
@@ -374,6 +374,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                     threadId={this.props.selected.id}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );
@@ -429,9 +430,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 )}
                 <div
                     role='application'
-                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
+                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complementary region'})}
                     className='post-right__content a11y__region'
-                    style={{height: '100%'}}
+                    style={{height: '100%', position: 'relative'}}
                     data-a11y-sort-order='3'
                     data-a11y-focus-child={true}
                     data-a11y-order-reversed={true}
@@ -439,7 +440,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     <AutoSizer>
                         {({width, height}) => (
                             <>
-                                <DynamicSizeList
+                                <DynamicVirtualizedList
+                                    id='threadViewerScrollContainer'
                                     canLoadMorePosts={this.canLoadMorePosts}
                                     height={height}
                                     initRangeToRender={this.initRangeToRender}
@@ -459,7 +461,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                                     correctScrollToBottom={true}
                                 >
                                     {this.renderRow}
-                                </DynamicSizeList>
+                                </DynamicVirtualizedList>
                                 {this.renderToast(width)}
                             </>
                         )}

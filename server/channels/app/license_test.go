@@ -13,16 +13,16 @@ import (
 )
 
 func TestLoadLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().LoadLicense()
 	require.Nil(t, th.App.Srv().License(), "shouldn't have a valid license")
 }
 
 func TestSaveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	b1 := []byte("junk")
 
@@ -31,16 +31,16 @@ func TestSaveLicense(t *testing.T) {
 }
 
 func TestRemoveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	err := th.App.Srv().RemoveLicense()
 	require.Nil(t, err, "should have removed license")
 }
 
 func TestSetLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
@@ -60,8 +60,8 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	setLicense(th, nil)
 

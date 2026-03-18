@@ -29,14 +29,14 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     fileInputRef,
     handleChange,
 }: StarterEditionProps) => {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const intl = useIntl();
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             id='starter_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            onClick={openPricingModal}
+            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
@@ -48,12 +48,6 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     return (
         <div className='StarterLeftPanel'>
             {viewPlansButton}
-            <div className='pre-title'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition'
-                    defaultMessage='Enterprise Edition'
-                />
-            </div>
             <div className='title'>
                 <FormattedMessage
                     id='admin.license.freeEdition.title'
@@ -81,7 +75,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
@@ -95,7 +89,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                 </div>
                 <div className='uploadButtons'>
                     <button
-                        className='btn btn-upload light-blue-btn'
+                        className='btn btn-primary'
                         onClick={() => fileInputRef.current?.click()}
                         id='open-modal'
                     >

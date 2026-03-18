@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PluginManagement should match snapshot 1`] = `
 <div
@@ -252,7 +252,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       saving={false}
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
       to="/admin_console/compliance/data_retention_settings"
     >
       <MemoizedFormattedMessage

@@ -63,6 +63,8 @@ const (
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
+	EmailNotificationWillBeSentID             = 47
+	FileWillBeDownloadedID                    = 48
 	TotalHooksID                              = iota
 )
 
@@ -238,6 +240,20 @@ type Hooks interface {
 	// Minimum server version: 5.2
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
 
+	// FileWillBeDownloaded is invoked when a file is requested for download, but before it is sent to the client.
+	//
+	// To reject a file download, return an non-empty string describing why the file was rejected.
+	// To allow the download, return an empty string.
+	//
+	// The downloadType parameter indicates the type of file access and can be one of:
+	//   - model.FileDownloadTypeFile: Full file download
+	//   - model.FileDownloadTypeThumbnail: Thumbnail request
+	//   - model.FileDownloadTypePreview: Preview image request
+	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
+	//
+	// Minimum server version: 11.5
+	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
+
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.
 	//
 	// Note that this method will be called for reactions added by plugins, including the plugin that
@@ -313,6 +329,21 @@ type Hooks interface {
 	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+
+	// EmailNotificationWillBeSent is invoked before an email notification is sent to a user.
+	// This allows plugins to customize the email notification content including subject,
+	// title, subtitle, message content, buttons, and other email properties.
+	//
+	// To reject an email notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.EmailNotificationContent and an empty string.
+	// To allow the notification without modification, return a nil *model.EmailNotificationContent and an empty string.
+	//
+	// Note that core identifiers (PostId, ChannelId, TeamId, SenderId, RecipientId, RootId) and
+	// context fields (ChannelType, IsDirectMessage, etc.) are immutable and changes to them will be ignored.
+	// Only customizable content fields can be modified.
+	//
+	// Minimum server version: 11.00
+	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server.

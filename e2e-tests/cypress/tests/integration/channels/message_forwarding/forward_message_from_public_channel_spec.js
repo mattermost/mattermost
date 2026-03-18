@@ -179,7 +179,7 @@ describe('Forward Message', () => {
         cy.uiClickSidebarItem('threads');
 
         // # Open the RHS with replies to the root post
-        cy.get('article.ThreadItem').should('have.lengthOf', 1).first().click();
+        cy.get('div.ThreadItem').should('have.lengthOf', 1).first().click();
 
         // # Click on ... button of reply post
         cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');

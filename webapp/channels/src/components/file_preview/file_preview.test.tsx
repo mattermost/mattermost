@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import FilePreview from './file_preview';
 
@@ -62,45 +63,53 @@ describe('FilePreview', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <FilePreview {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when props are changed', () => {
-        const wrapper = shallow(
+        const {container, rerender} = renderWithContext(
             <FilePreview {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         const fileInfo2 = {
+            ...baseProps.fileInfos[0],
             id: 'file_id_2',
-            create_at: '2',
-            width: 100,
-            height: 100,
+            create_at: 2,
             extension: 'jpg',
+            name: 'file_two.jpg',
+            size: 120,
         };
         const newFileInfos = [...fileInfos, fileInfo2];
-        wrapper.setProps({
-            fileInfos: newFileInfos,
-            uploadsInProgress: [],
-        });
-        expect(wrapper).toMatchSnapshot();
+        rerender(
+            <FilePreview
+                {...baseProps}
+                fileInfos={newFileInfos}
+                uploadsInProgress={[]}
+            />,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call handleRemove when file removed', () => {
+    test('should call handleRemove when file removed', async () => {
         const newOnRemove = jest.fn();
         const props = {...baseProps, onRemove: newOnRemove};
-        const wrapper = shallow<FilePreview>(
+        const {container} = renderWithContext(
             <FilePreview {...props}/>,
         );
 
-        wrapper.instance().handleRemove('');
+        const user = userEvent.setup();
+        const removeLink = container.querySelector('a.file-preview__remove');
+        if (!removeLink) {
+            throw new Error('Remove link not found');
+        }
+        await user.click(removeLink);
         expect(newOnRemove).toHaveBeenCalled();
     });
 
     test('should not render an SVG when SVGs are disabled', () => {
-        const fileId = 'file_id_1';
         const props = {
             ...baseProps,
             fileInfos: [
@@ -112,12 +121,12 @@ describe('FilePreview', () => {
             ],
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <FilePreview {...props}/>,
         );
 
-        expect(wrapper.find('img').find({src: getFileUrl(fileId)}).exists()).toBe(false);
-        expect(wrapper.find('div').find('.file-icon.generic').exists()).toBe(true);
+        expect(screen.queryByAltText('file preview')).not.toBeInTheDocument();
+        expect(container.querySelector('.file-icon.generic')).toBeInTheDocument();
     });
 
     test('should render an SVG when SVGs are enabled', () => {
@@ -134,11 +143,10 @@ describe('FilePreview', () => {
             ],
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <FilePreview {...props}/>,
         );
 
-        expect(wrapper.find('img').find({src: getFileUrl(fileId)}).exists()).toBe(true);
-        expect(wrapper.find('div').find('.file-icon.generic').exists()).toBe(false);
+        expect(screen.getByAltText('file preview')).toHaveAttribute('src', getFileUrl(fileId));
     });
 });

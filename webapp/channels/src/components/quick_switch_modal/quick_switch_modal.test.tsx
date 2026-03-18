@@ -42,8 +42,8 @@ describe('components/QuickSwitchModal', () => {
             const instance = wrapper.instance() as QuickSwitchModalClass;
 
             instance.handleSubmit();
-            expect(props.onExited).not.toBeCalled();
-            expect(props.actions.switchToChannel).not.toBeCalled();
+            expect(props.onExited).not.toHaveBeenCalled();
+            expect(props.actions.switchToChannel).not.toHaveBeenCalled();
         });
 
         it('should fail to switch to a channel', (done) => {
@@ -53,10 +53,10 @@ describe('components/QuickSwitchModal', () => {
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).not.toBeCalled();
+                expect(props.onExited).not.toHaveBeenCalled();
                 done();
             });
         });
@@ -78,10 +78,10 @@ describe('components/QuickSwitchModal', () => {
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
         });
@@ -108,10 +108,10 @@ describe('components/QuickSwitchModal', () => {
             };
 
             instance.handleSubmit(selected);
-            expect(props.actions.joinChannelById).toBeCalledWith(channel.id);
+            expect(props.actions.joinChannelById).toHaveBeenCalledWith(channel.id);
 
             process.nextTick(() => {
-                expect(props.actions.switchToChannel).toBeCalledWith(channel);
+                expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
                 done();
             });
         });
@@ -139,17 +139,17 @@ describe('components/QuickSwitchModal', () => {
 
             instance.handleSubmit(selected);
             expect(props.actions.joinChannelById).not.toHaveBeenCalled();
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
         });
     });
 
     describe('accessibility', () => {
-        it('should restore focus to button', () => {
+        it('should restore focus to button', async () => {
             const channelNavigatorProps = {
                 showUnreadsCategory: false,
                 isQuickSwitcherOpen: false,
@@ -168,8 +168,9 @@ describe('components/QuickSwitchModal', () => {
                 </IntlProvider>,
             );
 
-            userEvent.click(screen.getByTestId('SidebarChannelNavigatorButton'));
-            userEvent.keyboard('{escape}');
+            await userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
+            await userEvent.keyboard('{escape}');
+
             expect(screen.getByTestId('SidebarChannelNavigatorButton')).toHaveFocus();
         });
     });

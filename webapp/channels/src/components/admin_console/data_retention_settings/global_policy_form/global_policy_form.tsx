@@ -273,7 +273,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                         )}
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/compliance/data_retention_settings'
                     >
                         <FormattedMessage

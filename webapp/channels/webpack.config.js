@@ -10,6 +10,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
@@ -18,14 +19,11 @@ const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
-// list of known code editors that set an environment variable.
-const knownCodeEditors = ['VSCODE_CWD', 'INSIDE_EMACS'];
-const isInsideCodeEditor = knownCodeEditors.some((editor) => process.env[editor]);
-
+const targetIsBuild = NPM_TARGET?.startsWith('build');
 const targetIsRun = NPM_TARGET?.startsWith('run');
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
-const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || isInsideCodeEditor;
+const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
@@ -109,7 +107,9 @@ var config = {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
                 use: [
-                    {
+
+                    // Skip image optimizations during development to speed up build time
+                    !DEV && {
                         loader: 'image-webpack-loader',
                         options: {},
                     },
@@ -152,6 +152,7 @@ var config = {
     plugins: [
         new webpack.ProvidePlugin({
             process: 'process/browser.js',
+            Buffer: ['buffer', 'Buffer'],
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -190,14 +191,20 @@ var config = {
                 {from: 'src/images/c_download.png', to: 'images'},
                 {from: 'src/images/c_socket.png', to: 'images'},
                 {from: 'src/images/admin-onboarding-background.jpg', to: 'images'},
+                {from: 'src/images/logo.svg', to: 'images'},
+                {from: 'src/images/alert.svg', to: 'images'},
                 {from: 'src/images/cloud-laptop.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-error.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
                 {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
+                {from: 'src/fonts/Metropolis-SemiBold.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff', to: 'fonts'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
-                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
             ],
         }),
 
@@ -267,14 +274,53 @@ var config = {
                 sizes: '96x96',
             }],
         }),
+        new MonacoWebpackPlugin({
+            languages: [],
+
+            // don't include features we disable. these generally correspond to the options
+            // passed to editor initialization in note-content-editor.tsx
+            // @see https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+            features: [
+                '!bracketMatching',
+                '!codeAction',
+                '!codelens',
+                '!colorPicker',
+                '!comment',
+                '!diffEditor',
+                '!diffEditorBreadcrumbs',
+                '!folding',
+                '!gotoError',
+                '!gotoLine',
+                '!gotoSymbol',
+                '!gotoZoom',
+                '!inspectTokens',
+                '!multicursor',
+                '!parameterHints',
+                '!quickCommand',
+                '!quickHelp',
+                '!quickOutline',
+                '!referenceSearch',
+                '!rename',
+                '!snippet',
+                '!stickyScroll',
+                '!suggest',
+                '!toggleHighContrast',
+                '!unicodeHighlighter',
+            ],
+        }),
     ],
+    watchOptions: {
+
+        // By default, Webpack doesn't watch node_modules for changes, but we want it to watch packages in the monorepo
+        ignored: /node_modules([\\]+|\/)(?!@mattermost\/(client|components|types|shared))/,
+    },
 };
 
 function generateCSP() {
-    let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
+    let csp = 'script-src \'self\' js.stripe.com/v3';
 
     if (DEV) {
-        // react-hot-loader and development source maps require eval
+        // Development source maps require eval
         csp += ' \'unsafe-eval\'';
     }
 
@@ -429,13 +475,6 @@ if (targetIsDevServer) {
             ...config.optimization,
             splitChunks: false,
         },
-        resolve: {
-            ...config.resolve,
-            alias: {
-                ...config.resolve.alias,
-                'react-dom': '@hot-loader/react-dom',
-            },
-        },
     };
 }
 
@@ -455,7 +494,7 @@ if (process.env.PRODUCTION_PERF_DEBUG) {
     };
 }
 
-if (targetIsEslint) {
+if (targetIsEsLint) {
     // ESLint can't handle setting an async config, so just skip the async part
     module.exports = config;
 } else {

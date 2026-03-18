@@ -15,6 +15,7 @@ import (
 )
 
 func TestExportDelete(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Create a temporary export directory
 	fileSettingsDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -36,7 +37,6 @@ func TestExportDelete(t *testing.T) {
 	}
 
 	th := SetupWithUpdateCfg(t, updateConfig)
-	defer th.TearDown()
 
 	// Create test files with different timestamps
 	files := []string{

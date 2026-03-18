@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
@@ -47,6 +46,10 @@ func (c *CommonTestSuite) TestSearchStore() {
 	c.Run("TestSearchFileInfoStore", func() {
 		searchtest.TestSearchFileInfoStore(c.T(), c.TH.App.Srv().Store(), searchTestEngine)
 	})
+}
+
+func (c *CommonTestSuite) TestSearchStoreEnabledCJK() {
+	searchtest.TestSearchPostStoreEnabledCJK(c.T(), c.TH.App.Srv().Store())
 }
 
 func (c *CommonTestSuite) TestIndexPost() {
@@ -96,7 +99,7 @@ func (c *CommonTestSuite) TestIndexPost() {
 			if tc.Hashtags != "" {
 				post.Hashtags = tc.Hashtags
 			}
-			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 
 			c.NoError(c.RefreshIndexFn())
 			indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
@@ -125,7 +128,7 @@ func (c *CommonTestSuite) TestIndexPost() {
 func (c *CommonTestSuite) TestSearchPosts() {
 	// Create and index a post
 	post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
-	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 
 	c.NoError(c.RefreshIndexFn())
 	indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays, IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
@@ -179,7 +182,7 @@ func (c *CommonTestSuite) TestDeletePost() {
 	indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays, IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
 	// Index the post.
-	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 	c.NoError(c.RefreshIndexFn())
 
 	// Check the post is there.
@@ -221,9 +224,9 @@ func (c *CommonTestSuite) TestDeleteChannelPosts() {
 		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 		for _, post := range channelPosts {
-			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 		}
-		c.Nil(c.ESImpl.IndexPost(anotherPost, c.TH.BasicTeam.Id))
+		c.Nil(c.ESImpl.IndexPost(anotherPost, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 		c.NoError(c.RefreshIndexFn())
 		for _, post := range channelPosts {
 			found, _, err := c.GetDocumentFn(indexName, post.Id)
@@ -252,7 +255,7 @@ func (c *CommonTestSuite) TestDeleteChannelPosts() {
 		postNotInChannel := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel2.Id, model.NewId())
 		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), postNotInChannel.CreateAt)
-		c.Nil(c.ESImpl.IndexPost(postNotInChannel, c.TH.BasicTeam.Id))
+		c.Nil(c.ESImpl.IndexPost(postNotInChannel, c.TH.BasicTeam.Id, string(c.TH.BasicChannel2.Type)))
 		c.NoError(c.RefreshIndexFn())
 		c.Nil(c.ESImpl.DeleteChannelPosts(c.TH.Context, c.TH.BasicChannel.Id))
 		c.NoError(c.RefreshIndexFn())
@@ -265,7 +268,7 @@ func (c *CommonTestSuite) TestDeleteChannelPosts() {
 
 func (c *CommonTestSuite) TestDeleteUserPosts() {
 	c.Run("Should remove all the user posts", func() {
-		anotherTeam := c.TH.CreateTeam()
+		anotherTeam := c.TH.CreateTeam(c.T())
 		anotherTeamChannel := createChannel(anotherTeam.Id, "anotherteamchannel", "", model.ChannelTypeOpen)
 		userPosts := make([]*model.Post, 0)
 		post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
@@ -287,10 +290,10 @@ func (c *CommonTestSuite) TestDeleteUserPosts() {
 		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 		for _, post := range userPosts {
-			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+			c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 		}
-		c.Nil(c.ESImpl.IndexPost(postAnotherTeam, anotherTeam.Id))
-		c.Nil(c.ESImpl.IndexPost(anotherPost, c.TH.BasicTeam.Id))
+		c.Nil(c.ESImpl.IndexPost(postAnotherTeam, anotherTeam.Id, string(c.TH.BasicChannel.Type)))
+		c.Nil(c.ESImpl.IndexPost(anotherPost, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 		c.NoError(c.RefreshIndexFn())
 		for _, post := range userPosts {
 			found, _, err := c.GetDocumentFn(indexName, post.Id)
@@ -318,13 +321,279 @@ func (c *CommonTestSuite) TestDeleteUserPosts() {
 		postNotInChannel := createPost(c.TH.BasicUser2.Id, c.TH.BasicChannel.Id, model.NewId())
 		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), postNotInChannel.CreateAt)
-		c.Nil(c.ESImpl.IndexPost(postNotInChannel, c.TH.BasicTeam.Id))
+		c.Nil(c.ESImpl.IndexPost(postNotInChannel, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 		c.NoError(c.RefreshIndexFn())
 		c.Nil(c.ESImpl.DeleteUserPosts(c.TH.Context, c.TH.BasicUser.Id))
 		c.NoError(c.RefreshIndexFn())
 		found, _, err := c.GetDocumentFn(indexName, postNotInChannel.Id)
 		c.NoError(err)
 		c.True(found)
+	})
+}
+
+func (c *CommonTestSuite) TestUpdatePostsChannelTypeByChannelId() {
+	c.Run("Should update channel_type for all posts in a channel", func() {
+		post1 := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
+		post2 := createPost(c.TH.BasicUser2.Id, c.TH.BasicChannel.Id, model.NewId())
+		post2.CreateAt = 1200000
+
+		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
+			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post1.CreateAt)
+
+		c.Nil(c.ESImpl.IndexPost(post1, c.TH.BasicTeam.Id, string(model.ChannelTypeOpen)))
+		c.Nil(c.ESImpl.IndexPost(post2, c.TH.BasicTeam.Id, string(model.ChannelTypeOpen)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Verify initial channel_type is "O".
+		for _, post := range []*model.Post{post1, post2} {
+			found, source, err := c.GetDocumentFn(indexName, post.Id)
+			c.NoError(err)
+			c.True(found)
+			var esPost ESPost
+			c.NoError(json.Unmarshal(source, &esPost))
+			c.Equal("O", esPost.ChannelType)
+		}
+
+		// Update to private.
+		c.Nil(c.ESImpl.UpdatePostsChannelTypeByChannelId(c.TH.Context, c.TH.BasicChannel.Id, string(model.ChannelTypePrivate)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Verify channel_type is now "P".
+		for _, post := range []*model.Post{post1, post2} {
+			found, source, err := c.GetDocumentFn(indexName, post.Id)
+			c.NoError(err)
+			c.True(found)
+			var esPost ESPost
+			c.NoError(json.Unmarshal(source, &esPost))
+			c.Equal("P", esPost.ChannelType)
+		}
+	})
+
+	c.Run("Should not affect posts in other channels", func() {
+		post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
+		otherPost := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel2.Id, model.NewId())
+
+		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
+			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
+
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(model.ChannelTypeOpen)))
+		c.Nil(c.ESImpl.IndexPost(otherPost, c.TH.BasicTeam.Id, string(model.ChannelTypeOpen)))
+		c.NoError(c.RefreshIndexFn())
+
+		c.Nil(c.ESImpl.UpdatePostsChannelTypeByChannelId(c.TH.Context, c.TH.BasicChannel.Id, string(model.ChannelTypePrivate)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Other channel's post should still have "O".
+		found, source, err := c.GetDocumentFn(indexName, otherPost.Id)
+		c.NoError(err)
+		c.True(found)
+		var esPost ESPost
+		c.NoError(json.Unmarshal(source, &esPost))
+		c.Equal("O", esPost.ChannelType)
+	})
+}
+
+func (c *CommonTestSuite) TestBackfillPostsChannelType() {
+	c.Run("Should set channel_type on posts across multiple channels", func() {
+		channel1 := createChannel(c.TH.BasicTeam.Id, "backfill-ch1-"+model.NewId(), "Backfill Channel 1", model.ChannelTypeOpen)
+		channel2 := createChannel(c.TH.BasicTeam.Id, "backfill-ch2-"+model.NewId(), "Backfill Channel 2", model.ChannelTypeOpen)
+
+		post1 := createPost(c.TH.BasicUser.Id, channel1.Id, model.NewId())
+		post2 := createPost(c.TH.BasicUser.Id, channel2.Id, model.NewId())
+		post2.CreateAt = 1200000
+
+		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
+			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post1.CreateAt)
+
+		// Index posts with empty channel_type to simulate pre-backfill state.
+		c.Nil(c.ESImpl.IndexPost(post1, c.TH.BasicTeam.Id, ""))
+		c.Nil(c.ESImpl.IndexPost(post2, c.TH.BasicTeam.Id, ""))
+		c.NoError(c.RefreshIndexFn())
+
+		// Verify channel_type is empty.
+		for _, post := range []*model.Post{post1, post2} {
+			found, source, err := c.GetDocumentFn(indexName, post.Id)
+			c.NoError(err)
+			c.True(found)
+			var esPost ESPost
+			c.NoError(json.Unmarshal(source, &esPost))
+			c.Equal("", esPost.ChannelType)
+		}
+
+		// Backfill both channels as public.
+		c.Nil(c.ESImpl.BackfillPostsChannelType(c.TH.Context, []string{channel1.Id, channel2.Id}, string(model.ChannelTypeOpen)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Verify channel_type is now "O".
+		for _, post := range []*model.Post{post1, post2} {
+			found, source, err := c.GetDocumentFn(indexName, post.Id)
+			c.NoError(err)
+			c.True(found)
+			var esPost ESPost
+			c.NoError(json.Unmarshal(source, &esPost))
+			c.Equal("O", esPost.ChannelType)
+		}
+	})
+
+	c.Run("Should not affect posts in channels not included in the backfill", func() {
+		post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
+		otherPost := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel2.Id, model.NewId())
+
+		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
+			IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt)
+
+		// Index both with empty channel_type.
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, ""))
+		c.Nil(c.ESImpl.IndexPost(otherPost, c.TH.BasicTeam.Id, ""))
+		c.NoError(c.RefreshIndexFn())
+
+		// Backfill only BasicChannel.
+		c.Nil(c.ESImpl.BackfillPostsChannelType(c.TH.Context, []string{c.TH.BasicChannel.Id}, string(model.ChannelTypeOpen)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Other channel's post should still have empty channel_type.
+		found, source, err := c.GetDocumentFn(indexName, otherPost.Id)
+		c.NoError(err)
+		c.True(found)
+		var esPost ESPost
+		c.NoError(json.Unmarshal(source, &esPost))
+		c.Equal("", esPost.ChannelType)
+	})
+}
+
+func (c *CommonTestSuite) TestSearchPublicChannelsWithoutMembership() {
+	// Enable public channel search by mutating the config pointer directly.
+	// We avoid UpdateConfig to prevent firing the config listener, which would
+	// spawn a background backfill goroutine that interferes with the test.
+	cfg := c.TH.App.Config()
+	originalSetting := *cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership
+	*cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = true
+	defer func() {
+		*cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = originalSetting
+	}()
+
+	c.Run("Backfill enables search for pre-existing posts", func() {
+		// Create a public channel that the searching user is NOT a member of.
+		publicChannel := createChannel(c.TH.BasicTeam.Id, "public-backfill-"+model.NewId(), "Public Backfill", model.ChannelTypeOpen)
+
+		// Index a post WITHOUT channel_type to simulate pre-backfill state.
+		searchTerm := "backfillsearchterm" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, publicChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, ""))
+		c.NoError(c.RefreshIndexFn())
+
+		// Search using BasicChannel (a channel the user IS a member of, providing the team ID).
+		// The public channel filter should try to match channel_type="O", but the post has no
+		// channel_type, so it should NOT be found.
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "post should not be found before backfill")
+
+		// Backfill the public channel.
+		c.Nil(c.ESImpl.BackfillPostsChannelType(c.TH.Context, []string{publicChannel.Id}, string(model.ChannelTypeOpen)))
+		c.NoError(c.RefreshIndexFn())
+
+		// Search again — the post should now be found via the public channel filter.
+		ids, matches, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 1, "post should be found after backfill")
+		c.Equal(post.Id, ids[0])
+		CheckMatchesEqual(c.T(), map[string][]string{
+			post.Id: {searchTerm},
+		}, matches)
+	})
+
+	c.Run("Should only return posts from teams the user belongs to", func() {
+		// Two teams: the user is a member of teamA (via BasicChannel) but not teamB.
+		teamAId := c.TH.BasicTeam.Id
+		teamBId := model.NewId()
+
+		// Public channels in each team.
+		channelA := createChannel(teamAId, "team-a-public-"+model.NewId(), "Team A Public", model.ChannelTypeOpen)
+		channelB := createChannel(teamBId, "team-b-public-"+model.NewId(), "Team B Public", model.ChannelTypeOpen)
+
+		// Same unique search term in both channels.
+		searchTerm := "teamscope" + model.NewId()
+		postA := createPost(c.TH.BasicUser.Id, channelA.Id, searchTerm)
+		postB := createPost(c.TH.BasicUser.Id, channelB.Id, searchTerm)
+
+		c.Nil(c.ESImpl.IndexPost(postA, teamAId, "O"))
+		c.Nil(c.ESImpl.IndexPost(postB, teamBId, "O"))
+		c.NoError(c.RefreshIndexFn())
+
+		// Search with BasicChannel (teamA member channel). The public channel filter
+		// should only include public channels in teamA, not teamB.
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 1, "should only find the post in teamA's public channel")
+		c.Equal(postA.Id, ids[0])
+	})
+
+	c.Run("Should not return public channel posts when compliance mode is enabled", func() {
+		publicChannel := createChannel(c.TH.BasicTeam.Id, "compliance-pub-"+model.NewId(), "Compliance Public", model.ChannelTypeOpen)
+
+		searchTerm := "compliancetest" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, publicChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, "O"))
+		c.NoError(c.RefreshIndexFn())
+
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		// Positive control: with public channel search enabled (and compliance off),
+		// the post should be found.
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 1, "public channel post should be found before compliance mode is enabled")
+
+		// Enable compliance mode — this should override the public channel search setting.
+		originalCompliance := *cfg.ComplianceSettings.Enable
+		*cfg.ComplianceSettings.Enable = true
+		defer func() {
+			*cfg.ComplianceSettings.Enable = originalCompliance
+		}()
+
+		ids, _, err = c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "public channel post should not be found when compliance mode is enabled")
+	})
+
+	c.Run("Should not return private channel posts from non-member channels", func() {
+		privateChannel := createChannel(c.TH.BasicTeam.Id, "private-leak-"+model.NewId(), "Private Leak", model.ChannelTypePrivate)
+
+		searchTerm := "privateleaktest" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, privateChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, "P"))
+		c.NoError(c.RefreshIndexFn())
+
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "private channel post should not be found by non-member even with public channel search enabled")
 	})
 }
 
@@ -379,6 +648,190 @@ func (c *CommonTestSuite) TestIndexUser() {
 	found, _, err := c.GetDocumentFn(IndexBaseUsers, user.Id)
 	c.NoError(err)
 	c.True(found)
+}
+
+func (c *CommonTestSuite) TestSearchUsersInChannel() {
+	// Create test channels
+	channel1 := createChannel(c.TH.BasicTeam.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
+
+	channel2 := createChannel(c.TH.BasicTeam.Id, "channel2", "Test Channel 2", model.ChannelTypeOpen)
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel2, []string{}, []string{}))
+
+	// Create and index users with different channel memberships
+	user1 := createUser("test.user1", "testuser1", "Test", "User1")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{c.TH.BasicTeam.Id}, []string{channel1.Id}))
+
+	user2 := createUser("test.user2", "testuser2", "Test", "User2")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user2, []string{c.TH.BasicTeam.Id}, []string{channel1.Id, channel2.Id}))
+
+	user3 := createUser("test.user3", "testuser3", "Another", "User3")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user3, []string{c.TH.BasicTeam.Id}, []string{channel2.Id}))
+
+	// Wait for indexing to complete
+	c.NoError(c.RefreshIndexFn())
+
+	// Search options
+	options := &model.UserSearchOptions{
+		AllowFullNames: true,
+		Limit:          100,
+	}
+
+	c.Run("All users in channel1", func() {
+		// Test 1: Search for all users in channel1
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "", options)
+		c.Nil(err)
+		c.Len(inChannel, 2)
+		c.Contains(inChannel, user1.Id)
+		c.Contains(inChannel, user2.Id)
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id)
+	})
+
+	c.Run("Search for specific user in channel1", func() {
+		// Test 2: Search with term that should match user1 in channel1
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "testuser1", options)
+		c.Nil(err)
+		c.Len(inChannel, 1)
+		c.Contains(inChannel, user1.Id)
+		c.Empty(notInChannel)
+	})
+
+	c.Run("Search with restricted channels", func() {
+		// Test 3: Search with restrictedToChannels, user3 should be in notInChannel
+		restrictedToChannels := []string{channel2.Id}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedToChannels, "", options)
+		c.Nil(err)
+		c.Len(inChannel, 2)
+		c.Contains(inChannel, user1.Id)
+		c.Contains(inChannel, user2.Id)
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id) // user3 is in channel2 but not channel1
+	})
+
+	c.Run("Search with term in restricted channels", func() {
+		// Test 4: Search with a term in restrictedToChannels
+		restrictedToChannels := []string{channel2.Id}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedToChannels, "another", options)
+		c.Nil(err)
+		c.Empty(inChannel) // No users in channel1 match "another"
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id) // user3's name contains "Another" and is in channel2
+	})
+
+	c.Run("Search with empty restricted channels", func() {
+		// Test 5: Search with restrictedToChannels but empty (should return no results)
+		emptyRestricted := []string{}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, emptyRestricted, "", options)
+		c.Nil(err)
+		c.Empty(inChannel)
+		c.Empty(notInChannel)
+	})
+
+	// Clean up
+	c.Nil(c.ESImpl.DeleteUser(user1))
+	c.Nil(c.ESImpl.DeleteUser(user2))
+	c.Nil(c.ESImpl.DeleteUser(user3))
+	c.Nil(c.ESImpl.DeleteChannel(channel1))
+	c.Nil(c.ESImpl.DeleteChannel(channel2))
+}
+
+func (c *CommonTestSuite) TestSearchUsersInTeam() {
+	// Create additional teams
+	team1 := c.TH.CreateTeam(c.T())
+	team2 := c.TH.CreateTeam(c.T())
+
+	// Create and index users with different team memberships
+	user1 := createUser("test.user1", "testuser1", "Test", "User1")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{team1.Id}, []string{}))
+
+	user2 := createUser("test.user2", "testuser2", "Test", "User2")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user2, []string{team1.Id, team2.Id}, []string{}))
+
+	user3 := createUser("test.user3", "testuser3", "Another", "User3")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user3, []string{team2.Id}, []string{}))
+
+	// Wait for indexing to complete
+	c.NoError(c.RefreshIndexFn())
+
+	// Search options
+	options := &model.UserSearchOptions{
+		AllowFullNames: true,
+		Limit:          100,
+	}
+
+	c.Run("Search for all users in team1", func() {
+		// Test 1: Search for all users in team1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser", options)
+		c.Nil(err)
+		c.Len(userIds, 2)
+		c.Contains(userIds, user1.Id)
+		c.Contains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+	})
+
+	c.Run("Search for specific user in team1", func() {
+		// Test 2: Search with term that should match user1 in team1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser1", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+	})
+
+	c.Run("Search in team2", func() {
+		// Test 3: Search in team2
+		userIds, err := c.ESImpl.SearchUsersInTeam(team2.Id, nil, "testuser", options)
+		c.Nil(err)
+		c.Len(userIds, 2)
+		c.Contains(userIds, user2.Id)
+		c.Contains(userIds, user3.Id)
+		c.NotContains(userIds, user1.Id)
+	})
+
+	c.Run("Search with term in team2", func() {
+		// Test 4: Search with term in team2
+		userIds, err := c.ESImpl.SearchUsersInTeam(team2.Id, nil, "another", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user3.Id)
+		c.NotContains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+	})
+
+	c.Run("Search with restrictedToChannels", func() {
+		// Test 5: Search with restrictedToChannels
+		// Create channel in team1
+		channel1 := createChannel(team1.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
+		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
+
+		// Update user1 to be in channel1
+		c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{team1.Id}, []string{channel1.Id}))
+		c.NoError(c.RefreshIndexFn())
+
+		// Search for users in team1 restricted to channel1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, []string{channel1.Id}, "", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+		c.Nil(c.ESImpl.DeleteChannel(channel1))
+	})
+
+	c.Run("Search with empty restrictedToChannels", func() {
+		// Test 6: Search with empty restrictedToChannels (should return no results)
+		emptyRestricted := []string{}
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, emptyRestricted, "", options)
+		c.Nil(err)
+		c.Empty(userIds)
+	})
+
+	// Clean up
+	c.Nil(c.ESImpl.DeleteUser(user1))
+	c.Nil(c.ESImpl.DeleteUser(user2))
+	c.Nil(c.ESImpl.DeleteUser(user3))
 }
 
 func (c *CommonTestSuite) TestDeleteUser() {
@@ -525,7 +978,7 @@ func (c *CommonTestSuite) TestDeletePostFiles() {
 
 	// Create and index a post
 	post := createPost(user.Id, channel.Id, "test post message")
-	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+	c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 
 	// Create and index a file
 	file := createFile(user.Id, channel.Id, post.Id, "file contents", "testfile", "txt")
@@ -551,6 +1004,264 @@ func (c *CommonTestSuite) TestDeletePostFiles() {
 		c.NoError(err)
 	}
 	c.False(found)
+}
+
+func (c *CommonTestSuite) TestSearchFiles() {
+	// First, create and index a channel
+	channel := createChannel(c.TH.BasicTeam.Id, "channel", "Test Channel", model.ChannelTypeOpen)
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel, []string{}, []string{}))
+
+	// Then, create and index a user
+	user := createUser("test.user", "testuser", "Test", "User")
+	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user, []string{c.TH.BasicTeam.Id}, []string{channel.Id}))
+
+	// Create multiple test files with different content
+	file1 := createFile(user.Id, channel.Id, "", "apple document content", "apple_report", "txt")
+	c.Nil(c.ESImpl.IndexFile(file1, channel.Id))
+
+	file2 := createFile(user.Id, channel.Id, "", "orange presentation content", "orange_slides", "pdf")
+	c.Nil(c.ESImpl.IndexFile(file2, channel.Id))
+
+	file3 := createFile(user.Id, channel.Id, "", "banana data content", "banana_sheet", "xls")
+	c.Nil(c.ESImpl.IndexFile(file3, channel.Id))
+
+	// Wait for indexing to complete
+	c.NoError(c.RefreshIndexFn())
+
+	// Create channel list for search
+	channels := model.ChannelList{channel}
+
+	c.Run("Search by term (file name and content)", func() {
+		// Test 1: Search by term (file name and content)
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "apple",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.NotContains(fileIds, file3.Id)
+	})
+
+	c.Run("Search by extension", func() {
+		// Test 2: Search by extension
+		searchParams := []*model.SearchParams{
+			{
+				Terms:      "",
+				IsHashtag:  false,
+				OrTerms:    false,
+				Extensions: []string{"pdf"},
+			},
+		}
+
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.NotContains(fileIds, file1.Id)
+		c.Contains(fileIds, file2.Id)
+		c.NotContains(fileIds, file3.Id)
+	})
+
+	c.Run("Search with OR terms", func() {
+		// Test 3: Search with OR terms
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "apple banana",
+				IsHashtag: false,
+				OrTerms:   true,
+			},
+		}
+
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.Contains(fileIds, file3.Id)
+	})
+
+	c.Run("Search with excluded terms", func() {
+		// Test 4: Search with excluded terms
+		searchParams := []*model.SearchParams{
+			{
+				Terms:         "content",
+				ExcludedTerms: "orange",
+				IsHashtag:     false,
+				OrTerms:       false,
+			},
+		}
+
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.Contains(fileIds, file3.Id)
+	})
+
+	// Clean up indexed files
+	c.Nil(c.ESImpl.DeleteFile(file1.Id))
+	c.Nil(c.ESImpl.DeleteFile(file2.Id))
+	c.Nil(c.ESImpl.DeleteFile(file3.Id))
+}
+
+func (c *CommonTestSuite) TestSearchMultiDC() {
+	// Store original settings to restore later
+	originalIndexPrefix := *c.TH.App.Config().ElasticsearchSettings.IndexPrefix
+	originalGlobalSearchPrefix := *c.TH.App.Config().ElasticsearchSettings.GlobalSearchPrefix
+
+	defer c.TH.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.IndexPrefix = originalIndexPrefix
+		*cfg.ElasticsearchSettings.GlobalSearchPrefix = originalGlobalSearchPrefix
+	})
+
+	// First using DC1 prefix
+	c.TH.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.IndexPrefix = "test_dc1_"
+		*cfg.ElasticsearchSettings.GlobalSearchPrefix = ""
+	})
+
+	// Create a post with content specific to DC1
+	postDC1 := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, "unique apple datacenter1")
+	c.Nil(c.ESImpl.IndexPost(postDC1, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
+
+	// Now switch to DC2 prefix
+	c.TH.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.IndexPrefix = "test_dc2_"
+		*cfg.ElasticsearchSettings.GlobalSearchPrefix = ""
+	})
+
+	// Create a post with content specific to DC2
+	postDC2 := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, "unique banana datacenter2")
+	c.Nil(c.ESImpl.IndexPost(postDC2, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
+
+	// Ensure posts are indexed
+	c.NoError(c.RefreshIndexFn())
+
+	channels := model.ChannelList{c.TH.BasicChannel}
+
+	// First verify each prefix only finds its own posts
+	c.Run("DC1 prefix only finds DC1 post", func() {
+		c.TH.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.IndexPrefix = "test_dc1_"
+			*cfg.ElasticsearchSettings.GlobalSearchPrefix = ""
+		})
+
+		// Search for common term
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "unique",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC1.Id)
+		c.NotContains(postIds, postDC2.Id)
+	})
+
+	c.Run("DC2 prefix only finds DC2 post", func() {
+		c.TH.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.IndexPrefix = "test_dc2_"
+			*cfg.ElasticsearchSettings.GlobalSearchPrefix = ""
+		})
+
+		// Search for common term
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "unique",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC2.Id)
+		c.NotContains(postIds, postDC1.Id)
+	})
+
+	c.Run("Global prefix finds posts from both DCs", func() {
+		// Set global search prefix to search across both indices
+		c.TH.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ElasticsearchSettings.IndexPrefix = "test_dc1_" // Specific prefix doesn't matter for this test
+			*cfg.ElasticsearchSettings.GlobalSearchPrefix = "test_"
+		})
+
+		// Search for common term - should find both posts
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "unique",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(postIds, 2)
+		c.Contains(postIds, postDC1.Id)
+		c.Contains(postIds, postDC2.Id)
+
+		// Search for DC1-specific content
+		searchParams = []*model.SearchParams{
+			{
+				Terms:     "apple",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err = c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC1.Id)
+		c.NotContains(postIds, postDC2.Id)
+
+		// Search for DC2-specific content
+		searchParams = []*model.SearchParams{
+			{
+				Terms:     "banana",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err = c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC2.Id)
+		c.NotContains(postIds, postDC1.Id)
+
+		// Search for datacenter-specific content
+		searchParams = []*model.SearchParams{
+			{
+				Terms:     "datacenter1",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err = c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC1.Id)
+		c.NotContains(postIds, postDC2.Id)
+
+		searchParams = []*model.SearchParams{
+			{
+				Terms:     "datacenter2",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
+
+		postIds, _, err = c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Contains(postIds, postDC2.Id)
+		c.NotContains(postIds, postDC1.Id)
+	})
 }
 
 func (c *CommonTestSuite) TestElasticsearchDataRetentionDeleteIndexes() {
@@ -645,11 +1356,12 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 		c.True(found)
 
 		found, _, err = c.GetDocumentFn("test_"+IndexBaseUsers, user.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 
@@ -662,7 +1374,7 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 
 		// Create and index a post
 		post := createPost(user.Id, c.TH.BasicChannel.Id, "Test")
-		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id))
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
 
 		c.NoError(c.RefreshIndexFn())
 		indexName := BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
@@ -686,11 +1398,12 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 
 		// Validate the indexes are gone
 		found, _, err = c.GetDocumentFn(IndexBasePosts, post.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 }
@@ -715,11 +1428,12 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 		c.Nil(c.ESImpl.PurgeIndexList(c.TH.Context, []string{"channels"}))
 
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 
@@ -752,11 +1466,13 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 
 		// now it should be gone as we're no longer ignoring it
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error
+		// happened because no documents were found, it will always be a 404
+		// error.
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 }

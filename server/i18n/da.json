@@ -640,10 +640,6 @@
     "translation": "%v sluttede sig til kanalen som gæst."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du er det eneste medlem tilbage, prøv at fjerne den private kanal i stedet for at forlade den."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Din licens understøtter ikke kanalmoderation"
   },
@@ -1092,10 +1088,6 @@
     "translation": "Det lykkedes ikke at opdatere den brugerdefinerede status. En emoji med det givne navn findes ikke."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "forsøger at patche et felt, der ikke findes"
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": "Funktionen Brugerdefineret status er blevet deaktiveret. Kontakt din systemadministrator for at få flere oplysninger."
   },
@@ -1110,9 +1102,5 @@
   {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Din licens understøtter ikke brugerdefinerede profilattributter."
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Egenskabsfeltet kan ikke konverteres til et brugerdefineret profilattributfelt"
   }
 ]

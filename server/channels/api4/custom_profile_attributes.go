@@ -5,14 +5,11 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCustomProfileAttributes() {
@@ -23,16 +20,19 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(deleteCPAField)).Methods(http.MethodDelete)
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
 		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
+		api.BaseRoutes.CustomProfileAttributes.Handle("/group", api.APISessionRequired(getCPAGroup)).Methods(http.MethodGet)
+		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(patchCPAValuesForUser)).Methods(http.MethodPatch)
 	}
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	fields, appErr := c.App.ListCPAFields()
+	callerUserID := c.AppContext.Session().UserId
+	fields, appErr := c.App.ListCPAFields(callerUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -49,7 +49,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.createCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -63,11 +63,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pf.Name = strings.TrimSpace(pf.Name)
 
-	auditRec := c.MakeAuditRecord("createCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "property_field", pf)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	createdField, appErr := c.App.CreateCPAField(pf)
+	callerUserID := c.AppContext.Session().UserId
+	createdField, appErr := c.App.CreateCPAField(callerUserID, pf)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -89,7 +90,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -118,11 +119,12 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "property_field_patch", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	originalField, appErr := c.App.GetCPAField(c.Params.FieldId)
+	callerUserID := c.AppContext.Session().UserId
+	originalField, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -130,7 +132,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(originalField)
 
-	patchedField, appErr := c.App.PatchCPAField(c.Params.FieldId, patch)
+	patchedField, appErr := c.App.PatchCPAField(callerUserID, c.Params.FieldId, patch)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -151,7 +153,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -161,18 +163,19 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCPAField", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "field_id", c.Params.FieldId)
+	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	field, appErr := c.App.GetCPAField(c.Params.FieldId)
+	callerUserID := c.AppContext.Session().UserId
+	field, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(field)
 
-	if appErr := c.App.DeleteCPAField(c.Params.FieldId); appErr != nil {
+	if appErr := c.App.DeleteCPAField(callerUserID, c.Params.FieldId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -184,84 +187,29 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
-	fieldType := cpaField.Type
-
-	// build a list of existing options so we can check later if the values exist
-	optionsMap := map[string]struct{}{}
-	for _, v := range cpaField.Attrs.Options {
-		optionsMap[v.ID] = struct{}{}
+func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
 	}
 
-	switch fieldType {
-	case model.PropertyFieldTypeText, model.PropertyFieldTypeDate, model.PropertyFieldTypeSelect, model.PropertyFieldTypeUser:
-		var value string
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return nil, err
-		}
-		value = strings.TrimSpace(value)
+	groupID, err := c.App.CpaGroupID()
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
-		if fieldType == model.PropertyFieldTypeText {
-			if cpaField.Attrs.ValueType == model.CustomProfileAttributesValueTypeEmail && !model.IsValidEmail(value) {
-				return nil, fmt.Errorf("invalid email")
-			}
-
-			if cpaField.Attrs.ValueType == model.CustomProfileAttributesValueTypeURL {
-				_, err := url.Parse(value)
-				if err != nil {
-					return nil, fmt.Errorf("invalid url: %w", err)
-				}
-			}
-		}
-
-		if fieldType == model.PropertyFieldTypeSelect && value != "" {
-			if _, ok := optionsMap[value]; !ok {
-				return nil, fmt.Errorf("option \"%s\" does not exist", value)
-			}
-		}
-
-		if fieldType == model.PropertyFieldTypeUser && value != "" && !model.IsValidId(value) {
-			return nil, fmt.Errorf("invalid user id")
-		}
-		return json.Marshal(value)
-
-	case model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeMultiuser:
-		var values []string
-		if err := json.Unmarshal(rawValue, &values); err != nil {
-			return nil, err
-		}
-		filteredValues := make([]string, 0, len(values))
-		for _, v := range values {
-			trimmed := strings.TrimSpace(v)
-			if trimmed == "" {
-				continue
-			}
-			if fieldType == model.PropertyFieldTypeMultiselect {
-				if _, ok := optionsMap[v]; !ok {
-					return nil, fmt.Errorf("option \"%s\" does not exist", v)
-				}
-			}
-
-			if fieldType == model.PropertyFieldTypeMultiuser && !model.IsValidId(trimmed) {
-				return nil, fmt.Errorf("invalid user id: %s", trimmed)
-			}
-			filteredValues = append(filteredValues, trimmed)
-		}
-		return json.Marshal(filteredValues)
-
-	default:
-		return nil, fmt.Errorf("unknown field type: %s", fieldType)
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": groupID}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	// This check is unnecessary for now
-	// Will be required when/if admins can patch other's values
 	userID := c.AppContext.Session().UserId
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -274,43 +222,35 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "user_id", userID)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// Get all fields at once and build a map for quick lookup
-	allFields, appErr := c.App.ListCPAFields()
-	if appErr != nil {
-		c.Err = appErr
-		return
+	// if the user is not an admin, we need to check that there are no
+	// admin-managed fields
+	session := *c.AppContext.Session()
+	if !c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		fields, appErr := c.App.ListCPAFields(session.UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		// Check if any of the fields being updated are admin-managed
+		for _, field := range fields {
+			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
+				if field.IsAdminManaged() {
+					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
+					return
+				}
+			}
+		}
 	}
 
-	fieldMap := make(map[string]*model.PropertyField)
-	for _, field := range allFields {
-		fieldMap[field.ID] = field
-	}
-
+	callerUserID := c.AppContext.Session().UserId
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		field, ok := fieldMap[fieldID]
-		if !ok {
-			c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.field_not_found", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		cpaField, err := model.NewCPAFieldFromPropertyField(field)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.field_conversion_error", nil, "", http.StatusInternalServerError)
-			return
-		}
-
-		sanitizedValue, err := sanitizePropertyValue(cpaField, rawValue)
-		if err != nil {
-			c.SetInvalidParam(fmt.Sprintf("value for field %s: %v", fieldID, err))
-			return
-		}
-
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
+		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -327,7 +267,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -337,14 +277,19 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.Params.UserId
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
-	if err != nil || !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
+	targetUserID := c.Params.UserId
+	callerUserID := c.AppContext.Session().UserId
+
+	// we check unrestricted sessions to allow local mode requests to go through
+	if !c.AppContext.Session().IsUnrestricted() {
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, callerUserID, targetUserID)
+		if err != nil || !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return
+		}
 	}
 
-	values, appErr := c.App.ListCPAValues(userID)
+	values, appErr := c.App.ListCPAValues(callerUserID, targetUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -355,6 +300,78 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		returnValue[value.FieldID] = value.Value
 	}
 	if err := json.NewEncoder(w).Encode(returnValue); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.patchCPAValuesForUser", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Get userID from URL
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	userID := c.Params.UserId
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	var updates map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		c.SetInvalidParamWithErr("value", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
+	// Check for admin-managed fields
+	session := *c.AppContext.Session()
+	isAdmin := c.App.SessionHasPermissionTo(session, model.PermissionManageSystem)
+	if !isAdmin {
+		fields, appErr := c.App.ListCPAFields(session.UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		for _, field := range fields {
+			if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
+				continue
+			}
+			// Check for admin-managed fields
+			if field.IsAdminManaged() {
+				c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
+					"app.custom_profile_attributes.property_field_is_managed.app_error",
+					nil, "",
+					http.StatusForbidden)
+				return
+			}
+		}
+	}
+
+	callerUserID := c.AppContext.Session().UserId
+	results := make(map[string]json.RawMessage, len(updates))
+	for fieldID, rawValue := range updates {
+		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		results[fieldID] = patchedValue.Value
+	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
+
+	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

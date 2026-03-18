@@ -1,0 +1,242 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelAccessRulesConfirmModal {
+    .modal-body {
+        padding: 0;
+    }
+
+    .filter-controls {
+        border: none !important;
+    }
+
+    .more-modal__details {
+        display: flex;
+
+        .more-modal__description {
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .GenericModal__header__text_container {
+        display: flex;
+        gap: 12px;
+        .GenericModal__header {
+            display: flex;
+            align-items: center;
+        }
+        .modal-subheading-container {
+            padding-left: 12px;
+            border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    &__summary{
+        padding: 0px 32px;
+    }
+
+    &__message {
+        margin-bottom: 16px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+
+        strong {
+            font-weight: 600;
+        }
+    }
+
+    &__question {
+        margin-bottom: 24px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__details {
+        display: flex;
+        height: 500px;
+        flex-direction: column;
+        .ChannelAccessRulesConfirmModal__buttons {
+            margin: 0 32px;
+        }
+
+        .ChannelAccessRulesConfirmModal__message {
+            padding: 0 32px;
+        }
+    }
+
+    &__tabs {
+        display: flex;
+        padding: 0 32px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &__tab {
+        position: relative;
+        padding: 16px 0;
+        border: none;
+        margin-right: 32px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &.active {
+            color: var(--button-bg);
+
+            &::after {
+                position: absolute;
+                right: 0;
+                bottom: -1px;
+                left: 0;
+                height: 2px;
+                background-color: var(--button-bg);
+                content: '';
+            }
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__search {
+        padding: 16px 32px 0;
+        
+        .form-control {
+            width: 100%;
+        }
+    }
+
+    &__userList {
+        flex: 1;
+        padding: 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        overflow-y: auto;
+
+        .member-count {
+            padding: 8px 0;
+        }
+    }
+
+    &__users {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__user {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__userInfo {
+        min-width: 0;
+        flex: 1;
+    }
+
+    &__userName {
+        margin-bottom: 2px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__userDetails {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    &__userEmail {
+        &::before {
+            margin-right: 8px;
+            content: '•';
+        }
+    }
+
+    &__noResults {
+        display: flex;
+        height: 200px;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+    }
+
+    &__buttons {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 0;
+        gap: 8px;
+
+        &__left {
+            display: flex;
+            gap: 8px;
+        }
+
+        &__right {
+            display: flex;
+            gap: 8px;
+        }
+
+    }
+
+    // Responsive adjustments
+    @media screen and (max-width: 768px) {
+        &__details {
+            height: 400px;
+        }
+
+        &__tabs {
+            padding: 0 16px;
+        }
+
+        &__details .ChannelAccessRulesConfirmModal__message {
+            padding: 16px 16px 0;
+        }
+
+        &__search {
+            padding: 16px 16px 0;
+        }
+
+        &__userList {
+            padding: 16px 16px 0;
+        }
+
+        &__buttons {
+            flex-direction: column;
+            padding: 12px 16px;
+            gap: 12px;
+
+            &__left, &__right {
+                justify-content: center;
+            }
+
+            .btn {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+    }
+}

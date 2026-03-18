@@ -11,7 +11,6 @@ import './data_retention';
 import './group';
 import './keycloak';
 import './ldap';
-import './playbooks';
 import './preference';
 import './plugin';
 import './role';

@@ -4,7 +4,9 @@
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
-export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLLIElement>, 'onClick' | 'onMouseMove'> {
+export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLLIElement>, 'id' | 'onClick' | 'onMouseMove' | 'role'> {
+    id: string;
+
     // eslint-disable-next-line react/no-unused-prop-types
     item: Item;
 
@@ -27,8 +29,8 @@ const SuggestionContainer = React.forwardRef<HTMLLIElement, SuggestionProps<unkn
         onClick,
         onMouseMove,
 
-        role = 'button',
         tabIndex = -1,
+        className,
         ...otherProps
     } = props;
 
@@ -49,10 +51,10 @@ const SuggestionContainer = React.forwardRef<HTMLLIElement, SuggestionProps<unkn
     return (
         <li
             ref={ref}
-            className={classNames('suggestion-list__item', {'suggestion--selected': isSelection})}
+            className={classNames('suggestion-list__item', {'suggestion--selected': isSelection}, className)}
+            role='option'
             onClick={handleClick}
             onMouseMove={handleMouseMove}
-            role={role}
             tabIndex={tabIndex}
             {...otherProps}
         >

@@ -7,7 +7,7 @@
  */
 function uiInviteMemberToCurrentTeam(username: string) {
     // # Open member invite screen
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Open members section if licensed for guest accounts
     cy.findByTestId('invitationModal').

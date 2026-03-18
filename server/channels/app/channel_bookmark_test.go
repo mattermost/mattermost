@@ -40,8 +40,8 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 }
 
 func TestCreateBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	t.Run("create a channel bookmark", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
@@ -81,12 +81,12 @@ func TestCreateBookmark(t *testing.T) {
 }
 
 func TestUpdateBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	var updateBookmark *model.ChannelBookmarkWithFileInfo
 
-	var testUpdateAnotherFile = func(th *TestHelper, t *testing.T) {
+	testUpdateAnotherFile := func(th *TestHelper, t *testing.T) {
 		file := &model.FileInfo{
 			Id:              model.NewId(),
 			ChannelId:       th.BasicChannel.Id,
@@ -177,7 +177,7 @@ func TestUpdateBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, bookmarkToEdit)
 
-		otherChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
 
 		createAt := time.Now().Add(-1 * time.Minute)
 		deleteAt := createAt.Add(1 * time.Second)
@@ -328,8 +328,8 @@ func TestUpdateBookmark(t *testing.T) {
 }
 
 func TestDeleteBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	t.Run("delete a channel bookmark", func(t *testing.T) {
 		bookmark1 := &model.ChannelBookmark{
@@ -353,8 +353,8 @@ func TestDeleteBookmark(t *testing.T) {
 }
 
 func TestGetChannelBookmarks(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
@@ -437,8 +437,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 }
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	channelId := th.BasicChannel.Id
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session

@@ -15,6 +15,7 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
+	mainHelper.Parallel(t)
 	items := []model.AutocompleteListItem{
 		{
 			Hint:     "[hint]",
@@ -25,12 +26,12 @@ func TestParseStaticListArgument(t *testing.T) {
 	fixedArgs := &model.AutocompleteStaticListArg{PossibleArguments: items}
 
 	argument := &model.AutocompleteArg{
-		Name:     "", //positional
+		Name:     "", // positional
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeStaticList,
 		Data:     fixedArgs,
 	}
-	found, _, _, suggestions := parseStaticListArgument(argument, "", "") //TODO understand this!
+	found, _, _, suggestions := parseStaticListArgument(argument, "", "") // TODO understand this!
 	assert.True(t, found)
 	assert.Equal(t, []model.AutocompleteSuggestion{{Complete: "on", Suggestion: "on", Hint: "[hint]", Description: "help"}}, suggestions)
 
@@ -91,8 +92,9 @@ func TestParseStaticListArgument(t *testing.T) {
 }
 
 func TestParseInputTextArgument(t *testing.T) {
+	mainHelper.Parallel(t)
 	argument := &model.AutocompleteArg{
-		Name:     "", //positional
+		Name:     "", // positional
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
@@ -136,8 +138,9 @@ func TestParseInputTextArgument(t *testing.T) {
 }
 
 func TestParseNamedArguments(t *testing.T) {
+	mainHelper.Parallel(t)
 	argument := &model.AutocompleteArg{
-		Name:     "name", //named
+		Name:     "name", // named
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
@@ -201,8 +204,8 @@ func TestParseNamedArguments(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jira := createJiraAutocompleteData()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -327,8 +330,8 @@ func TestSuggestions(t *testing.T) {
 }
 
 func TestCommandWithOptionalArgs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	command := createCommandWithOptionalArgs()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -614,8 +617,8 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 }
 
 func TestDynamicListArgsForBuiltin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	provider := &testCommandProvider{}
 	RegisterCommandProvider(provider)
@@ -637,8 +640,7 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 	})
 }
 
-type testCommandProvider struct {
-}
+type testCommandProvider struct{}
 
 func (p *testCommandProvider) GetTrigger() string {
 	return "bogus"
@@ -658,14 +660,14 @@ func (p *testCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (p *testCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
 
-func (p *testCommandProvider) GetAutoCompleteListItems(c request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (p *testCommandProvider) GetAutoCompleteListItems(rctx request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "dynaArg" {
 		return []model.AutocompleteListItem{
 			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},

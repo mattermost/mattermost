@@ -111,9 +111,14 @@ function userGroupsNotification() {
 }
 
 function creatNewTeamNotification() {
-    cy.get('.test-team-header').click().then(() => {
+    // # Click on the team menu button
+    cy.get('#sidebarTeamMenuButton').click();
+
+    // # Click on the lock button on Create a team menu item
+    cy.get('#sidebarTeamMenu').within(() => {
         cy.get('#mattermost_feature_create_multiple_teams-restricted-indicator').click();
     });
+
     cy.get('#FeatureRestrictedModal').should('exist');
     cy.get('#button-plans').as('notifyButton').should('have.text', 'Notify admin').click();
     cy.get('@notifyButton').should('have.text', 'Admin notified!');

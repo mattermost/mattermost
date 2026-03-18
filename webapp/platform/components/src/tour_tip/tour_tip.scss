@@ -80,10 +80,6 @@ $z-index-tour-tips-backdrop: 1250;
                     &:focus {
                         box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
                     }
-
-                    .icon-chevron-right::before {
-                        margin-right: -7px;
-                    }
                 }
 
                 &.btn-tertiary {
@@ -100,10 +96,6 @@ $z-index-tour-tips-backdrop: 1250;
 
                     &:focus {
                         box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-                    }
-
-                    .icon-chevron-left::before {
-                        margin-left: -7px;
                     }
                 }
 

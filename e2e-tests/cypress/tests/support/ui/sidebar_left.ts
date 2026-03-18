@@ -9,7 +9,7 @@ Cypress.Commands.add('uiGetLHS', () => {
 
 Cypress.Commands.add('uiGetLHSHeader', () => {
     return cy.uiGetLHS().
-        find('.SidebarHeaderMenuWrapper').
+        find('#sidebarTeamMenuButton').
         should('be.visible');
 });
 
@@ -35,7 +35,7 @@ Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
-    return cy.uiGetLHS().find('#sidebarDropdownMenu');
+    return cy.get('#sidebarTeamMenu');
 });
 
 function uiOpenSystemConsoleMenu(item = ''): ChainableT<JQuery> {
@@ -139,7 +139,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
         });
         cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
     } else {
-        cy.findAllByTestId('postView').should('be.visible');
+        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
     }
 });
 

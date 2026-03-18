@@ -1,11 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/panel/ should match snapshot 1`] = `
-<article
-  className="Panel"
-  onClick={[Function]}
-  onMouseLeave={[Function]}
-  onMouseOver={[Function]}
-  role="button"
-/>
+<div>
+  <div
+    class="Panel"
+    role="link"
+    tabindex="0"
+  />
+</div>
 `;

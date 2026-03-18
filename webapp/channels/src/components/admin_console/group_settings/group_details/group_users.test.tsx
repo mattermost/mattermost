@@ -107,7 +107,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
             />,
         );
         wrapper.instance().componentDidMount();
-        expect(getMembers).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 0, 20);
+        expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 0, 20);
     });
 
     test('should change the page and not call get members on previous click', async () => {
@@ -142,13 +142,13 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         wrapper.setState({page: 0});
 
         await instance.nextPage();
-        expect(getMembers).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 1, 20);
+        expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 1, 20);
         wrapper.setProps({members: members.slice(0, 40)});
         expect(wrapper.state().page).toBe(1);
         getMembers.mockClear();
 
         await instance.nextPage();
-        expect(getMembers).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 2, 20);
+        expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 2, 20);
         wrapper.setProps({members: members.slice(0, 55)});
         expect(wrapper.state().page).toBe(2);
         getMembers.mockClear();

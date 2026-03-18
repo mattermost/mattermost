@@ -46,14 +46,19 @@ on:
         type: string
         description: Enable Playwright run
         default: "true"
+      FIPS_ENABLED:
+        type: string
+        description: When true, use mattermost-enterprise-fips-edition image for testing instead of standard enterprise edition
+        default: "false"
+        required: false
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
+  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
 jobs:
   generate-test-variables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -79,6 +84,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
       WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
       CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
+      FIPS_SUFFIX: "${{ steps.generate.outputs.FIPS_SUFFIX }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
@@ -86,6 +92,7 @@ jobs:
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       ROLLING_RELEASE_FROM_TAG: "${{ inputs.ROLLING_RELEASE_FROM_TAG }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      FIPS_ENABLED: "${{ inputs.FIPS_ENABLED }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_CYPRESS_PR: >-
         --stage="@prod"
@@ -106,7 +113,7 @@ jobs:
       MM_SERVICE_OVERRIDES: "${{ inputs.MM_SERVICE_OVERRIDES }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: "${{ inputs.ref || github.sha }}"
           fetch-depth: 0
@@ -196,16 +203,25 @@ jobs:
               *) echo "Invalid MM_SERVICE_OVERRIDE value: $SVC_OP"; exit 1 ;;
             esac
           done
+          # Determine server image name and FIPS suffix based on FIPS_ENABLED parameter
+          if [ "$FIPS_ENABLED" = "true" ]; then
+            SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
+            FIPS_SUFFIX="_fips"
+          else
+            SERVER_IMAGE_NAME="mattermost-enterprise-edition"
+            FIPS_SUFFIX=""
+          fi
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}${FIPS_SUFFIX}-${BUILD_ID_SUFFIX}"
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
-          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/${SERVER_IMAGE_NAME}:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "FIPS_SUFFIX=${FIPS_SUFFIX}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests/test${FIPS_SUFFIX}${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
@@ -247,11 +263,11 @@ jobs:
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
-      run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      TEST: "cypress"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -259,6 +275,7 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
@@ -269,6 +286,8 @@ jobs:
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   e2e-fulltest-playwright:
     needs:
@@ -280,11 +299,10 @@ jobs:
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
       workers_number: "1"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
-      run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: playwright
+      TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
@@ -292,15 +310,18 @@ jobs:
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   notify-user:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: always()
     needs:
       - generate-test-variables
@@ -322,6 +343,7 @@ jobs:
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
+      PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -330,7 +352,7 @@ jobs:
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
           
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF

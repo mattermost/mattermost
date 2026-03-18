@@ -9,7 +9,7 @@ import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
 
-const Label = styled.label<{isDisabled: boolean}>`
+export const Label = styled.label<{isDisabled: boolean}>`
     display: inline-flex;
     opacity: ${({isDisabled}) => (isDisabled ? 0.5 : 1)};
     margin-top: 8px;
@@ -47,7 +47,7 @@ const Label = styled.label<{isDisabled: boolean}>`
         place-content: center;
 
         &:checked {
-            border-color: var(--denim-button-bg);
+            border-color: var(--button-bg);
         }
 
         &:checked::before {
@@ -58,7 +58,7 @@ const Label = styled.label<{isDisabled: boolean}>`
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--denim-button-bg);
+            background: var(--button-bg);
             content: "";
             transform: scale(0);
             transform-origin: center center;

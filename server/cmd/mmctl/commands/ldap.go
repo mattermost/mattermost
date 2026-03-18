@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -20,12 +21,16 @@ var LdapCmd = &cobra.Command{
 	Short: "LDAP related utilities",
 }
 
-var LdapSyncCmd = &cobra.Command{
-	Use:     "sync",
-	Short:   "Synchronize now",
-	Long:    "Synchronize all LDAP users and groups now.",
-	Example: "  ldap sync",
-	RunE:    withClient(ldapSyncCmdF),
+func newLDAPSyncCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "sync",
+		Short:   "Synchronize now",
+		Long:    "Synchronize all LDAP users and groups now.",
+		Example: "mmctl ldap sync",
+		RunE:    withClient(ldapSyncCmdF),
+	}
+
+	return cmd
 }
 
 var LdapIDMigrate = &cobra.Command{
@@ -37,7 +42,7 @@ var LdapIDMigrate = &cobra.Command{
 2. Run the command "mmctl ldap idmigrate objectGUID".
 3. Update the config within the System Console to the new value "objectGUID".
 4. Restart the Mattermost server.`,
-	Example: "  ldap idmigrate objectGUID",
+	Example: "mmctl ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
@@ -49,7 +54,7 @@ var LdapJobCmd = &cobra.Command{
 
 var LdapJobListCmd = &cobra.Command{
 	Use:     "list",
-	Example: "  ldap job list",
+	Example: "mmctl ldap job list",
 	Short:   "List LDAP sync jobs",
 	// Alisases cause error in zsh. Supposedly, completion V2 will fix that: https://github.com/spf13/cobra/pull/1146
 	// https://mattermost.atlassian.net/browse/MM-57062
@@ -61,14 +66,15 @@ var LdapJobListCmd = &cobra.Command{
 
 var LdapJobShowCmd = &cobra.Command{
 	Use:               "show [ldapJobID]",
-	Example:           " import ldap show f3d68qkkm7n8xgsfxwuo498rah",
+	Example:           "mmctl ldap show f3d68qkkm7n8xgsfxwuo498rah",
 	Short:             "Show LDAP sync job",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: validateArgsWithClient(ldapJobShowCompletionF),
 	RunE:              withClient(ldapJobShowCmdF),
 }
 
 func init() {
-	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
+	ldapSyncCmd := newLDAPSyncCmd()
 
 	LdapJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
 	LdapJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
@@ -80,7 +86,7 @@ func init() {
 	)
 
 	LdapCmd.AddCommand(
-		LdapSyncCmd,
+		ldapSyncCmd,
 		LdapIDMigrate,
 		LdapJobCmd,
 	)
@@ -90,9 +96,7 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
-
-	resp, err := c.SyncLdap(context.TODO(), includeRemovedMembers)
+	resp, err := c.SyncLdap(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -125,6 +129,10 @@ func ldapJobListCmdF(c client.Client, command *cobra.Command, args []string) err
 }
 
 func ldapJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return errors.New("expected at least one argument (ldapJobID). See help text for details")
+	}
+
 	job, _, err := c.GetJob(context.TODO(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get LDAP sync job: %w", err)

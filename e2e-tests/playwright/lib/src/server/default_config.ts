@@ -21,6 +21,10 @@ export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
 
+export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
+    return merge<AdminConfig>(getOnPremServerConfig(), overrides);
+}
+
 type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
@@ -82,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.7 server
+// Based on v11.4 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -106,6 +110,8 @@ const defaultServerConfig: AdminConfig = {
         MaximumLoginAttempts: 10,
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
+        EnableDynamicClientRegistration: false,
+        DCRRedirectURIAllowlist: [],
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -183,10 +189,15 @@ const defaultServerConfig: AdminConfig = {
         PersistentNotificationIntervalMinutes: 5,
         PersistentNotificationMaxCount: 6,
         PersistentNotificationMaxRecipients: 5,
+        EnableBurnOnRead: true,
+        BurnOnReadDurationSeconds: 600,
+        BurnOnReadMaximumTimeToLiveSeconds: 604800,
+        BurnOnReadSchedulerFrequencySeconds: 600,
         EnableAPIChannelDeletion: false,
         EnableLocalMode: false,
         LocalModeSocketLocation: '/var/tmp/mattermost_local.socket',
         EnableAWSMetering: false,
+        AWSMeteringTimeoutSeconds: 30,
         SplitKey: '',
         FeatureFlagSyncIntervalSeconds: 30,
         DebugSplit: false,
@@ -202,6 +213,8 @@ const defaultServerConfig: AdminConfig = {
         ScheduledPosts: true,
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
+        DeleteAccountLink: '',
+        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -222,7 +235,6 @@ const defaultServerConfig: AdminConfig = {
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
-        ExperimentalViewArchivedChannels: true,
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
@@ -240,10 +252,10 @@ const defaultServerConfig: AdminConfig = {
             'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
-        MaxIdleConns: 20,
+        MaxIdleConns: 50,
         ConnMaxLifetimeMilliseconds: 3600000,
         ConnMaxIdleTimeMilliseconds: 300000,
-        MaxOpenConns: 300,
+        MaxOpenConns: 100,
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
@@ -263,7 +275,6 @@ const defaultServerConfig: AdminConfig = {
         FileLocation: '',
         EnableWebhookDebugging: true,
         EnableDiagnostics: true,
-        VerboseDiagnostics: false,
         EnableSentry: true,
         AdvancedLoggingJSON: {},
         MaxFieldSize: 2048,
@@ -271,23 +282,8 @@ const defaultServerConfig: AdminConfig = {
     ExperimentalAuditSettings: {
         FileEnabled: false,
         FileName: '',
-        FileMaxSizeMB: 100,
-        FileMaxAgeDays: 0,
-        FileMaxBackups: 0,
-        FileCompress: false,
-        FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
-    },
-    NotificationLogSettings: {
-        EnableConsole: true,
-        ConsoleLevel: 'DEBUG',
-        ConsoleJson: true,
-        EnableColor: false,
-        EnableFile: true,
-        FileLevel: 'INFO',
-        FileJson: true,
-        FileLocation: '',
-        AdvancedLoggingJSON: {},
+        Certificate: '',
     },
     PasswordSettings: {
         MinimumLength: 8,
@@ -363,7 +359,7 @@ const defaultServerConfig: AdminConfig = {
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
         PushNotificationServerType: 'custom',
-        PushNotificationServerLocation: 'us',
+        PushNotificationServerLocation: 'global',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -388,6 +384,7 @@ const defaultServerConfig: AdminConfig = {
     PrivacySettings: {
         ShowEmailAddress: true,
         ShowFullName: true,
+        UseAnonymousURLs: false,
     },
     SupportSettings: {
         TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
@@ -395,6 +392,9 @@ const defaultServerConfig: AdminConfig = {
         AboutLink: 'https://mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
+        ReportAProblemType: 'default',
+        ReportAProblemMail: '',
+        AllowDownloadLogs: true,
         ForgotPasswordLink: '',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
@@ -494,6 +494,7 @@ const defaultServerConfig: AdminConfig = {
         LoginIdAttribute: '',
         PictureAttribute: '',
         SyncIntervalMinutes: 60,
+        ReAddRemovedMembers: false,
         SkipCertificateVerification: false,
         PublicCertificateFile: '',
         PrivateKeyFile: '',
@@ -529,7 +530,7 @@ const defaultServerConfig: AdminConfig = {
         IdpMetadataURL: '',
         ServiceProviderIdentifier: '',
         AssertionConsumerServiceURL: '',
-        SignatureAlgorithm: 'RSAwithSHA1',
+        SignatureAlgorithm: 'RSAwithSHA256',
         CanonicalAlgorithm: 'Canonical1.0',
         ScopingIDPProviderId: '',
         ScopingIDPName: '',
@@ -561,6 +562,15 @@ const defaultServerConfig: AdminConfig = {
         MobileEnableBiometrics: false,
         MobilePreventScreenCapture: false,
         MobileJailbreakProtection: false,
+        MobileEnableSecureFilePreview: false,
+        MobileAllowPdfLinkNavigation: false,
+        EnableIntuneMAM: false,
+    },
+    IntuneSettings: {
+        Enable: false,
+        TenantId: '',
+        ClientId: '',
+        AuthService: '',
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -579,7 +589,7 @@ const defaultServerConfig: AdminConfig = {
         AdvertiseAddress: '',
         UseIPAddress: true,
         EnableGossipCompression: true,
-        EnableExperimentalGossipEncryption: false,
+        EnableGossipEncryption: true,
         ReadOnlyConfig: true,
         GossipPort: 8074,
     },
@@ -593,7 +603,6 @@ const defaultServerConfig: AdminConfig = {
     },
     ExperimentalSettings: {
         ClientSideCertEnable: false,
-        ClientSideCertCheck: 'secondary',
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
         EnableSharedChannels: false,
@@ -604,6 +613,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
+        ExperimentalChannelCategorySorting: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -615,6 +625,7 @@ const defaultServerConfig: AdminConfig = {
         Password: 'changeme',
         EnableIndexing: false,
         EnableSearching: false,
+        EnableCJKAnalyzers: false,
         EnableAutocomplete: false,
         Sniff: true,
         PostIndexReplicas: 1,
@@ -626,6 +637,7 @@ const defaultServerConfig: AdminConfig = {
         AggregatePostsAfterDays: 365,
         PostsAggregatorJobStartTime: '03:00',
         IndexPrefix: '',
+        GlobalSearchPrefix: '',
         LiveIndexingBatchSize: 10,
         BatchSize: 10000,
         RequestTimeoutSeconds: 30,
@@ -635,13 +647,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
-    },
-    BleveSettings: {
-        IndexDir: '',
-        EnableIndexing: false,
-        EnableSearching: false,
-        EnableAutocomplete: false,
-        BatchSize: 10000,
+        EnableSearchPublicChannelsWithoutMembership: false,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
@@ -656,6 +662,7 @@ const defaultServerConfig: AdminConfig = {
         BatchSize: 3000,
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
+        PreservePinnedPosts: false,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -722,6 +729,7 @@ const defaultServerConfig: AdminConfig = {
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
+        EnableGuestMagicLink: false,
     },
     ImageProxySettings: {
         Enable: false,
@@ -734,12 +742,16 @@ const defaultServerConfig: AdminConfig = {
         CWSAPIURL: 'https://portal.internal.prod.cloud.mattermost.com',
         CWSMock: false,
         Disable: false,
+        PreviewModalBucketURL: '',
     },
     FeatureFlags: {
         TestFeature: 'off',
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
         EnableSharedChannelsDMs: false,
+        EnableSharedChannelsPlugins: true,
+        EnableSharedChannelsMemberSync: false,
+        EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
         PermalinkPreviews: false,
         NormalizeLdapDNs: false,
@@ -756,8 +768,17 @@ const defaultServerConfig: AdminConfig = {
         ChannelBookmarks: true,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
-        ExperimentalAuditSettingsSystemConsoleUI: false,
-        CustomProfileAttributes: false,
+        ExperimentalAuditSettingsSystemConsoleUI: true,
+        CustomProfileAttributes: true,
+        AttributeBasedAccessControl: true,
+        ContentFlagging: true,
+        InteractiveDialogAppsForm: true,
+        EnableMattermostEntry: true,
+        MobileSSOCodeExchange: true,
+        AutoTranslation: false,
+        BurnOnRead: true,
+        EnableAIPluginBridge: false,
+        EnableAIRecaps: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -780,6 +801,60 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
+        SyncUsersOnConnectionOpen: false,
+        GlobalUserSyncBatchSize: 25,
         MaxPostsPerSync: 50,
+        MemberSyncBatchSize: 20,
+    },
+    AccessControlSettings: {
+        EnableAttributeBasedAccessControl: false,
+        EnableUserManagedAttributes: false,
+    },
+    ContentFlaggingSettings: {
+        EnableContentFlagging: false,
+        NotificationSettings: {
+            EventTargetMapping: {
+                assigned: ['reviewers'],
+                dismissed: ['reviewers', 'reporter'],
+                flagged: ['reviewers'],
+                removed: ['reviewers', 'author', 'reporter'],
+            },
+        },
+        AdditionalSettings: {
+            Reasons: [
+                'Classification mismatch',
+                'Need-to-know violation',
+                'Personally identifiable information (PII) exposure',
+                'Operational security (OPSEC) concern',
+                'Controlled Unclassified Information (CUI) violation',
+                'Unauthorized disclosure',
+                'Other',
+            ],
+            ReporterCommentRequired: true,
+            ReviewerCommentRequired: true,
+            HideFlaggedContent: true,
+        },
+        ReviewerSettings: {
+            CommonReviewers: true,
+            CommonReviewerIds: [],
+            TeamReviewersSetting: {},
+            SystemAdminsAsReviewers: false,
+            TeamAdminsAsReviewers: true,
+        },
+    },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        Agents: {
+            LLMServiceID: '',
+        },
+        RestrictDMAndGM: false,
     },
 };

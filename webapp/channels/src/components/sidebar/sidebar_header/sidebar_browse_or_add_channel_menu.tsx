@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     PlusIcon,
@@ -13,11 +14,16 @@ import {
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
+
 import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
-export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browseOrAddChannelMenuButton';
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
 
 type Props = {
     canCreateChannel: boolean;
@@ -34,6 +40,8 @@ type Props = {
 
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents);
 
     const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
@@ -52,6 +60,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     />
                 )}
                 trailingElements={showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
+                aria-haspopup='true'
             />
         );
     }
@@ -69,6 +78,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Browse channels'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -84,6 +94,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     defaultMessage='Open a direct message'
                 />
             )}
+            aria-haspopup='true'
         />
     );
 
@@ -100,6 +111,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new user group'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -117,6 +129,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new category'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -139,13 +152,35 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                 </>
             )}
             trailingElements={showInvitePeopleTutorialTip && <InvitePeopleTour/>}
+            aria-haspopup='true'
         />
     );
+
+    let pluggableMenuItems: JSX.Element[] = [];
+    if (pluginMenuItems) {
+        pluggableMenuItems = pluginMenuItems.map((item) => {
+            const handlePluginItemClick = () => {
+                if (item.action) {
+                    item.action(currentTeamId);
+                }
+            };
+
+            return (
+                <Menu.Item
+                    id={item.id + '_pluginmenuitem'}
+                    key={item.id + '_pluginmenuitem'}
+                    onClick={handlePluginItemClick}
+                    leadingElement={item.icon}
+                    labels={<span>{item.text}</span>}
+                />
+            );
+        });
+    }
 
     return (
         <Menu.Container
             menuButton={{
-                id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
+                id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON,
                 'aria-label': formatMessage({
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
@@ -158,13 +193,14 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             }}
             menu={{
                 id: 'browserOrAddChannelMenu',
-                'aria-labelledby': ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
+                'aria-labelledby': ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON,
             }}
         >
             {createNewChannelMenuItem}
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}
+            {pluggableMenuItems}
             {Boolean(createNewCategoryMenuItem) &&
                 <Menu.Separator/>
             }

@@ -34,14 +34,10 @@ export default function SystemProperties(props: Props) {
         userProperties.save();
     };
 
-    const handleCancel = () => {
-        userProperties.cancel();
-    };
-
     useEffect(() => {
         // block nav when changes are pending
         dispatch(setNavigationBlocked(hasChanges));
-    }, [hasChanges]);
+    }, [hasChanges, dispatch]);
 
     return (
         <div
@@ -58,11 +54,11 @@ export default function SystemProperties(props: Props) {
                             <FormattedMessage
                                 tagName={SectionHeading}
                                 id='admin.system_properties.user_properties.title'
-                                defaultMessage='User Properties'
+                                defaultMessage='Configure user attributes'
                             />
                             <FormattedMessage
                                 id='admin.system_properties.user_properties.subtitle'
-                                defaultMessage='Customize the properties to show in user profiles'
+                                defaultMessage='Attributes will be shown in user profile and can be used in access control policies.'
                             />
                         </hgroup>
                     </SectionHeader>
@@ -75,7 +71,6 @@ export default function SystemProperties(props: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                onCancel={handleCancel}
                 serverError={saveError ? (
                     <FormattedMessage
                         tagName={DangerText}
@@ -91,7 +86,7 @@ export default function SystemProperties(props: Props) {
 }
 
 const msg = defineMessages({
-    pageTitle: {id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'},
+    pageTitle: {id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'},
 });
 
 export const searchableStrings: SearchableStrings = Object.values(msg);

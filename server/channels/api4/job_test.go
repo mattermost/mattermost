@@ -16,9 +16,10 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	job := &model.Job{
 		Type: model.JobTypeActiveUsers,
@@ -50,8 +51,8 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	job := &model.Job{
 		Id:     model.NewId(),
@@ -86,8 +87,8 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 
@@ -170,9 +171,10 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	jobType := model.JobTypeDataRetention
 
@@ -239,9 +241,10 @@ func TestGetJobsByType(t *testing.T) {
 }
 
 func TestDownloadJob(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.LoginSystemManager()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.LoginSystemManager(t)
 	jobName := model.NewId()
 	job := &model.Job{
 		Id:   jobName,
@@ -280,9 +283,9 @@ func TestDownloadJob(t *testing.T) {
 		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
-	filePath := "./data/export/" + job.Id + "/testdat.txt"
-	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
-	require.NoError(t, mkdirAllErr)
+	filePath := filepath.Join(*th.App.Config().FileSettings.Directory, "export/"+job.Id+"/testdat.txt")
+	err = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.NoError(t, err)
 
 	_, createErr := os.Create(filePath)
 	require.NoError(t, createErr)
@@ -314,9 +317,9 @@ func TestDownloadJob(t *testing.T) {
 
 	// Now we stub the results of the job into the same directory and try to download it again
 	// This time we should successfully retrieve the results without any error
-	filePath = "./data/export/" + job.Id + ".zip"
-	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
-	require.NoError(t, mkdirAllErr)
+	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export/"+job.Id+".zip")
+	err = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.NoError(t, err)
 
 	_, createErr = os.Create(filePath)
 	require.NoError(t, createErr)
@@ -372,8 +375,8 @@ func TestDownloadJob(t *testing.T) {
 }
 
 func TestCancelJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeMessageExport
 	jobs := []*model.Job{
@@ -422,8 +425,8 @@ func TestCancelJob(t *testing.T) {
 }
 
 func TestUpdateJobStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 	jobs := []*model.Job{

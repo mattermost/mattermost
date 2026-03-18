@@ -1,0 +1,55 @@
+dn: cn=schema,cn=config
+changetype: modify
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.101 
+    NAME 'textCustomAttribute'
+    DESC 'A text custom attribute for inetOrgPerson'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.104 
+    NAME 'dateCustomAttribute'
+    DESC 'A date attribute'
+    EQUALITY generalizedTimeMatch
+    ORDERING generalizedTimeOrderingMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.105 
+    NAME 'selectCustomAttribute'
+    DESC 'A selection attribute with values: option1, option2, option3'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.106 
+    NAME 'multiSelectCustomAttribute'
+    DESC 'A multi-selection attribute with values: choice1, choice2, choice3, choice4'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.107 
+    NAME 'userReferenceCustomAttribute'
+    DESC 'A reference to a single user'
+    EQUALITY distinguishedNameMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+    SINGLE-VALUE )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.666.1.108 
+    NAME 'multiUserReferenceCustomAttribute'
+    DESC 'References to multiple users'
+    EQUALITY distinguishedNameMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 )
+-
+add: olcObjectClasses
+olcObjectClasses: ( 1.3.6.1.4.1.4203.666.1.103 
+    NAME 'customInetOrgPerson'
+    DESC 'inetOrgPerson with custom attributes'
+    SUP top
+    AUXILIARY
+    MAY ( textCustomAttribute $ dateCustomAttribute $ selectCustomAttribute $ multiSelectCustomAttribute $ userReferenceCustomAttribute $ multiUserReferenceCustomAttribute))

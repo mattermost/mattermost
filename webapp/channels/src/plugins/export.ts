@@ -9,7 +9,7 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
-import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
+import DatePicker from 'components/date_picker/date_picker';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
@@ -24,12 +24,20 @@ import {ModalIdentifiers} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
+import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout, popoutRhsPlugin} from 'utils/popouts/popout_windows';
 import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
+
+// Note: We can't directly use the hook here, but we can create a function that opens the external pricing page
+// For plugins, we'll always try to open the external page and let the browser handle if it's blocked
+const openPricingModalForPlugins = () => {
+    (window as any).open('https://mattermost.com/pricing', '_blank', 'noopener,noreferrer');
+};
 
 interface WindowWithLibraries {
     React: typeof import('react');
@@ -41,7 +49,6 @@ interface WindowWithLibraries {
     ReactRouterDom: typeof import('react-router-dom');
     PropTypes: typeof import('prop-types');
     Luxon: typeof import('luxon');
-    StyledComponents: typeof import('styled-components');
     PostUtils: {
         formatText: typeof formatText;
         messageHtmlToComponent: (html: string, ...args: any[]) => JSX.Element;
@@ -60,8 +67,16 @@ interface WindowWithLibraries {
         sendDesktopNotificationToMe: typeof notifyMe;
         openUserSettings: (dialogProps: any) => void;
         browserHistory: ReturnType<typeof getHistory>;
+        popouts: {
+            sendToParent: typeof sendToParent;
+            onMessageFromParent: typeof onMessageFromParent;
+            isPopoutWindow: typeof isPopoutWindow;
+            canPopout: typeof canPopout;
+            popoutRhsPlugin: typeof popoutRhsPlugin;
+        };
     };
-    openPricingModal: () => typeof openPricingModal;
+    loadSharedDependency(request: string): unknown;
+    openPricingModal: () => void;
     Components: {
         Textbox: typeof Textbox;
         Timestamp: typeof Timestamp;
@@ -74,6 +89,7 @@ interface WindowWithLibraries {
         ThreadViewer: typeof ThreadViewer;
         PostMessagePreview: typeof PostMessagePreview;
         AdvancedTextEditor: typeof AdvancedTextEditor;
+        DatePicker: typeof DatePicker;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -98,7 +114,6 @@ window.ReactBootstrap = require('react-bootstrap');
 window.ReactRouterDom = require('react-router-dom');
 window.PropTypes = require('prop-types');
 window.Luxon = require('luxon');
-window.StyledComponents = require('styled-components');
 
 // Functions exposed on window for plugins to use.
 window.PostUtils = {
@@ -131,13 +146,19 @@ window.WebappUtils = {
         dialogType: UserSettingsModal,
         dialogProps,
     }),
+    popouts: {
+        sendToParent,
+        onMessageFromParent,
+        isPopoutWindow,
+        canPopout,
+        popoutRhsPlugin,
+    },
 };
+window.loadSharedDependency = loadSharedDependency;
 
-// This need to be a function because `openPricingModal`
-// is initialized when `UpgradeCloudButton` is loaded.
-// So if we export `openPricingModal` directly, it will be locked
-// to the initial value of undefined.
-window.openPricingModal = () => openPricingModal;
+// For plugins, we provide a simple function that always tries to open the external pricing page
+// This won't respect air-gapped status, but plugins shouldn't be calling this in air-gapped environments
+window.openPricingModal = openPricingModalForPlugins;
 
 // Components exposed on window FOR INTERNAL PLUGIN USE ONLY. These components may have breaking changes in the future
 // outside of major releases. They will be replaced by common components once that project is more mature and able to
@@ -154,6 +175,7 @@ window.Components = {
     ThreadViewer,
     PostMessagePreview,
     AdvancedTextEditor,
+    DatePicker,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

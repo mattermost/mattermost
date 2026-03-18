@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -35,6 +36,14 @@ var ImportUploadCmd = &cobra.Command{
 	Example: "  import upload import_file.zip",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importUploadCmdF),
+}
+
+var ImportDeleteCmd = &cobra.Command{
+	Use:     "delete [importname]",
+	Short:   "Delete an import file",
+	Example: "  import delete import_file.zip",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(importDeleteCmdF),
 }
 
 var ImportListCmd = &cobra.Command{
@@ -115,6 +124,7 @@ func init() {
 
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
+	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -130,6 +140,7 @@ func init() {
 		ImportProcessCmd,
 		ImportJobCmd,
 		ImportValidateCmd,
+		ImportDeleteCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
 }
@@ -250,6 +261,17 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 	return nil
 }
 
+func importDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
+	importName := args[0]
+
+	if _, err := c.DeleteImport(context.TODO(), importName); err != nil {
+		return fmt.Errorf("failed to delete import: %w", err)
+	}
+
+	printer.Print(fmt.Sprintf("Import file %q has been deleted", importName))
+	return nil
+}
+
 func importProcessCmdF(c client.Client, command *cobra.Command, args []string) error {
 	importFile := args[0]
 
@@ -258,7 +280,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	if bypassUpload {
 		if isLocal {
 			// First, we validate whether the server is in HA.
-			config, _, err := c.GetOldClientConfig(context.TODO(), "")
+			config, _, err := c.GetClientConfig(context.TODO(), "")
 			if err != nil {
 				return err
 			}
@@ -290,14 +312,25 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	extractContent, _ := command.Flags().GetBool("extract-content")
+	workers, _ := command.Flags().GetInt("workers")
+
+	maxWorkers := runtime.NumCPU() * 4
+	if workers > maxWorkers {
+		return fmt.Errorf("workers value %d exceeds maximum allowed (%d = 4 * CPU count)", workers, maxWorkers)
+	}
+
+	jobData := map[string]string{
+		"import_file":     importFile,
+		"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
+		"extract_content": strconv.FormatBool(extractContent),
+	}
+	if workers > 0 {
+		jobData["workers"] = strconv.Itoa(workers)
+	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
-		Data: map[string]string{
-			"import_file":     importFile,
-			"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
-			"extract_content": strconv.FormatBool(extractContent),
-		},
+		Data: jobData,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create import process job: %w", err)
@@ -363,7 +396,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 			return err
 		}
 
-		config, _, err := c.GetOldClientConfig(context.TODO(), "")
+		config, _, err := c.GetClientConfig(context.TODO(), "")
 		if err != nil {
 			return err
 		}

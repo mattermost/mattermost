@@ -17,9 +17,10 @@ type ActivatedUserCardProps = {
     seatsPurchased: number;
     activatedUsers: number | undefined;
     isCloud: boolean;
+    guestAccountsEnabled?: boolean;
 }
 
-const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedUserCardProps) => {
+const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud, guestAccountsEnabled = false}: ActivatedUserCardProps) => {
     const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({seatsPurchased, activeUsers: activatedUsers || 0});
     const showOverageWarning = !isCloud && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
 
@@ -34,7 +35,7 @@ const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedU
 
     return (
         <StatisticCount
-            title={<Title/>}
+            title={<Title guestAccountsEnabled={guestAccountsEnabled}/>}
             icon='fa-users'
             status={activeUserStatus}
             count={activatedUsers}
@@ -53,7 +54,7 @@ const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedU
                 />
                 <FormattedMessage
                     id='analytics.team.overageUsersSeats'
-                    defaultMessage='This exceeds total paid seats'
+                    defaultMessage='This exceeds total licensed seats'
                 >
                     {(text) => <span>{text}</span>}
                 </FormattedMessage>

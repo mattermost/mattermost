@@ -112,7 +112,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
         // * Check that the date input should have the correct value
-        cy.get('input#customStatus__calendar-input').should('have.value', dateToBeSelected.format('YYYY-MM-DD'));
+        cy.get('#custom_status_modal [role="button"][aria-label*="Date"]').should('contain.text', dateToBeSelected.format('MMM DD'));
     });
 
     it('MM-T4066_7 should set custom status when click on Set Status', () => {

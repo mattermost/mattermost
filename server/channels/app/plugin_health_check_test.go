@@ -13,8 +13,8 @@ import (
 )
 
 func TestHealthCheckJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 		`

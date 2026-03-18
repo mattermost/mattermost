@@ -68,7 +68,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge in Team Members dialog', () => {
         // # Open team menu and click 'View Members'
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         cy.get('#teamMembersModal').should('be.visible').within(($el) => {
             cy.wrap($el).findAllByTestId('userListItemDetails').each(($elChild) => {
@@ -223,6 +223,6 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close and Clear the Search Autocomplete
-        cy.get('#searchFormContainer').find('.input-clear-x').click({force: true});
+        cy.findByTestId('searchBoxClose').click({force: true});
     });
 });

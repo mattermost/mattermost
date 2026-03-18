@@ -6,6 +6,7 @@ package slackimport
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -458,4 +460,415 @@ func TestSlackUploadFile(t *testing.T) {
 		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())
 		require.False(t, ok)
 	})
+}
+
+func TestOldImportUserEmailVerificationIsNotAutomatic(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it should NOT be called)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Must remain false after import
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	importer := New(store, actions, config)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.False(t, verifyEmailCalled, "SECURITY: VerifyEmail should NOT be called - this prevents domain bypass vulnerability")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify the user was saved with unverified email (VerifyEmail should not have been called)
+	userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(u *model.User) bool {
+		return u.Email == "testuser@restricted-domain.com" && !u.EmailVerified
+	}))
+}
+
+// TestSlackImportEnhancedSecurityAdminCanVerifyEmails tests that system admins can automatically verify emails
+func TestSlackImportEnhancedSecurityAdminCanVerifyEmails(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it SHOULD be called for admin imports)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Will be verified by admin import
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	// Pass true to indicate this is an admin import
+	importer := NewWithAdminFlag(store, actions, config, true)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.True(t, verifyEmailCalled, "ADMIN IMPORT: VerifyEmail SHOULD be called for system admin imports")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify VerifyEmail was called with correct parameters
+	userStore.AssertCalled(t, "VerifyEmail", "test-user-id", "testuser@restricted-domain.com")
+}
+
+// TestSlackImportEnhancedSecurityNonAdminCannotVerifyEmails tests that non-admin users cannot automatically verify emails
+func TestSlackImportEnhancedSecurityNonAdminCannotVerifyEmails(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it should NOT be called for non-admin imports)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Should remain false for non-admin import
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	// Pass false to indicate this is NOT an admin import
+	importer := NewWithAdminFlag(store, actions, config, false)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.False(t, verifyEmailCalled, "NON-ADMIN IMPORT: VerifyEmail should NOT be called for non-admin imports")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify VerifyEmail was NOT called
+	userStore.AssertNotCalled(t, "VerifyEmail")
+}
+
+// TestSlackImportEnhancedSecurityNoImportingUser tests behavior when no importing user is provided
+func TestSlackImportEnhancedSecurityNoImportingUser(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it should NOT be called when no importing user)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Should remain false when no importing user
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	// Pass false to indicate no admin privileges (default secure behavior)
+	importer := NewWithAdminFlag(store, actions, config, false)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.False(t, verifyEmailCalled, "NO IMPORTING USER: VerifyEmail should NOT be called when no importing user is provided")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify VerifyEmail was NOT called
+	userStore.AssertNotCalled(t, "VerifyEmail")
+}
+
+// TestSlackImportEnhancedSecurityBackwardsCompatibility tests that the old New() constructor still works
+func TestSlackImportEnhancedSecurityBackwardsCompatibility(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it should NOT be called with old constructor)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Should remain false with old constructor
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	// Use the old constructor (backwards compatibility)
+	importer := New(store, actions, config)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.False(t, verifyEmailCalled, "BACKWARDS COMPATIBILITY: VerifyEmail should NOT be called with old constructor")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify VerifyEmail was NOT called
+	userStore.AssertNotCalled(t, "VerifyEmail")
+}
+
+type slackAddUsersTestSetup struct {
+	store     *mocks.Store
+	teamStore *mocks.TeamStore
+	userStore *mocks.UserStore
+	team      *model.Team
+	savedUser *model.User
+}
+
+func newSlackAddUsersTestSetup(t *testing.T) *slackAddUsersTestSetup {
+	t.Helper()
+
+	s := &slackAddUsersTestSetup{}
+	s.store = &mocks.Store{}
+	s.teamStore = &mocks.TeamStore{}
+	s.userStore = &mocks.UserStore{}
+	s.store.On("Team").Return(s.teamStore)
+	s.store.On("User").Return(s.userStore)
+
+	s.team = &model.Team{Id: "test-team-id", Name: "test-team"}
+	s.teamStore.On("Get", "test-team-id").Return(s.team, nil)
+	s.userStore.On("GetByEmail", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("not found"))
+
+	s.savedUser = &model.User{Id: "test-user-id", Username: "testuser", Email: "testuser@example.com"}
+	s.userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(s.savedUser, nil)
+
+	return s
+}
+
+func (s *slackAddUsersTestSetup) newImporter(actions Actions) *SlackImporter {
+	config := &model.Config{}
+	config.SetDefaults()
+	return New(s.store, actions, config)
+}
+
+func (s *slackAddUsersTestSetup) defaultActions() Actions {
+	return Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			return &model.TeamMember{}, nil
+		},
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			return true, nil
+		},
+	}
+}
+
+func defaultSlackUsers() []slackUser {
+	return []slackUser{
+		{Id: "U001", Username: "testuser", Profile: slackProfile{FirstName: "Test", LastName: "User", Email: "testuser@example.com"}},
+	}
+}
+
+func TestSlackAddUsersLogContainsProperUserCreationMessage(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	logOutput := importerLog.String()
+	assert.Contains(t, logOutput, "api.slackimport.slack_add_users.email", "import log should contain the user creation message")
+	assert.NotContains(t, logOutput, "api.slackimport.slack_add_users.email_pwd", "import log must not use the old user creation message")
+}
+
+func TestSlackAddUsersLogsSendResetEmailFailure(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		return false, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.send_reset_email_failed")
+}
+
+func TestSlackAddUsersGeneratesUserWithEmptyPassword(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	s.userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(u *model.User) bool {
+		return u.Password == ""
+	}))
+}
+
+func TestSlackAddUsersTriggersPasswordResetFlow(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	passwordResetCalled := false
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		passwordResetCalled = true
+		return true, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	assert.True(t, passwordResetCalled, "SendPasswordReset should be called for each imported user")
 }

@@ -33,6 +33,13 @@ function SharedChannelsRemoveModal({
                     defaultMessage='Remove channel'
                 />
             )}
+            modalSubheaderText={(
+                <FormattedMessage
+                    tagName={ModalParagraph}
+                    id={'admin.secure_connections.shared_channels.confirm.remove.message'}
+                    defaultMessage={'The channel will be removed from this connection and will no longer be shared with it.'}
+                />
+            )}
             handleCancel={onCancel ?? noop}
             handleConfirm={handleConfirm}
             confirmButtonText={(
@@ -46,13 +53,7 @@ function SharedChannelsRemoveModal({
             isDeleteModal={true}
             bodyPadding={false}
         >
-            <ModalBody>
-                <FormattedMessage
-                    tagName={ModalParagraph}
-                    id={'admin.secure_connections.shared_channels.confirm.remove.message'}
-                    defaultMessage={'The channel will be removed from this connection and will no longer be shared with it.'}
-                />
-            </ModalBody>
+            <ModalBody/>
         </GenericModal>
     );
 }

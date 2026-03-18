@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -25,7 +26,10 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 	}
 
 	if opts != nil && opts.IncludeMemberIDs {
-		users, err := a.Srv().Store().Group().GetMemberUsers(id)
+		perPage := 100
+		users, err := utils.Pager(func(page int) ([]*model.User, error) {
+			return a.Srv().Store().Group().GetMemberUsersPage(id, page, perPage, viewRestrictions)
+		}, perPage)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -91,6 +95,14 @@ func (a *App) GetGroupsByUserId(userID string, opts model.GroupSearchOpts) ([]*m
 		return nil, model.NewAppError("GetGroupsByUserId", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	return groups, nil
+}
+
+func (a *App) GetGroupsByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store().Group().GetByNames(names, opts)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByNames", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	return groups, nil
 }
 
@@ -323,11 +335,14 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpsertGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -560,10 +575,10 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 // based on the groups configurations. The returned list can be optionally scoped to a single given team.
 //
 // Typically since will be the last successful group sync time.
-// If includeRemovedMembers is true, then team members who left or were removed from the team will
+// If reAddRemovedMembers is true, then team members who left or were removed from the team will
 // be included; otherwise, they will be excluded.
-func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
-	userTeams, err := a.Srv().Store().Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
+func (a *App) TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
+	userTeams, err := a.Srv().Store().Group().TeamMembersToAdd(since, teamID, reAddRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("TeamMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -575,10 +590,10 @@ func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMember
 // based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 //
 // Typically since will be the last successful group sync time.
-// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// If reAddRemovedMembers is true, then channel members who left or were removed from the channel will
 // be included; otherwise, they will be excluded.
-func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
-	userChannels, err := a.Srv().Store().Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+func (a *App) ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
+	userChannels, err := a.Srv().Store().Group().ChannelMembersToAdd(since, channelID, reAddRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -811,11 +826,14 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpsertGroupMembers", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMembers", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -835,11 +853,15 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
+
 		default:
 			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

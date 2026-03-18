@@ -15,6 +15,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isDeactivatedDirectChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -25,6 +26,7 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
+import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {getConnectionId} from 'selectors/general';
 import {getChannelURL} from 'selectors/urls';
 
@@ -50,8 +52,6 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 
-import './draft_row.scss';
-
 type Props = {
     user: UserProfile;
     status: UserStatus['status'];
@@ -59,6 +59,7 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
+    containerClassName?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -70,6 +71,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -107,6 +109,7 @@ function DraftRow({
     });
 
     const connectionId = useSelector(getConnectionId);
+    const burnOnReadDurationMinutes = useSelector(getBurnOnReadDurationMinutes);
 
     const isChannelArchived = Boolean(channel?.delete_at);
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, channelId));
@@ -343,6 +346,10 @@ function DraftRow({
         actions = draftActions;
     }
 
+    // Both PostDraft and ScheduledPost have a type field (ScheduledPost extends Draft which has type)
+    const itemType = (item as PostDraft | ScheduledPost).type;
+    const draftBurnOnReadMetadata = !rootId && itemType === PostTypes.BURN_ON_READ ? {enabled: true} : undefined;
+
     let title: React.ReactNode;
     if (channel) {
         title = (
@@ -360,46 +367,59 @@ function DraftRow({
         );
     }
 
+    const kind = isScheduledPost ? 'scheduledPost' : 'draft';
+
     return (
         <Panel
+            dataTestId={`${kind}View`}
+            dataPostId={(item as ScheduledPost).id}
             onClick={goToMessage}
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
+            className={containerClassName}
+            ariaLabel={isScheduledPost ? intl.formatMessage({
+                id: 'drafts.draft_row.aria_label.scheduled_post',
+                defaultMessage: 'scheduled post in {channelName}',
+            }, {
+                channelName: channel?.display_name,
+            }) : intl.formatMessage({
+                id: 'drafts.draft_row.aria_label.draft',
+                defaultMessage: 'draft in {channelName}',
+            }, {
+                channelName: channel?.display_name,
+            })}
         >
-            {({hover}) => (
-                <>
-                    <Header
-                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
-                        hover={hover}
-                        actions={actions}
-                        title={title}
-                        timestamp={timestamp}
-                        remote={isRemote || false}
-                        error={postError || serverError?.message}
-                    />
-                    {isEditing && (
-                        <EditScheduledPost
-                            scheduledPost={item as ScheduledPost}
-                            onCancel={handleCancelEdit}
-                            afterSave={handleCancelEdit}
-                            onDeleteScheduledPost={handleSchedulePostOnDelete}
-                        />
-                    )}
-                    {!isEditing && (
-                        <PanelBody
-                            channelId={channel?.id}
-                            displayName={displayName}
-                            fileInfos={fileInfos}
-                            message={item.message}
-                            status={status}
-                            priority={rootId ? undefined : item.metadata?.priority}
-                            uploadsInProgress={uploadsInProgress}
-                            userId={user.id}
-                            username={user.username}
-                        />
-                    )}
-                </>
+            <Header
+                kind={kind}
+                actions={actions}
+                title={title}
+                timestamp={timestamp}
+                remote={isRemote || false}
+                error={postError || serverError?.message}
+            />
+            {isEditing && (
+                <EditScheduledPost
+                    scheduledPost={item as ScheduledPost}
+                    onCancel={handleCancelEdit}
+                    afterSave={handleCancelEdit}
+                    onDeleteScheduledPost={handleSchedulePostOnDelete}
+                />
+            )}
+            {!isEditing && (
+                <PanelBody
+                    channelId={channel?.id}
+                    displayName={displayName}
+                    fileInfos={fileInfos}
+                    message={item.message}
+                    status={status}
+                    priority={rootId ? undefined : item.metadata?.priority}
+                    burnOnRead={draftBurnOnReadMetadata}
+                    burnOnReadDurationMinutes={burnOnReadDurationMinutes}
+                    uploadsInProgress={uploadsInProgress}
+                    userId={user.id}
+                    username={user.username}
+                />
             )}
         </Panel>
     );

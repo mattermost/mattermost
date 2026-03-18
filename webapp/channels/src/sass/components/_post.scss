@@ -53,7 +53,6 @@
         }
 
         p {
-            margin: 0;
             white-space: pre-wrap;
         }
 
@@ -750,12 +749,15 @@
 
         .post__img {
             width: 16px;
-            padding-top: 1px;
 
-            img,
-            button {
+            .profile-icon {
                 display: none;
             }
+        }
+
+        .post__link {
+            padding-top: 3px;
+            margin: 0;
         }
 
         .attachment {
@@ -776,6 +778,10 @@
         }
 
         &.post--comment {
+            .post__body {
+                padding-left: 8px;
+            }
+
             .attachment {
                 .attachment__body__wrap {
                     .btn-close {
@@ -799,11 +805,9 @@
         }
 
         .status-wrapper {
-            height: 14px;
-
             .status {
                 position: relative;
-                top: auto;
+                top: 1px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
@@ -823,7 +827,7 @@
         blockquote {
             display: flex;
             flex-direction: column;
-            padding: 3px 0 3px 20px;
+            padding: 0 0 0 8px;
 
             &::before {
                 top: 0;
@@ -847,14 +851,19 @@
         .post__header,
         .post-preview__header {
             display: flex;
+            overflow: visible;
             width: auto;
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
         }
 
+        .badges-wrapper {
+            margin-right: 5px;
+        }
+
         .post__body {
-            padding: 2px 0 0;
+            padding: 2px 0 0 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -969,7 +978,6 @@
     }
 
     .post-edited__indicator {
-        display: flex;
         align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
@@ -1012,8 +1020,8 @@
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
-            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.2);
+            padding-left: 12px;
+            border-left: 4px solid rgba(var(--button-bg-rgb), 0.24);
         }
 
         &.mention-comment {
@@ -1028,6 +1036,18 @@
                     left: -11px;
                 }
             }
+        }
+    }
+
+    &.post--modal {
+        padding: 0;
+
+        .post__content {
+            padding: 0;
+        }
+
+        .post__img {
+            width: 42px;
         }
     }
 
@@ -1269,7 +1289,7 @@
         .shared-user-icon {
             width: 16px;
             height: 20px;
-            margin: 0 0 0 4px;
+            margin: 0 0 0 2px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 16px;
             line-height: 20px;
@@ -1278,6 +1298,15 @@
                 margin: 0;
             }
         }
+
+        .badges-wrapper {
+            gap: 6px;
+            .BurnOnReadTimerChip, .BurnOnReadBadge  {
+                margin-left: 0;
+            }
+        }
+
+
     }
 
     .post__img {
@@ -1410,39 +1439,6 @@
                     margin: 0;
                     font-size: 1em;
                 }
-            }
-
-            li.list-item--task-list ul,
-            li.list-item--task-list ol {
-                margin-left: 20px;
-            }
-
-            li.list-item--task-list ul {
-                padding-left: 0;
-            }
-
-            li:not(.list-item--task-list) li.list-item--task-list,
-            li:not(.list-item--task-list) li.list-item--task-list ~ li {
-                margin-left: -20px;
-            }
-
-            li input[type="checkbox"]:disabled {
-                cursor: default;
-                vertical-align: top;
-            }
-        }
-
-        ul li.list-item--task-list,
-        ul li.list-item--task-list ~ li {
-            list-style-type: none;
-        }
-
-        ul li.list-item--task-list ~ li:not(.list-item--task-list) {
-            text-indent: 3px;
-
-            &::before {
-                margin-right: 8px;
-                content: "\2022";
             }
         }
 
@@ -1640,6 +1636,23 @@
         opacity: 0.73;
     }
 
+    .ai-generated-indicator {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+        color: inherit;
+        opacity: 0.73;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    &.post--compact .col__name .ai-generated-indicator {
+        margin-left: 0px;
+    }
+
     .post__permalink {
         display: inline-block;
         color: inherit;
@@ -1656,6 +1669,28 @@
         &:hover {
             text-decoration: underline;
         }
+    }
+
+    .post__translation-icon-processing {        
+        color: rgba(var(--center-channel-color-rgb), 0.73);
+        font-size: 10px;
+        line-height: 16px;
+        
+        .LoadingSpinner.with-text .spinner {
+            margin-right: 3px;
+        }
+    }
+
+    .post__translation-icon-unavailable {
+        display: inline-flex;
+
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        color: var(--dnd-indicator);
+        font-size: 12px;
     }
 
     .post_permalink_mobile_view {
@@ -2278,5 +2313,48 @@
                 }
             }
         }
+    }
+
+    &.post--comment {
+        .post__body {
+            border-color: rgba(var(--button-bg-rgb), 0.24);
+        }
+
+        &.other--root {
+            .post-comment {
+                border-color: rgba(var(--center-channel-color-rgb), 0.1);
+                background-color: rgba(var(--center-channel-color-rgb), 0.05);
+            }
+        }
+    }
+}
+
+.post-message__shimmer {
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: post-message-shimmer 3.5s linear infinite;
+    background: linear-gradient(
+        110deg,
+        rgba(var(--center-channel-bg-rgb), 0.40) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 100%
+    );
+    background-size: 300% 100%;
+    pointer-events: none;
+}
+
+@keyframes post-message-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }

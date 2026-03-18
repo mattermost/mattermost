@@ -21,9 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-type InfiniteReader struct {
-	Prefix string
-}
+type InfiniteReader struct{}
 
 func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	for i := range p {
@@ -35,10 +33,15 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 
 func TestMoveCommand(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown()
 
-	sourceTeam := th.createTeam()
-	targetTeam := th.createTeam()
+	sourceTeam := th.createTeam(t)
+	targetTeam := th.createTeam(t)
+	t.Cleanup(func() {
+		appErr := th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		require.Nil(t, appErr)
+		appErr = th.App.PermanentDeleteTeam(th.Context, targetTeam)
+		require.Nil(t, appErr)
+	})
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
@@ -49,11 +52,6 @@ func TestMoveCommand(t *testing.T) {
 
 	command, err := th.App.CreateCommand(command)
 	assert.Nil(t, err)
-
-	defer func() {
-		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
-		th.App.PermanentDeleteTeam(th.Context, targetTeam)
-	}()
 
 	// Move a command and check the team is updated.
 	assert.Nil(t, th.App.MoveCommand(targetTeam, command))
@@ -66,11 +64,25 @@ func TestMoveCommand(t *testing.T) {
 	retrievedCommand, err = th.App.GetCommand(command.Id)
 	assert.Nil(t, err)
 	assert.EqualValues(t, targetTeam.Id, retrievedCommand.TeamId)
+
+	// Move a command to a team where the trigger already exists should fail.
+	command2 := &model.Command{}
+	command2.CreatorId = model.NewId()
+	command2.Method = model.CommandMethodPost
+	command2.TeamId = sourceTeam.Id
+	command2.URL = "http://nowhere.com/"
+	command2.Trigger = "trigger1"
+
+	command2, err = th.App.CreateCommand(command2)
+	assert.Nil(t, err)
+
+	moveErr := th.App.MoveCommand(targetTeam, command2)
+	assert.NotNil(t, moveErr)
+	assert.Equal(t, "api.command.duplicate_trigger.app_error", moveErr.Id)
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -89,8 +101,7 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestExecuteCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
 		TestCases := map[string]string{
@@ -137,8 +148,7 @@ func TestExecuteCommand(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	command := &model.Command{}
 	args := &model.CommandArgs{
@@ -178,9 +188,9 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	builtIn = true
 
 	// Channel id is specified by response, it should override the command args value.
-	channel := th.CreateChannel(th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	resp.ChannelId = channel.Id
-	th.addUserToChannel(th.BasicUser, channel)
+	th.addUserToChannel(t, th.BasicUser, channel)
 
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
@@ -249,7 +259,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -263,7 +273,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
-	channel = th.createPrivateChannel(th.BasicTeam)
+	channel = th.createPrivateChannel(t, th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
 	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
@@ -275,7 +285,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Trigger = "code"
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -292,8 +302,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 }
 
 func TestHandleCommandResponse(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	command := &model.Command{}
 
@@ -351,7 +360,6 @@ func TestHandleCommandResponse(t *testing.T) {
 
 func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
@@ -360,9 +368,10 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a valid text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -375,9 +384,10 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -388,9 +398,10 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a large text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
@@ -403,9 +414,10 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -416,9 +428,10 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -429,9 +442,10 @@ func TestDoCommandRequest(t *testing.T) {
 		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
@@ -447,17 +461,17 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
 		})
 
-		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
-		require.Nil(t, err)
-
+		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, appErr)
 		require.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
 	})
@@ -474,9 +488,10 @@ func TestDoCommandRequest(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			_, err := io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			require.NoError(t, err)
 		}))
-		defer serverCommand.Close()
+		t.Cleanup(serverCommand.Close)
 
 		connection := &model.OutgoingOAuthConnection{
 			Id:            model.NewId(),
@@ -509,12 +524,11 @@ func TestDoCommandRequest(t *testing.T) {
 }
 
 func TestMentionsToTeamMembers(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	otherTeam := th.createTeam()
-	otherUser := th.createUser()
-	th.linkUserToTeam(otherUser, otherTeam)
+	otherTeam := th.createTeam(t)
+	otherUser := th.createUser(t)
+	th.linkUserToTeam(t, otherUser, otherTeam)
 
 	fixture := []struct {
 		message     string
@@ -595,11 +609,10 @@ func TestMentionsToTeamMembers(t *testing.T) {
 }
 
 func TestMentionsToPublicChannels(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	otherPublicChannel := th.CreateChannel(th.BasicTeam)
-	privateChannel := th.createPrivateChannel(th.BasicTeam)
+	otherPublicChannel := th.CreateChannel(t, th.BasicTeam)
+	privateChannel := th.createPrivateChannel(t, th.BasicTeam)
 
 	fixture := []struct {
 		message     string

@@ -47,7 +47,7 @@ describe('Onboarding', () => {
         stubClipboard().as('clipboard');
 
         // # Open the 'Invite People' full screen modal and get the invite url
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Copy invite link to clipboard
         cy.findByTestId('InviteView__copyInviteLink').click();
@@ -71,8 +71,11 @@ describe('Onboarding', () => {
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        // # Attempt to create an account by clicking on the 'Create account' button
+        cy.findByText('Create account').click();
 
         cy.wait(TIMEOUTS.HALF_SEC);
 

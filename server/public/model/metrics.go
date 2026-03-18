@@ -44,6 +44,9 @@ const (
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
 
+	// PluginWebappPerf is the metric type for plugin webapp performance metrics
+	PluginWebappPerf MetricType = "plugin_webapp_perf"
+
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
 
@@ -84,10 +87,9 @@ var (
 )
 
 type MetricSample struct {
-	Metric    MetricType        `json:"metric"`
-	Value     float64           `json:"value"`
-	Timestamp float64           `json:"timestamp,omitempty"`
-	Labels    map[string]string `json:"labels,omitempty"`
+	Metric MetricType        `json:"metric"`
+	Value  float64           `json:"value"`
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 func (s *MetricSample) GetLabelValue(name string, acceptedValues map[string]any, defaultValue string) string {

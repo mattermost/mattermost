@@ -11,11 +11,12 @@ import (
 )
 
 func TestIsKeywordMultibyte(t *testing.T) {
+	mainHelper.Parallel(t)
 	id1 := model.NewId()
 
 	for name, tc := range map[string]struct {
 		Message     string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
 		Expected    *MentionResults
@@ -116,12 +117,13 @@ func TestIsKeywordMultibyte(t *testing.T) {
 }
 
 func TestCheckForMentionUsers(t *testing.T) {
+	mainHelper.Parallel(t)
 	id1 := model.NewId()
 	id2 := model.NewId()
 
 	for name, tc := range map[string]struct {
 		Word        string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Expected    *MentionResults
 	}{
@@ -213,6 +215,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 }
 
 func TestCheckForMentionGroups(t *testing.T) {
+	mainHelper.Parallel(t)
 	groupID1 := model.NewId()
 	groupID2 := model.NewId()
 
@@ -279,6 +282,7 @@ func TestCheckForMentionGroups(t *testing.T) {
 }
 
 func TestProcessText(t *testing.T) {
+	mainHelper.Parallel(t)
 	userID1 := model.NewId()
 
 	groupID1 := model.NewId()

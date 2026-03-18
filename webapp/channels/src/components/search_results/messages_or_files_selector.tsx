@@ -5,6 +5,8 @@ import React, {useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+
 import {getSearchTeam} from 'selectors/rhs';
 
 import SelectTeam from 'components/new_search/select_team';
@@ -39,6 +41,8 @@ type DataSearchLiteral = typeof DataSearchTypes[keyof typeof DataSearchTypes];
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
+    const myTeams = useSelector(getMyTeams);
+    const hasMoreThanOneTeam = myTeams.length > 1;
 
     // REFS to the tabs so there is ability to pass the custom A11y focus event
     const messagesTabRef = useRef<HTMLButtonElement>(null);
@@ -130,7 +134,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                     </button>
                 )}
             </div>
-            {props.crossTeamSearchEnabled && (
+            {props.crossTeamSearchEnabled && hasMoreThanOneTeam && (
                 <div className='team-selector-container'>
                     <SelectTeam
                         selectedTeamId={searchTeam}

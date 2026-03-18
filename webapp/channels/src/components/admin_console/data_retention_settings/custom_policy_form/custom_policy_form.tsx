@@ -464,7 +464,6 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                             >
                                 <TeamList
                                     onRemoveCallback={this.addToRemovedTeams}
-                                    onAddCallback={this.addToNewTeams}
                                     teamsToRemove={this.state.removedTeams}
                                     teamsToAdd={this.state.newTeams}
                                     policyId={this.props.policyId}
@@ -515,7 +514,6 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                             >
                                 <ChannelList
                                     onRemoveCallback={this.addToRemovedChannels}
-                                    onAddCallback={this.addToNewChannels}
                                     channelsToRemove={this.state.removedChannels}
                                     channelsToAdd={this.state.newChannels}
                                     policyId={this.props.policyId}
@@ -537,7 +535,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         )}
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/compliance/data_retention_settings'
                     >
                         <FormattedMessage

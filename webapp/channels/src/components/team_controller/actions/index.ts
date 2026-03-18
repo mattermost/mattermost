@@ -30,14 +30,6 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team> {
         const currentUser = getCurrentUser(state);
         LocalStorageStore.setPreviousTeamId(currentUser.id, team.id);
 
-        try {
-            await dispatch(fetchChannelsAndMembers(team.id));
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
-        }
-
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
             dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
@@ -98,6 +90,14 @@ export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFu
                         }
 
                         await dispatch(initializeTeam(team));
+
+                        try {
+                            await dispatch(fetchChannelsAndMembers(team.id));
+                        } catch (error) {
+                            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+                            dispatch(logError(error as ServerError));
+                            return {error: error as ServerError};
+                        }
 
                         return {data: team};
                     }

@@ -9,8 +9,6 @@ import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIc
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
-
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
@@ -19,7 +17,7 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -43,7 +41,6 @@ interface Props extends WrappedComponentProps {
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
     rememberHideJoinedChannelsChecked: boolean;
-    canShowArchivedChannels?: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
 }
@@ -124,15 +121,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        let channelTypeIcon;
-
-        if (isArchivedChannel(channel)) {
-            channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (isPrivateChannel(channel)) {
-            channelTypeIcon = <LockOutlineIcon size={18}/>;
-        } else {
-            channelTypeIcon = <GlobeIcon size={18}/>;
-        }
+        const ChannelIcon = getChannelIconComponent(channel);
+        const channelTypeIcon = <ChannelIcon size={18}/>;
         let memberCount = 0;
         if (this.props.channelsMemberCount?.[channel.id]) {
             memberCount = this.props.channelsMemberCount[channel.id];
@@ -223,6 +213,20 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 </div>
                 <div className='more-modal__actions'>
                     {joinViewChannelButton}
+                    {this.state.joiningChannel === channel.id && !this.isMemberOfChannel(channel.id) && (
+                        <span
+                            className='sr-only'
+                            role='alert'
+                        >
+                            <FormattedMessage
+                                id='more_channels.joinedChannel'
+                                defaultMessage='Joined channel {channelName}'
+                                values={{
+                                    channelName: channel.display_name,
+                                }}
+                            />
+                        </span>
+                    )}
                 </div>
             </div>
         );
@@ -276,7 +280,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.noMore'
                     tagName='strong'
-                    defaultMessage='No results for {text}'
+                    defaultMessage='No results for "{text}"'
                     values={{text: this.state.channelSearchValue}}
                 />
             );
@@ -410,7 +414,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         }
 
         const input = (
-            <div className='filter-row filter-row--full'>
+            <div className='filter-row'>
                 <span
                     id='searchIcon'
                     aria-hidden='true'
@@ -426,7 +430,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     clearable={true}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
-                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'})}
                 />
             </div>
         );
@@ -482,25 +486,23 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             />,
         ];
 
-        if (this.props.canShowArchivedChannels) {
-            channelDropdownItems.push(
-                <Menu.Separator key='channelsMoreDropdownSeparator'/>,
-                <Menu.Item
-                    key='channelsMoreDropdownArchived'
-                    id='channelsMoreDropdownArchived'
-                    onClick={() => this.filterChange(Filter.Archived)}
-                    leadingElement={<ArchiveOutlineIcon size={16}/>}
-                    labels={
-                        <FormattedMessage
-                            id='suggestion.archive'
-                            defaultMessage='Archived channels'
-                        />
-                    }
-                    trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
-                    aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
-                />,
-            );
-        }
+        channelDropdownItems.push(
+            <Menu.Separator key='channelsMoreDropdownSeparator'/>,
+            <Menu.Item
+                key='channelsMoreDropdownArchived'
+                id='channelsMoreDropdownArchived'
+                onClick={() => this.filterChange(Filter.Archived)}
+                leadingElement={<ArchiveOutlineIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='suggestion.archive'
+                        defaultMessage='Archived channels'
+                    />
+                }
+                trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
+            />,
+        );
         const menuButton = (
             <>
                 {this.getFilterLabel()}
@@ -511,18 +513,33 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </>
         );
         const channelDropdown = (
-            <Menu.Container
-                menuButton={{
-                    id: 'menuWrapper',
-                    children: menuButton,
-                }}
-                menu={{
-                    id: 'browseChannelsDropdown',
-                    'aria-label': this.props.intl.formatMessage({id: 'more_channels.title', defaultMessage: 'Browse channels'}),
-                }}
-            >
-                {channelDropdownItems.map((item) => item)}
-            </Menu.Container >
+            <>
+                <div
+                    role='status'
+                    aria-atomic='true'
+                    className='sr-only'
+                >
+                    {this.props.intl.formatMessage({
+                        id: 'more_channels.channel_type_filter.filter_type_set',
+                        defaultMessage: 'Channel type filter set to {filterType}',
+                    }, {
+                        filterType: this.props.filter,
+                    })}
+                </div>
+                <Menu.Container
+                    menuButton={{
+                        id: 'menuWrapper',
+                        children: menuButton,
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                    menu={{
+                        id: 'browseChannelsDropdown',
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                >
+                    {channelDropdownItems.map((item) => item)}
+                </Menu.Container>
+            </>
         );
 
         const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});
@@ -530,13 +547,20 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div
                 id={'hideJoinedPreferenceCheckbox'}
                 onClick={this.handleChecked}
+                onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        this.handleChecked();
+                    }
+                }}
+                role='checkbox'
+                aria-checked={this.props.rememberHideJoinedChannelsChecked}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.hide_joined_channels', defaultMessage: 'Hide joined channels'})}
+                tabIndex={0}
             >
-                <button
-                    className={hideJoinedButtonClass}
-                    aria-label={this.props.rememberHideJoinedChannelsChecked ? this.props.intl.formatMessage({id: 'more_channels.hide_joined_checked', defaultMessage: 'Hide joined channels checkbox, checked'}) : this.props.intl.formatMessage({id: 'more_channels.hide_joined_not_checked', defaultMessage: 'Hide joined channels checkbox, not checked'})}
-                >
+                <div className={hideJoinedButtonClass}>
                     {this.props.rememberHideJoinedChannelsChecked ? <CheckboxCheckedIcon/> : null}
-                </button>
+                </div>
                 <FormattedMessage
                     id='more_channels.hide_joined'
                     defaultMessage='Hide Joined'
@@ -558,6 +582,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const dropDownContainer = (
             <div className='more-modal__dropdown'>
                 <span id='channelCountLabel'>{channelCountLabel}</span>
+                <span
+                    className='sr-only'
+                    role='status'
+                    aria-live='polite'
+                >
+                    {channelCountLabel}
+                </span>
                 <div id='modalPreferenceContainer'>
                     {channelDropdown}
                     {hideJoinedPreferenceCheckbox}
@@ -606,7 +637,7 @@ const messages = defineMessages({
     },
     noMore: {
         id: 'more_channels.noMore',
-        defaultMessage: 'No results for {text}',
+        defaultMessage: 'No results for "{text}"',
     },
 });
 

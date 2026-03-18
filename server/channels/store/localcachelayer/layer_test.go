@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"os"
 	"sync"
 	"testing"
 
@@ -33,7 +32,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver, false),
+		SqlSettings: storetest.MakeSqlSettings(driver),
 	}
 }
 
@@ -45,7 +44,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -65,7 +63,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -82,19 +79,7 @@ func initStores(logger mlog.LoggerIFace) {
 		return
 	}
 
-	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
-	// So we just run the tests for the current database set.
-	if os.Getenv("IS_CI") == "true" {
-		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
-		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql))
-		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-		}
-	} else {
-		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql),
-			newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-	}
+	storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -104,11 +89,10 @@ func initStores(logger mlog.LoggerIFace) {
 	}()
 	var eg errgroup.Group
 	for _, st := range storeTypes {
-		st := st
 		eg.Go(func() error {
 			var err error
 
-			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil, sqlstore.DisableMorphLogging())
 			if err != nil {
 				return err
 			}
@@ -137,7 +121,6 @@ func tearDownStores() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
 		for _, st := range storeTypes {
-			st := st
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()

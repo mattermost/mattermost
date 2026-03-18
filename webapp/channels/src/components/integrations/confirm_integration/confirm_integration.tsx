@@ -74,7 +74,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_command.doneHelp'
                     defaultMessage='Your slash command is set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (details at <link>Slash Commands</link>).'
                     values={{
-                        link: (msg: string) => (
+                        link: (msg) => (
                             <ExternalLink
                                 href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 location='confirm_integration'
@@ -92,8 +92,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_command.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: commandToken,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        token: <code>{commandToken}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
@@ -117,7 +117,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_incoming_webhook.doneHelp'
                     defaultMessage='Your incoming webhook is set up. Please send data to the following URL (details at <link>Incoming Webhooks</link>).'
                     values={{
-                        link: (msg: string) => (
+                        link: (msg) => (
                             <ExternalLink
                                 href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
                                 location='confirm_integration'
@@ -135,8 +135,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_incoming_webhook.url'
                     defaultMessage='<b>URL</b>: {url}'
                     values={{
-                        url: '`' + incomingHookToken + '`',
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        url: <code>{incomingHookToken}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
@@ -160,7 +160,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.doneHelp'
                     defaultMessage='Your outgoing webhook is set up. The following token will be sent in the outgoing payload. Please use it to verify that the request came from your Mattermost team (details at <link>Outgoing Webhooks</link>).'
                     values={{
-                        link: (msg: string) => (
+                        link: (msg) => (
                             <ExternalLink
                                 href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
                                 location='confirm_integration'
@@ -178,8 +178,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: outgoingHookToken,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        token: <code>{outgoingHookToken}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
@@ -191,6 +191,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     } else if (type === Constants.Integrations.OAUTH_APP && oauthApp) {
         const oauthAppToken = oauthApp.id;
         const oauthAppSecret = oauthApp.client_secret;
+        const isPublicClient = !oauthAppSecret || oauthAppSecret === '';
 
         headerText = (
             <FormattedMessage
@@ -200,51 +201,79 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
 
         helpText = [];
-        helpText.push(
-            <p key='add_oauth_app.doneHelp'>
-                <FormattedMessage
-                    id='add_oauth_app.doneHelp'
-                    defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>).'
-                    values={{
-                        link: (msg: string) => (
-                            <ExternalLink
-                                href={DeveloperLinks.SETUP_OAUTH2}
-                                location='confirm_integration'
-                            >
-                                {msg}
-                            </ExternalLink>
-                        ),
-                    }}
-                />
-            </p>,
-        );
+
+        // Show different help text for public vs confidential clients
+        if (isPublicClient) {
+            helpText.push(
+                <p key='add_oauth_app.doneHelp'>
+                    <FormattedMessage
+                        id='add_oauth_app.doneHelp.public'
+                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2.0 Applications</link>).'
+                        values={{
+                            link: (msg) => (
+                                <ExternalLink
+                                    href={DeveloperLinks.SETUP_OAUTH2}
+                                    location='confirm_integration'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>,
+            );
+        } else {
+            helpText.push(
+                <p key='add_oauth_app.doneHelp'>
+                    <FormattedMessage
+                        id='add_oauth_app.doneHelp'
+                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2.0 Applications</link>).'
+                        values={{
+                            link: (msg) => (
+                                <ExternalLink
+                                    href={DeveloperLinks.SETUP_OAUTH2}
+                                    location='confirm_integration'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>,
+            );
+        }
+
         helpText.push(
             <p key='add_oauth_app.clientId'>
                 <FormattedMessage
                     id='add_oauth_app.clientId'
                     defaultMessage='<b>Client ID</b>: {id}'
                     values={{
-                        id: oauthAppToken,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        id: <code>{oauthAppToken}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
                     label={messages.copyClientId}
                     value={oauthAppToken}
                 />
-                <br/>
-                <FormattedMessage
-                    id='add_oauth_app.clientSecret'
-                    defaultMessage='<b>Client Secret</b>: {secret}'
-                    values={{
-                        secret: oauthAppSecret,
-                        b: (chunks: string) => <b>{chunks}</b>,
-                    }}
-                />
-                <CopyText
-                    label={messages.copyClientSecret}
-                    value={oauthAppSecret}
-                />
+                {!isPublicClient && (
+                    <>
+                        <br/>
+                        <FormattedMessage
+                            id='add_oauth_app.clientSecret'
+                            defaultMessage='<b>Client Secret</b>: {secret}'
+                            values={{
+                                secret: <code>{oauthAppSecret}</code>,
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
+                        />
+                        <CopyText
+                            label={messages.copyClientSecret}
+                            value={oauthAppSecret}
+                        />
+                    </>
+                )}
             </p>,
         );
 
@@ -264,21 +293,20 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     defaultMessage='<b>URL(s)</b>: {url}'
                     values={{
                         url: oauthApp.callback_urls.join(', '),
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             </p>
         );
     } else if (type === Constants.Integrations.OUTGOING_OAUTH_CONNECTIONS && outgoingOAuthConnection) {
         const clientId = outgoingOAuthConnection.client_id;
-        const clientSecret = outgoingOAuthConnection.client_secret;
         const username = outgoingOAuthConnection.credentials_username;
         const password = outgoingOAuthConnection.credentials_password;
 
         headerText = (
             <FormattedMessage
                 id='installed_outgoing_oauth_connections.header'
-                defaultMessage='Outgoing OAuth 2.0 Connections'
+                defaultMessage='Outgoing OAuth Connections'
             />
         );
 
@@ -289,7 +317,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_oauth_connection.doneHelp'
                     defaultMessage='Your Outgoing OAuth 2.0 Connection is set up. When a request is sent to one of the following Audience URLs, the Client ID and Client Secret will now be used to retrieve a token from the Token URL, before sending the integration request (details at <link>Outgoing OAuth 2.0 Connections</link>).'
                     values={{
-                        link: (msg: string) => (
+                        link: (msg) => (
                             <ExternalLink
                                 href={DeveloperLinks.SETUP_OAUTH2} // TODO: dev docs for outgoing oauth connections feature
                                 location='confirm_integration'
@@ -307,17 +335,16 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_oauth_connection.clientId'
                     defaultMessage='<b>Client ID</b>: {id}'
                     values={{
-                        id: clientId,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        id: <code>{clientId}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <br/>
                 <FormattedMessage
                     id='add_outgoing_oauth_connection.clientSecret'
-                    defaultMessage='<b>Client Secret</b>: \*\*\*\*\*\*\*\*'
+                    defaultMessage='<b>Client Secret</b>: ********'
                     values={{
-                        secret: clientSecret,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             </p>,
@@ -331,7 +358,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         defaultMessage='<b>Username</b>: {username}'
                         values={{
                             username,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                     <CopyText
@@ -344,7 +371,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         defaultMessage='<b>Password</b>: {password}'
                         values={{
                             password,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 </p>,
@@ -356,20 +383,20 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='<b>Token URL</b>: `{url}`'
+                        defaultMessage='<b>Token URL</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.oauth_token_url,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            url: <code>{outgoingOAuthConnection.oauth_token_url}</code>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 </p>
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='<b>Audience URL(s)</b>: `{url}`'
+                        defaultMessage='<b>Audience URL(s)</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.audiences.join(', '),
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            url: <code>{outgoingOAuthConnection.audiences.join(', ')}</code>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 </p>
@@ -388,11 +415,11 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             <p>
                 <FormattedMessage
                     id='bots.manage.created.text'
-                    defaultMessage='Your bot account **{botname}** has been created successfully. Please use the following access token to connect to the bot (see [documentation](https://mattermost.com/pl/default-bot-accounts) for further details).'
+                    defaultMessage='Your bot account <strong>{botname}</strong> has been created successfully. Please use the following access token to connect to the bot (see <link>documentation</link> for further details).'
                     values={{
                         botname: bot.display_name || bot.username,
-                        b: (msg: string) => <b>{msg}</b>,
-                        link: (msg: string) => (
+                        strong: (msg) => <b>{msg}</b>,
+                        link: (msg) => (
                             <ExternalLink
                                 href='https://mattermost.com/pl/default-bot-accounts'
                                 location='confirm_integration'
@@ -410,8 +437,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: botToken,
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        token: <code>{botToken}</code>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
@@ -424,7 +451,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token.message'
                     defaultMessage='Make sure to add this bot account to teams and channels you want it to interact in. See <link>documentation</link> to learn more.'
                     values={{
-                        link: (msg: string) => (
+                        link: (msg) => (
                             <ExternalLink
                                 href='https://mattermost.com/pl/default-bot-accounts'
                                 location='confirm_integration'

@@ -168,7 +168,7 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 
 	// Create 10 tokens for the user
 	tokens := make([]*model.UserAccessToken, 10)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		tokens[i] = &model.UserAccessToken{
 			Token:       model.NewId(),
 			UserId:      u1.Id,

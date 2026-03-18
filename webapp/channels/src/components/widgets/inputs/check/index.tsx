@@ -21,11 +21,17 @@ function CheckInput(props: Props) {
         <div className='check-input'>
             <input
                 {...rest}
+                id={id}
                 aria-label={ariaLabel}
                 data-testid={id}
                 type='checkbox'
             />
-            <span className='text'>{text}</span>
+            <label
+                className='text'
+                htmlFor={id}
+            >
+                <span>{text}</span>
+            </label>
         </div>
     );
 }

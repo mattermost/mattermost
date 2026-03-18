@@ -284,7 +284,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     )}
                 />
                 <BlockableLink
-                    className='cancel-button'
+                    className='btn btn-tertiary'
                     to='/admin_console/billing/company_info'
                 >
                     <FormattedMessage

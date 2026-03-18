@@ -12,6 +12,7 @@ import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
 import './header.scss';
+import {LicenseSkus} from 'utils/constants';
 
 export type HeaderProps = {
     alternateLink?: React.ReactElement;
@@ -27,7 +28,9 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
 
     let freeBanner = null;
     if (license.IsLicensed === 'false') {
-        freeBanner = <><Logo/><span className='freeBadge'>{'FREE EDITION'}</span></>;
+        freeBanner = <><Logo/><span className='freeBadge'>{'TEAM EDITION'}</span></>;
+    } else if (license.SkuShortName === LicenseSkus.Entry) {
+        freeBanner = <><Logo/><span className='freeBadge'>{'ENTRY EDITION'}</span></>;
     }
 
     let title: React.ReactNode = SiteName;

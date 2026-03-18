@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings should match snapshot on roles with permissions 1`] = `<LoadingScreen />`;
 
@@ -175,7 +175,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -439,6 +439,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -464,8 +465,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -478,7 +478,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -524,7 +523,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -789,6 +788,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -814,8 +814,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -828,7 +827,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -874,7 +872,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -1139,6 +1137,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1164,8 +1163,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1178,7 +1176,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -1224,7 +1221,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -1489,6 +1486,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1514,8 +1512,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1528,7 +1525,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}

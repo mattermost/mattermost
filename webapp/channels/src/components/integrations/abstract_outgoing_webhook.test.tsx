@@ -159,7 +159,7 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
             return jest.fn();
         }});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);
     });
 });

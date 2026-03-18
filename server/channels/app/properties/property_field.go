@@ -21,15 +21,30 @@ func (ps *PropertyService) GetPropertyFields(groupID string, ids []string) ([]*m
 	return ps.fieldStore.GetMany(groupID, ids)
 }
 
+func (ps *PropertyService) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByName(groupID, targetID, name)
+}
+
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (int64, error) {
 	return ps.fieldStore.CountForGroup(groupID, false)
 }
 
-func (ps *PropertyService) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	// groupID and targetID are part of the search method signature to
+func (ps *PropertyService) CountAllPropertyFieldsForGroup(groupID string) (int64, error) {
+	return ps.fieldStore.CountForGroup(groupID, true)
+}
+
+func (ps *PropertyService) CountActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
+	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, false)
+}
+
+func (ps *PropertyService) CountAllPropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
+	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, true)
+}
+
+func (ps *PropertyService) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
-	opts.TargetID = targetID
 
 	return ps.fieldStore.SearchPropertyFields(opts)
 }
@@ -55,7 +70,7 @@ func (ps *PropertyService) DeletePropertyField(groupID, id string) error {
 		}
 	}
 
-	if err := ps.valueStore.DeleteForField(id); err != nil {
+	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}
 

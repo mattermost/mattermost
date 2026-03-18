@@ -543,7 +543,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                         id={'add_command.outgoing_oauth_connections.help_text'}
                                         defaultMessage={'You can connect commands to <link>outgoing OAuth connections</link>.'}
                                         values={{
-                                            link: (text: string) => (
+                                            link: (text) => (
                                                 <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                                             ),
                                         }}
@@ -609,7 +609,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.username.help'
-                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \"-\", \"_\", and \".\". If left blank, your Mattermost username is used.'
+                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.'
                                     />
                                 </div>
                             </div>

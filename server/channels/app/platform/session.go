@@ -14,33 +14,35 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
-func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) (*model.Session, error) {
+func (ps *PlatformService) CreateSession(rctx request.CTX, session *model.Session) (*model.Session, error) {
 	session.Token = ""
 
-	session, err := ps.Store.Session().Save(c, session)
+	session, err := ps.Store.Session().Save(rctx, session)
 	if err != nil {
 		return nil, err
 	}
 
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to add session to cache", mlog.Err(err))
+	}
 
 	return session, nil
 }
 
-func (ps *PlatformService) GetSessionContext(c request.CTX, token string) (*model.Session, error) {
-	return ps.Store.Session().Get(c, token)
+func (ps *PlatformService) GetSessionContext(rctx request.CTX, token string) (*model.Session, error) {
+	return ps.Store.Session().Get(rctx, token)
 }
 
-func (ps *PlatformService) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
-	return ps.Store.Session().GetSessions(c, userID)
+func (ps *PlatformService) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
+	return ps.Store.Session().GetSessions(rctx, userID)
 }
 
-func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
-	return ps.Store.Session().GetLRUSessions(c, userID, limit, offset)
+func (ps *PlatformService) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	return ps.Store.Session().GetLRUSessions(rctx, userID, limit, offset)
 }
 
-func (ps *PlatformService) AddSessionToCache(session *model.Session) {
-	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
+func (ps *PlatformService) AddSessionToCache(session *model.Session) error {
+	return ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
@@ -90,8 +92,8 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCacheLocal() {
-	ps.sessionCache.Purge()
+func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
+	return ps.sessionCache.Purge()
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
@@ -107,8 +109,10 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCache() {
-	ps.ClearAllUsersSessionCacheLocal()
+func (ps *PlatformService) ClearAllUsersSessionCache() error {
+	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+		return err
+	}
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -117,9 +121,10 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
+	return nil
 }
 
-func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
+func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {
 	var session model.Session
 	if err := ps.sessionCache.Get(token, &session); err == nil {
 		if m := ps.metricsIFace; m != nil {
@@ -135,11 +140,11 @@ func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Sessi
 		return &session, nil
 	}
 
-	return ps.GetSessionContext(c, token)
+	return ps.GetSessionContext(rctx, token)
 }
 
-func (ps *PlatformService) GetSessionByID(c request.CTX, sessionID string) (*model.Session, error) {
-	return ps.Store.Session().Get(c, sessionID)
+func (ps *PlatformService) GetSessionByID(rctx request.CTX, sessionID string) (*model.Session, error) {
+	return ps.Store.Session().Get(rctx, sessionID)
 }
 
 func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
@@ -153,20 +158,22 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 		return err
 	}
 
-	ps.ClearAllUsersSessionCache()
+	if err := ps.ClearAllUsersSessionCache(); err != nil {
+		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
+	}
 	return nil
 }
 
-func (ps *PlatformService) RevokeSessionsForDeviceId(c request.CTX, userID string, deviceID string, currentSessionId string) error {
-	sessions, err := ps.Store.Session().GetSessions(c, userID)
+func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) error {
+	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
 		if session.DeviceId == deviceID && session.Id != currentSessionId {
-			c.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
-			if err := ps.RevokeSession(c, session); err != nil {
-				c.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			if err := ps.RevokeSession(rctx, session); err != nil {
+				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
 		}
 	}
@@ -174,9 +181,9 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(c request.CTX, userID strin
 	return nil
 }
 
-func (ps *PlatformService) RevokeSession(c request.CTX, session *model.Session) error {
+func (ps *PlatformService) RevokeSession(rctx request.CTX, session *model.Session) error {
 	if session.IsOAuth {
-		if err := ps.RevokeAccessToken(c, session.Token); err != nil {
+		if err := ps.RevokeAccessToken(rctx, session.Token); err != nil {
 			return err
 		}
 	} else {
@@ -190,8 +197,8 @@ func (ps *PlatformService) RevokeSession(c request.CTX, session *model.Session) 
 	return nil
 }
 
-func (ps *PlatformService) RevokeAccessToken(c request.CTX, token string) error {
-	session, _ := ps.GetSession(c, token)
+func (ps *PlatformService) RevokeAccessToken(rctx request.CTX, token string) error {
+	session, _ := ps.GetSession(rctx, token)
 
 	schan := make(chan error, 1)
 	go func() {
@@ -238,13 +245,15 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	// ensures each node will get an extended expiry within the next 10 minutes.
 	// Worst case is another node may generate a redundant expiry update.
 	session.ExpiresAt = newExpiry
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+	}
 
 	return nil
 }
 
-func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User, isGuest bool) error {
-	sessions, err := ps.GetSessions(c, user.Id)
+func (ps *PlatformService) UpdateSessionsIsGuest(rctx request.CTX, user *model.User, isGuest bool) error {
+	sessions, err := ps.GetSessions(rctx, user.Id)
 	if err != nil {
 		return err
 	}
@@ -258,22 +267,26 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User
 		session.AddProp(model.SessionPropIsGuest, strconv.FormatBool(isGuest))
 		err := ps.Store.Session().UpdateProps(session)
 		if err != nil {
-			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
+			rctx.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
-		ps.AddSessionToCache(session)
+		if err := ps.AddSessionToCache(session); err != nil {
+			ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+		}
 	}
 	return nil
 }
 
-func (ps *PlatformService) RevokeAllSessions(c request.CTX, userID string) error {
-	sessions, err := ps.Store.Session().GetSessions(c, userID)
+func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) error {
+	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), GetSessionError)
 	}
 	for _, session := range sessions {
 		if session.IsOAuth {
-			ps.RevokeAccessToken(c, session.Token)
+			if err := ps.RevokeAccessToken(rctx, session.Token); err != nil {
+				return err
+			}
 		} else {
 			if err := ps.Store.Session().Remove(session.Id); err != nil {
 				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)

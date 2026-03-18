@@ -7,6 +7,11 @@ import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
     entities: {
+        agents: {
+            agents: [],
+            llmServices: [],
+            agentsStatus: {available: false},
+        },
         general: {
             config: {},
             license: {},
@@ -14,6 +19,7 @@ const state: GlobalState = {
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
             customProfileAttributes: {},
+            cwsAvailability: 'pending',
         },
         users: {
             currentUserId: '',
@@ -23,7 +29,6 @@ const state: GlobalState = {
             profiles: {},
             profilesInTeam: {},
             profilesNotInTeam: {},
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {},
             profilesNotInChannel: {},
             profilesInGroup: {},
@@ -49,6 +54,7 @@ const state: GlobalState = {
             stats: {},
             groupsAssociatedToTeam: {},
             totalCount: 0,
+            contentFlaggingStatus: {},
         },
         channels: {
             currentChannelId: '',
@@ -65,6 +71,7 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            restrictedDMs: {},
         },
         channelBookmarks: {
             byChannelId: {},
@@ -96,6 +103,10 @@ const state: GlobalState = {
             counts: {},
             countsIncludingDirect: {},
         },
+        recaps: {
+            byId: {},
+            allIds: [],
+        },
         preferences: {
             myPreferences: {},
             userPreferences: {},
@@ -119,6 +130,8 @@ const state: GlobalState = {
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
+            accessControlPolicies: {},
+            channelsForAccessControlPolicy: {},
         },
         jobs: {
             jobs: {},
@@ -140,6 +153,7 @@ const state: GlobalState = {
             files: {},
             filesFromSearch: {},
             fileIdsByPostId: {},
+            rejectedFiles: new Set(),
         },
         emojis: {
             customEmoji: {},
@@ -219,6 +233,7 @@ const state: GlobalState = {
             errorsByTeamId: {},
             byChannelOrThreadId: {},
         },
+        contentFlagging: {},
     },
     errors: [],
     requests: {

@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../../fixtures/timeouts';
 Cypress.Commands.add('uiEnableComplianceExport', (exportFormat = 'csv') => {
     // * Verify that the page is loaded
     cy.findByText('Enable Compliance Export:').should('be.visible');
-    cy.findByText('Compliance Export time:').should('be.visible');
+    cy.findByText('Compliance Export Time:').should('be.visible');
     cy.findByText('Export Format:').should('be.visible');
 
     // # Enable compliance export
@@ -40,7 +40,7 @@ Cypress.Commands.add('uiExportCompliance', () => {
 
     // # Wait until export is finished
     cy.waitUntil(() => {
-        return cy.get('@firstRow').find('td:eq(1)').then((el) => {
+        return cy.get('@firstRow').find('td:eq(0)').then((el) => {
             return el[0].innerText.trim() === 'Success';
         });
     },

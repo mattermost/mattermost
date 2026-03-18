@@ -208,10 +208,6 @@
     "translation": "Невозможно покинуть канал личных сообщений."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
   },
@@ -796,10 +792,6 @@
     "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Вы не будете получать уведомления для {{.Channel}} до тех пор, пока отключен звук."
   },
@@ -926,10 +918,6 @@
   {
     "id": "api.command_shrug.name",
     "translation": "пожимание плечами"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
   },
   {
     "id": "api.context.404.app_error",
@@ -1194,10 +1182,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Плохой client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Отсутствует client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -1500,10 +1484,6 @@
     "translation": "Ошибка запуска сервера, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Не удалось импортировать пользователя Integration / Slack Bot {{.Username}}.\r\n"
   },
@@ -1526,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nПользователи созданы:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -2082,14 +2058,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Логин бота запрещен."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4716,10 +4684,6 @@
     "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Невозможно задать плагин как управляемый файловым хранилищем."
-  },
-  {
     "id": "app.plugin.install_marketplace_plugin.app_error",
     "translation": "Не удалось установить плагин из магазина плагинов."
   },
@@ -4800,82 +4764,6 @@
     "translation": "Не удалось сохранить условия использования."
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Ошибка при создании индекса канала bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Ошибка при создании индекса сообщений bleve."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не получилось удалить канал."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не получилось удалить сообщение."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не получилось удалить пользователя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не удалось проиндексировать сообщение."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не удалось проиндексировать пользователя."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не удалось проиндексировать пакет сообщений."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не удалось проиндексировать пакет пользователей."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не удалось очистить индексы канала."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не удалось очистить индексы сообщений."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не удалось очистить индексы пользователей."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Поиск каналов не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Поиск сообщений не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не удалось закрыть индекс сообщения."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не удалось закрыть индекс пользователя."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Тайм-аут ожидания ответа кластера"
   },
@@ -4940,14 +4828,6 @@
     "translation": "Неверные AutocompleteData"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableSearching установлено значение true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir должен быть установлен, если для параметра Bleve EnableIndexing установлено значение true"
-  },
-  {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
     "translation": "Неверный атрибут гостя. Должен быть в форме 'поле=значение'."
   },
@@ -4990,10 +4870,6 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Учетная запись бота не может создать другую учетную запись бота."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Ошибка очистки индексов Bleve: движок отключен"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -5244,42 +5120,6 @@
     "translation": "Не удалось получить Условия использования."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve уже запущен."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Ошибка при создании индекса пользователей bleve."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не удалось проиндексировать канал."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не удалось проиндексировать пакет каналов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не удалось запустить задание индексирования Bleve: движок неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время окончания."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Попытка проиндексировать новый пакет, когда все элементы уже были завершены."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не удалось закрыть индекс канала."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
@@ -5322,10 +5162,6 @@
   {
     "id": "model.channel.is_valid.name.app_error",
     "translation": "Имена каналов не могут быть в шестнадцатеричном формате. Пожалуйста, введите другое имя канала."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableAutocomplete установлено значение true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -5729,14 +5565,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Не получилось удалить сообщения канала"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не получилось удалить сообщения пользователя"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Не получилось удалить сообщения канала"
   },
   {
@@ -6492,10 +6320,6 @@
     "translation": "Не удалось получить участников канала."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет каналов для индексации."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Невозможно получить каналы для предоставленной схемы."
   },
@@ -6526,10 +6350,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Не удалось получить сообщения для канала."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет сообщений для индексации."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7084,46 +6904,6 @@
     "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не удалось закрыть индекс файлов."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Поиск файлов не завершился."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не удалось очистить индексы файлов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не удалось проиндексировать пакет файлов."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не удалось проиндексировать файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не удалось удалить пользовательские файлы."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не удалось удалить файлы сообщений."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не удалось удалить файлы."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не удалось удалить файл."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Ошибка при создании индекса bleve-файла."
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "Не удалось обновить поле проверки email-адреса."
   },
@@ -7324,10 +7104,6 @@
     "translation": "Ошибка поиска в сообщениях"
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не удалось получить пакет файлов для индексации."
-  },
-  {
     "id": "app.insert_error",
     "translation": "ошибка insert"
   },
@@ -7398,10 +7174,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Ошибка получения endpoint из Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Ошибка чтения файла из бэкэнда"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -8244,14 +8016,6 @@
     "translation": "Список администраторов пуст."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не удается получить пользователей для архивного канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не удается получить сообщения для архивного канала"
-  },
-  {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
@@ -8360,10 +8124,6 @@
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Самый старый объект (пользователь, канал или сообщение) не может быть извлечен из базы данных."
-  },
-  {
     "id": "app.valid_password_generic.app_error",
     "translation": "Пароль недействителен"
   },
@@ -8458,10 +8218,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -8800,10 +8556,6 @@
     "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS не доступен."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -8830,10 +8582,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -9768,10 +9516,6 @@
     "translation": "Невозможно активировать пользователя. На сервере превышен лимит безопасных пользователей. Обратись к своему администратору с сообщением: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Функция очищения списка недоступна для Bleve."
-  },
-  {
     "id": "model.scheme.is_valid.app_error",
     "translation": "Неверная схема."
   },
@@ -10072,20 +9816,12 @@
     "translation": "Не удалось обновить порядок сортировки закладок канала."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Невозможно получить закладки для заархивированного канала"
-  },
-  {
     "id": "app.delete_scheduled_post.delete_permission.error",
     "translation": "У вас нет разрешения на удаление этого ресурса."
   },
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Невозможно выполнить команду в удаленном канале."
-  },
-  {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "пытаюсь исправить поле, которого не существует"
   },
   {
     "id": "api.context.get_session.app_error",
@@ -10150,10 +9886,6 @@
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
     "translation": "Не удалось восстановить вложения файлов в сообщении."
-  },
-  {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Роли пользователей не соответствуют статусу гостя."
   },
   {
     "id": "app.role.delete.app_error",
@@ -10242,5 +9974,345 @@
   {
     "id": "app.group.license_error",
     "translation": "Требуется лицензия LDAP."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Патч для недействительного поля атрибута пользовательского профиля"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Не удалось удалить запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Невозможно вставить пользовательские поля атрибутов профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Невозможно удалить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Поле Атрибут пользовательского профиля не найдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Невозможно выполнить поиск по полям пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба аутентификации пользователей должна быть LDAP или Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "У вас нет разрешения на обновление этого ресурса."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Невозможно обновить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Слишком много файлов в разделе 'certificate' в запросе."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Не удалось удалить сертификат."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "У пользователя нет необходимых атрибутов, чтобы присоединиться к каналу."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Ограничение на количество каналов недействительно."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Ограничение на получение полей недействительно."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Не удалось добавить сертификат."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Идентификатор канала не совпадает с идентификатором сообщения, отмеченного флагом."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Невозможно добавить разрешение, которое ограничено схемой разрешений команды или системы."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Автоматический перевод для этого канала запрещен."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Функция автоматического перевода недоступна."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Изменений в патче нет."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Невозможно обновить ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Не удалось отправить сообщение об обновлении автоперевода."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s отключил автоперевод для этого канала. Все новые сообщения будут появляться на языке оригинала."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s включил автоперевод для этого канала. Все новые сообщения будут появляться на выбранном тобой языке."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Не удалось получить пользователя при обновлении статуса автоперевода"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Каналы, задействованные в политике, не могут быть обновлены."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Автоперевод не включен для этого канала."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Автоперевод недоступен."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Неверное обновление участника канала: у участника канала всегда есть схема пользователя."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченные ЛС"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Нет разрешения на перемещение команды"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Служба \"Общие каналы\" включена, но не активна."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Аутентификация на основе кукисов не разрешена для этой конечной точки. Используй аутентификацию на основе заголовков."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Пожалуйста, добавь комментарий, объясняющий, почему ты помечаешь это сообщение."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Причина карантина сообщения не может быть длиннее {{.MaxLength}} символов."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Функция обработки утечки данных отключена."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Помещение в карантин сообщения типа '{{.PostType}}' не допускается."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Твоя лицензия не поддерживает функцию обработки утечки данных."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Функция обработки утечки данных не включена в этой команде."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Сообщение, помещенное в карантин, должно находиться в статусе \"Ожидание\" или \"Назначено\", чтобы его можно было сохранить или удалить."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Неизвестная причина, указанная для помещения сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Пожалуйста, выберите причину помещения этого сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Пользователь не является рецензентом контента."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Невозможно сохранить черновик в ограниченном канале личных сообщений"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Обнаружена ошибка при кодировании JSON для ответа API"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Неправильно указан идентификатор сообщения с флагом."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Хук плагина отработал по таймеру"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Загрузка файлов отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Не удалось получить информацию о файле."
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Загрузка предварительного просмотра файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Загрузка миниатюры файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Плагин отклонил загрузку общедоступного файла"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Неверный тип теста: {{.TestType}}"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не удалось вычислить активных пользователей за месяц."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) требуется для общих OAuth-клиентов, использующих поток кодов авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Поставщик услуг OAuth отключен."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Неверная конфигурация URL для метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "URL сайта должен быть настроен на предоставление метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Несоответствие параметров ресурса между запросами на авторизацию и токен."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Невозможно пересоздать пароль для общих OAuth-клиентов."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "При проверке конфигурации директории плагина произошла ошибка."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Невозможно установить плагин: PluginSettings.Directory конфликтует с ImportSettings.Directory."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "У тебя нет разрешения на сожжение этого сообщения. Ты должен быть участником канала."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "При создании сообщения сгораемого при прочтении произошла ошибка."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Невозможно удалить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "В ЛС с ботами или агентами ИИ запрещены сообщения сгораемые при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Произошла ошибка при проверке канала для сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Функция сжигания сообщений при прочтении не включена. Пожалуйста, включите флаг функции и настройки службы."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Для сообщений сгораемых при прочтении требуется лицензия Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Сообщения сгораемые при прочтении запрещены для отправки самому себе."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Произошла ошибка при проверке пользователя на сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Пользователь, сгенерированный ИИ, должен быть либо создателем сообщения, либо ботом."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Невозможно получить метаданные ссылки для постоянной ссылки сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Канал не найден"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Сообщения, сгораемые при прочтении, не могут быть обновлены."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Невозможно обновить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Ты не можешь раскрыть собственное сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Функция при прочтении сжечь не включена или требует лицензии Enterprise Advanced."
   }
 ]

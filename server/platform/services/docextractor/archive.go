@@ -5,13 +5,17 @@ package docextractor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type archiveExtractor struct {
@@ -23,21 +27,29 @@ func (ae *archiveExtractor) Name() string {
 }
 
 func (ae *archiveExtractor) Match(filename string) bool {
-	_, err := archiver.ByExtension(filename)
+	_, _, err := archives.Identify(context.Background(), filename, nil)
 	return err == nil
 }
 
-func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
-	dir, err := os.MkdirTemp(os.TempDir(), "archiver")
+// getExtAlsoTarGz returns the extension of the given file name, special casing .tar.gz.
+func getExtAlsoTarGz(name string) string {
+	if strings.HasSuffix(name, ".tar.gz") {
+		return ".tar.gz"
+	}
+
+	return filepath.Ext(name)
+}
+
+func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+	ext := getExtAlsoTarGz(name)
+
+	// Create a temporary file, using `*` control the random component while preserving the extension.
+	f, err := os.CreateTemp("", "archiver-*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.Remove(f.Name())
 
-	f, err := os.Create(filepath.Join(dir, name))
-	if err != nil {
-		return "", fmt.Errorf("error copying data into temporary file: %v", err)
-	}
 	_, err = io.Copy(f, r)
 	f.Close()
 	if err != nil {
@@ -45,18 +57,45 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 	}
 
 	var text strings.Builder
-	err = archiver.Walk(f.Name(), func(file archiver.File) error {
-		text.WriteString(file.Name() + " ")
+	fsys, err := archives.FileSystem(context.Background(), f.Name(), nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating file system: %w", err)
+	}
+
+	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		text.WriteString(path + " ")
 		if ae.SubExtractor != nil {
-			filename := filepath.Base(file.Name())
+			filename := filepath.Base(path)
 			filename = strings.ReplaceAll(filename, "-", " ")
 			filename = strings.ReplaceAll(filename, ".", " ")
 			filename = strings.ReplaceAll(filename, ",", " ")
-			data, err2 := io.ReadAll(file)
-			if err2 != nil {
-				return err2
+
+			file, err := fsys.Open(path)
+			if err != nil {
+				return err
 			}
-			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data))
+			defer file.Close()
+
+			// Limit the size of decompressed archive entries to prevent
+			// memory exhaustion from zip bombs or other malicious archives.
+			var reader io.Reader = file
+			if maxFileSize > 0 {
+				reader = utils.NewLimitedReaderWithError(file, maxFileSize)
+			}
+
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return fmt.Errorf("error reading archive entry %s: %w", path, err)
+			}
+
+			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize)
 			if extractErr == nil {
 				text.WriteString(subtext + " ")
 			}

@@ -25,13 +25,23 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, appErr
 	}
 
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
 	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 	if err != nil {
-		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostCreated, savedScheduledPost, connectionId)
@@ -42,7 +52,7 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError) {
 	scheduledPosts, err := a.Srv().Store().ScheduledPost().GetScheduledPostsForUser(userId, teamId)
 	if err != nil {
-		return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if scheduledPosts == nil {
@@ -63,18 +73,13 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, validationErr
 	}
 
-	// validate the scheduled post belongs to the said user
 	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
 	if err != nil {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if existingScheduledPost == nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusNotFound)
-	}
-
-	if existingScheduledPost.UserId != userId {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update_permission.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusForbidden)
 	}
 
 	// This step is not required for update but is useful as we want to return the
@@ -82,7 +87,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
 
 	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(scheduledPost); err != nil {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, scheduledPost, connectionId)
@@ -93,19 +98,15 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	scheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPostId)
 	if err != nil {
-		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if scheduledPost == nil {
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusNotFound)
 	}
 
-	if scheduledPost.UserId != userId {
-		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_permission.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusForbidden)
-	}
-
 	if err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts([]string{scheduledPostId}); err != nil {
-		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, connectionId)

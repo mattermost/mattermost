@@ -531,7 +531,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     id={'add_outgoing_oauth_connection.documentation_link'}
                     defaultMessage={'Get help with <link>configuring outgoing OAuth connections</link>.'}
                     values={{
-                        link: (text: string) => (
+                        link: (text) => (
                             <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                         ),
                     }}
@@ -576,7 +576,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                     id={'add_outgoing_oauth_connection.validation_error'}
                     defaultMessage={'Connection not validated. Please check the server logs for details or <link>try again</link>.'}
                     values={{
-                        link: (text: string) => <a onClick={setUnvalidated}>{text}</a>,
+                        link: (text) => <a onClick={setUnvalidated}>{text}</a>,
                     }}
                 />
             </span>

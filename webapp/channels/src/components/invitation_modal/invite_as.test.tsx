@@ -27,6 +27,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         setInviteAs: jest.fn(),
         inviteType: InviteType.MEMBER,
         titleClass: 'title',
+        canInviteGuests: true,
     };
 
     const state = {
@@ -348,5 +349,168 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
 
         const badgeText = wrapper.find('.Tag span.tag-text').text();
         expect(badgeText).toBe('Professional feature');
+    });
+
+    test('guest radio-button is disabled when canInviteGuests prop is false', () => {
+        const propsWithCanInviteGuestsFalse = {
+            ...props,
+            canInviteGuests: false,
+        };
+
+        // Use a state where normally guests would be allowed (paid subscription)
+        const paidState = {
+            entities: {
+                admin: {
+                    prevTrialLicense: {
+                        IsLicensed: 'true',
+                    },
+                },
+                general: {
+                    config: {
+                        BuildEnterpriseReady: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                        SkuShortName: 'professional',
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'false',
+                        trial_end_at: 0,
+                        sku: 'professional',
+                        product_id: 'cloud-professional-id',
+                    },
+                    products: {
+                        'cloud-professional-id': {
+                            sku: 'professional',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {roles: 'system_admin'},
+                    },
+                },
+            },
+        };
+        const store = mockStore(paidState);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteAs {...propsWithCanInviteGuestsFalse}/>
+            </Provider>,
+        );
+
+        const guestRadioButton = wrapper.find('input[value="GUEST"]');
+        expect(guestRadioButton.props().disabled).toBe(true);
+    });
+
+    test('guest radio-button is enabled when canInviteGuests prop is true and other conditions allow it', () => {
+        const propsWithCanInviteGuestsTrue = {
+            ...props,
+            canInviteGuests: true,
+        };
+
+        // Use a state where guests would be allowed (paid subscription)
+        const paidState = {
+            entities: {
+                admin: {
+                    prevTrialLicense: {
+                        IsLicensed: 'true',
+                    },
+                },
+                general: {
+                    config: {
+                        BuildEnterpriseReady: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                        SkuShortName: 'professional',
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'false',
+                        trial_end_at: 0,
+                        sku: 'professional',
+                        product_id: 'cloud-professional-id',
+                    },
+                    products: {
+                        'cloud-professional-id': {
+                            sku: 'professional',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {roles: 'system_admin'},
+                    },
+                },
+            },
+        };
+        const store = mockStore(paidState);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteAs {...propsWithCanInviteGuestsTrue}/>
+            </Provider>,
+        );
+
+        const guestRadioButton = wrapper.find('input[value="GUEST"]');
+        expect(guestRadioButton.props().disabled).toBe(false);
+    });
+
+    test('guest radio-button is disabled when canInviteGuests prop is undefined and defaults to system behavior', () => {
+        // Test with starter plan where guests should be disabled by default
+        const state = {
+            entities: {
+                admin: {
+                    prevTrialLicense: {
+                        IsLicensed: 'false',
+                    },
+                },
+                general: {
+                    config: {
+                        BuildEnterpriseReady: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                        SkuShortName: CloudProducts.STARTER,
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'false',
+                        trial_end_at: 0,
+                        sku: CloudProducts.STARTER,
+                        product_id: 'cloud-starter-id',
+                    },
+                    products: {
+                        'cloud-starter-id': {
+                            sku: CloudProducts.STARTER,
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {roles: 'system_admin'},
+                    },
+                },
+            },
+        };
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteAs {...props}/>
+            </Provider>,
+        );
+
+        const guestRadioButton = wrapper.find('input[value="GUEST"]');
+        expect(guestRadioButton.props().disabled).toBe(true);
     });
 });

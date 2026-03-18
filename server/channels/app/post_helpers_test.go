@@ -13,7 +13,8 @@ import (
 )
 
 func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
-	var postFromCreateAt = func(at int64) *model.Post {
+	mainHelper.Parallel(t)
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -193,16 +194,21 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 }
 
 func TestFilterInaccessiblePosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+
+	// Set up license with PostHistory limits to enable post filtering
+	cloudLicenseWithLimits := model.NewTestLicense("cloud")
+	cloudLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 100}
+	th.App.Srv().SetLicense(cloudLicenseWithLimits)
+
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
+	require.NoError(t, err)
 
-	defer th.TearDown()
-
-	var postFromCreateAt = func(at int64) *model.Post {
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -321,16 +327,20 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 }
 
 func TestGetFilteredAccessiblePosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+
+	entryLicenseWithLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 100}
+	th.App.Srv().SetLicense(entryLicenseWithLimits)
+
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
+	require.NoError(t, err)
 
-	defer th.TearDown()
-
-	var postFromCreateAt = func(at int64) *model.Post {
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -362,14 +372,19 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 }
 
 func TestIsInaccessiblePost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+
+	// Set up license with PostHistory limits to enable post filtering
+	entryLicenseWithLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 100}
+	th.App.Srv().SetLicense(entryLicenseWithLimits)
+
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
-
-	defer th.TearDown()
+	require.NoError(t, err)
 
 	post := &model.Post{CreateAt: 3}
 	firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(post)
@@ -383,6 +398,7 @@ func TestIsInaccessiblePost(t *testing.T) {
 }
 
 func Test_getInaccessibleRange(t *testing.T) {
+	mainHelper.Parallel(t)
 	type test struct {
 		label         string
 		bounds        accessibleBounds
@@ -408,4 +424,40 @@ func Test_getInaccessibleRange(t *testing.T) {
 			assert.Equal(t, test.expectedEnd, end)
 		})
 	}
+}
+
+func TestRevealBurnOnReadPostsForUser(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+
+	t.Run("skips deleted burn-on-read post", func(t *testing.T) {
+		deletedPost := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "deleted burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+			DeleteAt:  model.GetMillis(),
+			CreateAt:  model.GetMillis(),
+		}
+
+		postList := model.NewPostList()
+		postList.AddPost(deletedPost)
+
+		resultList, appErr := th.App.revealBurnOnReadPostsForUser(th.Context, postList, th.BasicUser2.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, resultList)
+		// The deleted post should remain in BurnOnReadPosts but not be processed
+		assert.Contains(t, resultList.BurnOnReadPosts, deletedPost.Id)
+		// Verify the post was not modified (still has DeleteAt set)
+		assert.Equal(t, deletedPost.DeleteAt, resultList.BurnOnReadPosts[deletedPost.Id].DeleteAt)
+		assert.Equal(t, deletedPost.Message, resultList.BurnOnReadPosts[deletedPost.Id].Message)
+	})
 }

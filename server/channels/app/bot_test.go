@@ -15,10 +15,10 @@ import (
 )
 
 func TestCreateBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "invalid username",
@@ -30,8 +30,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("relative to bot", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			_, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "username",
@@ -43,8 +42,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("username contains . character", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
 				Username:    "username.",
@@ -57,8 +55,8 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("username missing", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
+
 			bot, err := th.App.CreateBot(th.Context, &model.Bot{
 				Description: "a bot",
 				OwnerId:     th.BasicUser.Id,
@@ -70,8 +68,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -93,7 +90,7 @@ func TestCreateBot(t *testing.T) {
 		// Check that a post was created to add bot to team and channels
 		channel, err := th.App.getOrCreateDirectChannelWithUser(th.Context, user, th.BasicUser)
 		require.Nil(t, err)
-		posts, err := th.App.GetPosts(channel.Id, 0, 1)
+		posts, err := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 		require.Nil(t, err)
 
 		postArray := posts.ToSlice()
@@ -102,8 +99,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    th.BasicUser.Username,
@@ -116,9 +112,10 @@ func TestCreateBot(t *testing.T) {
 }
 
 func TestEnsureBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		pluginId := "pluginId"
 
 		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
@@ -151,8 +148,8 @@ func TestEnsureBot(t *testing.T) {
 	})
 
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		pluginId := "pluginId"
 
 		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
@@ -190,9 +187,9 @@ func TestEnsureBot(t *testing.T) {
 }
 
 func TestPatchBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid patch for user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -217,8 +214,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("invalid patch for bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -243,8 +239,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot := &model.Bot{
 			Username:    "username",
@@ -280,8 +275,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -306,8 +300,8 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	bot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -376,8 +370,8 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup(t).DeleteBots()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).DeleteBots(t)
 
 	OwnerId1 := model.NewId()
 	OwnerId2 := model.NewId()
@@ -586,9 +580,9 @@ func TestGetBots(t *testing.T) {
 }
 
 func TestUpdateBotActive(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("unknown bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, err := th.App.UpdateBotActive(th.Context, model.NewId(), false)
 		require.NotNil(t, err)
@@ -596,8 +590,7 @@ func TestUpdateBotActive(t *testing.T) {
 	})
 
 	t.Run("disable/enable bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -631,8 +624,8 @@ func TestUpdateBotActive(t *testing.T) {
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -649,8 +642,8 @@ func TestPermanentDeleteBot(t *testing.T) {
 }
 
 func TestDisableUserBots(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	ownerId1 := model.NewId()
 	ownerId2 := model.NewId()
@@ -663,7 +656,7 @@ func TestDisableUserBots(t *testing.T) {
 		}
 	}()
 
-	for i := 0; i < 46; i++ {
+	for i := range 46 {
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
@@ -710,8 +703,8 @@ func TestDisableUserBots(t *testing.T) {
 }
 
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	userBots := []*model.Bot{}
 	defer func() {
@@ -727,7 +720,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -738,7 +732,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -766,7 +761,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// create bots owned by user (equal to numBotsToPrint)
 	var bot *model.Bot
-	for i := 0; i < numBotsToPrint; i++ {
+	for i := range numBotsToPrint {
 		bot, err = th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("bot%v", i),
 			Description: "a bot",
@@ -788,11 +783,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1 and sysadmin2 DM channels
-	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err := th.App.GetPosts(th.Context, channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts1.Order)
 
-	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err := th.App.GetPosts(th.Context, channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts2.Order)
 
@@ -801,11 +796,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1  and sysadmin2 DM channels
-	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err = th.App.GetPosts(th.Context, channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts1.Order, 1)
 
-	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err = th.App.GetPosts(th.Context, channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts2.Order, 1)
 
@@ -846,10 +841,10 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 }
 
 func TestConvertUserToBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "username",
@@ -860,8 +855,7 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 
 		t.Run("invalid username", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "invalid username",
@@ -873,8 +867,7 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 
 	t.Run("valid user and session revoked", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, err)
@@ -901,12 +894,59 @@ func TestConvertUserToBot(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
+
+	t.Run("user with oauth credentials", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a user first
+		oauthUser := &model.User{
+			Email:         "oauth_user@example.com",
+			Username:      "oauth_user",
+			Password:      "password",
+			EmailVerified: true,
+		}
+
+		oauthUser, err := th.App.CreateUser(th.Context, oauthUser)
+		require.Nil(t, err)
+
+		// Set OAuth credentials
+		authData := "google_auth_data"
+		userAuth := &model.UserAuth{
+			AuthData:    &authData,
+			AuthService: "google",
+		}
+		_, err = th.App.UpdateUserAuth(th.Context, oauthUser.Id, userAuth)
+		require.Nil(t, err)
+
+		// Verify OAuth credentials are set
+		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "google", oauthUser.AuthService)
+		require.NotNil(t, oauthUser.AuthData)
+
+		// Convert user to bot
+		bot, err := th.App.ConvertUserToBot(th.Context, oauthUser)
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		// Get updated user and verify OAuth credentials are cleared
+		updatedUser, err := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, err)
+		assert.Empty(t, updatedUser.AuthService)
+		// AuthData may be empty string instead of nil in the database
+		if updatedUser.AuthData != nil {
+			assert.Empty(t, *updatedUser.AuthData)
+		}
+	})
 }
 
 func TestGetSystemBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
@@ -915,8 +955,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, "app.bot.get_system_bot.empty_admin_list.app_error", err.Id)
 	})
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
 		// assert no bot with username exists
@@ -938,5 +977,173 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
+	})
+}
+
+func TestIsBotExemptFromDMRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("bot owned by current user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+
+	t.Run("bot owned by different user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("invalid bot ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, model.NewId())
+		require.NotNil(t, appErr)
+		assert.False(t, owned)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", appErr.Id)
+	})
+
+	t.Run("bot owned by plugin when no plugins environment", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "test-plugin-id"
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("bot owned by plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "com.mattermost.testplugin"
+		pluginCode := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+		pluginManifest := `{"id": "com.mattermost.testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+
+	t.Run("system bot is always exempt regardless of session", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Exempt even with an empty context (background job with no session)
+		exempt, appErr := th.App.IsBotExemptFromDMRestrictions(th.Context, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
+
+		// Exempt even when the session belongs to an unrelated non-admin user
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		exempt, appErr = th.App.IsBotExemptFromDMRestrictions(rctx, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
 	})
 }

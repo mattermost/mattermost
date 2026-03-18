@@ -14,8 +14,8 @@ import (
 )
 
 func TestGetAncillaryPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	var subsectionPermissions []string
 	var expectedAncillaryPermissions []string

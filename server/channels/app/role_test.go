@@ -4,8 +4,8 @@
 package app
 
 import (
-	"context"
 	"encoding/csv"
+	"errors"
 	"io"
 	"os"
 	"slices"
@@ -13,9 +13,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 type permissionInheritanceTestData struct {
@@ -28,6 +30,7 @@ type permissionInheritanceTestData struct {
 }
 
 func TestGetRolesByNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetRolesByNames([]string{testData.channelRole.Name})
 		require.Nil(t, err)
@@ -42,8 +45,9 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		actualRole, err := th.App.GetRoleByName(context.Background(), testData.channelRole.Name)
+		actualRole, err := th.App.GetRoleByName(th.Context, testData.channelRole.Name)
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
@@ -52,6 +56,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRoleByID(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRole, err := th.App.GetRole(testData.channelRole.Id)
 		require.Nil(t, err)
@@ -62,6 +67,7 @@ func TestGetRoleByID(t *testing.T) {
 }
 
 func TestGetAllRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetAllRoles()
 		require.Nil(t, err)
@@ -77,8 +83,7 @@ func TestGetAllRoles(t *testing.T) {
 
 // testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -120,14 +125,14 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 		require.Nil(t, appErr)
 	}()
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 	defer func() {
 		appErr = th.App.PermanentDeleteTeamId(th.Context, team.Id)
 		require.Nil(t, appErr)
 	}()
 
 	// Make a channel
-	channel := th.CreateChannel(th.Context, team)
+	channel := th.CreateChannel(t, team)
 	defer func() {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)
@@ -187,7 +192,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				// add or remove the permission from the higher-scoped scheme
-				higherScopedRole, testErr := th.App.GetRoleByName(context.Background(), roleNameUnderTest)
+				higherScopedRole, testErr := th.App.GetRoleByName(th.Context, roleNameUnderTest)
 				require.Nil(t, testErr)
 
 				var higherScopedPermissions []string
@@ -209,7 +214,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				case higherScopedAdmin:
 					channelRoleName = channelScheme.DefaultChannelAdminRole
 				}
-				channelRole, testErr := th.App.GetRoleByName(context.Background(), channelRoleName)
+				channelRole, testErr := th.App.GetRoleByName(th.Context, channelRoleName)
 				require.Nil(t, testErr)
 
 				// add or remove the permission from the channel scheme
@@ -256,4 +261,226 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// test 24 combinations where the higher-scoped scheme is a TEAM scheme
 	test(teamScheme.DefaultChannelGuestRole, teamScheme.DefaultChannelUserRole, teamScheme.DefaultChannelAdminRole)
+}
+
+func TestSendUpdatedRoleEvent(t *testing.T) {
+	t.Run("BuiltIn role broadcasts globally without a DB lookup", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		role := &model.Role{Name: model.TeamAdminRoleId, BuiltIn: true}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockSchemeStore.AssertNotCalled(t, "Get", mock.Anything)
+	})
+
+	t.Run("Team scheme role calls GetTeamsByScheme and emits per-team events", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}
+		teams := []*model.Team{{Id: model.NewId()}, {Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 0, 1000).Return(teams, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockSchemeStore.AssertCalled(t, "Get", schemeID)
+		mockTeamStore.AssertCalled(t, "GetTeamsByScheme", schemeID, 0, 1000)
+	})
+
+	t.Run("Channel scheme role calls GetChannelsByScheme and emits per-channel events", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
+		channels := model.ChannelList{{Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(channels, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockSchemeStore.AssertCalled(t, "Get", schemeID)
+		mockChannelStore.AssertCalled(t, "GetChannelsByScheme", schemeID, 0, 1000)
+	})
+
+	t.Run("Role not in any scheme broadcasts globally", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		role := &model.Role{Name: model.NewId(), BuiltIn: false, SchemeId: nil}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockSchemeStore.AssertNotCalled(t, "Get", mock.Anything)
+		mockTeamStore.AssertNotCalled(t, "GetTeamsByScheme", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("Playbook scope falls back to global broadcast without querying teams or channels", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopePlaybook}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockTeamStore.AssertNotCalled(t, "GetTeamsByScheme", mock.Anything, mock.Anything, mock.Anything)
+		mockChannelStore.AssertNotCalled(t, "GetChannelsByScheme", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("Scheme store error is logged and skips broadcast", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, errors.New("db error"))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("GetTeamsByScheme store error propagates as AppError", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 0, 1000).Return(nil, errors.New("db error"))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("Team scheme paginates across multiple pages", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}
+
+		// Build a full first page (1000 teams) and a partial second page (2 teams).
+		page1 := make([]*model.Team, 1000)
+		for i := range page1 {
+			page1[i] = &model.Team{Id: model.NewId()}
+		}
+		page2 := []*model.Team{{Id: model.NewId()}, {Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockTeamStore := mocks.TeamStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 0, 1000).Return(page1, nil)
+		mockTeamStore.On("GetTeamsByScheme", schemeID, 1000, 1000).Return(page2, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		role := &model.Role{Name: model.NewId(), BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockTeamStore.AssertCalled(t, "GetTeamsByScheme", schemeID, 0, 1000)
+		mockTeamStore.AssertCalled(t, "GetTeamsByScheme", schemeID, 1000, 1000)
+	})
+
+	t.Run("Channel scheme paginates across multiple pages", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
+
+		page1 := make(model.ChannelList, 1000)
+		for i := range page1 {
+			page1[i] = &model.Channel{Id: model.NewId()}
+		}
+		page2 := model.ChannelList{{Id: model.NewId()}, {Id: model.NewId()}, {Id: model.NewId()}}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(page1, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 1000, 1000).Return(page2, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.Nil(t, appErr)
+		mockChannelStore.AssertCalled(t, "GetChannelsByScheme", schemeID, 0, 1000)
+		mockChannelStore.AssertCalled(t, "GetChannelsByScheme", schemeID, 1000, 1000)
+	})
+
+	t.Run("GetChannelsByScheme store error propagates as AppError", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupWithStoreMock(t)
+
+		schemeID := model.NewId()
+		roleName := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Scope: model.SchemeScopeChannel}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1000).Return(nil, errors.New("db error"))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
+		appErr := th.App.sendUpdatedRoleEvent(role)
+		require.NotNil(t, appErr)
+	})
 }

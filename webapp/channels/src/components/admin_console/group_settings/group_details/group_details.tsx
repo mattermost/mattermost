@@ -68,7 +68,7 @@ export type Props = {
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: SyncablePatch
+            patch: Partial<SyncablePatch>
         ) => Promise<ActionResult>;
         patchGroup: (id: string, patch: GroupPatch) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => {
@@ -479,7 +479,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                     serverError = (
                         <FormattedMessage
                             id='admin.group_settings.group_detail.invalidOrReservedMentionNameError'
-                            defaultMessage='Only letters (a-z), numbers(0-9), periods, dashes and underscores are allowed.'
+                            defaultMessage='Only letters (a-z), numbers (0-9), periods, dashes and underscores are allowed.'
                         />
                     );
                 } else if (
@@ -531,7 +531,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                             this.props.groupID,
                             syncableID,
                             syncableType,
-                            {scheme_admin: value, auto_add: false},
+                            {scheme_admin: value},
                         ),
                     );
                 }

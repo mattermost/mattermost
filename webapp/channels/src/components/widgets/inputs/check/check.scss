@@ -7,7 +7,12 @@
     margin-top: 24px;
     margin-bottom: 32px;
 
+    label {
+        cursor: pointer;
+    }
+
     .text {
+        padding-top: 2px;
         margin-left: 8px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
@@ -17,6 +22,7 @@
 
         .header {
             display: block;
+            margin-bottom: 8px;
             color: var(--center-channel-color);
         }
     }

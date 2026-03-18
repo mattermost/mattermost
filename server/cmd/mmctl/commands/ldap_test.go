@@ -22,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -39,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -65,21 +65,6 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Sync with includeRemoveMembers", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("include-removed-members", true, "")
-
-		s.client.
-			EXPECT().
-			SyncLdap(context.TODO(), true).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		err := ldapSyncCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
 	})
 }
 
@@ -245,14 +230,14 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.Run("more elements then the limit match", func() {
 			var mockJobs []*model.Job
-			for i := 0; i < 100; i++ {
+			for i := range 100 {
 				mockJobs = append(mockJobs, &model.Job{
 					Id: fmt.Sprintf("id_%d", i),
 				})
 			}
 
 			var expected []string
-			for i := 0; i < shellCompletionMaxItems; i++ {
+			for i := range shellCompletionMaxItems {
 				expected = append(expected, fmt.Sprintf("id_%d", i))
 			}
 

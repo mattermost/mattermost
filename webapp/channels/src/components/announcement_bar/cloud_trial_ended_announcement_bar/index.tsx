@@ -42,7 +42,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
     );
     const subscriptionProduct = useSelector((state: GlobalState) => getSubscriptionProduct(state));
 
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal} = useOpenPricingModal();
 
     const shouldShowBanner = () => {
         if (!subscription || !subscriptionProduct) {
@@ -106,7 +106,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
-            onButtonClick={() => openPricingModal({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
+            onButtonClick={() => openPricingModal()}
             modalButtonText={messages.moreDetails}
             message={<FormattedMessage {...messages.downgraded}/>}
             showLinkAsButton={true}

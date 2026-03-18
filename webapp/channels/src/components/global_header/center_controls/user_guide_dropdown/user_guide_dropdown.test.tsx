@@ -3,23 +3,12 @@
 
 import React from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import UserGuideDropdown from './user_guide_dropdown';
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
 
 describe('components/channel_header/components/UserGuideDropdown', () => {
     const baseProps = {
@@ -91,15 +80,6 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
 
         wrapper.find(Menu.ItemAction).find('#keyboardShortcuts').prop('onClick')!({preventDefault: jest.fn()} as unknown as React.MouseEvent);
         expect(baseProps.actions.openModal).toHaveBeenCalled();
-    });
-
-    test('Should call for track event on click of askTheCommunityLink', () => {
-        const wrapper = shallowWithIntl(
-            <UserGuideDropdown {...baseProps}/>,
-        );
-
-        wrapper.find(Menu.ItemExternalLink).find('#askTheCommunityLink').prop('onClick')!({} as unknown as React.MouseEvent);
-        expect(trackEvent).toBeCalledWith('ui', 'help_ask_the_community');
     });
 
     test('should have plugin menu items appended to the menu', () => {

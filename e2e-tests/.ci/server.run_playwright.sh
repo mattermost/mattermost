@@ -35,21 +35,20 @@ EOF
 # Enable next line to debug Playwright
 # export DEBUG=pw:protocol,pw:browser,pw:api
 
+mme2e_log "Start LibreTranslate mock server for autotranslation tests"
+${MME2E_DC_SERVER} exec -u "$MME2E_UID" -d -- playwright bash -c "cd e2e-tests/playwright && npm run start:libretranslate-mock" || true
+
+mme2e_log "Wait for LibreTranslate mock server to be ready"
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..30}; do curl -s http://localhost:3010/ && exit 0; sleep 1; done; echo 'Mock server failed to start'; exit 1" || true
+
 # Run Playwright test
 # NB: do not exit the script if some testcases fail
-${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log || true
+${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER} ${PW_SHARD:-}" | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
-# NB: the following line is needed only for compatibility reasons, to support RollingRelease tests for versions prior to v10.1.0
-#     It can be removed after releases <=v10.0.x are phased out
-mv -v ../playwright/playwright-report/results.json ../playwright/results/reporter/results.json 2>/dev/null || true
 
-# NB: the following line is needed only for compatibility reasons, to support RollingRelease tests for versions prior to v10.6.0
-#     It can be removed once 10.5 (ESR) is no longer supported
-mv -v ../playwright/test/results/ ../playwright/ 2>/dev/null || true
-
-jq -f /dev/stdin ../playwright/results/reporter/results.json > ../playwright/results/summary.json <<EOF
+jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
 {
   passed: .stats.expected,
   failed: .stats.unexpected,

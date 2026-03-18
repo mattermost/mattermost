@@ -3,6 +3,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {ChainableT} from 'tests/types';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../support/env';
 import {SimpleUser} from '../../autocomplete/helpers';

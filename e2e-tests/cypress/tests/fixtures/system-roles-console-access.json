@@ -310,11 +310,5 @@
     "system_manager": "none",
     "system_user_manager": "none",
     "system_read_only_admin": "read"
-  },
-  {
-    "section": "experimental.bleve",
-    "system_manager": "none",
-    "system_user_manager": "none",
-    "system_read_only_admin": "read"
   }
 ]

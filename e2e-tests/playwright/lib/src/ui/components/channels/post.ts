@@ -51,6 +51,19 @@ export default class ChannelsPost {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
 
+    async openAThread() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.replyButton.waitFor();
+        await this.postMenu.replyButton.click();
+    }
+
+    async reply() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.reply();
+    }
+
     /**
      * Clicks on the deleted post's remove 'x' button.
      * Also verifies that the post is a deleted post.
@@ -71,5 +84,13 @@ export default class ChannelsPost {
      */
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
+    }
+
+    /**
+     * `toNotContainText` verifies if the post does not contain the specified text.
+     * @param text Text to be verified not in the post
+     */
+    async toNotContainText(text: string) {
+        await expect(this.container).not.toContainText(text);
     }
 }

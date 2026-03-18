@@ -67,7 +67,7 @@ const CopyButton = styled(Button)`
     }
 
     &.success {
-        background: var(--denim-status-online);
+        background: var(--online-indicator);
         color: var(--button-color);
 
         & i {
@@ -83,6 +83,7 @@ export interface Props {
     isFavorite: boolean;
     isMuted: boolean;
     isInvitingPeople: boolean;
+    isArchived?: boolean;
 
     canAddPeople: boolean;
 
@@ -99,6 +100,7 @@ export default function TopButtons({
     isFavorite,
     isMuted,
     isInvitingPeople,
+    isArchived = false,
     canAddPeople: propsCanAddPeople,
     actions,
 }: Props) {
@@ -109,7 +111,7 @@ export default function TopButtons({
         successCopyTimeout: 1000,
     });
 
-    const canAddPeople = ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL;
+    const canAddPeople = !isArchived && (([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL);
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 

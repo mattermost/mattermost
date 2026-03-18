@@ -28,7 +28,6 @@ import (
 
 func TestGetPing(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
@@ -111,8 +110,8 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	audits, _, err := th.SystemAdminClient.GetAudits(context.Background(), 0, 100, "")
@@ -143,8 +142,8 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	dir, err := os.MkdirTemp("", "")
@@ -224,16 +223,17 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	t.Run("system admin and local client can generate Support Packet", func(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-			file, filename, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			file, filename, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 			require.NoError(t, err)
 
 			assert.Contains(t, filename, "mm_support_packet_My_awesome_Company_")
@@ -241,6 +241,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 			d, err := io.ReadAll(file)
 			require.NoError(t, err)
 			assert.NotZero(t, len(d))
+
+			// Verify that the Cache-Control header is set to prevent caching
+			assert.Equal(t, "no-cache, no-store, must-revalidate", resp.Header.Get("Cache-Control"))
 		})
 	})
 
@@ -283,6 +286,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestSupportPacketFileName(t *testing.T) {
+	mainHelper.Parallel(t)
 	tests := map[string]struct {
 		now          time.Time
 		customerName string
@@ -314,8 +318,8 @@ func TestSupportPacketFileName(t *testing.T) {
 }
 
 func TestSiteURLTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -360,8 +364,8 @@ func TestSiteURLTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -385,8 +389,8 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -410,10 +414,10 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		th.TestLogger.Info(strconv.Itoa(i))
 	}
 
@@ -458,10 +462,10 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestDownloadLogs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		th.TestLogger.Info(strconv.Itoa(i))
 	}
 	err := th.TestLogger.Flush()
@@ -475,7 +479,7 @@ func TestDownloadLogs(t *testing.T) {
 		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
 
 		bodyString := string(resData)
-		for i := 0; i < 20; i++ {
+		for i := range 20 {
 			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
 		}
 	})
@@ -500,8 +504,8 @@ func TestDownloadLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	enableDev := *th.App.Config().ServiceSettings.EnableDeveloper
@@ -542,8 +546,8 @@ func TestPostLog(t *testing.T) {
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	rows, resp, err := client.GetAnalyticsOld(context.Background(), "", "")
@@ -595,8 +599,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(1), rows2[5].Value)
-
 	WebSocketClient.Close()
+
+	// Give it a second for internal webhub counters to be updated after the client disconnects.
+	// Test can be flaky otherwise.
+	time.Sleep(time.Second)
 
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
@@ -612,8 +619,8 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	s3Host := os.Getenv("CI_MINIO_HOST")
@@ -697,8 +704,8 @@ func TestS3TestConnection(t *testing.T) {
 }
 
 func TestSupportedTimezones(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	supportedTimezonesFromConfig := th.App.Timezones().GetSupported()
@@ -709,6 +716,7 @@ func TestSupportedTimezones(t *testing.T) {
 }
 
 func TestRedirectLocation(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := "https://mattermost.com/wp-content/themes/mattermostv2/img/logo-light.svg"
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -722,7 +730,6 @@ func TestRedirectLocation(t *testing.T) {
 	mockBitlyLink := testServer.URL
 
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
 	defer func() {
@@ -799,8 +806,8 @@ func TestRedirectLocation(t *testing.T) {
 }
 
 func TestSetServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	const secs = 30
 
@@ -819,8 +826,8 @@ func TestSetServerBusy(t *testing.T) {
 }
 
 func TestSetServerBusyInvalidParam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
@@ -834,8 +841,8 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 }
 
 func TestClearServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
@@ -854,8 +861,8 @@ func TestClearServerBusy(t *testing.T) {
 }
 
 func TestGetServerBusy(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
@@ -874,8 +881,8 @@ func TestGetServerBusy(t *testing.T) {
 }
 
 func TestServerBusy503(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
@@ -900,13 +907,6 @@ func TestServerBusy503(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
-	t.Run("search archived channels while busy", func(t *testing.T) {
-		cs := &model.ChannelSearch{}
-		_, resp, err := th.SystemAdminClient.SearchArchivedChannels(context.Background(), "foo", cs)
-		require.Error(t, err)
-		CheckServiceUnavailableStatus(t, resp)
-	})
-
 	th.App.Srv().Platform().Busy.Clear()
 
 	t.Run("search users while not busy", func(t *testing.T) {
@@ -917,11 +917,13 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
-	th := Setup(t).InitBasic()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
 	api, err := Init(th.Server)
 	require.NoError(t, err)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	defer th.TearDown()
+	session, appErr := th.App.GetSession(th.Client.AuthToken)
+	require.Nil(t, appErr)
 
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
 		handler := api.APIHandler(pushNotificationAck)
@@ -935,8 +937,8 @@ func TestPushNotificationAck(t *testing.T) {
 	})
 
 	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
-		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
-		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
+		privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 
 		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
@@ -1010,8 +1012,8 @@ func TestPushNotificationAck(t *testing.T) {
 }
 
 func TestCompleteOnboarding(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")
 	signatureFilename := "testplugin2.tar.gz.sig"
@@ -1143,8 +1145,8 @@ func TestCompleteOnboarding(t *testing.T) {
 }
 
 func TestGetAppliedSchemaMigrations(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as a regular user", func(t *testing.T) {
 		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
@@ -1155,7 +1157,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	t.Run("as a system manager role", func(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
 		require.Nil(t, appErr)
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)
@@ -1170,6 +1172,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 }
 
 func TestCheckHasNilFields(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("check if the empty struct has nil fields", func(t *testing.T) {
 		var s model.FileSettings
 		res := checkHasNilFields(&s)

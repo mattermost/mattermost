@@ -3,12 +3,16 @@
 
 import React from 'react';
 
+import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Posts} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
+import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -38,6 +42,7 @@ describe('PostComponent', () => {
         replyCount: 0,
         team: currentTeam,
         pluginActions: [],
+        burnOnReadDurationMinutes: 10,
         actions: {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
@@ -47,7 +52,12 @@ describe('PostComponent', () => {
             closeRightHandSide: jest.fn(),
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     describe('reactions', () => {
@@ -273,43 +283,43 @@ describe('PostComponent', () => {
                 replyCount: 1,
             };
 
-            test('should select post in RHS when clicked in center channel', () => {
+            test('should select post in RHS when clicked in center channel', async () => {
                 renderWithContext(<PostComponent {...propsForRootPost}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
             });
 
-            test('should select post in RHS when clicked in center channel in a DM/GM', () => {
+            test('should select post in RHS when clicked in center channel in a DM/GM', async () => {
                 const props = {
                     ...propsForRootPost,
                     team: undefined,
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
-            test('should select post in RHS when clicked in a search result on the current team', () => {
+            test('should select post in RHS when clicked in a search result on the current team', async () => {
                 const props = {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
-            test('should jump to post when clicked in a search result on another team', () => {
+            test('should jump to post when clicked in a search result on another team', async () => {
                 const props = {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
@@ -317,10 +327,70 @@ describe('PostComponent', () => {
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
                 expect(getHistory().push).toHaveBeenCalled();
+            });
+
+            test('should navigate within popout when clicking reply on a search result in a popout window', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining(`/_popout/thread/${currentTeam.name}/${rootPost.id}`),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should navigate within popout on cross-team reply click instead of jumping', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    team: TestHelper.getTeamMock({id: 'another_team'}),
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(getHistory().push).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining('/_popout/thread/'),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should not navigate within popout when not a search result item', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.CENTER,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(getHistory().replace).not.toHaveBeenCalled();
+
+                jest.restoreAllMocks();
             });
         });
     });
@@ -366,7 +436,7 @@ describe('PostComponent', () => {
             expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
         });
 
-        test('should show file list in edit container when editing', () => {
+        test('should show file list in edit container when editing', async () => {
             const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
             const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
             const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
@@ -457,6 +527,198 @@ describe('PostComponent', () => {
 
             // additionally, files should not be visible outside the advanced text editor
             expect(screen.queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('priority labels', () => {
+        test('should show priority label for non-deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should show priority label for non-deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for post without priority metadata', () => {
+            const post = TestHelper.getPostMock();
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('AI-generated indicator', () => {
+        const aiGeneratedPost = TestHelper.getPostMock({
+            channel_id: channel.id,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        test('should show AI-generated indicator for AI posts in non-compact mode', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+
+        test('should not show AI-generated indicator for regular posts', () => {
+            const regularPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+            });
+            const props = {
+                ...baseProps,
+                post: regularPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should not show AI-generated indicator for consecutive posts', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: true,
+                location: Locations.CENTER,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            // In compact CENTER mode, indicator is rendered by PostUserProfile (after username)
+            // Verify it appears exactly once
+            const indicators = screen.queryAllByLabelText(/AI-generated|Message posted by/);
+            expect(indicators.length).toBe(1);
+        });
+
+        test('should hide AI-generated indicator for consecutive posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator for non-consecutive posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
     });
 });

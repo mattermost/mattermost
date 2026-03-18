@@ -31,6 +31,14 @@ const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
                 />
             );
             break;
+        case ErrorPageTypes.POST_NOT_FOUND:
+            errorTitle = (
+                <FormattedMessage
+                    id='post.error.title'
+                    defaultMessage='Post Not Found'
+                />
+            );
+            break;
         case ErrorPageTypes.CLOUD_ARCHIVED:
             errorTitle = (
                 <FormattedMessage
@@ -77,6 +85,14 @@ const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
                 <FormattedMessage
                     id='error.channel_not_found.title'
                     defaultMessage='Channel Not Found'
+                />
+            );
+            break;
+        case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
+            errorTitle = (
+                <FormattedMessage
+                    id='error.magic_link_already_logged_in.title'
+                    defaultMessage='Cannot log you in with a Magic Link'
                 />
             );
             break;

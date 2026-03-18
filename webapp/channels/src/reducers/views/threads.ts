@@ -51,6 +51,18 @@ export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, 
     }
 };
 
+export const lastUpdateAt = (state: ViewsState['threads']['lastUpdateAt'] = {}, action: MMAction) => {
+    switch (action.type) {
+    case Threads.CHANGED_LAST_UPDATE_AT:
+        return {
+            ...state,
+            [action.data.threadId]: action.data.lastUpdateAt,
+        };
+    default:
+        return state;
+    }
+};
+
 export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: MMAction) {
     switch (action.type) {
     case Threads.CHANGED_LAST_VIEWED_AT:
@@ -90,4 +102,5 @@ export default combineReducers({
     lastViewedAt,
     manuallyUnread,
     toastStatus,
+    lastUpdateAt,
 });

@@ -11,12 +11,12 @@ import (
 )
 
 func TestPluginShutdownTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	if testing.Short() {
 		t.Skip("skipping test to verify forced shutdown of slow plugin")
 	}
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{

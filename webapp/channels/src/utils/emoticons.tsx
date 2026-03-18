@@ -5,24 +5,24 @@ import {formatWithRenderer} from './markdown';
 import PlainRenderer from './markdown/plain_renderer';
 
 export const emoticonPatterns: { [key: string]: RegExp } = {
-    slightly_smiling_face: /(^|\B)(:-?\))($|\B)/g, // :)
-    wink: /(^|\B)(;-?\))($|\B)/g, // ;)
-    open_mouth: /(^|\B)(:o)($|\b)/gi, // :o
-    scream: /(^|\B)(:-o)($|\b)/gi, // :-o
-    smirk: /(^|\B)(:-?])($|\B)/g, // :]
-    smile: /(^|\B)(:-?d)($|\b)/gi, // :D
-    stuck_out_tongue_closed_eyes: /(^|\b)(x-d)($|\b)/gi, // x-d
-    stuck_out_tongue: /(^|\B)(:-?p)($|\b)/gi, // :p
-    rage: /(^|\B)(:-?[[@])($|\B)/g, // :@
-    slightly_frowning_face: /(^|\B)(:-?\()($|\B)/g, // :(
-    cry: /(^|\B)(:[`'’]-?\(|:&#x27;\(|:&#39;\()($|\B)/g, // :`(
-    confused: /(^|\B)(:-?\/)($|\B)/g, // :/
-    confounded: /(^|\B)(:-?s)($|\b)/gi, // :s
-    neutral_face: /(^|\B)(:-?\|)($|\B)/g, // :|
-    flushed: /(^|\B)(:-?\$)($|\B)/g, // :$
-    mask: /(^|\B)(:-x)($|\b)/gi, // :-x
-    heart: /(^|\B)(<3|&lt;3)($|\b)/g, // <3
-    broken_heart: /(^|\B)(<\/3|&lt;\/3)($|\b)/g, // </3
+    slightly_smiling_face: /(^|\B)(\\?:-?\))($|\B)/g, // :)
+    wink: /(^|\B)(\\?;-?\))($|\B)/g, // ;)
+    open_mouth: /(^|\B)(\\?:o)($|\b)/gi, // :o
+    scream: /(^|\B)(\\?:-o)($|\b)/gi, // :-o
+    smirk: /(^|\B)(\\?:-?])($|\B)/g, // :]
+    smile: /(^|\B)(\\?:-?d)($|\b)/gi, // :D
+    stuck_out_tongue_closed_eyes: /(^|\b)(\\?x-d)($|\b)/gi, // x-d
+    stuck_out_tongue: /(^|\B)(\\?:-?p)($|\b)/gi, // :p
+    rage: /(^|\B)(\\?:-?[[@])($|\B)/g, // :@
+    slightly_frowning_face: /(^|\B)(\\?:-?\()($|\B)/g, // :(
+    cry: /(^|\B)(\\?:[`'’]-?\(|\\?:&#x27;\(|\\?:&#39;\()($|\B)/g, // :`(
+    confused: /(^|\B)(\\?:-?\/)($|\B)/g, // :/
+    confounded: /(^|\B)(\\?:-?s)($|\b)/gi, // :s
+    neutral_face: /(^|\B)(\\?:-?\|)($|\B)/g, // :|
+    flushed: /(^|\B)(\\?:-?\$)($|\B)/g, // :$
+    mask: /(^|\B)(\\?:-x)($|\b)/gi, // :-x
+    heart: /(^|\B)(\\?<3|\\?&lt;3)($|\b)/g, // <3
+    broken_heart: /(^|\B)(\\?<\/3|\\?&lt;\/3)($|\b)/g, // </3
 };
 
 export const EMOJI_PATTERN = /(:([a-zA-Z0-9_+-]+):)/g;
@@ -50,6 +50,7 @@ export function matchEmoticons(text: string): string[] | null {
 export function handleEmoticons(
     text: string,
     tokens: Map<string, {value: string; originalText: string}>,
+    renderEmoticonsAsEmoji = true,
 ): string {
     let output = text;
 
@@ -61,6 +62,13 @@ export function handleEmoticons(
     ): string {
         const index = tokens.size;
         const alias = `$MM_EMOTICON${index}$`;
+
+        // escape and ignore emoticons that are prefixed with a backslash
+        const escaped = matchText.startsWith('\\');
+
+        if (escaped) {
+            return prefix + matchText.substring(1);
+        }
 
         tokens.set(alias, {
             value: renderEmoji(name, matchText),
@@ -78,12 +86,14 @@ export function handleEmoticons(
     );
 
     // match text smilies like :D
-    for (const name of Object.keys(emoticonPatterns)) {
-        const pattern = emoticonPatterns[name];
+    if (renderEmoticonsAsEmoji) {
+        for (const name of Object.keys(emoticonPatterns)) {
+            const pattern = emoticonPatterns[name];
 
-        // this might look a bit funny, but since the name isn't contained in the actual match
-        // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
+            // this might look a bit funny, but since the name isn't contained in the actual match
+            // like with the named emoticons, we need to add it in manually
+            output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
+        }
     }
 
     return output;

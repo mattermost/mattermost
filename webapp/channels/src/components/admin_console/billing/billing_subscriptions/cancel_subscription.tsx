@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
@@ -31,8 +29,7 @@ const CancelSubscription = () => {
                 <ExternalLink
                     location='cancel_subscription'
                     href={contactSupportURL}
-                    className='cancelSubscriptionSection__contactUs'
-                    onClick={() => trackEvent('cloud_admin', 'click_contact_us')}
+                    className='btn btn-secondary btn-sm btn-danger cancelSubscriptionSection__contactUs'
                 >
                     <FormattedMessage
                         id='admin.billing.subscription.cancelSubscriptionSection.contactUs'

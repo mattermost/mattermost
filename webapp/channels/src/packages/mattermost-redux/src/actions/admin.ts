@@ -9,7 +9,7 @@ import type {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {AdminConfig, AllowedIPRange} from '@mattermost/types/config';
+import type {AdminConfig, AllowedIPRange, LdapSettings} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
     DataRetentionCustomPolicies,
@@ -203,6 +203,42 @@ export function testLdap() {
     });
 }
 
+export function testLdapConnection(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapConnection,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapFilters(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapFilters,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapAttributes(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapAttributes,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapGroupAttributes(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapGroupAttributes,
+        params: [
+            settings,
+        ],
+    });
+}
+
 export function syncLdap() {
     return bindClientFunc({
         clientFunc: Client4.syncLdap,
@@ -316,6 +352,21 @@ export function uploadIdpSamlCertificate(fileData: File) {
         params: [
             fileData,
         ],
+    });
+}
+
+export function uploadAuditCertificate(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadAuditLogCertificate,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function removeAuditCertificate() {
+    return bindClientFunc({
+        clientFunc: Client4.removeAuditLogCertificate,
     });
 }
 

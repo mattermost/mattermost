@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
+import {render, screen, act} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -28,9 +28,9 @@ describe('components/IntlProvider', () => {
     };
 
     test('should render children when passed translation strings', () => {
-        const wrapper = mount(<IntlProvider {...baseProps}/>);
+        render(<IntlProvider {...baseProps}/>);
 
-        expect(wrapper.find(FormattedMessage).childAt(0)).toMatchSnapshot();
+        expect(screen.getByText('Hello, World!')).toBeInTheDocument();
     });
 
     test('should render children when passed translation strings for a non-default locale', () => {
@@ -42,9 +42,9 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        const wrapper = mount(<IntlProvider {...props}/>);
+        render(<IntlProvider {...props}/>);
 
-        expect(wrapper.find(FormattedMessage).childAt(0)).toMatchSnapshot();
+        expect(screen.getByText('Bonjour tout le monde!')).toBeInTheDocument();
     });
 
     test('should render null when missing translation strings', () => {
@@ -53,9 +53,9 @@ describe('components/IntlProvider', () => {
             translations: undefined,
         };
 
-        const wrapper = mount(<IntlProvider {...props}/>);
+        const {container} = render(<IntlProvider {...props}/>);
 
-        expect(wrapper.find(FormattedMessage).exists()).toBe(false);
+        expect(container.firstChild).toBeNull();
     });
 
     test('on mount, should attempt to load missing translations', () => {
@@ -68,24 +68,26 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        shallow(<IntlProvider {...props}/>);
+        render(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on mount, should not attempt to load when given translations', () => {
         const props = {
             ...baseProps,
             locale: 'fr',
-            translations: {},
+            translations: {
+                'test.hello_world': 'Bonjour tout le monde!',
+            },
             actions: {
                 loadTranslations: jest.fn(),
             },
         };
 
-        shallow(<IntlProvider {...props}/>);
+        render(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 
     test('on locale change, should attempt to load missing translations', () => {
@@ -96,16 +98,21 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        const wrapper = shallow(<IntlProvider {...props}/>);
+        const {rerender} = render(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
-        wrapper.setProps({
-            locale: 'fr',
-            translations: null,
+        act(() => {
+            rerender(
+                <IntlProvider
+                    {...props}
+                    locale='fr'
+                    translations={undefined}
+                />,
+            );
         });
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on locale change, should not attempt to load when given translations', () => {
@@ -116,15 +123,22 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        const wrapper = shallow(<IntlProvider {...props}/>);
+        const {rerender} = render(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
-        wrapper.setProps({
-            locale: 'fr',
-            translations: {},
+        act(() => {
+            rerender(
+                <IntlProvider
+                    {...props}
+                    locale='fr'
+                    translations={{
+                        'test.hello_world': 'Bonjour tout le monde!',
+                    }}
+                />,
+            );
         });
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 });

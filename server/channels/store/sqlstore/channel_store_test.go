@@ -25,6 +25,10 @@ func TestSearchChannelStore(t *testing.T) {
 }
 
 func TestChannelSearchQuerySQLInjection(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	for _, st := range storeTypes {
 		t.Run(st.Name, func(t *testing.T) {
 			s := &SqlChannelStore{
@@ -76,6 +80,7 @@ func testNewMapFromChannelMemberModel(t *testing.T) {
 	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeUser"])
 	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeAdmin"])
 	assert.Equal(t, m.ExplicitRoles, db["Roles"])
+	assert.Equal(t, m.AutoTranslationDisabled, db["AutoTranslationDisabled"])
 }
 
 func testChannelMemberWithSchemeRolesToModel(t *testing.T) {

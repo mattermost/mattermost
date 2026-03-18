@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {ServerError} from '@mattermost/types/errors';
 
+import {General} from 'mattermost-redux/constants';
 import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
@@ -71,21 +74,70 @@ export default class SearchChannelProvider extends Provider {
                     Constants.GM_CHANNEL,
                 ]));
 
-                // Get channel names using the selector
-                const channelNames = channels.map((channel) => {
-                    const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
-                    return isAtSearch && !name.startsWith('@') ? `@${name}` : name;
-                });
-
                 resultsCallback({
                     matchedPretext: prefix,
-                    terms: channelNames,
-                    items: channels,
-                    component: SearchChannelSuggestion,
+                    groups: groupChannelSuggestions(channels, isAtSearch),
                 });
             },
         );
 
         return true;
     }
+}
+
+function groupChannelSuggestions(channels: Channel[], isAtSearch: boolean) {
+    const publicChannels = [];
+    const privateChannels = [];
+    const directChannels = [];
+
+    for (const channel of channels) {
+        if (channel.type === General.OPEN_CHANNEL) {
+            publicChannels.push(channel);
+        } else if (channel.type === General.PRIVATE_CHANNEL) {
+            privateChannels.push(channel);
+        } else {
+            directChannels.push(channel);
+        }
+    }
+
+    return [
+        {
+            key: 'publicChannels',
+            label: defineMessage({
+                id: 'suggestion.search.public',
+                defaultMessage: 'Public Channels',
+            }),
+            items: publicChannels,
+            terms: getChannelTerms(publicChannels, isAtSearch),
+            component: SearchChannelSuggestion,
+        },
+        {
+            key: 'privateChannels',
+            label: defineMessage({
+                id: 'suggestion.search.private',
+                defaultMessage: 'Private Channels',
+            }),
+            items: privateChannels,
+            terms: getChannelTerms(privateChannels, isAtSearch),
+            component: SearchChannelSuggestion,
+        },
+        {
+            key: 'directChannels',
+            label: defineMessage({
+                id: 'suggestion.search.direct',
+                defaultMessage: 'Direct Messages',
+            }),
+            items: directChannels,
+            terms: getChannelTerms(directChannels, isAtSearch),
+            component: SearchChannelSuggestion,
+        },
+    ];
+}
+
+function getChannelTerms(channels: Channel[], isAtSearch: boolean) {
+    return channels.map((channel) => {
+        const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
+
+        return isAtSearch && !name.startsWith('@') ? `@${name}` : name;
+    });
 }

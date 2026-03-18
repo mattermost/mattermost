@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -163,10 +164,8 @@ func isValidChain(chain []*x509.Certificate) bool {
 
 func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 	// loop over certificate chains
-	for _, chain := range verifiedChains {
-		if isValidChain(chain) {
-			return nil
-		}
+	if slices.ContainsFunc(verifiedChains, isValidChain) {
+		return nil
 	}
 	return fmt.Errorf("insecure algorithm found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting")
 }

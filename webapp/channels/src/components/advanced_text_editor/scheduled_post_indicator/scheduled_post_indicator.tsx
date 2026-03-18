@@ -98,7 +98,10 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     }
 
     return (
-        <div className='ScheduledPostIndicator'>
+        <div
+            className='ScheduledPostIndicator'
+            data-testid='scheduledPostIndicator'
+        >
             <i
                 data-testid='scheduledPostIcon'
                 className='icon icon-draft-indicator icon-clock-send-outline'

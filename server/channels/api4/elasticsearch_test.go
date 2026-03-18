@@ -15,8 +15,8 @@ import (
 )
 
 func TestElasticsearchTest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
 		resp, err := th.Client.TestElasticsearch(context.Background())
@@ -56,8 +56,8 @@ func TestElasticsearchTest(t *testing.T) {
 }
 
 func TestElasticsearchPurgeIndexes(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
 		resp, err := th.Client.PurgeElasticsearchIndexes(context.Background())

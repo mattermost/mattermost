@@ -27,7 +27,11 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	errCtx := map[string]any{"hook_id": id}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.parse_form.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 
 	var appErr *model.AppError
 	var mediaType string
@@ -69,7 +73,10 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if mediaType == "multipart/form-data" {
-		r.ParseMultipartForm(0)
+		if err := r.ParseMultipartForm(0); err != nil {
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.parse_multipart.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
+			return
+		}
 
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
@@ -93,7 +100,10 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
+	if _, err := w.Write([]byte("ok")); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
+	}
 }
 
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -114,7 +124,10 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
+	if _, err := w.Write([]byte("ok")); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
+	}
 }
 
 func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {

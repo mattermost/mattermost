@@ -8,8 +8,6 @@ import type {Dispatch} from 'redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
@@ -19,17 +17,12 @@ import {
     updateSearchTeam,
     updateSearchTermsForShortcut,
     showSearchResults,
-    showChannelFiles,
-    showMentions,
-    showFlaggedPosts,
     closeRightHandSide,
     updateRhsState,
-    setRhsExpanded,
     openRHSSearch,
-    filterFilesSearchByExt,
     updateSearchType,
 } from 'actions/views/rhs';
-import {getRhsState, getSearchTeam, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
+import {getRhsState, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {RHSStates} from 'utils/constants';
@@ -40,18 +33,14 @@ import Search from './search';
 
 function mapStateToProps(state: GlobalState) {
     const rhsState = getRhsState(state);
-    const currentChannel = getCurrentChannel(state);
     const isMobileView = getIsMobileView(state);
     const isRhsOpen = getIsRhsOpen(state);
     const crossTeamSearchEnabled = getIsCrossTeamSearchEnabled(state);
 
     return {
-        currentChannel,
         isRhsExpanded: getIsRhsExpanded(state),
-        isRhsOpen,
         isSearchingTerm: getIsSearchingTerm(state),
         searchTerms: getSearchTerms(state),
-        searchTeam: getSearchTeam(state),
         searchType: getSearchType(state),
         searchVisible: rhsState !== null && (![
             RHSStates.PLUGIN,
@@ -70,8 +59,8 @@ function mapStateToProps(state: GlobalState) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
-    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): void => {
-        autocompleteChannelsForSearch(term, success, error);
+    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => {
+        return autocompleteChannelsForSearch(term, success, error);
     };
 
     return {
@@ -81,18 +70,11 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateSearchTermsForShortcut,
             updateSearchType,
             showSearchResults,
-            showChannelFiles,
-            showMentions,
-            showFlaggedPosts,
-            setRhsExpanded,
             closeRightHandSide,
             autocompleteChannelsForSearch: autocompleteChannels,
             autocompleteUsersInTeam: autocompleteUsersInCurrentTeam,
             updateRhsState,
-            getMorePostsForSearch,
             openRHSSearch,
-            getMoreFilesForSearch,
-            filterFilesSearchByExt,
         }, dispatch),
     };
 }

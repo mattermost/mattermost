@@ -13,8 +13,7 @@ import (
 )
 
 func TestLeaveProviderDoCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	lp := LeaveProvider{}
 
@@ -37,7 +36,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	defaultChannel, err := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
 	require.Nil(t, err)
 
-	guest := th.createGuest()
+	guest := th.createGuest(t)
 
 	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)

@@ -5,10 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getUsage} from 'mattermost-redux/selectors/entities/usage';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
@@ -24,26 +22,20 @@ type OwnProps = Pick<PostListRowProps, 'listId'>
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
-    const usage = getUsage(state);
-    const limits = getCloudLimits(state);
-    const limitsLoaded = getCloudLimitsLoaded(state);
     const post = getPost(state, ownProps.listId);
     const currentUserId = getCurrentUserId(state);
     const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
     const props: Pick<
     PostListRowProps,
-    'shortcutReactToLastPostEmittedFrom' | 'usage' | 'limits' | 'limitsLoaded' | 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
+    'shortcutReactToLastPostEmittedFrom'| 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
     > = {
         shortcutReactToLastPostEmittedFrom,
-        usage,
-        limits,
-        limitsLoaded,
         post,
         currentUserId,
         newMessagesSeparatorActions,
     };
-    if ((ownProps.listId === PostListRowListIds.OLDER_MESSAGES_LOADER || ownProps.listId === PostListRowListIds.CHANNEL_INTRO_MESSAGE) && limitsLoaded) {
+    if ((ownProps.listId === PostListRowListIds.OLDER_MESSAGES_LOADER || ownProps.listId === PostListRowListIds.CHANNEL_INTRO_MESSAGE)) {
         const currentChannelId = getCurrentChannelId(state);
         const firstInaccessiblePostTime = getLimitedViews(state).channels[currentChannelId];
         const channelLimitExceeded = Boolean(firstInaccessiblePostTime) || firstInaccessiblePostTime === 0;

@@ -167,3 +167,19 @@ func (g *GroupService) GetGroups(page, perPage int, opts model.GroupSearchOpts, 
 	groups, appErr := g.api.GetGroups(page, perPage, opts, viewRestrictions)
 	return groups, normalizeAppErr(appErr)
 }
+
+// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
+//
+// Minimum server version: 10.9
+func (g *GroupService) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+	appErr := g.api.CreateDefaultSyncableMemberships(params)
+	return normalizeAppErr(appErr)
+}
+
+// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
+//
+// Minimum server version: 10.9
+func (g *GroupService) DeleteGroupConstrainedMemberships() error {
+	appErr := g.api.DeleteGroupConstrainedMemberships()
+	return normalizeAppErr(appErr)
+}
