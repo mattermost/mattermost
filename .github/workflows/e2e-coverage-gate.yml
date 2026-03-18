@@ -147,7 +147,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           LLM_PROVIDER: ${{ vars.E2E_AGENTS_LLM_PROVIDER || 'auto' }}
         run: |
-          npm run impact:plan -- \
+          npm run impact:plan-crew -- \
             --since "origin/${BASE_REF}" \
             --llm-provider "${LLM_PROVIDER}" \
             --fail-on-must-add-tests \
