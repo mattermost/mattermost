@@ -341,6 +341,10 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if authData.ClientId != clientId {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if authData.RedirectUri != redirectURI {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -393,6 +397,10 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 	accessData, nErr := a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if accessData.ClientId != oauthApp.Id {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
