@@ -12,7 +12,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestRolesListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("List all available roles", func(c client.Client) {
 		printer.Clean()
