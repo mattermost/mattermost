@@ -2063,7 +2063,7 @@
   "admin.permissions.permission.manage_slash_commands.name": "Manage Others'",
   "admin.permissions.permission.manage_system.description": "Manage system",
   "admin.permissions.permission.manage_system.name": "Manage system",
-  "admin.permissions.permission.manage_team_access_rules.description": "Add and edit attribute based membership policies for channels in the team.",
+  "admin.permissions.permission.manage_team_access_rules.description": "Manage attribute based membership policies for channels in the team.",
   "admin.permissions.permission.manage_team_access_rules.name": "Manage channel membership policies",
   "admin.permissions.permission.manage_team_roles.description": "Manage team roles",
   "admin.permissions.permission.manage_team_roles.name": "Manage team roles",

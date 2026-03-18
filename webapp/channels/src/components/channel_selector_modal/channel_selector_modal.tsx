@@ -151,7 +151,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
-                response.data!.forEach((serverChannel) => {
+                (response.data || []).forEach((serverChannel) => {
                     if (!stateChannelIDs.includes(serverChannel.id)) {
                         newState.push(serverChannel);
                     }

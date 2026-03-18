@@ -32,9 +32,9 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
 
         const teamSettings = await channelsPage.openTeamSettings();
 
-        // * Tab is visible and Access tab renamed to Membership
+        // * Both tabs visible
         await expect(teamSettings.accessPoliciesTab).toBeVisible();
-        await expect(teamSettings.accessTab).toContainText('Membership');
+        await expect(teamSettings.accessTab).toContainText('Access');
 
         await teamSettings.close();
     });
