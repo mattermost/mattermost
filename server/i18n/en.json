@@ -4847,6 +4847,14 @@
     "translation": "Cannot get a view from a deleted channel."
   },
   {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Cannot get posts for a view from a deleted channel."
+  },
+  {
     "id": "api.view.list.deleted_channel.app_error",
     "translation": "Cannot list views for a deleted channel."
   },
