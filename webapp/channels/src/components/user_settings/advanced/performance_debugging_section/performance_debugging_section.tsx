@@ -14,12 +14,7 @@ import {AdvancedSections} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-export type OwnProps = {
-    adminMode?: boolean;
-    userId: string;
-}
-
-type Props = PropsFromRedux & OwnProps & {
+type Props = PropsFromRedux & {
     active: boolean;
     areAllSectionsInactive: boolean;
     onUpdateSection: (section?: string) => void;

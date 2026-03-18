@@ -995,10 +995,6 @@
     "translation": "ചാനൽ നിശബ്ദമാക്കുന്നത് വരെ നിങ്ങൾക്ക് {{.Channel}}-നായി അറിയിപ്പുകൾ ലഭിക്കില്ല."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "നിങ്ങൾ അംഗമല്ലാത്തതിനാൽ {{.Channel}} ചാനൽ നിശബ്ദമാക്കാൻ കഴിഞ്ഞില്ല."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "നിർദ്ദിഷ്ട ചാനൽ കണ്ടെത്താൻ കഴിഞ്ഞില്ല. ചാനലുകൾ തിരിച്ചറിയാൻ ദയവായി [ചാനൽ ഹാൻഡിൽ](https://about.mattermost.com/default-channel-handle-documentation) ഉപയോഗിക്കുക."
   },

@@ -61,12 +61,16 @@ describe('Authentication', () => {
 
         cy.get('#input_password-input').clear().type('less');
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         cy.findByText('Create account').click();
 
         // * Assert the error is what is expected;
         cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.get('#input_password-input').clear().type('greaterthan7');
+
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
         cy.findByText('Create account').click();
 
@@ -111,6 +115,8 @@ describe('Authentication', () => {
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
         cy.get('#input_name').clear().type(`BestUsernameInTheWorld${getRandomId()}`);
+
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
         ['NOLOWERCASE123!', 'noupppercase123!', 'NoNumber!', 'NoSymbol123'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);

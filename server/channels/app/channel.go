@@ -329,21 +329,21 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 		if err != nil {
 			return nil, err
 		}
-		var isPluginOwnedBot bool
+		var isBotExempt bool
 		for _, user := range users {
 			if user.IsBot {
-				isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+				exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 				if err != nil {
 					return nil, err
 				}
-				if isOwnedByCurrentUserOrPlugin {
-					isPluginOwnedBot = true
+				if exempt {
+					isBotExempt = true
 					break
 				}
 			}
 		}
-		// if one of the users is a bot, don't restrict to team members
-		if !isPluginOwnedBot {
+		// if one of the users is an exempt bot, don't restrict to team members
+		if !isBotExempt {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 			if err != nil {
 				return nil, err
@@ -851,7 +851,7 @@ func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, chan
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -906,7 +906,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 			},
 		}
 
-		if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 			rctx.Logger().Warn("Failed to post unarchive message", mlog.Err(err))
 		}
 	} else {
@@ -927,7 +927,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 				},
 			}
 
-			if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+			if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 			}
 		})
@@ -948,6 +948,7 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
+	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
 	a.handleChannelCategoryName(channel)
@@ -972,6 +973,12 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(rctx, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
+			rctx.Logger().Warn(err.Error())
+		}
+	}
+
+	if channel.AutoTranslation != oldChannelAutotranslation {
+		if err = a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
@@ -1446,6 +1453,23 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 	return member, nil
 }
 
+func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autoTranslationDisabled bool) (*model.ChannelMember, *model.AppError) {
+	member, err := a.GetChannelMember(rctx, channelID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	member.AutoTranslationDisabled = autoTranslationDisabled
+	member, err = a.updateChannelMember(rctx, member)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userID, channelID)
+
+	return member, nil
+}
+
 func (a *App) PatchChannelMembersNotifyProps(rctx request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError) {
 	if len(members) > UpdateMultipleMaximum {
 		return nil, model.NewAppError("PatchChannelMembersNotifyProps", "app.channel.patch_channel_members_notify_props.too_many", map[string]any{"Max": UpdateMultipleMaximum}, "", http.StatusBadRequest)
@@ -1593,7 +1617,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 			},
 		}
 
-		if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 			rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
@@ -1611,7 +1635,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 				},
 			}
 
-			if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+			if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
 			}
 		}
@@ -1926,7 +1950,7 @@ func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, ch
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1959,8 +1983,39 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 			"new_purpose": newChannelPurpose,
 		},
 	}
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
+	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	if err != nil {
+		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	var message string
+	if newChannelAutotranslation {
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_autotranslation_message.enabled"), user.Username)
+	} else {
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_autotranslation_message.disabled"), user.Username)
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      model.PostTypeAutotranslationChange,
+		UserId:    userID,
+		Props: model.StringInterface{
+			"username": user.Username,
+			"enabled":  newChannelAutotranslation,
+		},
+	}
+
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.create_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1986,7 +2041,7 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2502,7 +2557,7 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2520,7 +2575,7 @@ func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *m
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2603,7 +2658,7 @@ func (a *App) postLeaveChannelMessage(rctx request.CTX, user *model.User, channe
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2632,7 +2687,7 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2654,7 +2709,7 @@ func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2686,7 +2741,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2890,9 +2945,16 @@ func (a *App) ValidateUserPermissionsOnChannels(rctx request.CTX, userId string,
 			continue
 		}
 
-		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionManagePrivateChannelMembers) {
-			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionManagePublicChannelMembers) {
+		allowedPrivate := false
+		if channel.Type == model.ChannelTypePrivate {
+			allowedPrivate, _ = a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionManagePrivateChannelMembers)
+		}
+		allowedPublic := false
+		if channel.Type == model.ChannelTypeOpen {
+			allowedPublic, _ = a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionManagePublicChannelMembers)
+		}
+
+		if allowedPrivate || allowedPublic {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
 			rctx.Logger().Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
@@ -3439,7 +3501,7 @@ func (a *App) postChannelMoveMessage(rctx request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3753,11 +3815,11 @@ func (a *App) getDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, reques
 	userIDs := make([]string, 0, len(users))
 	for _, user := range users {
 		if user.IsBot {
-			isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+			exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 			if err != nil {
 				return nil, err
 			}
-			if isOwnedByCurrentUserOrPlugin {
+			if exempt {
 				continue
 			}
 		}
@@ -3962,7 +4024,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, chann
 		return appErr
 	}
 
-	if _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
+	if _, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
 		rctx.Logger().Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
 
 		return model.NewAppError(

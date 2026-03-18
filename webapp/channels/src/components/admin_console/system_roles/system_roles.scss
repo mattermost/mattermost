@@ -10,6 +10,9 @@
             }
 
             .DataGrid_cell {
+                text-overflow: unset;
+                white-space: normal;
+
                 .SystemRoles_editRow {
                     padding-right: 20px;
                 }

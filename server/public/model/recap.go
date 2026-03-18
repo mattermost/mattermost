@@ -52,3 +52,24 @@ const (
 	RecapStatusCompleted  = "completed"
 	RecapStatusFailed     = "failed"
 )
+
+// Auditable returns safe-to-log fields for audit logging
+func (r *Recap) Auditable() map[string]any {
+	channelIDs := make([]string, 0, len(r.Channels))
+	for _, channel := range r.Channels {
+		channelIDs = append(channelIDs, channel.ChannelId)
+	}
+
+	return map[string]any{
+		"id":                  r.Id,
+		"user_id":             r.UserId,
+		"title":               r.Title,
+		"status":              r.Status,
+		"channel_ids":         channelIDs,
+		"total_message_count": r.TotalMessageCount,
+		"bot_id":              r.BotID,
+		"create_at":           r.CreateAt,
+		"update_at":           r.UpdateAt,
+		"read_at":             r.ReadAt,
+	}
+}

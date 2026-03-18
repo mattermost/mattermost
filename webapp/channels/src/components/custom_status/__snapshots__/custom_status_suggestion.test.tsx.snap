@@ -1,55 +1,32 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/custom_status/custom_status_emoji should match snapshot 1`] = `
-<button
-  className="statusSuggestion__row cursor--pointer"
-  onClick={[Function]}
-  onMouseEnter={[Function]}
-  onMouseLeave={[Function]}
-  tabIndex={0}
->
-  <div
-    className="statusSuggestion__icon"
+<div>
+  <button
+    class="statusSuggestion__row cursor--pointer"
+    tabindex="0"
   >
-    <Memo(RenderEmoji)
-      emojiName=""
-      size={20}
+    <div
+      class="statusSuggestion__icon"
     />
-  </div>
-  <CustomStatusText
-    className="statusSuggestion__text"
-    text=""
-  />
-</button>
+  </button>
+</div>
 `;
 
 exports[`components/custom_status/custom_status_emoji should match snapshot with duration 1`] = `
-<button
-  className="statusSuggestion__row cursor--pointer"
-  onClick={[Function]}
-  onMouseEnter={[Function]}
-  onMouseLeave={[Function]}
-  tabIndex={0}
->
-  <div
-    className="statusSuggestion__icon"
+<div>
+  <button
+    class="statusSuggestion__row cursor--pointer"
+    tabindex="0"
   >
-    <Memo(RenderEmoji)
-      emojiName=""
-      size={20}
+    <div
+      class="statusSuggestion__icon"
     />
-  </div>
-  <CustomStatusText
-    className="statusSuggestion__text with_duration"
-    text=""
-  />
-  <span
-    className="statusSuggestion__duration"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Today"
-      id="custom_status.expiry_dropdown.today"
-    />
-  </span>
-</button>
+    <span
+      class="statusSuggestion__duration"
+    >
+      Today
+    </span>
+  </button>
+</div>
 `;

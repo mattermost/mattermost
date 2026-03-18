@@ -7,4 +7,12 @@ export default keyMirror({
     RECEIVED_AGENTS: null,
     AGENTS_REQUEST: null,
     AGENTS_FAILURE: null,
+
+    RECEIVED_AGENTS_STATUS: null,
+    AGENTS_STATUS_REQUEST: null,
+    AGENTS_STATUS_FAILURE: null,
+
+    RECEIVED_LLM_SERVICES: null,
+    LLM_SERVICES_REQUEST: null,
+    LLM_SERVICES_FAILURE: null,
 });

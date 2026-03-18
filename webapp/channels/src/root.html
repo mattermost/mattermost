@@ -30,9 +30,6 @@
         4. The 'href' attribute is empty to prevent unnecessary HTTP requests.
     -->
     <link rel='stylesheet' class='code_theme'>
-
-    <!-- We need this CSS first to show the initial loading screen -->
-    <link id="initialLoadingScreenCSS" rel='stylesheet' href='/static/css/initial_loading_screen.css'>
 </head>
 <body class='font--open_sans enable-animations'>
     <%= require('html-loader!./components/initial_loading_screen/initial_loading_screen_template.html').default %>

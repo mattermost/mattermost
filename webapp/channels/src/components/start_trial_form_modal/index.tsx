@@ -24,7 +24,7 @@ import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
-import {AboutLinks, LicenseLinks, ModalIdentifiers} from 'utils/constants';
+import {AboutLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -159,28 +159,11 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
             let title;
-            let subtitle;
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
             if ((data as any).status === 422) {
                 title = (<></>);
-                subtitle = (
-                    <FormattedMessage
-                        id='admin.license.trial-request.embargoed'
-                        defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
-                        values={{
-                            link: (text) => (
-                                <ExternalLink
-                                    location='trial_banner'
-                                    href={LicenseLinks.EMBARGOED_COUNTRIES}
-                                >
-                                    {text}
-                                </ExternalLink>
-                            ),
-                        }}
-                    />
-                );
                 buttonText = (
                     <FormattedMessage
                         id='admin.license.trial-request.embargoed.button'
@@ -195,7 +178,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 dialogProps: {
                     onTryAgain,
                     title,
-                    subtitle,
                     buttonText,
                 },
             }));

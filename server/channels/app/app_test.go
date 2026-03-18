@@ -148,6 +148,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionManagePublicChannelBanner.Id,
 			model.PermissionManagePrivateChannelBanner.Id,
 			model.PermissionManageChannelAccessRules.Id,
+			model.PermissionManagePublicChannelAutoTranslation.Id,
+			model.PermissionManagePrivateChannelAutoTranslation.Id,
 		},
 		"team_user": {
 			model.PermissionListTeamChannels.Id,

@@ -191,14 +191,20 @@ var config = {
                 {from: 'src/images/c_download.png', to: 'images'},
                 {from: 'src/images/c_socket.png', to: 'images'},
                 {from: 'src/images/admin-onboarding-background.jpg', to: 'images'},
+                {from: 'src/images/logo.svg', to: 'images'},
+                {from: 'src/images/alert.svg', to: 'images'},
                 {from: 'src/images/cloud-laptop.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-error.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
                 {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
+                {from: 'src/fonts/Metropolis-SemiBold.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff', to: 'fonts'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
-                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
             ],
         }),
 
@@ -303,6 +309,11 @@ var config = {
             ],
         }),
     ],
+    watchOptions: {
+
+        // By default, Webpack doesn't watch node_modules for changes, but we want it to watch packages in the monorepo
+        ignored: /node_modules([\\]+|\/)(?!@mattermost\/(client|components|types|shared))/,
+    },
 };
 
 function generateCSP() {

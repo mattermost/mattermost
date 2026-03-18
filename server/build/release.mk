@@ -49,6 +49,26 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
+build-freebsd: build-freebsd-amd64 build-freebsd-arm64
+
+build-freebsd-amd64:
+	@echo Build FreeBSD amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/freebsd_amd64
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN)/freebsd_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+endif
+
+build-freebsd-arm64:
+	@echo Build FreeBSD arm64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_arm64")
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/freebsd_arm64
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+endif
+
 build-windows:
 	@echo Build Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -101,6 +121,22 @@ ifeq ($(BUILDER_GOOS_GOARCH),"darwin_arm64")
 else
 	mkdir -p $(GOBIN)/darwin_arm64
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+
+build-cmd-freebsd:
+	@echo Build CMD FreeBSD amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/freebsd_amd64
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN)/freebsd_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+	@echo Build CMD FreeBSD arm64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_arm64")
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/freebsd_arm64
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
 build-cmd-windows:
@@ -222,6 +258,22 @@ package-osx-arm64: package-prep
 	rm -rf $(DIST_ROOT)/darwin_arm64
 
 package-osx: package-osx-amd64 package-osx-arm64
+
+package-freebsd-amd64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_AMD64) CURRENT_PACKAGE_ARCH=freebsd_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Package
+	tar -C $(DIST_PATH_FREEBSD_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-freebsd-amd64.tar.gz mattermost ../mattermost
+	@# Cleanup
+	rm -rf $(DIST_ROOT)/freebsd_amd64
+
+package-freebsd-arm64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_ARM64) CURRENT_PACKAGE_ARCH=freebsd_arm64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Package
+	tar -C $(DIST_PATH_FREEBSD_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-freebsd-arm64.tar.gz mattermost ../mattermost
+	@# Cleanup
+	rm -rf $(DIST_ROOT)/freebsd_arm64
+
+package-freebsd: package-freebsd-amd64 package-freebsd-arm64
 
 package-linux-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) PLUGIN_ARCH=linux-amd64 $(MAKE) package-plugins

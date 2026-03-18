@@ -7,25 +7,20 @@ import {useIntl} from 'react-intl';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
-import {usePropertyCardViewPostLoader} from 'components/common/hooks/usePropertyCardViewPostLoader';
-import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
 
 const noop = () => {};
 
 type Props = {
-    value: PropertyValue<unknown>;
+    value?: PropertyValue<unknown>;
     metadata?: PostPreviewFieldMetadata;
 }
 
-export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
-    const postId = value.value as string;
-
-    const post = usePropertyCardViewPostLoader(postId, metadata?.getPost, true);
-    const channel = usePropertyCardViewChannelLoader(post?.channel_id, metadata?.getChannel);
-    const team = usePropertyCardViewTeamLoader(channel?.team_id, metadata?.getTeam);
+export default function PostPreviewPropertyRenderer({metadata}: Props) {
+    const post = metadata?.post;
+    const channel = metadata?.channel;
+    const team = metadata?.team;
 
     const {formatMessage} = useIntl();
 

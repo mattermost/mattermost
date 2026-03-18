@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import AlertBanner from 'components/alert_banner';
+import {renderWithContext} from 'tests/react_testing_utils';
+
+import AlertBanner from '.';
 
 describe('Components/AlertBanner', () => {
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -16,11 +17,11 @@ describe('Components/AlertBanner', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for app variant', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -29,11 +30,11 @@ describe('Components/AlertBanner', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when icon disabled', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'
@@ -43,11 +44,11 @@ describe('Components/AlertBanner', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when buttons are passed', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'
@@ -59,6 +60,6 @@ describe('Components/AlertBanner', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });
