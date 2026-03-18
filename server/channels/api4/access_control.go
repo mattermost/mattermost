@@ -187,9 +187,18 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			if teamID != "" && model.IsValidId(teamID) &&
 				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
 				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
-					// Allow delete only if the in-memory cache confirms this team just unassigned the last channel.
+					// Allow delete only if cache confirms this team just unassigned AND policy is still channelless.
 					cachedTeamID, ok := app.GetAndClearPolicyLastTeam(policyID)
 					if !ok || cachedTeamID != teamID {
+						c.Err = appErr
+						return
+					}
+					childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+						ParentID: policyID,
+						Type:     model.AccessControlPolicyTypeChannel,
+						Limit:    1,
+					})
+					if searchErr != nil || len(childCount) > 0 {
 						c.Err = appErr
 						return
 					}
@@ -601,6 +610,16 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			cachedTeamID, cached := app.GetAndClearPolicyLastTeam(policyID)
 			if cached {
 				if cachedTeamID != assignments.TeamID {
+					c.Err = ownershipErr
+					return
+				}
+				// Verify policy is still channelless (channels could have been re-attached)
+				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+					ParentID: policyID,
+					Type:     model.AccessControlPolicyTypeChannel,
+					Limit:    1,
+				})
+				if searchErr != nil || len(childCount) > 0 {
 					c.Err = ownershipErr
 					return
 				}

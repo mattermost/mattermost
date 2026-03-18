@@ -14,10 +14,10 @@ import (
 )
 
 // policyLastTeamCache bridges the unassign → delete calls that happen
-// milliseconds apart. Entries auto-expire after 30 seconds.
+// milliseconds apart. Entries auto-expire after 5 seconds.
 var policyLastTeamCache = cache.NewLRU(&cache.CacheOptions{
 	Size:          256,
-	DefaultExpiry: 30 * time.Second,
+	DefaultExpiry: 5 * time.Second,
 	Name:          "PolicyLastTeam",
 })
 
