@@ -13,7 +13,7 @@ export default function FlagIconFilled(props: React.HTMLAttributes<HTMLSpanEleme
                 height='15px'
                 viewBox='0 0 12 15'
                 role='img'
-                aria-label={formatMessage({id: 'generic_icons.flagged', defaultMessage: 'Flagged Icon'})}
+                aria-label={formatMessage({id: 'generic_icons.flagged', defaultMessage: 'Saved Icon'})}
             >
                 <g
                     stroke='none'

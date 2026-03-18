@@ -76,7 +76,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
 
     const bodyRef = useRef<HTMLDivElement>();
 
-    const measuredRef = useCallback((node) => {
+    const measuredRef = useCallback((node: HTMLDivElement) => {
         if (node !== null) {
             bodyRef.current = node;
             setBodyHeight(node.getBoundingClientRect().height);

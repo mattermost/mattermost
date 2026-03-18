@@ -245,6 +245,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 backButtonText={this.props.backButtonText}
                 maxValues={maxValues}
                 numRemainingText={numRemainingText}
+                required={true}
             />
         );
     };

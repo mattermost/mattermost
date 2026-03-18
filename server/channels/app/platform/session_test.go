@@ -21,7 +21,6 @@ const (
 func TestCache(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	session := &model.Session{
 		Id:     model.NewId(),
@@ -74,7 +73,6 @@ func TestCache(t *testing.T) {
 func TestSetSessionExpireInHours(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	now := model.GetMillis()
 	createAt := now - (dayInMillis * 20)
@@ -121,7 +119,6 @@ func TestSetSessionExpireInHours(t *testing.T) {
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	err := th.Service.RevokeAccessToken(th.Context, model.NewRandomString(16))
 	require.Error(t, err, "Should have failed due to an incorrect token")
@@ -154,10 +151,9 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 func TestUpdateSessionsIsGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("Test session is demoted", func(t *testing.T) {
-		user := th.CreateUserOrGuest(false)
+		user := th.CreateUserOrGuest(t, false)
 
 		session := &model.Session{}
 		session.CreateAt = model.GetMillis()
@@ -182,7 +178,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 	})
 
 	t.Run("Test session is promoted", func(t *testing.T) {
-		user := th.CreateUserOrGuest(true)
+		user := th.CreateUserOrGuest(t, true)
 
 		session := &model.Session{}
 		session.CreateAt = model.GetMillis()

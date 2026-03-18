@@ -6,7 +6,7 @@
 // See reference: https://support.smartbear.com/tm4j-cloud/api-docs/
 
 const axios = require('axios');
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 
 const {getAllTests} = require('./report');
 
@@ -42,7 +42,7 @@ function getStepStateSummary(steps = []) {
 
 function getTM4JTestCases(report) {
     return getAllTests(report.results).
-        filter((item) => /^(MM-T)\w+/g.test(item.title)). // eslint-disable-line wrap-regex
+        filter((item) => /^(MM-T)\w+/g.test(item.title)).
         map((item) => {
             return {
                 title: item.title,
@@ -140,14 +140,14 @@ async function createTestExecutions(report, testCycle) {
             environmentName: TM4J_ENVIRONMENT_NAME || environment[BROWSER] || 'Chrome',
             actualEndDate: testScriptResults[testScriptResults.length - 1].actualEndDate,
             executionTime: steps.reduce((acc, prev) => {
-                acc += prev.duration; // eslint-disable-line no-param-reassign
+                acc += prev.duration;
                 return acc;
             }, 0),
             comment: `Cypress automated test - ${getStepStateSummary(steps)}`,
         };
 
         // Temporarily log to verify cases that were being saved.
-        console.log(index, key); // eslint-disable-line no-console
+        console.log(index, key);
 
         promises.push(saveTestExecution(testExecution, index));
     });

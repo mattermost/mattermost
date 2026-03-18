@@ -1,100 +1,168 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`plugin tab all props are properly passed to the children 1`] = `
-<div
-  aria-labelledby="pluginAButton"
-  id="pluginASettings"
-  role="tabpanel"
->
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text="plugin A Settings"
-  />
+<div>
   <div
-    className="user-settings"
+    aria-labelledby="pluginAButton"
+    id="pluginASettings"
+    role="tabpanel"
   >
-    <SettingDesktopHeader
-      text="plugin A Settings"
-    />
-    <PluginAction
-      action={
-        Object {
-          "buttonText": "buttonText",
-          "onClick": [MockFunction],
-          "text": "actionText",
-          "title": "actionTitle",
-        }
-      }
-    />
     <div
-      className="divider-dark first"
-    />
-    <PluginSetting
-      activeSection=""
-      pluginId="pluginA"
-      section={
-        Object {
-          "onSubmit": [MockFunction],
-          "settings": Array [
-            Object {
-              "default": "0",
-              "name": "0",
-              "options": Array [
-                Object {
-                  "text": "Option 0",
-                  "value": "0",
-                },
-                Object {
-                  "text": "Option 1",
-                  "value": "1",
-                },
-              ],
-              "type": "radio",
-            },
-          ],
-          "title": "section 1",
-        }
-      }
-      updateSection={[MockFunction]}
-    />
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        plugin A Settings
+      </h4>
+    </div>
     <div
-      className="divider-light"
-    />
-    <PluginSetting
-      activeSection=""
-      pluginId="pluginA"
-      section={
-        Object {
-          "onSubmit": [MockFunction],
-          "settings": Array [
-            Object {
-              "default": "1",
-              "name": "1",
-              "options": Array [
-                Object {
-                  "text": "Option 0",
-                  "value": "0",
-                },
-                Object {
-                  "text": "Option 1",
-                  "value": "1",
-                },
-              ],
-              "type": "radio",
-            },
-          ],
-          "title": "section 2",
-        }
-      }
-      updateSection={[MockFunction]}
-    />
-    <div
-      className="divider-light"
-    />
-    <div
-      className="divider-dark"
-    />
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          plugin A Settings
+        </h3>
+      </div>
+      <div
+        class="pluginActionContainer"
+      >
+        <div
+          class="sectionNoticeContainer info"
+        >
+          <div
+            class="sectionNoticeContent"
+          >
+            <i
+              class="icon sectionNoticeIcon icon-information-outline info"
+            />
+            <div
+              class="sectionNoticeBody"
+            >
+              <h4
+                class="sectionNoticeTitle"
+              >
+                actionTitle
+              </h4>
+              <p>
+                actionText
+              </p>
+              <div
+                class="sectionNoticeActions"
+              >
+                <button
+                  class="btn btn-sm sectionNoticeButton btn-primary"
+                >
+                  buttonText
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="section 1Title"
+          >
+            section 1
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="section 1Title section 1Edit"
+            class="color--link style--none section-min__edit"
+            id="section 1Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="section 1Desc"
+        >
+          Option 0
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="section 2Title"
+          >
+            section 2
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="section 2Title section 2Edit"
+            class="color--link style--none section-min__edit"
+            id="section 2Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="section 2Desc"
+        >
+          Option 1
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-dark"
+      />
+    </div>
   </div>
 </div>
 `;

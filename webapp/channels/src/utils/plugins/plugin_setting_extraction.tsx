@@ -126,7 +126,7 @@ function extractPluginConfigurationSection(section: unknown, pluginId: string) {
         }
 
         try {
-            const Component = section.component;
+            const Component = section.component as React.ComponentType;
             if (!React.isValidElement((<Component/>))) {
                 return undefined;
             }
@@ -257,7 +257,7 @@ function extractPluginConfigurationCustomSetting(setting: unknown, base: BasePlu
     }
 
     try {
-        const Component = setting.component;
+        const Component = setting.component as React.ComponentType;
         if (!React.isValidElement((<Component/>))) {
             return undefined;
         }

@@ -43,6 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 			"LastPostDate",
 			"DaysActive",
 			"TotalPosts",
+			"ChannelCount",
 			"DeletedAt",
 		},
 		getData(app),
@@ -90,6 +91,7 @@ func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 		HideActive:   hideActive,
 		Role:         data["role"],
 		Team:         data["team"],
+		GuestFilter:  data["guest_filter"],
 	}
 
 	return &options, nil
@@ -120,7 +122,7 @@ func getData(app ExportUsersToCSVAppIFace) func(jobData model.StringMap) ([]mode
 		}
 
 		reportableObjects := []model.ReportableObject{}
-		for i := 0; i < len(users); i++ {
+		for i := range users {
 			reportableObjects = append(reportableObjects, users[i])
 		}
 

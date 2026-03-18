@@ -85,7 +85,7 @@ describe('components/integrations/AbstractCommand', () => {
         wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
 
         expect(wrapper).toMatchSnapshot();
-        expect(action).not.toBeCalled();
+        expect(action).not.toHaveBeenCalled();
     });
 
     test('should call action function', () => {
@@ -96,7 +96,7 @@ describe('components/integrations/AbstractCommand', () => {
         wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
         wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
     });
 
     test('should match object returned by getStateFromCommand', () => {

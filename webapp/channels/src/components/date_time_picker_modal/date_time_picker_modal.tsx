@@ -10,7 +10,7 @@ import {GenericModal} from '@mattermost/components';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
+import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -79,9 +79,11 @@ export default function DateTimePickerModal({
         };
     }, [isInteracting, onExited]);
 
-    const handleChange = useCallback((dateTime: Moment) => {
-        setDateTime(dateTime);
-        onChange?.(dateTime);
+    const handleChange = useCallback((dateTime: Moment | null) => {
+        if (dateTime) {
+            setDateTime(dateTime);
+            onChange?.(dateTime);
+        }
     }, [onChange]);
 
     const handleConfirm = useCallback(() => {
@@ -107,7 +109,8 @@ export default function DateTimePickerModal({
             handleEnterKeyPress={handleEnterKeyPress}
             className={classnames('date-time-picker-modal', className)}
             compassDesign={true}
-            keyboardEscape={false}
+            keyboardEscape={true}
+            enforceFocus={false}
             cancelButtonText={cancelButtonText}
             autoCloseOnConfirmButton={false}
             errorText={errorText}

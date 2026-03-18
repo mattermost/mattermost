@@ -8,8 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -160,6 +158,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
 
+            // For RHS with textbox, don't auto-focus the first element with this approach.
+            // The RHS textbox will focus itself via use_textbox_focus.tsx hook with correct focus logic.
+            if (this.props.postRightVisible) {
+                return;
+            }
+
             // Focus the sidebar after a tick
             setTimeout(() => {
                 if (this.sidebarRight.current) {
@@ -201,13 +205,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        const wasOpen = prevProps.searchVisible || prevProps.postRightVisible;
-        const isOpen = this.props.searchVisible || this.props.postRightVisible;
-
-        if (!wasOpen && isOpen) {
-            trackEvent('ui', 'ui_rhs_opened');
-        }
-
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;

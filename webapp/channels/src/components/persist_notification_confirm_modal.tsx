@@ -60,7 +60,7 @@ function PersistNotificationConfirmModal({
                 values={{
                     interval,
                     username: currentChannelTeammateUsername,
-                    b: (chunks: string) => <b>{chunks}</b>,
+                    b: (chunks) => <b>{chunks}</b>,
                 }}
             />
         );
@@ -108,7 +108,7 @@ function PersistNotificationConfirmModal({
                 values={{
                     max: maxRecipients,
                     count,
-                    b: (chunks: string) => <b>{chunks}</b>,
+                    b: (chunks) => <b>{chunks}</b>,
                 }}
             />
         );

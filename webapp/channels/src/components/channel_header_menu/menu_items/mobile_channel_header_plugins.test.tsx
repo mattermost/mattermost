@@ -13,7 +13,7 @@ import * as modalActions from 'actions/views/modals';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import MobileChannelHeaderPlugins from './mobile_channel_header_plugins';
@@ -104,7 +104,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         expect(container.firstChild).toBeNull();
     });
 
-    test('renders the component correctly, with one extended component, and handle click event', () => {
+    test('renders the component correctly, with one extended component, and handle click event', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
@@ -115,7 +115,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         );
         const menuItem = screen.getByText('some dropdown text');
         expect(menuItem).toBeInTheDocument();
-        fireEvent.click(menuItem);
+        await userEvent.click(menuItem);
         expect(action).toHaveBeenCalledTimes(1);
     });
 
@@ -205,7 +205,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         const menuItem = screen.getByText('App 1 Channel Header');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem);
+        await userEvent.click(menuItem);
         await waitFor(() => {
             expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
             expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
@@ -239,7 +239,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         const menuItem = screen.getByText('App 1 Channel Header');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem);
+        await userEvent.click(menuItem);
         await waitFor(() => {
             // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
             expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
@@ -269,7 +269,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         const menuItem = screen.getByText('App 1 Channel Header');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem);
+        await userEvent.click(menuItem);
         await waitFor(() => {
             // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
             expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
@@ -277,7 +277,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         });
     });
 
-    test('renders the component correctly, with one extended component, isDropDown false', () => {
+    test('renders the component correctly, with one extended component, isDropDown false', async () => {
         const action = jest.fn();
         const pluginState = {
             plugins: {
@@ -305,7 +305,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         );
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
-        fireEvent.click(button);
+        await userEvent.click(button);
         expect(action).toHaveBeenCalledTimes(1);
     });
 
@@ -328,7 +328,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         );
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
-        fireEvent.click(button);
+        await userEvent.click(button);
         await waitFor(() => {
             expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
         });

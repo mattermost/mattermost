@@ -20,7 +20,7 @@ import (
 func TestAsymmetricSigningKey(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
@@ -28,14 +28,13 @@ func TestAsymmetricSigningKey(t *testing.T) {
 func TestPostActionCookieSecret(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+
 	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 }
 
 func TestClientConfigWithComputed(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -63,7 +62,6 @@ func TestClientConfigWithComputed(t *testing.T) {
 func TestEnsureInstallationDate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	tt := []struct {
 		Name                     string
@@ -104,7 +102,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 			assert.NoError(t, err)
 
 			for _, createAt := range tc.UsersCreationDates {
-				user := th.CreateUser()
+				user := th.CreateUser(t)
 				user.CreateAt = createAt
 				_, err = sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
 				assert.NoError(t, err)

@@ -1,0 +1,55 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.KeepRemoveFlaggedMessageConfirmationModal {
+    .modal-content {
+        width: 704px;
+    }
+
+    .body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .section{
+            &.comment_section {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .section_title {
+                color: var(--center-channel-color);
+                font-size: 14px;
+                font-weight: 600;
+            }
+        }
+
+        button#PreviewInputTextButton {
+            position: absolute;
+            z-index: 2;
+            top: 8px;
+            right: 8px;
+        }
+
+        textarea#RemoveFlaggedMessageConfirmationModal__comment {
+            min-height: 90px !important;
+            max-height: 400px;
+        }
+
+        .request_error {
+            display: flex;
+            width: 90%;
+            align-items: center;
+            color: var(--error-text);
+            font-size: 12px;
+        }
+    }
+}
+
+
+
+
+
+
+

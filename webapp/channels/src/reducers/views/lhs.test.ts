@@ -21,7 +21,7 @@ describe('Reducers.LHS', () => {
                 currentStaticPageId: '',
                 size: 'medium',
             },
-            {type: undefined},
+            {type: 'testinit'},
         );
 
         expect(nextState).toEqual(initialState);

@@ -23,6 +23,7 @@ import {addReaction} from 'actions/post_actions';
 import * as Emoji from 'utils/emoji';
 
 import Reaction from './reaction';
+import {makeGetNamesOfUsers} from './reaction_tooltip';
 
 type Props = {
     emojiName: string;
@@ -40,6 +41,8 @@ function makeMapStateToProps() {
         },
     );
 
+    const getNamesOfUsers = makeGetNamesOfUsers();
+
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const channelId = ownProps.post.channel_id;
 
@@ -55,15 +58,13 @@ function makeMapStateToProps() {
         if (emoji) {
             emojiImageUrl = getEmojiImageUrl(emoji as EmojiType);
         }
-        const currentUserId = getCurrentUserId(state);
-
         return {
-            currentUserId,
             reactionCount: ownProps.reactions.length,
             canAddReactions: canAddReactions(state, channelId),
             canRemoveReactions: canRemoveReactions(state, channelId),
             emojiImageUrl,
             currentUserReacted: didCurrentUserReact(state, ownProps.reactions),
+            users: getNamesOfUsers(state, ownProps.reactions),
         };
     };
 }

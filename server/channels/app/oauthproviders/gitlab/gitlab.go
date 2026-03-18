@@ -20,11 +20,12 @@ type GitLabProvider struct {
 }
 
 type GitLabUser struct {
-	Id       int64  `json:"id"`
-	Username string `json:"username"`
-	Login    string `json:"login"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
+	Id                int64  `json:"id"`
+	Username          string `json:"username"`
+	Login             string `json:"login"`
+	Email             string `json:"email"`
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferred_username"`
 }
 
 func init() {
@@ -32,13 +33,22 @@ func init() {
 	einterfaces.RegisterOAuthProvider(model.UserAuthServiceGitlab, provider)
 }
 
-func userFromGitLabUser(logger mlog.LoggerIFace, glu *GitLabUser) *model.User {
+func userFromGitLabUser(logger mlog.LoggerIFace, glu *GitLabUser, settings *model.SSOSettings) *model.User {
 	user := &model.User{}
-	username := glu.Username
-	if username == "" {
+
+	// set username in order of preference
+	var username string
+	if settings != nil && model.SafeDereference(settings.UsePreferredUsername) && glu.PreferredUsername != "" {
+		// to maintain consistency with other providers, we split the username by @ (if present) and
+		// take the first part (but only for the preferred username)
+		username = strings.Split(glu.PreferredUsername, "@")[0]
+	} else if glu.Username != "" {
+		username = glu.Username
+	} else {
 		username = glu.Login
 	}
 	user.Username = model.CleanUsername(logger, username)
+
 	splitName := strings.Split(glu.Name, " ")
 	if len(splitName) == 2 {
 		user.FirstName = splitName[0]
@@ -84,7 +94,7 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	glu, err := gitLabUserFromJSON(data)
 	if err != nil {
 		return nil, err
@@ -93,7 +103,7 @@ func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUs
 		return nil, err
 	}
 
-	return userFromGitLabUser(c.Logger(), glu), nil
+	return userFromGitLabUser(rctx.Logger(), glu, settings), nil
 }
 
 func (gp *GitLabProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {

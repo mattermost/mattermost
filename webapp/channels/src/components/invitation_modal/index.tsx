@@ -28,7 +28,6 @@ import {
 import {makeAsyncComponent} from 'components/async_load';
 
 import {Constants} from 'utils/constants';
-import {getRoleForTrackFlow} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,6 +46,7 @@ const searchChannels = (teamId: string, term: string) => {
 
 type OwnProps = {
     channelToInvite?: Channel;
+    canInviteGuests?: boolean;
 }
 
 export function mapStateToProps(state: GlobalState, props: OwnProps) {
@@ -72,10 +72,15 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const emailInvitationsEnabled = config.EnableEmailInvitations === 'true';
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isGroupConstrained = Boolean(currentTeam?.group_constrained);
-    const canInviteGuests = !isGroupConstrained && isEnterpriseReady && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
+    const calculatedCanInviteGuests = !isGroupConstrained && isEnterpriseReady && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
+    const canInviteGuests = props.canInviteGuests === undefined ? calculatedCanInviteGuests : (calculatedCanInviteGuests && props.canInviteGuests);
+
     const isCloud = license.Cloud === 'true';
 
     const canAddUsers = haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM);
+
+    const guestMagicLinkEnabled = config.EnableGuestMagicLink === 'true';
+    const canInviteGuestsWithMagicLink = canInviteGuests && guestMagicLinkEnabled;
 
     return {
         invitableChannels,
@@ -87,7 +92,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
         isAdmin: isAdmin(getCurrentUser(state).roles),
         currentChannel,
         townSquareDisplayName,
-        roleForTrackFlow: getRoleForTrackFlow(state),
+        canInviteGuestsWithMagicLink,
     };
 }
 

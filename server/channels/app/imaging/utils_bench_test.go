@@ -79,10 +79,11 @@ var tcs = []struct {
 func BenchmarkFillImageTransparency(b *testing.B) {
 	for _, tc := range tcs {
 		b.Run(tc.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				img := tc.imgGen()
 				b.StartTimer()
+
 				FillImageTransparency(img, image.White)
 			}
 		})
@@ -92,10 +93,11 @@ func BenchmarkFillImageTransparency(b *testing.B) {
 func BenchmarkFillImageTransparencyOld(b *testing.B) {
 	for _, tc := range tcs {
 		b.Run(tc.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				img := tc.imgGen()
 				b.StartTimer()
+
 				fillImageTransparencyOld(img, image.White)
 			}
 		})

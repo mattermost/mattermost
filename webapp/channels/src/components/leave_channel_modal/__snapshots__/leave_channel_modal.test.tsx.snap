@@ -1,44 +1,118 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-danger"
-  confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Yes, leave channel"
-      id="leave_private_channel_modal.leave"
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
     />
-  }
-  message={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind."
-      id="leave_public_channel_modal.message"
-      values={
-        Object {
-          "channel": <b>
-            Town Square
-          </b>,
-        }
-      }
-    />
-  }
-  modalClass=""
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  onExited={[MockFunction]}
-  show={true}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Leave Channel {channel}"
-      id="leave_public_channel_modal.title"
-      values={
-        Object {
-          "channel": <b>
-            Town Square
-          </b>,
-        }
-      }
-    />
-  }
-/>
+    <div
+      aria-labelledby="confirmModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="confirmModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Leave Channel 
+                    <b>
+                      Town Square
+                    </b>
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div>
+                  <div
+                    class="ConfirmModal__body"
+                    id="confirmModalBody"
+                  >
+                    Are you sure you wish to leave the channel 
+                    <b>
+                      Town Square
+                    </b>
+                    ? You can re-join this channel in the future if you change your mind.
+                  </div>
+                  <div
+                    class="ConfirmModal__footer"
+                  >
+                    <button
+                      class="btn btn-tertiary"
+                      data-testid="cancel-button"
+                      id="cancelModalButton"
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      class="btn btn-danger"
+                      id="confirmModalButton"
+                      type="button"
+                    >
+                      Yes, leave channel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

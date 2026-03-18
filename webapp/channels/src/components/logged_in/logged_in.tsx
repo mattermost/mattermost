@@ -7,7 +7,7 @@ import {Redirect} from 'react-router-dom';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
-import * as WebSocketActions from 'actions/websocket_actions.jsx';
+import * as WebSocketActions from 'actions/websocket_actions';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
@@ -34,10 +34,12 @@ export type Props = {
     isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
+    customProfileAttributesEnabled: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
+        getCustomProfileAttributeFields: () => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -67,6 +69,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.initialize();
 
         this.updateTimeZone();
+
+        // Fetch custom profile attributes for authenticated user
+        if (this.props.customProfileAttributesEnabled) {
+            this.props.actions.getCustomProfileAttributeFields();
+        }
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);

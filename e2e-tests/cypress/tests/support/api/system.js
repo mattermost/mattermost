@@ -173,14 +173,21 @@ Cypress.Commands.add('apiUpdateConfig', (newConfig = {}) => {
         const config = merge.all([currentConfig, getDefaultConfig(), newConfig]);
 
         // # Set the modified config
-        return cy.request({
-            url: '/api/v4/config',
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            method: 'PUT',
-            body: config,
-        }).then((updateResponse) => {
-            expect(updateResponse.status).to.equal(200);
-            return cy.apiGetConfig();
+        return cy.getCookie('MMCSRF').then((csrfCookie) => {
+            let headers;
+            if (csrfCookie?.value) {
+                headers = {'X-CSRF-Token': csrfCookie.value};
+            }
+
+            return cy.request({
+                url: '/api/v4/config',
+                method: 'PUT',
+                body: config,
+                headers,
+            }).then((updateResponse) => {
+                expect(updateResponse.status).to.equal(200);
+                return cy.apiGetConfig();
+            });
         });
     });
 });

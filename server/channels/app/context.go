@@ -10,17 +10,17 @@ import (
 )
 
 // RequestContextWithMaster adds the context value that master DB should be selected for this request.
-func RequestContextWithMaster(c request.CTX) request.CTX {
-	return sqlstore.RequestContextWithMaster(c)
+func RequestContextWithMaster(rctx request.CTX) request.CTX {
+	return sqlstore.RequestContextWithMaster(rctx)
 }
 
-func pluginContext(c request.CTX) *plugin.Context {
+func pluginContext(rctx request.CTX) *plugin.Context {
 	context := &plugin.Context{
-		RequestId:      c.RequestId(),
-		SessionId:      c.Session().Id,
-		IPAddress:      c.IPAddress(),
-		AcceptLanguage: c.AcceptLanguage(),
-		UserAgent:      c.UserAgent(),
+		RequestId:      rctx.RequestId(),
+		SessionId:      rctx.Session().Id,
+		IPAddress:      rctx.IPAddress(),
+		AcceptLanguage: rctx.AcceptLanguage(),
+		UserAgent:      rctx.UserAgent(),
 	}
 	return context
 }

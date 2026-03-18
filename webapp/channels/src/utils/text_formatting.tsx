@@ -17,7 +17,6 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -174,13 +173,6 @@ export interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     proxyImages: boolean;
-
-    /**
-     * An array of url schemes that will be allowed for autolinking.
-     *
-     * Defaults to autolinking with any url scheme.
-     */
-    autolinkedUrlSchemes: string[];
 
     /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
@@ -551,17 +543,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     );
 
     // handle all other mentions (supports trailing punctuation)
-    let match = output.match(AT_MENTION_PATTERN);
+    let match = output.match(Constants.MENTIONS_REGEX);
     while (match && match.length > 0) {
-        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
-        match = output.match(AT_MENTION_PATTERN);
+        output = output.replace(Constants.MENTIONS_REGEX, replaceAtMentionWithToken);
+        match = output.match(Constants.MENTIONS_REGEX);
     }
 
     return output;
 }
 
 export function allAtMentions(text: string): string[] {
-    return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
+    return text.match(Constants.SPECIAL_MENTIONS_REGEX && Constants.MENTIONS_REGEX) || [];
 }
 
 export function autolinkChannelMentions(
@@ -671,10 +663,6 @@ export function autolinkChannelMentions(
     return output;
 }
 
-export function escapeRegex(text?: string): string {
-    return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
-}
-
 export function escapeReplaceSpecialPatterns(text?: string): string {
     return text?.replace(/[$]/g, '$$$$') || '';
 }
@@ -763,10 +751,10 @@ export function highlightCurrentMentions(
         let pattern;
         if (cjkrPattern.test(mention.key)) {
             // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-            pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+            pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
         } else {
             pattern = new RegExp(
-                `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
                 flags,
             );
         }
@@ -836,10 +824,10 @@ export function highlightWithoutNotificationKeywords(
             let pattern;
             if (cjkrPattern.test(key)) {
             // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
-                pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
+                pattern = new RegExp(`()(${RegExp.escape(key)})()`, 'gi');
             } else {
             // If the key contains only English characters, mark word boundaries
-                pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
+                pattern = new RegExp(`(^|\\W)(${RegExp.escape(key)})(\\b|_+\\b)`, 'gi');
             }
 
             // Replace the key with the token for each occurrence of the key
@@ -981,14 +969,14 @@ function convertSearchTermToRegex(term: string): SearchPattern {
 
     if (cjkrPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
+        pattern = '()(' + RegExp.escape(term.replace(/\*/g, '')) + ')';
     } else if ((/[^\s][*]$/).test(term)) {
-        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
+        pattern = '\\b()(' + RegExp.escape(term.substring(0, term.length - 1)) + ')';
     } else if (term.startsWith('@') || term.startsWith('#')) {
         // needs special handling of the first boundary because a word boundary doesn't work before a symbol
-        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
+        pattern = '(\\W|^)(' + RegExp.escape(term) + ')\\b';
     } else {
-        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
+        pattern = '\\b()(' + RegExp.escape(term) + ')\\b';
     }
 
     return {

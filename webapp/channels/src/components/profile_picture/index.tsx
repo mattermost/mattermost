@@ -53,8 +53,8 @@ function ProfilePicture(props: Props) {
                 triggerComponentAs='button'
                 triggerComponentStyle={{
                     borderRadius: '50%',
-                    width: `${getAvatarWidth(props?.size ?? 'md')}px`,
-                    height: `${getAvatarWidth(props?.size ?? 'md')}px`,
+                    width: getAvatarWidth(props?.size ?? 'md'),
+                    height: getAvatarWidth(props?.size ?? 'md'),
                 }}
             >
                 <>

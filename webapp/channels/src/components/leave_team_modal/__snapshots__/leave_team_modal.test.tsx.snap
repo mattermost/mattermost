@@ -1,94 +1,73 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/LeaveTeamModal should render the leave team model 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="leaveTeamModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  className="modal-confirm"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="leaveTeamModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={false}
-    closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="leaveTeamModalLabel"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Leave the team?"
-        id="leave_team_modal.title"
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
-      id="leave_team_modal_private.description"
-      values={
-        Object {
-          "num_of_private_channels": 0,
-          "strong": [Function],
-        }
-      }
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="leaveTeamNo"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="leaveTeamModalLabel"
+      class="fade modal-confirm in modal"
+      id="leaveTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="No"
-        id="leave_team_modal.no"
-      />
-    </button>
-    <button
-      className="btn btn-danger"
-      id="leaveTeamYes"
-      onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Yes"
-        id="leave_team_modal.yes"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <h1
+              class="modal-title"
+              id="leaveTeamModalLabel"
+            >
+              Leave the team?
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <strong>
+              You will be removed from 0 private channels on this team.
+            </strong>
+             If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="leaveTeamNo"
+              type="button"
+            >
+              No
+            </button>
+            <button
+              class="btn btn-danger"
+              id="leaveTeamYes"
+              type="button"
+            >
+              Yes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

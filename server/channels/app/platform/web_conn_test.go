@@ -35,36 +35,34 @@ func (h *hookRunner) GetPluginsEnvironment() *plugin.Environment {
 
 func TestWebConnAddDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
 	}, th.Suite, &hookRunner{})
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		msg := &model.WebSocketEvent{}
 		msg = msg.SetSequence(int64(i))
 		wc.addToDeadQueue(msg)
 	}
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		assert.Equal(t, int64(i), wc.deadQueue[i].GetSequence())
 	}
 
 	// Should push out the first two elements
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		msg := &model.WebSocketEvent{}
 		msg = msg.SetSequence(int64(i + 2))
 		wc.addToDeadQueue(msg)
 	}
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		assert.Equal(t, int64(i+2), wc.deadQueue[(i+2)%deadQueueSize].GetSequence())
 	}
 }
 
 func TestWebConnIsInDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -125,7 +123,6 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 
 func TestWebConnClearDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -145,7 +142,6 @@ func TestWebConnClearDeadQueue(t *testing.T) {
 
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	var dialConn = func(t *testing.T, th *TestHelper, addr net.Addr) *WebConn {
 		d := websocket.Dialer{}
@@ -214,7 +210,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		wc := dialConn(t, th, s.Listener.Addr())
 		defer wc.WebSocket.Close()
 
-		for i := 0; i < limit; i++ {
+		for i := range limit {
 			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{}, "")
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)

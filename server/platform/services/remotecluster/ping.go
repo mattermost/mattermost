@@ -56,7 +56,7 @@ func (rcs *Service) pingLoop(done <-chan struct{}) {
 	pingChan := make(chan *model.RemoteCluster, MaxConcurrentSends*2)
 
 	// create a thread pool to send pings concurrently to remotes.
-	for i := 0; i < MaxConcurrentSends; i++ {
+	for range MaxConcurrentSends {
 		go rcs.pingEmitter(pingChan, done)
 	}
 

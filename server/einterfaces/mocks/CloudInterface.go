@@ -503,24 +503,6 @@ func (_m *CloudInterface) RemoveAuditLoggingCert(userID string) error {
 	return r0
 }
 
-// SubscribeToNewsletter provides a mock function with given fields: userID, req
-func (_m *CloudInterface) SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error {
-	ret := _m.Called(userID, req)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SubscribeToNewsletter")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *model.SubscribeNewsletterRequest) error); ok {
-		r0 = rf(userID, req)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
 func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID, customerInfo)

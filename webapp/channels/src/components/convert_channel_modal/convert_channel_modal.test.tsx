@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitForElementToBeRemoved} from '@testing-library/react';
+import {waitForElementToBeRemoved} from '@testing-library/react';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
@@ -29,9 +29,9 @@ describe('component/ConvertChannelModal', () => {
         expect(screen.getByRole('button', {name: 'Yes, convert to private channel'})).toBeInTheDocument();
     });
 
-    test('should match call updateChannelPrivacy when convert is clicked', () => {
+    test('should match call updateChannelPrivacy when convert is clicked', async () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
-        userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
 
         expect(updateChannelPrivacy).toHaveBeenCalledTimes(1);
         expect(updateChannelPrivacy).toHaveBeenCalledWith(baseProps.channelId, General.PRIVATE_CHANNEL);
@@ -39,7 +39,7 @@ describe('component/ConvertChannelModal', () => {
 
     test('should not call updateChannelPrivacy when Close button is clicked', async () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
-        fireEvent.click(screen.getByRole('button', {name: 'Close'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         await waitForElementToBeRemoved(() => screen.getByText('Convert Channel Display Name to a Private Channel?'));
         expect(updateChannelPrivacy).not.toHaveBeenCalled();
@@ -47,7 +47,7 @@ describe('component/ConvertChannelModal', () => {
 
     test('should not call updateChannelPrivacy when other Cancel is clicked', async () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
-        fireEvent.click(screen.getByRole('button', {name: 'No, cancel'}));
+        await userEvent.click(screen.getByRole('button', {name: 'No, cancel'}));
 
         await waitForElementToBeRemoved(() => screen.getByText('Convert Channel Display Name to a Private Channel?'));
         expect(updateChannelPrivacy).not.toHaveBeenCalled();

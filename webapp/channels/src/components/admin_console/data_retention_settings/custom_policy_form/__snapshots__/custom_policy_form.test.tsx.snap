@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_retention_settings/custom_policy_form should match snapshot with creating new policy 1`] = `
 <div
@@ -193,7 +193,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
           expanded={true}
         >
           <Connect(TeamList)
-            onAddCallback={[Function]}
             onRemoveCallback={[Function]}
             teamsToAdd={Object {}}
             teamsToRemove={Object {}}
@@ -233,7 +232,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
           <Connect(ChannelList)
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
-            onAddCallback={[Function]}
             onRemoveCallback={[Function]}
           />
         </CardBody>
@@ -455,7 +453,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
           expanded={true}
         >
           <Connect(TeamList)
-            onAddCallback={[Function]}
             onRemoveCallback={[Function]}
             policyId="fsdgdsgdsgh"
             teamsToAdd={Object {}}
@@ -496,7 +493,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
           <Connect(ChannelList)
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
-            onAddCallback={[Function]}
             onRemoveCallback={[Function]}
             policyId="fsdgdsgdsgh"
           />

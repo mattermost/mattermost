@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import MarketplaceModal from './marketplace_modal';
-import type {OpenedFromType} from './marketplace_modal';
-import WebMarketplaceBanner from './web_marketplace_banner';
 
 let mockState: GlobalState;
 
@@ -56,10 +54,6 @@ describe('components/marketplace/', () => {
         installed_version: '1.0.3',
     };
 
-    const defaultProps = {
-        openedFrom: 'actions_menu' as OpenedFromType,
-    };
-
     beforeEach(() => {
         mockState = {
             views: {
@@ -88,16 +82,28 @@ describe('components/marketplace/', () => {
                 admin: {
                     pluginStatuses: {},
                 },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {
+                            id: 'user1',
+                            roles: 'system_admin',
+                        },
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
             },
         } as unknown as GlobalState;
     });
 
     test('should render default', () => {
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+        const {baseElement} = renderWithContext(
+            <MarketplaceModal/>,
         );
 
-        expect(wrapper.shallow()).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render with no plugins available', () => {
@@ -105,13 +111,11 @@ describe('components/marketplace/', () => {
         const useStateSpy = jest.spyOn(React, 'useState');
         useStateSpy.mockImplementationOnce(() => [false, setState]);
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+        const {baseElement} = renderWithContext(
+            <MarketplaceModal/>,
         );
 
-        wrapper.update();
-
-        expect(wrapper.shallow()).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render with plugins available', () => {
@@ -123,13 +127,11 @@ describe('components/marketplace/', () => {
             samplePlugin,
         ];
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+        const {baseElement} = renderWithContext(
+            <MarketplaceModal/>,
         );
 
-        wrapper.update();
-
-        expect(wrapper.shallow()).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render with plugins installed', () => {
@@ -142,13 +144,11 @@ describe('components/marketplace/', () => {
             sampleInstalledPlugin,
         ];
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+        const {baseElement} = renderWithContext(
+            <MarketplaceModal/>,
         );
 
-        wrapper.update();
-
-        expect(wrapper.shallow()).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render with error banner', () => {
@@ -156,13 +156,17 @@ describe('components/marketplace/', () => {
         const useStateSpy = jest.spyOn(React, 'useState');
         useStateSpy.mockImplementation(() => [true, setState]);
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
-        );
+        // Suppress expected errors from useState mock affecting all child components
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        wrapper.update();
-
-        expect(wrapper.shallow()).toMatchSnapshot();
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', () => {
@@ -177,17 +181,20 @@ describe('components/marketplace/', () => {
 
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
-        );
+        // Suppress expected errors from useState mock affecting all child components
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        wrapper.update();
-        const content = wrapper.shallow();
+            expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
+            expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
 
-        expect(content.exists('#searchMarketplaceTextbox')).toBe(false);
-        expect(content.exists(WebMarketplaceBanner)).toBe(true);
-
-        expect(content).toMatchSnapshot();
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", () => {
@@ -198,15 +205,18 @@ describe('components/marketplace/', () => {
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
         mockState.entities.general.license.Cloud = 'true';
 
-        const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
-        );
+        // Suppress expected errors from useState mock affecting all child components
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const {baseElement} = renderWithContext(
+                <MarketplaceModal/>,
+            );
 
-        wrapper.update();
-        const content = wrapper.shallow();
+            expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
 
-        expect(content.exists(WebMarketplaceBanner)).toBe(false);
-
-        expect(content).toMatchSnapshot();
+            expect(baseElement).toMatchSnapshot();
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 });

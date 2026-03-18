@@ -19,7 +19,7 @@ interface Props {
 const emptyText = 'EMPTY TEXT';
 
 function TestEl(props: Props) {
-    const words = useWords(props.highestLimit, props.isAdminUser, '');
+    const words = useWords(props.highestLimit, props.isAdminUser);
     if (!words) {
         return <span>{emptyText}</span>;
     }

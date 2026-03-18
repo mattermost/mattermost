@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react-hooks';
+import {act} from '@testing-library/react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -89,7 +89,7 @@ describe('useOperation', () => {
         const [doAction, status1] = result.current;
         expect(status1.loading).toBe(false);
         expect(status1.error).toBe(undefined);
-        expect(testResolvingAsyncAction).not.toBeCalled();
+        expect(testResolvingAsyncAction).not.toHaveBeenCalled();
 
         let actionPromise: Promise<any>;
         await act(async () => {
@@ -100,19 +100,18 @@ describe('useOperation', () => {
         const [, status2] = result.current;
         expect(status2.loading).toBe(true);
         expect(status2.error).toBe(undefined);
-        expect(testResolvingAsyncAction).toBeCalledTimes(1);
+        expect(testResolvingAsyncAction).toHaveBeenCalledTimes(1);
 
         jest.runAllTimers();
 
         await act(async () => {
             await actionPromise;
-
-            const [, status3] = result.current;
-
-            expect(status3.loading).toBe(false);
-            expect(await actionPromise).toBe('test response value');
-            expect(status3.error).toBe(undefined);
         });
+
+        const [, status3] = result.current;
+        expect(status3.loading).toBe(false);
+        expect(status3.error).toBe(undefined);
+        expect(await actionPromise!).toBe('test response value');
     });
 
     it('should run operation on command with error and loading phases: false -> true -> false', async () => {

@@ -19,14 +19,14 @@ import (
 )
 
 func TestNewId(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		id := NewId()
 		require.LessOrEqual(t, len(id), 26, "ids shouldn't be longer than 26 chars")
 	}
 }
 
 func TestRandomString(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		str := NewRandomString(i)
 		require.Len(t, str, i)
 		require.NotContains(t, str, "=")
@@ -279,7 +279,7 @@ func TestSortedArrayFromJSON(t *testing.T) {
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
@@ -541,10 +541,58 @@ func TestStringArray_Equal(t *testing.T) {
 }
 
 func TestParseHashtags(t *testing.T) {
-	for input, output := range hashtags {
-		o, _ := ParseHashtags(input)
-		require.Equal(t, o, output, "failed to parse hashtags from input="+input+" expected="+output+" actual="+o)
-	}
+	t.Run("basic hashtag extraction", func(t *testing.T) {
+		for input, output := range hashtags {
+			o, _ := ParseHashtags(input)
+			require.Equal(t, o, output, "failed to parse hashtags from input="+input+" expected="+output+" actual="+o)
+		}
+	})
+
+	t.Run("long hashtag string truncation", func(t *testing.T) {
+		// Test case where hashtag string exceeds 1000 characters with a space to truncate at
+		longHashtags := "#test " + strings.Repeat("#verylonghashtag ", 50)
+		hashtagString, plainString := ParseHashtags(longHashtags)
+		require.NotEmpty(t, hashtagString)
+		require.LessOrEqual(t, len(hashtagString), 1000)
+		require.Empty(t, plainString)
+		// Ensure it truncated at a space
+		require.NotEqual(t, "", hashtagString)
+		require.True(t, hashtagString[len(hashtagString)-1] != ' ')
+	})
+
+	t.Run("long hashtag string truncation without spaces", func(t *testing.T) {
+		// Test case where hashtag string exceeds 1000 characters with no space after position 999
+		// Create a single very long hashtag that will be truncated
+		veryLongHashtag := "#" + strings.Repeat("a", 1010)
+		hashtagString, plainString := ParseHashtags(veryLongHashtag)
+		// Should be empty because no space was found to truncate at
+		require.Equal(t, "", hashtagString)
+		require.Empty(t, plainString)
+	})
+
+	t.Run("plain text extraction", func(t *testing.T) {
+		hashtagString, plainString := ParseHashtags("hello #world this is #test plain text")
+		require.Equal(t, "#world #test", hashtagString)
+		require.Equal(t, "hello this is plain text", plainString)
+	})
+
+	t.Run("only plain text", func(t *testing.T) {
+		hashtagString, plainString := ParseHashtags("no hashtags here")
+		require.Empty(t, hashtagString)
+		require.Equal(t, "no hashtags here", plainString)
+	})
+
+	t.Run("only hashtags", func(t *testing.T) {
+		hashtagString, plainString := ParseHashtags("#one #two #three")
+		require.Equal(t, "#one #two #three", hashtagString)
+		require.Empty(t, plainString)
+	})
+
+	t.Run("empty string", func(t *testing.T) {
+		hashtagString, plainString := ParseHashtags("")
+		require.Empty(t, hashtagString)
+		require.Empty(t, plainString)
+	})
 }
 
 func TestIsValidAlphaNum(t *testing.T) {
@@ -1036,8 +1084,8 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 	case reflect.Ptr:
 		// Ignoring these 2 settings.
 		// TODO: remove them completely in v8.0.
-		if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-			name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+		if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+			name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 			return true
 		}
 

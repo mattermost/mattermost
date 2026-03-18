@@ -9,11 +9,12 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 
 /**
- * This file extends Redux's Dispatch type and bindActionCreators function to support Thunk actions by default.
+ * These files extends Redux's Dispatch type and bindActionCreators function to support Thunk actions by default.
  *
  * It specifically requires those action creators to return ThunkAction-derived types.
  */
-import 'redux-thunk/extend-redux';
+import './extend_redux.d.ts';
+import './extend_react_redux.d.ts';
 
 export type DispatchFunc<TAction extends Action = MMReduxAction> = Dispatch<TAction>;
 export type GetStateFunc<State = GlobalState> = () => State;

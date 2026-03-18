@@ -19,7 +19,7 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getClientConfigOld();
+            data = await Client4.getClientConfig();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             return {error};
@@ -121,9 +121,10 @@ export function checkCWSAvailability(): ActionFuncAsync {
         dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST});
 
         try {
-            await Client4.cwsAvailabilityCheck();
-            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'available'});
-            return {data: 'available'};
+            const response = await Client4.cwsAvailabilityCheck();
+            const status = response.status;
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: status});
+            return {data: status};
         } catch (error) {
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
             return {data: 'unavailable'};

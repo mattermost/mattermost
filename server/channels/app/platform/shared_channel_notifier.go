@@ -21,6 +21,8 @@ var sharedChannelEventsForSync = []model.WebsocketEventType{
 	model.WebsocketEventPostDeleted,
 	model.WebsocketEventReactionAdded,
 	model.WebsocketEventReactionRemoved,
+	model.WebsocketEventAcknowledgementAdded,
+	model.WebsocketEventAcknowledgementRemoved,
 }
 
 var sharedChannelEventsForInvitation = []model.WebsocketEventType{
@@ -145,7 +147,7 @@ func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}
 
-	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipant(creator), sharedchannel.WithDirectParticipant(participant))
+	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipant(creator, rc.RemoteId), sharedchannel.WithDirectParticipant(participant, rc.RemoteId))
 }
 
 func getUserFromEvent(ps *PlatformService, event *model.WebSocketEvent, key string) (*model.User, error) {

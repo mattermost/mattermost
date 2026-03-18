@@ -15,7 +15,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -166,7 +166,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Remove user from team", func(c client.Client) {
 		printer.Clean()

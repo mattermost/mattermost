@@ -19,14 +19,14 @@ test('MM-64155 search box clear button should not leave type badge after closing
 
     // # Type something in the search box
     const searchText = 'abcdef';
-    const {searchInput} = channelsPage.searchPopover;
+    const {searchInput} = channelsPage.searchBox;
     await searchInput.pressSequentially(searchText);
 
     // * Verify text was entered
     await expect(searchInput).toHaveValue(searchText);
 
     // # Click the clear button
-    await channelsPage.searchPopover.clearIfPossible();
+    await channelsPage.searchBox.clearIfPossible();
 
     // * Verify the input is cleared
     await expect(searchInput).toHaveValue('');
@@ -35,7 +35,7 @@ test('MM-64155 search box clear button should not leave type badge after closing
     await channelsPage.page.click('body', {position: {x: 0, y: 0}});
 
     // * Verify the search box is closed
-    await expect(channelsPage.searchPopover.container).not.toBeVisible();
+    await expect(channelsPage.searchBox.container).not.toBeVisible();
 
     // * Verify there is no search type badge/chip in the search bar
     // The search type badge is rendered when searchType is either 'messages' or 'files'

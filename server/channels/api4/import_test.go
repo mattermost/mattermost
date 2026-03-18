@@ -54,7 +54,6 @@ func uploadNewImport(th *TestHelper, c *model.Client4, t *testing.T) string {
 func TestListImports(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
 		imports, _, err := th.Client.ListImports(context.Background())
@@ -114,7 +113,6 @@ func TestListImports(t *testing.T) {
 func TestImportInLocalMode(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithServerOptions(t, []app.Option{app.RunEssentialJobs})
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 	require.NotEmpty(t, testsDir)
@@ -155,7 +153,6 @@ func TestImportInLocalMode(t *testing.T) {
 
 func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no delete permissions", func(t *testing.T) {
 		response, err := th.Client.DeleteImport(context.Background(), "import_test.zip")

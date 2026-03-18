@@ -24,6 +24,10 @@
         .back {
             display: none;
             flex-shrink: 0;
+
+            &.hasBackAction {
+                display: unset;
+            }
         }
 
         .FollowButton,
@@ -62,6 +66,10 @@
             .dropdown-menu {
                 min-width: 250px;
             }
+        }
+
+        .PopoutButton {
+            margin-left: 4px;
         }
     }
 

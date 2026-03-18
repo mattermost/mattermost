@@ -129,7 +129,6 @@ describe('Group Message Conversion To Private Channel', () => {
 
             cy.apiCreateTeam('gmconversionteam3', 'GM Conversion Team 3').then(({team}) => {
                 testTeam3 = team;
-                console.log(testTeam3);
 
                 const teamMembers = [{
                     team_id: testTeam3.id,
@@ -156,10 +155,11 @@ describe('Group Message Conversion To Private Channel', () => {
         cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id]).then(({channel}) => {
             gm = channel;
 
-            console.log(gm.name);
-
             // Open the GM
             cy.visit(`/${testTeam1.name}/messages/${gm.name}`);
+
+            // Wait until the channel is loaded
+            cy.get('#channelHeaderDropdownButton').should('be.visible');
 
             // convert via API call
             const timestamp = Date.now();

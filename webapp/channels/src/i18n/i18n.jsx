@@ -37,7 +37,7 @@ export const languages = {
     },
     fr: {
         value: 'fr',
-        name: 'Français (Beta)',
+        name: 'Français (Alpha)',
         order: 4,
         url: langFiles.fr,
     },
@@ -121,7 +121,7 @@ export const languages = {
     },
     ko: {
         value: 'ko',
-        name: '한국어 (Alpha)',
+        name: '한국어',
         order: 18,
         url: langFiles.ko,
     },

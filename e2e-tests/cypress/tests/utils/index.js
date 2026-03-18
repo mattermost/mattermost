@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-loop-func, quote-props */
+
 
 import {v4 as uuidv4} from 'uuid';
 
@@ -51,7 +51,7 @@ export function getMessageMenusPayload({dataSource, options, prefix = Date.now()
 }
 
 export function hexToRgbArray(hex) {
-    var rgbArr = hex.replace('#', '').match(/.{1,2}/g);
+    const rgbArr = hex.replace('#', '').match(/.{1,2}/g);
     return [
         parseInt(rgbArr[0], 16),
         parseInt(rgbArr[1], 16),
@@ -83,11 +83,11 @@ export function stubClipboard() {
     cy.window().then((win) => {
         if (!win.navigator.clipboard) {
             win.navigator.clipboard = {
-                writeText: () => {}, //eslint-disable-line no-empty-function
+                writeText: () => {},
             };
         }
 
-        cy.stub(win.navigator.clipboard, 'writeText', (link) => {
+        cy.stub(win.navigator.clipboard, 'writeText').callsFake((link) => {
             clipboard.wasCalled = true;
             clipboard.contents = link;
             return Promise.resolve(true);

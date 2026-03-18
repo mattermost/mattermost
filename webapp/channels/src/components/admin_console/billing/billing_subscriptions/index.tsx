@@ -14,8 +14,6 @@ import {
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
 
-import {pageVisited} from 'actions/telemetry_actions';
-
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
@@ -73,10 +71,8 @@ const BillingSubscriptions = () => {
         dispatch(getCloudProducts(includeLegacyProducts));
         dispatch(getCloudCustomer());
 
-        pageVisited('cloud_admin', 'pageview_billing_subscription');
-
         if (actionQueryParam === 'show_pricing_modal' && !isAirGapped) {
-            openPricingModal({trackingLocation: 'billing_subscriptions_external_direct_link'});
+            openPricingModal();
         }
     }, []);
 

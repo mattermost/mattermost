@@ -31,7 +31,7 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
+export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
         ${({$borderless}) => !$borderless && css`
@@ -63,9 +63,11 @@ export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
 export const PlaceholderHeading = styled.h4`
     && {
         font-size: 20px;
+        font-family: 'Metropolis', sans-serif;
         font-weight: 600;
         line-height: 28px;
         margin-bottom: 4px;
+        margin-top: 0;
     }
 `;
 
@@ -88,14 +90,15 @@ export const PlaceholderContainer = styled.div`
     display: flex;
     place-items: center;
     flex-direction: column;
-    gap: 5px;
-
-    svg {
-        margin: 30px 30px 20px;
-    }
+    gap: 24px;
 
     hgroup {
         text-align: center;
+
+        p {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            margin-bottom: 0;
+        }
     }
 `;
 
@@ -132,7 +135,7 @@ export const Input = styled.input.attrs({className: 'form-control secure-connect
 type FormFieldProps = {
     label?: string;
     children: ReactNode | ReactNode[];
-    helpText?: string;
+    helpText?: string | ReactNode;
 }
 
 export const FormField = ({label, children, helpText}: FormFieldProps) => {

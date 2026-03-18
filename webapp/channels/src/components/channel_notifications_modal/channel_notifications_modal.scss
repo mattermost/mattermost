@@ -100,8 +100,7 @@
 
         .modal-content {
             display: flex;
-            height: 100vh;
-            max-height: unset;
+            max-height: 100vh;
             flex-direction: column;
             border-radius: unset;
         }
@@ -113,10 +112,15 @@
         }
     }
 
-    @media screen and (max-height: 600px) {
+    @media screen and (max-height: 600px) and (min-width: 768px) {
         .modal-content, .GenericModal__wrapper {
             max-height: 85vh !important;
         }
     }
-    
+
+    @media screen and (max-width: 640px) {
+        .GenericModal__wrapper {
+            max-height: unset !important;
+        }
+    }
 }

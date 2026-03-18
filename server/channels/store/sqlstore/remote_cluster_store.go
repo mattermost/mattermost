@@ -44,6 +44,7 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "CreatorId",
 		prefix + "PluginID",
 		prefix + "Options",
+		prefix + "LastGlobalUserSyncAt",
 	}
 }
 
@@ -99,7 +100,8 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			DefaultTeamId = :DefaultTeamId,
 			Topics = :Topics,
 			PluginID = :PluginID,
-			Options = :Options
+			Options = :Options,
+			LastGlobalUserSyncAt = :LastGlobalUserSyncAt
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMaster().NamedExec(query, remoteCluster); err != nil {
@@ -307,6 +309,27 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to update RemoteCluster")
+	}
+	return nil
+}
+
+func (s sqlRemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+	query := s.getQueryBuilder().
+		Update("RemoteClusters").
+		Set("LastGlobalUserSyncAt", syncAt).
+		Where(sq.Eq{"RemoteId": remoteID})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrap(err, "failed to update LastGlobalUserSyncAt for RemoteCluster")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("remote cluster not found: %s", remoteID)
 	}
 	return nil
 }

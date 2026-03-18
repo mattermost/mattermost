@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"testing"
 
@@ -19,7 +18,6 @@ import (
 func TestGetAllRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	roles, err := th.App.Srv().Store().Role().GetAll()
 	require.NoError(t, err)
@@ -42,7 +40,6 @@ func TestGetAllRoles(t *testing.T) {
 func TestGetRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -85,7 +82,6 @@ func TestGetRole(t *testing.T) {
 func TestGetRoleByName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -128,7 +124,6 @@ func TestGetRoleByName(t *testing.T) {
 func TestGetRolesByNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role1 := &model.Role{
 		Name:          model.NewId(),
@@ -208,7 +203,7 @@ func TestGetRolesByNames(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// too many roles should error with bad request
 		roles := []string{}
-		for i := 0; i < GetRolesByNamesMax+10; i++ {
+		for i := range GetRolesByNamesMax + 10 {
 			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
 		}
 
@@ -221,7 +216,6 @@ func TestGetRolesByNames(t *testing.T) {
 func TestPatchRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -304,9 +298,8 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
@@ -338,9 +331,8 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {

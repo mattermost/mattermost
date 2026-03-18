@@ -123,7 +123,7 @@ const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, total
         message = (
             <FormattedMessage
                 id='admin.license.userSeatAlert.dangerMessage'
-                defaultMessage='All licensed seats are now in use. Additional users may result in true-up charges at your next renewal. To maintain compliance and uninterrupted access, you may limit new sign-ups, or contact us to extend your license.'
+                defaultMessage='All licensed seats are now in use. Contact Sales to extend your license.'
             />
         );
     }

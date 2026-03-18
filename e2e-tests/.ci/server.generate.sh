@@ -48,6 +48,7 @@ generate_docker_compose_file() {
 services:
   server:
     image: \${SERVER_IMAGE}
+    platform: linux/amd64
     restart: always
     env_file:
       - "./.env.server"
@@ -81,7 +82,7 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:13
+    image: mattermostdevelopment/mirrored-postgres:14
     restart: "no"
     network_mode: host
     networks: !reset []
@@ -221,9 +222,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
-    image: "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
-    ### Temporarily disabling this image, until both the amd64 and arm64 version are mirrored
-    # image: "mattermostdevelopment/mirrored-cypress-browsers-public:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1"
+    image: "cypress/browsers:node-24.14.0-chrome-145.0.7632.116-1-ff-148.0-edge-145.0.3800.70-1"
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -262,26 +261,38 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     # shellcheck disable=SC2016
     echo '
   webhook-interactions:
-    image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
+    image: node:${NODE_VERSION_REQUIRED}
+    command: sh -c "npm init -y > /dev/null && npm install express@5.1.0 axios@1.11.0 client-oauth2@github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
       interval: 10s
       timeout: 15s
       retries: 12
-    working_dir: /cypress
+    working_dir: /webhook
     network_mode: host
     restart: on-failure
     volumes:
-      - "../../e2e-tests/cypress/:/cypress:ro"'
+      - "../../e2e-tests/cypress/webhook_serve.js:/webhook/webhook_serve.js:ro"
+      - "../../e2e-tests/cypress/utils/:/webhook/utils:ro"
+      - "../../e2e-tests/cypress/tests/plugins/post_message_as.js:/webhook/tests/plugins/post_message_as.js:ro"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
+    # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    image: mcr.microsoft.com/playwright:v1.58.0-noble
     entrypoint: ["/bin/bash", "-c"]
-    command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
+    command:
+      - |
+        # Install Node.js based on .nvmrc
+        NODE_VERSION=$$(cat /mattermost/.nvmrc)
+        echo "Installing Node.js $${NODE_VERSION}..."
+        curl -fsSL https://deb.nodesource.com/setup_$${NODE_VERSION%%.*}.x | bash -
+        apt-get install -y nodejs
+        echo "Node.js version: $$(node --version)"
+        # Wait for termination signal
+        until [ -f /var/run/mm_terminate ]; do sleep 5; done
     env_file:
       - "./.env.playwright"
     environment:

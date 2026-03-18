@@ -673,6 +673,13 @@ describe('Actions.Posts', () => {
                 }),
                 expected: new Set(['ccc', 'ddd', 'fff', 'ggg']),
             },
+            {
+                name: 'should return potential remote mentions',
+                input: TestHelper.getPostMock({
+                    message: '@user1:org1 @user2:org2/@user3:org3/@user4:org4 (@user5:org5) @user6:org6',
+                }),
+                expected: new Set(['user1:org1', 'user2:org2', 'user3:org3', 'user4:org4', 'user5:org5', 'user6:org6']),
+            },
         ];
 
         for (const specialMention of [

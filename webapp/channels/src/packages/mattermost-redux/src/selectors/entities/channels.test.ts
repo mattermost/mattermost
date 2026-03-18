@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -2255,6 +2256,35 @@ describe('Selectors.Channels.getUnreadStatus', () => {
 
         expect(Selectors.getUnreadStatus(newState)).toBe(1);
     });
+
+    it('should not count unreads and mentions from a muted channel', () => {
+        const mutedChannelId = channel2.id;
+        const newMyMembers = {
+            ...testState.entities.channels.myMembers,
+            [mutedChannelId]: {
+                ...testState.entities.channels.myMembers[mutedChannelId],
+                notify_props: {
+                    ...testState.entities.channels.myMembers[mutedChannelId].notify_props,
+                    mark_unread: 'mention',
+                },
+                mention_count: 3,
+                msg_count: 10,
+            },
+        };
+
+        const newState = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    myMembers: newMyMembers,
+                },
+            },
+        };
+
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
+    });
 });
 
 describe('Selectors.Channels.getUnreadStatus', () => {
@@ -3197,5 +3227,621 @@ describe('Selectors.Channels.getRecentProfilesFromDMs', () => {
             ...[user3.username, user4.username].sort(),
             user1.username,
         ]);
+    });
+});
+
+describe('hasAutotranslationBecomeEnabled', () => {
+    const enabledChannel = {...TestHelper.fakeChannel('team_id'), autotranslation: true};
+    const enabledMember = {...TestHelper.fakeChannelMember('user_id', enabledChannel.id), autotranslation_disabled: false};
+    const disabledChannel = {...enabledChannel, autotranslation: false};
+    const disabledMember = {...enabledMember, autotranslation_disabled: true};
+
+    it('returns false when EnableAutoTranslation is not enabled in config', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'false'}},
+                channels: {
+                    channels: {
+                        [disabledChannel.id]: disabledChannel,
+                    },
+                    myMembers: {
+                        [enabledChannel.id]: enabledMember,
+                    },
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledChannel)).toBe(false);
+    });
+
+    it('returns false when missing state', () => {
+        const missingChannelState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(missingChannelState as GlobalState, enabledMember)).toBe(false);
+
+        const missingMemberState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(missingMemberState as GlobalState, enabledChannel)).toBe(false);
+    });
+
+    it('returns false on disable', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, disabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, disabledMember)).toBe(false);
+    });
+
+    it('returns false when no change', () => {
+        const stateEnabled: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateEnabled as GlobalState, enabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateEnabled as GlobalState, enabledMember)).toBe(false);
+
+        const stateDisabled: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateDisabled as GlobalState, disabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateDisabled as GlobalState, disabledMember)).toBe(false);
+    });
+
+    it('returns false when change doesn\'t enable autotranslation', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledMember)).toBe(false);
+    });
+
+    it('returns true when autotranslation becomes enabled', () => {
+        const enabledChannelState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(enabledChannelState as GlobalState, enabledMember)).toBe(true);
+
+        const enabledMemberState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(enabledMemberState as GlobalState, enabledChannel)).toBe(true);
+    });
+});
+
+describe('isChannelAutotranslated', () => {
+    const publicChannelId = 'public_channel_id';
+    const dmChannelId = 'dm_channel_id';
+    const gmChannelId = 'gm_channel_id';
+
+    const publicChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: publicChannelId,
+        type: General.OPEN_CHANNEL,
+        autotranslation: true,
+    };
+    const dmChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: dmChannelId,
+        type: General.DM_CHANNEL,
+        autotranslation: true,
+    };
+    const gmChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: gmChannelId,
+        type: General.GM_CHANNEL,
+        autotranslation: true,
+    };
+
+    it('returns false when channel does not exist', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {channels: {}},
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, 'nonexistent')).toBe(false);
+    });
+
+    it('returns false when channel has no autotranslation', () => {
+        const channelWithoutAutotranslation = {...publicChannel, autotranslation: false};
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[publicChannelId]: channelWithoutAutotranslation},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns false when EnableAutoTranslation is not enabled in config', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'false'}},
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns true for public channel with autotranslation when EnableAutoTranslation is enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(true);
+    });
+
+    it('returns true for DM channel with autotranslation when RestrictDMAndGMAutotranslation is not enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        EnableAutoTranslation: 'true',
+                        RestrictDMAndGMAutotranslation: 'false',
+                    },
+                },
+                channels: {
+                    channels: {[dmChannelId]: dmChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, dmChannelId)).toBe(true);
+    });
+
+    it('returns true for DM channel with autotranslation when RestrictDMAndGMAutotranslation is not set', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {EnableAutoTranslation: 'true'},
+                },
+                channels: {
+                    channels: {[dmChannelId]: dmChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, dmChannelId)).toBe(true);
+    });
+
+    it('returns false for DM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        EnableAutoTranslation: 'true',
+                        RestrictDMAndGMAutotranslation: 'true',
+                    },
+                },
+                channels: {
+                    channels: {[dmChannelId]: dmChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, dmChannelId)).toBe(false);
+    });
+
+    it('returns true for GM channel with autotranslation when RestrictDMAndGMAutotranslation is not enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        EnableAutoTranslation: 'true',
+                        RestrictDMAndGMAutotranslation: 'false',
+                    },
+                },
+                channels: {
+                    channels: {[gmChannelId]: gmChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, gmChannelId)).toBe(true);
+    });
+
+    it('returns false for GM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        EnableAutoTranslation: 'true',
+                        RestrictDMAndGMAutotranslation: 'true',
+                    },
+                },
+                channels: {
+                    channels: {[gmChannelId]: gmChannel},
+                },
+            },
+        };
+        expect(Selectors.isChannelAutotranslated(state as GlobalState, gmChannelId)).toBe(false);
+    });
+});
+
+describe('isMyChannelAutotranslated', () => {
+    const publicChannelId = 'public_channel_id';
+    const dmChannelId = 'dm_channel_id';
+    const gmChannelId = 'gm_channel_id';
+    const currentUserId = 'current_user_id';
+
+    const publicChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: publicChannelId,
+        type: General.OPEN_CHANNEL,
+        autotranslation: true,
+    };
+    const dmChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: dmChannelId,
+        type: General.DM_CHANNEL,
+        autotranslation: true,
+    };
+    const gmChannel = {
+        ...TestHelper.fakeChannelWithId('team_id'),
+        id: gmChannelId,
+        type: General.GM_CHANNEL,
+        autotranslation: true,
+    };
+
+    const currentUserWithLocale = (locale: string) => ({
+        ...TestHelper.fakeUserWithId(),
+        id: currentUserId,
+        locale,
+    });
+
+    const baseConfig = {
+        EnableAutoTranslation: 'true' as const,
+        AutoTranslationLanguages: 'en,es,fr',
+        RestrictDMAndGMAutotranslation: 'false' as const,
+    };
+
+    it('returns false when channel does not exist', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {channels: {}, myMembers: {}},
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, 'nonexistent')).toBe(false);
+    });
+
+    it('returns false when EnableAutoTranslation is not enabled in config', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {...baseConfig, EnableAutoTranslation: 'false'}},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns false when channel has no autotranslation', () => {
+        const channelWithoutAutotranslation = {...publicChannel, autotranslation: false};
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: channelWithoutAutotranslation},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns false when my channel member has autotranslation_disabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {
+                        [publicChannelId]: {channel_id: publicChannelId, autotranslation_disabled: true},
+                    },
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns false when user locale is not in AutoTranslationLanguages', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('de')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns false when AutoTranslationLanguages is empty or not set', () => {
+        const stateEmpty: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {...baseConfig, AutoTranslationLanguages: ''}},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(stateEmpty as GlobalState, publicChannelId)).toBe(false);
+
+        const stateMissing: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true', RestrictDMAndGMAutotranslation: 'false'}},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(stateMissing as GlobalState, publicChannelId)).toBe(false);
+    });
+
+    it('returns true for public channel when all conditions are met', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {[publicChannelId]: {channel_id: publicChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(true);
+    });
+
+    it('returns true when my channel member has autotranslation_disabled false', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('es')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {
+                        [publicChannelId]: {channel_id: publicChannelId, autotranslation_disabled: false},
+                    },
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(true);
+    });
+
+    it('returns true when my channel member is missing (no autotranslation_disabled)', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[publicChannelId]: publicChannel},
+                    myMembers: {},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, publicChannelId)).toBe(true);
+    });
+
+    it('returns false for DM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        ...baseConfig,
+                        RestrictDMAndGMAutotranslation: 'true',
+                    },
+                },
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[dmChannelId]: dmChannel},
+                    myMembers: {[dmChannelId]: {channel_id: dmChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, dmChannelId)).toBe(false);
+    });
+
+    it('returns false for GM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        ...baseConfig,
+                        RestrictDMAndGMAutotranslation: 'true',
+                    },
+                },
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[gmChannelId]: gmChannel},
+                    myMembers: {[gmChannelId]: {channel_id: gmChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, gmChannelId)).toBe(false);
+    });
+
+    it('returns true for DM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('fr')},
+                },
+                channels: {
+                    channels: {[dmChannelId]: dmChannel},
+                    myMembers: {[dmChannelId]: {channel_id: dmChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, dmChannelId)).toBe(true);
+    });
+
+    it('returns true for GM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: baseConfig},
+                users: {
+                    currentUserId,
+                    profiles: {[currentUserId]: currentUserWithLocale('en')},
+                },
+                channels: {
+                    channels: {[gmChannelId]: gmChannel},
+                    myMembers: {[gmChannelId]: {channel_id: gmChannelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, gmChannelId)).toBe(true);
+    });
+});
+
+describe('isChannelAutotranslated', () => {
+    it('returns same result as getMyChannelAutotranslation', () => {
+        const channelId = 'channel_id';
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        EnableAutoTranslation: 'true',
+                        AutoTranslationLanguages: 'en',
+                        RestrictDMAndGMAutotranslation: 'false',
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: {
+                            ...TestHelper.fakeUserWithId(),
+                            id: 'user_id',
+                            locale: 'en',
+                        },
+                    },
+                },
+                channels: {
+                    channels: {
+                        [channelId]: {
+                            ...TestHelper.fakeChannelWithId('team_id'),
+                            id: channelId,
+                            autotranslation: true,
+                        },
+                    },
+                    myMembers: {[channelId]: {channel_id: channelId}},
+                },
+            },
+        };
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, channelId)).toBe(
+            Selectors.isMyChannelAutotranslated(state as GlobalState, channelId),
+        );
+        expect(Selectors.isMyChannelAutotranslated(state as GlobalState, channelId)).toBe(true);
     });
 });

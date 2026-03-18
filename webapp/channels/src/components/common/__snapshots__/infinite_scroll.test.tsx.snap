@@ -1,72 +1,43 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`/components/common/InfiniteScroll should match snapshot 1`] = `
-<InfiniteScroll
-  bufferValue={100}
-  callBack={[MockFunction]}
-  endOfData={false}
-  endOfDataMessage="No more items to fetch"
-  itemsPerPage={10}
-  loaderStyle={Object {}}
-  pageNumber={1}
-  styleClass="signup-team-all"
-  totalItems={20}
->
+<div>
   <div
-    className="infinite-scroll signup-team-all"
+    class="infinite-scroll signup-team-all"
   >
     <div />
     No more items to fetch
   </div>
-</InfiniteScroll>
+</div>
 `;
 
 exports[`/components/common/InfiniteScroll should not show loading screen if there is no data 1`] = `
-<InfiniteScroll
-  bufferValue={100}
-  callBack={[MockFunction]}
-  endOfData={false}
-  endOfDataMessage="No more items to fetch"
-  itemsPerPage={10}
-  loaderStyle={Object {}}
-  pageNumber={1}
-  styleClass="signup-team-all"
-  totalItems={20}
->
+<div>
   <div
-    className="infinite-scroll signup-team-all"
+    class="infinite-scroll signup-team-all"
   >
     <div />
-    <LoadingScreen
-      message=" "
-      style={Object {}}
+    <div
+      class="loading-screen"
+      style="position: relative;"
     >
       <div
-        className="loading-screen"
-        style={
-          Object {
-            "position": "relative",
-          }
-        }
+        class="loading__content"
       >
+        <p>
+           
+        </p>
         <div
-          className="loading__content"
-        >
-          <p>
-             
-          </p>
-          <div
-            className="round round-1"
-          />
-          <div
-            className="round round-2"
-          />
-          <div
-            className="round round-3"
-          />
-        </div>
+          class="round round-1"
+        />
+        <div
+          class="round round-2"
+        />
+        <div
+          class="round round-3"
+        />
       </div>
-    </LoadingScreen>
+    </div>
   </div>
-</InfiniteScroll>
+</div>
 `;

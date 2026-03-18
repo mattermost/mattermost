@@ -6,8 +6,8 @@ package platform
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -106,6 +106,9 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 			return nil, nil, model.NewAppError("saveConfig", "app.save_config.plugin_hook_error", nil, "", http.StatusBadRequest).Wrap(hookErr)
 		}
 	}
+
+	// Validate log file paths (logs errors for now, will block server startup in future version)
+	config.WarnIfLogPathsOutsideRoot(newCfg)
 
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
@@ -237,7 +240,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 	clientConfigJSON, _ := json.Marshal(clientConfig)
 	ps.clientConfig.Store(clientConfig)
 	ps.limitedClientConfig.Store(limitedClientConfig)
-	ps.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
+	ps.clientConfigHash.Store(fmt.Sprintf("%x", sha256.Sum256(clientConfigJSON)))
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.

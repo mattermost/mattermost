@@ -22,12 +22,12 @@ test('Search box suggestion must be case insensitive', async ({pw}) => {
 
     // Should work as expected when using lowercase
     // # Type in lowercase "off" to search for the "Off-Topic" channel
-    const {searchInput} = channelsPage.searchPopover;
+    const {searchInput} = channelsPage.searchBox;
     await searchInput.pressSequentially(`In:${searchWord}`);
 
     // * The suggestion should be visible
-    await expect(channelsPage.searchPopover.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchPopover.selectedSuggestion).toHaveText(channelName);
+    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
+    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(channelName);
 
     // # Press Enter to select the suggestion and another Enter to search
     await searchInput.press('Enter');
@@ -41,14 +41,14 @@ test('Search box suggestion must be case insensitive', async ({pw}) => {
     await channelsPage.globalHeader.openSearch();
 
     // # Clear its content
-    await channelsPage.searchPopover.clearIfPossible();
+    await channelsPage.searchBox.clearIfPossible();
 
     // # Type in uppercase "OFF" to search for the "Off-Topic" channel
-    await searchInput.pressSequentially(`In:${searchWord.toUpperCase()}`);
+    await searchInput.type(`In:${searchWord.toUpperCase()}`);
 
     // * The suggestion should be visible
-    await expect(channelsPage.searchPopover.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchPopover.selectedSuggestion).toHaveText(channelName);
+    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
+    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(channelName);
 
     // # Press Enter to select the suggestion and another Enter to search
     await searchInput.press('Enter');
@@ -73,12 +73,12 @@ test('remove extra whitespace when selecting a user', async ({pw}) => {
     await channelsPage.globalHeader.openSearch();
 
     // # Type "from:" followed by multiple spaces
-    const {searchInput} = channelsPage.searchPopover;
+    const {searchInput} = channelsPage.searchBox;
     await searchInput.pressSequentially(`from:    ${admin.username}`);
 
     // * The suggestion should be visible
-    await expect(channelsPage.searchPopover.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchPopover.selectedSuggestion).toHaveText(`@` + admin.username);
+    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
+    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(`@` + admin.username);
 
     // # Press enter to validate the selection
     await searchInput.press('Enter');

@@ -34,7 +34,7 @@ function SendDraftModal({
             id={'drafts.confirm.send.text'}
             defaultMessage={'Are you sure you want to send this message to <strong>{displayName}</strong>?'}
             values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
+                strong: (chunk) => <strong>{chunk}</strong>,
                 displayName,
             }}
         />

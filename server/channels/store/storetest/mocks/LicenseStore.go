@@ -15,9 +15,9 @@ type LicenseStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: c, id
-func (_m *LicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, error) {
-	ret := _m.Called(c, id)
+// Get provides a mock function with given fields: rctx, id
+func (_m *LicenseStore) Get(rctx request.CTX, id string) (*model.LicenseRecord, error) {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -26,10 +26,10 @@ func (_m *LicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, err
 	var r0 *model.LicenseRecord
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.LicenseRecord, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.LicenseRecord); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.LicenseRecord)
@@ -37,7 +37,7 @@ func (_m *LicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, err
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

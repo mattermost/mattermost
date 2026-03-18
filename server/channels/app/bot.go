@@ -157,7 +157,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
+		if _, _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -166,6 +166,10 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 }
 
 func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	return a.GetOrCreateSystemOwnedBot(rctx, model.BotSystemBotUsername, i18n.T("app.system.system_bot.bot_displayname"))
+}
+
+func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botUsername, botDisplayName string) (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -183,10 +187,9 @@ func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	systemBot := &model.Bot{
-		Username:    model.BotSystemBotUsername,
-		DisplayName: T("app.system.system_bot.bot_displayname"),
+		Username:    botUsername,
+		DisplayName: botDisplayName,
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
 	}
@@ -348,6 +351,45 @@ func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.Bot
 		return nil, model.NewAppError("GetBots", "app.bot.getbots.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return bots, nil
+}
+
+// IsBotExemptFromDMRestrictions checks if the given user ID is a bot that is
+// exempt from the RestrictDirectMessage=team enforcement. This includes the
+// system bot, bots owned by the current session's user, and plugin-owned bots.
+func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bool, *model.AppError) {
+	bot, appErr := a.GetBot(rctx, userID, false)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	// The system bot must be able to send messages to any user regardless of
+	// team membership (e.g. push notification tests, post reminders, etc.)
+	if bot.Username == model.BotSystemBotUsername {
+		return true, nil
+	}
+
+	if session := rctx.Session(); session != nil && bot.OwnerId == session.UserId {
+		return true, nil
+	}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return false, nil
+	}
+
+	availablePlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return false, model.NewAppError("IsBotExemptFromDMRestrictions", "app.plugin.get_plugins.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	pluginIDs := make(map[string]bool, len(availablePlugins))
+	for _, plugin := range availablePlugins {
+		if plugin.Manifest != nil {
+			pluginIDs[plugin.Manifest.Id] = true
+		}
+	}
+
+	return pluginIDs[bot.OwnerId], nil
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
@@ -565,7 +607,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 		if appErr != nil {
 			return appErr
 		}

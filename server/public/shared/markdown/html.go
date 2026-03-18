@@ -27,69 +27,75 @@ func RenderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition) (
 	return renderBlockHTML(block, referenceDefinitions, false)
 }
 
-func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) (result string) {
+func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) string {
+	var resultSb strings.Builder
+
 	switch v := block.(type) {
 	case *Document:
 		for _, block := range v.Children {
-			result += RenderBlockHTML(block, referenceDefinitions)
+			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
 	case *Paragraph:
 		if len(v.Text) == 0 {
-			return
+			return ""
 		}
 		if !isTightList {
-			result += "<p>"
+			resultSb.WriteString("<p>")
 		}
 		for _, inline := range v.ParseInlines(referenceDefinitions) {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
 		if !isTightList {
-			result += "</p>"
+			resultSb.WriteString("</p>")
 		}
 	case *List:
 		if v.IsOrdered {
 			if v.OrderedStart != 1 {
-				result += fmt.Sprintf(`<ol start="%v">`, v.OrderedStart)
+				resultSb.WriteString(fmt.Sprintf(`<ol start="%v">`, v.OrderedStart))
 			} else {
-				result += "<ol>"
+				resultSb.WriteString("<ol>")
 			}
 		} else {
-			result += "<ul>"
+			resultSb.WriteString("<ul>")
 		}
 		for _, block := range v.Children {
-			result += renderBlockHTML(block, referenceDefinitions, !v.IsLoose)
+			resultSb.WriteString(renderBlockHTML(block, referenceDefinitions, !v.IsLoose))
 		}
 		if v.IsOrdered {
-			result += "</ol>"
+			resultSb.WriteString("</ol>")
 		} else {
-			result += "</ul>"
+			resultSb.WriteString("</ul>")
 		}
 	case *ListItem:
-		result += "<li>"
+		resultSb.WriteString("<li>")
 		for _, block := range v.Children {
-			result += renderBlockHTML(block, referenceDefinitions, isTightList)
+			resultSb.WriteString(renderBlockHTML(block, referenceDefinitions, isTightList))
 		}
-		result += "</li>"
+		resultSb.WriteString("</li>")
 	case *BlockQuote:
-		result += "<blockquote>"
+		resultSb.WriteString("<blockquote>")
 		for _, block := range v.Children {
-			result += RenderBlockHTML(block, referenceDefinitions)
+			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
-		result += "</blockquote>"
+		resultSb.WriteString("</blockquote>")
 	case *FencedCode:
 		if info := v.Info(); info != "" {
 			language := strings.Fields(info)[0]
-			result += `<pre><code class="language-` + htmlEscaper.Replace(language) + `">`
+			resultSb.WriteString(`<pre><code class="language-` + htmlEscaper.Replace(language) + `">`)
 		} else {
-			result += "<pre><code>"
+			resultSb.WriteString("<pre><code>")
 		}
-		result += htmlEscaper.Replace(v.Code()) + "</code></pre>"
+		resultSb.WriteString(htmlEscaper.Replace(v.Code()))
+		resultSb.WriteString("</code></pre>")
 	case *IndentedCode:
-		result += "<pre><code>" + htmlEscaper.Replace(v.Code()) + "</code></pre>"
+		resultSb.WriteString("<pre><code>")
+		resultSb.WriteString(htmlEscaper.Replace(v.Code()))
+		resultSb.WriteString("</code></pre>")
 	default:
 		panic(fmt.Sprintf("missing case for type %T", v))
 	}
-	return
+
+	return resultSb.String()
 }
 
 func escapeURL(url string) (result string) {
@@ -137,31 +143,37 @@ func RenderInlineHTML(inline Inline) (result string) {
 		}
 		result += ` />`
 	case *InlineLink:
-		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `"`
+		var resultSb strings.Builder
+		resultSb.WriteString(`<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `"`)
 		if title := v.Title(); title != "" {
-			result += ` title="` + htmlEscaper.Replace(title) + `"`
+			resultSb.WriteString(` title="` + htmlEscaper.Replace(title) + `"`)
 		}
-		result += `>`
+		resultSb.WriteString(`>`)
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
-		result += "</a>"
+		resultSb.WriteString("</a>")
+		return resultSb.String()
 	case *ReferenceLink:
-		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `"`
+		var resultSb strings.Builder
+		resultSb.WriteString(`<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `"`)
 		if title := v.Title(); title != "" {
-			result += ` title="` + htmlEscaper.Replace(title) + `"`
+			resultSb.WriteString(` title="` + htmlEscaper.Replace(title) + `"`)
 		}
-		result += `>`
+		resultSb.WriteString(`>`)
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
-		result += "</a>"
+		resultSb.WriteString("</a>")
+		return resultSb.String()
 	case *Autolink:
-		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `">`
+		var resultSb strings.Builder
+		resultSb.WriteString(`<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `">`)
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
-		result += "</a>"
+		resultSb.WriteString("</a>")
+		return resultSb.String()
 	case *Emoji:
 		escapedName := htmlEscaper.Replace(v.Name)
 		result += fmt.Sprintf(`<span data-emoji-name="%s" data-literal=":%s:" />`, escapedName, escapedName)
@@ -172,25 +184,30 @@ func RenderInlineHTML(inline Inline) (result string) {
 	return
 }
 
-func renderImageAltText(children []Inline) (result string) {
+func renderImageAltText(children []Inline) string {
+	var resultSb strings.Builder
 	for _, inline := range children {
-		result += renderImageChildAltText(inline)
+		resultSb.WriteString(renderImageChildAltText(inline))
 	}
-	return
+	return resultSb.String()
 }
 
-func renderImageChildAltText(inline Inline) (result string) {
+func renderImageChildAltText(inline Inline) string {
 	switch v := inline.(type) {
 	case *Text:
 		return v.Text
 	case *InlineImage:
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += renderImageChildAltText(inline)
+			resultSb.WriteString(renderImageChildAltText(inline))
 		}
+		return resultSb.String()
 	case *InlineLink:
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += renderImageChildAltText(inline)
+			resultSb.WriteString(renderImageChildAltText(inline))
 		}
+		return resultSb.String()
 	}
-	return
+	return ""
 }

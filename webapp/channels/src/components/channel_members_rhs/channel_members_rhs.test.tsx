@@ -131,6 +131,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
             loadMyChannelMemberAndRole: jest.fn(),
             setEditChannelMembers: jest.fn(),
             searchProfilesAndChannelMembers: jest.fn().mockResolvedValue({data: []}),
+            fetchRemoteClusterInfo: jest.fn(),
         },
     };
 

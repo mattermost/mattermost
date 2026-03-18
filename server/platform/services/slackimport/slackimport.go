@@ -58,19 +58,19 @@ type slackFile struct {
 }
 
 type slackPost struct {
-	User        string                   `json:"user"`
-	BotId       string                   `json:"bot_id"`
-	BotUsername string                   `json:"username"`
-	Text        string                   `json:"text"`
-	TimeStamp   string                   `json:"ts"`
-	ThreadTS    string                   `json:"thread_ts"`
-	Type        string                   `json:"type"`
-	SubType     string                   `json:"subtype"`
-	Comment     *slackComment            `json:"comment"`
-	Upload      bool                     `json:"upload"`
-	File        *slackFile               `json:"file"`
-	Files       []*slackFile             `json:"files"`
-	Attachments []*model.SlackAttachment `json:"attachments"`
+	User        string                     `json:"user"`
+	BotId       string                     `json:"bot_id"`
+	BotUsername string                     `json:"username"`
+	Text        string                     `json:"text"`
+	TimeStamp   string                     `json:"ts"`
+	ThreadTS    string                     `json:"thread_ts"`
+	Type        string                     `json:"type"`
+	SubType     string                     `json:"subtype"`
+	Comment     *slackComment              `json:"comment"`
+	Upload      bool                       `json:"upload"`
+	File        *slackFile                 `json:"file"`
+	Files       []*slackFile               `json:"files"`
+	Attachments []*model.MessageAttachment `json:"attachments"`
 }
 
 var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
@@ -88,21 +88,23 @@ type Actions struct {
 	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func(request.CTX, []string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
 	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
+	SendPasswordReset      func(string) (bool, *model.AppError)
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
 type SlackImporter struct {
-	store   store.Store
-	actions Actions
-	config  *model.Config
+	store         store.Store
+	actions       Actions
+	config        *model.Config
+	isAdminImport bool
 }
 
 // New creates a new SlackImporter service instance. It receive a store, a set of actions and the current config.
@@ -112,6 +114,17 @@ func New(store store.Store, actions Actions, config *model.Config) *SlackImporte
 		store:   store,
 		actions: actions,
 		config:  config,
+	}
+}
+
+// NewWithAdminFlag creates a new SlackImporter service instance with information about whether this is an admin import.
+// This allows for enhanced security controls based on the importing user's role.
+func NewWithAdminFlag(store store.Store, actions Actions, config *model.Config, isAdminImport bool) *SlackImporter {
+	return &SlackImporter{
+		store:         store,
+		actions:       actions,
+		config:        config,
+		isAdminImport: isAdminImport,
 	}
 }
 
@@ -256,8 +269,6 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			rctx.Logger().Warn("Slack Import: User does not have an email address in the Slack export. Used username as a placeholder. The user should update their email address once logged in to the system.", mlog.String("user_email", email), mlog.String("user_name", sUser.Username))
 		}
 
-		password := model.NewId()
-
 		// Check for email conflict and use existing user if found
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
@@ -275,7 +286,7 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			FirstName: firstName,
 			LastName:  lastName,
 			Email:     email,
-			Password:  password,
+			Password:  "",
 		}
 
 		mUser := si.oldImportUser(rctx, team, &newUser)
@@ -283,8 +294,18 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.unable_import", map[string]any{"Username": sUser.Username}))
 			continue
 		}
+
+		sent, err := si.actions.SendPasswordReset(email)
+		if err != nil {
+			rctx.Logger().Warn("Slack Import: Cannot send password reset email to user. An admin should update their email address once logged in to the system.", mlog.String("user_email", email), mlog.String("user_name", sUser.Username))
+		}
+
+		if !sent {
+			importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.send_reset_email_failed", map[string]any{"Username": sUser.Username, "Email": newUser.Email}))
+		}
+
 		addedUsers[sUser.Id] = mUser
-		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email_pwd", map[string]any{"Email": newUser.Email, "Password": password}))
+		importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.email", map[string]any{"Email": newUser.Email}))
 	}
 
 	return addedUsers
@@ -315,7 +336,7 @@ func (si *SlackImporter) slackAddBotUser(rctx request.CTX, teamId string, log *b
 		return nil
 	}
 
-	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]any{"Email": botUser.Email, "Password": password}))
+	log.WriteString(i18n.T("api.slackimport.slack_add_bot_user.email", map[string]any{"Email": botUser.Email}))
 	return mUser
 }
 
@@ -404,7 +425,7 @@ func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel 
 				ChannelId: channel.Id,
 				CreateAt:  slackConvertTimeStamp(sPost.TimeStamp),
 				Message:   sPost.Text,
-				Type:      model.PostTypeSlackAttachment,
+				Type:      model.PostTypeMessageAttachment,
 			}
 
 			postId := si.oldImportIncomingWebhookPost(rctx, post, props)
@@ -718,8 +739,15 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 		return nil
 	}
 
-	if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
-		rctx.Logger().Warn("Failed to set email verified.", mlog.Err(err))
+	// Only system admins can automatically verify emails during import
+	if si.isAdminImport {
+		if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+			rctx.Logger().Warn("Failed to set email verified for admin import.", mlog.Err(err))
+		}
+	} else {
+		// Non-admin users: emails remain unverified
+		rctx.Logger().Debug("Email verification skipped for non-admin import.",
+			mlog.String("user_email", ruser.Email))
 	}
 
 	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
@@ -764,7 +792,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(rctx, members)
+		sc, err := si.actions.CreateGroupChannel(rctx, members, "")
 		if err != nil {
 			return nil
 		}
@@ -828,8 +856,8 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(rctx request.CTX, post *mo
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == model.PostPropsAttachments {
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			} else if key != model.PostPropsFromWebhook {
 				post.AddProp(key, val)

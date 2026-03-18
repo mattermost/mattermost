@@ -32,6 +32,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
+	t.Run("UpdateGlobalUserSyncCursor", func(t *testing.T) { testUpdateGlobalUserSyncCursor(t, rctx, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, rctx, ss) })
 
 	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, rctx, ss) })
@@ -388,7 +389,7 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err, "couldn't save shared channel", err)
 
 	// add some remotes
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		remote := &model.SharedChannelRemote{
 			ChannelId:         channel.Id,
 			CreatorId:         model.NewId(),
@@ -849,7 +850,7 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("user is member", func(t *testing.T) {
 		for _, rc := range remotes {
 			for _, userId := range users {
-				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId)
+				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId, false)
 				assert.NoError(t, err, "remote should be found for user")
 				assert.Equal(t, rc.RemoteId, rcFound.RemoteId, "remoteIds should match")
 			}
@@ -858,15 +859,49 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("user is not a member", func(t *testing.T) {
 		for _, rc := range remotes {
-			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId())
+			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId(), false)
 			assert.Error(t, err, "remote should not be found for user")
 			assert.Nil(t, rcFound)
 		}
 	})
 
 	t.Run("unknown remote id", func(t *testing.T) {
-		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0])
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0], false)
 		assert.Error(t, err, "remote should not be found for unknown remote id")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted false", func(t *testing.T) {
+		// Get the shared channel remote to delete
+		scr, err := ss.SharedChannel().GetRemoteByIds(channel.Id, remotes[0].RemoteId)
+		require.NoError(t, err)
+		require.NotEmpty(t, scr.Id)
+
+		// Delete the shared channel remote
+		deleted, err := ss.SharedChannel().DeleteRemote(scr.Id)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		// Should not find the remote without includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], false)
+		assert.Error(t, err, "deleted remote should not be found without includeDeleted")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted true", func(t *testing.T) {
+		// Should find the remote with includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], true)
+		assert.NoError(t, err, "deleted remote should be found with includeDeleted")
+		assert.NotNil(t, rcFound)
+		assert.Equal(t, remotes[0].RemoteId, rcFound.RemoteId, "remoteIds should match")
+	})
+
+	t.Run("deleted remote with includeDeleted true but user not a member", func(t *testing.T) {
+		// A user who is not a member of the channel should not be able to see
+		// the deleted remote, even with includeDeleted=true
+		nonMemberUserId := model.NewId()
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, nonMemberUserId, true)
+		assert.Error(t, err, "deleted remote should not be found for non-member user even with includeDeleted")
 		assert.Nil(t, rcFound)
 	})
 }
@@ -929,6 +964,38 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 		emptyCursor := model.GetPostsSinceForSyncCursor{}
 		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
 		require.Error(t, err, "update with empty cursor should error", err)
+	})
+}
+
+func testUpdateGlobalUserSyncCursor(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a remote cluster first
+	rc := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		SiteURL:   "http://example.com",
+		CreatorId: model.NewId(),
+		Name:      "test",
+	}
+	rcSaved, err := ss.RemoteCluster().Save(rc)
+	require.NoError(t, err, "couldn't save remote cluster", err)
+
+	futureTimestamp := model.GetMillis() + 3600000 // 1 hour in the future
+
+	t.Run("Update global user sync cursor for remote", func(t *testing.T) {
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(rcSaved.RemoteId, futureTimestamp)
+		require.NoError(t, err, "update global user sync cursor should not error", err)
+
+		// Verify that the LastGlobalUserSyncAt field was updated in the RemoteCluster table
+		// Small sleep to ensure the transaction is committed
+		time.Sleep(10 * time.Millisecond)
+		updatedRC, err := ss.RemoteCluster().Get(rcSaved.RemoteId, false)
+		require.NoError(t, err)
+		require.NotZero(t, updatedRC.LastGlobalUserSyncAt, "LastGlobalUserSyncAt should not be zero")
+		require.Equal(t, futureTimestamp, updatedRC.LastGlobalUserSyncAt)
+	})
+
+	t.Run("Update global user sync cursor for non-existent remote", func(t *testing.T) {
+		err := ss.RemoteCluster().UpdateLastGlobalUserSyncAt(model.NewId(), futureTimestamp)
+		require.Error(t, err, "update non-existent remote should error", err)
 	})
 }
 
@@ -1112,7 +1179,7 @@ func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Sto
 
 func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		scUser := &model.SharedChannelUser{
 			UserId:    userId,
 			RemoteId:  model.NewId(),
@@ -1144,7 +1211,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	later := model.GetMillis() + 300000
 
 	var users []*model.User
-	for i := 0; i < 10; i++ { // need real users
+	for range 10 { // need real users
 		u := &model.User{
 			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",

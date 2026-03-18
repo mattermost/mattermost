@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {GlobeIcon, LockIcon, PlusIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -18,11 +18,11 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {isArchivedChannel} from 'utils/channel_utils';
-import Constants from 'utils/constants';
+import {getChannelIconComponent} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -53,7 +53,7 @@ type Params = {
     connection_id: 'create' | RemoteCluster['remote_id'];
 };
 
-type Props = Params & {
+type Props = {
     disabled: boolean;
 }
 
@@ -162,10 +162,25 @@ export default function SecureConnectionDetail(props: Props) {
                                         id: 'admin.secure_connections.details.team.label',
                                         defaultMessage: 'Destination Team',
                                     })}
-                                    helpText={formatMessage({
-                                        id: 'admin.secure_connections.details.team.help',
-                                        defaultMessage: 'Select the default team in which any shared channels will be placed. This can be updated later for specific shared channels.',
-                                    })}
+                                    helpText={(
+                                        <FormattedMessage
+                                            id='admin.secure_connections.details.team.help'
+                                            defaultMessage='Select the team where new incoming channels are added. {link}'
+                                            values={{
+                                                link: (
+                                                    <ExternalLink
+                                                        href='https://mattermost.com/pl/connected-workspaces-destination'
+                                                        location='secure_connection_detail'
+                                                    >
+                                                        <FormattedMessage
+                                                            id='admin.secure_connections.details.team.help.learn_more'
+                                                            defaultMessage='Learn more'
+                                                        />
+                                                    </ExternalLink>
+                                                ),
+                                            }}
+                                        />
+                                    )}
                                 >
                                     <TeamSelector
                                         testId='destination-team-input'
@@ -409,19 +424,11 @@ const TabsWrapper = styled.div`
 
 const ChannelIcon = ({channelId}: {channelId: string}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    let icon = <GlobeIcon size={16}/>;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockIcon size={16}/>;
-    }
-
-    if (isArchivedChannel(channel)) {
-        icon = <ArchiveOutlineIcon size={16}/>;
-    }
+    const IconComponent = getChannelIconComponent(channel);
 
     return (
         <ChannelIconWrapper>
-            {icon}
+            <IconComponent size={16}/>
         </ChannelIconWrapper>
     );
 };
