@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ImagePreview from 'components/file_preview_modal/image_preview';
 
+import {render, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/view_image/ImagePreview', () => {
@@ -16,11 +16,11 @@ describe('components/view_image/ImagePreview', () => {
     };
 
     test('should match snapshot, without preview', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with preview', () => {
@@ -33,11 +33,11 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, without preview, cannot download', () => {
@@ -46,11 +46,11 @@ describe('components/view_image/ImagePreview', () => {
             canDownloadFiles: false,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with preview, cannot download', () => {
@@ -64,11 +64,11 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not download link for external file', () => {
@@ -82,11 +82,11 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper.find('a').prop('href')).toBe('#');
-        expect(wrapper.find('img').prop('src')).toBe(props.fileInfo.link);
+        expect(screen.getByRole('link')).toHaveAttribute('href', '#');
+        expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
     });
 });

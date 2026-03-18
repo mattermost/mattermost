@@ -13,10 +13,8 @@ import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 type Props = {
-    defaultTheme: any;
     desktopAppLink?: string;
     iosAppLink?: string;
     androidAppLink?: string;
@@ -89,7 +87,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        Utils.applyTheme(this.props.defaultTheme);
         if (this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }

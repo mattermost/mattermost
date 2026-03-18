@@ -1,77 +1,74 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`/components/common/Carousel should match snapshot 1`] = `
-<div
-  className="container-slider"
-  id="test-string"
->
+<div>
   <div
-    className="slide active-anim"
-    key="0"
-  >
-    <p
-      className="slide"
-      key="1"
-    >
-      First Slide
-    </p>
-  </div>
-  <div
-    className="slide"
-    key="1"
-  >
-    <p
-      className="slide"
-      key="2"
-    >
-      Second Slide
-    </p>
-  </div>
-  <div
-    className="slide"
-    key="2"
-  >
-    <p
-      className="slide"
-      key="3"
-    >
-      Third Slide
-    </p>
-  </div>
-  <div
-    className="container-footer"
+    class="container-slider"
+    id="test-string"
   >
     <div
-      className="container-dots"
+      class="slide active-anim"
     >
-      <div
-        className="dot active"
-        key="0"
-        onClick={[Function]}
-      />
-      <div
-        className="dot"
-        key="1"
-        onClick={[Function]}
-      />
-      <div
-        className="dot"
-        key="2"
-        onClick={[Function]}
-      />
+      <p
+        class="slide"
+      >
+        First Slide
+      </p>
     </div>
     <div
-      className=" buttons container-buttons"
+      class="slide"
     >
-      <CarouselButton
-        direction="prev"
-        disabled={false}
-        moveSlide={[Function]}
-      />
-      <CarouselButton
-        direction="next"
-        moveSlide={[Function]}
-      />
+      <p
+        class="slide"
+      >
+        Second Slide
+      </p>
+    </div>
+    <div
+      class="slide"
+    >
+      <p
+        class="slide"
+      >
+        Third Slide
+      </p>
+    </div>
+    <div
+      class="container-footer"
+    >
+      <div
+        class="container-dots"
+      >
+        <div
+          class="dot active"
+        />
+        <div
+          class="dot"
+        />
+        <div
+          class="dot"
+        />
+      </div>
+      <div
+        class=" buttons container-buttons"
+      >
+        <a
+          class=" prev previous-btn"
+        >
+          <i
+            class="icon-arrow-back-ios"
+          />
+          Previous
+        </a>
+        <a
+          class=" next next-btn"
+        >
+          Next
+          <i
+            class="icon-arrow-forward-ios"
+          />
+        </a>
+      </div>
     </div>
   </div>
 </div>

@@ -75,7 +75,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
                     <div className='warning-description'>
                         <FormattedMessage
                             id='channel_settings.activity_warning.exposing_history_description'
-                            defaultMessage='Everyone who gains access to this channel can view the entire message history, including messages that were sent under stricter access rules.'
+                            defaultMessage='Modifying access rules may allow new users to view the entire message history, including messages sent before this change.'
                         />
                     </div>
                 </div>

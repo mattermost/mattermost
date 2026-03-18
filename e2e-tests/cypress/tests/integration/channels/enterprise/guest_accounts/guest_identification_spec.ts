@@ -78,13 +78,16 @@ describe('Guest Accounts', () => {
         // # Click "Save".
         cy.findByText('Save').click().wait(TIMEOUTS.ONE_SEC);
 
-        // # Get MFA secret
+        // # Visit a page to trigger MFA setup redirect, then complete MFA setup for admin
+        cy.visit('/');
+        cy.url().should('include', 'mfa/setup');
         cy.uiGetMFASecret(sysadmin.id).then((secret) => {
             adminMFASecret = secret;
         });
 
         // # Navigate to Guest Access page.
         cy.visit('/admin_console/authentication/guest_access');
+        cy.url().should('include', '/admin_console/authentication/guest_access');
 
         // # Enable guest accounts.
         cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
@@ -144,20 +147,20 @@ describe('Guest Accounts', () => {
         // # Create an account with Email and Password.
         cy.get('#input_name').type(username);
         cy.get('#input_password-input').type(username);
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * When MFA is enforced for Guest Access, guest user should be forced to configure MFA while creating an account.
         cy.url().should('include', 'mfa/setup');
-        cy.get('#mfa').wait(TIMEOUTS.HALF_SEC).find('.col-sm-12').then((p) => {
+        cy.get('#mfa').wait(TIMEOUTS.HALF_SEC).find('p.col-sm-12 span').then((p) => {
             const secretp = p.text();
             const secret = secretp.split(' ')[1];
 
             const token = authenticator.generateToken(secret);
-            cy.get('#mfa').find('.form-control').type(token);
-            cy.get('#mfa').find('.btn.btn-primary').click();
+            cy.findByPlaceholderText('MFA Code').type(token);
+            cy.findByText('Save').click();
 
             cy.wait(TIMEOUTS.ONE_SEC);
-            cy.get('#mfa').find('.btn.btn-primary').click();
+            cy.findByText('Okay').click();
         });
         cy.apiLogout();
     });

@@ -7,7 +7,7 @@ import {Redirect} from 'react-router-dom';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
-import * as WebSocketActions from 'actions/websocket_actions.jsx';
+import * as WebSocketActions from 'actions/websocket_actions';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';

@@ -2,5 +2,21 @@
   "root": true,
   "extends": [
     "plugin:@mattermost/base"
+  ],
+  "rules": {
+
+    // window isn't defined when using this package in a Node.js app, so prevent people from using it by default
+    "no-restricted-globals": [
+      "error",
+      "window"
+    ]
+  },
+  "overrides": [
+    {
+      "files": "*.test.*",
+      "rules": {
+        "no-restricted-globals": ["off"]
+      }
+    }
   ]
 }

@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @account_setting
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
@@ -85,7 +84,7 @@ describe('Profile > Profile Settings > Email', () => {
         cy.get('#primaryEmail').should('be.visible').click().blur();
 
         // * Check that the correct error message is shown.
-        cy.get('#error_primaryEmail').should('be.visible').should('have.text', 'Please enter a valid email address');
+        cy.get('#error_primaryEmail').should('be.visible').should('have.text', 'Please enter a valid email address.');
     });
 
     it('MM-T2067 email address already taken error', () => {

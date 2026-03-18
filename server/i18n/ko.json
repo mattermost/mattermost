@@ -788,10 +788,6 @@
     "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하세요."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "사용자가 채널 회원이 아니기 때문에 {{.Channel}} 채널 음소거할 수 없습니다."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "채널 음소거가 해제될 때까지{{.Channel}}에 대한 알림을 받지 않습니다."
   },
@@ -1478,10 +1474,6 @@
     "translation": "서버 시작중 오류, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}를 사용하는 슬랙 봇 계정이 추가되었습니다.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "{{.Username}} 슬랙 봇 계정을 추가할 수 없습니다.\n"
   },
@@ -1504,10 +1496,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\n사용자가 생성되었습니다:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}를 사용하는 슬랙 사용자가 추가되었습니다.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -7466,10 +7454,6 @@
     "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS 서버는 사용할수 없습니다."
-  },
-  {
     "id": "api.remote_cluster.service_not_enabled.app_error",
     "translation": "원격 클러스터 서비스가 활성화되어있지 않습니다."
   },
@@ -7902,14 +7886,6 @@
     "translation": "채널 인덱스 스키마가 오래되어 채널 자동 완성 기능을 사용할 수 없습니다. 채널 인덱스를 다시 생성하는 것이 좋습니다. 자세한 내용은 Mattermost changelog를 참조하세요."
   },
   {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "콘텐츠 플래그 기능이 비활성화됩니다."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "라이선스는 콘텐츠 플래그를 지원하지 않습니다."
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "세션을 찾을 수 없습니다."
   },
@@ -8176,10 +8152,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "매터모스트 엔터프라이즈 에디션에서만 사용 가능한 서비스"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS 서버에서 뉴스레터를 구독하지 못했습니다."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -9086,10 +9058,6 @@
     "translation": "필수 팔로워 속성이 누락되었습니다: 사용자."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "사용자 역할이 게스트 상태와 일치하지 않습니다."
-  },
-  {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
     "translation": "사용자 프로필 이미지 경로가 잘못되었습니다: \"{{.Path}}\""
   },
@@ -9316,10 +9284,6 @@
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
     "translation": "채널에서 액세스 제어 정책을 할당 해제할 수 없습니다."
-  },
-  {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "액세스 제어 정책의 활성 상태를 변경할 수 없습니다."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -10352,22 +10316,6 @@
   {
     "id": "model.config.is_valid.empty_redis_address.app_error",
     "translation": "RedisAddress는 redis 캐시 유형에 대해 지정해야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "감사 로그 구성의 최대 파일 보존 기간은 음수가 아니어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "감사 로그 구성의 최대 파일 백업은 음수가 아니어야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "감사 로그 구성의 최대 파일 대기열은 0보다 커야 합니다."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "감사 로그 구성의 최대 파일 크기는 0보다 커야 합니다."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",

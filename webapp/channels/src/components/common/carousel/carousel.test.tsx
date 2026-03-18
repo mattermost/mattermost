@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import Carousel from 'components/common/carousel/carousel';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {BtnStyle} from './carousel_button';
 
@@ -43,70 +42,67 @@ describe('/components/common/Carousel', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<Carousel {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('test carouse slides lenght is as expected', () => {
-        const wrapper = shallow(<Carousel {...baseProps}/>);
-        const slides = wrapper.find('p.slide');
+        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        const slides = container.querySelectorAll('p.slide');
 
         expect(slides.length).toBe(3);
     });
 
     test('test carousel shows next and previous button', () => {
-        const wrapper = mountWithIntl(<Carousel {...baseProps}/>);
-        const buttonNext = wrapper.find('CarouselButton').find('a.next');
-        const buttonPrev = wrapper.find('CarouselButton').find('a.prev');
+        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        const buttonNext = container.querySelector('a.next');
+        const buttonPrev = container.querySelector('a.prev');
 
-        expect(buttonNext).toHaveLength(1);
-        expect(buttonPrev).toHaveLength(1);
+        expect(buttonNext).toBeInTheDocument();
+        expect(buttonPrev).toBeInTheDocument();
     });
 
     test('test carousel shows next and previous chevrons when this option is sent', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Carousel
                 {...baseProps}
                 btnsStyle={BtnStyle.CHEVRON}
             />,
         );
-        const nextButton = wrapper.find(Carousel).find('CarouselButton div.chevron-right');
-        const prevButton = wrapper.find(Carousel).find('CarouselButton div.chevron-left');
+        const nextButton = container.querySelector('.chevron-right');
+        const prevButton = container.querySelector('.chevron-left');
 
-        expect(nextButton).toHaveLength(1);
-        expect(prevButton).toHaveLength(1);
+        expect(nextButton).toBeInTheDocument();
+        expect(prevButton).toBeInTheDocument();
     });
 
     test('test carousel shows first slide as active', () => {
-        const wrapper = shallow(<Carousel {...baseProps}/>);
-        const activeSlide = wrapper.find('div.active-anim');
+        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        const activeSlide = container.querySelector('div.active-anim');
 
-        const slideText = activeSlide.find('p.slide').text();
+        const slideText = activeSlide!.querySelector('p.slide')!.textContent;
         expect(slideText).toEqual('First Slide');
     });
 
-    test('test carousel moves slides when clicking buttons', (done) => {
-        const wrapper = mountWithIntl(<Carousel {...baseProps}/>);
-        const activeSlide = wrapper.find('div.active-anim');
+    test('test carousel moves slides when clicking buttons', async () => {
+        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        const activeSlide = container.querySelector('div.active-anim');
 
-        const slide1Text = activeSlide.find('p.slide').text();
+        const slide1Text = activeSlide!.querySelector('p.slide')!.textContent;
         expect(slide1Text).toEqual('First Slide');
 
-        const buttonNext = wrapper.find('CarouselButton').find('a.next');
+        const buttonNext = container.querySelector('a.next') as HTMLElement;
 
-        buttonNext.simulate('click');
+        await userEvent.click(buttonNext);
 
-        jest.useFakeTimers();
-        setTimeout(() => {
-            const activeSlide = wrapper.find('div.active-anim');
-            const slide1Text = activeSlide.find('p.slide').text();
-            expect(slide1Text).toEqual('Second Slide');
-            done();
-        }, 1000);
-        jest.runAllTimers();
+        await waitFor(() => {
+            const activeSlideAfterClick = container.querySelector('div.active-anim');
+            const slideText = activeSlideAfterClick!.querySelector('p.slide')!.textContent;
+            expect(slideText).toEqual('Second Slide');
+        });
     });
 
-    test('test carousel executes custom next and prev btn callback functions', () => {
+    test('test carousel executes custom next and prev btn callback functions', async () => {
         const onPrevSlideClick = jest.fn();
         const onNextSlideClick = jest.fn();
         const props = {
@@ -114,12 +110,12 @@ describe('/components/common/Carousel', () => {
             onPrevSlideClick,
             onNextSlideClick};
 
-        const wrapper = mountWithIntl(<Carousel {...props}/>);
-        const buttonNext = wrapper.find('CarouselButton').find('a.next');
-        const buttonPrev = wrapper.find('CarouselButton').find('a.prev');
+        const {container} = renderWithContext(<Carousel {...props}/>);
+        const buttonNext = container.querySelector('a.next') as HTMLElement;
+        const buttonPrev = container.querySelector('a.prev') as HTMLElement;
 
-        buttonNext.simulate('click');
-        buttonPrev.simulate('click');
+        await userEvent.click(buttonNext);
+        await userEvent.click(buttonPrev);
 
         expect(onNextSlideClick).toHaveBeenCalledWith(2);
         expect(onPrevSlideClick).toHaveBeenCalledWith(1);

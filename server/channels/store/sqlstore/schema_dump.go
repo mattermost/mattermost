@@ -15,12 +15,7 @@ import (
 )
 
 // GetSchemaDefinition dumps the database schema.
-// Only Postgres is supported.
 func (ss *SqlStore) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
-	if ss.DriverName() != model.DatabaseDriverPostgres {
-		return nil, errors.New("schema dump is only supported for Postgres")
-	}
-
 	var schemaInfo model.SupportPacketDatabaseSchema
 	var rErr *multierror.Error
 

@@ -81,7 +81,6 @@ describe('TeamOptionComponent', () => {
     } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
     beforeEach(() => {
-        jest.clearAllMocks();
         (Utils.imageURLForTeam as jest.Mock).mockReturnValue('http://example.com/team-icon.png');
     });
 

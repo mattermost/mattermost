@@ -46,7 +46,6 @@ type Props = {
 
     minimumColumnWidth?: number;
 
-    page: number;
     startCount: number;
     endCount: number;
     total?: number;

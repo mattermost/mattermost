@@ -16,7 +16,7 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    prefillMessage: (msg: string, shouldFocus: boolean) => void;
+    prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
 }
@@ -132,6 +132,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                 event: 'prefilled_message_selected_dm_hey',
                 message: defineMessage({
                     id: 'create_post.prewritten.tip.dm_hey_message',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- username provided when message is formatted
                     defaultMessage: ':wave: Hey @{username}',
                 }),
                 display: defineMessage({
@@ -178,7 +179,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                         additionalMarkup={additionalMarkup}
                         values={values}
                         onClick={() => {
-                            prefillMessage(messageToPrefill, true);
+                            prefillMessage(messageToPrefill);
                         }}
                         otherOption={!message.id}
                         leadingIcon={leadingIcon}
