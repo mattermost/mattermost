@@ -79,10 +79,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttrBtn.click();
         await page.waitForTimeout(500);
 
-        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
-        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
-        if (await backdrop.isVisible({timeout: 2000})) {
-            await backdrop.click();
+        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
+        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
+        if (await attributeOption.isVisible({timeout: 2000})) {
+            await attributeOption.click({force: true});
             await page.waitForTimeout(500);
         }
 
@@ -318,10 +318,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttrBtn.click();
         await page.waitForTimeout(500);
 
-        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
-        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
-        if (await backdrop.isVisible({timeout: 2000})) {
-            await backdrop.click();
+        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
+        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
+        if (await attributeOption.isVisible({timeout: 2000})) {
+            await attributeOption.click({force: true});
             await page.waitForTimeout(500);
         }
 
@@ -370,10 +370,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttrBtn.click();
         await page.waitForTimeout(500);
 
-        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
-        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
-        if (await backdrop.isVisible({timeout: 2000})) {
-            await backdrop.click();
+        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
+        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
+        if (await attributeOption.isVisible({timeout: 2000})) {
+            await attributeOption.click({force: true});
             await page.waitForTimeout(500);
         }
 
@@ -492,10 +492,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttrBtn.click();
         await page.waitForTimeout(500);
 
-        // The attribute selector menu auto-opens as a MUI popover — dismiss it by clicking backdrop
-        const backdrop = page.locator('.MuiPopover-root .MuiBackdrop-root');
-        if (await backdrop.isVisible({timeout: 2000})) {
-            await backdrop.click();
+        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
+        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
+        if (await attributeOption.isVisible({timeout: 2000})) {
+            await attributeOption.click({force: true});
             await page.waitForTimeout(500);
         }
 
