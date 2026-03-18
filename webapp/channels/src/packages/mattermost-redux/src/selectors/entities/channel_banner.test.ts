@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DeepPartial} from 'redux';
-
 import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -37,52 +36,8 @@ describe('Selectors.ChannelBanner', () => {
         },
     };
 
-    test('should return false when license is not enterprise advanced', () => {
-        const state: DeepPartial<GlobalState> = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                general: {
-                    license: {
-                        SkuShortName: 'starter',
-                    },
-                },
-            },
-        };
-
-        expect(selectShowChannelBanner(state as GlobalState, channelId)).toBe(false);
-    });
-
-    test('should return false when license is professional', () => {
-        const state: DeepPartial<GlobalState> = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                general: {
-                    license: {
-                        SkuShortName: 'professional',
-                    },
-                },
-            },
-        };
-
-        expect(selectShowChannelBanner(state as GlobalState, channelId)).toBe(false);
-    });
-
-    test('should return false when license is enterprise', () => {
-        const state: DeepPartial<GlobalState> = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                general: {
-                    license: {
-                        SkuShortName: 'enterprise',
-                    },
-                },
-            },
-        };
-
-        expect(selectShowChannelBanner(state as GlobalState, channelId)).toBe(false);
+    test('should return true when channel banner is properly configured', () => {
+        expect(selectShowChannelBanner(baseState as GlobalState, channelId)).toBe(true);
     });
 
     test('should return false when channel type is not open or private', () => {

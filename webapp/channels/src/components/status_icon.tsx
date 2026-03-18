@@ -9,12 +9,14 @@ import StatusOfflineIcon from 'components/widgets/icons/status_offline_icon';
 import StatusOnlineIcon from 'components/widgets/icons/status_online_icon';
 
 type Props = {
+    id?: string;
     button?: boolean;
     status?: string;
     className?: string;
 }
 
 const StatusIcon = ({
+    id,
     className = '',
     button = false,
     status,
@@ -29,14 +31,27 @@ const StatusIcon = ({
         iconClassName = className || '';
     }
 
-    if (status === 'online') {
-        return <StatusOnlineIcon className={iconClassName}/>;
-    } else if (status === 'away') {
-        return <StatusAwayIcon className={iconClassName}/>;
-    } else if (status === 'dnd') {
-        return <StatusDndIcon className={iconClassName}/>;
-    }
-    return <StatusOfflineIcon className={iconClassName}/>;
+    const Icon = getIcon(status);
+
+    return (
+        <Icon
+            id={id}
+            className={iconClassName}
+        />
+    );
 };
+
+function getIcon(status?: string) {
+    switch (status) {
+    case 'online':
+        return StatusOnlineIcon;
+    case 'away':
+        return StatusAwayIcon;
+    case 'dnd':
+        return StatusDndIcon;
+    default:
+        return StatusOfflineIcon;
+    }
+}
 
 export default memo(StatusIcon);

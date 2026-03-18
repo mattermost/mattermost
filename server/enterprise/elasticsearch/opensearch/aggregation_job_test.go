@@ -110,7 +110,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 		ChannelId: "channel",
 		Message:   "hi",
 	}
-	for i := 0; i < indexDeletionBatchSize+1; i++ {
+	for i := range indexDeletionBatchSize + 1 {
 		indexPost(t, th, esImpl.(*OpensearchInterfaceImpl),
 			post,
 			time.Now().Add(-time.Duration(4+i)*24*time.Hour))
@@ -206,7 +206,7 @@ func indexPost(t *testing.T, th *api4.TestHelper, esImpl *OpensearchInterfaceImp
 		createTime.Add(-1*24*time.Hour),
 		model.GetMillisForTime(createTime),
 	)
-	searchPost, err := common.ESPostFromPost(post, "teamID")
+	searchPost, err := common.ESPostFromPost(post, "teamID", "O")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Duration(*esImpl.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)

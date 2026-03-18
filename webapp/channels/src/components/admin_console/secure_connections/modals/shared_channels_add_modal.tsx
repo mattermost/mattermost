@@ -7,7 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {ArchiveOutlineIcon, GlobeIcon, LockIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -19,7 +18,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -136,6 +135,13 @@ function SharedChannelsAddModal({
                     defaultMessage='Select channels'
                 />
             )}
+            modalSubheaderText={(
+                <FormattedMessage
+                    tagName={ModalParagraph}
+                    id={'admin.secure_connections.shared_channels.add.message'}
+                    defaultMessage={'Please select a team and channels to share'}
+                />
+            )}
             confirmButtonText={done ? (
                 <FormattedMessage
                     id='admin.secure_connections.shared_channels.add.close.button'
@@ -157,12 +163,6 @@ function SharedChannelsAddModal({
             isConfirmDisabled={!channels.length}
         >
             <ModalBody>
-                <FormattedMessage
-                    tagName={ModalParagraph}
-                    id={'admin.secure_connections.shared_channels.add.message'}
-                    defaultMessage={'Please select a team and channels to share'}
-                />
-
                 <ChannelsInput
                     placeholder={
                         <FormattedMessage
@@ -237,11 +237,14 @@ const ChannelLabelWrapper = styled.span`
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    align-items: center;
+    display: flex;
 
     svg {
         vertical-align: middle;
-        margin-left: 6px;
-        margin-right: 10px;
+        margin-left: 8px;
+        margin-right: 6px;
+        width: 16px;
     }
 
     .channels-input__multi-value__label & {
@@ -265,15 +268,7 @@ const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
 };
 
 const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
-    let Icon = GlobeIcon;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        Icon = LockIcon;
-    }
-
-    if (isArchivedChannel(channel)) {
-        Icon = ArchiveOutlineIcon;
-    }
+    const Icon = getChannelIconComponent(channel);
 
     return (
         <Icon

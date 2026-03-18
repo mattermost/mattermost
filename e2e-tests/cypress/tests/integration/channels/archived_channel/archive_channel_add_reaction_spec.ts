@@ -14,12 +14,6 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Archived channels', () => {
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit created channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);

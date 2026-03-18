@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -37,12 +36,12 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) TelemetryId() string {
-	return a.Srv().TelemetryId()
+func (a *App) ServerId() string {
+	return a.Srv().ServerId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
-	return s.htmlTemplateWatcher
+	return s.htmlTemplates
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
@@ -65,9 +64,6 @@ func (a *App) Srv() *Server {
 }
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
-}
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
@@ -100,8 +96,14 @@ func (a *App) Metrics() einterfaces.MetricsInterface {
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification
 }
+func (a *App) AutoTranslation() einterfaces.AutoTranslationInterface {
+	return a.Srv().AutoTranslation
+}
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.ch.Saml
+}
+func (a *App) Intune() einterfaces.IntuneInterface {
+	return a.ch.Intune
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
@@ -155,8 +157,8 @@ func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
 }
 
-func (a *App) PropertyService() *properties.PropertyService {
-	return a.Srv().propertyService
+func (a *App) PropertyAccessService() *PropertyAccessService {
+	return a.Srv().propertyAccessService
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {

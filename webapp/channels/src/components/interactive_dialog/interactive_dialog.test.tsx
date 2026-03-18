@@ -33,6 +33,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         onExited: jest.fn(),
         actions: {
             submitInteractiveDialog: jest.fn(),
+            lookupInteractiveDialog: jest.fn(),
         },
         emojiMap: new EmojiMap(new Map()),
     };
@@ -43,6 +44,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 ...baseProps,
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {error: 'This is an error.'}}),
+                    lookupInteractiveDialog: jest.fn(),
                 },
             };
             const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);

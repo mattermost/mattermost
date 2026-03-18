@@ -12,7 +12,7 @@ import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
 import WithTooltip from 'components/with_tooltip';
 
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';
@@ -178,7 +178,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * function signature as if we would define it directly in the props of
      * the FormattingIcon component. This should improve render-performance
      */
-    const makeFormattingHandler = useCallback((mode) => () => {
+    const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
         // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;

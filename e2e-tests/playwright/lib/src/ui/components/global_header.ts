@@ -12,8 +12,10 @@ export default class GlobalHeader {
     readonly accountMenuButton;
     readonly productSwitchMenu;
     readonly recentMentionsButton;
+    readonly savedMessagesButton;
     readonly settingsButton;
     readonly searchBox;
+    readonly userProfileMenu;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
         this.channelsPage = channelsPage;
@@ -22,8 +24,10 @@ export default class GlobalHeader {
         this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
+        this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
         this.searchBox = container.locator('#searchFormContainer');
+        this.userProfileMenu = container.locator('#userAccountMenuButton');
     }
 
     async toBeVisible(name: string) {
@@ -52,6 +56,11 @@ export default class GlobalHeader {
     async openSearch() {
         await expect(this.searchBox).toBeVisible();
         await this.searchBox.click();
+    }
+
+    async openUserProfileMenu() {
+        await expect(this.userProfileMenu).toBeVisible();
+        await this.userProfileMenu.click();
     }
 
     async closeSearch() {

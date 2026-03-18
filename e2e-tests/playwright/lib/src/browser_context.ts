@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import fs from 'node:fs';
 
 import {Browser, BrowserContext, request} from '@playwright/test';
 import {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';
+import {resolvePlaywrightPath} from './util';
 
 export class TestBrowser {
     readonly browser: Browser;
-    context: BrowserContext | null;
+    private contexts: BrowserContext[] = [];
 
     constructor(browser: Browser) {
         this.browser = browser;
-        this.context = null;
     }
 
     async login(user: UserProfile) {
@@ -35,16 +37,27 @@ export class TestBrowser {
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
         const draftsPage = new pages.DraftsPage(page);
         const threadsPage = new pages.ThreadsPage(page);
+        const contentReviewPage = new pages.ContentReviewPage(page);
 
-        this.context = context;
+        this.contexts.push(context);
 
-        return {context, page, channelsPage, systemConsolePage, scheduledPostsPage, draftsPage, threadsPage};
+        return {
+            context,
+            page,
+            channelsPage,
+            systemConsolePage,
+            scheduledPostsPage,
+            draftsPage,
+            threadsPage,
+            contentReviewPage,
+        };
     }
 
     async close() {
-        if (this.context) {
-            await this.context.close();
+        for (const context of this.contexts) {
+            await context.close();
         }
+        this.contexts = [];
     }
 }
 
@@ -69,9 +82,15 @@ export async function loginByAPI(loginId: string, password: string, token = '', 
     });
 
     // Save signed-in state to a folder
-    const storagePath = `storage_state/${Date.now()}_${loginId}_${password}${token ? '_' + token : ''}${
-        ldapOnly ? '_ldap' : ''
-    }.json`;
+    const storageStateDir = resolvePlaywrightPath('storage_state');
+
+    // Ensure storage_state directory exists
+    if (!fs.existsSync(storageStateDir)) {
+        fs.mkdirSync(storageStateDir, {recursive: true});
+    }
+
+    const filename = `${Date.now()}_${loginId}_${password}${token ? '_' + token : ''}${ldapOnly ? '_ldap' : ''}.json`;
+    const storagePath = path.join(storageStateDir, filename);
     const storageState = await requestContext.storageState({path: storagePath});
     await requestContext.dispose();
 

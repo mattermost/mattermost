@@ -172,9 +172,28 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             );
         }
 
+        // Check if this is a public client (no secret)
+        const isPublicClient = !oauthApp.client_secret || oauthApp.client_secret === '';
+
         let showHide;
         let clientSecret;
-        if (this.state.clientSecret === FAKE_SECRET) {
+        if (isPublicClient) {
+            // Public clients don't have secrets, so don't show secret controls
+            clientSecret = (
+                <span className='item-details__token'>
+                    <FormattedMessage
+                        id='installed_integrations.client_type'
+                        defaultMessage='Client Type: '
+                    />
+                    <strong>
+                        <FormattedMessage
+                            id='installed_oauth_apps.public_client'
+                            defaultMessage='Public Client (No Secret)'
+                        />
+                    </strong>
+                </span>
+            );
+        } else if (this.state.clientSecret === FAKE_SECRET) {
             showHide = (
                 <button
                     id='showSecretButton'
@@ -224,18 +243,21 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             );
         }
 
-        const regen = (
-            <button
-                id='regenerateSecretButton'
-                className='style--none color--link'
-                onClick={this.handleRegenerate}
-            >
-                <FormattedMessage
-                    id='installed_integrations.regenSecret'
-                    defaultMessage='Regenerate Secret'
-                />
-            </button>
-        );
+        let regen;
+        if (!isPublicClient) {
+            regen = (
+                <button
+                    id='regenerateSecretButton'
+                    className='style--none color--link'
+                    onClick={this.handleRegenerate}
+                >
+                    <FormattedMessage
+                        id='installed_integrations.regenSecret'
+                        defaultMessage='Regenerate Secret'
+                    />
+                </button>
+            );
+        }
 
         let icon;
         if (oauthApp.icon_url) {
@@ -251,28 +273,47 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
 
         let actions;
         if (!this.props.fromApp) {
+            const actionParts = [];
+
+            // Only show secret controls for confidential clients
+            if (!isPublicClient) {
+                actionParts.push(showHide);
+                actionParts.push(regen);
+            }
+
+            actionParts.push(
+                <Link
+                    key='edit'
+                    to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}
+                >
+                    <FormattedMessage
+                        id='installed_integrations.edit'
+                        defaultMessage='Edit'
+                    />
+                </Link>,
+            );
+
+            actionParts.push(
+                <DeleteIntegrationLink
+                    key='delete'
+                    modalMessage={
+                        <FormattedMessage
+                            id='installed_oauth_apps.delete.confirm'
+                            defaultMessage='This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?'
+                        />
+                    }
+                    onDelete={this.handleDelete}
+                />,
+            );
+
             actions = (
                 <div className='item-actions'>
-                    {showHide}
-                    {' - '}
-                    {regen}
-                    {' - '}
-                    <Link to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}>
-                        <FormattedMessage
-                            id='installed_integrations.edit'
-                            defaultMessage='Edit'
-                        />
-                    </Link>
-                    {' - '}
-                    <DeleteIntegrationLink
-                        modalMessage={
-                            <FormattedMessage
-                                id='installed_oauth_apps.delete.confirm'
-                                defaultMessage='This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?'
-                            />
-                        }
-                        onDelete={this.handleDelete}
-                    />
+                    {actionParts.map((part, idx) => (
+                        <React.Fragment key={idx}>
+                            {idx > 0 && ' - '}
+                            {part}
+                        </React.Fragment>
+                    ))}
                 </div>
             );
         }
@@ -299,6 +340,22 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                             <strong>{isTrusted}</strong>
                         </span>
                     </div>
+                    {oauthApp.is_dynamically_registered && (
+                        <div className='item-details__row'>
+                            <span className='item-details__url word-break--all'>
+                                <FormattedMessage
+                                    id='installed_oauth_apps.dynamically_registered'
+                                    defaultMessage='Dynamically Registered: '
+                                />
+                                <strong>
+                                    <FormattedMessage
+                                        id='installed_oauth_apps.dynamically_registered.yes'
+                                        defaultMessage='Yes'
+                                    />
+                                </strong>
+                            </span>
+                        </div>
+                    )}
                     <div className='item-details__row'>
                         <span className='item-details__token'>
                             <FormattedMessage

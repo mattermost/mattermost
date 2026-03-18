@@ -1,17 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
-import cloneDeep from 'lodash/cloneDeep';
-import set from 'lodash/set';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import mockStore from 'tests/test_store';
+import {render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
 import {getBestImage, getIsLargeImage, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
@@ -91,18 +87,9 @@ describe('PostAttachmentOpenGraph', () => {
 
     const baseProps = {
         post,
-        postId: '',
-        link: 'http://mattermost.com',
+        postId: 'post_id_1',
+        link: openGraphData.url,
         currentUserId: '1234',
-        openGraphData: {
-            description: 'description',
-            images: [{
-                secure_url: '',
-                url: imageUrl,
-            }],
-            site_name: 'Mattermost',
-            title: 'Mattermost Private Cloud Messaging',
-        },
         toggleEmbedVisibility,
         actions: {
             editPost: jest.fn(),
@@ -110,60 +97,72 @@ describe('PostAttachmentOpenGraph', () => {
     };
 
     test('should match snapshot', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraph {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render nothing without any data', () => {
-        const state = cloneDeep(initialState);
-        set(state, 'entities.posts.openGraph', {});
-
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraph {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        openGraph: {},
+                    },
+                },
+            },
         );
 
-        expect(wrapper).toEqual({});
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should render nothing when link previews are disabled on the server', () => {
-        const state = cloneDeep(initialState);
-        set(state, 'entities.config.EnableLinkPreviews', 'false');
-
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraph {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableLinkPreviews: 'false',
+                        },
+                    },
+                },
+            },
         );
 
-        expect(wrapper).toEqual({});
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should render nothing when link previews are disabled by the user', () => {
-        const state = cloneDeep(initialState);
-        set(state, `entities.preferences.EnableLinkPreviews["${preferenceKeys.LINK_PREVIEW_DISPLAY}"]`, 'false');
-
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraph {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    preferences: {
+                        ...initialState.entities.preferences,
+                        myPreferences: {
+                            ...initialState.entities.preferences.myPreferences,
+                            [preferenceKeys.LINK_PREVIEW_DISPLAY]: {value: 'false'},
+                        },
+                    },
+                },
+            },
         );
 
-        expect(wrapper).toEqual({});
+        expect(container).toBeEmptyDOMElement();
     });
 });
 
@@ -176,62 +175,72 @@ describe('PostAttachmentOpenGraphBody', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...baseProps}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not render without title', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'title', '');
+        const props = {
+            ...baseProps,
+            title: '',
+        };
 
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...props}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...props}/>);
 
-        expect(wrapper).toEqual({});
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should add extra class for permalink view', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'isInPermalink', true);
+        const props = {
+            ...baseProps,
+            isInPermalink: true,
+        };
 
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...props}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...props}/>);
 
-        expect(wrapper.find('.isInPermalink').exists()).toBe(true);
-        expect(wrapper.find('.sitename').exists()).toBe(false);
+        expect(container.querySelector('.isInPermalink')).toBeInTheDocument();
+        expect(container.querySelector('.sitename')).not.toBeInTheDocument();
     });
 
     test('should render without sitename', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'sitename', '');
+        const props = {
+            ...baseProps,
+            sitename: '',
+        };
 
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...props}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...props}/>);
 
-        expect(wrapper.find('.sitename').exists()).toBe(false);
-        expect(wrapper.find('.title').exists()).toBe(true);
-        expect(wrapper.find('.description').exists()).toBe(true);
+        expect(container.querySelector('.sitename')).not.toBeInTheDocument();
+        expect(container.querySelector('.title')).toBeInTheDocument();
+        expect(container.querySelector('.description')).toBeInTheDocument();
     });
 
     test('should render without description', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'description', '');
+        const props = {
+            ...baseProps,
+            description: '',
+        };
 
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...props}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...props}/>);
 
-        expect(wrapper.find('.sitename').exists()).toBe(true);
-        expect(wrapper.find('.title').exists()).toBe(true);
-        expect(wrapper.find('.description').exists()).toBe(false);
+        expect(container.querySelector('.sitename')).toBeInTheDocument();
+        expect(container.querySelector('.title')).toBeInTheDocument();
+        expect(container.querySelector('.description')).not.toBeInTheDocument();
     });
 
     test('should render with title only', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'sitename', '');
-        set(props, 'description', '');
+        const props = {
+            ...baseProps,
+            sitename: '',
+            description: '',
+        };
 
-        const wrapper = mount(<PostAttachmentOpenGraphBody {...props}/>);
+        const {container} = render(<PostAttachmentOpenGraphBody {...props}/>);
 
-        expect(wrapper.find('.sitename').exists()).toBe(false);
-        expect(wrapper.find('.title').exists()).toBe(true);
-        expect(wrapper.find('.description').exists()).toBe(false);
+        expect(container.querySelector('.sitename')).not.toBeInTheDocument();
+        expect(container.querySelector('.title')).toBeInTheDocument();
+        expect(container.querySelector('.description')).not.toBeInTheDocument();
     });
 });
 
@@ -245,62 +254,57 @@ describe('PostAttachmentOpenGraphImage', () => {
     };
 
     test('should match snapshot', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraphImage {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not render when used in Permalink', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'isInPermalink', true);
+        const props = {
+            ...baseProps,
+            isInPermalink: true,
+        };
 
-        const store = mockStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraphImage {...props}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot({});
+        expect(container).toMatchSnapshot();
     });
 
     test('should render a large image with toggle', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraphImage {...baseProps}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper.find('.PostAttachmentOpenGraph__image').exists()).toBe(true);
-        expect(wrapper.find('.PostAttachmentOpenGraph__image.large').exists()).toBe(true);
-        expect(wrapper.find('.PostAttachmentOpenGraph__image .preview-toggle').exists()).toBe(true);
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
     });
 
     test('should render a small image without toggle', () => {
-        const props = cloneDeep(baseProps);
-        set(props, 'imageMetadata.height', 90);
-        set(props, 'imageMetadata.width', 120);
+        const props = {
+            ...baseProps,
+            imageMetadata: {
+                ...baseProps.imageMetadata!,
+                height: 90,
+                width: 120,
+            },
+        };
 
-        const store = mockStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <PostAttachmentOpenGraphImage {...props}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...props}/>,
+            initialState,
         );
 
-        expect(wrapper.find('.PostAttachmentOpenGraph__image').exists()).toBe(true);
-        expect(wrapper.find('.PostAttachmentOpenGraph__image.large').exists()).toBe(false);
-        expect(wrapper.find('.PostAttachmentOpenGraph__image .preview-toggle').exists()).toBe(false);
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).not.toBeInTheDocument();
     });
 });
 
@@ -313,24 +317,26 @@ describe('PostAttachmentOpenGraphBody', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = mount(
+        const {container} = render(
             <PostAttachmentOpenGraphBody {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     describe('permalink preview', () => {
-        const props = {
-            ...baseProps,
-            isInPermalink: true,
-        };
+        test('should add extra class for permalink view', () => {
+            const props = {
+                ...baseProps,
+                isInPermalink: true,
+            };
 
-        const wrapper = mount(
-            <PostAttachmentOpenGraphBody {...props}/>,
-        );
+            const {container} = render(
+                <PostAttachmentOpenGraphBody {...props}/>,
+            );
 
-        expect(wrapper.find('.isInPermalink').exists()).toBe(true);
+            expect(container.querySelector('.isInPermalink')).toBeInTheDocument();
+        });
     });
 });
 

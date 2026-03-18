@@ -1,0 +1,105 @@
+.rewrite-menu {
+    min-width: 400px;
+}
+
+.rewrite-menu-header {
+    padding: 8px 12px 0 12px;
+    margin-bottom: -4px;
+
+    .Input_wrapper {
+        padding-left: 8px;
+    }
+
+    .Input_legend {
+        display: none;
+    }
+
+    .Input_container .Input_wrapper > :not(:first-child) {
+        margin-left: 10px;
+    }
+
+    .agent-dropdown {
+        margin-bottom: 12px;
+    }
+
+    .rewrite-menu-header-processing {
+        display: flex;
+        align-items: center;
+        padding: 4px 4px 0 4px;
+        gap: 6px;
+
+        > i, > span {
+            color: var(--center-channel-color);
+        }
+
+        > span {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+        }
+
+        button {
+            margin-left: auto;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+            }
+        }
+    }
+}
+
+.rewrite-menu-footer {
+    padding: 12px 14px 8px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    .btn-quaternary {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+}
+
+.textarea-wrapper {
+    position: relative;
+}
+
+@keyframes rewrite-gradient {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.rewrite-overlay {
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: rewrite-gradient 3.5s linear infinite;
+    background: linear-gradient(
+        92deg,
+        rgba(var(--center-channel-bg-rgb), 0.32) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 100%
+    );
+    background-size: 300% 100%;
+    pointer-events: none;
+}
+
+#rewrite-button {
+    pointer-events: auto;
+}

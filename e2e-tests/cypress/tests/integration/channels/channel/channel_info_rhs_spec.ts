@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {stubClipboard} from '../../../utils';
 
 describe('Channel Info RHS', () => {
@@ -206,7 +207,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(testChannel.id, {
-                    ...testChannel,
                     purpose: 'purpose for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('purpose for the tests').should('be.visible');
@@ -220,10 +220,42 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(testChannel.id, {
-                    ...testChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
+                });
+            });
+            it('should be able to rename channel from About area', () => {
+                // # Create a dedicated channel for renaming to avoid affecting other tests
+                cy.apiCreateChannel(testTeam.id, 'channel-to-rename', 'Channel To Rename', 'O').then(({channel}) => {
+                    cy.apiAddUserToChannel(channel.id, admin.id);
+
+                    // # Go to the channel
+                    cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+
+                    // # Open Channel Info RHS
+                    cy.get('#channel-info-btn').click();
+
+                    // # Click edit on channel name (first Edit in About)
+                    cy.uiGetRHS().findAllByLabelText('Edit').first().click({force: true});
+
+                    // * Rename Channel modal appears
+                    cy.findByRole('heading', {name: /rename channel/i}).should('be.visible');
+
+                    // # Fill display name and URL
+                    cy.findByPlaceholderText(/enter display name/i).clear().type('Renamed Channel');
+                    cy.get('.url-input-button').click();
+                    cy.get('.url-input-container input').clear().type('renamed-channel');
+                    cy.get('.url-input-container button.url-input-button').click();
+
+                    // # Save
+                    cy.findByRole('button', {name: /save/i}).click();
+
+                    // * URL updated
+                    cy.location('pathname').should('include', `/${testTeam.name}/channels/renamed-channel`);
+
+                    // * Header shows new name
+                    cy.get('#channelHeaderTitle').should('contain', 'Renamed Channel');
                 });
             });
         });
@@ -236,10 +268,28 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Notification Preferences"
-                cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Notification Preferences').scrollIntoView().should('be.visible').click();
 
                 // * Ensures the modal is there
                 cy.get('.ChannelNotificationModal').should('be.visible');
+            });
+            it('should open Channel Settings from RHS menu', () => {
+                // # Go to test channel
+                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+                // # Close RHS if it's open, then click on the channel info button
+                cy.get('body').then(($body) => {
+                    if ($body.find('#rhsCloseButton').length > 0) {
+                        cy.get('#rhsCloseButton').click();
+                    }
+                    cy.get('#channel-info-btn').should('be.visible').click();
+                });
+
+                // * Channel Settings item is visible in RHS menu
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Channel Settings').scrollIntoView().should('be.visible').click();
+
+                // * Channel Settings modal opens
+                cy.get('.ChannelSettingsModal').should('be.visible');
             });
             it('should be able to view files and come back', () => {
                 // # Go to test channel
@@ -249,7 +299,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Files"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Files').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Files').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the files RHS
                 cy.uiGetRHS().findByText('No files yet').should('be.visible');
@@ -276,10 +326,10 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Pinned Messages"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the Pinned Post RHS
-                cy.uiGetRHS().findByText('Hello channel info rhs spec').should('be.visible');
+                cy.uiGetRHS().findByText('Hello channel info rhs spec').first().should('be.visible');
 
                 // # Click the Back Icon
                 cy.uiGetRHS().get('[aria-label="Back Icon"]').click();
@@ -295,7 +345,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Members"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Members').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Members').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the members
                 cy.uiGetRHS().contains('sysadmin').should('be.visible');
@@ -381,7 +431,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(groupChannel.id, {
-                    ...groupChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
@@ -398,7 +447,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Notification Preferences"
-                cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Notification Preferences').scrollIntoView().should('be.visible').click();
 
                 // * Ensures the modal is there
                 cy.get('.ChannelNotificationModal').should('be.visible');
@@ -475,7 +524,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(directChannel.id, {
-                    ...directChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
@@ -488,6 +536,6 @@ describe('Channel Info RHS', () => {
 function ensureRHSIsOpenOnChannelInfo(testChannel) {
     cy.get('#rhsContainer').then((rhsContainer) => {
         cy.wrap(rhsContainer).findByText('Info').should('be.visible');
-        cy.wrap(rhsContainer).findByText(testChannel.display_name).should('be.visible');
+        cy.wrap(rhsContainer).find('.sidebar--right__title__subtitle').should('contain', testChannel.display_name);
     });
 }

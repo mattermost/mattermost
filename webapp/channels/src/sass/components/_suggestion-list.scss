@@ -45,6 +45,12 @@
             margin: 0;
         }
     }
+
+    ul[role="group"] {
+        // Undo padding and margins added by Bootstrap and our design system
+        padding: 0;
+        margin: 0;
+    }
 }
 
 .suggestion-list--top {
@@ -377,4 +383,8 @@
             display: none;
         }
     }
+}
+
+.suggestion-list__item--default-agent {
+    margin-top: 1.2rem;
 }

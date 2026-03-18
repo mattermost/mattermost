@@ -57,6 +57,36 @@ func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, 
 	return r0, r1
 }
 
+// EmailNotificationWillBeSent provides a mock function with given fields: emailNotification
+func (_m *Hooks) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string) {
+	ret := _m.Called(emailNotification)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EmailNotificationWillBeSent")
+	}
+
+	var r0 *model.EmailNotificationContent
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.EmailNotification) (*model.EmailNotificationContent, string)); ok {
+		return rf(emailNotification)
+	}
+	if rf, ok := ret.Get(0).(func(*model.EmailNotification) *model.EmailNotificationContent); ok {
+		r0 = rf(emailNotification)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.EmailNotificationContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.EmailNotification) string); ok {
+		r1 = rf(emailNotification)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // ExecuteCommand provides a mock function with given fields: c, args
 func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	ret := _m.Called(c, args)
@@ -87,6 +117,24 @@ func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	return r0, r1
+}
+
+// FileWillBeDownloaded provides a mock function with given fields: c, fileInfo, userID, downloadType
+func (_m *Hooks) FileWillBeDownloaded(c *plugin.Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+	ret := _m.Called(c, fileInfo, userID, downloadType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FileWillBeDownloaded")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.FileInfo, string, model.FileDownloadType) string); ok {
+		r0 = rf(c, fileInfo, userID, downloadType)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // FileWillBeUploaded provides a mock function with given fields: c, info, file, output

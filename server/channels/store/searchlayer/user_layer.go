@@ -56,7 +56,7 @@ func (s *SearchUserStore) Search(rctx request.CTX, teamId, term string, options 
 				continue
 			}
 
-			users, nErr := s.UserStore.GetProfileByIds(context.Background(), usersIds, nil, false)
+			users, nErr := s.UserStore.GetProfileByIds(rctx, usersIds, nil, false)
 			if nErr != nil {
 				rctx.Logger().Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
@@ -102,7 +102,7 @@ func (s *SearchUserStore) PermanentDelete(rctx request.CTX, userId string) error
 	return err
 }
 
-func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
@@ -118,14 +118,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	uchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(rctx, uchanIds, nil, false)
 		uchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
 	nuchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(rctx, nuchanIds, nil, false)
 		nuchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
@@ -220,7 +220,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, c
 			}
 			options.ListOfAllowedChannels = listOfAllowedChannels
 
-			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
+			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(rctx, engine, teamId, channelId, term, options)
 			if nErr != nil {
 				rctx.Logger().Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue

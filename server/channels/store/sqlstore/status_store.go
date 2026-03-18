@@ -26,12 +26,11 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 		SqlStore: sqlStore,
 	}
 
-	manualColumnName := quoteColumnName(s.DriverName(), "Manual")
 	s.statusSelectQuery = s.getQueryBuilder().
 		Select(
 			"COALESCE(UserId, '') AS UserId",
 			"COALESCE(Status, '') AS Status",
-			fmt.Sprintf("COALESCE(%s, FALSE) AS %s", manualColumnName, manualColumnName),
+			"COALESCE(Manual, FALSE) AS Manual",
 			"COALESCE(LastActivityAt, 0) AS LastActivityAt",
 			"COALESCE(DNDEndTime, 0) AS DNDEndTime",
 			"COALESCE(PrevStatus, '') AS PrevStatus",
@@ -44,14 +43,10 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
+		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
 		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = VALUES(Status), `Manual` = VALUES(`Manual`), LastActivityAt = VALUES(LastActivityAt), DNDEndTime = VALUES(DNDEndTime), PrevStatus = VALUES(PrevStatus)"))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to upsert Status")
@@ -74,19 +69,15 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) erro
 
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus")
+		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus")
 
 	// Add values for each unique status
 	for _, st := range statuses {
 		query = query.Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 	}
 
-	// Handle different databases
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Status = VALUES(Status), `Manual` = VALUES(`Manual`), LastActivityAt = VALUES(LastActivityAt), DNDEndTime = VALUES(DNDEndTime), PrevStatus = VALUES(PrevStatus)"))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
-	}
+	// Handle upsert for PostgreSQL
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to upsert multiple Status records")
@@ -120,68 +111,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	return statuses, nil
 }
 
-// MySQL doesn't have support for RETURNING clause, so we use a transaction to get the updated rows.
-func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status, error) {
-	statuses := []*model.Status{}
-	currUnixTime := time.Now().UTC().Unix()
-	selectQuery := s.statusSelectQuery.Where(
-		sq.And{
-			sq.Eq{"Status": model.StatusDnd},
-			sq.Gt{"DNDEndTime": 0},
-			sq.LtOrEq{"DNDEndTime": currUnixTime},
-		},
-	)
-
-	err := t.SelectBuilder(&statuses, selectQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
-	}
-	updateQuery := s.getQueryBuilder().
-		Update("Status").
-		Where(
-			sq.And{
-				sq.Eq{"Status": model.StatusDnd},
-				sq.Gt{"DNDEndTime": 0},
-				sq.LtOrEq{"DNDEndTime": currUnixTime},
-			},
-		).
-		Set("Status", sq.Expr("PrevStatus")).
-		Set("PrevStatus", model.StatusDnd).
-		Set("DNDEndTime", 0).
-		Set(quoteColumnName(s.DriverName(), "Manual"), false)
-
-	if _, err := t.ExecBuilder(updateQuery); err != nil {
-		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
-	}
-
-	return statuses, nil
-}
-
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error) {
-	if s.DriverName() == model.DatabaseDriverMysql {
-		transaction, terr := s.GetMaster().Beginx()
-		if terr != nil {
-			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: begin_transaction")
-		}
-		defer finalizeTransactionX(transaction, &terr)
-		statuses, terr := s.updateExpiredStatuses(transaction)
-		if terr != nil {
-			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")
-		}
-		if terr = transaction.Commit(); terr != nil {
-			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: commit_transaction")
-		}
-
-		for _, status := range statuses {
-			status.Status = status.PrevStatus
-			status.PrevStatus = model.StatusDnd
-			status.DNDEndTime = 0
-			status.Manual = false
-		}
-
-		return statuses, nil
-	}
-
 	queryString := s.getQueryBuilder().
 		Update("Status").
 		Where(
@@ -194,7 +124,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.StatusDnd).
 		Set("DNDEndTime", 0).
-		Set(quoteColumnName(s.DriverName(), "Manual"), false).
+		Set("Manual", false).
 		Suffix("RETURNING *")
 
 	statuses := []*model.Status{}
@@ -207,7 +137,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 }
 
 func (s SqlStatusStore) ResetAll() error {
-	if _, err := s.GetMaster().Exec(fmt.Sprintf("UPDATE Status SET Status = ? WHERE %s = false", quoteColumnName(s.DriverName(), "Manual")), model.StatusOffline); err != nil {
+	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = ? WHERE Manual = false", model.StatusOffline); err != nil {
 		return errors.Wrap(err, "failed to update Statuses")
 	}
 	return nil

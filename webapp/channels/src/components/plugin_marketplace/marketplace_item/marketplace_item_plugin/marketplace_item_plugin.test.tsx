@@ -1,16 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
-import ConfirmModal from 'components/confirm_modal';
-
-import {mountWithIntl as mount} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import MarketplaceItemPlugin, {UpdateDetails, UpdateConfirmationModal} from './marketplace_item_plugin';
 import type {UpdateDetailsProps, UpdateConfirmationModalProps, MarketplaceItemPluginProps} from './marketplace_item_plugin';
@@ -31,11 +26,11 @@ describe('components/MarketplaceItemPlugin', () => {
                     ...baseProps,
                     installedVersion: '',
                 };
-                const wrapper = mount(
+                const {container} = renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
 
             it('when installed version matches available version', () => {
@@ -43,11 +38,11 @@ describe('components/MarketplaceItemPlugin', () => {
                     ...baseProps,
                     installedVersion: baseProps.version,
                 };
-                const wrapper = mount(
+                const {container} = renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
 
             it('when installed version is newer than available version', () => {
@@ -55,11 +50,11 @@ describe('components/MarketplaceItemPlugin', () => {
                     ...baseProps,
                     installedVersion: '0.0.3',
                 };
-                const wrapper = mount(
+                const {container} = renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
 
             it('when installing', () => {
@@ -67,11 +62,11 @@ describe('components/MarketplaceItemPlugin', () => {
                     ...baseProps,
                     isInstalling: true,
                 };
-                const wrapper = mount(
+                const {container} = renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
         });
 
@@ -81,32 +76,19 @@ describe('components/MarketplaceItemPlugin', () => {
                 releaseNotesUrl: '',
             };
 
-            const wrapper = mount(
+            const {container} = renderWithContext(
                 <UpdateDetails {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         it('should render with release notes url', () => {
-            const store = mockStore({
-                entities: {
-                    general: {
-                        config: {},
-                        license: {},
-                    },
-                    users: {
-                        currentUserId: 'currentUserId',
-                    },
-                },
-            });
-            const wrapper = mount(
-                <Provider store={store}>
-                    <UpdateDetails {...baseProps}/>
-                </Provider>,
+            const {container} = renderWithContext(
+                <UpdateDetails {...baseProps}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     });
 
@@ -128,10 +110,10 @@ describe('components/MarketplaceItemPlugin', () => {
                 };
                 delete props.installedVersion;
 
-                const wrapper = shallow(
+                const {container} = renderWithContext(
                     <UpdateConfirmationModal {...props}/>,
                 );
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
 
             it('when installed version is newer than available version', () => {
@@ -140,10 +122,10 @@ describe('components/MarketplaceItemPlugin', () => {
                     installedVersion: '0.0.3',
                 };
 
-                const wrapper = shallow(
+                const {container} = renderWithContext(
                     <UpdateConfirmationModal {...props}/>,
                 );
-                expect(wrapper.isEmptyRender()).toBe(true);
+                expect(container).toBeEmptyDOMElement();
             });
         });
 
@@ -152,13 +134,12 @@ describe('components/MarketplaceItemPlugin', () => {
                 ...baseProps,
                 show: false,
             };
-            const wrapper = shallow(
+            renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
 
-            const modal = wrapper.find(ConfirmModal);
-            expect(modal.exists()).toBe(true);
-            expect(modal.props().show).toBe(false);
+            // When show is false, ConfirmModal should not display modal content
+            expect(screen.queryByText('Confirm Plugin Update')).not.toBeInTheDocument();
         });
 
         it('should render without release notes url', () => {
@@ -167,11 +148,11 @@ describe('components/MarketplaceItemPlugin', () => {
             };
             delete props.releaseNotesUrl;
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
 
-            expect(wrapper.find(ConfirmModal)).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         it('should add extra warning for major version change', () => {
@@ -180,10 +161,10 @@ describe('components/MarketplaceItemPlugin', () => {
                 version: '1.0.0',
             };
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
-            expect(wrapper.find(ConfirmModal)).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         it('should add extra warning for major version change, even without release notes', () => {
@@ -193,10 +174,10 @@ describe('components/MarketplaceItemPlugin', () => {
             };
             delete props.releaseNotesUrl;
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
-            expect(wrapper.find(ConfirmModal)).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         it('should avoid exception on invalid semver', () => {
@@ -205,10 +186,10 @@ describe('components/MarketplaceItemPlugin', () => {
                 version: 'not-a-version',
             };
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
-            expect(wrapper.find(ConfirmModal)).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     });
 
@@ -223,7 +204,6 @@ describe('components/MarketplaceItemPlugin', () => {
             iconData: 'icon',
             installing: false,
             isDefaultMarketplace: true,
-            trackEvent: jest.fn(() => {}),
             actions: {
                 installPlugin: jest.fn(() => {}),
                 closeMarketplaceModal: jest.fn(() => {}),
@@ -231,44 +211,44 @@ describe('components/MarketplaceItemPlugin', () => {
         };
 
         test('should render', () => {
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...baseProps}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with no plugin description', () => {
             const props = {...baseProps};
             delete props.description;
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with no plugin icon', () => {
             const props = {...baseProps};
             delete props.iconData;
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with no homepage url', () => {
             const props = {...baseProps};
             delete props.homepageUrl;
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with server error', () => {
@@ -277,11 +257,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 error: 'An error occurred.',
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with plugin status error', () => {
@@ -301,11 +281,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 pluginStatus,
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render installed plugin', () => {
@@ -314,11 +294,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 installedVersion: '1.0.0',
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with update available', () => {
@@ -327,11 +307,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 installedVersion: '0.9.9',
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with update and release notes available', () => {
@@ -341,11 +321,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 releaseNotesUrl: 'http://example.com/release',
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with empty list of labels', () => {
@@ -354,14 +334,17 @@ describe('components/MarketplaceItemPlugin', () => {
                 labels: [],
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with one labels', () => {
+            // Suppress known React ref warning from WithTooltip wrapping Tag (function component)
+            const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
             const props = {
                 ...baseProps,
                 labels: [
@@ -373,11 +356,13 @@ describe('components/MarketplaceItemPlugin', () => {
                 ],
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            spy.mockRestore();
+
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with two labels', () => {
@@ -396,115 +381,11 @@ describe('components/MarketplaceItemPlugin', () => {
                 ],
             };
 
-            const wrapper = shallow<MarketplaceItemPlugin>(
+            const {container} = renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
-        });
-
-        describe('should track detailed event with default marketplace', () => {
-            test('on install', () => {
-                const props = {
-                    ...baseProps,
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onInstall();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download', {
-                    plugin_id: 'id',
-                    version: '1.0.0',
-                    installed_version: '',
-                });
-            });
-
-            test('on update', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onUpdate();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download_update', {
-                    plugin_id: 'id',
-                    version: '2.0.0',
-                    installed_version: '1.0.0',
-                });
-            });
-
-            test('but not configure', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onConfigure();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_configure');
-            });
-        });
-
-        describe('should track limited event with non-default marketplace', () => {
-            test('on install', () => {
-                const props = {
-                    ...baseProps,
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onInstall();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download');
-            });
-
-            test('on update', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onUpdate();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download_update');
-            });
-
-            test('on configure', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onConfigure();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_configure');
-            });
+            expect(container).toMatchSnapshot();
         });
     });
 });

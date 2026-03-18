@@ -12,7 +12,6 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
 
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
@@ -22,7 +21,6 @@ import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/thre
 
 import {
     Preferences,
-    TELEMETRY_CATEGORIES,
     ModalIdentifiers,
     CloudBanners,
 } from 'utils/constants';
@@ -54,11 +52,6 @@ const ShowThreeDaysLeftTrialModal = () => {
     const currentUserId = useSelector(getCurrentUserId);
 
     const handleOnClose = async () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            'dismissed_three_days_left_trial_modal',
-        );
-
         await dispatch(savePreferences(currentUserId, [{
             category: Preferences.CLOUD_TRIAL_BANNER,
             user_id: currentUserId,
@@ -82,10 +75,6 @@ const ShowThreeDaysLeftTrialModal = () => {
                     onExited: handleOnClose,
                 },
             }));
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_THREE_DAYS_LEFT_MODAL,
-                'trigger_cloud_three_days_left_modal',
-            );
         }
     }, [subscription?.trial_end_at]);
 

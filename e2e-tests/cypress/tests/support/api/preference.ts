@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
-import theme from '../../fixtures/theme.json';
 import {PreferenceType} from '@mattermost/types/preferences';
+
+import theme from '../../fixtures/theme.json';
 
 // *****************************************************************************
 // Preferences
@@ -500,18 +501,6 @@ function apiDisableTutorials(userId) {
         {
             user_id: userId,
             category: 'tutorial_step',
-            name: userId,
-            value: '999',
-        },
-        {
-            user_id: userId,
-            category: 'crt_tutorial_triggered',
-            name: userId,
-            value: '999',
-        },
-        {
-            user_id: userId,
-            category: 'crt_thread_pane_step',
             name: userId,
             value: '999',
         },

@@ -300,6 +300,17 @@ func (c *Context) RequireUserId() *Context {
 	return c
 }
 
+func (c *Context) RequireOtherUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OtherUserId) {
+		c.SetInvalidURLParam("other_user_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamId() *Context {
 	if c.Err != nil {
 		return c
@@ -743,6 +754,64 @@ func (c *Context) RequireInvoiceId() *Context {
 		c.SetInvalidURLParam("invoice_id")
 	}
 
+	return c
+}
+
+func (c *Context) RequireContentReviewerId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ContentReviewerId) {
+		c.SetInvalidURLParam("content_reviewer_id")
+	}
+	return c
+}
+
+func (c *Context) RequireRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.RecapId) {
+		c.SetInvalidURLParam("recap_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnections() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSharedChannels) {
+		c.SetPermissionError(model.PermissionManageSharedChannels)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnectionsOrSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionManageSecureConnections,
+		model.PermissionManageSharedChannels,
+	}) {
+		c.SetPermissionError(model.PermissionManageSecureConnections, model.PermissionManageSharedChannels)
+	}
 	return c
 }
 

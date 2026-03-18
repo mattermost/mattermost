@@ -5,7 +5,7 @@ import React from 'react';
 
 import * as controlModalHooks from 'components/common/hooks/useControlModal';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ScreeningInProgressModal from './';
 
@@ -15,12 +15,12 @@ describe('ScreeningInProgressModal', () => {
         screen.getByText('Your transaction is being reviewed');
     });
 
-    it('closes the modal on click', () => {
+    it('closes the modal on click', async () => {
         const mockClose = jest.fn();
         jest.spyOn(controlModalHooks, 'useControlScreeningInProgressModal').mockImplementation(() => ({close: mockClose, open: jest.fn()}));
 
         renderWithContext(<ScreeningInProgressModal/>);
-        screen.getAllByText('Close')[1].click();
+        await userEvent.click(screen.getAllByText('Close')[1]);
         expect(mockClose).toHaveBeenCalled();
     });
 });

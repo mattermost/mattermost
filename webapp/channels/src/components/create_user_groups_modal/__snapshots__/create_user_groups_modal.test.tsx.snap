@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/create_user_groups_modal should match snapshot with back button 1`] = `
 <Modal
@@ -127,7 +127,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       >
         <legend>
           <MemoizedFormattedMessage
-            defaultMessage="Add People"
+            defaultMessage="Add people"
             id="user_groups_modal.addPeople"
           />
         </legend>
@@ -271,7 +271,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
       >
         <legend>
           <MemoizedFormattedMessage
-            defaultMessage="Add People"
+            defaultMessage="Add people"
             id="user_groups_modal.addPeople"
           />
         </legend>

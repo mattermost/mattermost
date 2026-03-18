@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOutgoingOAuthConnections should match snapshot 1`] = `
 <BrowserRouter>
@@ -15,7 +15,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -190,7 +190,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   Create 
                   <ForwardRef
                     href="https://mattermost.com/pl/setup-oauth-2.0"
-                    key=".$.1"
+                    key="1/.1"
                     location="installed_outgoing_oauth_connections"
                   >
                     <a

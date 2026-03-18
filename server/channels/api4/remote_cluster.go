@@ -99,7 +99,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptMessage, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
@@ -125,6 +125,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	auditRec.Success()
+
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -149,7 +151,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptInvite, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
@@ -200,7 +202,7 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uploadRemoteData", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadRemoteData, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "upload_id", c.Params.UploadId)
 
@@ -281,7 +283,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteUploadProfileImage", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteUploadProfileImage, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
 		model.AddEventParameterToAuditRec(auditRec, "filename", imageArray[0].Filename)
@@ -316,8 +318,8 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -362,8 +364,8 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -373,7 +375,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createRemoteCluster", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateRemoteCluster, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var rcWithTeamAndPassword model.RemoteClusterWithPassword
@@ -449,8 +451,8 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -461,7 +463,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoteClusterAcceptInvite, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var rcAcceptInvite model.RemoteClusterAcceptInvite
@@ -528,13 +530,13 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequireRemoteId()
+	if c.Err != nil {
 		return
 	}
 
@@ -544,7 +546,7 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("generateRemoteClusterInvite", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateRemoteClusterInvite, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 
@@ -575,7 +577,10 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	inviteCode, invErr := c.App.CreateRemoteClusterInvite(rc.RemoteId, url, rc.Token, password)
 	if invErr != nil {
 		c.Err = invErr
+		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
@@ -584,8 +589,8 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -613,8 +618,8 @@ func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnections()
+	if c.Err != nil {
 		return
 	}
 
@@ -635,7 +640,7 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchRemoteCluster", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchRemoteCluster, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "remotecluster_patch", &patch)
 	defer c.LogAuditRec(auditRec)
@@ -664,13 +669,13 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireRemoteId()
+	c.RequirePermissionToManageSecureConnections()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequireRemoteId()
+	if c.Err != nil {
 		return
 	}
 
@@ -680,7 +685,7 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteRemoteCluster", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteRemoteCluster, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 	defer c.LogAuditRec(auditRec)
 

@@ -19,14 +19,8 @@ func (v V) LessThan(other V) bool {
 	leftParts, leftCount := split(v)
 	rightParts, rightCount := split(other)
 
-	var length int
-	if leftCount < rightCount {
-		length = rightCount
-	} else {
-		length = leftCount
-	}
-
-	for i := 0; i < length; i++ {
+	length := max(leftCount, rightCount)
+	for i := range length {
 		var left, right string
 
 		if i < leftCount {
@@ -59,7 +53,7 @@ func (v V) LessThan(other V) bool {
 func split(v V) ([]string, int) {
 	var chunks []string
 
-	for _, part := range strings.Split(string(v), ".") {
+	for part := range strings.SplitSeq(string(v), ".") {
 		chunks = append(chunks, splitNumericalChunks(part)...)
 	}
 

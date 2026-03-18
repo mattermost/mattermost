@@ -1,88 +1,85 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/RemoveFromChannelModal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="removeFromChannelModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="removeFromChannelModalLabel"
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="removeFromChannelModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Removed from "
-        id="removed_channel.from"
-      />
-      <span
-        className="name"
+      <div
+        class="a11y__modal modal-dialog"
       >
-        test-channel
-      </span>
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <p>
-      <MemoizedFormattedMessage
-        defaultMessage="{remover} removed you from {channel}"
-        id="removed_channel.remover"
-        values={
-          Object {
-            "channel": "test-channel",
-            "remover": "Administrator",
-          }
-        }
-      />
-    </p>
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-primary"
-      id="removedChannelBtn"
-      onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Okay"
-        id="removed_channel.okay"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="removeFromChannelModalLabel"
+            >
+              Removed from 
+              <span
+                class="name"
+              >
+                test-channel
+              </span>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              Administrator removed you from test-channel
+            </p>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-primary"
+              id="removedChannelBtn"
+              type="button"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

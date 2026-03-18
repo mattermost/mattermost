@@ -10,9 +10,9 @@ import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
@@ -36,9 +36,9 @@ const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
 const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => any;
-    loadRolesIfNeeded: (roles: Iterable<string>) => any;
-    addUserToTeam: (teamId: string, userId?: string) => any;
+    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult<unknown>>;
+    loadRolesIfNeeded: (roles: Iterable<string>) => void;
+    addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult<unknown>>;
 }
 
 type Props = {
@@ -85,14 +85,13 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
     static getDerivedStateFromProps(props: Props, state: State) {
         if (props.listableTeams.length !== state.currentListableTeams.length) {
             return {
-                currentListableTeams: props.listableTeams.slice(0, TEAMS_PER_PAGE * state.currentPage),
+                currentListableTeams: props.listableTeams.slice(0, TEAMS_PER_PAGE * (state.currentPage + 1)),
             };
         }
         return null;
     }
 
     componentDidMount() {
-        trackEvent('signup', 'signup_select_team', {userId: this.props.currentUserId});
         this.fetchMoreTeams();
         if (this.props.currentUserRoles !== undefined) {
             this.props.actions.loadRolesIfNeeded(this.props.currentUserRoles.split(' '));
@@ -133,7 +132,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                             id='join_team_group_constrained_denied_adminText'
                             defaultMessage={'You need to be a member of a linked group to join this team. You can add a group to this team <a>here</a>.'}
                             values={{
-                                a: (chunks: string) => (
+                                a: (chunks) => (
                                     <Link to='/admin_console/user_management/groups'>
                                         {chunks}
                                     </Link>
@@ -160,7 +159,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
 
     handleLogoutClick = (e: MouseEvent): void => {
         e.preventDefault();
-        trackEvent('select_team', 'click_logout');
         emitUserLoggedOutEvent('/login');
     };
 
@@ -223,7 +221,10 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         } else {
             let joinableTeamContents: any = [];
             currentListableTeams.forEach((listableTeam) => {
-                if ((listableTeam.allow_open_invite && canJoinPublicTeams) || (!listableTeam.allow_open_invite && canJoinPrivateTeams)) {
+                const canJoinBasedOnType = (listableTeam.allow_open_invite && canJoinPublicTeams) || (!listableTeam.allow_open_invite && canJoinPrivateTeams);
+
+                // Skip group-constrained teams as they will fail to join and show error
+                if (canJoinBasedOnType && !listableTeam.group_constrained) {
                     joinableTeamContents.push(
                         <SelectTeamItem
                             key={'team_' + listableTeam.name}
@@ -330,7 +331,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     <Link
                         id='createNewTeamLink'
                         to='/create_team'
-                        onClick={() => trackEvent('select_team', 'click_create_team')}
                         className='signup-team-login'
                     >
                         <FormattedMessage
@@ -350,7 +350,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         <Link
                             to='/admin_console'
                             className='signup-team-login'
-                            onClick={() => trackEvent('select_team', 'click_system_console')}
                         >
                             <FormattedMessage
                                 id='signup_team_system_console'

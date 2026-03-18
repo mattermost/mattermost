@@ -14,7 +14,10 @@
         "strictNullChecks": true,
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": "."
+        "baseUrl": ".",
+        "paths": {
+            "@/asset": ["./asset"]
+        }
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "playwright-report", "lib"]

@@ -88,7 +88,7 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	logger.Info("SimpleWorker: Job is complete")
+	logger.Debug("SimpleWorker: Job is complete")
 	worker.setJobSuccess(logger, job)
 }
 

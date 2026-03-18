@@ -92,7 +92,7 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
         screen.getByText('some_label');
 
         const submitButton = screen.getByRole('button');
-        userEvent.click(submitButton);
+        await userEvent.click(submitButton);
 
         expect(baseProps.actions.getChannel).toHaveBeenCalledWith('some_channel_id');
         await waitFor(() => {
@@ -140,7 +140,7 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
         screen.getByText('some_label');
 
         const submitButton = screen.getByRole('button');
-        userEvent.click(submitButton);
+        await userEvent.click(submitButton);
 
         await waitFor(() => {
             expect(props.actions.postEphemeralCallResponseForPost).toHaveBeenCalledWith(errorCallResponse, 'The error', post);

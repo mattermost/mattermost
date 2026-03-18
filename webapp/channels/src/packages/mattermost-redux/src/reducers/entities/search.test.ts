@@ -14,7 +14,7 @@ describe('reducers.entities.search', () => {
     describe('results', () => {
         it('initial state', () => {
             const inputState = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState: any = [];
 
             const actualState = reducer({results: inputState} as SearchState, action);
@@ -116,7 +116,7 @@ describe('reducers.entities.search', () => {
     describe('fileResults', () => {
         it('initial state', () => {
             const inputState = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState: string[] = [];
 
             const actualState = reducer({fileResults: inputState} as SearchState, action);
@@ -187,7 +187,7 @@ describe('reducers.entities.search', () => {
     describe('matches', () => {
         it('initial state', () => {
             const inputState = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({matches: inputState} as SearchState, action);

@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
-import type {Emoji} from '@mattermost/types/emojis';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
@@ -12,7 +12,7 @@ import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_util
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
 import store from 'stores/redux_store';
 
-import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
+import {compareEmojis, emojiMatchesSkin, unifiedToUnicode} from 'utils/emoji_utils';
 import * as Emoticons from 'utils/emoticons';
 
 import Provider from './provider';
@@ -24,15 +24,12 @@ export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 
 type EmojiItem = {
-    name: string;
     emoji: Emoji;
-    type: string;
+    name: string;
 }
 
-const suggestionTypeEmoji = 'emoji';
-
 const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
-    const text = props.term;
+    const displayName = ':' + props.item.name + ':';
     const emoji = props.item.emoji;
 
     return (
@@ -42,14 +39,13 @@ const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Emoji
         >
             <div className='pull-left emoticon-suggestion__image-container'>
                 <img
-                    alt={text}
                     className='emoticon-suggestion__image'
                     src={getEmojiImageUrl(emoji)}
-                    title={text}
+                    alt=''
                 />
             </div>
             <div className='pull-left'>
-                {text}
+                {displayName}
             </div>
         </SuggestionContainer>
     );
@@ -98,7 +94,12 @@ export default class EmoticonProvider extends Provider {
     }
 
     formatEmojis(emojis: EmojiItem[]) {
-        return emojis.map((item) => ':' + item.name + ':');
+        return emojis.map((item) => {
+            if (isSystemEmoji(item.emoji)) {
+                return unifiedToUnicode((item.emoji as SystemEmoji).unified);
+            }
+            return ':' + item.name + ':';
+        });
     }
 
     // findAndSuggestEmojis uses the provided partialName to match anywhere inside an emoji name.
@@ -133,7 +134,7 @@ export default class EmoticonProvider extends Provider {
 
                         // if the emoji has skin, only add those that match with the user selected skin.
                         if (emojiMatchesSkin(emoji, skintone)) {
-                            matchedArray.push({name: alias, emoji, type: suggestionTypeEmoji});
+                            matchedArray.push({name: alias, emoji});
                         }
                         break;
                     }
@@ -147,7 +148,7 @@ export default class EmoticonProvider extends Provider {
 
                 const matchedArray = recentEmojis.includes(name) ? recentMatched : matched;
 
-                matchedArray.push({name, emoji, type: suggestionTypeEmoji});
+                matchedArray.push({name, emoji});
             }
         }
 
@@ -172,16 +173,13 @@ export default class EmoticonProvider extends Provider {
         // Required to get past the dispatch during dispatch error
         resultsCallback({
             matchedPretext: text,
-            terms,
-            items,
-            component: EmoticonSuggestion,
+            groups: [{
+                key: 'emojis',
+                label: defineMessage({id: 'suggestion.emoji', defaultMessage: 'Emoji'}),
+                terms,
+                items,
+                component: EmoticonSuggestion,
+            }],
         });
     }
 }
-
-defineMessages({
-    emojisDivider: {
-        id: 'suggestion.emoji',
-        defaultMessage: 'Emoji',
-    },
-});

@@ -1,15 +1,21 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/custom_status/custom_status_text should match snapshot 1`] = `
-<CustomStatusText
-  className=""
-  text=""
-/>
+<div>
+  <span
+    class="overflow--ellipsis text-nowrap "
+  >
+    Available
+  </span>
+</div>
 `;
 
 exports[`components/custom_status/custom_status_text should match snapshot with props 1`] = `
-<CustomStatusText
-  className=""
-  text="In a meeting"
-/>
+<div>
+  <span
+    class="overflow--ellipsis text-nowrap custom-class"
+  >
+    In a meeting
+  </span>
+</div>
 `;

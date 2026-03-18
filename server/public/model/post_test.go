@@ -191,8 +191,8 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 	post1 := &Post{}
 	post2 := &Post{}
 	for name, tc := range map[string]struct {
-		Attachments1 []*SlackAttachment
-		Attachments2 []*SlackAttachment
+		Attachments1 []*MessageAttachment
+		Attachments2 []*MessageAttachment
 		Expected     bool
 	}{
 		"Empty": {
@@ -201,7 +201,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentLength": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -210,12 +210,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -223,12 +223,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -236,13 +236,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"DifferentColor": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text:  "Hello World",
 					Color: "#152313",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -250,9 +250,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -264,9 +264,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -281,9 +281,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -291,9 +291,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -310,7 +310,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -332,7 +332,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -357,7 +357,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -379,7 +379,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -531,7 +531,7 @@ func TestRewriteImageURLs(t *testing.T) {
 var rewriteImageURLsSink string
 
 func BenchmarkRewriteImageURLs(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		rewriteImageURLsSink = RewriteImageURLs(markdownSample, func(url string) string {
 			return "rewritten:" + url
 		})
@@ -573,7 +573,7 @@ func TestPostClone(t *testing.T) {
 
 func BenchmarkClonePost(b *testing.B) {
 	p := Post{}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Clone()
 	}
 }
@@ -582,7 +582,7 @@ func BenchmarkPostPropsGet_indirect(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.GetProps()
 	}
 }
@@ -591,7 +591,7 @@ func BenchmarkPostPropsGet_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Props
 	}
 }
@@ -600,7 +600,7 @@ func BenchmarkPostPropsAdd_indirect(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.AddProp("test", "somevalue")
 	}
 }
@@ -609,7 +609,7 @@ func BenchmarkPostPropsAdd_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.Props["test"] = "somevalue"
 	}
 }
@@ -619,7 +619,7 @@ func BenchmarkPostPropsDel_indirect(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.AddProp("test", "somevalue")
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.DelProp("test")
 	}
 }
@@ -628,7 +628,7 @@ func BenchmarkPostPropsDel_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		delete(p.Props, "test")
 	}
 }
@@ -638,7 +638,7 @@ func BenchmarkPostPropGet_direct(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.Props["somekey"] = "somevalue"
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Props["somekey"]
 	}
 }
@@ -648,7 +648,7 @@ func BenchmarkPostPropGet_indirect(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.Props["somekey"] = "somevalue"
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.GetProp("somekey")
 	}
 }
@@ -662,49 +662,49 @@ func TestPostPropsDataRace(t *testing.T) {
 	wg.Add(7)
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.AddProp("test", "test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.GetProp("test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.AddProp("test", "test2")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.GetProps()["test"]
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.DelProp("test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.SetProps(make(StringInterface))
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.Clone()
 		}
 		wg.Done()

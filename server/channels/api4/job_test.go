@@ -18,8 +18,8 @@ import (
 func TestCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	job := &model.Job{
 		Type: model.JobTypeActiveUsers,
@@ -53,7 +53,6 @@ func TestCreateJob(t *testing.T) {
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	job := &model.Job{
 		Id:     model.NewId(),
@@ -90,7 +89,6 @@ func TestGetJob(t *testing.T) {
 func TestGetJobs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 
@@ -175,8 +173,8 @@ func TestGetJobs(t *testing.T) {
 func TestGetJobsByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	jobType := model.JobTypeDataRetention
 
@@ -244,9 +242,9 @@ func TestGetJobsByType(t *testing.T) {
 
 func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	th.LoginSystemManager()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
+	th.LoginSystemManager(t)
 	jobName := model.NewId()
 	job := &model.Job{
 		Id:   jobName,
@@ -379,7 +377,6 @@ func TestDownloadJob(t *testing.T) {
 func TestCancelJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeMessageExport
 	jobs := []*model.Job{
@@ -430,7 +427,6 @@ func TestCancelJob(t *testing.T) {
 func TestUpdateJobStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 	jobs := []*model.Job{

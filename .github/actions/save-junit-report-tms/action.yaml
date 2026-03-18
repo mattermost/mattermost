@@ -1,0 +1,46 @@
+name: Save JUnit Test Report to TMS
+description: Save JUnit test report to Zephyr Scale Test Management System
+author: Mattermost
+
+# Define your inputs here.
+inputs:
+  report-path:
+    description: Path to the XML test report file (from artifact)
+    required: true
+  zephyr-api-key:
+    description: Zephyr Scale API key
+    required: true
+  build-image:
+    description: Docker build image used for testing
+    required: true
+  zephyr-folder-id:
+    description: Zephyr Scale folder ID
+    required: false
+    default: '27504432'
+  jira-project-key:
+    description: Jira project key
+    required: false
+    default: 'MM'
+
+# Define your outputs here.
+outputs:
+  test-cycle:
+    description: The created test cycle key in Zephyr Scale
+  test-keys-execution-count:
+    description: Total number of test executions (including duplicates)
+  test-keys-unique-count:
+    description: Number of unique test keys successfully saved to Zephyr
+  junit-total-tests:
+    description: Total number of tests in the JUnit XML report
+  junit-total-passed:
+    description: Number of passed tests in the JUnit XML report
+  junit-total-failed:
+    description: Number of failed tests in the JUnit XML report
+  junit-pass-rate:
+    description: Pass rate percentage from the JUnit XML report
+  junit-duration-seconds:
+    description: Total test duration in seconds from the JUnit XML report
+
+runs:
+  using: node24
+  main: dist/index.js

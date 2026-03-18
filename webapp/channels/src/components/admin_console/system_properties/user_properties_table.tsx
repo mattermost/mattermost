@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
@@ -16,8 +16,10 @@ import LoadingScreen from 'components/loading_screen';
 import Constants from 'utils/constants';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
+import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
@@ -34,7 +36,7 @@ type FieldActions = {
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
-    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f: UserPropertyField) => f.delete_at === 0).length;
 
     const canCreate = nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES;
 
@@ -119,6 +121,7 @@ export function UserPropertiesTable({
                 },
                 cell: ({getValue, row}) => {
                     const toDelete = row.original.delete_at !== 0;
+                    const isProtected = Boolean(row.original.attrs?.protected);
                     const warningId = collection.warnings?.[row.original.id]?.name;
 
                     let warning;
@@ -156,9 +159,9 @@ export function UserPropertiesTable({
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
-                                borderless={!warning}
+                                disabled={isProtected}
                                 testid='property-field-input'
-                                autoFocus={isCreatePending(row.original)}
+                                autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
@@ -210,6 +213,7 @@ export function UserPropertiesTable({
                         <UserPropertyValues
                             field={row.original}
                             updateField={updateField}
+                            autoFocus={isCreatePending(row.original) && supportsOptions(row.original)}
                         />
                     </>
                 ),
@@ -229,24 +233,24 @@ export function UserPropertiesTable({
                         </ColHeaderRight>
                     );
                 },
-                cell: ({row}) => (
-                    <ActionsRoot>
-                        <DotMenu
+                cell: ({row}) => {
+                    return (
+                        <ActionsCell
                             field={row.original}
                             canCreate={canCreate}
                             createField={createField}
                             updateField={updateField}
                             deleteField={deleteField}
                         />
-                    </ActionsRoot>
-                ),
+                    );
+                },
                 enableHiding: false,
                 enableSorting: false,
             }),
         ];
     }, [createField, updateField, deleteField, collection.warnings, canCreate]);
 
-    const table = useReactTable({
+    const table = useReactTable<UserPropertyField>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
@@ -339,6 +343,37 @@ const ActionsRoot = styled.div`
     text-align: right;
 `;
 
+type ActionsCellProps = {
+    field: UserPropertyField;
+    canCreate: boolean;
+    createField: (field: UserPropertyField) => void;
+    updateField: (field: UserPropertyField) => void;
+    deleteField: (id: string) => void;
+};
+
+const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: ActionsCellProps) => {
+    const isOrphaned = useIsFieldOrphaned(field);
+
+    return (
+        <ActionsRoot>
+            {isOrphaned ? (
+                <OrphanedFieldDeleteButton
+                    field={field}
+                    deleteField={deleteField}
+                />
+            ) : (
+                <DotMenu
+                    field={field}
+                    canCreate={canCreate}
+                    createField={createField}
+                    updateField={updateField}
+                    deleteField={deleteField}
+                />
+            )}
+        </ActionsRoot>
+    );
+};
+
 type EditCellProps = {
     value: string;
     label?: string;
@@ -350,7 +385,6 @@ type EditCellProps = {
     footer?: ReactNode;
     strong?: boolean;
     maxLength?: number;
-    borderless?: boolean;
 };
 const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);
@@ -365,18 +399,18 @@ const EditCell = (props: EditCellProps) => {
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
-                disabled={props.disabled ?? props.deleted}
+                disabled={props.disabled || props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
                 autoFocus={props.autoFocus}
-                onFocus={(e) => {
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                     if (props.autoFocus) {
                         e.target.select();
                     }
                 }}
                 value={value}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setValue(e.target.value);
                 }}
                 onBlur={() => {

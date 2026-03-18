@@ -3,7 +3,7 @@
 
 import React, {useCallback, useState} from 'react';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SuggestionBox from './suggestion_box';
@@ -27,7 +27,7 @@ function TestWrapper(props: React.ComponentPropsWithoutRef<typeof SuggestionBox>
     // eslint-disable-next-line react/prop-types
     const [value, setValue] = useState(props.value);
 
-    const handleChange = useCallback((e) => setValue(e.target.value), []);
+    const handleChange = useCallback((e: React.FormEvent) => setValue((e.target as HTMLInputElement).value), []);
 
     return (
         <SuggestionBox
@@ -107,7 +107,7 @@ describe('SuggestionBox', () => {
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -115,10 +115,10 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(1);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
-
-        expect(screen.queryByRole('listbox')).toBeVisible();
-        expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        });
 
         // Typing more text should cause the suggestion to be updaetd
         await userEvent.keyboard('words');
@@ -127,8 +127,10 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
-        expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
+        });
 
         // Clearing the textbox hides all suggestions
         await userEvent.clear(screen.getByPlaceholderText('test input'));
@@ -150,7 +152,7 @@ describe('SuggestionBox', () => {
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -174,7 +176,7 @@ describe('SuggestionBox', () => {
         );
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -204,7 +206,7 @@ describe('SuggestionBox', () => {
             />,
         );
 
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('This is important');
 
         // The provider will send results to the SuggestionBox twice to simulate loading results from the server
@@ -242,13 +244,11 @@ describe('SuggestionBox', () => {
         await userEvent.keyboard('e{enter}');
 
         await waitFor(() => {
-            expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
+            expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
         });
 
-        expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
-
         // Wait for the second set of results has been received to ensure the contents of the textbox aren't lost
-        await new Promise((resolve) => setTimeout(resolve, 20));
+        await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
 
         // expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
@@ -290,7 +290,7 @@ describe('SuggestionBox', () => {
         );
 
         const input = screen.getByPlaceholderText('test input');
-        userEvent.click(input);
+        await userEvent.click(input);
 
         // Start without showing the autocomplete list
         expect(input).toHaveAttribute('aria-autocomplete', 'list');
@@ -314,7 +314,9 @@ describe('SuggestionBox', () => {
 
         // Ensure that the input is correctly linked to the suggestion list
         expect(document.getElementById(input.getAttribute('aria-controls')!)).toBe(screen.getByRole('listbox'));
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).firstElementChild!.nextElementSibling!.id,
+        );
 
         // The number of results should also be read out
         expect(screen.getByRole('status')).toHaveTextContent('2 suggestions available');
@@ -322,12 +324,16 @@ describe('SuggestionBox', () => {
         // Pressing the down arrow should change the selection to the second user
         await userEvent.keyboard('{arrowdown}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').lastElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).lastElementChild!.id,
+        );
 
         // Pressing the up arrow should change the selection back to the first user
         await userEvent.keyboard('{arrowup}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).firstElementChild!.nextElementSibling!.id,
+        );
 
         // Pressing enter should complete the result and close the suggestions
         await userEvent.keyboard('{enter}');

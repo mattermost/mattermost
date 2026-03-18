@@ -40,7 +40,7 @@ func (h *MarketplaceProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *mode
 	}
 }
 
-func (h *MarketplaceProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *MarketplaceProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_marketplace.unsupported.app_error"),

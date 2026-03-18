@@ -572,9 +572,9 @@ func (_m *TeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: c, teamID, userID
-func (_m *TeamStore) GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error) {
-	ret := _m.Called(c, teamID, userID)
+// GetMember provides a mock function with given fields: rctx, teamID, userID
+func (_m *TeamStore) GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error) {
+	ret := _m.Called(rctx, teamID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMember")
@@ -583,10 +583,10 @@ func (_m *TeamStore) GetMember(c request.CTX, teamID string, userID string) (*mo
 	var r0 *model.TeamMember
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.TeamMember, error)); ok {
-		return rf(c, teamID, userID)
+		return rf(rctx, teamID, userID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.TeamMember); ok {
-		r0 = rf(c, teamID, userID)
+		r0 = rf(rctx, teamID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
@@ -594,7 +594,7 @@ func (_m *TeamStore) GetMember(c request.CTX, teamID string, userID string) (*mo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(c, teamID, userID)
+		r1 = rf(rctx, teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -752,9 +752,9 @@ func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: c, userID, excludeTeamID, includeDeleted
-func (_m *TeamStore) GetTeamsForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
-	ret := _m.Called(c, userID, excludeTeamID, includeDeleted)
+// GetTeamsForUser provides a mock function with given fields: rctx, userID, excludeTeamID, includeDeleted
+func (_m *TeamStore) GetTeamsForUser(rctx request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
+	ret := _m.Called(rctx, userID, excludeTeamID, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTeamsForUser")
@@ -763,10 +763,10 @@ func (_m *TeamStore) GetTeamsForUser(c request.CTX, userID string, excludeTeamID
 	var r0 []*model.TeamMember
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) ([]*model.TeamMember, error)); ok {
-		return rf(c, userID, excludeTeamID, includeDeleted)
+		return rf(rctx, userID, excludeTeamID, includeDeleted)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) []*model.TeamMember); ok {
-		r0 = rf(c, userID, excludeTeamID, includeDeleted)
+		r0 = rf(rctx, userID, excludeTeamID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -774,7 +774,7 @@ func (_m *TeamStore) GetTeamsForUser(c request.CTX, userID string, excludeTeamID
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string, bool) error); ok {
-		r1 = rf(c, userID, excludeTeamID, includeDeleted)
+		r1 = rf(rctx, userID, excludeTeamID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -969,9 +969,9 @@ func (_m *TeamStore) RemoveAllMembersByTeam(teamID string) error {
 	return r0
 }
 
-// RemoveAllMembersByUser provides a mock function with given fields: ctx, userID
-func (_m *TeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) error {
-	ret := _m.Called(ctx, userID)
+// RemoveAllMembersByUser provides a mock function with given fields: rctx, userID
+func (_m *TeamStore) RemoveAllMembersByUser(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveAllMembersByUser")
@@ -979,7 +979,7 @@ func (_m *TeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) erro
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(ctx, userID)
+		r0 = rf(rctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}

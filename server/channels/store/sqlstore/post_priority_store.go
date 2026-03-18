@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -22,13 +23,18 @@ func newSqlPostPriorityStore(sqlStore *SqlStore) store.PostPriorityStore {
 }
 
 func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
+	return s.GetForPostWithContext(request.EmptyContext(s.logger), postId)
+}
+
+func (s *SqlPostPriorityStore) GetForPostWithContext(rctx request.CTX, postId string) (*model.PostPriority, error) {
 	query := s.getQueryBuilder().
 		Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").
 		From("PostsPriority").
 		Where(sq.Eq{"PostId": postId})
 
 	var postPriority model.PostPriority
-	err := s.GetReplica().GetBuilder(&postPriority, query)
+	// Use DBXFromContext to respect master/replica context flag
+	err := s.DBXFromContext(rctx.Context()).GetBuilder(&postPriority, query)
 	if err != nil {
 		return nil, err
 	}
@@ -41,10 +47,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 
 	perPage := 200
 	for i := 0; i < len(postIds); i += perPage {
-		j := i + perPage
-		if len(postIds) < j {
-			j = len(postIds)
-		}
+		j := min(len(postIds), i+perPage)
 
 		query := s.getQueryBuilder().
 			Select("PostId", "ChannelId", "Priority", "RequestedAck", "PersistentNotifications").

@@ -23,6 +23,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
+// Audit level aliases for convenient access within the app package.
+// These map directly to the audit levels defined in mlog.
+//
+// See [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditAPI],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditContent],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditPerms],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
+// for detailed documentation on when to use each level.
 var (
 	LevelAPI     = mlog.LvlAuditAPI
 	LevelContent = mlog.LvlAuditContent

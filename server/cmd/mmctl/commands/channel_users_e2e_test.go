@@ -16,7 +16,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -149,7 +149,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)

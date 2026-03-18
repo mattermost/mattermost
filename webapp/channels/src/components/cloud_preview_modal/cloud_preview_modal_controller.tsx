@@ -15,6 +15,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {makeAsyncComponent} from 'components/async_load';
 import WithTooltip from 'components/with_tooltip';
 
+import {useGetCloudPreviewModalContent} from 'hooks/useGetCloudPreviewModalContent';
+
 import type {GlobalState} from 'types/store';
 
 import type {PreviewModalContentData} from './preview_modal_content_data';
@@ -46,9 +48,12 @@ const CloudPreviewModal: React.FC = () => {
 
     const [showModal, setShowModal] = useState(false);
 
-    const filteredContentByUseCase = (content: PreviewModalContentData[]) => {
+    // Fetch dynamic content from the backend
+    const {data: dynamicModalContent, loading: contentLoading} = useGetCloudPreviewModalContent();
+
+    const filteredContentByUseCase = React.useCallback((content: PreviewModalContentData[]) => {
         return content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
-    };
+    }, [team?.name]);
 
     useEffect(() => {
         // Show modal only if:
@@ -56,13 +61,17 @@ const CloudPreviewModal: React.FC = () => {
         // 2. Modal hasn't been shown before
         // 3. We have the necessary data loaded
         // 4. There's content to display for the current team
-        const filteredContent = team?.name ? filteredContentByUseCase(modalContent) : [];
-        if (isCloud && isCloudPreview && !hasModalBeenShown && currentUserId && team?.name && filteredContent.length > 0) {
+        // 5. Content is not loading
+
+        // Use dynamic content if available and not empty, fallback to hardcoded content
+        const contentToUse = (dynamicModalContent && dynamicModalContent.length > 0) ? dynamicModalContent : modalContent;
+        const filteredContent = team?.name ? filteredContentByUseCase(contentToUse) : [];
+        if (isCloud && isCloudPreview && !hasModalBeenShown && currentUserId && team?.name && filteredContent.length > 0 && !contentLoading) {
             setShowModal(true);
         } else if (hasModalBeenShown) {
             setShowModal(false);
         }
-    }, [isCloud, isCloudPreview, hasModalBeenShown, currentUserId, team?.name]);
+    }, [isCloud, isCloudPreview, hasModalBeenShown, currentUserId, team?.name, dynamicModalContent, contentLoading, filteredContentByUseCase]);
 
     const handleClose = () => {
         setShowModal(false);
@@ -103,7 +112,14 @@ const CloudPreviewModal: React.FC = () => {
     const shouldShowFAB = hasModalBeenShown && !showModal;
 
     // Only render the controller if we pass the license checks
-    const contentData = team?.name ? filteredContentByUseCase(modalContent) : [];
+    // Use dynamic content if available and not empty, fallback to hardcoded content
+    const contentToUse = (dynamicModalContent && dynamicModalContent.length > 0) ? dynamicModalContent : modalContent;
+    const contentData = team?.name ? filteredContentByUseCase(contentToUse) : [];
+
+    // Show loading state while fetching dynamic content
+    if (contentLoading) {
+        return null;
+    }
 
     return (
         <>

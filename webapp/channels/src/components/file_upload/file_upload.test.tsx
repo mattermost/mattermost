@@ -153,7 +153,7 @@ describe('components/FileUpload', () => {
         wrapper.setState({menuOpen: true});
         instance.handleLocalFileUploaded(evt);
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
-        expect(instance.handleMaxUploadReached).not.toBeCalled();
+        expect(instance.handleMaxUploadReached).not.toHaveBeenCalled();
         expect(wrapper.state('menuOpen')).toEqual(false);
 
         // not allow file upload, max limit has been reached
@@ -162,7 +162,7 @@ describe('components/FileUpload', () => {
         instance.handleLocalFileUploaded(evt);
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
         expect(instance.handleMaxUploadReached).toHaveBeenCalledTimes(1);
-        expect(instance.handleMaxUploadReached).toBeCalledWith(evt);
+        expect(instance.handleMaxUploadReached).toHaveBeenCalledWith(evt);
         expect(wrapper.state('menuOpen')).toEqual(false);
     });
 
@@ -287,9 +287,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], props.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], props.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -307,9 +307,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], props.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], props.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -325,9 +325,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], baseProps.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], baseProps.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -343,13 +343,13 @@ describe('components/FileUpload', () => {
         instance.uploadFiles = jest.fn();
         instance.handleChange(e);
 
-        expect(instance.uploadFiles).toBeCalled();
+        expect(instance.uploadFiles).toHaveBeenCalled();
         expect(instance.uploadFiles).toHaveBeenCalledWith(e.target.files);
 
-        expect(clearFileInput).toBeCalled();
+        expect(clearFileInput).toHaveBeenCalled();
         expect(clearFileInput).toHaveBeenCalledWith(e.target);
 
-        expect(baseProps.onFileUploadChange).toBeCalled();
+        expect(baseProps.onFileUploadChange).toHaveBeenCalled();
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 
@@ -363,13 +363,13 @@ describe('components/FileUpload', () => {
         instance.uploadFiles = jest.fn();
         instance.handleDrop(e);
 
-        expect(baseProps.onUploadError).toBeCalled();
+        expect(baseProps.onUploadError).toHaveBeenCalled();
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
 
-        expect(instance.uploadFiles).toBeCalled();
+        expect(instance.uploadFiles).toHaveBeenCalled();
         expect(instance.uploadFiles).toHaveBeenCalledWith(e.dataTransfer.files);
 
-        expect(baseProps.onFileUploadChange).toBeCalled();
+        expect(baseProps.onFileUploadChange).toHaveBeenCalled();
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 

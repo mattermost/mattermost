@@ -512,7 +512,6 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 func TestOriginChecker(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowCorsFrom = ""

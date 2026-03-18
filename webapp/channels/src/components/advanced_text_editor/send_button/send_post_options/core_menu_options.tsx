@@ -2,17 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {
-    TrackPropertyUser, TrackPropertyUserAgent,
-    TrackScheduledPostsFeature,
-} from 'mattermost-redux/constants/telemetry';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {trackFeatureEvent} from 'actions/telemetry_actions';
+import {getCurrentLocale} from 'selectors/i18n';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -26,10 +20,23 @@ type Props = {
     channelId: string;
 }
 
-function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
+/**
+ * Formats a timestamp in the teammate's timezone using the current user's locale.
+ * @param userCurrentTimestamp - Timestamp in milliseconds (UTC)
+ * @param teammateTimezoneString - IANA timezone string (e.g., "America/New_York")
+ * @param userLocale - User's locale code (e.g., "fr", "en", "de")
+ * @returns Formatted time string respecting the user's locale
+ * @example
+ * // US locale: "8:00 AM"
+ * // French locale: "08:00"
+ * getScheduledTimeInTeammateTimezone(1635768000000, 'Europe/Paris', 'fr')
+ */
+function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string, userLocale: string): string {
     const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
     const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
-    const formattedTime = teammateScheduledTime.toFormat('h:mm a');
+    const formattedTime = teammateScheduledTime.
+        setLocale(userLocale).
+        toLocaleString(DateTime.TIME_SIMPLE);
     return formattedTime;
 }
 
@@ -50,22 +57,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         isBot,
     } = useTimePostBoxIndicator(channelId);
 
-    const currentUserId = useSelector(getCurrentUserId);
-
-    useEffect(() => {
-        // tracking opening of scheduled posts option menu.
-        // Since MUI menu has no `onOpen` event, we are tracking it here.
-        // useEffect ensures that it is tracked only once.
-        trackFeatureEvent(
-            TrackScheduledPostsFeature,
-            'scheduled_posts_menu_opened',
-            {
-                [TrackPropertyUser]: currentUserId,
-                [TrackPropertyUserAgent]: 'webapp',
-            },
-        );
-    }, [currentUserId]);
-
+    const locale = useSelector(getCurrentLocale);
     const now = DateTime.now().setZone(userCurrentTimezone);
     const tomorrow9amTime = DateTime.now().
         setZone(userCurrentTimezone).
@@ -91,11 +83,11 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     if (isDM && !isBot && !isSelfDM) {
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
-        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
+        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString, locale);
         const teammateTimeDisplay = (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.teammate_user_hour'
-                defaultMessage="{time} {user}'s time"
+                defaultMessage='{time} {user}’s time'
                 values={{
                     user: (
                         <span className='userDisplayName'>
@@ -110,7 +102,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         extraProps.trailingElements = teammateTimeDisplay;
     }
 
-    const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
+    const tomorrowClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
 
     const optionTomorrow = (
         <Menu.Item
@@ -130,7 +122,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         />
     );
 
-    const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
+    const nextMondayClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
     const optionNextMonday = (
         <Menu.Item

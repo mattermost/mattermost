@@ -15,9 +15,9 @@ type OutgoingOAuthConnectionStore struct {
 	mock.Mock
 }
 
-// DeleteConnection provides a mock function with given fields: c, id
-func (_m *OutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
-	ret := _m.Called(c, id)
+// DeleteConnection provides a mock function with given fields: rctx, id
+func (_m *OutgoingOAuthConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteConnection")
@@ -25,7 +25,7 @@ func (_m *OutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id strin
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -33,9 +33,9 @@ func (_m *OutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id strin
 	return r0
 }
 
-// GetConnection provides a mock function with given fields: c, id
-func (_m *OutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
-	ret := _m.Called(c, id)
+// GetConnection provides a mock function with given fields: rctx, id
+func (_m *OutgoingOAuthConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetConnection")
@@ -44,10 +44,10 @@ func (_m *OutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) 
 	var r0 *model.OutgoingOAuthConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.OutgoingOAuthConnection, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.OutgoingOAuthConnection); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OutgoingOAuthConnection)
@@ -55,7 +55,7 @@ func (_m *OutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,9 +63,9 @@ func (_m *OutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) 
 	return r0, r1
 }
 
-// GetConnections provides a mock function with given fields: c, filters
-func (_m *OutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
-	ret := _m.Called(c, filters)
+// GetConnections provides a mock function with given fields: rctx, filters
+func (_m *OutgoingOAuthConnectionStore) GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
+	ret := _m.Called(rctx, filters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetConnections")
@@ -74,10 +74,10 @@ func (_m *OutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters mo
 	var r0 []*model.OutgoingOAuthConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)); ok {
-		return rf(c, filters)
+		return rf(rctx, filters)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, model.OutgoingOAuthConnectionGetConnectionsFilter) []*model.OutgoingOAuthConnection); ok {
-		r0 = rf(c, filters)
+		r0 = rf(rctx, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OutgoingOAuthConnection)
@@ -85,7 +85,7 @@ func (_m *OutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters mo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, model.OutgoingOAuthConnectionGetConnectionsFilter) error); ok {
-		r1 = rf(c, filters)
+		r1 = rf(rctx, filters)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -93,9 +93,9 @@ func (_m *OutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters mo
 	return r0, r1
 }
 
-// SaveConnection provides a mock function with given fields: c, conn
-func (_m *OutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
-	ret := _m.Called(c, conn)
+// SaveConnection provides a mock function with given fields: rctx, conn
+func (_m *OutgoingOAuthConnectionStore) SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+	ret := _m.Called(rctx, conn)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveConnection")
@@ -104,10 +104,10 @@ func (_m *OutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *mode
 	var r0 *model.OutgoingOAuthConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)); ok {
-		return rf(c, conn)
+		return rf(rctx, conn)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) *model.OutgoingOAuthConnection); ok {
-		r0 = rf(c, conn)
+		r0 = rf(rctx, conn)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OutgoingOAuthConnection)
@@ -115,7 +115,7 @@ func (_m *OutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *mode
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.OutgoingOAuthConnection) error); ok {
-		r1 = rf(c, conn)
+		r1 = rf(rctx, conn)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -123,9 +123,9 @@ func (_m *OutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *mode
 	return r0, r1
 }
 
-// UpdateConnection provides a mock function with given fields: c, conn
-func (_m *OutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
-	ret := _m.Called(c, conn)
+// UpdateConnection provides a mock function with given fields: rctx, conn
+func (_m *OutgoingOAuthConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+	ret := _m.Called(rctx, conn)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateConnection")
@@ -134,10 +134,10 @@ func (_m *OutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *mo
 	var r0 *model.OutgoingOAuthConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)); ok {
-		return rf(c, conn)
+		return rf(rctx, conn)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) *model.OutgoingOAuthConnection); ok {
-		r0 = rf(c, conn)
+		r0 = rf(rctx, conn)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OutgoingOAuthConnection)
@@ -145,7 +145,7 @@ func (_m *OutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *mo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.OutgoingOAuthConnection) error); ok {
-		r1 = rf(c, conn)
+		r1 = rf(rctx, conn)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -143,7 +143,8 @@ func TestPropertyFieldAPI(t *testing.T) {
 
 		// Mock the API call
 		opts := model.PropertyFieldSearchOpts{
-			PerPage: 10,
+			PerPage:   10,
+			TargetIDs: []string{"target1"},
 		}
 		fields := []*model.PropertyField{
 			{
@@ -159,17 +160,93 @@ func TestPropertyFieldAPI(t *testing.T) {
 				Type:    model.PropertyFieldTypeSelect,
 			},
 		}
-		api.On("SearchPropertyFields", "group1", "target1", opts).Return(fields, nil)
+		api.On("SearchPropertyFields", "group1", opts).Return(fields, nil)
 
 		// Create the client
 		client := NewClient(api, nil)
 
 		// Call the method
-		result, err := client.Property.SearchPropertyFields("group1", "target1", opts)
+		result, err := client.Property.SearchPropertyFields("group1", opts)
 
 		// Verify the results
 		require.NoError(t, err)
 		assert.Equal(t, fields, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFields", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for active fields only
+		api.On("CountPropertyFields", "group1", false).Return(int64(5), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFields("group1", false)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFields with deleted", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for all fields including deleted
+		api.On("CountPropertyFields", "group1", true).Return(int64(8), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFields("group1", true)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(8), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFieldsForTarget", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for active fields for a specific target
+		api.On("CountPropertyFieldsForTarget", "group1", "user", "target123", false).Return(int64(3), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFieldsForTarget("group1", "user", "target123", false)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFieldsForTarget with deleted", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for all fields including deleted for a specific target
+		api.On("CountPropertyFieldsForTarget", "group1", "user", "target123", true).Return(int64(5), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFieldsForTarget("group1", "user", "target123", true)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), result)
 		api.AssertExpectations(t)
 	})
 }
@@ -344,7 +421,8 @@ func TestPropertyValueAPI(t *testing.T) {
 
 		// Mock the API call
 		opts := model.PropertyValueSearchOpts{
-			PerPage: 10,
+			PerPage:   10,
+			TargetIDs: []string{"target1"},
 		}
 		values := []*model.PropertyValue{
 			{
@@ -364,13 +442,13 @@ func TestPropertyValueAPI(t *testing.T) {
 				Value:      json.RawMessage(`"Test Value 2"`),
 			},
 		}
-		api.On("SearchPropertyValues", "group1", "target1", opts).Return(values, nil)
+		api.On("SearchPropertyValues", "group1", opts).Return(values, nil)
 
 		// Create the client
 		client := NewClient(api, nil)
 
 		// Call the method
-		result, err := client.Property.SearchPropertyValues("group1", "target1", opts)
+		result, err := client.Property.SearchPropertyValues("group1", opts)
 
 		// Verify the results
 		require.NoError(t, err)

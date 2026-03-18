@@ -21,7 +21,7 @@ interface Props {
     policyEnforcedToggleAvailable: boolean;
 }
 
-const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
+const SyncGroupsToggle = (props: Props): JSX.Element => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
     return (
         <LineSwitch
@@ -61,7 +61,7 @@ const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
     );
 };
 
-const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
+const AllowAllToggle = (props: Props): JSX.Element | null => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
     if (isSynced) {
         return null;
@@ -113,7 +113,7 @@ const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
     );
 };
 
-const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
+const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced, policyEnforcedToggleAvailable} = props;
     if (isSynced) {
         return null;
@@ -152,7 +152,7 @@ const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null
     );
 };
 
-export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
+export const ChannelModes = (props: Props): JSX.Element => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, groupsSupported, policyEnforced, policyEnforcedToggleAvailable, abacSupported} = props;
     return (
         <AdminPanel

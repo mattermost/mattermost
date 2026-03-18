@@ -8,9 +8,6 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 import {GenericModal} from '@mattermost/components';
 import type {UserStatus} from '@mattermost/types/users';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import Constants, {UserStatuses} from 'utils/constants';
@@ -24,9 +21,8 @@ type Props = {
     onExited: () => void;
     userId: string;
     currentDate: Date;
-    locale: string;
+    timezone?: string;
 
-    theme: Theme;
     actions: {
         setStatus: (status: UserStatus) => void;
     };
@@ -106,10 +102,12 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
         this.props.onExited();
     };
 
-    handleDateTimeChange = (newDateTime: moment.Moment) => {
-        this.setState({
-            selectedDateTime: newDateTime,
-        });
+    handleDateTimeChange = (newDateTime: moment.Moment | null) => {
+        if (newDateTime) {
+            this.setState({
+                selectedDateTime: newDateTime,
+            });
+        }
     };
 
     render() {
@@ -121,31 +119,29 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
         const {selectedDateTime} = this.state;
 
         return (
-            <CompassThemeProvider theme={this.props.theme}>
-                <GenericModal
-                    compassDesign={true}
-                    ariaLabel={localizeMessage({id: 'dnd_custom_time_picker_modal.defaultMsg', defaultMessage: 'Disable notifications until'})}
-                    onExited={this.props.onExited}
-                    modalHeaderText={modalHeaderText}
-                    confirmButtonText={confirmButtonText}
-                    handleConfirm={this.handleConfirm}
-                    handleEnterKeyPress={this.handleConfirm}
-                    id='dndCustomTimePickerModal'
-                    className={'DndModal modal-overflow'}
-                    tabIndex={-1}
-                    keyboardEscape={true}
-                    enforceFocus={false}
-                >
-                    <div className='DndModal__content'>
-                        <DateTimeInput
-                            time={selectedDateTime}
-                            handleChange={this.handleDateTimeChange}
-                            timezone={this.props.locale}
-                            relativeDate={true}
-                        />
-                    </div>
-                </GenericModal>
-            </CompassThemeProvider>
+            <GenericModal
+                compassDesign={true}
+                ariaLabel={localizeMessage({id: 'dnd_custom_time_picker_modal.defaultMsg', defaultMessage: 'Disable notifications until'})}
+                onExited={this.props.onExited}
+                modalHeaderText={modalHeaderText}
+                confirmButtonText={confirmButtonText}
+                handleConfirm={this.handleConfirm}
+                handleEnterKeyPress={this.handleConfirm}
+                id='dndCustomTimePickerModal'
+                className={'DndModal modal-overflow'}
+                tabIndex={-1}
+                keyboardEscape={true}
+                enforceFocus={false}
+            >
+                <div className='DndModal__content'>
+                    <DateTimeInput
+                        time={selectedDateTime}
+                        handleChange={this.handleDateTimeChange}
+                        timezone={this.props.timezone}
+                        relativeDate={true}
+                    />
+                </div>
+            </GenericModal>
         );
     }
 });

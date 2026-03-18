@@ -9,8 +9,6 @@ import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import SaveButton from 'components/save_button';
@@ -245,7 +243,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             ),
             confirmComplete: () => {
                 this.handleCreateToken();
-                trackEvent('settings', 'system_admin_create_user_access_token');
             },
         });
     };
@@ -281,7 +278,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             defaultMessage={'Are you sure you want to delete the <b>{description}</b> token?'}
                             values={{
                                 description: token.description,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
@@ -295,7 +292,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             ),
             confirmComplete: () => {
                 this.revokeToken(tokenId);
-                trackEvent('settings', 'revoke_user_access_token');
             },
         });
     };
@@ -312,8 +308,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const {error} = await this.props.actions.enableUserAccessToken(tokenId);
         if (error) {
             this.setState({serverError: error.message});
-        } else {
-            trackEvent('settings', 'activate_user_access_token');
         }
     };
 
@@ -321,8 +315,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const {error} = await this.props.actions.disableUserAccessToken(tokenId);
         if (error) {
             this.setState({serverError: error.message});
-        } else {
-            trackEvent('settings', 'deactivate_user_access_token');
         }
     };
 

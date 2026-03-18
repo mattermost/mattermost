@@ -12,17 +12,28 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(c, reaction.PostId, false)
+func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return nil, err
 	}
 
+	if post.Type == model.PostTypeBurnOnRead && post.UserId != reaction.UserId {
+		receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, reaction.UserId)
+		if err != nil && !store.IsErrNotFound(err) {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if receipt == nil || receipt.ExpireAt < model.GetMillis() {
+			return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.burn_on_read.app_error", nil, "", http.StatusForbidden)
+		}
+	}
+
 	// Check whether this is a valid emoji
 	if _, ok := model.GetSystemEmojiId(reaction.EmojiName); !ok {
-		if _, emojiErr := a.GetEmojiByName(c, reaction.EmojiName); emojiErr != nil {
+		if _, emojiErr := a.GetEmojiByName(rctx, reaction.EmojiName); emojiErr != nil {
 			return nil, emojiErr
 		}
 	}
@@ -44,8 +55,18 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		}
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	channel, err := a.GetChannel(rctx, post.ChannelId)
 	if err != nil {
+		return nil, err
+	}
+
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("SaveReactionForPost", "api.reaction.save.restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -66,9 +87,9 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 	}
 
 	if post.RootId == "" {
-		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
+		if appErr := a.ResolvePersistentNotification(rctx, post, reaction.UserId); appErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Error resolving persistent notification",
+			a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 				mlog.String("sender_id", reaction.UserId),
 				mlog.String("post_id", post.RootId),
 				mlog.String("status", model.NotificationStatusError),
@@ -82,7 +103,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 	a.Srv().Go(func() {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ReactionHasBeenAdded(pluginContext, reaction)
@@ -90,7 +111,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		}, plugin.ReactionHasBeenAddedID)
 	})
 
-	a.sendReactionEvent(c, model.WebsocketEventReactionAdded, reaction, post)
+	a.sendReactionEvent(rctx, model.WebsocketEventReactionAdded, reaction, post)
 
 	return reaction, nil
 }
@@ -131,14 +152,24 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(c, reaction.PostId, false)
+func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError {
+	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return err
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	channel, err := a.GetChannel(rctx, post.ChannelId)
 	if err != nil {
+		return err
+	}
+
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("DeleteReactionForPost", "api.reaction.delete.restricted_dm.error", nil, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -153,7 +184,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 	a.Srv().Go(func() {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ReactionHasBeenRemoved(pluginContext, reaction)
@@ -161,7 +192,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 		}, plugin.ReactionHasBeenRemovedID)
 	})
 
-	a.sendReactionEvent(c, model.WebsocketEventReactionRemoved, reaction, post)
+	a.sendReactionEvent(rctx, model.WebsocketEventReactionRemoved, reaction, post)
 
 	return nil
 }
@@ -174,5 +205,11 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 		rctx.Logger().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
+
+	// For burn-on-read posts, filter recipients based on read receipts
+	if post.Type == model.PostTypeBurnOnRead {
+		useBurnOnReadReactionHook(message, post.UserId, post.Id)
+	}
+
 	a.Publish(message)
 }

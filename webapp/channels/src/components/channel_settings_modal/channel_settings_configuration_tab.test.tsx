@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -63,13 +61,10 @@ const mockChannelWithBanner = TestHelper.getChannelMock({
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
+    canManageBanner: true,
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render with the correct initial values when banner is disabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
@@ -93,9 +88,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(toggle).not.toHaveClass('active');
 
         // Click the toggle to enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Banner text and color inputs should be visible when banner is enabled
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
@@ -130,9 +123,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
 
         // Click the toggle to enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Banner settings should now be visible
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
@@ -146,9 +137,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -164,32 +153,23 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Enter banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'New banner text');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'New banner text');
 
         // Set banner color
         const colorInput = screen.getByTestId('color-inputColorValue');
-        await act(async () => {
-            await userEvent.clear(colorInput);
-            await userEvent.type(colorInput, '#AA00AA');
-        });
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, '#AA00AA');
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify patchChannel was called with the updated values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             banner_info: {
                 enabled: true,
                 text: 'New banner text',
@@ -202,11 +182,9 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Change the banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'Changed banner text');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'Changed banner text');
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -215,9 +193,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
 
         // Click the Reset button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
 
         // Form should be reset to original values
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('Test banner text');
@@ -230,20 +206,14 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Leave banner text empty
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // SaveChangesPanel should show error state
         const errorMessage = screen.getByText(/Banner text is required/);
@@ -255,19 +225,15 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Create a string that exceeds the allowed character limit
         const longText = 'a'.repeat(1025);
 
         // Enter long banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, longText);
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, longText);
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -286,9 +252,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(previewButton).not.toHaveClass('active');
 
         // Click the preview button
-        await act(async () => {
-            await userEvent.click(previewButton);
-        });
+        await userEvent.click(previewButton);
 
         // Preview should now be active
         expect(previewButton).toHaveClass('active');
@@ -301,9 +265,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
 
         // Click the toggle to disable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Banner settings should now be hidden
         expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
@@ -316,21 +278,15 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Enter banner text but leave color empty
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'New banner text');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'New banner text');
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // SaveChangesPanel should show error state
         const errorMessage = screen.getByText(/Banner color is required/);
@@ -345,28 +301,20 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
-        });
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
 
         // Enter banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'New banner text');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'New banner text');
 
         // Enter a valid hex color
-        await act(async () => {
-            const colorInput = screen.getByTestId('color-inputColorValue');
-            await userEvent.clear(colorInput);
-            await userEvent.type(colorInput, '#ff0000');
-        });
+        const colorInput = screen.getByTestId('color-inputColorValue');
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, '#ff0000');
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify patchChannel was called with the correct color
         expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
@@ -398,22 +346,19 @@ describe('ChannelSettingsConfigurationTab', () => {
             <ChannelSettingsConfigurationTab
                 channel={channelWithValidColor}
                 setAreThereUnsavedChanges={jest.fn()}
+                canManageBanner={true}
             />,
         );
 
         // Enter a invalid hex color
-        await act(async () => {
-            const colorInput = screen.getByTestId('color-inputColorValue');
-            await userEvent.clear(colorInput);
-            await userEvent.type(colorInput, 'not-a-color');
-        });
+        const colorInput = screen.getByTestId('color-inputColorValue');
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, 'not-a-color');
 
         // Do another action to trigger blur on this input so color is validated
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'Test text');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'Test text');
 
         // if invalid, the color automatically returns to the original color
         expect(screen.getByTestId('color-inputColorValue')).toHaveValue(originalColor);
@@ -422,11 +367,8 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
         // Modify the color to a valid one
-        await act(async () => {
-            const colorInput = screen.getByTestId('color-inputColorValue');
-            await userEvent.clear(colorInput);
-            await userEvent.type(colorInput, '#123456');
-        });
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, '#123456');
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -442,27 +384,20 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Add whitespace to the banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, '  Banner text with whitespace  ');
-        });
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, '  Banner text with whitespace  ');
 
         // Add whitespace to the banner color
-        await act(async () => {
-            const colorInput = screen.getByTestId('color-inputColorValue');
-            await userEvent.clear(colorInput);
-            await userEvent.type(colorInput, '  #00FF00  ');
-        });
+        const colorInput = screen.getByTestId('color-inputColorValue');
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, '  #00FF00  ');
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannelWithBanner,
             banner_info: {
                 enabled: true,
                 text: 'Banner text with whitespace', // Whitespace should be trimmed
@@ -475,7 +410,6 @@ describe('ChannelSettingsConfigurationTab', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // The text input should now have the trimmed value
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
         expect(textInput).toHaveValue('Banner text with whitespace');
     });
 });

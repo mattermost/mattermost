@@ -19,13 +19,6 @@ describe('Channels', () => {
     let post1;
 
     before(() => {
-        // # Enable Experimental View Archived Channels
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testUser = user;
             testTeam = team;

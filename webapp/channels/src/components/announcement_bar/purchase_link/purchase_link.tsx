@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import './purchase_link.scss';
@@ -20,7 +18,6 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
 
     const handlePurchaseLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('admin', props.eventID || 'in_trial_purchase_license');
 
         openSalesLink();
     };

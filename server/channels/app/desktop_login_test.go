@@ -19,8 +19,7 @@ const (
 
 func TestGenerateAndSaveDesktopToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("generate token", func(t *testing.T) {
 		token, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), th.BasicUser)
@@ -31,8 +30,7 @@ func TestGenerateAndSaveDesktopToken(t *testing.T) {
 
 func TestValidateDesktopToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	authenticatedServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), th.BasicUser)
 	require.Nil(t, err)

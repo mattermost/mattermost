@@ -48,7 +48,9 @@ describe('Show GIF images properly', () => {
 
         cy.getLastPostId().as('postId').then((postId) => {
             // * Validate image size
-            cy.get(`#post_${postId}`).find('.attachment__image').invoke('outerWidth').should('be.gte', 480);
+            cy.get(`#post_${postId}`).find('.attachment__image').should((image) => {
+                expect(image.width()).to.closeTo(480, 2);
+            });
         });
     });
 });

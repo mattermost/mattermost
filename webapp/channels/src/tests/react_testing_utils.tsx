@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
-import {renderHook} from '@testing-library/react-hooks';
+import {act, render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
@@ -17,14 +16,22 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
+import SharedPackageProvider from 'components/root/shared_package_provider';
+
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
+
 export * from '@testing-library/react';
 export {userEvent};
+
+export type IntlOptions = {
+    messages?: Record<string, string>;
+    locale?: string;
+}
 
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
@@ -90,6 +97,7 @@ export const renderWithContext = (
 
             results.rerender(renderState.component);
         },
+        store: testStore,
     };
 };
 
@@ -177,15 +185,26 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
     return (
         <Provider store={store}>
             <Router history={history}>
-                <IntlProvider
-                    locale={options.locale}
-                    messages={options.intlMessages}
-                >
-                    <WebSocketContext.Provider value={WebSocketClient}>
-                        {children}
-                    </WebSocketContext.Provider>
-                </IntlProvider>
+                <SharedPackageProvider>
+                    <IntlProvider
+                        locale={options.locale}
+                        messages={options.intlMessages}
+                    >
+                        <WebSocketContext.Provider value={WebSocketClient}>
+                            {children}
+                        </WebSocketContext.Provider>
+                    </IntlProvider>
+                </SharedPackageProvider>
             </Router>
         </Provider>
     );
 };
+
+/**
+ * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
+ *
+ * This should only be used in those cases.
+ */
+export function waitForEnzymeSnapshot() {
+    return act(async () => {});
+}

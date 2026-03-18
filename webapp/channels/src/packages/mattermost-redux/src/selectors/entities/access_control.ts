@@ -2,13 +2,33 @@
 // See LICENSE.txt for license information.
 
 import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
 
 import {filterChannelList} from './channels';
 
 import {createSelector} from '../create_selector';
+
+export const getAccessControlSettings = createSelector(
+    'getAccessControlSettings',
+    (state: GlobalState) => state.entities.admin.config.AccessControlSettings as AccessControlSettings,
+    (state: GlobalState) => getConfig(state) as any,
+    (adminConfig, config) => {
+        // First try to get from admin config (for admin console pages)
+        if (adminConfig) {
+            return adminConfig;
+        }
+
+        // Otherwise, build from client config (for regular users/channel admins)
+        return {
+            EnableAttributeBasedAccessControl: config?.EnableAttributeBasedAccessControl === 'true',
+            EnableUserManagedAttributes: config?.EnableUserManagedAttributes === 'true',
+        } as AccessControlSettings;
+    },
+);
 
 export function getAccessControlPolicy(state: GlobalState, id: string) {
     return state.entities.admin.accessControlPolicies[id];

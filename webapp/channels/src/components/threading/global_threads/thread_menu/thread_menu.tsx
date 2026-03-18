@@ -9,7 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 
 import {
     flagPost as savePost,
@@ -17,10 +18,13 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import {focusPost} from 'components/permalink_view/actions';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
+import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -45,7 +49,8 @@ function ThreadMenu({
     hasUnreads,
     children,
 }: Props) {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
         params: {
@@ -57,6 +62,8 @@ function ThreadMenu({
     } = useThreadRouting();
 
     const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
+    const post = useSelector((state: GlobalState) => getPost(state, threadId));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const readAloud = useReadout();
 
     const handleReadUnread = useCallback(() => {
@@ -84,6 +91,16 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
+    const popout = useCallback(() => {
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
+    }, [threadId, team, intl, dispatch, currentUserId, channel]);
+
     return (
         <MenuWrapper
             stopPropagationOnToggle={true}
@@ -96,6 +113,17 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
+                {canPopout() && (
+                    <Menu.ItemAction
+                        buttonClass='PopoutMenuItem'
+                        text={formatMessage({
+                            id: 'threading.threadMenu.openInNewWindow',
+                            defaultMessage: 'Open in new window',
+                        })}
+                        onClick={popout}
+                        icon={<i className='icon icon-dock-window'/>}
+                    />
+                )}
                 <Menu.ItemAction
                     {...isFollowing ? {
                         text: formatMessage({

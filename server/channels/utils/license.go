@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -81,6 +82,9 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 		publicKey = testPublicKey
 	}
 	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return "", fmt.Errorf("failed to decode public key PEM block for environment %q", model.GetServiceEnvironment())
+	}
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
@@ -202,9 +206,7 @@ func GetClientLicense(l *model.License) map[string]string {
 func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	sanitizedLicense := make(map[string]string)
 
-	for k, v := range l {
-		sanitizedLicense[k] = v
-	}
+	maps.Copy(sanitizedLicense, l)
 
 	delete(sanitizedLicense, "Id")
 	delete(sanitizedLicense, "Name")

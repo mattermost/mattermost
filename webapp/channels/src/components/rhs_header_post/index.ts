@@ -6,18 +6,13 @@ import {connect} from 'react-redux';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
 import {
     setRhsExpanded,
-    showMentions,
-    showSearchResults,
-    showFlaggedPosts,
-    showPinnedPosts,
-    showChannelFiles,
     closeRightHandSide,
     toggleRhsExpanded,
     goBack,
@@ -25,7 +20,8 @@ import {
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
+import {focusPost} from 'components/permalink_view/actions';
+
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
 
@@ -44,7 +40,6 @@ function makeMapStateToProps() {
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const root = getPost(state, rootPostId);
         const currentUserId = getCurrentUserId(state);
-        const tipStep = getInt(state, Preferences.CRT_THREAD_PANE_STEP, currentUserId);
 
         if (root && collapsedThreads) {
             const thread = getThreadOrSynthetic(state, root);
@@ -58,32 +53,25 @@ function makeMapStateToProps() {
             }
         }
 
-        const showThreadsTutorialTip = tipStep === CrtThreadPaneSteps.THREADS_PANE_POPOVER && isCollapsedThreadsEnabled(state) && onboardingTourTipsEnabled(state);
-
         return {
             isExpanded: getIsRhsExpanded(state),
             isMobileView: getIsMobileView(state),
             relativeTeamUrl: getCurrentRelativeTeamUrl(state),
-            currentTeamId: getCurrentTeamId(state),
+            currentTeam: getCurrentTeam(state),
             currentUserId,
             isCollapsedThreadsEnabled: collapsedThreads,
             isFollowingThread,
-            showThreadsTutorialTip,
         };
     };
 }
 
 const actions = {
     setRhsExpanded,
-    showSearchResults,
-    showMentions,
-    showFlaggedPosts,
-    showPinnedPosts,
-    showChannelFiles,
     closeRightHandSide,
     toggleRhsExpanded,
     setThreadFollow,
     goBack,
+    focusPost,
 };
 
 export default connect(makeMapStateToProps, actions)(RhsHeaderPost);

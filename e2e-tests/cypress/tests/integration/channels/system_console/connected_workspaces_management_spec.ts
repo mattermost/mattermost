@@ -19,7 +19,7 @@ describe('Connected Workspaces', () => {
     let testUser: Cypress.UserProfile;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let admin: Cypress.UserProfile;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     let testChannel: Cypress.Channel;
 
     before(() => {
@@ -41,7 +41,6 @@ describe('Connected Workspaces', () => {
     it('configured', () => {
         cy.apiRequireLicenseForFeature('SharedChannels');
 
-        // @ts-expect-error types update, need ConnectedWorkspacesSettings
         cy.apiGetConfig().then(({config: {ConnectedWorkspacesSettings}}) => {
             expect(ConnectedWorkspacesSettings.EnableSharedChannels).equal(true);
             expect(ConnectedWorkspacesSettings.EnableRemoteClusterService).equal(true);

@@ -1,0 +1,10 @@
+- heading "Number of direct messages to show" [level=4]
+- group "Number of direct messages to show":
+  - text: /Number of direct messages to show option \d+, selected\.Select is focused , press Down to open the menu,/
+  - log
+  - combobox
+  - text: You can also change these settings in the direct messages sidebar menu.
+- separator
+- alert
+- button "Save"
+- button "Cancel"

@@ -16,6 +16,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
+func TestIsRootJsonlFile(t *testing.T) {
+	assert.True(t, IsRootJsonlFile("import.jsonl"))
+	assert.True(t, IsRootJsonlFile("export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/attachments/report.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/deep/nested/file.jsonl"))
+	assert.False(t, IsRootJsonlFile("import.json"))
+	assert.False(t, IsRootJsonlFile("import.zip"))
+	assert.False(t, IsRootJsonlFile("data/photo.jpg"))
+	assert.False(t, IsRootJsonlFile(""))
+}
+
 func TestImportValidateSchemeImportData(t *testing.T) {
 	// Test with minimum required valid properties and team scope.
 	data := SchemeImportData{
@@ -1541,6 +1553,58 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 	}
 }
 
+func TestImportValidateThreadFollowerImportData(t *testing.T) {
+	testCases := []struct {
+		testName    string
+		input       *ThreadFollowerImportData
+		expectError bool
+	}{
+		{
+			testName: "success",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer("user1"),
+			},
+			expectError: false,
+		},
+		{
+			testName:    "nil",
+			input:       nil,
+			expectError: true,
+		},
+		{
+			testName: "nil user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           nil,
+			},
+			expectError: true,
+		},
+		{
+			testName: "empty user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer(""),
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			err := ValidateThreadFollowerImportData(tc.input)
+			if tc.expectError {
+				require.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
 func checkError(t *testing.T, err *model.AppError) {
 	require.NotNil(t, err, "Should have returned an error.")
 }
@@ -1549,11 +1613,11 @@ func checkNoError(t *testing.T, err *model.AppError) {
 	require.Nil(t, err, "Unexpected Error: %v", err)
 }
 
-func TestIsValidGuestRoles(t *testing.T) {
+func TestValidateGuestRoles(t *testing.T) {
 	testCases := []struct {
-		name     string
-		input    UserImportData
-		expected bool
+		name        string
+		input       UserImportData
+		expectError bool
 	}{
 		{
 			name: "Valid case: User is a guest in all places",
@@ -1568,7 +1632,7 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: true,
+			expectError: false,
 		},
 		{
 			name: "Invalid case: User is a guest in a team but not in another team",
@@ -1589,7 +1653,7 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
 			name: "Invalid case: User is a guest in a team but not in another team and has no channel membership",
@@ -1608,14 +1672,22 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
-			name: "Invalid case: User is system guest but not guest in team and channel",
+			name: "Valid case: User is system guest with no teams",
 			input: UserImportData{
 				Roles: model.NewPointer(model.SystemGuestRoleId),
 			},
-			expected: false,
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with empty teams array",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{},
+			},
+			expectError: false,
 		},
 		{
 			name: "Invalid case: User has mixed roles",
@@ -1630,12 +1702,37 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: false,
+			expectError: true,
 		},
 		{
-			name:     "Valid case: User does not have any role defined in any place",
-			input:    UserImportData{},
-			expected: true,
+			name: "Valid case: User is system guest with team guest role but no channels",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles:    model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with team guest role and nil channels",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:        "Valid case: User does not have any role defined in any place",
+			input:       UserImportData{},
+			expectError: false,
 		},
 		{
 			name: "Valid case: User is not a guest in any place",
@@ -1650,14 +1747,18 @@ func TestIsValidGuestRoles(t *testing.T) {
 					},
 				},
 			},
-			expected: true,
+			expectError: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isValidGuestRoles(tc.input)
-			assert.Equal(t, tc.expected, result, tc.name)
+			err := validateGuestRoles(tc.input)
+			if tc.expectError {
+				assert.NotNil(t, err, tc.name)
+			} else {
+				assert.Nil(t, err, tc.name)
+			}
 		})
 	}
 }

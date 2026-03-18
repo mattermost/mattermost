@@ -28,7 +28,6 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
     const contactSalesBtn = (
         <div className='purchase-card'>
             <ContactUsButton
-                eventID='post_trial_contact_sales'
                 customClass='btn-primary'
             />
         </div>
@@ -39,7 +38,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
             id='admin.license.renewalCard.licenseExpiring'
             defaultMessage='License expires in {days} days on {date, date, long}.'
             values={{
-                date: endOfLicense,
+                date: endOfLicense.toDate(),
                 days: daysToEndLicense,
             }}
         />
@@ -51,7 +50,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 id='admin.license.renewalCard.licenseExpired'
                 defaultMessage='License expired on {date, date, long}.'
                 values={{
-                    date: endOfLicense,
+                    date: endOfLicense.toDate(),
                 }}
             />
         );

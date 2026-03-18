@@ -4,5 +4,5 @@
 import keyMirror from 'mattermost-redux/utils/key_mirror';
 
 export default keyMirror({
-    RECIEVED_APP_LIMITS: null,
+    RECEIVED_APP_LIMITS: null,
 });

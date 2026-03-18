@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import SettingMobileHeader from './setting_mobile_header';
 
@@ -18,15 +18,15 @@ const baseProps: Props = {
 };
 
 describe('plugin tab', () => {
-    it('calls closeModal on hitting close', () => {
+    it('calls closeModal on hitting close', async () => {
         renderWithContext(<SettingMobileHeader {...baseProps}/>);
-        fireEvent.click(screen.getByText('×'));
+        await userEvent.click(screen.getByText('×'));
         expect(baseProps.closeModal).toHaveBeenCalled();
     });
 
-    it('calls collapseModal on hitting back', () => {
+    it('calls collapseModal on hitting back', async () => {
         renderWithContext(<SettingMobileHeader {...baseProps}/>);
-        fireEvent.click(screen.getByLabelText('Collapse Icon'));
+        await userEvent.click(screen.getByLabelText('Collapse Icon'));
         expect(baseProps.collapseModal).toHaveBeenCalled();
     });
 

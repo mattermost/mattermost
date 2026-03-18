@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -78,11 +80,47 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 		ogdata.Determiner = empty.Determiner
 		ogdata.Locale = empty.Locale
 		ogdata.LocalesAlternate = empty.LocalesAlternate
-		ogdata.Images = firstNImages(ogdata.Images, LinkMetadataMaxImages)
+		ogdata.Images = FilterSVGImages(firstNImages(ogdata.Images, LinkMetadataMaxImages))
 		ogdata.Audios = empty.Audios
 		ogdata.Videos = empty.Videos
 	}
 	return ogdata
+}
+
+// FilterSVGImages removes SVG images from the provided list. See MM-67372.
+func FilterSVGImages(images []*image.Image) []*image.Image {
+	if len(images) == 0 {
+		return images
+	}
+
+	filtered := make([]*image.Image, 0, len(images))
+	for _, img := range images {
+		if img == nil {
+			continue
+		}
+		// Filter by URL extension
+		if IsSVGImageURL(img.URL) || IsSVGImageURL(img.SecureURL) {
+			continue
+		}
+		// Filter by declared MIME type
+		if strings.HasPrefix(img.Type, "image/svg+xml") {
+			continue
+		}
+		filtered = append(filtered, img)
+	}
+	return filtered
+}
+
+func IsSVGImageURL(imageURL string) bool {
+	if imageURL == "" {
+		return false
+	}
+	parsed, err := url.Parse(imageURL)
+	if err != nil {
+		return false
+	}
+	path := strings.ToLower(parsed.Path)
+	return strings.HasSuffix(path, ".svg") || strings.HasSuffix(path, ".svgz")
 }
 
 func (o *LinkMetadata) PreSave() {
@@ -136,10 +174,8 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 	var b []byte
 	switch t := o.Data.(type) {
 	case []byte:
-		// MySQL uses a byte slice for JSON
 		b = t
 	case string:
-		// Postgres uses a string for JSON
 		b = []byte(t)
 	}
 

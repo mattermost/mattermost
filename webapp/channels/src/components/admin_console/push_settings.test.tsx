@@ -13,7 +13,7 @@ describe('components/PushSettings', () => {
     test('should match snapshot, licensed', () => {
         const config = {
             EmailSettings: {
-                PushNotificationServer: 'https://push.mattermost.com',
+                PushNotificationServer: 'https://global.push.mattermost.com',
                 PushNotificationServerType: 'mhpns',
                 SendPushNotifications: true,
             },
@@ -41,7 +41,7 @@ describe('components/PushSettings', () => {
     test('should match snapshot, unlicensed', () => {
         const config = {
             EmailSettings: {
-                PushNotificationServer: 'https://push.mattermost.com',
+                PushNotificationServer: 'https://global.push.mattermost.com',
                 PushNotificationServerType: 'mhpns',
                 SendPushNotifications: true,
             },

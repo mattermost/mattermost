@@ -21,6 +21,7 @@ import {SelectChannelOption} from './select_channel_option';
 import {SelectUserOption} from './select_user_option';
 
 export type Props = {
+    id: string;
     field: AppField;
     label: React.ReactNode;
     helpText: React.ReactNode;
@@ -226,6 +227,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
 
         return (
             <div
+                data-testid={this.props.id}
                 className='form-group'
             >
                 {label && (

@@ -24,8 +24,7 @@ import (
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -157,8 +156,7 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 
 func TestUpdateIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -297,8 +295,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 func TestCreateWebhookPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -311,14 +308,14 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
 		model.StringInterface{
-			model.PostPropsAttachments: []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					Text: "text",
 				},
 			},
 			model.PostPropsWebhookDisplayName: hook.DisplayName,
 		},
-		model.PostTypeSlackAttachment,
+		model.PostTypeMessageAttachment,
 		"", nil)
 	require.Nil(t, appErr)
 
@@ -331,25 +328,25 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	expectedText := "`<>|<>|`"
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -371,13 +368,13 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
  test | 3 +++
  1 file changed, 3 insertions(+)`
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -398,8 +395,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 }
 
 func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -427,7 +423,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "https://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "https://example.com/icon.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -450,13 +446,13 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "smile", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
 
 	t.Run("should set props based on icon_emoji (using a custom emoji)", func(t *testing.T) {
-		emoji := th.CreateEmoji()
+		emoji := th.CreateEmoji(t)
 
 		post, appErr := th.App.CreateWebhookPost(
 			th.Context,
@@ -475,7 +471,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, emoji.Name, post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -498,7 +494,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, ":smile:", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -507,8 +503,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 func TestCreateWebhookPostWithPriority(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -540,7 +535,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 	for _, conditions := range testConditions {
 		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo @"+th.BasicUser.Username, "user", "http://iconurl", "",
 			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
-			model.PostTypeSlackAttachment,
+			model.PostTypeMessageAttachment,
 			"",
 			&conditions,
 		)
@@ -557,8 +552,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 func TestCreateWebhookPostLinks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -617,7 +611,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			Post: &model.Post{
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: strings.Repeat("本", 1000),
 						},
@@ -637,7 +631,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]any{
-						model.PostPropsAttachments: []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", 1000),
 							},
@@ -649,7 +643,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				},
 				{
 					Props: map[string]any{
-						model.PostPropsAttachments: []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 							},
@@ -688,9 +682,9 @@ func TestSplitWebhookPost(t *testing.T) {
 func makePost(message int, attachments []int) *model.Post {
 	var props model.StringInterface
 	if len(attachments) > 0 {
-		sa := make([]*model.SlackAttachment, 0, len(attachments))
+		sa := make([]*model.MessageAttachment, 0, len(attachments))
 		for _, a := range attachments {
-			attach := &model.SlackAttachment{
+			attach := &model.MessageAttachment{
 				Text: strings.Repeat("那", a),
 			}
 			sa = append(sa, attach)
@@ -767,8 +761,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	outgoingWebhook := model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
@@ -818,9 +811,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
 		go func() {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				posts, _ := th.App.GetPosts(th.Context, channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {
 					for _, post := range posts.Posts {
 						createdPost <- post
@@ -880,8 +873,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		return testCasesOutgoing
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -909,7 +901,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
@@ -987,8 +979,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	}))
 	defer ts2.Close()
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1008,7 +999,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
 			payload := getPayload(hook, th, channel)
 
@@ -1050,7 +1041,6 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 func TestDoOutgoingWebhookRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")

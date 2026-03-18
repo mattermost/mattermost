@@ -10,7 +10,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestlogsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Display single log line", func(c client.Client) {
 		cmd := &cobra.Command{}

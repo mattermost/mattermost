@@ -37,9 +37,8 @@ func TestCondenseSiteURL(t *testing.T) {
 
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
 
 	emailTo := "test@example.com"
 
@@ -70,7 +69,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Contains(t, email.Body.Text, "test-user", "Wrong received message %s", email.Body.Text)
 	}
 
-	th.UpdateConfig(func(cfg *model.Config) {
+	th.UpdateConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
@@ -87,11 +86,11 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails can return error when SMTP connection fails", func(t *testing.T) {
 		originalPort := *th.service.config().EmailSettings.SMTPPort
 		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = "5432"
 			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
@@ -119,6 +118,7 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -128,11 +128,11 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendGuestInviteEmail can return error when SMTP connection fails", func(t *testing.T) {
 		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		originalPort := *th.service.config().EmailSettings.SMTPPort
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = "5432"
 			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
@@ -149,6 +149,7 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -162,6 +163,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			true,
+			false,
 			false,
 			false,
 		)
@@ -182,6 +184,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			message,
+			false,
 			false,
 			false,
 			false,
@@ -260,9 +263,8 @@ func TestSendInviteEmails(t *testing.T) {
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
 
 	emailTo := "testclouduser@example.com"
 

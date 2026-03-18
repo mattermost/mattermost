@@ -78,7 +78,7 @@ describe('System Console > User Management > Users', () => {
 
         // # Type new password and submit.
         cy.get('input[type=password]').type('new' + testUser.password);
-        cy.get('button[type=submit]').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();
@@ -137,10 +137,10 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new' + otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
-        // * Verify the appropriate error is returned.
-        cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
+        // * Verify the appropriate error is returned (current password error shows in modal header area).
+        cy.get('.genericModalError .error').should('be.visible').
             and('contain', 'The "Current Password" you entered is incorrect. Please check that Caps Lock is off and try again.');
     });
 
@@ -160,11 +160,10 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new');
 
         // # Click the 'Reset' button.
-        cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
-        // * Verify the appropriate error is returned.
-        cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
-            and('contain', 'Your password must be 5-72 characters long.');
+        // * Verify the appropriate error is returned (new password error shows under the input).
+        cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
     });
 
     it('MM-T936 Users - System admin changes own password - Blank fields', () => {
@@ -179,21 +178,20 @@ describe('System Console > User Management > Users', () => {
         cy.findByText('Reset password').click();
 
         // # Click the 'Reset' button.
-        cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
-        // * Verify the appropriate error is returned.
-        cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
+        // * Verify the appropriate error is returned (current password missing).
+        cy.get('.genericModalError .error').should('be.visible').
             and('contain', 'Please enter your current password.');
 
         // # Type current password, leave new password blank.
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
-        // * Verify the appropriate error is returned.
-        cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
-            and('contain', 'Your password must be 5-72 characters long.');
+        // * Verify the appropriate error is returned (new password error shows under the input).
+        cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
     });
 
     it('MM-T937 Users - System admin changes own password - Successfully changed', () => {
@@ -212,7 +210,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new' + otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();

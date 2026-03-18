@@ -12,8 +12,7 @@ import (
 
 func TestProcessPostFileChanges(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("no files", func(t *testing.T) {
 		oldPost := &model.Post{FileIds: []string{}}
@@ -35,8 +34,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 
 	t.Run("one file deleted", func(t *testing.T) {
 		postId := model.NewId()
-		fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
 
 		oldPost := &model.Post{
 			Id:        postId,
@@ -79,8 +78,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 
 	t.Run("one file added", func(t *testing.T) {
 		postId := model.NewId()
-		fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, "", th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
 
 		oldPost := &model.Post{
 			Id:        postId,
@@ -116,8 +115,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 
 	t.Run("all files removed", func(t *testing.T) {
 		postId := model.NewId()
-		fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
 
 		oldPost := &model.Post{
 			Id:        postId,
@@ -156,8 +155,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 	})
 
 	t.Run("files added when no files existed", func(t *testing.T) {
-		fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, "", th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, "", th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
 
 		postId := model.NewId()
 		oldPost := &model.Post{
@@ -195,8 +194,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 
 	t.Run("other post's attached file added", func(t *testing.T) {
 		postId := model.NewId()
-		fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, postId, th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, model.NewId(), th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, postId, th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, model.NewId(), th.BasicChannel.Id)
 
 		oldPost := &model.Post{
 			Id:        postId,
@@ -231,8 +230,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 		postId := model.NewId()
 
 		// admin uploads the files
-		fileInfo1 := th.CreateFileInfo(th.SystemAdminUser.Id, "", th.BasicChannel.Id)
-		fileInfo2 := th.CreateFileInfo(th.SystemAdminUser.Id, "", th.BasicChannel.Id)
+		fileInfo1 := th.CreateFileInfo(t, th.SystemAdminUser.Id, "", th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(t, th.SystemAdminUser.Id, "", th.BasicChannel.Id)
 
 		// basic user's post
 		oldPost := &model.Post{

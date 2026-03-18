@@ -14,6 +14,11 @@ import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
 
+type ThreadData = {
+    ids: string[];
+    selectedThreadId: string | undefined;
+};
+
 type Props = {
     ids: Array<UserThread['id']>;
     loadMoreItems: (startIndex: number, stopIndex: number) => Promise<any>;
@@ -55,7 +60,7 @@ function VirtualizedThreadList({
         // the new ids so no issue there
     }, [selectedThreadId]);
 
-    const data = useMemo(
+    const data: ThreadData = useMemo(
         () => (
             {
                 ids: addNoMoreResultsItem && ids.length === total ? [...ids, Constants.THREADS_NO_RESULTS_ITEM_ID] : (isLoading && ids.length !== total && [...ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID]) || ids,
@@ -65,9 +70,9 @@ function VirtualizedThreadList({
         [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total],
     );
 
-    const itemKey = useCallback((index, data) => data.ids[index], []);
+    const itemKey = useCallback((index: number, data: ThreadData) => data.ids[index], []);
 
-    const isItemLoaded = useCallback((index) => {
+    const isItemLoaded = useCallback((index: number) => {
         return ids.length === total || index < ids.length;
     }, [ids, total]);
 

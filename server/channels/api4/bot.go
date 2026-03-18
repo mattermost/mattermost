@@ -36,7 +36,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	bot.Patch(botPatch)
 
-	auditRec := c.MakeAuditRecord("createBot", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateBot, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "bot", bot)
 
@@ -87,7 +87,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchBot", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchBot, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", botUserId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "bot", botPatch)
@@ -205,7 +205,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	}
 	botUserId := c.Params.BotUserId
 
-	auditRec := c.MakeAuditRecord("updateBotActive", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateBotActive, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", botUserId)
 	model.AddEventParameterToAuditRec(auditRec, "enable", active)
@@ -239,7 +239,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	botUserId := c.Params.BotUserId
 	userId := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord("assignBot", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAssignBot, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", botUserId)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
@@ -292,7 +292,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	systemAdmin, _ := strconv.ParseBool(r.URL.Query().Get("set_system_admin"))
 
-	auditRec := c.MakeAuditRecord("convertBotToUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventConvertBotToUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "bot", bot)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_patch", &userPatch)

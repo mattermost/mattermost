@@ -98,13 +98,13 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string) error {
 	newRootHTML := oldRootHTML
 
-	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/([^"]*)">`)
+	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self'([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
 		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/%s">`,
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self'%s">`,
 		GetSubpathScriptHash(subpath),
 	))
 

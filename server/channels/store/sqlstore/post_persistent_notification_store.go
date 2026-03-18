@@ -128,20 +128,10 @@ func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string
 	}
 
 	deleteAt := model.GetMillis()
-	var builder sq.UpdateBuilder
-	builderType := s.getQueryBuilder()
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builderType.
-			Update("PersistentNotifications, Posts").
-			Set("PersistentNotifications.DeleteAt", deleteAt)
-	}
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = builderType.
-			Update("PersistentNotifications").
-			Set("DeleteAt", deleteAt).
-			From("Posts")
-	}
+	builder := s.getQueryBuilder().
+		Update("PersistentNotifications").
+		Set("DeleteAt", deleteAt).
+		From("Posts")
 
 	builder = builder.Where(sq.And{
 		sq.Expr("Posts.Id = PersistentNotifications.PostId"),
@@ -163,20 +153,10 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 	}
 
 	deleteAt := model.GetMillis()
-	var builder sq.UpdateBuilder
-	builderType := s.getQueryBuilder()
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builderType.
-			Update("PersistentNotifications, Posts, Channels").
-			Set("PersistentNotifications.DeleteAt", deleteAt)
-	}
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = builderType.
-			Update("PersistentNotifications").
-			Set("DeleteAt", deleteAt).
-			From("Posts, Channels")
-	}
+	builder := s.getQueryBuilder().
+		Update("PersistentNotifications").
+		Set("DeleteAt", deleteAt).
+		From("Posts, Channels")
 
 	builder = builder.Where(sq.And{
 		sq.Expr("Posts.Id = PersistentNotifications.PostId"),

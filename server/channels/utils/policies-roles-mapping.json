@@ -502,12 +502,32 @@
             },
             {
                 "roleName": "team_user",
+                "permission": "manage_own_incoming_webhooks",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
                 "permission": "manage_outgoing_webhooks",
                 "shouldHave": false
             },
             {
                 "roleName": "team_user",
+                "permission": "manage_own_outgoing_webhooks",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
                 "permission": "manage_slash_commands",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_own_slash_commands",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
+                "permission": "bypass_incoming_webhook_channel_lock",
                 "shouldHave": false
             },
             {
@@ -524,12 +544,32 @@
             },
             {
                 "roleName": "team_user",
+                "permission": "manage_own_incoming_webhooks",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
                 "permission": "manage_outgoing_webhooks",
                 "shouldHave": true
             },
             {
                 "roleName": "team_user",
+                "permission": "manage_own_outgoing_webhooks",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
                 "permission": "manage_slash_commands",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_own_slash_commands",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
+                "permission": "bypass_incoming_webhook_channel_lock",
                 "shouldHave": true
             },
             {

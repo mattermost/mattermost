@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"time"
 
@@ -96,9 +97,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 				logData[filteredNodeName] = clusterLogs[filteredNodeName]
 			}
 		} else {
-			for nodeName, logs := range clusterLogs {
-				logData[nodeName] = logs
-			}
+			maps.Copy(logData, clusterLogs)
 		}
 	}
 

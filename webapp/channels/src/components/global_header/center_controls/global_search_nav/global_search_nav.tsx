@@ -4,8 +4,6 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
-
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
@@ -18,6 +16,8 @@ import {
 import * as Keyboard from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
+
+import './global_search_nav.css';
 
 const GlobalSearchNav = (): JSX.Element => {
     const dispatch = useDispatch();
@@ -44,14 +44,9 @@ const GlobalSearchNav = (): JSX.Element => {
     }, [rhsState, dispatch]);
 
     return (
-        <Flex
-            row={true}
-            width={432}
-            flex={1}
-            alignment='center'
-        >
+        <div className='GlobalSearchNav'>
             <NewSearch/>
-        </Flex>
+        </div>
     );
 };
 

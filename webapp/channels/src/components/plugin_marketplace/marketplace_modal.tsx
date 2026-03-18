@@ -20,7 +20,6 @@ import {getFirstAdminVisitMarketplaceStatus, getLicense} from 'mattermost-redux/
 import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {fetchListing, filterListing} from 'actions/marketplace';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 import {getListing, getInstalledListing} from 'selectors/views/marketplace';
 import {isModalOpen} from 'selectors/views/modals';
@@ -45,21 +44,13 @@ const MarketplaceTabs = {
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
-const linkConsole = (msg: string): ReactNode => (
+const linkConsole = (msg: ReactNode[]): ReactNode => (
     <Link to='/admin_console/plugins/plugin_management'>
         {msg}
     </Link>
 );
 
-export type OpenedFromType = 'actions_menu' | 'app_bar' | 'channel_header' | 'command' | 'open_plugin_install_post' | 'product_menu';
-
-type MarketplaceModalProps = {
-    openedFrom: OpenedFromType;
-}
-
-const MarketplaceModal = ({
-    openedFrom,
-}: MarketplaceModalProps) => {
+const MarketplaceModal = () => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const listRef = useRef<HTMLDivElement>(null);
@@ -91,8 +82,6 @@ const MarketplaceModal = ({
     }, []);
 
     const doSearch = useCallback(async () => {
-        trackEvent('plugins', 'ui_marketplace_search', {filter});
-
         const {error} = await dispatch(filterListing(filter));
 
         if (error) {
@@ -109,10 +98,7 @@ const MarketplaceModal = ({
             setHasLoaded(true);
         }
 
-        trackEvent('plugins', 'ui_marketplace_opened', {from: openedFrom});
-
         if (!hasFirstAdminVisitedMarketplace) {
-            trackEvent('plugins', 'ui_first_admin_visit_marketplace_status');
             dispatch(setFirstAdminVisitMarketplaceStatus());
         }
 
@@ -139,7 +125,6 @@ const MarketplaceModal = ({
     }, []);
 
     const handleOnClose = () => {
-        trackEvent('plugins', 'ui_marketplace_closed');
         dispatch(closeModal(ModalIdentifiers.PLUGIN_MARKETPLACE));
     };
 

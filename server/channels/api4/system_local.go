@@ -23,7 +23,7 @@ func (api *API) InitSystemLocal() {
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localCheckIntegrity", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCheckIntegrity, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var results []model.IntegrityCheckResult

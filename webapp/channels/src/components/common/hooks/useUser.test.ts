@@ -6,7 +6,7 @@ import * as ReactRedux from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {useUser} from './useUser';
@@ -167,7 +167,7 @@ describe('useUser', () => {
                 reply(200, [user2]);
 
             let userId = 'user1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => useUser(userId),
             );
 
@@ -177,11 +177,11 @@ describe('useUser', () => {
             expect(user2Mock.isDone()).toBe(false);
 
             // Wait for the response with user1
-            await waitForNextUpdate();
-
-            expect(user1Mock.isDone()).toBe(true);
-            expect(user2Mock.isDone()).toBe(false);
-            expect(result.current).toEqual(user1);
+            await waitFor(() => {
+                expect(user1Mock.isDone()).toBe(true);
+                expect(user2Mock.isDone()).toBe(false);
+                expect(result.current).toEqual(user1);
+            });
 
             // Switch to user2
             userId = 'user2';
@@ -190,11 +190,11 @@ describe('useUser', () => {
             expect(result.current).toEqual(undefined);
 
             // Wait for the response with user2
-            await waitForNextUpdate();
-
-            expect(user1Mock.isDone()).toBe(true);
-            expect(user2Mock.isDone()).toBe(true);
-            expect(result.current).toEqual(user2);
+            await waitFor(() => {
+                expect(user1Mock.isDone()).toBe(true);
+                expect(user2Mock.isDone()).toBe(true);
+                expect(result.current).toEqual(user2);
+            });
 
             // Switch back to user1 which has already been loaded
             userId = 'user1';
@@ -211,7 +211,7 @@ describe('useUser', () => {
                 once().
                 reply(200, [user1, user2]);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => {
                     return [
                         useUser('user1'),
@@ -225,10 +225,10 @@ describe('useUser', () => {
             expect(mock.isDone()).toBe(false);
 
             // Wait for the response
-            await waitForNextUpdate();
-
-            expect(result.current).toEqual([user1, user2]);
-            expect(mock.isDone()).toBe(true);
+            await waitFor(() => {
+                expect(result.current).toEqual([user1, user2]);
+                expect(mock.isDone()).toBe(true);
+            });
         });
     });
 });

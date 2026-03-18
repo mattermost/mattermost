@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {act} from 'react-dom/test-utils';
 
 import GetLinkModal from 'components/get_link_modal';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, act, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();
@@ -32,87 +29,116 @@ describe('components/GetLinkModal', () => {
         const helpText = 'help text';
         const props = {...requiredProps, helpText};
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot when helpText is not set', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should have called onHide', () => {
+    test('should have called onHide when close button is clicked', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         const newOnHide = jest.fn();
         const props = {...requiredProps, onHide: newOnHide};
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
-        wrapper.find(Modal).first().props().onHide();
+        // Click the modal header X button (triggers Modal's onHide)
+        const modalCloseButton = baseElement.querySelector('.close') as HTMLElement;
+        await user.click(modalCloseButton);
         expect(newOnHide).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('copiedLink')).toBe(false);
 
-        wrapper.setProps({show: true});
-        wrapper.setState({copiedLink: true});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state('copiedLink')).toBe(true);
+        // Copy link to set copiedLink state to true
+        const copyButton = screen.getByRole('button', {name: /Copy Link/});
+        await user.click(copyButton);
+        expect(copyButton).toHaveTextContent('Copied');
+        expect(copyButton).toHaveClass('btn-success');
 
-        wrapper.find('#linkModalCloseButton').simulate('click');
+        // Take snapshot with copied state
+        expect(baseElement).toMatchSnapshot();
+
+        // Click the footer close button
+        const footerCloseButton = baseElement.querySelector('#linkModalCloseButton') as HTMLElement;
+        await user.click(footerCloseButton);
         expect(newOnHide).toHaveBeenCalledTimes(2);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state('copiedLink')).toBe(false);
+
+        // Take snapshot after closing (copiedLink should be reset)
+        expect(baseElement).toMatchSnapshot();
+
+        // Verify copiedLink was reset (button should show Copy Link, not Copied)
+        expect(copyButton).toHaveTextContent('Copy Link');
+        expect(copyButton).not.toHaveClass('btn-success');
     });
 
-    test('should have handle copyLink', () => {
-        const wrapper = mountWithIntl(
+    test('should have handle copyLink', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
-        wrapper.find('#linkModalTextArea').simulate('click');
-        expect(wrapper.state('copiedLink')).toBe(true);
-    });
 
-    test('should change button state when copying', () => {
-        const wrapper = mountWithIntl(
-            <GetLinkModal {...requiredProps}/>,
-        );
+        const textarea = baseElement.querySelector('#linkModalTextArea') as HTMLElement;
+        const copyButton = screen.getByRole('button', {name: /Copy Link/});
 
         // Initial state
-        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
+        expect(copyButton).toHaveTextContent('Copy Link');
+
+        // Click on the textarea triggers copyLink
+        await user.click(textarea);
+
+        // Button should now show "Copied"
+        expect(copyButton).toHaveTextContent('Copied');
+        expect(copyButton).toHaveClass('btn-success');
+    });
+
+    test('should change button state when copying', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        renderWithContext(
+            <GetLinkModal {...requiredProps}/>,
+        );
+
+        const copyButton = screen.getByRole('button', {name: /Copy Link/});
+
+        // Initial state
+        expect(copyButton).toHaveTextContent('Copy Link');
+        expect(copyButton).toHaveClass('btn-primary');
+        expect(copyButton).not.toHaveClass('btn-success');
 
         // After copying
-        wrapper.find('#linkModalCopyLink').simulate('click');
-        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copied');
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(true);
+        await user.click(copyButton);
+        expect(copyButton).toHaveTextContent('Copied');
+        expect(copyButton).toHaveClass('btn-primary');
+        expect(copyButton).toHaveClass('btn-success');
 
         // After timeout
         act(() => {
             jest.advanceTimersByTime(1000);
         });
-        wrapper.update();
-        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
-        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
+        expect(copyButton).toHaveTextContent('Copy Link');
+        expect(copyButton).toHaveClass('btn-primary');
+        expect(copyButton).not.toHaveClass('btn-success');
     });
 
-    test('should cleanup timeout on unmount', () => {
-        const wrapper = mountWithIntl(
+    test('should cleanup timeout on unmount', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        const {unmount} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
-        wrapper.find('#linkModalCopyLink').simulate('click');
-        expect(wrapper.state('copiedLink')).toBe(true);
+        const copyButton = screen.getByRole('button', {name: /Copy Link/});
+        await user.click(copyButton);
+        expect(copyButton).toHaveTextContent('Copied');
 
-        wrapper.unmount();
+        unmount();
         jest.advanceTimersByTime(1000);
 
         // If we get here without errors, the timeout was properly cleaned up

@@ -16,9 +16,8 @@ import (
 func TestSetAutoResponderStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
@@ -58,9 +57,8 @@ func TestSetAutoResponderStatus(t *testing.T) {
 func TestDisableAutoResponder(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
@@ -94,10 +92,9 @@ func TestDisableAutoResponder(t *testing.T) {
 func TestSendAutoResponseIfNecessary(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send auto response when enabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		receiver := th.CreateUser()
+		receiver := th.CreateUser(t)
 
 		patch := &model.UserPatch{
 			NotifyProps: map[string]string{
@@ -108,9 +105,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		receiver, err := th.App.PatchUser(th.Context, receiver.Id, patch, true)
 		require.Nil(t, err)
 
-		channel := th.CreateDmChannel(receiver)
+		channel := th.CreateDmChannel(t, receiver)
 
-		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+		savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id,
@@ -125,10 +122,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response when disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		receiver := th.CreateUser()
+		receiver := th.CreateUser(t)
 
 		patch := &model.UserPatch{
 			NotifyProps: map[string]string{
@@ -139,9 +135,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		receiver, err := th.App.PatchUser(th.Context, receiver.Id, patch, true)
 		require.Nil(t, err)
 
-		channel := th.CreateDmChannel(receiver)
+		channel := th.CreateDmChannel(t, receiver)
 
-		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+		savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id,
@@ -156,10 +152,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response for non-DM channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+		savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id,
@@ -174,10 +169,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should not send auto response for bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		receiver := th.CreateUser()
+		receiver := th.CreateUser(t)
 
 		patch := &model.UserPatch{
 			NotifyProps: map[string]string{
@@ -188,7 +182,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		receiver, err := th.App.PatchUser(th.Context, receiver.Id, patch, true)
 		require.Nil(t, err)
 
-		channel := th.CreateDmChannel(receiver)
+		channel := th.CreateDmChannel(t, receiver)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "botusername",
@@ -200,7 +194,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		botUser, err := th.App.GetUser(bot.UserId)
 		assert.Nil(t, err)
 
-		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+		savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
 			UserId:    botUser.Id,
@@ -215,10 +209,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 	})
 
 	t.Run("should send auto response in dm channel if not already sent today", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		receiver := th.CreateUser()
+		receiver := th.CreateUser(t)
 
 		patch := &model.UserPatch{
 			NotifyProps: map[string]string{
@@ -229,14 +222,14 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		receiver, err := th.App.PatchUser(th.Context, receiver.Id, patch, true)
 		require.Nil(t, err)
 
-		channel := th.CreateDmChannel(receiver)
+		channel := th.CreateDmChannel(t, receiver)
 
 		// Clean up all posts from this user.
 		// There are some dummy messages like "user joined team" etc.
 		// which needs to be cleaned up.
 		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id))
 
-		savedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		savedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   patch.NotifyProps["auto_responder_message"],
 			UserId:    receiver.Id,
@@ -257,10 +250,9 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 func TestSendAutoResponseSuccess(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
@@ -274,7 +266,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(th.Context, user.Id, patch, true)
 	require.Nil(t, err)
 
-	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+	savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -287,7 +279,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -302,10 +294,9 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
@@ -319,7 +310,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(th.Context, user.Id, patch, true)
 	require.Nil(t, err)
 
-	parentPost, _ := th.App.CreatePost(th.Context, &model.Post{
+	parentPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -327,7 +318,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		th.BasicChannel,
 		model.CreatePostFlags{SetOnline: true})
 
-	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+	savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -341,7 +332,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -356,10 +347,9 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 func TestSendAutoResponseFailure(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
@@ -373,7 +363,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(th.Context, user.Id, patch, true)
 	require.Nil(t, err)
 
-	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
+	savedPost, _, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -386,7 +376,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
+	if list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false

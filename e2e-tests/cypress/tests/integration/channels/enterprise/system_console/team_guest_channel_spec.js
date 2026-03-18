@@ -63,7 +63,7 @@ describe('Team Scheme Guest Permissions Test', () => {
         cy.get('#scheme-name').type(`TestScheme-${randomId}{enter}`);
 
         // // # Wait until the groups retrieved and show up
-        cy.wait(TIMEOUTS.HALF_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(TIMEOUTS.HALF_SEC);
 
         // # Check all the boxes currently unchecked
         enableAllGuestPermissions();

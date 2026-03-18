@@ -20,6 +20,9 @@ export default defineConfig({
             maxDiffPixelRatio: 0.0001,
             animations: 'disabled',
         },
+        toMatchAriaSnapshot: {
+            pathTemplate: '{testDir}/{testFilePath}-snapshots-a11y/{arg}{ext}',
+        },
     },
     use: {
         baseURL: testConfig.baseURL,
@@ -72,6 +75,7 @@ export default defineConfig({
         },
     ],
     reporter: [
+        ...(testConfig.isCI ? [['blob', {outputDir: './results/blob-report'}] as const] : []),
         ['html', {open: 'never', outputFolder: './results/reporter'}],
         ['json', {outputFile: './results/reporter/results.json'}],
         ['junit', {outputFile: './results/reporter/results.xml'}],

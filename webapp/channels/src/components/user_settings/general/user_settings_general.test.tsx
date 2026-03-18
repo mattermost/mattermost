@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {act, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -352,9 +353,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
-        userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
-        userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
+        await userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'Updated Value');
@@ -373,9 +374,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
-        userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
+        await userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(await screen.findByText('Server Error')).toBeInTheDocument();
     });
@@ -411,11 +412,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const select = await screen.findByText('Select');
-        userEvent.click(select);
-        userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(select);
+        await userEvent.click(await screen.findByText('Option 2'));
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
-        userEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
     });
@@ -451,14 +452,14 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const select = await screen.findByText('Select');
-        userEvent.click(select);
-        userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(select);
+        await userEvent.click(await screen.findByText('Option 1'));
 
-        userEvent.click(await screen.findByText('Option 1'));
-        userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(await screen.findByText('Option 2'));
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
-        userEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
     });
@@ -497,11 +498,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const clearIndicator = container.querySelector('.react-select__clear-indicator');
         expect(clearIndicator).toBeInTheDocument();
 
-        userEvent.click(clearIndicator!);
+        await userEvent.click(clearIndicator!);
         await screen.findByText('Select');
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
-        userEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', '');
     });
@@ -620,9 +621,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.findByText('Select')).toBeInTheDocument();
 
         // Select a valid option and save
-        userEvent.click(screen.getByText('Select'));
-        userEvent.click(await screen.findByText('Option 1'));
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.click(screen.getByText('Select'));
+        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
     });
@@ -666,9 +667,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
 
         // Add another valid option and save
-        userEvent.click(await screen.findByText('Option 1'));
-        userEvent.click(await screen.findByText('Option 3'));
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(await screen.findByText('Option 3'));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Should save with only the valid options
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
@@ -765,20 +766,27 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
+        const input = screen.getByRole('textbox', {name: urlAttribute.name});
 
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-scheme');
-        userEvent.tab();
+        // Type the invalid value
+        await userEvent.type(input, 'ftp://invalid-scheme');
 
-        expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
+        // Trigger validation - fireEvent used because userEvent doesn't have direct focus/blur methods
+        await act(async () => {
+            fireEvent.focus(input);
+            fireEvent.blur(input, {relatedTarget: null});
+        });
+
+        // Wait for validation error to appear
+        await waitFor(() => {
+            expect(screen.getByText('Please enter a valid url.')).toBeInTheDocument();
+        });
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
-
-        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'example.com');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
-
+        await userEvent.clear(input);
+        await userEvent.type(input, 'example.com');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
     });
-
     test('should validate email custom attribute field value', async () => {
         const emailAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -802,17 +810,117 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
+        const input = screen.getByRole('textbox', {name: emailAttribute.name});
 
-        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'invalid-email');
-        userEvent.tab();
+        // Type the invalid value
+        await userEvent.type(input, 'invalid-email');
 
-        expect(await screen.findByText('Please enter a valid email address.')).toBeInTheDocument();
+        await act(async () => {
+            fireEvent.focus(input);
+            fireEvent.blur(input, {relatedTarget: null});
+        });
+
+        // Wait for validation error to appear
+        await waitFor(() => {
+            expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+        });
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
-
-        userEvent.clear(screen.getByRole('textbox', {name: emailAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'test@example.com');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.clear(input);
+        await userEvent.type(input, 'test@example.com');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'test@example.com');
+    });
+
+    test('should not show custom attribute input field when field is admin-managed', async () => {
+        const adminManagedAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                managed: 'admin',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [adminManagedAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: adminManagedAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when field is not admin-managed', async () => {
+        const regularAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                managed: '',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [regularAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: regularAttribute.name})).toBeInTheDocument();
+        expect(screen.queryByText('This field can only be changed by an administrator.')).not.toBeInTheDocument();
+    });
+
+    test('should not show custom attribute input field when field is protected', async () => {
+        const protectedAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                protected: true,
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [protectedAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: protectedAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText(/This field is managed by a plugin and cannot be edited\./)).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when field is not protected', async () => {
+        const normalAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                protected: false,
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [normalAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: normalAttribute.name})).toBeInTheDocument();
+        expect(screen.queryByText('This field is managed by a plugin and cannot be edited.')).not.toBeInTheDocument();
     });
 });

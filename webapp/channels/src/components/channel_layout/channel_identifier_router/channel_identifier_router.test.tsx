@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import type {History} from 'history';
 import React from 'react';
 
 import {getHistory} from 'utils/browser_history';
@@ -14,18 +15,20 @@ describe('components/channel_layout/CenterChannel', () => {
     const baseProps = {
 
         match: {
+            isExact: false,
             params: {
                 identifier: 'identifier',
                 team: 'team',
                 path: '/path',
             },
+            path: '/team/channel/identifier',
             url: '/team/channel/identifier',
         },
 
         actions: {
             onChannelByIdentifierEnter: jest.fn(),
         },
-        history: [],
+        history: [] as unknown as History,
     };
 
     test('should call onChannelByIdentifierEnter on props change', () => {
@@ -36,11 +39,13 @@ describe('components/channel_layout/CenterChannel', () => {
 
         const props2 = {
             match: {
+                isExact: false,
                 params: {
                     identifier: 'identifier2',
                     team: 'team2',
                     path: '/path2',
                 },
+                path: '/team2/channel/identifier2',
                 url: '/team2/channel/identifier2',
             },
         };
@@ -62,12 +67,14 @@ describe('components/channel_layout/CenterChannel', () => {
         const props = {
             ...baseProps,
             match: {
+                isExact: false,
                 params: {
                     identifier: 'identifier',
                     team: 'team',
                     path: '/path',
                     postid: 'abcd',
                 },
+                path: '/team/channel/identifier/abcd',
                 url: '/team/channel/identifier/abcd',
             },
         };
@@ -80,12 +87,14 @@ describe('components/channel_layout/CenterChannel', () => {
         const props = {
             ...baseProps,
             match: {
+                isExact: false,
                 params: {
                     identifier: 'identifier1',
                     team: 'team1',
                     path: '/path1',
                     postid: 'abcd',
                 },
+                path: '/team1/channel/identifier1/abcd',
                 url: '/team1/channel/identifier1/abcd',
             },
         };

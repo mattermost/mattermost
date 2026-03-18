@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserList from './user_list';
@@ -23,10 +23,10 @@ describe('components/UserList', () => {
                 isDisabled: false,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserList {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match default snapshot when there are users', () => {
@@ -51,9 +51,9 @@ describe('components/UserList', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UserList {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

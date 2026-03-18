@@ -4,9 +4,7 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
-	"strconv"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -14,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -270,7 +269,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	return totalUnreadUrgentMentions, nil
 }
 
-func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
@@ -376,7 +375,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	// Resolve the user objects for all participants, with extended metadata if requested.
 	allParticipants := make(map[string]*model.User, len(participantUserIds))
 	if opts.Extended {
-		users, err := s.User().GetProfileByIds(context.Background(), participantUserIds, &store.UserGetByIdsOpts{}, true)
+		users, err := s.User().GetProfileByIds(rctx, participantUserIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get %d thread profiles for user id=%s", len(participantUserIds), userId)
 		}
@@ -547,7 +546,7 @@ func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.
 	return members, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
 		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
 	}
@@ -598,7 +597,7 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	users := []*model.User{}
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(rctx, thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
 		}
@@ -626,14 +625,8 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 
 	now := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.Set("LastViewed", now).
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
+		Set("LastViewed", now).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", now).
 		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
@@ -672,14 +665,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error 
 func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 	timestamp := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
@@ -1111,30 +1097,19 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 }
 
 func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, postID, userID string) error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		userIdParam, err := jsonArray([]string{userID}).Value()
-		if err != nil {
-			return err
-		}
-		if s.IsBinaryParamEnabled() {
-			userIdParam = AppendBinaryFlag(userIdParam.([]byte))
-		}
+	userIdParam, err := jsonArray([]string{userID}).Value()
+	if err != nil {
+		return err
+	}
+	if s.IsBinaryParamEnabled() {
+		userIdParam = AppendBinaryFlag(userIdParam.([]byte))
+	}
 
-		if _, err := trx.ExecRaw(`UPDATE Threads
-					SET participants = participants || $1::jsonb
-					WHERE postid=$2
-					AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
-			return err
-		}
-	} else {
-		// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
-		// which is the positional syntax required for appending.
-		if _, err := trx.Exec(`UPDATE Threads
-			SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
-			WHERE PostId=?
-			AND NOT JSON_CONTAINS(Participants, ?)`, userID, postID, strconv.Quote(userID)); err != nil {
-			return err
-		}
+	if _, err := trx.ExecRaw(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
+		return err
 	}
 
 	return nil

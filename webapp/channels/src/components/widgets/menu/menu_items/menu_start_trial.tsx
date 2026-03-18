@@ -10,7 +10,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
 
-import {LicenseLinks} from 'utils/constants';
+import {LicenseLinks, LicenseSkus} from 'utils/constants';
 
 import './menu_item.scss';
 
@@ -39,10 +39,16 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
 
     const license = useSelector(getLicense);
     const isCurrentLicensed = license?.IsLicensed;
+    const skuShortName = license?.SkuShortName;
 
-    if (isCurrentLicensed === 'true') {
+    // If licensed and NOT Entry, return null
+    if (isCurrentLicensed === 'true' && skuShortName !== LicenseSkus.Entry) {
         return null;
     }
+
+    // Determine badge text and description based on license type
+    const isEntryLicense = isCurrentLicensed === 'true' && skuShortName === LicenseSkus.Entry;
+    const badgeText = isEntryLicense ? 'ENTRY EDITION' : 'TEAM EDITION';
 
     return (
         <li
@@ -50,23 +56,40 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             role='menuitem'
             id={props.id}
         >
-            <FreeVersionBadge>{'FREE EDITION'}</FreeVersionBadge>
+            <FreeVersionBadge>{badgeText}</FreeVersionBadge>
             <div className='editionText'>
-                {formatMessage(
-                    {
-                        id: 'navbar_dropdown.versionText',
-                        defaultMessage: 'This is the free <link>unsupported</link> edition of Mattermost.',
+                {isEntryLicense ? (
+                    formatMessage({
+                        id: 'navbar_dropdown.entryVersionText',
+                        defaultMessage: 'Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.',
                     },
                     {
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                location='menu_start_trial.unsupported-link'
-                                href={LicenseLinks.UNSUPPORTED}
+                                location='menu_start_trial.entry-link'
+                                href={LicenseLinks.ENTRY_LIMITS_INFO}
                             >
                                 {msg}
                             </ExternalLink>
                         ),
-                    },
+                    })
+                ) : (
+                    formatMessage(
+                        {
+                            id: 'navbar_dropdown.versionText',
+                            defaultMessage: 'This is the free <link>unsupported</link> edition of Mattermost.',
+                        },
+                        {
+                            link: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    location='menu_start_trial.unsupported-link'
+                                    href={LicenseLinks.UNSUPPORTED}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                    )
                 )}
             </div>
         </li>

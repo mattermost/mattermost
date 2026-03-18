@@ -59,7 +59,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !noJobs || !noSchedule {
-		auditRec := a.MakeAuditRecord(rctx, "jobServer", model.AuditStatusSuccess)
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventJobServer, model.AuditStatusSuccess)
 		a.LogAuditRec(rctx, auditRec, nil)
 	}
 

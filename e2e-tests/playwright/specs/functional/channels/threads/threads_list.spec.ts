@@ -3,7 +3,10 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-test.fixme('Should be able to change threads with arrow keys', async ({pw}, testInfo) => {
+/**
+ * @objective Verify that users can navigate through threads list using keyboard arrow keys
+ */
+test('Should be able to change threads with arrow keys', {tag: '@smoke'}, async ({pw}, testInfo) => {
     test.skip(testInfo.project.name === 'ipad');
 
     const {team, user} = await pw.initSetup();
@@ -42,14 +45,14 @@ test.fixme('Should be able to change threads with arrow keys', async ({pw}, test
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('ccc reply');
+    await (await threadsPage.getLastPost()).toContainText('ccc reply');
 
     // # Press the down arrow again
     await page.keyboard.press('ArrowDown');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('bbb reply');
+    await (await threadsPage.getLastPost()).toContainText('bbb reply');
 
     await threadsPage.threadsList.focus();
 
@@ -58,19 +61,19 @@ test.fixme('Should be able to change threads with arrow keys', async ({pw}, test
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('aaa reply');
+    await (await threadsPage.getLastPost()).toContainText('aaa reply');
 
     // # Press the up arrow
     await page.keyboard.press('ArrowUp');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('bbb reply');
+    await (await threadsPage.getLastPost()).toContainText('bbb reply');
 
     // # Press the up arrow
     await page.keyboard.press('ArrowUp');
 
     // * Ensure the latest thread was selected
     await threadsPage.toHaveThreadSelected();
-    (await threadsPage.getLastPost()).toContainText('ccc reply');
+    await (await threadsPage.getLastPost()).toContainText('ccc reply');
 });
