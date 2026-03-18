@@ -10314,5 +10314,113 @@
   {
     "id": "api.post.reveal_post.disabled.app_error",
     "translation": "Функция при прочтении сжечь не включена или требует лицензии Enterprise Advanced."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "У Вас нет разрешения на раскрытие этого сообщения. Вы должны быть участником канала."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Сообщения, сгораемые при прочтении, невозможно изменить."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Невозможно обновить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Невозможно ставить реакции в ограниченных ЛС"
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Вы не можете ставить реакции на сообщения, сгораемые при прочтении."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Невозможно ставить реакции в ограниченных ЛС"
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Эта функция не включена."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "У Вас нет разрешения на доступ к этому краткому обзору."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Импорт удаленного кластера не разрешен"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "Пользователь Integration/Slack Bot с электронной почтой {{.Email}} был импортирован.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Пользователь Slack с электронной почтой {{.Email}} был импортирован.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Невозможно отправить письмо со сбросом пароля на {{.Username}} по адресу {{.Email}}.\n"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Идентификатор команды не совпадает с идентификатором отмеченного сообщения."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Невозможно приглашать гостевых пользователей в этот канал, так как на него распространяются ограничения доступа на основе атрибутов пользователя."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Магическая ссылка для гостя не включена"
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Недопустимое обновление участника команды: у участника команды всегда есть схема пользователя."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Это письмо было отправлено вам, потому что кто-то запросил ссылку для входа в Mattermost. Если Вы её не запрашивали, то можете безопасно проигнорировать это письмо."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Не запрашивали это письмо?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Нажмите на кнопку ниже, чтобы войти в свою учетную запись. Помните, что не стоит делиться этой ссылкой с кем-либо еще."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Войдите в Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Войдите в систему {{ .SiteName }}"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "При проверке конфигурации каталога импорта произошла ошибка."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Невозможно создать загрузку импорта: ImportSettings.Directory конфликтует с PluginSettings.Directory."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Не удалось загрузить файл. Канал загрузки не используется совместно с удаленным."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Произошла ошибка в хуке OnSamlLogin. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Формат хэшированного пароля неверен и не может быть разобран."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Невозможно создать пользователя. На сервере превышено максимальное количество лицензированных пользователей. Обратись к своему администратору: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
   }
 ]
