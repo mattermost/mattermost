@@ -353,6 +353,17 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
 	})
+	t.Run("not logged in", func(t *testing.T) {
+		resp, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		post := basicPost()
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 }
 
 func TestCreatePostForPriority(t *testing.T) {
@@ -1466,7 +1477,7 @@ func TestUpdatePost(t *testing.T) {
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
-	rpost, appErr := th.App.CreatePost(th.Context, &model.Post{
+	rpost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
@@ -1499,7 +1510,7 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("join/leave post", func(t *testing.T) {
 		var rpost2 *model.Post
-		rpost2, appErr = th.App.CreatePost(th.Context, &model.Post{
+		rpost2, _, appErr = th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.PostTypeJoinLeave,
@@ -1517,7 +1528,7 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	rpost3, appErr := th.App.CreatePost(th.Context, &model.Post{
+	rpost3, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -1530,7 +1541,7 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + " update post 3",
 		}
-		up4.AddProp(model.PostPropsAttachments, []model.SlackAttachment{
+		up4.AddProp(model.PostPropsAttachments, []model.MessageAttachment{
 			{
 				Text: "Hello World",
 			},
@@ -1541,6 +1552,53 @@ func TestUpdatePost(t *testing.T) {
 		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 	})
 
+	t.Run("should strip spoofed metadata embeds", func(t *testing.T) {
+		// MM-67055: Verify that client-supplied metadata.embeds are stripped
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "test message " + model.NewId(),
+		}
+		createdPost, _, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+
+		// Try to update with spoofed embed
+		updatePost := &model.Post{
+			Id:        createdPost.Id,
+			ChannelId: channel.Id,
+			Message:   "updated message " + model.NewId(),
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "spoofed-post-id",
+							Post: &model.Post{
+								Id:      "spoofed-post-id",
+								UserId:  th.BasicUser2.Id,
+								Message: "This is a spoofed message!",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		updatedPost, _, err := client.UpdatePost(context.Background(), createdPost.Id, updatePost)
+		require.NoError(t, err)
+
+		// Verify spoofed embed was stripped
+		if updatedPost.Metadata != nil {
+			assert.Empty(t, updatedPost.Metadata.Embeds, "spoofed embeds should be stripped")
+		}
+
+		// Double-check by fetching the post
+		fetchedPost, _, err := client.GetPost(context.Background(), createdPost.Id, "")
+		require.NoError(t, err)
+		if fetchedPost.Metadata != nil {
+			assert.Empty(t, fetchedPost.Metadata.Embeds, "spoofed embeds should not be persisted")
+		}
+	})
+
 	t.Run("change message, but post too old", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostEditTimeLimit = 1
@@ -1549,7 +1607,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ServiceSettings.PostEditTimeLimit = -1
 		})
 
-		rpost4, appErr := th.App.CreatePost(th.Context, &model.Post{
+		rpost4, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
 			UserId:    th.BasicUser.Id,
@@ -1588,7 +1646,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
-		postWithoutFiles, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "Post without files",
@@ -1618,7 +1676,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should allow updating post with files when user has upload_file permission", func(t *testing.T) {
-		postWithoutFiles, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "Post without files",
@@ -1641,6 +1699,29 @@ func TestUpdatePost(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedPost)
 		assert.Contains(t, updatedPost.FileIds, fileId)
+	})
+
+	t.Run("should prevent editing when create_post permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		postToEdit, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "original message",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+
+		updatePost := &model.Post{
+			Id:        postToEdit.Id,
+			ChannelId: channel.Id,
+			Message:   "edited message",
+		}
+		_, resp, err := client.UpdatePost(context.Background(), postToEdit.Id, updatePost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("logged out", func(t *testing.T) {
@@ -1685,7 +1766,7 @@ func TestUpdatePost(t *testing.T) {
 		fileInfo := fileResponse.FileInfos[0]
 
 		// create new post
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
@@ -1721,7 +1802,7 @@ func TestUpdatePost(t *testing.T) {
 		fileInfo := fileResponse.FileInfos[0]
 
 		// create new post
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
@@ -1759,7 +1840,7 @@ func TestUpdatePost(t *testing.T) {
 		fileInfo := fileResponse.FileInfos[0]
 
 		// create new post
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
@@ -1805,7 +1886,7 @@ func TestUpdatePost(t *testing.T) {
 		fileInfo2 := fileResponse2.FileInfos[0]
 
 		// create new post
-		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
@@ -1935,7 +2016,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("add slack attachments", func(t *testing.T) {
 		patch2 := &model.PostPatch{}
-		attachments := []model.SlackAttachment{
+		attachments := []model.MessageAttachment{
 			{
 				Text: "Hello World",
 			},
@@ -2025,6 +2106,27 @@ func TestPatchPost(t *testing.T) {
 
 		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
+	})
+
+	t.Run("should prevent patching when create_post permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("edited message"),
+		}
+		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("time limit expired", func(t *testing.T) {
@@ -4418,13 +4520,13 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
 		dc := th.CreateDmChannel(t, th.CreateUser(t))
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, model.CreatePostFlags{})
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, model.CreatePostFlags{})
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, model.CreatePostFlags{})
+		reply2, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, model.CreatePostFlags{})
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Ensure that post have been read
@@ -4523,19 +4625,19 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	// user1: a root post
 	// user2: Another root mention @u1
 	user1Mention := " @" + th.BasicUser.Username
-	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	rootPost1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	replyPost1, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
@@ -4639,7 +4741,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	time.Sleep(1 * time.Millisecond)
@@ -4710,7 +4812,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
 		}
 
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 		require.Contains(t, createdPost.FileIds, fileInfo1.Id)
 		require.Contains(t, createdPost.FileIds, fileInfo2.Id)
@@ -4864,7 +4966,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			require.NoError(t, err)
 
 			// post a reply on the thread
-			_, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			_, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
@@ -4910,10 +5012,10 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "with slack attachment action",
 	}
-	post.AddProp(model.PostPropsAttachments, []*model.SlackAttachment{
+	post.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{
 		{
 			Text: "Slack Attachment Text",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "Test Field",
 					Value: "test value",

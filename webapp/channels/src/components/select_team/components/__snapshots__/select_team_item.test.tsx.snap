@@ -1,144 +1,165 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, on loading 1`] = `
-<div
-  className="signup-team-dir"
->
-  <a
-    className=""
-    href="#"
-    id="team_display_name"
-    onClick={[Function]}
+<div>
+  <div
+    class="signup-team-dir"
   >
-    <span
-      className="signup-team-dir__name"
+    <a
+      class=""
+      href="#"
+      id="team_display_name"
     >
-      team_display_name
-    </span>
-    <span
-      className="fa fa-refresh fa-spin right signup-team__icon"
-      title="Loading Icon"
-    />
-  </a>
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+      <span
+        class="fa fa-refresh fa-spin right signup-team__icon"
+        title="Loading Icon"
+      />
+    </a>
+  </div>
 </div>
 `;
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, on private joinable 1`] = `
-<div
-  className="signup-team-dir"
->
-  <a
-    className=""
-    href="#"
-    id="team_display_name"
-    onClick={[Function]}
+<div>
+  <div
+    class="signup-team-dir"
   >
-    <span
-      className="signup-team-dir__name"
+    <a
+      class=""
+      href="#"
+      id="team_display_name"
     >
-      team_display_name
-    </span>
-    <i
-      className="fa fa-lock light"
-      title="Private Team"
-    />
-    <span
-      className="fa fa-angle-right right signup-team__icon"
-      title="Join Team Icon"
-    />
-  </a>
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+      <i
+        class="fa fa-lock light"
+        title="Private Team"
+      />
+      <span
+        class="fa fa-angle-right right signup-team__icon"
+        title="Join Team Icon"
+      />
+    </a>
+  </div>
 </div>
 `;
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, on private not joinable 1`] = `
-<div
-  className="signup-team-dir"
->
-  <a
-    className="disabled"
-    href="#"
-    id="team_display_name"
+<div>
+  <div
+    class="signup-team-dir"
   >
-    <span
-      className="signup-team-dir__name"
+    <a
+      class="disabled"
+      href="#"
+      id="team_display_name"
     >
-      team_display_name
-    </span>
-    <i
-      className="fa fa-lock light"
-      title="Private Team"
-    />
-  </a>
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+      <i
+        class="fa fa-lock light"
+        title="Private Team"
+      />
+    </a>
+  </div>
 </div>
 `;
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, on public joinable 1`] = `
-<div
-  className="signup-team-dir"
->
-  <a
-    className=""
-    href="#"
-    id="team_display_name"
-    onClick={[Function]}
+<div>
+  <div
+    class="signup-team-dir"
   >
-    <span
-      className="signup-team-dir__name"
+    <a
+      class=""
+      href="#"
+      id="team_display_name"
     >
-      team_display_name
-    </span>
-    <span
-      className="fa fa-angle-right right signup-team__icon"
-      title="Join Team Icon"
-    />
-  </a>
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+      <span
+        class="fa fa-angle-right right signup-team__icon"
+        title="Join Team Icon"
+      />
+    </a>
+  </div>
 </div>
 `;
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, on public not joinable 1`] = `
-<div
-  className="signup-team-dir"
->
-  <a
-    className="disabled"
-    href="#"
-    id="team_display_name"
+<div>
+  <div
+    class="signup-team-dir"
   >
-    <span
-      className="signup-team-dir__name"
+    <a
+      class="disabled"
+      href="#"
+      id="team_display_name"
     >
-      team_display_name
-    </span>
-  </a>
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+    </a>
+  </div>
 </div>
 `;
 
 exports[`components/select_team/components/SelectTeamItem should match snapshot, with description 1`] = `
-<div
-  className="signup-team-dir"
->
-  <WithTooltip
-    title="description"
-  >
-    <TeamInfoIcon
-      className="icon icon--info"
-    />
-  </WithTooltip>
-  <a
-    className=""
-    href="#"
-    id="team_display_name"
-    onClick={[Function]}
+<div>
+  <div
+    class="signup-team-dir"
   >
     <span
-      className="signup-team-dir__name"
+      class="icon icon--info"
     >
-      team_display_name
+      <svg
+        aria-label="Info Icon"
+        height="100%"
+        role="img"
+        style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+        viewBox="0 0 20 20"
+        width="100%"
+      >
+        <g
+          transform="matrix(1.17647,0,0,1.17647,-1.55431e-15,-1.00573e-14)"
+        >
+          <path
+            d="M8.5,0C3.797,0 0,3.797 0,8.5C0,13.203 3.797,17 8.5,17C13.203,17 17,13.203 17,8.5C17,3.797 13.203,0 8.5,0ZM10,8.5C10,7.672 9.328,7 8.5,7C7.672,7 7,7.672 7,8.5L7,12.45C7,13.278 7.672,13.95 8.5,13.95C9.328,13.95 10,13.278 10,12.45L10,8.5ZM8.5,3C9.328,3 10,3.672 10,4.5C10,5.328 9.328,6 8.5,6C7.672,6 7,5.328 7,4.5C7,3.672 7.672,3 8.5,3Z"
+          />
+        </g>
+      </svg>
     </span>
-    <span
-      className="fa fa-angle-right right signup-team__icon"
-      title="Join Team Icon"
-    />
-  </a>
+    <a
+      class=""
+      href="#"
+      id="team_display_name"
+    >
+      <span
+        class="signup-team-dir__name"
+      >
+        team_display_name
+      </span>
+      <span
+        class="fa fa-angle-right right signup-team__icon"
+        title="Join Team Icon"
+      />
+    </a>
+  </div>
 </div>
 `;

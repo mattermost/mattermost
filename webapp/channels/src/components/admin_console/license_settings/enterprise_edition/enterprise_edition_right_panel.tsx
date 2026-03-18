@@ -85,9 +85,7 @@ const EnterpriseEditionRightPanel = ({
 
     const contactSalesBtn = (
         <div className='purchase-card'>
-            <ContactUsButton
-                eventID='post_trial_contact_sales'
-            />
+            <ContactUsButton/>
         </div>
     );
 

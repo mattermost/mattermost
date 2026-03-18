@@ -18,6 +18,7 @@ export default class ConfigurationSettings {
         const saveButton = this.container.getByTestId('SaveChangesPanel__save-btn');
         await expect(saveButton).toBeVisible();
         await saveButton.click();
+        await expect(saveButton).not.toBeVisible();
     }
 
     async enableChannelBanner() {
@@ -30,6 +31,22 @@ export default class ConfigurationSettings {
 
     async disableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
+    async enableChannelAutotranslation() {
+        const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (!classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
+    async disableChannelAutotranslation() {
+        const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         const classes = await toggleButton.getAttribute('class');
         if (classes?.includes('active')) {
             await toggleButton.click();

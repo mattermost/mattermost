@@ -1,47 +1,78 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
-<WithTooltip
-  key="flagtooltipkey"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Save Message"
-      id="flag_post.flag"
-    />
-  }
->
+<div>
   <button
     aria-label="save message"
-    className="post-menu__item"
+    class="post-menu__item"
     id="CENTER_flagIcon_post_id"
-    onClick={[Function]}
   >
-    <FlagIcon
-      className="icon icon--small"
-    />
+    <span
+      class="icon icon--small"
+    >
+      <svg
+        aria-label="Save Icon"
+        height="16px"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16px"
+      >
+        <path
+          d="M11.744 12.5L8 10.862L4.256 12.5V2.74405H11.744V12.5ZM11.744 1.25005H4.256C3.836 1.25005 3.476 1.40005 3.176 1.70005C2.888 1.98805 2.744 2.33605 2.744 2.74405V14.75L8 12.5L13.256 14.75V2.74405C13.256 2.33605 13.106 1.98805 12.806 1.70005C12.518 1.40005 12.164 1.25005 11.744 1.25005Z"
+        />
+      </svg>
+    </span>
   </button>
-</WithTooltip>
+</div>
 `;
 
 exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
-<WithTooltip
-  key="flagtooltipkeyflagged"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Remove from Saved"
-      id="flag_post.unflag"
-    />
-  }
->
+<div>
   <button
     aria-label="remove from saved"
-    className="post-menu__item"
+    class="post-menu__item"
     id="CENTER_flagIcon_post_id"
-    onClick={[Function]}
   >
-    <FlagIconFilled
-      className="icon icon--small icon--small-filled post-menu__item--selected"
-    />
+    <span
+      class="icon icon--small icon--small-filled post-menu__item--selected"
+    >
+      <svg
+        aria-label="Saved Icon"
+        height="15px"
+        role="img"
+        viewBox="0 0 12 15"
+        width="12px"
+      >
+        <g
+          fill="inherit"
+          fill-rule="evenodd"
+          stroke="none"
+          stroke-width="1"
+        >
+          <g
+            fill="inherit"
+            fill-rule="nonzero"
+            transform="translate(-1073.000000, -33.000000)"
+          >
+            <g
+              transform="translate(-1.000000, 0.000000)"
+            >
+              <g
+                transform="translate(1064.000000, 22.000000)"
+              >
+                <g
+                  transform="translate(10.000000, 11.000000)"
+                >
+                  <path
+                    d="M9.76172 0.800049H2.23828C1.83984 0.800049 1.48828 0.952393 1.18359 1.25708C0.902344 1.53833 0.761719 1.88989 0.761719 2.31177V14.3L6 12.05L11.2383 14.3V2.31177C11.2383 1.88989 11.0859 1.53833 10.7812 1.25708C10.5 0.952393 10.1602 0.800049 9.76172 0.800049Z"
+                  />
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </svg>
+    </span>
   </button>
-</WithTooltip>
+</div>
 `;

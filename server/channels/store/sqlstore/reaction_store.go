@@ -345,12 +345,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var query string
-	if s.DriverName() == "postgres" {
-		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < ? LIMIT ?))"
-	} else {
-		query = "DELETE from Reactions WHERE CreateAt < ? LIMIT ?"
-	}
+	query := "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < ? LIMIT ?))"
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {

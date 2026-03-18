@@ -64,10 +64,10 @@ func TestMigrate(t *testing.T) {
 			files[4],
 		}
 		cfg.SqlSettings.DataSourceReplicas = []string{
-			"mysql://mmuser:password@tcp(replicahost:3306)/mattermost",
+			"postgres://mmuser:password@replicahost:5432/mattermost",
 		}
 		cfg.SqlSettings.DataSourceSearchReplicas = []string{
-			"mysql://mmuser:password@tcp(searchreplicahost:3306)/mattermost",
+			"postgres://mmuser:password@searchreplicahost:5432/mattermost",
 		}
 
 		_, _, err := source.Set(cfg)

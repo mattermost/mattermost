@@ -8,18 +8,20 @@ import type {AppField} from '@mattermost/types/apps';
 
 import DatePicker from 'components/date_picker/date_picker';
 
-import {stringToDate, dateToString, resolveRelativeDate} from 'utils/date_utils';
+import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
     value: string | null;
     onChange: (name: string, value: string | null) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
 };
 
 const AppsFormDateField: React.FC<Props> = ({
     field,
     value,
     onChange,
+    setIsInteracting,
 }) => {
     const intl = useIntl();
     const [isPopperOpen, setIsPopperOpen] = useState(false);
@@ -34,11 +36,7 @@ const AppsFormDateField: React.FC<Props> = ({
         }
 
         try {
-            return new Intl.DateTimeFormat(intl.locale, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }).format(dateValue);
+            return formatDateForDisplay(dateValue, intl.locale);
         } catch {
             return '';
         }
@@ -57,7 +55,8 @@ const AppsFormDateField: React.FC<Props> = ({
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
-    }, []);
+        setIsInteracting?.(isOpen);
+    }, [setIsInteracting]);
 
     const disabledDays = useMemo(() => {
         const disabled = [];

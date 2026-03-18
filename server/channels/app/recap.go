@@ -17,7 +17,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
-		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
 			return nil, model.NewAppError("CreateRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 		}
 	}

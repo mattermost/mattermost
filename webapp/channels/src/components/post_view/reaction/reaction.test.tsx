@@ -1,18 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import {Reaction as ReactionClass} from 'components/post_view/reaction/reaction';
-
-import {getIntl} from 'utils/i18n';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import ReactionComponent from './reaction';
+
+jest.mock('./reaction_tooltip', () => {
+    return {
+        __esModule: true,
+        default: ({children, onShow}: any) => (
+            <div
+                data-testid='reaction-tooltip'
+                onMouseEnter={onShow}
+            >{children}</div>
+        ),
+    };
+});
+
 describe('components/post_view/Reaction', () => {
-    const intl = getIntl();
     const post = TestHelper.getPostMock({
         id: 'post_id',
     });
@@ -43,12 +53,11 @@ describe('components/post_view/Reaction', () => {
         reactions,
         emojiImageUrl: 'emoji_image_url',
         actions,
-        intl,
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ReactionComponent {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when a current user reacted to a post', () => {
@@ -67,20 +76,20 @@ describe('components/post_view/Reaction', () => {
             currentUserReacted: true,
             reactions: newReactions,
         };
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should return null/empty if no emojiImageUrl', () => {
         const props = {...baseProps, emojiImageUrl: ''};
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should apply read-only class if user does not have permission to add reaction', () => {
         const props = {...baseProps, canAddReactions: false};
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should apply read-only class if user does not have permission to remove reaction', () => {
@@ -89,13 +98,15 @@ describe('components/post_view/Reaction', () => {
             canRemoveReactions: false,
             currentUserReacted: true,
         };
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should have called actions.getMissingProfilesByIds when loadMissingProfiles is called', () => {
-        const wrapper = shallow<ReactionClass>(<ReactionClass {...baseProps}/>);
-        wrapper.instance().loadMissingProfiles();
+    test('should have called actions.getMissingProfilesByIds when loadMissingProfiles is called', async () => {
+        renderWithContext(<ReactionComponent {...baseProps}/>);
+
+        const tooltipTrigger = screen.getByTestId('reaction-tooltip');
+        await userEvent.hover(tooltipTrigger);
 
         expect(actions.getMissingProfilesByIds).toHaveBeenCalledTimes(1);
         expect(actions.getMissingProfilesByIds).toHaveBeenCalledWith([reactions[0].user_id, reactions[1].user_id]);

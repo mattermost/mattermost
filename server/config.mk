@@ -6,12 +6,12 @@
 #
 # Possible options: postgres, minio, inbucket, openldap, dejavu,
 # keycloak, elasticsearch, opensearch, redis, prometheus,
-# grafana, loki and promtail.
+# grafana, loki and otel-collector.
 #
 # Must be space separated names.
 #
 # Example: postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= postgres inbucket redis prometheus grafana loki promtail
+ENABLED_DOCKER_SERVICES ?= postgres inbucket redis prometheus grafana loki otel-collector
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false

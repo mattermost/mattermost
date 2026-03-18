@@ -252,7 +252,8 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	respBytes, err := io.ReadAll(resp.Body)
+	limitedReader := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
+	respBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -280,7 +281,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}

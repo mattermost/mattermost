@@ -8,7 +8,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -54,8 +54,6 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     let mockToLocaleDateString: jest.SpyInstance;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockOpenPricingModal = jest.fn();
         mockUseOpenPricingModal.mockReturnValue({openPricingModal: mockOpenPricingModal});
 
@@ -259,19 +257,19 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     describe('User Interactions', () => {
         const preferenceName = 'post_history_limit_banner';
 
-        it('should call openPricingModal when upgrade button is clicked', () => {
+        it('should call openPricingModal when upgrade button is clicked', async () => {
             setupServerLimits(true);
             const state = createInitialState(true, []);
 
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             const upgradeButton = screen.getByText('Restore Access');
-            fireEvent.click(upgradeButton);
+            await userEvent.click(upgradeButton);
 
             expect(mockOpenPricingModal).toHaveBeenCalled();
         });
 
-        it('should save dismissal timestamp when close button is clicked', () => {
+        it('should save dismissal timestamp when close button is clicked', async () => {
             setupServerLimits(true);
             const state = createInitialState(true, []);
 
@@ -281,7 +279,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             const closeButton = screen.getByRole('link', {name: '×'});
-            fireEvent.click(closeButton);
+            await userEvent.click(closeButton);
 
             expect(mockDispatch).toHaveBeenCalledWith(
                 mockSavePreferences(currentUserId, [{

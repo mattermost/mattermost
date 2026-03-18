@@ -1,194 +1,129 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SearchableChannelList should match init snapshot 1`] = `
-<div
-  className="filtered-user-list"
->
+<div>
   <div
-    className="filter-row"
+    class="filtered-user-list"
   >
-    <span
-      aria-hidden="true"
-      id="searchIcon"
-    >
-      <i
-        className="icon icon-magnify"
-      />
-    </span>
-    <QuickInput
-      aria-label="Search Channels"
-      className="form-control filter-textbox"
-      clearable={true}
-      id="searchChannelsTextbox"
-      onClear={[Function]}
-      onInput={[Function]}
-      placeholder="Search channels"
-      value=""
-    />
-  </div>
-  <div
-    className="more-modal__dropdown"
-  >
-    <span
-      id="channelCountLabel"
-    >
-      0 Results
-    </span>
-    <span
-      aria-live="polite"
-      className="sr-only"
-      role="status"
-    >
-      0 Results
-    </span>
     <div
-      id="modalPreferenceContainer"
+      class="filter-row"
     >
+      <span
+        aria-hidden="true"
+        id="searchIcon"
+      >
+        <i
+          class="icon icon-magnify"
+        />
+      </span>
       <div
-        aria-atomic="true"
-        className="sr-only"
+        class="input-wrapper"
+      >
+        <input
+          aria-label="Search Channels"
+          class="form-control filter-textbox"
+          id="searchChannelsTextbox"
+          placeholder="Search channels"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="more-modal__dropdown"
+    >
+      <span
+        id="channelCountLabel"
+      >
+        0 Results
+      </span>
+      <span
+        aria-live="polite"
+        class="sr-only"
         role="status"
       >
-        Channel type filter set to {filterType}
-      </div>
-      <Menu
-        menu={
-          Object {
-            "aria-label": "Channel type filter",
-            "id": "browseChannelsDropdown",
-          }
-        }
-        menuButton={
-          Object {
-            "aria-label": "Channel type filter",
-            "children": <React.Fragment>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Channel Type: All"
-                id="more_channels.show_all_channels"
-              />
-              <ChevronDownIcon
-                color="rgba(var(--center-channel-color-rgb), 0.64)"
-                size={16}
-              />
-            </React.Fragment>,
-            "id": "menuWrapper",
-          }
-        }
-      >
-        <MenuItem
-          aria-label="All channel types"
-          id="channelsMoreDropdownAll"
-          key="channelsMoreDropdownAll"
-          labels={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="All channel types"
-              id="suggestion.all"
-            />
-          }
-          leadingElement={
-            <GlobeCheckedIcon
-              size={16}
-            />
-          }
-          onClick={[Function]}
-          trailingElements={
-            <CheckIcon
-              color="var(--button-bg)"
-              size={18}
-            />
-          }
-        />
-        <MenuItem
-          aria-label="Public channels"
-          id="channelsMoreDropdownPublic"
-          key="channelsMoreDropdownPublic"
-          labels={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Public channels"
-              id="suggestion.public"
-            />
-          }
-          leadingElement={
-            <GlobeIcon
-              size={16}
-            />
-          }
-          onClick={[Function]}
-          trailingElements={null}
-        />
-        <MenuItem
-          aria-label="Private channels"
-          id="channelsMoreDropdownPrivate"
-          key="channelsMoreDropdownPrivate"
-          labels={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Private channels"
-              id="suggestion.private"
-            />
-          }
-          leadingElement={
-            <LockOutlineIcon
-              size={16}
-            />
-          }
-          onClick={[Function]}
-          trailingElements={null}
-        />
-        <MenuItemSeparator
-          key="channelsMoreDropdownSeparator"
-        />
-        <MenuItem
-          aria-label="Archived channels"
-          id="channelsMoreDropdownArchived"
-          key="channelsMoreDropdownArchived"
-          labels={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Archived channels"
-              id="suggestion.archive"
-            />
-          }
-          leadingElement={
-            <ArchiveOutlineIcon
-              size={16}
-            />
-          }
-          onClick={[Function]}
-          trailingElements={null}
-        />
-      </Menu>
+        0 Results
+      </span>
       <div
-        aria-checked={false}
-        aria-label="Hide joined channels"
-        id="hideJoinedPreferenceCheckbox"
-        onClick={[Function]}
-        onKeyDown={[Function]}
-        role="checkbox"
-        tabIndex={0}
+        id="modalPreferenceContainer"
       >
         <div
-          className="get-app__checkbox"
-        />
-        <MemoizedFormattedMessage
-          defaultMessage="Hide Joined"
-          id="more_channels.hide_joined"
-        />
+          aria-atomic="true"
+          class="sr-only"
+          role="status"
+        >
+          Channel type filter set to {filterType}
+        </div>
+        <button
+          aria-controls="browseChannelsDropdown"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel type filter"
+          class=""
+          id="menuWrapper"
+        >
+          Channel Type: All
+          <svg
+            fill="rgba(var(--center-channel-color-rgb), 0.64)"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+            />
+          </svg>
+        </button>
+        <div
+          aria-checked="false"
+          aria-label="Hide joined channels"
+          id="hideJoinedPreferenceCheckbox"
+          role="checkbox"
+          tabindex="0"
+        >
+          <div
+            class="get-app__checkbox"
+          />
+          Hide Joined
+        </div>
       </div>
     </div>
-  </div>
-  <div
-    className="more-modal__list"
-    role="search"
-    tabIndex={-1}
-  >
     <div
-      id="moreChannelsList"
-      tabIndex={-1}
+      class="more-modal__list"
+      role="search"
+      tabindex="-1"
     >
-      <LoadingScreen />
+      <div
+        id="moreChannelsList"
+        tabindex="-1"
+      >
+        <div
+          class="loading-screen"
+          style="position: relative;"
+        >
+          <div
+            class="loading__content"
+          >
+            <p>
+              Loading
+            </p>
+            <div
+              class="round round-1"
+            />
+            <div
+              class="round round-2"
+            />
+            <div
+              class="round round-3"
+            />
+          </div>
+        </div>
+      </div>
     </div>
+    <div
+      class="filter-controls"
+    />
   </div>
-  <div
-    className="filter-controls"
-  />
 </div>
 `;
