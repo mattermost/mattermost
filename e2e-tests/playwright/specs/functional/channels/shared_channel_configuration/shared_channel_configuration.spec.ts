@@ -48,10 +48,7 @@ async function deleteAllRemoteClusters(adminClient: {
  * Creates a remote connection.
  * This allows the "Share with connected workspaces" toggle to be enabled in channel configuration.
  */
-async function ensureConfirmedRemote(
-    adminClient: ClientWithRemotes,
-    teamId: string,
-): Promise<void> {
+async function ensureConfirmedRemote(adminClient: ClientWithRemotes, teamId: string): Promise<void> {
     const suffix = await getRandomId();
     const password = `e2e-remote-pwd-${suffix}`;
     await adminClient.createRemoteCluster({
@@ -67,16 +64,14 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        config.ConnectedWorkspacesSettings.EnableRemoteClusterService = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         const channelName = `shared-config-01-${await getRandomId()}`;
         await adminClient.createChannel({
@@ -102,15 +97,13 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = false;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: false,
+            },
+        });
 
         const channelName = `shared-config-02-${await getRandomId()}`;
         await adminClient.createChannel({
@@ -135,15 +128,14 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         await deleteAllRemoteClusters(adminClient);
 
@@ -174,15 +166,14 @@ test.describe('Shared channel configuration', () => {
         const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         const roles = await adminClient.getRolesByNames(['system_user', 'channel_user']);
         const systemRole = roles.find((r: {name: string}) => r.name === 'system_user');
@@ -190,11 +181,11 @@ test.describe('Shared channel configuration', () => {
         if (!systemRole || !channelRole) {
             throw new Error('Could not find system_user or channel_user role');
         }
-        const systemPermissions = (systemRole.permissions as string[]).filter(
-            (p) => p !== 'manage_shared_channels',
-        );
+        const systemPermissions = (systemRole.permissions as string[]).filter((p) => p !== 'manage_shared_channels');
         await adminClient.patchRole(systemRole.id, {permissions: systemPermissions});
-        const channelPermissions = [...new Set([...(channelRole.permissions as string[]), 'manage_public_channel_banner'])];
+        const channelPermissions = [
+            ...new Set([...(channelRole.permissions as string[]), 'manage_public_channel_banner']),
+        ];
         await adminClient.patchRole(channelRole.id, {permissions: channelPermissions});
 
         const channelName = `shared-config-04-${await getRandomId()}`;
@@ -221,16 +212,14 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        config.ConnectedWorkspacesSettings.EnableRemoteClusterService = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         await ensureConfirmedRemote(adminClient, team.id);
 
@@ -259,16 +248,14 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        config.ConnectedWorkspacesSettings.EnableRemoteClusterService = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         await ensureConfirmedRemote(adminClient, team.id);
 
@@ -301,16 +288,14 @@ test.describe('Shared channel configuration', () => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        config.ConnectedWorkspacesSettings.EnableRemoteClusterService = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         await ensureConfirmedRemote(adminClient, team.id);
 
@@ -346,15 +331,14 @@ test.describe('Shared channel configuration', () => {
         const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasSharedChannelsLicense(license),
-            'Skipping test - server does not have Shared Channels license',
-        );
+        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         const roles = await adminClient.getRolesByNames(['system_user']);
         const systemRole = roles[0];
@@ -379,9 +363,7 @@ test.describe('Shared channel configuration', () => {
         await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
         await channelSettingsModal.close();
 
-        const withoutPermission = (systemRole.permissions as string[]).filter(
-            (p) => p !== 'manage_shared_channels',
-        );
+        const withoutPermission = (systemRole.permissions as string[]).filter((p) => p !== 'manage_shared_channels');
         await adminClient.patchRole(systemRole.id, {permissions: withoutPermission});
 
         await channelsPage.page.reload();
@@ -393,7 +375,9 @@ test.describe('Shared channel configuration', () => {
         await channelSettingsModal.close();
     });
 
-    test('User with manage shared channels but not manage channel properties: opens settings on Configuration tab, Info tab not visible', async ({pw}) => {
+    test('User with manage shared channels but not manage channel properties: opens settings on Configuration tab, Info tab not visible', async ({
+        pw,
+    }) => {
         const {adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
@@ -402,10 +386,12 @@ test.describe('Shared channel configuration', () => {
             'Skipping test - server does not have Shared Channels license or Custom Permission Schemes',
         );
 
-        const config = await adminClient.getConfig();
-        config.ConnectedWorkspacesSettings = config.ConnectedWorkspacesSettings || {};
-        config.ConnectedWorkspacesSettings.EnableSharedChannels = true;
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
 
         const roles = await adminClient.getRolesByNames(['channel_user']);
         const channelRole = roles[0];
