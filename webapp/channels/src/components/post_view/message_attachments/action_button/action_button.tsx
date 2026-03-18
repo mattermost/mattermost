@@ -12,6 +12,7 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 const getStatusColors = (theme: Theme) => {
     return {
@@ -59,25 +60,30 @@ const ActionButton = ({
     const name = action.name || action.id || '';
 
     return (
-        <ActionBtn
-            data-action-id={action.id}
-            data-action-cookie={action.cookie}
-            disabled={disabled}
-            key={action.id}
-            onClick={handleActionClick}
-            className='btn btn-sm'
-            hexColor={hexColor}
+        <WithTooltip
+            title={action.tooltip}
+            disabled={!action.tooltip}
         >
-            <LoadingWrapper
-                loading={actionExecuting}
-                text={actionExecutingMessage}
+            <ActionBtn
+                data-action-id={action.id}
+                data-action-cookie={action.cookie}
+                disabled={disabled}
+                key={action.id}
+                onClick={handleActionClick}
+                className='btn btn-sm'
+                hexColor={hexColor}
             >
-                <Markdown
-                    message={name}
-                    options={markdownOptions}
-                />
-            </LoadingWrapper>
-        </ActionBtn>
+                <LoadingWrapper
+                    loading={actionExecuting}
+                    text={actionExecutingMessage}
+                >
+                    <Markdown
+                        message={name}
+                        options={markdownOptions}
+                    />
+                </LoadingWrapper>
+            </ActionBtn>
+        </WithTooltip>
     );
 };
 

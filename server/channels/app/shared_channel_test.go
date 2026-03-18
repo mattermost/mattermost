@@ -365,7 +365,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "Test message after remote 1 unshare",
 		}
-		_, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
+		_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Get post count after creating the test post but before "remote-initiated unshare"

@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
 
@@ -204,6 +205,8 @@ const (
 	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
+	AutoTranslationDefaultWorkers = 6
+
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
@@ -236,11 +239,12 @@ const (
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
-	PluginSettingsDefaultDirectory         = "./plugins"
-	PluginSettingsDefaultClientDirectory   = "./client/plugins"
-	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultDirectory          = "./plugins"
+	PluginSettingsDefaultClientDirectory    = "./client/plugins"
+	PluginSettingsDefaultEnableMarketplace  = true
+	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
@@ -348,6 +352,7 @@ type ServiceSettings struct {
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -416,6 +421,7 @@ type ServiceSettings struct {
 	EnableAPIUserDeletion                             *bool
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
+	MinimumDesktopAppVersion                          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
@@ -431,7 +437,9 @@ type ServiceSettings struct {
 	PersistentNotificationMaxCount                    *int    `access:"site_posts"`
 	PersistentNotificationMaxRecipients               *int    `access:"site_posts"`
 	EnableBurnOnRead                                  *bool   `access:"site_posts"`
-	BurnOnReadDurationMinutes                         *string `access:"site_posts"`
+	BurnOnReadDurationSeconds                         *int    `access:"site_posts"`
+	BurnOnReadMaximumTimeToLiveSeconds                *int    `access:"site_posts"`
+	BurnOnReadSchedulerFrequencySeconds               *int    `access:"site_posts,cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -553,6 +561,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDynamicClientRegistration == nil {
 		s.EnableDynamicClientRegistration = NewPointer(false)
+	}
+
+	if s.DCRRedirectURIAllowlist == nil {
+		s.DCRRedirectURIAllowlist = []string{}
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -873,6 +885,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableDesktopLandingPage = NewPointer(true)
 	}
 
+	if s.MinimumDesktopAppVersion == nil {
+		s.MinimumDesktopAppVersion = NewPointer("")
+	}
+
 	if s.EnableSVGs == nil {
 		if isUpdate {
 			s.EnableSVGs = NewPointer(true)
@@ -978,11 +994,19 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
-	if s.BurnOnReadDurationMinutes == nil {
-		s.BurnOnReadDurationMinutes = NewPointer("10")
+	if s.BurnOnReadDurationSeconds == nil {
+		s.BurnOnReadDurationSeconds = NewPointer(600) // 10 minutes in seconds
+	}
+
+	if s.BurnOnReadMaximumTimeToLiveSeconds == nil {
+		s.BurnOnReadMaximumTimeToLiveSeconds = NewPointer(604800) // 7 days in seconds
+	}
+
+	if s.BurnOnReadSchedulerFrequencySeconds == nil {
+		s.BurnOnReadSchedulerFrequencySeconds = NewPointer(600) // 10 minutes in seconds
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
@@ -1256,16 +1280,17 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"` // telemetry: none
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	ButtonText        *string `access:"authentication_openid"` // telemetry: none
-	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"` // telemetry: none
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	ButtonText           *string `access:"authentication_openid"` // telemetry: none
+	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1308,18 +1333,24 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.ButtonColor == nil {
 		s.ButtonColor = NewPointer(buttonColor)
 	}
+
+	// Note: Preferred username is not supported for Google.
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 type Office365Settings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"`
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"`
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	DirectoryId          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1358,6 +1389,10 @@ func (s *Office365Settings) setDefaults() {
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewPointer("")
 	}
+
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 func (s *Office365Settings) SSOSettings() *SSOSettings {
@@ -1370,7 +1405,71 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserAPIEndpoint = s.UserAPIEndpoint
+	ssoSettings.UsePreferredUsername = s.UsePreferredUsername
 	return &ssoSettings
+}
+
+type IntuneSettings struct {
+	Enable      *bool   `access:"environment_mobile_security"`
+	TenantId    *string `access:"environment_mobile_security"` // telemetry: none
+	ClientId    *string `access:"environment_mobile_security"` // telemetry: none
+	AuthService *string `access:"environment_mobile_security"` // "office365" or "saml"
+}
+
+func (s *IntuneSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewPointer(false)
+	}
+
+	if s.TenantId == nil {
+		s.TenantId = NewPointer("")
+	}
+
+	if s.ClientId == nil {
+		s.ClientId = NewPointer("")
+	}
+
+	// AuthService has no default - must be explicitly set
+	if s.AuthService == nil {
+		s.AuthService = NewPointer("")
+	}
+}
+
+func (s *IntuneSettings) IsValid() *AppError {
+	if s.Enable == nil || !*s.Enable {
+		return nil // Disabled, no validation needed
+	}
+
+	// Must have TenantId
+	if s.TenantId == nil || *s.TenantId == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_tenant_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate TenantId format (UUID)
+	uuidRegex := regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+	if !uuidRegex.MatchString(*s.TenantId) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_tenant_id_format.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Must have ClientId
+	if s.ClientId == nil || *s.ClientId == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate ClientId format (UUID)
+	if !uuidRegex.MatchString(*s.ClientId) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_id_format.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Must have valid AuthService
+	if s.AuthService == nil || *s.AuthService == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_auth_service.app_error", nil, "AuthService is required", http.StatusBadRequest)
+	}
+	if *s.AuthService != UserAuthServiceSaml && *s.AuthService != ServiceOffice365 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_auth_service_invalid.app_error", nil, "AuthService must be 'office365' or 'saml'", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ReplicaLagSettings struct {
@@ -1494,7 +1593,7 @@ func (s *LogSettings) isValid() *AppError {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MlvlAll)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1568,11 +1667,6 @@ func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 type ExperimentalAuditSettings struct {
 	FileEnabled         *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileName            *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB       *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
@@ -1586,22 +1680,6 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 		if strings.HasSuffix(*s.FileName, `\`) {
 			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
 		}
-
-		if *s.FileMaxSizeMB <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxAgeDays < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxBackups < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxQueueSize <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
-		}
 	}
 
 	cfg := make(mlog.LoggerConfiguration)
@@ -1610,7 +1688,7 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MLvlAuditAll)
 	if err != nil {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1625,26 +1703,6 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 	if s.FileName == nil {
 		s.FileName = NewPointer("")
-	}
-
-	if s.FileMaxSizeMB == nil {
-		s.FileMaxSizeMB = NewPointer(100)
-	}
-
-	if s.FileMaxAgeDays == nil {
-		s.FileMaxAgeDays = NewPointer(0) // no limit on age
-	}
-
-	if s.FileMaxBackups == nil { // no limit on number of backups
-		s.FileMaxBackups = NewPointer(0)
-	}
-
-	if s.FileCompress == nil {
-		s.FileCompress = NewPointer(false)
-	}
-
-	if s.FileMaxQueueSize == nil {
-		s.FileMaxQueueSize = NewPointer(1000)
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
@@ -2146,6 +2204,7 @@ func (s *RateLimitSettings) SetDefaults() {
 type PrivacySettings struct {
 	ShowEmailAddress *bool `access:"site_users_and_teams"`
 	ShowFullName     *bool `access:"site_users_and_teams"`
+	UseAnonymousURLs *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -2155,6 +2214,10 @@ func (s *PrivacySettings) setDefaults() {
 
 	if s.ShowFullName == nil {
 		s.ShowFullName = NewPointer(true)
+	}
+
+	if s.UseAnonymousURLs == nil {
+		s.UseAnonymousURLs = NewPointer(false)
 	}
 }
 
@@ -2711,29 +2774,25 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
-type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
-}
-
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -2744,34 +2803,30 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Provider = NewPointer("")
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.Workers == nil {
+		s.Workers = NewPointer(AutoTranslationDefaultWorkers)
+	}
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = NewPointer(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
-}
-
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
 	}
+	s.Agents.SetDefaults()
 
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
 	}
 }
 
@@ -2785,12 +2840,11 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = NewPointer("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
@@ -2990,6 +3044,7 @@ type NativeAppSettings struct {
 	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
 	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
 	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
+	EnableIntuneMAM               *bool    `access:"site_customization,write_restrictable"` // telemetry: none
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -3032,37 +3087,56 @@ func (s *NativeAppSettings) SetDefaults() {
 	if s.MobileAllowPdfLinkNavigation == nil {
 		s.MobileAllowPdfLinkNavigation = NewPointer(false)
 	}
+
+	if s.EnableIntuneMAM == nil {
+		s.EnableIntuneMAM = NewPointer(false)
+	}
+}
+
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
 }
 
 type ElasticsearchSettings struct {
-	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Backend                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexShards            *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	GlobalSearchPrefix            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionURL                               *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Backend                                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Username                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Password                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableIndexing                              *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableSearching                             *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableCJKAnalyzers                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableAutocomplete                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Sniff                                       *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexReplicas                        *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexShards                          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	PostsAggregatorJobStartTime                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	IndexPrefix                                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	GlobalSearchPrefix                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	LiveIndexingBatchSize                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds               *int    `json:",omitempty"` // telemetry: none
+	BatchSize                                   *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	RequestTimeoutSeconds                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	SkipTLSVerification                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                                  *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3100,6 +3174,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearching == nil {
 		s.EnableSearching = NewPointer(false)
+	}
+
+	if s.EnableCJKAnalyzers == nil {
+		s.EnableCJKAnalyzers = NewPointer(false)
 	}
 
 	if s.EnableAutocomplete == nil {
@@ -3172,6 +3250,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.IgnoredPurgeIndexes == nil {
 		s.IgnoredPurgeIndexes = NewPointer("")
+	}
+
+	if s.EnableSearchPublicChannelsWithoutMembership == nil {
+		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(false)
 	}
 }
 
@@ -3470,6 +3552,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 					break
 				}
 			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
+				}
+			}
 		}
 	}
 }
@@ -3705,6 +3796,16 @@ func (s *GuestAccountsSettings) SetDefaults() {
 	}
 }
 
+func (s *GuestAccountsSettings) IsValid() *AppError {
+	if s.EnableGuestMagicLink != nil && *s.EnableGuestMagicLink {
+		if s.EnforceMultifactorAuthentication != nil && *s.EnforceMultifactorAuthentication {
+			return NewAppError("GuestAccountsSettings.IsValid", "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type ImageProxySettings struct {
 	Enable                  *bool   `access:"environment_image_proxy"`
 	ImageProxyType          *string `access:"environment_image_proxy"`
@@ -3794,17 +3895,12 @@ func (s *ExportSettings) SetDefaults() {
 
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
-	EnableChannelScopeAccessControl   *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAttributeBasedAccessControl == nil {
 		s.EnableAttributeBasedAccessControl = NewPointer(false)
-	}
-
-	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(true)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
@@ -3883,6 +3979,7 @@ type Config struct {
 	LocalizationSettings        LocalizationSettings
 	SamlSettings                SamlSettings
 	NativeAppSettings           NativeAppSettings
+	IntuneSettings              IntuneSettings
 	CacheSettings               CacheSettings
 	ClusterSettings             ClusterSettings
 	MetricsSettings             MetricsSettings
@@ -4003,6 +4100,7 @@ func (o *Config) SetDefaults() {
 	o.AutoTranslationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
+	o.IntuneSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
@@ -4072,6 +4170,31 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.SamlSettings.isValid(); appErr != nil {
 		return appErr
+	}
+
+	// Validate IntuneSettings
+	if appErr := o.IntuneSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
+		return appErr
+	}
+
+	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
+	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
+		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
+			switch *o.IntuneSettings.AuthService {
+			case ServiceOffice365:
+				if o.Office365Settings.Enable == nil || !*o.Office365Settings.Enable {
+					return NewAppError("Config.IsValid", "model.config.is_valid.intune_requires_office365.app_error", nil, "", http.StatusBadRequest)
+				}
+			case UserAuthServiceSaml:
+				if o.SamlSettings.Enable == nil || !*o.SamlSettings.Enable {
+					return NewAppError("Config.IsValid", "model.config.is_valid.intune_requires_saml.app_error", nil, "", http.StatusBadRequest)
+				}
+			}
+		}
 	}
 
 	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
@@ -4151,6 +4274,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4536,6 +4663,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if *s.MinimumDesktopAppVersion != "" {
+		if _, err := semver.Parse(*s.MinimumDesktopAppVersion); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.minimum_desktop_app_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
 	host, port, _ := net.SplitHostPort(*s.ListenAddress)
 	var isValidHost bool
 	if host == "" {
@@ -4579,6 +4712,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, pattern := range s.DCRRedirectURIAllowlist {
+		trimmed := strings.TrimSpace(pattern)
+		if trimmed == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !IsValidDCRRedirectURIPattern(trimmed) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// we check if file has a valid parent, the server will try to create the socket
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
@@ -4603,6 +4746,13 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", map[string]any{
 			"Searching":      "ElasticsearchSettings.EnableSearching",
 			"EnableIndexing": "ElasticsearchSettings.EnableIndexing",
+		}, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableCJKAnalyzers && !*s.EnableSearching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error", map[string]any{
+			"EnableCJKAnalyzers": "ElasticsearchSettings.EnableCJKAnalyzers",
+			"Searching":          "ElasticsearchSettings.EnableSearching",
 		}, "", http.StatusBadRequest)
 	}
 
@@ -4714,26 +4864,22 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 64)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 64) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4943,52 +5089,48 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.CacheSettings.RedisPassword = FakeSetting
 	}
 
+	if o.AutoTranslationSettings.LibreTranslate != nil &&
+		o.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*o.AutoTranslationSettings.LibreTranslate.APIKey != "" {
+		*o.AutoTranslationSettings.LibreTranslate.APIKey = FakeSetting
+	}
+
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {

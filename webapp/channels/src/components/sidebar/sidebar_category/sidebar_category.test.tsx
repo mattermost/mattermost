@@ -1,14 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import SidebarCategory from 'components/sidebar/sidebar_category/sidebar_category';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import SidebarCategory from './sidebar_category';
+
+// Mock child components
+jest.mock('./sidebar_category_menu', () => () => <div id='mock-category-menu'/>);
+jest.mock('./sidebar_category_sorting_menu', () => () => <div id='mock-sorting-menu'/>);
+jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
+jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
+jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
+
+// Suppress react-beautiful-dnd console errors in tests
+beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
 
 describe('components/sidebar/sidebar_category', () => {
     const baseProps = {
@@ -41,24 +59,39 @@ describe('components/sidebar/sidebar_category', () => {
         },
     };
 
+    // Wrapper component to provide DragDropContext and Droppable
+    const renderWithDnd = (component: React.ReactElement) => {
+        const onDragEnd = () => {};
+        return renderWithContext(
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable
+                    droppableId='sidebar-categories'
+                    type='SIDEBAR_CATEGORY'
+                >
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            {component}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>,
+        );
+    };
+
+    beforeEach(() => {
+        baseProps.actions.setCategoryCollapsed.mockClear();
+    });
+
     test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SidebarCategory {...baseProps}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...baseProps}/>);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
-
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
-        expect(droppableInner).toMatchSnapshot();
+        expect(screen.getByText('custom_category_1')).toBeInTheDocument();
+        expect(document.querySelector('#mock-category-menu')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when isNewCategory', () => {
@@ -72,25 +105,11 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
-
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
-        expect(droppableInner).toMatchSnapshot();
-        expect(droppableInner.find('.SidebarCategory_newLabel')).toHaveLength(1);
-        expect(droppableInner.find('.SidebarCategory_newDropBox')).toHaveLength(1);
+        expect(screen.getByText('new')).toBeInTheDocument();
+        expect(screen.getByText('Drag channels here...')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when collapsed', () => {
@@ -102,23 +121,11 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
-
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
-        expect(droppableInner).toMatchSnapshot();
+        expect(screen.getByText('custom_category_1')).toBeInTheDocument();
+        expect(document.querySelector('.isCollapsed')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the category is DM and there are no DMs to display', () => {
@@ -132,36 +139,29 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
-
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
-        expect(droppableInner).toMatchSnapshot();
+        expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when there are no channels to display', () => {
         const props = {
             ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.FAVORITES,
+                display_name: 'Favorites',
+            },
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        // Favorites category with no channels should not render
+        expect(screen.queryByText('Favorites')).not.toBeInTheDocument();
+        expect(document.querySelector('.SidebarChannelGroup')).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when sorting is set to by recency', () => {
@@ -174,35 +174,21 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
-
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
-        expect(droppableInner).toMatchSnapshot();
+        expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should collapse the channel on toggle when it is not collapsed', () => {
-        const wrapper = shallow<SidebarCategory>(
-            <SidebarCategory {...baseProps}/>,
-        );
+    test('should collapse the channel on toggle when it is not collapsed', async () => {
+        renderWithDnd(<SidebarCategory {...baseProps}/>);
 
-        wrapper.instance().handleCollapse();
-        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(baseProps.category.id, true);
+        await userEvent.click(screen.getByText('custom_category_1'));
+
+        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', true);
     });
 
-    test('should un-collapse the channel on toggle when it is collapsed', () => {
+    test('should un-collapse the channel on toggle when it is collapsed', async () => {
         const props = {
             ...baseProps,
             category: {
@@ -211,11 +197,10 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const wrapper = shallow<SidebarCategory>(
-            <SidebarCategory {...props}/>,
-        );
+        renderWithDnd(<SidebarCategory {...props}/>);
 
-        wrapper.instance().handleCollapse();
-        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(props.category.id, false);
+        await userEvent.click(screen.getByText('custom_category_1'));
+
+        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
     });
 });

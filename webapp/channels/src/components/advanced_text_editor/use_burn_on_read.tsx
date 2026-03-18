@@ -4,6 +4,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getDirectChannelName, getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
+
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
@@ -16,6 +21,7 @@ import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
 
 import 'components/burn_on_read/burn_on_read_control.scss';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 /**
@@ -38,33 +44,51 @@ const useBurnOnRead = (
     showIndividualCloseButton = true,
 ) => {
     const rootId = draft.rootId;
+    const channelId = draft.channelId;
     const isEnabled = useSelector(isBurnOnReadEnabled);
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
     const canSend = useSelector(canUserSendBurnOnRead);
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
+    const currentUser = useSelector(getCurrentUser);
 
-    // Check if BoR is active in draft
-    const hasBurnOnReadSet = isEnabled &&
-        draft.metadata?.burn_on_read?.enabled === true;
+    // Burn-on-read is not allowed in self-DMs or DMs with bots (AI agents, plugins, etc.)
+    const otherUserId = useMemo(() => {
+        if (!channel || !currentUser || !isDirectChannel(channel)) {
+            return null;
+        }
+        return getUserIdFromChannelName(currentUser.id, channel.name);
+    }, [channel, currentUser]);
 
-    // Handler to toggle BoR mode
+    const otherUser = useSelector((state: GlobalState) => (otherUserId ? getUser(state, otherUserId) : null));
+
+    const isAllowedInChannel = useMemo(() => {
+        if (!channel || !currentUser) {
+            return false; // Fail-closed: if we can't validate, don't show the button
+        }
+
+        // Check if it's a self-DM by comparing channel name with expected self-DM name
+        if (isDirectChannel(channel)) {
+            const selfDMName = getDirectChannelName(currentUser.id, currentUser.id);
+            if (channel.name === selfDMName) {
+                return false; // Block self-DMs
+            }
+
+            // Block DMs with bots (AI agents, plugins, etc.)
+            if (otherUser?.is_bot) {
+                return false;
+            }
+        }
+
+        return true; // Allow all other channel types
+    }, [channel, currentUser, otherUser]);
+
+    const hasBurnOnReadSet = isEnabled && draft.type === PostTypes.BURN_ON_READ;
+
     const handleBurnOnReadApply = useCallback((enabled: boolean) => {
         const updatedDraft = {
             ...draft,
+            type: enabled ? PostTypes.BURN_ON_READ : undefined,
         };
-
-        if (enabled) {
-            updatedDraft.metadata = {
-                ...updatedDraft.metadata,
-                burn_on_read: {
-                    enabled: true,
-                },
-            };
-        } else {
-            // Remove burn_on_read from metadata
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-            const {burn_on_read: _, ...restMetadata} = updatedDraft.metadata || {};
-            updatedDraft.metadata = restMetadata;
-        }
 
         handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();
@@ -87,7 +111,7 @@ const useBurnOnRead = (
 
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
-        (!rootId && isEnabled && canSend ? (
+        (!rootId && isEnabled && canSend && isAllowedInChannel ? (
             <div
                 key='burn-on-read-control-key'
                 className='BurnOnReadControl'
@@ -104,7 +128,7 @@ const useBurnOnRead = (
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, canSend, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [rootId, isEnabled, canSend, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
 
     return {
         labels,

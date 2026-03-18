@@ -55,6 +55,7 @@ describe('components/ChannelHeader', () => {
         intl: {
             formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
         } as MockIntl,
+        isChannelAutotranslated: false,
     };
 
     const populatedProps = {

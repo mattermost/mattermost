@@ -15,7 +15,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -643,7 +643,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>
@@ -756,7 +756,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -1385,7 +1385,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>
@@ -1498,7 +1498,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -2126,7 +2126,7 @@ https://myothersite.com/api/v2"
                   Get help with 
                   <a
                     href="https://mattermost.com/pl/outgoing-oauth-connections"
-                    key=".$.1"
+                    key="1/.1"
                   >
                     configuring outgoing OAuth connections
                   </a>

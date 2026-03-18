@@ -30,6 +30,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'authentication/saml',
             'environment/session_lengths',
             'authentication/email',
+            'environment/mobile_security',
             'experimental/features',
         ]);
         expect(idx.search('nginx')).toEqual([
@@ -78,7 +79,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
 
         const idx = generateIndex(AdminDefinition, intl, {[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2});
 
-        expect(idx.search('random')).toEqual(['plugin_Some-random-plugin', 'site_config/public_links']);
+        expect(idx.search('random')).toEqual(['site_config/users_and_teams', 'plugin_Some-random-plugin', 'site_config/public_links']);
         expect(idx.search('autolink')).toEqual(['plugin_mattermost-autolink']);
     });
 });

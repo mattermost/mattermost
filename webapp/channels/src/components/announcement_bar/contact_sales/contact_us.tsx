@@ -8,7 +8,6 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 export interface Props {
     buttonTextElement?: JSX.Element;
-    eventID?: string;
     customClass?: string;
 }
 

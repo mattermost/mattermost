@@ -880,6 +880,38 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	assert.Equal(t, expectedConfiguration, savedConfiguration)
 }
 
+func TestPluginAPISavePluginConfigPreservesOtherPlugins(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	otherPluginConfig := map[string]any{
+		"setting1": "value1",
+		"setting2": "value2",
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["otherplugin"] = otherPluginConfig
+	})
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	pluginConfig := map[string]any{"mystringsetting": "str"}
+	appErr := api.SavePluginConfig(pluginConfig)
+	require.Nil(t, appErr)
+
+	cfg := th.App.Config()
+	assert.Contains(t, cfg.PluginSettings.Plugins, "otherplugin")
+	assert.Equal(t, otherPluginConfig, cfg.PluginSettings.Plugins["otherplugin"])
+}
+
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1765,6 +1797,116 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
+func TestInterpluginPluginHTTPWithBodyAfterWriteHeader(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	setupMultiPluginAPITest(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"bytes"
+			"net/http"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v2/test" {
+				if r.URL.Query().Get("abc") != "xyz" {
+					return
+				}
+
+				if r.Header.Get("Mattermost-Plugin-ID") != "testpluginbodyafter" {
+					return
+				}
+
+				w.WriteHeader(598)
+				buf := bytes.Buffer{}
+				buf.ReadFrom(r.Body)
+				resp := "we got:" + buf.String()
+				w.Write([]byte(resp))
+			}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+			"bytes"
+			"net/http"
+			"io"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			buf := bytes.Buffer{}
+			buf.WriteString("This is the request body")
+			req, err := http.NewRequest("POST", "/testpluginbodyafterserver/api/v2/test?abc=xyz", &buf)
+			if err != nil {
+				return nil, err.Error()
+			}
+			req.Header.Add("Mattermost-User-Id", "userid")
+			resp := p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "Nil resp"
+			}
+			if resp.Body == nil {
+				return nil, "Nil body"
+			}
+			respbody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err.Error()
+			}
+			if resp.StatusCode != 598 {
+				return nil, "wrong status " + string(respbody)
+			}
+
+			if string(respbody) !=  "we got:This is the request body" {
+				return nil, "wrong response: " + string(respbody)
+			}
+
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "testpluginbodyafterserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testpluginbodyafter", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{
+			"testpluginbodyafterserver",
+			"testpluginbodyafter",
+		},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbodyafter")
+	require.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "ok", ret)
+}
+
 func TestInterpluginPluginHTTPStreaming(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2509,6 +2651,23 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
+
+	// Updating a command's trigger to one that already exists should fail.
+	cmd2 := &model.Command{
+		TeamId:  team1.Id,
+		Trigger: "uniquetrigger",
+		Method:  "G",
+		URL:     "http://test.com/uniquetrigger",
+	}
+	cmd2, appErr = api.CreateCommand(cmd2)
+	require.NoError(t, appErr)
+
+	cmd2.Trigger = "anotherNewTriggerAgain"
+	_, appErr = api.UpdateCommand(cmd2.Id, cmd2)
+	require.Error(t, appErr)
+	var appError *model.AppError
+	require.ErrorAs(t, appErr, &appError)
+	require.Equal(t, "api.command.duplicate_trigger.app_error", appError.Id)
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {
@@ -3358,5 +3517,194 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		count, err = api.CountPropertyFields("non-existent-group", true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
+	})
+}
+
+func TestPluginAPICreateTeamAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override team name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Anonymous URL Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		assert.True(t, model.IsValidId(createdTeam.Name), "team name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should preserve team name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-team-name"
+		team := &model.Team{
+			DisplayName: "Normal Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+
+	t.Run("should not override team name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Enterprise Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+}
+
+func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override open channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous URL Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "open channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should override private channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "private-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous Private Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "private channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+	})
+
+	t.Run("should preserve channel name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-channel"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
+	})
+
+	t.Run("should not override channel name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
 	})
 }

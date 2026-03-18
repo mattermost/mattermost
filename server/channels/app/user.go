@@ -125,20 +125,15 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 // This function handles the passwordless "guest magic link" flow where clicking an email link logs the user in.
 // Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
 func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
-	// Get and validate token type and expiry
-	token, err := a.Srv().Store().Token().GetByToken(tokenString)
+	// Atomically consume the token to prevent race conditions where concurrent
+	// requests could reuse the same single-use token to create multiple sessions.
+	// Try both valid token types for guest magic links.
+	token, err := a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
 	if err != nil {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if token.Type != model.TokenTypeGuestMagicLinkInvitation && token.Type != model.TokenTypeGuestMagicLink {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// We have the token we were looking for, so remove it from the database ASAP
-	err = a.Srv().Store().Token().Delete(tokenString)
-	if err != nil {
-		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
+		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLink, tokenString)
+		if err != nil {
+			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 	}
 
 	if token.IsExpired() {
@@ -195,7 +190,6 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		Email:         email,
 		EmailVerified: true,
 		Username:      username,
-		Password:      model.NewId(), // Random password - user won't use it
 		AuthService:   model.UserAuthServiceMagicLink,
 	}
 
@@ -442,9 +436,15 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser)
-	if err1 != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err1)
+
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	user, err := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -470,7 +470,7 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(rctx, userByEmail, user) {
-			if _, err := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+			if _, err = a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
 				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
 			}
@@ -481,13 +481,13 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	user.EmailVerified = true
 
-	ruser, err := a.CreateUser(rctx, user)
-	if err != nil {
-		return nil, err
+	ruser, appErr := a.CreateUser(rctx, user)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	if err = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); err != nil {
-		rctx.Logger().Warn("Failed to add user to team", mlog.Err(err))
+	if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); appErr != nil {
+		rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 	}
 
 	return ruser, nil
@@ -1083,6 +1083,10 @@ func (a *App) UpdatePasswordAsUser(rctx request.CTX, userID, currentPassword, ne
 		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
+	if user.IsMagicLinkEnabled() {
+		return model.NewAppError("updatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.DoubleCheckPassword(rctx, user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
@@ -1380,9 +1384,11 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	// First, creating a base copy to avoid race conditions
 	// from setting the binaryParamKey in userstore.Update.
 	user = user.DeepCopy()
-	// declare admin and unsanitized copy of user
+	// Create copies for different sanitization levels:
+	// - adminCopyOfUser: moderately sanitized for admins
+	// - sourceUserCopyOfUser: minimally sanitized (keeps NotifyProps) for event creator
 	adminCopyOfUser := user.DeepCopy()
-	unsanitizedCopyOfUser := user.DeepCopy()
+	sourceUserCopyOfUser := user.DeepCopy()
 
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
@@ -1396,9 +1402,9 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
-	// send unsanitized user to event creator
-	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil, "")
-	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
+	sourceUserCopyOfUser.Sanitize(nil)
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", sourceUserCopyOfUser.Id, nil, "")
+	sourceUserMessage.Add("user", sourceUserCopyOfUser)
 	a.Publish(sourceUserMessage)
 }
 
@@ -1623,6 +1629,10 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	if user.IsMagicLinkEnabled() {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	hashedPassword, err := hashers.Hash(newPassword)
 	if err != nil {
 		// can't be password length (checked in IsPasswordValid)
@@ -1740,7 +1750,7 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsMagicLinkEnabled() {
+	if user.IsMagicLinkEnabled() {
 		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
@@ -1777,7 +1787,7 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsMagicLinkEnabled() {
+	if user.IsMagicLinkEnabled() {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
@@ -2440,7 +2450,11 @@ func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term stri
 }
 
 func (a *App) UpdateOAuthUserAttrs(rctx request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser)
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
+	if err != nil {
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	oauthUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
@@ -2908,10 +2922,16 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		result.Total = result.TotalUnreadThreads
 	}
 
+	list := &model.PostList{
+		Posts: make(map[string]*model.Post, len(result.Threads)),
+	}
 	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
+		list.AddPost(thread.Post)
 	}
+
+	a.populatePostListTranslations(rctx, list)
 
 	return &result, nil
 }
@@ -2944,6 +2964,7 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
+	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
 }
 
@@ -3027,7 +3048,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
+	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -3040,6 +3061,16 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
+	defer a.LogAuditRec(rctx, auditRec, nil)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+	model.AddEventParameterToAuditRec(auditRec, "source", "UpdateThreadFollowForUserFromChannelAdd")
+	if !isMemberForPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+	auditRec.Success()
 
 	a.Publish(message)
 	return nil

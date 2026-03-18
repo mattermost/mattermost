@@ -86,8 +86,12 @@ describe('Move thread', () => {
     });
 
     afterEach(() => {
-        // # Go to 1. public channel
-        cy.visit(`/${testTeam.name}/channels/${gmChannel.name}`);
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
     });
 
     it('MM-T5514_1 Move post from GM (with at least 2 other users)', () => {

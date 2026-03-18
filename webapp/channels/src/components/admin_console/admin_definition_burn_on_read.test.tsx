@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import {LicenseSkus} from 'utils/constants';
 
 import AdminDefinition from './admin_definition';
-import type {AdminDefinitionSetting} from './types';
+import type {AdminDefinitionSetting, AdminDefinitionConfigSchemaSection} from './types';
 
 describe('AdminDefinition - Burn-on-Read Settings', () => {
     // Helper function to get all settings from all sections
@@ -26,7 +28,7 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
 
         // Find Burn-on-Read settings
         const enableSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
-        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationSeconds');
 
         expect(enableSetting).toBeDefined();
         expect(durationSetting).toBeDefined();
@@ -41,31 +43,31 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         expect(enableSetting?.help_text).toBeDefined();
     });
 
-    test('BurnOnReadDurationMinutes setting should have correct options', () => {
+    test('BurnOnReadDurationSeconds setting should have correct options', () => {
         const allSettings = getAllSettings();
-        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationSeconds');
 
         expect(durationSetting?.type).toBe('dropdown');
         expect(durationSetting?.onConfigLoad).toBeDefined();
 
         // Test that onConfigLoad returns default value when no value is provided
         if ('onConfigLoad' in durationSetting! && durationSetting.onConfigLoad) {
-            expect(durationSetting.onConfigLoad(null, {})).toBe('10');
-            expect(durationSetting.onConfigLoad(undefined, {})).toBe('10');
-            expect(durationSetting.onConfigLoad('5', {})).toBe('5');
+            expect(durationSetting.onConfigLoad(null, {})).toBe('600');
+            expect(durationSetting.onConfigLoad(undefined, {})).toBe('600');
+            expect(durationSetting.onConfigLoad('300', {})).toBe('300');
         }
 
-        // Check that all expected duration options are present
+        // Check that all expected duration options are present (in seconds)
         if ('options' in durationSetting!) {
             const options = durationSetting.options;
             const optionValues = options?.map((opt: any) => opt.value);
 
-            expect(optionValues).toContain('1'); // 1 minute
-            expect(optionValues).toContain('5'); // 5 minutes
-            expect(optionValues).toContain('10'); // 10 minutes (default)
-            expect(optionValues).toContain('30'); // 30 minutes
-            expect(optionValues).toContain('60'); // 1 hour
-            expect(optionValues).toContain('480'); // 8 hours
+            expect(optionValues).toContain('60'); // 1 minute
+            expect(optionValues).toContain('300'); // 5 minutes
+            expect(optionValues).toContain('600'); // 10 minutes (default)
+            expect(optionValues).toContain('1800'); // 30 minutes
+            expect(optionValues).toContain('3600'); // 1 hour
+            expect(optionValues).toContain('28800'); // 8 hours
         }
     });
 
@@ -108,7 +110,7 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
 
         // Find the Burn-on-Read section
-        const burnOnReadSection = sections?.find((section: any) => section.key === 'PostSettings.BurnOnRead');
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
         expect(burnOnReadSection).toBeDefined();
 
         // Check that the section uses LicensedSectionContainer
@@ -122,5 +124,37 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         expect(burnOnReadSection?.componentProps?.requiredSku).toBe(LicenseSkus.EnterpriseAdvanced);
         expect(burnOnReadSection?.componentProps?.featureDiscoveryConfig).toBeDefined();
         expect(burnOnReadSection?.componentProps?.featureDiscoveryConfig?.featureName).toBe('burn_on_read');
+    });
+
+    test('Burn-on-Read section isHidden should return true when feature flag is disabled', () => {
+        const postsSection = AdminDefinition.site.subsections.posts;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
+
+        // Find the Burn-on-Read section
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
+        expect(burnOnReadSection).toBeDefined();
+
+        // Check that isHidden is defined and is a function
+        expect(burnOnReadSection?.isHidden).toBeDefined();
+        expect(typeof burnOnReadSection?.isHidden).toBe('function');
+
+        // Test that isHidden function returns true when feature flag is false
+        const mockConfigDisabled: Partial<AdminConfig> = {FeatureFlags: {BurnOnRead: false}};
+        const isHiddenFn = burnOnReadSection!.isHidden as (config: Partial<AdminConfig>) => boolean;
+        expect(isHiddenFn(mockConfigDisabled)).toBe(true);
+    });
+
+    test('Burn-on-Read section isHidden should return false when feature flag is enabled', () => {
+        const postsSection = AdminDefinition.site.subsections.posts;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
+
+        // Find the Burn-on-Read section
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
+        expect(burnOnReadSection).toBeDefined();
+
+        // Test that isHidden function returns false when feature flag is true
+        const mockConfigEnabled: Partial<AdminConfig> = {FeatureFlags: {BurnOnRead: true}};
+        const isHiddenFn = burnOnReadSection!.isHidden as (config: Partial<AdminConfig>) => boolean;
+        expect(isHiddenFn(mockConfigEnabled)).toBe(false);
     });
 });

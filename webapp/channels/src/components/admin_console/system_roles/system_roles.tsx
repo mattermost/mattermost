@@ -45,7 +45,7 @@ const columns: Column[] = [
     },
 ];
 
-const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
+const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'shared_channel_manager', 'secure_connection_manager', 'system_read_only_admin'];
 
 const noop = () => {};
 
@@ -103,7 +103,6 @@ const SystemRoles = ({roles}: Props) => {
                             <DataGrid
                                 rows={rows}
                                 columns={columns}
-                                page={1}
                                 startCount={0}
                                 endCount={rows.length}
                                 loading={false}
