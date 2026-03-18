@@ -245,7 +245,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh knziId"
+                  class="Title-gYlSGh iZpUUA"
                 >
                   Discover community integrations
                   <svg
@@ -262,7 +262,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
                   </svg>
                 </div>
                 <p
-                  class="Description-dTdaMR hpUgfr"
+                  class="Description-dTdaMR kDIby"
                 >
                   Connect the tools you use most to Mattermost
                 </p>
