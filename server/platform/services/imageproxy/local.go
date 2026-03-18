@@ -19,6 +19,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
+
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -272,30 +275,23 @@ func isSVGContent(p *bufio.Reader) bool {
 		return false
 	}
 
-	var text string
-	if len(byt) >= 2 && byt[0] == 0xFF && byt[1] == 0xFE {
-		text = extractASCIIFromUTF16(byt[2:], 0) // UTF-16 LE
-	} else if len(byt) >= 2 && byt[0] == 0xFE && byt[1] == 0xFF {
-		text = extractASCIIFromUTF16(byt[2:], 1) // UTF-16 BE
-	} else {
-		text = string(byt)
-	}
-
-	lower := strings.TrimLeft(strings.ToLower(text), "\x00 \t\n\r")
-	return strings.Contains(lower, "<svg") ||
-		(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg"))
-}
-
-// extractASCIIFromUTF16 extracts ASCII characters from a UTF-16 byte slice.
-// charByteOffset is 0 for little-endian (low byte first) and 1 for big-endian.
-func extractASCIIFromUTF16(b []byte, charByteOffset int) string {
-	out := make([]byte, 0, len(b)/2)
-	for i := charByteOffset; i+1 < len(b); i += 2 {
-		if b[i] < 0x80 {
-			out = append(out, b[i])
+	// UseBOM selects endianness from a BOM when present (0xFF 0xFE → LE,
+	// 0xFE 0xFF → BE), defaulting to LE otherwise.
+	enc := unicode.UTF16(unicode.LittleEndian, unicode.UseBOM)
+	if decoded, _, decodeErr := transform.Bytes(enc.NewDecoder(), byt); decodeErr == nil {
+		lower := strings.ToLower(string(decoded))
+		if strings.Contains(lower, "<svg") ||
+			(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg")) {
+			return true
 		}
 	}
-	return string(out)
+
+	// Raw-byte scan for UTF-8 / ASCII content; interleaved-NUL patterns cover BOM-less UTF-16 BE.
+	rawLower := strings.ToLower(string(byt))
+	return strings.Contains(rawLower, "<svg") ||
+		(strings.Contains(rawLower, "<?xml") && strings.Contains(rawLower, "<svg")) ||
+		strings.Contains(rawLower, "<\x00s\x00v\x00g\x00") || // BOM-less UTF-16 LE
+		strings.Contains(rawLower, "\x00<\x00s\x00v\x00g") // BOM-less UTF-16 BE
 }
 
 // contentTypeMatches returns whether contentType matches one of the allowed patterns.
