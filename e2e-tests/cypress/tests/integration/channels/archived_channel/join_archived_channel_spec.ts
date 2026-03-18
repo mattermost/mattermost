@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
 import {getAdminAccount} from '../../../support/env';
@@ -103,7 +102,7 @@ describe('Archived channels', () => {
 function verifyViewingArchivedChannel(channel) {
     // * Verify that we've switched to the correct channel and that the header contains the archived icon
     cy.get('#channelHeaderTitle').should('contain', channel.display_name);
-    cy.get('#channelHeaderInfo .icon__archive').should('be.visible');
+    cy.findByTestId('channel-header-archive-icon').should('be.visible');
 
     // * Verify that the channel is visible in the sidebar with the archived icon
     cy.get(`#sidebarItem_${channel.name}`).should('be.visible').

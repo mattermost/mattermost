@@ -10,6 +10,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should fetch sh
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -97,6 +98,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -179,6 +181,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -261,6 +264,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -347,6 +351,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -429,6 +434,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />
@@ -521,6 +527,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
   to="http://a.fake.link"
 >
   <SidebarChannelIcon
+    channelType="O"
     icon={null}
     isDeleted={false}
   />

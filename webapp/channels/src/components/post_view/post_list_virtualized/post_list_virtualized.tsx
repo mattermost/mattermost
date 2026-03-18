@@ -93,6 +93,8 @@ type Props = {
 
     shouldStartFromBottomWhenUnread: boolean;
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /*
@@ -231,6 +233,24 @@ export default class PostList extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props, _prevState: State, snapshot: {previousScrollTop: number; previousScrollHeight: number}) {
         if (this.props.isMobileView && !prevProps.isMobileView) {
             this.scrollStopAction = new DelayedAction(this.handleScrollStop);
+        }
+
+        if (this.props.focusedPostId) {
+            const postListIds = this.state.postListIds;
+            const index = postListIds.indexOf(this.props.focusedPostId);
+
+            if (index !== -1) {
+                const focusedPostChanged = this.props.focusedPostId !== prevProps.focusedPostId;
+                const postJustLoaded = (prevProps.postListIds || []).indexOf(this.props.focusedPostId) === -1;
+
+                if (focusedPostChanged || postJustLoaded) {
+                    // Scroll to the focused post if it has changed or just been loaded.
+                    // This is necessary for inline permalink navigation where the channel remains the same
+                    // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
+                    // scrolling on prop updates after the initial mount.
+                    this.listRef.current?.scrollToItem(index, 'center');
+                }
+            }
         }
 
         if (!this.postListRef.current) {
@@ -374,6 +394,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
                     channelId={this.props.channelId}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );
@@ -704,7 +725,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                             id='postListContent'
                             className='post-list__content'
                         >
-                            <LatestPostReader postIds={this.props.postListIds}/>
+                            <LatestPostReader
+                                postIds={this.props.postListIds}
+                                autotranslated={this.props.isChannelAutotranslated}
+                            />
                             <AutoSizer>
                                 {({height, width}) => (
                                     <>

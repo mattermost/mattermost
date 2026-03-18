@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -19,16 +20,27 @@ type Props = {
     pluginPostTypes?: PluginsState['postTypes'];
     isRHS: boolean;
     compactDisplay?: boolean;
+    isChannelAutotranslated: boolean;
 }
 
-export default function MessageWithAdditionalContent({post, isEmbedVisible, pluginPostTypes, isRHS, compactDisplay}: Props) {
+export default function MessageWithAdditionalContent({
+    post,
+    isEmbedVisible,
+    pluginPostTypes,
+    isRHS,
+    compactDisplay,
+    isChannelAutotranslated,
+}: Props) {
     const hasPlugin = post.type && pluginPostTypes && Object.hasOwn(pluginPostTypes, post.type);
+    const {locale} = useIntl();
     let msg;
     const messageWrapper = (
         <PostMessageView
             post={post}
             isRHS={isRHS}
             compactDisplay={compactDisplay}
+            isChannelAutotranslated={isChannelAutotranslated}
+            userLanguage={locale}
         />
     );
     if (post.state === Posts.POST_DELETED || hasPlugin) {

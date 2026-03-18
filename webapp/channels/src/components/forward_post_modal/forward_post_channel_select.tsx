@@ -9,7 +9,7 @@ import type {OptionProps, SingleValueProps, OnChangeValue, DropdownIndicatorProp
 import AsyncSelect from 'react-select/async';
 
 import {
-    ArchiveOutlineIcon, ChevronDownIcon,
+    ChevronDownIcon,
     GlobeIcon,
     LockOutlineIcon,
     MessageTextOutlineIcon,
@@ -29,6 +29,7 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -74,7 +75,8 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     };
 
     if (channelIsArchived) {
-        icon = <ArchiveOutlineIcon {...iconProps}/>;
+        const ArchiveIcon = getArchiveIconComponent(details.type);
+        icon = <ArchiveIcon {...iconProps}/>;
     } else if (details.type === Constants.OPEN_CHANNEL) {
         icon = <GlobeIcon {...iconProps}/>;
     } else if (details.type === Constants.PRIVATE_CHANNEL) {

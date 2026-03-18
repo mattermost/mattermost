@@ -22,8 +22,6 @@ import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
-import {applyTheme, resetTheme} from 'utils/utils';
-
 import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
@@ -91,17 +89,15 @@ const AdminConsole = (props: Props) => {
     useEffect(() => {
         props.actions.getConfig();
         props.actions.getEnvironmentConfig();
-        props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager']);
+        props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager', 'shared_channel_manager', 'secure_connection_manager']);
         props.actions.selectLhsItem(LhsItemType.None);
         props.actions.selectTeam('');
         document.body.classList.add('console__body');
         document.getElementById('root')?.classList.add('console__root');
-        resetTheme();
 
         return () => {
             document.body.classList.remove('console__body');
             document.getElementById('root')?.classList.remove('console__root');
-            applyTheme(props.currentTheme);
 
             // Reset the admin console users management table properties
             props.actions.setAdminConsoleUsersManagementTableProperties();
@@ -124,7 +120,9 @@ const AdminConsole = (props: Props) => {
             roles.system_user_manager &&
             roles.system_read_only_admin &&
             roles.system_custom_group_admin &&
-            roles.system_manager
+            roles.system_manager &&
+            roles.shared_channel_manager &&
+            roles.secure_connection_manager
         );
     };
 

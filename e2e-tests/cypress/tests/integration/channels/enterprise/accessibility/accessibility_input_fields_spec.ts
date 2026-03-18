@@ -49,7 +49,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Add or Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -58,7 +58,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -166,7 +166,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
     });
 
-    it.only('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
+    it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
             // * Verify Accessibility Support in Main Post input
             cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');

@@ -7,6 +7,21 @@ import {fireEvent, render} from 'tests/react_testing_utils';
 
 import Scrollbars from './scrollbars';
 
+const originalGetComputedStyle = window.getComputedStyle;
+beforeAll(() => {
+    window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
+        if (pseudoElt) {
+            // Return an empty CSSStyleDeclaration-like object for pseudo elements
+            return {} as CSSStyleDeclaration;
+        }
+        return originalGetComputedStyle(elt);
+    };
+});
+
+afterAll(() => {
+    window.getComputedStyle = originalGetComputedStyle;
+});
+
 describe('Scrollbars', () => {
     test('should attach scroll handler to the correct element', () => {
         const onScroll = jest.fn();
@@ -17,7 +32,7 @@ describe('Scrollbars', () => {
             </Scrollbars>,
         );
 
-        // Ideally, we'd actually scroll the content of the element, but jsdom doesn't implement scroll events
+        // Simulate scrolling to verify the onScroll handler is attached correctly - fireEvent used because userEvent doesn't support scroll events
         fireEvent.scroll(document.querySelector('.simplebar-content-wrapper')!);
 
         expect(onScroll).toHaveBeenCalled();

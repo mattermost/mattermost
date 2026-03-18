@@ -980,7 +980,7 @@ func TestGetSystemBot(t *testing.T) {
 	})
 }
 
-func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
+func TestIsBotExemptFromDMRestrictions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("bot owned by current user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
@@ -1003,7 +1003,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 		require.Nil(t, err)
 
 		rctx := th.Context.WithSession(session)
-		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
 		require.Nil(t, appErr)
 		assert.True(t, owned)
 	})
@@ -1029,7 +1029,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 		require.Nil(t, err)
 
 		rctx := th.Context.WithSession(session)
-		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
 		require.Nil(t, appErr)
 		assert.False(t, owned)
 	})
@@ -1044,7 +1044,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 		require.Nil(t, err)
 
 		rctx := th.Context.WithSession(session)
-		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, model.NewId())
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, model.NewId())
 		require.NotNil(t, appErr)
 		assert.False(t, owned)
 		require.Equal(t, "store.sql_bot.get.missing.app_error", appErr.Id)
@@ -1072,7 +1072,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 		require.Nil(t, err)
 
 		rctx := th.Context.WithSession(session)
-		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
 		require.Nil(t, appErr)
 		assert.False(t, owned)
 	})
@@ -1118,8 +1118,32 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 		require.Nil(t, err)
 
 		rctx := th.Context.WithSession(session)
-		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
 		require.Nil(t, appErr)
 		assert.True(t, owned)
+	})
+
+	t.Run("system bot is always exempt regardless of session", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Exempt even with an empty context (background job with no session)
+		exempt, appErr := th.App.IsBotExemptFromDMRestrictions(th.Context, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
+
+		// Exempt even when the session belongs to an unrelated non-admin user
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		exempt, appErr = th.App.IsBotExemptFromDMRestrictions(rctx, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
 	})
 }

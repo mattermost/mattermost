@@ -33,7 +33,6 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -55,6 +54,7 @@ type Props = {
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
     isBurnOnReadPost?: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
     actions: {
@@ -210,7 +210,7 @@ const PostOptions = (props: Props): JSX.Element => {
     let pluginItems: ReactNode = null;
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
 
-    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal && pluginItemsVisible) {
+    if ((!isEphemeral && !post.failed && !systemMessage && !isBurnOnReadPost) && hoverLocal && pluginItemsVisible) {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
@@ -239,6 +239,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 isReadOnly={isReadOnly || channelIsArchived}
                 isMenuOpen={showDotMenu}
                 enableEmojiPicker={props.enableEmojiPicker}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         </li>
     );

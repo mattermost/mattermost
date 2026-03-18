@@ -18,17 +18,19 @@ import (
 )
 
 const (
-	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
-	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
-	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
-	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
-	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
-	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
-	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
-	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
-	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
-	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v5"
+	EmojisPermissionsMigrationKey                   = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey    = "SharedChannelManagerRoleCreationMigrationComplete"
+	SecureConnectionManagerRoleCreationMigrationKey = "SecureConnectionManagerRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                    = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey       = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                     = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                 = "v5"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -323,32 +325,52 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 	return nil
 }
 
-func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(CustomGroupAdminRoleCreationMigrationKey); err == nil {
+	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
 		return nil
 	} else if !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
-			return fmt.Errorf("failed to create new role %s: %w", model.SystemCustomGroupAdminRoleId, err)
+	role := roles[roleId]
+	if role == nil {
+		return fmt.Errorf("unknown role id: %q", roleId)
+	}
+	var nfRoleErr *store.ErrNotFound
+	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
+		if !errors.As(err, &nfRoleErr) {
+			return fmt.Errorf("could not query role %q: %w", roleId, err)
+		}
+		if _, err := s.Store().Role().Save(role); err != nil {
+			return fmt.Errorf("failed to create new role %q: %w", roleId, err)
 		}
 	}
 
 	system := model.System{
-		Name:  CustomGroupAdminRoleCreationMigrationKey,
+		Name:  migrationKey,
 		Value: "true",
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		return fmt.Errorf("failed to mark custom group admin role creation migration as completed: %w", err)
+		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
 	return nil
+}
+
+func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(CustomGroupAdminRoleCreationMigrationKey, model.SystemCustomGroupAdminRoleId)
+}
+
+func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
+}
+
+func (s *Server) doSecureConnectionManagerRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(SecureConnectionManagerRoleCreationMigrationKey, model.SecureConnectionManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -617,14 +639,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyAccessService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}
@@ -718,13 +740,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+		if _, err := s.propertyAccessService.CreatePropertyField(anonymousCallerId, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyAccessService.UpdatePropertyFields(anonymousCallerId, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}
@@ -842,6 +864,8 @@ func (s *Server) doAppMigrations() {
 		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
+		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
+		{"Secure Connection Manager Role Creation Migration", s.doSecureConnectionManagerRoleCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},

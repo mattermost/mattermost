@@ -170,3 +170,17 @@ export function getDesktopVersion(): string {
     const match = regex.exec(window.navigator.appVersion)?.[1] || '';
     return match;
 }
+
+export function isTeamsMobile(): boolean {
+    return userAgent().indexOf('TeamsMobile-Android') !== -1 ||
+           userAgent().indexOf('TeamsMobile-iOS') !== -1 ||
+           (isMobile() && userAgent().indexOf('Teams/') !== -1);
+}
+
+export function isOutlookMobile(): boolean {
+    return userAgent().indexOf('PKeyAuth/1.0') !== -1;
+}
+
+export function isM365Mobile(): boolean {
+    return isTeamsMobile() || isOutlookMobile();
+}

@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - "webapp/**"
-      - "e2e-tests/**"
       - ".github/workflows/webapp-ci.yml"
       - ".github/actions/webapp-setup/**"
 
@@ -23,7 +22,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/lint
@@ -38,21 +37,30 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/i18n-extract
+        working-directory: webapp/channels
+        run: |
+          npm run i18n-extract:check
+
+  check-external-links:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
-      - name: ci/lint
-        working-directory: webapp/channels
+      - name: ci/check-external-links
         run: |
-          cp src/i18n/en.json /tmp/en.json
-          mkdir -p /tmp/fake-mobile-dir/assets/base/i18n/
-          echo '{}' > /tmp/fake-mobile-dir/assets/base/i18n/en.json
-          npm run mmjstool -- i18n extract-webapp --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir
-          diff /tmp/en.json src/i18n/en.json
-          # Address weblate behavior which does not remove whole translation item when translation string is set to empty
-          npm run mmjstool -- i18n clean-empty --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir --check
-          npm run mmjstool -- i18n check-empty-src --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir
-          rm -rf tmp
+          set -o pipefail
+          npm run check-external-links -- --markdown | tee -a $GITHUB_STEP_SUMMARY
 
   check-types:
     needs: check-lint
@@ -62,7 +70,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/lint
@@ -82,21 +90,22 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci --workspace=platform/client --workspace=platform/components -- --coverage
+          npm run test-ci --workspace=platform/client --workspace=platform/components --workspace=platform/shared -- --coverage
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: coverage-platform
           path: |
             ./webapp/platform/client/coverage
             ./webapp/platform/components/coverage
+            ./webapp/platform/shared/coverage
           retention-days: 1
 
   test-mattermost-redux:
@@ -112,7 +121,7 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
@@ -121,7 +130,7 @@ jobs:
         run: |
           npm run test-ci -- --config jest.config.mattermost-redux.js
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: coverage-mattermost-redux
           path: ./webapp/channels/coverage
@@ -144,7 +153,7 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
@@ -153,7 +162,7 @@ jobs:
         run: |
           npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: coverage-channels-shard-${{ matrix.shard }}
           path: ./webapp/channels/coverage/shard-${{ matrix.shard }}
@@ -168,11 +177,11 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/download-coverage-artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: coverage-*
           path: webapp/channels/coverage-artifacts
@@ -209,7 +218,7 @@ jobs:
           npx nyc report --reporter=text-summary --reporter=lcov --temp-dir .nyc_output --report-dir coverage/merged
           echo "Coverage merged successfully"
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
@@ -223,7 +232,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/build

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
 import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import {mockStore} from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import NotifyCounts from './';
 
@@ -16,27 +15,24 @@ describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(22);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.find('.badge-notify').text()).toBe('22');
+        expect(container.querySelector('.badge-notify')?.textContent).toBe('22');
     });
 
     test('should show unread messages', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(true);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.find('.badge-notify').text()).toBe('•');
+        expect(container.querySelector('.badge-notify')?.textContent).toBe('•');
     });
 
     test('should show not show unread indicator', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(false);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.html()).toBe('');
+        expect(container.querySelector('.badge-notify')).toBeNull();
     });
 });
