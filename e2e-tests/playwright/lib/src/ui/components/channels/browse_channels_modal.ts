@@ -6,6 +6,8 @@ import {Locator, expect} from '@playwright/test';
 export default class BrowseChannelsModal {
     readonly container: Locator;
 
+    readonly createNewChannelButton: Locator;
+    readonly hideJoinedCheckbox: Locator;
     readonly searchInput: Locator;
 
     readonly results: Locator;
@@ -13,6 +15,8 @@ export default class BrowseChannelsModal {
     constructor(container: Locator) {
         this.container = container;
 
+        this.createNewChannelButton = container.getByRole('button', {name: 'Create New Channel'});
+        this.hideJoinedCheckbox = container.getByRole('checkbox', {name: 'Hide Joined'});
         this.searchInput = container.getByRole('textbox', {name: 'Search channels'});
 
         // This role seems incorrect and will likely need to be changed later
