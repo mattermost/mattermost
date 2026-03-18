@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useParams} from 'react-router-dom';
+import {useLocation, useParams} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -22,6 +22,7 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadStatusesByIds} from 'actions/status_actions';
+import {selectPost} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
 
 import {usePost} from 'components/common/hooks/usePost';
@@ -30,6 +31,7 @@ import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
+import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 import {isDesktopApp} from 'utils/user_agent';
@@ -55,6 +57,8 @@ export default function ThreadPopout() {
     const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
 
     const {postId, team: teamName} = useParams<{team: string; postId: string}>();
+    const location = useLocation();
+    const returnTo = new URLSearchParams(location.search).get('returnTo');
     const currentUserId = useSelector(getCurrentUserId);
 
     const post = usePost(postId);
@@ -71,6 +75,12 @@ export default function ThreadPopout() {
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     usePopoutTitle(getThreadPopoutTitle(channel));
+
+    useEffect(() => {
+        if (post) {
+            dispatch(selectPost(post));
+        }
+    }, [dispatch, post]);
 
     const channelId = post?.channel_id;
     useEffect(() => {
@@ -130,6 +140,12 @@ export default function ThreadPopout() {
         };
     }, []);
 
+    const backAction = useCallback(() => {
+        if (returnTo) {
+            getHistory().replace(returnTo);
+        }
+    }, [returnTo]);
+
     if (!thread) {
         return null;
     }
@@ -139,6 +155,7 @@ export default function ThreadPopout() {
             {isDesktopApp() && <UnreadsStatusHandler/>}
             <ThreadPane
                 thread={thread}
+                backAction={returnTo ? backAction : undefined}
             >
                 <ThreadViewer
                     rootPostId={postId}

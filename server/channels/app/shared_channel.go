@@ -150,8 +150,8 @@ func (a *App) HasRemote(channelID string, remoteID string) (bool, error) {
 	return a.Srv().Store().SharedChannel().HasRemote(channelID, remoteID)
 }
 
-func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store().SharedChannel().GetRemoteForUser(remoteID, userID)
+func (a *App) GetRemoteClusterForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
+	rc, err := a.Srv().Store().SharedChannel().GetRemoteForUser(remoteID, userID, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

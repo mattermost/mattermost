@@ -286,6 +286,7 @@ export class DesktopAppAPI {
 
     sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
     sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
+    updatePopoutTitleTemplate = (template: string) => window.desktopAPI?.updatePopoutTitleTemplate?.(template);
 
     /*********************************************************************
      * Helper functions for legacy code

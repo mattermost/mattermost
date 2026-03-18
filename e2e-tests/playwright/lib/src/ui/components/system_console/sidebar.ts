@@ -245,7 +245,7 @@ class SiteConfigurationCategory extends SidebarCategory {
         this.systemWideNotifications = this.section('System-wide Notifications');
         this.emoji = this.section('Emoji');
         this.posts = this.section('Posts');
-        this.contentFlagging = this.section('Content Flagging');
+        this.contentFlagging = this.section('Data Spillage Handling');
         this.moveThread = this.section('Move Thread (Beta)');
         this.fileSharingAndDownloads = this.section('File Sharing and Downloads');
         this.publicLinks = this.section('Public Links');
