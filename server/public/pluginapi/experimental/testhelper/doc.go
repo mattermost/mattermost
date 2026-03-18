@@ -19,6 +19,17 @@
 //   - Docker must be running (tests fail if Docker is unavailable; set SKIP_DOCKER_TESTS to skip)
 //   - The plugin bundle must exist at dist/*.tar.gz (handled by `make test` which depends on `make dist`)
 //
+// # Build tag
+//
+// All test files use the "integration" build tag. This is necessary because the
+// mattermost server CI runs tests inside a Docker container without access to the
+// Docker socket, which causes testcontainers-go to panic. Plugin repos run tests
+// directly on GitHub Actions runners where Docker is available natively.
+//
+// To run the tests:
+//
+//	go test -tags=integration ./...
+//
 // # Environment variables
 //
 //   - MM_TEST_IMAGE: Override the Mattermost Docker image (default: mattermost/mattermost-enterprise-edition:latest).
