@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import './custom_profile_attributes.scss';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
@@ -135,12 +135,10 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
         <div className='custom-profile-attributes'>
             <SettingsGroup
                 id={props.id}
-                title={
-                    <FormattedMessage
-                        id='admin.customProfileAttributes.title'
-                        defaultMessage='Custom profile attributes sync'
-                    />
-                }
+                title={defineMessage({
+                    id: 'admin.customProfileAttributes.title',
+                    defaultMessage: 'Custom profile attributes sync',
+                })}
                 container={false}
                 subtitle={
                     <FormattedMessage

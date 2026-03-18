@@ -114,3 +114,47 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 
 	return nil
 }
+
+// PostBurnOnReadCheckWithApp validates whether a burn-on-read post can be created
+// based on channel type and participants. This is called from the API layer before
+// post creation to enforce burn-on-read restrictions.
+func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, channelId, postType string, channel *model.Channel) *model.AppError {
+	// Only validate if this is a burn-on-read post
+	if postType != model.PostTypeBurnOnRead {
+		return nil
+	}
+
+	// Get channel if not provided
+	if channel == nil {
+		ch, err := a.GetChannel(rctx, channelId)
+		if err != nil {
+			return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		channel = ch
+	}
+
+	// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)
+	if channel.Type == model.ChannelTypeDirect {
+		// Check if it's a self-DM by comparing the channel name with the expected self-DM name
+		selfDMName := model.GetDMNameFromIds(userId, userId)
+		if channel.Name == selfDMName {
+			return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.self_dm.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		// Check if the DM is with a bot (AI agents, plugins, etc.)
+		otherUserId := channel.GetOtherUserIdForDM(userId)
+		if otherUserId != "" && otherUserId != userId {
+			otherUser, err := a.GetUser(otherUserId)
+			if err != nil {
+				// Failed to retrieve the other user (user not found, DB error, etc.)
+				// Block burn-on-read post as we cannot validate the recipient
+				return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			if otherUser.IsBot {
+				return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
+}

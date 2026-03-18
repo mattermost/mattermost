@@ -6,8 +6,6 @@
       description: |
         List all the Custom Profile Attributes fields.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -31,8 +29,6 @@
       summary: Create a Custom Profile Attribute field
       description: |
         Create a new Custom Profile Attribute field on the system.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -121,8 +117,6 @@
 
         **Note:** Fields with `attrs.protected = true` cannot be
         modified and will return an error.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -214,8 +208,6 @@
         Marks a Custom Profile Attribute field and all its values as
         deleted.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -256,8 +248,6 @@
 
         **Note:** Values for fields with `attrs.protected = true` cannot be
         updated and will return an error.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -343,8 +333,6 @@
       description: |
         List all the Custom Profile Attributes values for specified user.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -386,8 +374,6 @@
 
         **Note:** Values for fields with `attrs.protected = true` cannot be
         updated and will return an error.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 11
 

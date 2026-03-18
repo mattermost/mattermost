@@ -655,9 +655,13 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: channelPrefix,
-            items: combinedItems,
-            terms: combinedTerms,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: combinedItems,
+                terms: combinedTerms,
+                component: ConnectedSwitchChannelSuggestion,
+            }],
         });
     }
 

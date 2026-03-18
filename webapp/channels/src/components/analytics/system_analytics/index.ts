@@ -3,7 +3,8 @@
 
 import {connect} from 'react-redux';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 
 import type {GlobalState} from 'types/store';
 
@@ -15,8 +16,11 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         isLicensed,
+        license,
         stats: state.entities.admin.analytics,
+        config: getConfig(state),
         pluginStatHandlers: state.plugins.siteStatsHandlers,
+        serverLimits: getServerLimits(state),
     };
 }
 

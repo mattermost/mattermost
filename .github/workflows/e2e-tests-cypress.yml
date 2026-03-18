@@ -33,11 +33,6 @@ on:
         required: false
         default: mattermostdevelopment
         description: "Docker registry: mattermostdevelopment (default) or mattermost"
-      skip_smoke:
-        type: boolean
-        required: false
-        default: false
-        description: "Skip smoke tests and run full tests directly"
       server_image_aliases:
         type: string
         required: false
@@ -70,6 +65,7 @@ jobs:
       build_id: "${{ steps.build-vars.outputs.build_id }}"
       server_image_tag: "${{ steps.build-vars.outputs.server_image_tag }}"
       server_image: "${{ steps.build-vars.outputs.server_image }}"
+      context_suffix: "${{ steps.build-vars.outputs.context_suffix }}"
     steps:
       - name: ci/generate-build-variables
         id: build-vars
@@ -130,46 +126,23 @@ jobs:
             echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-cypress-onprem-ent" >> $GITHUB_OUTPUT
           fi
 
-  cypress-smoke:
-    if: ${{ !inputs.skip_smoke }}
-    needs:
-      - generate-build-variables
-    uses: ./.github/workflows/e2e-tests-cypress-template.yml
-    with:
-      test_type: smoke
-      test_filter: "--stage=@prod --group=@smoke"
-      workers: 1
-      timeout_minutes: 30
-      enabled_docker_services: "postgres inbucket"
-      commit_sha: ${{ inputs.commit_sha }}
-      branch: ${{ needs.generate-build-variables.outputs.branch }}
-      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
-      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
-      server_edition: ${{ inputs.server_edition }}
-      server_image_repo: ${{ inputs.server_image_repo }}
-      server_image_aliases: ${{ inputs.server_image_aliases }}
-      server: ${{ inputs.server }}
-      context_name: "e2e-test/cypress-smoke/${{ inputs.server_edition || 'enterprise' }}"
-    secrets:
-      MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
-      AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
-      PUSH_NOTIFICATION_SERVER: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
-      CWS_URL: ${{ secrets.CWS_URL }}
-      CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+          # Generate context name suffix based on report type
+          REPORT_TYPE="${{ inputs.report_type }}"
+          case "$REPORT_TYPE" in
+            MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
+            RELEASE) echo "context_suffix=/release" >> $GITHUB_OUTPUT ;;
+            RELEASE_CUT) echo "context_suffix=/release-cut" >> $GITHUB_OUTPUT ;;
+            *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
+          esac
 
-  # Full Tests (runs if smoke passed or skipped)
   cypress-full:
     needs:
-      - cypress-smoke
       - generate-build-variables
-    if: always() && (needs.cypress-smoke.result == 'skipped' || needs.cypress-smoke.outputs.failed == '0')
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
       test_type: full
       test_filter: '--stage="@prod" --excludeGroup="@te_only,@cloud_only,@high_availability" --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap" --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"'
-      workers: 20
-      timeout_minutes: 60
+      workers: 40
       enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
@@ -183,7 +156,7 @@ jobs:
       report_type: ${{ inputs.report_type }}
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
-      context_name: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}"
+      context_name: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}

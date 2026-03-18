@@ -147,6 +147,7 @@ type MetricsInterfaceImpl struct {
 	WebsocketBroadcastDraftCreated                prometheus.Counter
 	WebsocketBroadcastDraftUpdated                prometheus.Counter
 	WebsocketBroadcastDraftDeleted                prometheus.Counter
+	WebsocketBroadcastPostTranslationUpdated      prometheus.Counter
 
 	WebSocketBroadcastOther                      prometheus.Counter
 	WebSocketBroadcastBufferGauge                *prometheus.GaugeVec
@@ -234,6 +235,8 @@ type MetricsInterfaceImpl struct {
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
+
+	PluginWebappPerf *prometheus.HistogramVec
 
 	AccessControlExpressionCompileDuration prometheus.Histogram
 	AccessControlEvaluateDuration          prometheus.Histogram
@@ -689,6 +692,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.WebsocketBroadcastDraftCreated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventDraftCreated)})
 	m.WebsocketBroadcastDraftUpdated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventDraftUpdated)})
 	m.WebsocketBroadcastDraftDeleted = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventDraftDeleted)})
+	m.WebsocketBroadcastPostTranslationUpdated = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": string(model.WebsocketEventPostTranslationUpdated)})
 	m.WebSocketBroadcastOther = m.WebSocketBroadcastCounters.With(prometheus.Labels{"name": "other"})
 
 	m.WebsocketEventCounters = prometheus.NewCounterVec(
@@ -1369,6 +1373,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
 
+	// Plugin webapp performance metrics
+	m.PluginWebappPerf = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemPlugin,
+			Name:      "webapp_perf",
+			Help:      "Plugin webapp performance measurements",
+		}),
+		[]string{"platform", "agent", "plugin_id", "plugin_metric_label"},
+	)
+	m.Registry.MustRegister(m.PluginWebappPerf)
+
 	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1804,6 +1820,8 @@ func (mi *MetricsInterfaceImpl) IncrementWebSocketBroadcast(eventType model.Webs
 		mi.WebsocketBroadcastDraftUpdated.Inc()
 	case model.WebsocketEventDraftDeleted:
 		mi.WebsocketBroadcastDraftDeleted.Inc()
+	case model.WebsocketEventPostTranslationUpdated:
+		mi.WebsocketBroadcastPostTranslationUpdated.Inc()
 	default:
 		mi.WebSocketBroadcastOther.Inc()
 	}
@@ -2200,6 +2218,15 @@ func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent, us
 func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent, userID string, elapsed float64) {
 	effectiveUserID := mi.getEffectiveUserID(userID)
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObservePluginWebappPerf(platform, agent, pluginID, pluginMetricLabel string, elapsed float64) {
+	mi.PluginWebappPerf.With(prometheus.Labels{
+		"platform":            platform,
+		"agent":               agent,
+		"plugin_id":           pluginID,
+		"plugin_metric_label": pluginMetricLabel,
+	}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {

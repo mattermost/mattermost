@@ -17,8 +17,15 @@
 }
 
 .localization-section-title {
+    display: flex;
     margin: unset;
     font-size: 16px;
+    gap: 6px;
+    
+    .Tag {
+        position: relative;
+        top: -1px;
+    }
 }
 
 .localization-section-description {

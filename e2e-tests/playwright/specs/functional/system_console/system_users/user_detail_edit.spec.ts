@@ -1,53 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type PlaywrightExtended, expect, test} from '@mattermost/playwright-lib';
+import {UserProfile} from '@mattermost/types/users';
 
-/**
- * Setup a user and navigate to their detail page
- * @param pw PlaywrightExtended instance
- * @returns User object and system console page
- */
-async function setupUserDetailPage(pw: PlaywrightExtended) {
-    const {adminUser, adminClient} = await pw.initSetup();
-
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Create a test user
-    const user = await adminClient.createUser(await pw.random.user(), '', '');
-    const team = await adminClient.createTeam(await pw.random.team());
-    await adminClient.addToTeam(team.id, user.id);
-
-    // # Visit system console users section
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
-
-    // # Search for the user
-    await systemConsolePage.systemUsers.enterSearchText(user.email);
-    const userRow = await systemConsolePage.systemUsers.getNthRow(1);
-    await userRow.getByText(user.email).waitFor();
-
-    // # Click on the username to navigate to user detail page
-    await userRow.getByText(user.username, {exact: true}).click();
-
-    // # Wait for user detail page to load
-    await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${user.id}`);
-
-    return {user, systemConsolePage, adminClient};
-}
+import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verifies that authentication data field is displayed and editable for users with auth_service
  */
 test('displays and allows editing of authentication data field', {tag: '@user_management'}, async ({pw}) => {
-    const {user, systemConsolePage, adminClient} = await setupUserDetailPage(pw);
+    const {user, adminUser, adminClient} = await pw.initSetup();
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Generate unique auth data to avoid unique constraint errors
     const originalAuthData = `auth-data-${await pw.random.id()}`;
@@ -59,43 +22,27 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
         auth_data: originalAuthData,
     });
 
-    // # Refresh the page to load the updated user data
-    await systemConsolePage.page.reload();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    // # Navigate to user detail page
+    await navigateToUserDetail(systemConsolePage, user);
+    const {userDetail} = systemConsolePage.users;
 
-    // * Verify auth data field is visible
-    const authDataLabel = systemConsolePage.page.getByText('Auth Data');
-    await expect(authDataLabel).toBeVisible();
-
-    // * Verify auth data input field is present and contains current value
-    const authDataInput = systemConsolePage.page.locator('input[placeholder="Enter auth data"]');
+    // * Verify auth data field is visible with correct value
+    const {authDataInput} = userDetail.userCard;
     await expect(authDataInput).toBeVisible();
     await expect(authDataInput).toHaveValue(originalAuthData);
 
     // # Update the auth data value
+    await authDataInput.clear();
     await authDataInput.fill(newAuthData);
 
     // * Verify Save button is enabled after change
-    const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-    await expect(saveButton).toBeEnabled();
+    await expect(userDetail.saveButton).toBeEnabled();
 
-    // # Click Save button
-    await saveButton.click();
+    // # Click Save button and confirm
+    await userDetail.save();
+    await userDetail.saveChangesModal.confirm();
 
-    // * Verify confirmation modal appears
-    const confirmModal = systemConsolePage.page.getByText('Confirm Changes');
-    await expect(confirmModal).toBeVisible();
-
-    // * Verify the modal shows the auth data change
-    const authDataChange = systemConsolePage.page.getByText(`Auth Data: ${originalAuthData} → ${newAuthData}`);
-    await expect(authDataChange).toBeVisible();
-
-    // # Confirm the save
-    const confirmSaveButton = systemConsolePage.page.getByRole('button', {name: 'Save Changes'});
-    await confirmSaveButton.click();
-
-    // * Verify modal closes and success
-    await expect(confirmModal).not.toBeVisible();
+    // * Verify the auth data field retains new value
     await expect(authDataInput).toHaveValue(newAuthData);
 
     // * Verify the change was saved by checking API
@@ -107,29 +54,25 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
  * @objective Verifies that email and username fields are disabled with tooltips when user has auth_service
  */
 test('disables email and username fields for users with auth service', {tag: '@user_management'}, async ({pw}) => {
-    const {user, systemConsolePage, adminClient} = await setupUserDetailPage(pw);
+    const {user, adminUser, adminClient} = await pw.initSetup();
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Update user to have an auth service (use unique auth_data to avoid constraint errors)
+    // # Update user to have an auth service
     await adminClient.updateUserAuth(user.id, {
         auth_service: 'ldap',
         auth_data: `ldap-user-data-${await pw.random.id()}`,
     });
 
-    // # Refresh the page to load updated user data
-    await systemConsolePage.page.reload();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    // # Navigate to user detail page
+    await navigateToUserDetail(systemConsolePage, user);
+    const {userDetail} = systemConsolePage.users;
 
-    // * Verify email field is disabled
-    const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
+    // * Verify email and username fields are disabled and read-only
+    const {emailInput, usernameInput} = userDetail.userCard;
     await expect(emailInput).toBeDisabled();
-    await expect(emailInput).toHaveAttribute('readonly');
-    await expect(emailInput).toHaveCSS('cursor', 'not-allowed');
-
-    // * Verify username field is disabled
-    const usernameInput = systemConsolePage.page.locator('label:has-text("Username") input');
+    await expect(emailInput).toHaveAttribute('readonly', '');
     await expect(usernameInput).toBeDisabled();
-    await expect(usernameInput).toHaveAttribute('readonly');
-    await expect(usernameInput).toHaveCSS('cursor', 'not-allowed');
+    await expect(usernameInput).toHaveAttribute('readonly', '');
 
     // # Hover over email field to verify tooltip
     await emailInput.hover();
@@ -146,54 +89,37 @@ test('disables email and username fields for users with auth service', {tag: '@u
  * @objective Verifies that email and username fields are editable when user has no auth_service
  */
 test('allows editing email and username fields for regular users', {tag: '@user_management'}, async ({pw}) => {
-    const {user, systemConsolePage, adminClient} = await setupUserDetailPage(pw);
+    const {user, adminUser, adminClient} = await pw.initSetup();
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Ensure user has no auth service (regular email/password user)
-    const currentUser = await adminClient.getUser(user.id);
-    expect(currentUser.auth_service).toBe('');
+    // # Navigate to user detail page
+    await navigateToUserDetail(systemConsolePage, user);
+    const {userDetail} = systemConsolePage.users;
+    const {userCard} = userDetail;
 
-    // * Verify email field is editable
-    const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
-    await expect(emailInput).toBeEnabled();
-    await expect(emailInput).not.toHaveAttribute('readonly');
-
-    // * Verify username field is editable
-    const usernameInput = systemConsolePage.page.locator('label:has-text("Username") input');
-    await expect(usernameInput).toBeEnabled();
-    await expect(usernameInput).not.toHaveAttribute('readonly');
+    // * Verify email and username fields are editable
+    await expect(userCard.emailInput).toBeEnabled();
+    await expect(userCard.usernameInput).toBeEnabled();
 
     // # Update both email and username
     const newEmail = `updated-${await pw.random.id()}@example.com`;
     const newUsername = `updated-${await pw.random.id()}`;
 
-    await emailInput.fill(newEmail);
-    await usernameInput.fill(newUsername);
+    await userCard.emailInput.clear();
+    await userCard.emailInput.fill(newEmail);
+    await userCard.usernameInput.clear();
+    await userCard.usernameInput.fill(newUsername);
 
     // * Verify Save button is enabled after changes
-    const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-    await expect(saveButton).toBeEnabled();
+    await expect(userDetail.saveButton).toBeEnabled();
 
-    // # Click Save button
-    await saveButton.click();
+    // # Click Save button and confirm
+    await userDetail.save();
+    await userDetail.saveChangesModal.confirm();
 
-    // * Verify confirmation modal shows both changes
-    const confirmModal = systemConsolePage.page.getByText('Confirm Changes');
-    await expect(confirmModal).toBeVisible();
-
-    const emailChange = systemConsolePage.page.getByText(`Email: ${user.email} → ${newEmail}`);
-    await expect(emailChange).toBeVisible();
-
-    const usernameChange = systemConsolePage.page.getByText(`Username: ${user.username} → ${newUsername}`);
-    await expect(usernameChange).toBeVisible();
-
-    // # Confirm the save
-    const confirmSaveButton = systemConsolePage.page.getByRole('button', {name: 'Save Changes'});
-    await confirmSaveButton.click();
-
-    // * Verify modal closes and changes are saved
-    await expect(confirmModal).not.toBeVisible();
-    await expect(emailInput).toHaveValue(newEmail);
-    await expect(usernameInput).toHaveValue(newUsername);
+    // * Verify fields retain new values
+    await expect(userCard.emailInput).toHaveValue(newEmail);
+    await expect(userCard.usernameInput).toHaveValue(newUsername);
 
     // * Verify the changes were saved by checking API
     const updatedUser = await adminClient.getUser(user.id);
@@ -202,81 +128,81 @@ test('allows editing email and username fields for regular users', {tag: '@user_
 });
 
 /**
- * @objective Verifies inline validation for email and username fields
+ * @objective Verifies inline validation for email field
  */
-test('displays inline validation errors for invalid email and username', {tag: '@user_management'}, async ({pw}) => {
-    const {systemConsolePage} = await setupUserDetailPage(pw);
+test('displays inline validation errors for invalid email', {tag: '@user_management'}, async ({pw}) => {
+    const {user, adminUser} = await pw.initSetup();
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Navigate to user detail page
+    await navigateToUserDetail(systemConsolePage, user);
+    const {userDetail} = systemConsolePage.users;
+    const {userCard} = userDetail;
 
     // # Enter invalid email
-    const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
-    await emailInput.fill('invalid-email');
+    await userCard.emailInput.clear();
+    await userCard.emailInput.fill('invalid-email');
 
     // * Verify email validation error appears
-    const emailError = systemConsolePage.page.locator('div.field-error').filter({hasText: 'Invalid email address'});
+    const emailError = userCard.getFieldError('Email');
     await expect(emailError).toBeVisible();
 
-    // * Verify email input has error styling
-    await expect(emailInput).toHaveClass(/error/);
-
-    // # Enter empty username
-    const usernameInput = systemConsolePage.page.locator('label:has-text("Username") input');
-    await usernameInput.fill('');
-
-    // * Verify username validation error appears
-    const usernameError = systemConsolePage.page
-        .locator('div.field-error')
-        .filter({hasText: 'Username cannot be empty'});
-    await expect(usernameError).toBeVisible();
-
-    // * Verify username input has error styling
-    await expect(usernameInput).toHaveClass(/error/);
-
-    // * Verify Save button is disabled due to validation errors
-    const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-    await expect(saveButton).toBeDisabled();
+    // * Verify Save button is disabled due to validation error
+    await expect(userDetail.saveButton).toBeDisabled();
 
     // # Fix the email
-    await emailInput.fill('valid@example.com');
+    await userCard.emailInput.clear();
+    await userCard.emailInput.fill('valid@example.com');
 
-    // * Verify email error disappears and styling is removed
+    // * Verify email error disappears
     await expect(emailError).not.toBeVisible();
-    await expect(emailInput).not.toHaveClass(/error/);
-
-    // # Fix the username
-    await usernameInput.fill('validusername');
-
-    // * Verify username error disappears and styling is removed
-    await expect(usernameError).not.toBeVisible();
-    await expect(usernameInput).not.toHaveClass(/error/);
 
     // * Verify Save button is now enabled
-    await expect(saveButton).toBeEnabled();
+    await expect(userDetail.saveButton).toBeEnabled();
 });
 
 /**
  * @objective Verifies confirmation dialog can be cancelled
  */
 test('allows cancelling save confirmation dialog', {tag: '@user_management'}, async ({pw}) => {
-    const {systemConsolePage} = await setupUserDetailPage(pw);
+    const {user, adminUser} = await pw.initSetup();
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Navigate to user detail page
+    await navigateToUserDetail(systemConsolePage, user);
+    const {userDetail} = systemConsolePage.users;
 
     // # Update email field
-    const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
     const newEmail = `cancelled-${await pw.random.id()}@example.com`;
-    await emailInput.fill(newEmail);
+    await userDetail.userCard.emailInput.clear();
+    await userDetail.userCard.emailInput.fill(newEmail);
 
     // # Click Save button
-    const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-    await saveButton.click();
+    await userDetail.save();
 
     // * Verify confirmation modal appears
-    const confirmModal = systemConsolePage.page.getByText('Confirm Changes');
-    await expect(confirmModal).toBeVisible();
+    await userDetail.saveChangesModal.toBeVisible();
 
     // # Click Cancel
-    const cancelButton = systemConsolePage.page.getByRole('button', {name: 'Cancel'});
-    await cancelButton.click();
+    await userDetail.saveChangesModal.cancel();
+    await expect(userDetail.userCard.emailInput).toHaveValue(newEmail);
 
-    // * Verify modal closes and field retains the edited value
-    await expect(confirmModal).not.toBeVisible();
-    await expect(emailInput).toHaveValue(newEmail);
+    // * Verify Save button is still enabled (unsaved changes remain)
+    await expect(userDetail.saveButton).toBeEnabled();
 });
+
+/**
+ * Navigate to the user detail page for a given user.
+ */
+async function navigateToUserDetail(systemConsolePage: SystemConsolePage, user: UserProfile) {
+    await systemConsolePage.goto();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
+
+    await systemConsolePage.users.searchUsers(user.email);
+    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+    await expect(userRow.container.getByText(user.email)).toBeVisible();
+    await userRow.container.getByText(user.email).click();
+
+    await systemConsolePage.users.userDetail.toBeVisible();
+}

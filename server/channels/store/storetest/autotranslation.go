@@ -18,6 +18,7 @@ func TestAutoTranslationStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("IsUserEnabled", func(t *testing.T) { testAutoTranslationIsUserEnabled(t, rctx, ss) })
 	t.Run("GetUserLanguage", func(t *testing.T) { testAutoTranslationGetUserLanguage(t, rctx, ss) })
 	t.Run("GetActiveDestinationLanguages", func(t *testing.T) { testAutoTranslationGetActiveDestinationLanguages(t, rctx, ss) })
+	t.Run("GetAllForObject", func(t *testing.T) { testAutoTranslationGetAllForObject(t, ss) })
 }
 
 func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -374,5 +375,74 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 		// Should return only es
 		assert.Len(t, languages, 1)
 		assert.Contains(t, languages, "es")
+	})
+}
+
+func testAutoTranslationGetAllForObject(t *testing.T, ss store.Store) {
+	objectID := model.NewId()
+	objectType := model.TranslationObjectTypePost
+
+	t.Run("returns empty for nonexistent object", func(t *testing.T) {
+		results, err := ss.AutoTranslation().GetAllForObject(objectType, model.NewId())
+		require.NoError(t, err)
+		assert.Empty(t, results)
+	})
+
+	t.Run("returns all translations for an object", func(t *testing.T) {
+		// Save translations in two languages
+		err := ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   objectID,
+			ObjectType: objectType,
+			Lang:       "es",
+			Provider:   "test",
+			Type:       model.TranslationTypeString,
+			Text:       "hola",
+			State:      model.TranslationStateReady,
+		})
+		require.NoError(t, err)
+
+		err = ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   objectID,
+			ObjectType: objectType,
+			Lang:       "fr",
+			Provider:   "test",
+			Type:       model.TranslationTypeString,
+			Text:       "bonjour",
+			State:      model.TranslationStateReady,
+		})
+		require.NoError(t, err)
+
+		results, err := ss.AutoTranslation().GetAllForObject(objectType, objectID)
+		require.NoError(t, err)
+		require.Len(t, results, 2)
+
+		langToText := make(map[string]string)
+		for _, tr := range results {
+			assert.Equal(t, objectID, tr.ObjectID)
+			assert.Equal(t, objectType, tr.ObjectType)
+			langToText[tr.Lang] = tr.Text
+		}
+		assert.Equal(t, "hola", langToText["es"])
+		assert.Equal(t, "bonjour", langToText["fr"])
+	})
+
+	t.Run("does not return translations for other objects", func(t *testing.T) {
+		otherID := model.NewId()
+		err := ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   otherID,
+			ObjectType: objectType,
+			Lang:       "de",
+			Provider:   "test",
+			Type:       model.TranslationTypeString,
+			Text:       "hallo",
+			State:      model.TranslationStateReady,
+		})
+		require.NoError(t, err)
+
+		results, err := ss.AutoTranslation().GetAllForObject(objectType, objectID)
+		require.NoError(t, err)
+		for _, tr := range results {
+			assert.Equal(t, objectID, tr.ObjectID)
+		}
 	})
 }

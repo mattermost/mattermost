@@ -556,7 +556,7 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 
 // GetRemoteForUser returns a remote cluster for the given userId only if the user belongs to at least one channel
 // shared with the remote.
-func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
+func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string, includeDeleted bool) (*model.RemoteCluster, error) {
 	builder := s.getQueryBuilder().
 		Select(
 			"rc.RemoteId",
@@ -579,8 +579,11 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 		Join("SharedChannelRemotes AS scr ON rc.RemoteId = scr.RemoteId").
 		Join("ChannelMembers AS cm ON scr.ChannelId = cm.ChannelId").
 		Where(sq.Eq{"rc.RemoteId": remoteId}).
-		Where(sq.Eq{"scr.DeleteAt": 0}).
 		Where(sq.Eq{"cm.UserId": userId})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"scr.DeleteAt": 0})
+	}
 
 	query, args, err := builder.ToSql()
 	if err != nil {

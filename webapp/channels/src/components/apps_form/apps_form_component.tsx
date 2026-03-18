@@ -59,6 +59,7 @@ export type State = {
     loading: boolean;
     submitting: string | null;
     form: AppForm;
+    isInteracting: boolean;
 }
 
 // Helper function to validate date format and warn if datetime format is used
@@ -239,6 +240,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             fieldErrors: {},
             submitting: null,
             form,
+            isInteracting: false,
         };
     }
 
@@ -517,6 +519,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({values});
     };
 
+    setIsInteracting = (isInteracting: boolean) => {
+        this.setState({isInteracting});
+    };
+
     hasDateTimeFields = (): boolean => {
         const {fields} = this.props.form;
         return fields ? fields.some((field) =>
@@ -530,9 +536,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        // Apply same pattern as DND modal for date/datetime fields
+        // Apply modal-overflow only when date/time picker is open to allow calendar to escape modal bounds
+        // while preserving scroll containment when picker is closed
+        const dialogClassName = this.state.isInteracting ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
         const hasDateTimeFields = this.hasDateTimeFields();
-        const dialogClassName = hasDateTimeFields ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
 
         return (
             <Modal
@@ -654,6 +661,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     value={this.state.values[field.name]}
                     performLookup={this.performLookup}
                     onChange={this.onChange}
+                    setIsInteracting={this.setIsInteracting}
                     listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
                 />
             );
