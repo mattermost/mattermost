@@ -3096,7 +3096,6 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
-		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
@@ -3122,6 +3121,16 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
 		query = query.Where(searchClause)
+	}
+
+	// Prioritize channels whose DisplayName matches the search term,
+	// then fall back to alphabetical ordering.
+	sanitizedTerm := sanitizeSearchTerm(term, "*")
+	if sanitizedTerm != "" {
+		likeTerm := wildcardSearchTerm(sanitizedTerm)
+		query = query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
+	} else {
+		query = query.OrderBy("c.DisplayName")
 	}
 
 	return s.performSearch(query, term)
