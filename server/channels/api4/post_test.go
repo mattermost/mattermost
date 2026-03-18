@@ -2529,6 +2529,40 @@ func TestPinPost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("idempotent pin/unpin after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		pinnedPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  true,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		unpinnedPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  false,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Both are no-ops and must succeed regardless of age.
+		_, err := client.PinPost(context.Background(), pinnedPost.Id)
+		require.NoError(t, err)
+
+		_, err = client.UnpinPost(context.Background(), unpinnedPost.Id)
+		require.NoError(t, err)
+	})
+
 	post := th.BasicPost
 	_, err := client.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)

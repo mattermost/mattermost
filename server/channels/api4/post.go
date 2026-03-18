@@ -1300,6 +1300,13 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
+	// Allow no-op requests (e.g. pinning an already-pinned post) regardless of age.
+	if post.IsPinned == isPinned {
+		auditRec.Success()
+		ReturnStatusOK(w)
+		return
+	}
+
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > post.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) {
 		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return
