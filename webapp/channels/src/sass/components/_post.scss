@@ -949,12 +949,12 @@
 
                 display: flex;
                 width: 100%;
+                align-items: center;
+                justify-content: flex-start;
                 padding: 0 5px;
                 margin: 0;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-                align-items: center;
-                justify-content: flex-start;
 
                 i {
                     margin-right: 5px;
