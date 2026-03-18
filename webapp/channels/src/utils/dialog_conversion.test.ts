@@ -975,6 +975,48 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].refresh).toBe(true);
         });
 
+        it('should handle refresh property for date and datetime fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_date',
+                    type: 'date',
+                    display_name: 'Refreshable Date',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+                {
+                    name: 'refreshable_datetime',
+                    type: 'datetime',
+                    display_name: 'Refreshable Datetime',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+                {
+                    name: 'non_refreshable_date',
+                    type: 'date',
+                    display_name: 'Non-Refreshable Date',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(3);
+            expect(form.fields?.[0].refresh).toBe(true);
+            expect(form.fields?.[1].refresh).toBe(true);
+            expect(form.fields?.[2].refresh).toBeUndefined();
+        });
+
         it('should include state in submit and source AppCall objects', () => {
             const elements: DialogElement[] = [
                 {

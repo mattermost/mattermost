@@ -458,6 +458,13 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
+    // Add refresh support for bool fields
+    if (element.type === DialogElementTypes.BOOL) {
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
+    }
+
     // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
         // Use datetime_config if provided
@@ -474,6 +481,10 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
         if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.time_interval = Number(element.time_interval);
+        }
+
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
         }
     }
 
