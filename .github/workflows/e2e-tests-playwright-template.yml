@@ -263,6 +263,7 @@ jobs:
             e2e-tests/playwright/.e2e-ai-agents/ci-summary.md
             e2e-tests/playwright/.e2e-ai-agents/crew-summary.json
             e2e-tests/playwright/.e2e-ai-agents/crew-summary.md
+            e2e-tests/playwright/.e2e-ai-agents/crew-test-plan.md
             e2e-tests/playwright/.e2e-ai-agents/metrics-summary.json
           retention-days: 1
           if-no-files-found: ignore
