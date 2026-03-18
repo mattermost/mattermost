@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -217,14 +218,16 @@ func ProvisionAdmin(ctx context.Context, serverURL, dbName, username, email, pas
 		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 
-	// Promote to system_admin via DB using parameterized query
+	// Promote to system_admin via DB using parameterized query via stdin
+	// (psql -v variable substitution is not supported with -c)
 	cmd := exec.CommandContext(ctx, "docker", "exec",
+		"-i",
 		"-e", "PGPASSWORD=mostest",
 		"mattermost-postgres",
 		"psql", "-U", "mmuser", "-d", dbName,
 		"-v", "uname="+username,
-		"-c", "UPDATE users SET roles='system_admin system_user' WHERE username=:'uname'",
 	)
+	cmd.Stdin = strings.NewReader("UPDATE users SET roles='system_admin system_user' WHERE username=:'uname';")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("promote admin: %w\n%s", err, out)
 	}

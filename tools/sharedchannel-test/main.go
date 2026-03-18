@@ -70,6 +70,8 @@ func main() {
 
 	runner := NewTestRunner(cfg, logger)
 	if err := runner.Run(ctx); err != nil {
+		logger.Error("Test run failed", mlog.Err(err))
+		logger.Flush()
 		os.Exit(1)
 	}
 }
