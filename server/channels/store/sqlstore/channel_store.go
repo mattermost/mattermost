@@ -3067,15 +3067,7 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 		query = query.Where(searchClause)
 	}
 
-	// Prioritize channels whose DisplayName matches the search term,
-	// then fall back to alphabetical ordering.
-	sanitizedTerm := sanitizeSearchTerm(term, "*")
-	if sanitizedTerm != "" {
-		likeTerm := wildcardSearchTerm(sanitizedTerm)
-		query = query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
-	} else {
-		query = query.OrderBy("c.DisplayName")
-	}
+	query = orderByDisplayNameMatch(query, term)
 
 	query = query.Limit(model.ChannelSearchDefaultLimit)
 
@@ -3123,15 +3115,7 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 		query = query.Where(searchClause)
 	}
 
-	// Prioritize channels whose DisplayName matches the search term,
-	// then fall back to alphabetical ordering.
-	sanitizedTerm := sanitizeSearchTerm(term, "*")
-	if sanitizedTerm != "" {
-		likeTerm := wildcardSearchTerm(sanitizedTerm)
-		query = query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
-	} else {
-		query = query.OrderBy("c.DisplayName")
-	}
+	query = orderByDisplayNameMatch(query, term)
 
 	return s.performSearch(query, term)
 }
@@ -3600,6 +3584,18 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 		likeClause,
 		s.buildFulltextClause(term, "c.Name", "c.DisplayName", "c.Purpose"),
 	}
+}
+
+// orderByDisplayNameMatch adds an ORDER BY clause that prioritizes channels whose DisplayName matches the search term,
+// then sorts alphabetically by DisplayName.
+func orderByDisplayNameMatch(query sq.SelectBuilder, term string) sq.SelectBuilder {
+	sanitizedTerm := sanitizeSearchTerm(term, "*")
+	if sanitizedTerm == "" {
+		return query.OrderBy("c.DisplayName")
+	}
+
+	likeTerm := wildcardSearchTerm(sanitizedTerm)
+	return query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
 }
 
 func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string) sq.SelectBuilder {
